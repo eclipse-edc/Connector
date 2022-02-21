@@ -21,10 +21,6 @@ import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.proxy.DataProxyManager;
-import org.eclipse.dataspaceconnector.spi.proxy.DataProxyRequest;
-import org.eclipse.dataspaceconnector.spi.proxy.ProxyEntry;
-import org.eclipse.dataspaceconnector.spi.proxy.ProxyEntryHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -46,13 +42,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerReg
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
-import org.jetbrains.annotations.NotNull;
 
-import java.net.ConnectException;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -61,8 +53,6 @@ import java.util.function.Function;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.UUID.randomUUID;
-import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_RETRY;
-import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
@@ -105,8 +95,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private StatusCheckerRegistry statusCheckerRegistry;
     private Vault vault;
     private TypeManager typeManager;
-    private DataProxyManager dataProxyManager;
-    private ProxyEntryHandlerRegistry proxyEntryHandlers;
     private TransferProcessObservable observable;
     private CommandQueue<TransferProcessCommand> commandQueue;
     private CommandRunner<TransferProcessCommand> commandRunner;
@@ -114,7 +102,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private Monitor monitor;
     private Telemetry telemetry;
 
-    private TransferProcessManagerImpl() { }
+    private TransferProcessManagerImpl() {
+    }
 
     public void start() {
         active.set(true);
@@ -131,43 +120,21 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
     /**
      * Initiate a consumer request TransferProcess.
-     * <p>
-     * If the request is sync, instead of inserting a {@link TransferProcess} into - and having it traverse through -
-     * it returns immediately (= "synchronously"). The {@link TransferProcess} is created in the
-     * {@link TransferProcessStates#COMPLETED} state.
-     * <p>
-     * There is a set of {@link org.eclipse.dataspaceconnector.spi.proxy.ProxyEntryHandler} instances, that receive the resulting {@link ProxyEntry} object.
-     * If a {@link org.eclipse.dataspaceconnector.spi.proxy.ProxyEntryHandler} is registered, the {@link ProxyEntry} is forwarded to it, and if no {@link org.eclipse.dataspaceconnector.spi.proxy.ProxyEntryHandler}
-     * is registered, the {@link ProxyEntry} object is returned.
      */
     @WithSpan
     @Override
     public TransferInitiateResult initiateConsumerRequest(DataRequest dataRequest) {
-        if (dataRequest.isSync()) {
-            return initiateConsumerSyncRequest(dataRequest);
-        } else {
-            return initiateRequest(CONSUMER, dataRequest);
-        }
+        return initiateRequest(CONSUMER, dataRequest);
+
     }
 
     /**
      * Initiate a provider request TransferProcess.
-     * <p>
-     * If the request is sync, instead of inserting a {@link TransferProcess} into - and having it traverse through -
-     * it returns immediately (= "synchronously"). The {@link TransferProcess} is created in the
-     * {@link TransferProcessStates#COMPLETED} state.
-     * <p>
-     * The {@link DataProxyManager} checks if a {@link org.eclipse.dataspaceconnector.spi.proxy.DataProxy}
-     * is registered for a particular request and if so, calls it.
      */
     @WithSpan
     @Override
     public TransferInitiateResult initiateProviderRequest(DataRequest dataRequest) {
-        if (dataRequest.isSync()) {
-            return initiateProviderSyncRequest(dataRequest);
-        } else {
-            return initiateRequest(PROVIDER, dataRequest);
-        }
+        return initiateRequest(PROVIDER, dataRequest);
     }
 
     @Override
@@ -261,80 +228,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         transferProcessStore.create(process);
         observable.invokeForEach(l -> l.created(process));
         return TransferInitiateResult.success(process.getId());
-    }
-
-    @NotNull
-    private TransferInitiateResult initiateProviderSyncRequest(DataRequest dataRequest) {
-        var process = createCompletedTransferProcess(dataRequest, PROVIDER);
-
-        transferProcessStore.create(process);
-
-        var dataProxy = dataProxyManager.getProxy(dataRequest.getDestinationType());
-        if (dataProxy == null) {
-            return TransferInitiateResult.error(process.getId(), FATAL_ERROR, "There is not DataProxy for destination " + dataRequest.getDestinationType());
-        } else {
-            var proxyDataResult = dataProxy.getData(createDataProxyRequest(dataRequest));
-            if (proxyDataResult.failed()) {
-                return TransferInitiateResult.error(process.getId(), ERROR_RETRY, "Failed to get data from proxy");
-            }
-            return TransferInitiateResult.success(process.getId(), proxyDataResult.getContent());
-        }
-    }
-
-    @NotNull
-    private TransferInitiateResult initiateConsumerSyncRequest(DataRequest dataRequest) {
-        TransferProcess transferProcess = createCompletedTransferProcess(dataRequest, CONSUMER);
-
-        transferProcessStore.create(transferProcess);
-
-        var proxyConversion = dispatcherRegistry.send(Object.class, dataRequest, transferProcess::getId)
-                .thenApply(this::extractPayloadAsProxyEntry)
-                .thenApply(proxyEntry -> {
-                    String type = proxyEntry.getType();
-                    return Optional.ofNullable(proxyEntryHandlers.get(type))
-                            .map(handler -> handler.accept(createDataProxyRequest(dataRequest), proxyEntry))
-                            .orElse(proxyEntry);
-                });
-
-        try {
-            var result = proxyConversion.join();
-            return TransferInitiateResult.success(dataRequest.getId(), result);
-        } catch (Exception e) {
-            var status = isRetryable(e.getCause()) ? ResponseStatus.ERROR_RETRY : FATAL_ERROR;
-            return TransferInitiateResult.error(dataRequest.getId(), status, e.getMessage());
-        }
-    }
-
-    private TransferProcess createCompletedTransferProcess(DataRequest dataRequest, TransferProcess.Type type) {
-        var id = UUID.randomUUID().toString();
-
-        return TransferProcess.Builder.newInstance()
-                .id(id)
-                .dataRequest(dataRequest)
-                .state(COMPLETED.code())
-                .type(type)
-                .traceContext(telemetry.getCurrentTraceContext())
-                .build();
-    }
-
-    private ProxyEntry extractPayloadAsProxyEntry(Object result) {
-        try {
-            var payloadField = result.getClass().getDeclaredField("payload");
-            payloadField.setAccessible(true);
-            var payload = payloadField.get(result).toString();
-
-            return typeManager.readValue(payload, ProxyEntry.class);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            return ProxyEntry.Builder.newInstance().build();
-        }
-    }
-
-    private DataProxyRequest createDataProxyRequest(DataRequest request) {
-        return new DataProxyRequest(request.getConnectorAddress(), request.getContractId(), request.getDataDestination());
-    }
-
-    private boolean isRetryable(Throwable ex) {
-        return ex instanceof ConnectException; //we might need to add more retryable exceptions
     }
 
     private void run() {
@@ -502,7 +395,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         transferProcessStore.update(transferProcess);
     }
 
-    @NotNull
     private boolean processProvisioned(TransferProcess process) {
         DataRequest dataRequest = process.getDataRequest();
         if (CONSUMER == process.getType()) {
@@ -640,16 +532,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             return this;
         }
 
-        public Builder dataProxyManager(DataProxyManager dataProxyManager) {
-            manager.dataProxyManager = dataProxyManager;
-            return this;
-        }
-
-        public Builder proxyEntryHandlerRegistry(ProxyEntryHandlerRegistry proxyEntryHandlerRegistry) {
-            manager.proxyEntryHandlers = proxyEntryHandlerRegistry;
-            return this;
-        }
-
         public Builder observable(TransferProcessObservable observable) {
             manager.observable = observable;
             return this;
@@ -669,8 +551,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             Objects.requireNonNull(manager.commandQueue, "commandQueue cannot be null");
             Objects.requireNonNull(manager.commandRunner, "commandRunner cannot be null");
             Objects.requireNonNull(manager.statusCheckerRegistry, "StatusCheckerRegistry cannot be null!");
-            Objects.requireNonNull(manager.dataProxyManager, "DataProxyManager cannot be null!");
-            Objects.requireNonNull(manager.proxyEntryHandlers, "ProxyEntryHandlerRegistry cannot be null!");
             Objects.requireNonNull(manager.observable, "Observable cannot be null");
             Objects.requireNonNull(manager.telemetry, "Telemetry cannot be null");
             Objects.requireNonNull(manager.transferProcessStore, "Store cannot be null");

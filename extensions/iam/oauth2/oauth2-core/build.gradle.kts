@@ -23,7 +23,7 @@ dependencies {
     api(project(":spi"))
     api(project(":extensions:iam:oauth2:oauth2-spi"))
     api(project(":extensions:token:token-validation"))
-
+    implementation(project(":extensions:token:token-validation"))
     implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
 

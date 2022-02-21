@@ -28,7 +28,6 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
-import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,6 +46,7 @@ import static org.eclipse.dataspaceconnector.dataplane.api.common.ResponseFuncti
 import static org.eclipse.dataspaceconnector.dataplane.api.common.ResponseFunctions.validationErrors;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
+import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.DATA_ADDRESS_CLAIM;
 
 /**
  * Filter that intercepts call to public API of the data plane.
@@ -107,7 +107,7 @@ public class DataPlanePublicApiRequestFilter implements ContainerRequestFilter {
     }
 
     private DataFlowRequest createDataFlowRequest(ClaimToken claims, UriInfo queryParams, Request method) {
-        var dataAddress = typeManager.readValue(claims.getClaims().get(EndpointDataReferenceClaimsSchema.DATA_ADDRESS_CLAIM), DataAddress.class);
+        var dataAddress = typeManager.readValue(claims.getClaims().get(DATA_ADDRESS_CLAIM), DataAddress.class);
         var queryParamsAsString = convertQueryParamsToString(queryParams);
         return DataFlowRequest.Builder.newInstance()
                 .processId(UUID.randomUUID().toString()) // TODO: map the transfer process id into the token?
