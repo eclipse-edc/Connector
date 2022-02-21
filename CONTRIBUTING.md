@@ -111,8 +111,10 @@ we would appreciate if your pull request applies to the following points:
 
 * Where code is not self-explanatory add documentation providing extra clarification.
 
-* Submit a draft pull request at early-stage and add people previously working on the same code as reviewer.
-  Make sure automatically checks pass before marking it as "ready for review":
+* PR descriptions should use the current [PR template](.github/PULL_REQUEST_TEMPLATE.md)
+
+* Submit a draft pull request at early-stage and add people previously working on the same code as reviewer. Make sure
+  automatically checks pass before marking it as "ready for review":
 
     * _Intellectual Property Validation_ verifying the [Eclipse CLA](#eclipse-contributor-agreement) has been signed as
       well as commits have been signed-off and
