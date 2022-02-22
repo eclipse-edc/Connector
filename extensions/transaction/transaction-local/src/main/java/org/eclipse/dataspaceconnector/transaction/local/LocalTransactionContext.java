@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Microsoft Corporation
+ *  Copyright (c) 2021-2022 Microsoft Corporation and others
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,10 +9,11 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *
+ *       Daimler TSS GmbH - wrap and re-throw handled exceptions
  */
 package org.eclipse.dataspaceconnector.transaction.local;
 
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.local.LocalTransactionContextManager;
@@ -24,7 +25,7 @@ import java.util.List;
 /**
  * Implements a transaction context for local resources. The purpose of this implementation is to provide a portable transaction programming model for code that executes in
  * environments where a proper JTA transaction manager is not available.
- *
+ * <p>
  * Note that this transaction context cannot implement atomicity if multiple resources are enlisted for a transaction. The only way to achieve this is to use XA transactions.
  */
 public class LocalTransactionContext implements TransactionContext, LocalTransactionContextManager {
@@ -53,6 +54,10 @@ public class LocalTransactionContext implements TransactionContext, LocalTransac
         } catch (Exception e) {
             assert transaction != null;
             transaction.setRollbackOnly();
+            if (e instanceof EdcException) {
+                throw (EdcException) e;
+            }
+            throw new EdcException(e.getMessage(), e);
         } finally {
             if (startedTransaction) {
                 if (transaction.isRollbackOnly()) {
