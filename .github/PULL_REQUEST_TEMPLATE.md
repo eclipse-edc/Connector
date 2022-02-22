@@ -21,4 +21,4 @@ Closes # <-- _insert Issue number if one exists_
 - [ ] performed checkstyle check locally?
 - [ ] added/updated copyright headers?
 - [ ] documented public classes/methods?
-- [ ] added relevant documentation?
+- [ ] added/updated relevant documentation?
