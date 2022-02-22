@@ -27,6 +27,8 @@ import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -40,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -96,15 +99,9 @@ class CosmosAssetIndexIntegrationTest {
 
     @Test
     void queryAssets_selectAll() {
-        Asset asset1 = Asset.Builder.newInstance()
-                .id("123")
-                .property("hello", "world")
-                .build();
+        Asset asset1 = createAsset("123", "hello", "world");
 
-        Asset asset2 = Asset.Builder.newInstance()
-                .id("456")
-                .property("foo", "bar")
-                .build();
+        Asset asset2 = createAsset("456", "foo", "bar");
 
         container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
         container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
@@ -118,15 +115,9 @@ class CosmosAssetIndexIntegrationTest {
 
     @Test
     void queryAssets_filterOnProperty() {
-        Asset asset1 = Asset.Builder.newInstance()
-                .id("123")
-                .property("test", "world")
-                .build();
+        Asset asset1 = createAsset("123", "test", "world");
 
-        Asset asset2 = Asset.Builder.newInstance()
-                .id("456")
-                .property("test", "bar")
-                .build();
+        Asset asset2 = createAsset("456", "test", "bar");
 
         container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
         container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
@@ -143,21 +134,15 @@ class CosmosAssetIndexIntegrationTest {
 
     @Test
     void queryAssets_filterOnPropertyContainingIllegalArgs() {
-        Asset asset1 = Asset.Builder.newInstance()
-                .id("123")
-                .property("test:value", "world")
-                .build();
+        Asset asset1 = createAsset("123", "test:value", "world");
 
-        Asset asset2 = Asset.Builder.newInstance()
-                .id("456")
-                .property("test:value", "bar")
-                .build();
+        Asset asset2 = createAsset("456", "test:value", "bar");
 
         container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
         container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
 
         AssetSelectorExpression expression = AssetSelectorExpression.Builder.newInstance()
-                .whenEquals("test:value", "'bar'")
+                .whenEquals("test:value", "bar")
                 .build();
 
         List<Asset> assets = assetIndex.queryAssets(expression).collect(Collectors.toList());
@@ -168,15 +153,9 @@ class CosmosAssetIndexIntegrationTest {
 
     @Test
     void findById() {
-        Asset asset1 = Asset.Builder.newInstance()
-                .id("123")
-                .property("test", "world")
-                .build();
+        Asset asset1 = createAsset("123", "test", "world");
 
-        Asset asset2 = Asset.Builder.newInstance()
-                .id("456")
-                .property("test", "bar")
-                .build();
+        Asset asset2 = createAsset("456", "test", "bar");
 
         container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
         container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
@@ -189,15 +168,9 @@ class CosmosAssetIndexIntegrationTest {
 
     @Test
     void queryAssets_operatorIn() {
-        Asset asset1 = Asset.Builder.newInstance()
-                .id("123")
-                .property("hello", "world")
-                .build();
+        Asset asset1 = createAsset("123", "hello", "world");
 
-        Asset asset2 = Asset.Builder.newInstance()
-                .id("456")
-                .property("foo", "bar")
-                .build();
+        Asset asset2 = createAsset("456", "foo", "bar");
 
         container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
         container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
@@ -216,15 +189,9 @@ class CosmosAssetIndexIntegrationTest {
 
     @Test
     void queryAssets_operatorIn_noUpTicks() {
-        Asset asset1 = Asset.Builder.newInstance()
-                .id("123")
-                .property("hello", "world")
-                .build();
+        Asset asset1 = createAsset("123", "hello", "world");
 
-        Asset asset2 = Asset.Builder.newInstance()
-                .id("456")
-                .property("foo", "bar")
-                .build();
+        Asset asset2 = createAsset("456", "foo", "bar");
 
         container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
         container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
@@ -241,15 +208,9 @@ class CosmosAssetIndexIntegrationTest {
 
     @Test
     void queryAssets_operatorIn_noBrackets_throwsException() {
-        Asset asset1 = Asset.Builder.newInstance()
-                .id("123")
-                .property("hello", "world")
-                .build();
+        Asset asset1 = createAsset("123", "hello", "world");
 
-        Asset asset2 = Asset.Builder.newInstance()
-                .id("456")
-                .property("foo", "bar")
-                .build();
+        Asset asset2 = createAsset("456", "foo", "bar");
 
         container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
         container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
@@ -266,15 +227,9 @@ class CosmosAssetIndexIntegrationTest {
 
     @Test
     void queryAssets_operatorIn_syntaxError_throwsException() {
-        Asset asset1 = Asset.Builder.newInstance()
-                .id("123")
-                .property("hello", "world")
-                .build();
+        Asset asset1 = createAsset("123", "hello", "world");
 
-        Asset asset2 = Asset.Builder.newInstance()
-                .id("456")
-                .property("foo", "bar")
-                .build();
+        Asset asset2 = createAsset("456", "foo", "bar");
 
         container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
         container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
@@ -301,9 +256,124 @@ class CosmosAssetIndexIntegrationTest {
         assertThat(assets).isEmpty();
     }
 
+    @Test
+    void findAll_noQuerySpec() {
+        Asset asset1 = createAsset("123", "test", "world");
+        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
+
+        var all = assetIndex.queryAssets(QuerySpec.none());
+        assertThat(all).hasSize(1).extracting(Asset::getId).containsExactly(asset1.getId());
+
+    }
+
+    @Test
+    void findAll_withPaging() {
+        IntStream.range(0, 10).mapToObj(i -> createAsset("id" + i, "foo", "bar" + i))
+                .forEach(a -> container.createItem(new AssetDocument(a, TEST_PARTITION_KEY, dataAddress)));
+
+        var limitQuery = QuerySpec.Builder.newInstance().limit(5).offset(2).build();
+
+        var all = assetIndex.queryAssets(limitQuery);
+        assertThat(all).hasSize(5).extracting(Asset::getId).containsExactly("id2", "id3", "id4", "id5", "id6");
+    }
+
+    @Test
+    void findAll_withPaging_sortedDesc() {
+        IntStream.range(0, 10).mapToObj(i -> createAsset("id" + i, "foo", "bar" + i))
+                .forEach(a -> container.createItem(new AssetDocument(a, TEST_PARTITION_KEY, dataAddress)));
+
+        var limitQuery = QuerySpec.Builder.newInstance()
+                .limit(5).offset(2)
+                .sortField(AssetDocument.sanitize(Asset.PROPERTY_ID))
+                .sortOrder(SortOrder.DESC)
+                .build();
+
+        var all = assetIndex.queryAssets(limitQuery);
+        assertThat(all).hasSize(5).extracting(Asset::getId).containsExactly("id7", "id6", "id5", "id4", "id3");
+    }
+
+    @Test
+    void findAll_withPaging_sortedAsc() {
+        IntStream.range(0, 10).mapToObj(i -> createAsset("id" + i, "foo", "bar" + i))
+                .forEach(a -> container.createItem(new AssetDocument(a, TEST_PARTITION_KEY, dataAddress)));
+
+        var limitQuery = QuerySpec.Builder.newInstance()
+                .limit(3).offset(2)
+                .sortField(AssetDocument.sanitize(Asset.PROPERTY_ID))
+                .sortOrder(SortOrder.ASC)
+                .build();
+
+        var all = assetIndex.queryAssets(limitQuery);
+        assertThat(all).hasSize(3).extracting(Asset::getId).containsExactly("id2", "id3", "id4");
+    }
+
+    @Test
+    void findAll_withFiltering() {
+        IntStream.range(0, 5).mapToObj(i -> createAsset("id" + i, "foo", "bar" + i))
+                .forEach(a -> container.createItem(new AssetDocument(a, TEST_PARTITION_KEY, dataAddress)));
+
+        var filterQuery = QuerySpec.Builder.newInstance()
+                .equalsAsContains(false)
+                .filter("foo=bar4")
+                .build();
+
+        var all = assetIndex.queryAssets(filterQuery);
+        assertThat(all).hasSize(1).extracting(a -> a.getProperty("foo")).containsOnly("bar4");
+    }
+
+    @Test
+    void findAll_withInvalidFilter_throwsException() {
+        IntStream.range(0, 5).mapToObj(i -> createAsset("id" + i, "foo", "bar" + i))
+                .forEach(a -> container.createItem(new AssetDocument(a, TEST_PARTITION_KEY, dataAddress)));
+
+        var filterQuery = QuerySpec.Builder.newInstance()
+                .equalsAsContains(false)
+                .filter("foo STARTSWITH bar4")
+                .build();
+
+        assertThatThrownBy(() -> assetIndex.queryAssets(filterQuery)).isInstanceOf(IllegalArgumentException.class).hasMessage("Cannot build SqlParameter for operator: STARTSWITH");
+    }
+
+    @Test
+    void findAll_withFilteringOperatorIn_limitExceedsResultSize() {
+        IntStream.range(0, 5).mapToObj(i -> createAsset("id" + i, "foo", "bar" + i))
+                .forEach(a -> container.createItem(new AssetDocument(a, TEST_PARTITION_KEY, dataAddress)));
+
+        var filterQuery = QuerySpec.Builder.newInstance()
+                .equalsAsContains(false)
+                .filter("foo IN ('bar4', 'bar3', 'bar2', 'bar1')")
+                .limit(10)
+                .build();
+
+        var all = assetIndex.queryAssets(filterQuery);
+        assertThat(all).hasSize(4).extracting(Asset::getId).containsExactlyInAnyOrder("id4", "id3", "id2", "id1");
+    }
+
+    @Test
+    void findAll_withSorting() {
+        IntStream.range(5, 10).mapToObj(i -> createAsset("id" + i, "foo", "bar" + i))
+                .forEach(a -> container.createItem(new AssetDocument(a, TEST_PARTITION_KEY, dataAddress)));
+
+        var sortQuery = QuerySpec.Builder.newInstance()
+                .sortOrder(SortOrder.DESC)
+                .sortField("foo")
+                .build();
+
+        var all = assetIndex.queryAssets(sortQuery);
+        assertThat(all).hasSize(5).extracting(Asset::getId).containsExactly("id9", "id8", "id7", "id6", "id5");
+
+    }
+
     @AfterEach
     void teardown() {
         CosmosContainerResponse delete = container.delete();
         assertThat(delete.getStatusCode()).isGreaterThanOrEqualTo(200).isLessThan(300);
+    }
+
+    private Asset createAsset(String id, String somePropertyKey, String somePropertyValue) {
+        return Asset.Builder.newInstance()
+                .id(id)
+                .property(somePropertyKey, somePropertyValue)
+                .build();
     }
 }

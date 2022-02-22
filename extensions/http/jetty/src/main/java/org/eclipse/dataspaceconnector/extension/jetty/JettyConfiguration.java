@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.extension.jetty;
 
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.system.Config;
+import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
 
 import java.util.AbstractMap;
 import java.util.HashMap;
@@ -60,7 +60,7 @@ public class JettyConfiguration {
 
 
         if (jettyConfig.getPortMappings().isEmpty()) {
-            jettyConfig.portMapping(new PortMapping());
+            jettyConfig.portMapping(PortMapping.getDefault());
         }
 
         return jettyConfig;

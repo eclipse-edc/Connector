@@ -18,6 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -35,18 +37,25 @@ class QuerySpecTest {
         var spec = QuerySpec.Builder.newInstance().build();
         var assertion = assertThat(spec);
 
-        assertion.extracting(QuerySpec::getFilterExpression).isNull();
+        assertion.extracting(QuerySpec::getFilterExpression).isNotNull();
         assertion.extracting(QuerySpec::getLimit).isEqualTo(50);
         assertion.extracting(QuerySpec::getOffset).isEqualTo(0);
-        assertion.extracting(QuerySpec::getSortOrder).isEqualTo(SortOrder.DESC);
+        assertion.extracting(QuerySpec::getSortOrder).isEqualTo(SortOrder.ASC);
         assertion.extracting(QuerySpec::getSortField).isNull();
     }
 
     @ParameterizedTest
     @ValueSource(strings = { "name=foo", "name = foo", "name =      foo", "name contains foo" })
-    void verifyEqualsFilterExpressions(String equalityExp) {
-        var spec = QuerySpec.Builder.newInstance().filter(equalityExp).build();
+    void verifyEquals_whenEqualsAsContainsFilterExpressions(String equalityExp) {
+        var spec = QuerySpec.Builder.newInstance().equalsAsContains(true).filter(equalityExp).build();
         assertThat(spec.getFilterExpression()).hasSize(1).containsOnly(new Criterion("name", "contains", "foo"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "name=foo", "name = foo", "name =      foo" })
+    void verifyEquals_whenEqualsFilterExpressions(String equalityExp) {
+        var spec = QuerySpec.Builder.newInstance().equalsAsContains(false).filter(equalityExp).build();
+        assertThat(spec.getFilterExpression()).hasSize(1).containsOnly(new Criterion("name", "=", "foo"));
     }
 
     @Test
@@ -65,5 +74,13 @@ class QuerySpecTest {
     @ValueSource(strings = { "age<14", "namecontainssomething", "id_like_14" })
     void verify_invalidFilterExpression(String expr) {
         assertThatThrownBy(() -> QuerySpec.Builder.newInstance().filter(expr).build()).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void verify_filterExprNull() {
+        List<Criterion> filter = null;
+        var qs = QuerySpec.Builder.newInstance().filter(filter).build();
+
+        assertThat(qs.getFilterExpression()).isNotNull().isEmpty();
     }
 }

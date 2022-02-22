@@ -15,26 +15,26 @@
 package org.eclipse.dataspaceconnector.boot.system;
 
 import org.eclipse.dataspaceconnector.boot.util.CyclicDependencyException;
-import org.eclipse.dataspaceconnector.core.BaseExtension;
-import org.eclipse.dataspaceconnector.core.config.ConfigFactory;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.system.Config;
+import org.eclipse.dataspaceconnector.spi.system.BaseExtension;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
-import org.eclipse.dataspaceconnector.spi.system.EdcInjectionException;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
-import org.eclipse.dataspaceconnector.spi.system.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
-import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
+import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
+import org.eclipse.dataspaceconnector.spi.system.injection.EdcInjectionException;
+import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -49,15 +49,16 @@ import static org.mockito.Mockito.when;
 class DefaultServiceExtensionContextTest {
 
     private final ServiceExtension coreExtension = new TestCoreExtension();
-    private ServiceExtensionContext context;
+    private DefaultServiceExtensionContext context;
     private ServiceLocator serviceLocatorMock;
 
     @BeforeEach
     void setUp() {
         TypeManager typeManager = new TypeManager();
         Monitor monitor = mock(Monitor.class);
+        Telemetry telemetry = new Telemetry();
         serviceLocatorMock = mock(ServiceLocator.class);
-        context = new DefaultServiceExtensionContext(typeManager, monitor, serviceLocatorMock);
+        context = new DefaultServiceExtensionContext(typeManager, monitor, telemetry, serviceLocatorMock);
     }
 
     @Test
@@ -309,6 +310,59 @@ class DefaultServiceExtensionContextTest {
         assertThat(setting).isEqualTo("default");
     }
 
+    @Test
+    @DisplayName("An environment variable in UPPER_SNAKE_CASE gets converted to dot-notation")
+    void loadConfig_mapsSystemPropertyToJavaPropertyFormat() {
+        var configuration = mock(ConfigurationExtension.class);
+        when(configuration.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("key", "value")));
+        when(serviceLocatorMock.loadImplementors(ConfigurationExtension.class, false)).thenReturn(List.of(configuration));
+        context = Mockito.spy(context);
+        when(context.getEnvironmentVariables()).thenReturn(Map.of("SOME_KEY", "env-val"));
+        context.initialize();
+
+        var setting = context.getSetting("key", "default");
+        var setting2 = context.getSetting("some.key", null);
+
+        assertThat(setting).isEqualTo("value");
+        assertThat(setting2).isEqualTo("env-val");
+    }
+
+    @Test
+    @DisplayName("An environment variable in UPPER_SNAKE_CASE should overwrite app config in dot-notation")
+    void loadConfig_envOverwritesAppConfig() {
+        var configuration = mock(ConfigurationExtension.class);
+        when(configuration.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("some.key", "value1")));
+        when(serviceLocatorMock.loadImplementors(ConfigurationExtension.class, false)).thenReturn(List.of(configuration));
+        context = Mockito.spy(context);
+        when(context.getEnvironmentVariables()).thenReturn(Map.of("SOME_KEY", "value2"));
+        context.initialize();
+
+        var setting = context.getSetting("some.key", null);
+
+        assertThat(setting).isEqualTo("value2");
+    }
+
+    @Test
+    @DisplayName("An environment variable in UPPER_SNAKE_CASE should get overwritten by system config in dot-notation")
+    void loadConfig_systemPropOverwritesEnvVar() {
+
+        System.setProperty("some.key", "value3");
+        var configuration = mock(ConfigurationExtension.class);
+        when(configuration.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("some.key", "value1")));
+        when(serviceLocatorMock.loadImplementors(ConfigurationExtension.class, false)).thenReturn(List.of(configuration));
+        context = Mockito.spy(context);
+        when(context.getEnvironmentVariables()).thenReturn(Map.of("SOME_KEY", "value2"));
+        context.initialize();
+
+        var setting = context.getSetting("some.key", null);
+
+        try {
+            assertThat(setting).isEqualTo("value3");
+        } finally {
+            System.clearProperty("some.key");
+        }
+    }
+
     @SafeVarargs
     private <T> List<T> mutableListOf(T... elements) {
         return new ArrayList<>(List.of(elements));
@@ -322,7 +376,7 @@ class DefaultServiceExtensionContextTest {
     private static class SomeExtension implements ServiceExtension {
     }
 
-    @Provides({SomeObject.class})
+    @Provides({ SomeObject.class })
     private static class ProvidingExtension implements ServiceExtension {
     }
 
@@ -330,20 +384,20 @@ class DefaultServiceExtensionContextTest {
     private static class AnotherProvidingExtension implements ServiceExtension {
     }
 
-    @Provides({SomeObject.class})
+    @Provides({ SomeObject.class })
     private static class TestProvidingExtension implements ServiceExtension {
         @Inject
         AnotherObject obj;
     }
 
-    @Provides({AnotherObject.class})
+    @Provides({ AnotherObject.class })
     private static class TestProvidingExtension2 implements ServiceExtension {
         @Inject
         SomeObject obj;
     }
 
-    @Provides({AnotherObject.class})
-    @Requires({SomeObject.class})
+    @Provides({ AnotherObject.class })
+    @Requires({ SomeObject.class })
     private static class TestProvidingExtension3 implements ServiceExtension {
     }
 

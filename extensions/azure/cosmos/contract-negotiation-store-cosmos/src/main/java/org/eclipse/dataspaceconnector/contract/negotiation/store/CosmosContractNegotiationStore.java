@@ -4,19 +4,22 @@ import com.azure.cosmos.models.SqlParameter;
 import com.azure.cosmos.models.SqlQuerySpec;
 import com.fasterxml.jackson.core.type.TypeReference;
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.azure.cosmos.dialect.SqlStatement;
 import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractNegotiationDocument;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static net.jodah.failsafe.Failsafe.with;
 
@@ -86,6 +89,19 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
         };
         var list = typeManager.readValue(rawJson, typeRef);
         return list.stream().map(this::toNegotiation).collect(Collectors.toList());
+    }
+
+    @Override
+    public Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
+        var statement = new SqlStatement<>(ContractNegotiationDocument.class);
+        var query = statement.where(querySpec.getFilterExpression())
+                .offset(querySpec.getOffset())
+                .limit(querySpec.getLimit())
+                .orderBy(querySpec.getSortField(), querySpec.getSortOrder() == SortOrder.ASC)
+                .getQueryAsSqlQuerySpec();
+
+        var objects = with(retryPolicy).get(() -> cosmosDbApi.queryItems(query));
+        return objects.map(this::toNegotiation);
     }
 
 

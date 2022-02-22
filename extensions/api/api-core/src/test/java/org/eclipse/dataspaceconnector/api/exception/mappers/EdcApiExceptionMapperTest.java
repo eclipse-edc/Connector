@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.api.exception.mappers;
 
 import jakarta.ws.rs.core.Response;
-import org.eclipse.dataspaceconnector.api.exception.AuthorizationFailedException;
+import org.eclipse.dataspaceconnector.api.exception.AuthenticationFailedException;
 import org.eclipse.dataspaceconnector.api.exception.NotAuthorizedException;
 import org.eclipse.dataspaceconnector.api.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
@@ -35,7 +35,7 @@ class EdcApiExceptionMapperTest {
 
     public static Stream<Arguments> getArgs() {
         return Stream.of(Arguments.of(new ObjectNotModifiableException("1234", "test-type"), 423),
-                Arguments.of(new AuthorizationFailedException(), 401),
+                Arguments.of(new AuthenticationFailedException(), 401),
                 Arguments.of(new ObjectExistsException("test-id", "test-object-type"), 409),
                 Arguments.of(new ObjectNotFoundException("test-object-id", "test-object-type"), 404),
                 Arguments.of(new IllegalStateException("foo"), 503),

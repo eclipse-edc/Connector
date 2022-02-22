@@ -22,7 +22,7 @@ class HealthCheckServiceImplTest {
 
     private static final Duration PERIOD = Duration.ofMillis(500);
     private static final Duration POLL_INTERVAL = Duration.ofMillis(50);
-    private static final Duration AWAIT_TIMEOUT = Duration.ofSeconds(5);
+    private static final Duration AWAIT_TIMEOUT = Duration.ofSeconds(10);
     private HealthCheckServiceImpl service;
 
     @BeforeEach

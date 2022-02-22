@@ -23,10 +23,8 @@ import org.eclipse.dataspaceconnector.contract.offer.ContractDefinitionServiceIm
 import org.eclipse.dataspaceconnector.contract.offer.ContractOfferServiceImpl;
 import org.eclipse.dataspaceconnector.contract.policy.PolicyEngineImpl;
 import org.eclipse.dataspaceconnector.contract.validation.ContractValidationServiceImpl;
-import org.eclipse.dataspaceconnector.core.CoreExtension;
-import org.eclipse.dataspaceconnector.core.base.BoundedCommandQueue;
-import org.eclipse.dataspaceconnector.core.base.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.command.BoundedCommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
@@ -43,6 +41,8 @@ import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
+import org.eclipse.dataspaceconnector.spi.system.CoreExtension;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -57,9 +57,9 @@ public class ContractServiceExtension implements ServiceExtension {
 
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
     private Monitor monitor;
-    private ServiceExtensionContext context;
     private ConsumerContractNegotiationManagerImpl consumerNegotiationManager;
     private ProviderContractNegotiationManagerImpl providerNegotiationManager;
+
     @Inject
     private AssetIndex assetIndex;
     @Inject
@@ -68,6 +68,8 @@ public class ContractServiceExtension implements ServiceExtension {
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     @Inject
     private CommandHandlerRegistry commandHandlerRegistry;
+    @Inject
+    private ContractNegotiationStore store;
 
     @Override
     public String name() {
@@ -77,7 +79,6 @@ public class ContractServiceExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
-        this.context = context;
 
         registerTypes(context);
         registerServices(context);
@@ -85,10 +86,8 @@ public class ContractServiceExtension implements ServiceExtension {
 
     @Override
     public void start() {
-        // Start negotiation managers.
-        var negotiationStore = context.getService(ContractNegotiationStore.class);
-        consumerNegotiationManager.start(negotiationStore);
-        providerNegotiationManager.start(negotiationStore);
+        consumerNegotiationManager.start();
+        providerNegotiationManager.start();
     }
 
     @Override
@@ -127,7 +126,8 @@ public class ContractServiceExtension implements ServiceExtension {
 
         CommandQueue<ContractNegotiationCommand> commandQueue = new BoundedCommandQueue<>(10);
         CommandRunner<ContractNegotiationCommand> commandRunner = new CommandRunner<>(commandHandlerRegistry, monitor);
-        
+
+        var telemetry = context.getTelemetry();
         var observable = new ContractNegotiationObservableImpl();
         context.registerService(ContractNegotiationObservable.class, observable);
 
@@ -139,6 +139,8 @@ public class ContractServiceExtension implements ServiceExtension {
                 .commandQueue(commandQueue)
                 .commandRunner(commandRunner)
                 .observable(observable)
+                .telemetry(telemetry)
+                .store(store)
                 .build();
 
         providerNegotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
@@ -149,6 +151,8 @@ public class ContractServiceExtension implements ServiceExtension {
                 .commandQueue(commandQueue)
                 .commandRunner(commandRunner)
                 .observable(observable)
+                .telemetry(telemetry)
+                .store(store)
                 .build();
 
         context.registerService(ConsumerContractNegotiationManager.class, consumerNegotiationManager);

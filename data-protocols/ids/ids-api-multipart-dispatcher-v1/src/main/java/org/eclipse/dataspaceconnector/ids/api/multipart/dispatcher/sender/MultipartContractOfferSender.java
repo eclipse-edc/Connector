@@ -35,6 +35,8 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Objects;
 
+import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
+
 /**
  * IdsMultipartSender implementation for contract requests. Sends IDS ContractRequestMessages and
  * expects an IDS RequestInProcessMessage as the response.
@@ -82,11 +84,11 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
                     ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                     ._transferContract_(URI.create(request.getCorrelationId()))
                     .build();
-            message.setProperty("idsWebhookAddress", idsWebhookAddress + "/api/ids/multipart");
+            message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + "/api/ids/multipart");
 
             return message;
         } else {
-            var message =  new ContractOfferMessageBuilder()
+            var message = new ContractOfferMessageBuilder()
                     ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                     //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
                     ._securityToken_(token)
@@ -95,7 +97,7 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
                     ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                     ._transferContract_(URI.create(request.getCorrelationId()))
                     .build();
-            message.setProperty("idsWebhookAddress", idsWebhookAddress + "/api/ids/multipart");
+            message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + "/api/ids/multipart");
 
             return message;
         }

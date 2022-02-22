@@ -21,7 +21,6 @@ plugins {
 
 
 dependencies {
-    api(project(":core:contract"))
     api(project(":spi"))
     implementation(project(":data-protocols:ids:ids-spi"))
 }

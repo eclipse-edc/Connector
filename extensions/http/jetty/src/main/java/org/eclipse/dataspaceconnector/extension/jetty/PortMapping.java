@@ -25,8 +25,12 @@ public class PortMapping {
     private final int port;
     private final String path;
 
-    public PortMapping() {
-        this(JettyConfiguration.DEFAULT_CONTEXT_NAME, JettyConfiguration.DEFAULT_PORT, JettyConfiguration.DEFAULT_PATH);
+    public static PortMapping getDefault() {
+        return getDefault(JettyConfiguration.DEFAULT_PORT);
+    }
+
+    public static PortMapping getDefault(int port) {
+        return new PortMapping(JettyConfiguration.DEFAULT_CONTEXT_NAME, port, JettyConfiguration.DEFAULT_PATH);
     }
 
     public PortMapping(String name, int port, String path) {

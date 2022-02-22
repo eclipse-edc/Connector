@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.spi.system;
 
+import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
+
 /**
  * Resolve config settings and parse them to different primitive types
  */

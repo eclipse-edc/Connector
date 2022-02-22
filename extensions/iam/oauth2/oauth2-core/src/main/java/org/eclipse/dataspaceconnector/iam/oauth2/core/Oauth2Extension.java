@@ -48,7 +48,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * Provides OAuth2 client credentials flow support.
  */
-@Provides({ IdentityService.class, JwtDecoratorRegistry.class })
+@Provides({IdentityService.class, JwtDecoratorRegistry.class})
 public class Oauth2Extension implements ServiceExtension {
 
     private static final long TOKEN_EXPIRATION = TimeUnit.MINUTES.toSeconds(5);
@@ -157,14 +157,13 @@ public class Oauth2Extension implements ServiceExtension {
     }
 
     private Oauth2Configuration createConfig(ServiceExtensionContext context) {
-        String providerAudience = context.getSetting(PROVIDER_AUDIENCE, context.getConnectorId());
-        String tokenUrl = mandatorySetting(context, TOKEN_URL);
-        String publicKeyAlias = mandatorySetting(context, PUBLIC_KEY_ALIAS);
-        String privateKeyAlias = mandatorySetting(context, PRIVATE_KEY_ALIAS);
-        String clientId = mandatorySetting(context, CLIENT_ID);
-
-        PrivateKeyResolver privateKeyResolver = context.getService(PrivateKeyResolver.class);
-        CertificateResolver certificateResolver = context.getService(CertificateResolver.class);
+        var providerAudience = context.getSetting(PROVIDER_AUDIENCE, context.getConnectorId());
+        var tokenUrl = mandatorySetting(context, TOKEN_URL);
+        var publicKeyAlias = mandatorySetting(context, PUBLIC_KEY_ALIAS);
+        var privateKeyAlias = mandatorySetting(context, PRIVATE_KEY_ALIAS);
+        var clientId = mandatorySetting(context, CLIENT_ID);
+        var privateKeyResolver = context.getService(PrivateKeyResolver.class);
+        var certificateResolver = context.getService(CertificateResolver.class);
         return Oauth2Configuration.Builder.newInstance()
                 .identityProviderKeyResolver(providerKeyResolver)
                 .tokenUrl(tokenUrl)

@@ -17,12 +17,15 @@ plugins {
 }
 
 val nimbusVersion: String by project
+val okHttpVersion: String by project
 
 dependencies {
     api(project(":spi"))
     api(project(":extensions:iam:oauth2:oauth2-spi"))
 
     implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
+
+    testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
 
     testImplementation(project(":extensions:filesystem:vault-fs"))
     testImplementation(project(":extensions:iam:oauth2:oauth2-core"))

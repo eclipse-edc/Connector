@@ -13,7 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.transaction.atomikos;
 
-import org.eclipse.dataspaceconnector.spi.system.Config;
+import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
 
 import java.util.function.Consumer;
 

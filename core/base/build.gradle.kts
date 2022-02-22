@@ -23,7 +23,7 @@ val jodahFailsafeVersion: String by project
 
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:core-spi"))
 
     api("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     api("net.jodah:failsafe:${jodahFailsafeVersion}")

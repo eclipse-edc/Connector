@@ -14,7 +14,9 @@
 
 package org.eclipse.dataspaceconnector.boot.system;
 
-import org.eclipse.dataspaceconnector.core.monitor.ConsoleMonitor;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
+import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.monitor.MultiplexingMonitor;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
@@ -22,11 +24,16 @@ import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.MonitorExtension;
 import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -38,6 +45,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ExtensionLoaderTest {
+
+    @BeforeAll
+    public static void setup() {
+        // mock default open telemetry
+        GlobalOpenTelemetry.set(mock(OpenTelemetry.class));
+    }
 
     @Test
     void loadMonitor_whenSingleMonitorExtension() {
@@ -66,6 +79,32 @@ class ExtensionLoaderTest {
         var monitor = ExtensionLoader.loadMonitor(new ArrayList<>());
 
         assertTrue(monitor instanceof ConsoleMonitor);
+    }
+
+    @Test
+    void selectOpenTelemetryImpl_whenNoOpenTelemetry() {
+        var openTelemetry = ExtensionLoader.selectOpenTelemetryImpl(emptyList());
+
+        assertThat(openTelemetry).isEqualTo(GlobalOpenTelemetry.get());
+    }
+
+    @Test
+    void selectOpenTelemetryImpl_whenSingleOpenTelemetry() {
+        var customOpenTelemetry = mock(OpenTelemetry.class);
+
+        var openTelemetry = ExtensionLoader.selectOpenTelemetryImpl(List.of(customOpenTelemetry));
+
+        assertThat(openTelemetry).isSameAs(customOpenTelemetry);
+    }
+
+    @Test
+    void selectOpenTelemetryImpl_whenSeveralOpenTelemetry() {
+        var customOpenTelemetry1 = mock(OpenTelemetry.class);
+        var customOpenTelemetry2 = mock(OpenTelemetry.class);
+
+        Exception thrown = assertThrows(IllegalStateException.class,
+                () -> ExtensionLoader.selectOpenTelemetryImpl(List.of(customOpenTelemetry1, customOpenTelemetry2)));
+        assertEquals(thrown.getMessage(), "Found 2 OpenTelemetry implementations. Please provide only one OpenTelemetry service provider.");
     }
 
     @Test

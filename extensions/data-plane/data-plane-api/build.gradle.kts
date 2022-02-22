@@ -13,6 +13,7 @@
  */
 val rsApi: String by project
 val jerseyVersion: String by project
+val okHttpVersion: String by project
 
 plugins {
     `java-library`
@@ -22,6 +23,7 @@ dependencies {
     implementation(project(":spi:web-spi"))
     implementation(project(":extensions:data-plane:data-plane-spi"))
 
+    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     testImplementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
 }

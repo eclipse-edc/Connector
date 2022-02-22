@@ -47,9 +47,6 @@ public class AssetDocument extends CosmosDocument<Map<String, Object>> {
         this.dataAddress = dataAddress;
     }
 
-    public static String sanitize(String key) {
-        return key.replace(':', '_');
-    }
 
     private static Map<String, Object> sanitizeProperties(Asset asset) {
         return asset.getProperties().entrySet().stream()

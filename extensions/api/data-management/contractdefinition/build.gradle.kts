@@ -15,7 +15,7 @@
 
 val infoModelVersion: String by project
 val rsApi: String by project
-val jerseyVersion: String by project
+val okHttpVersion: String by project
 
 plugins {
     `java-library`
@@ -26,9 +26,12 @@ dependencies {
     api(project(":spi"))
     implementation(project(":common:util"))
     implementation(project(":extensions:api:api-core"))
-    implementation(project(":core"))
+    implementation(project(":extensions:api:data-management:api-configuration"))
+
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+
+    testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(project(":extensions:in-memory:contractdefinition-store-memory"))
     testImplementation(project(":extensions:http"))

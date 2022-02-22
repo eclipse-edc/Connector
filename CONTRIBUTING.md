@@ -127,6 +127,8 @@ we would appreciate if your pull request applies to the following points:
 
 * Where code is not self-explanatory, add documentation providing extra clarification.
 
+* PR descriptions should use the current [PR template](.github/PULL_REQUEST_TEMPLATE.md)
+
 * Submit a draft pull request at early-stage and add people previously working on the same code as 
   reviewer. Make sure automatically checks pass before marking it as "ready for review":
 

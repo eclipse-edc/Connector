@@ -63,6 +63,7 @@ class DataSourceToDataSinkTests {
                 .retryPolicy(new RetryPolicy<>())
                 .httpClient(sourceClient)
                 .monitor(monitor)
+                .method("GET")
                 .build();
 
         var sinkClient = new OkHttpClient.Builder()
@@ -105,6 +106,7 @@ class DataSourceToDataSinkTests {
                 .retryPolicy(new RetryPolicy<>())
                 .httpClient(sourceClient)
                 .monitor(monitor)
+                .method("GET")
                 .build();
 
         var sinkClient = mock(OkHttpClient.class);
@@ -145,6 +147,7 @@ class DataSourceToDataSinkTests {
                 .retryPolicy(new RetryPolicy<>())
                 .httpClient(sourceClient)
                 .monitor(monitor)
+                .method("GET")
                 .build();
 
         // sink endpoint raises an exception

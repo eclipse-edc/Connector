@@ -18,13 +18,14 @@ plugins {
 
 val jettyVersion: String by project
 val jerseyVersion: String by project
+val okHttpVersion: String by project
 
 dependencies {
     implementation("org.eclipse.jetty.websocket:websocket-jakarta-server:${jettyVersion}")
 
     api(project(":spi:core-spi"))
 
-    testImplementation(project(":core:base")) // for the ConfigFactory
+    testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     testImplementation("org.glassfish.jersey.core:jersey-server:${jerseyVersion}")
     testImplementation("org.glassfish.jersey.containers:jersey-container-servlet-core:${jerseyVersion}")
     testImplementation("org.glassfish.jersey.core:jersey-common:${jerseyVersion}")

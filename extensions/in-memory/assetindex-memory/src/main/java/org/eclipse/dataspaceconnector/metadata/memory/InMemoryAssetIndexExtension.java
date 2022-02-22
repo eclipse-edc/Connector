@@ -31,7 +31,7 @@ public class InMemoryAssetIndexExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var service = new InMemoryAssetLoader(new CriterionToPredicateConverter());
+        var service = new InMemoryAssetIndex(new AssetPredicateConverter());
         context.registerService(AssetIndex.class, service);
         context.registerService(AssetLoader.class, service);
         context.registerService(DataAddressResolver.class, service);

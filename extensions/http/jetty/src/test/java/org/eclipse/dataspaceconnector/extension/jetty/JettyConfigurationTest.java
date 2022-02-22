@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.extension.jetty;
 
 import org.assertj.core.api.ThrowableAssert;
-import org.eclipse.dataspaceconnector.core.config.ConfigFactory;
+import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -100,7 +100,7 @@ class JettyConfigurationTest {
         var result = JettyConfiguration.createFromConfig(null, null,
                 ConfigFactory.fromMap(Map.of("web.http.this.is.longer.port", "8888")));
 
-        assertThat(result.getPortMappings()).allSatisfy(p -> assertThat(p).usingRecursiveComparison().isEqualTo(new PortMapping()));
+        assertThat(result.getPortMappings()).allSatisfy(p -> assertThat(p).usingRecursiveComparison().isEqualTo(PortMapping.getDefault()));
 
     }
 

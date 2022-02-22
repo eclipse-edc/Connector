@@ -29,7 +29,10 @@ jobs:
         env:
           INTEGRATION_TEST: false
         # checkstyle would also run as part of the `check` task
-        run: ./gradlew clean check -x checkstyleMain -x checkstyleTest
+        run: ./gradlew clean check jacocoTestReport -x checkstyleMain -x checkstyleTest
+
+      - name: CodeCov
+        uses: codecov/codecov-action@v2
 
   Sanity-Check:
     runs-on: ubuntu-latest

@@ -1,6 +1,8 @@
 package org.eclipse.dataspaceconnector.metadata.memory;
 
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
@@ -9,17 +11,19 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression.SELECT_ALL;
 
 class InMemoryAssetIndexTest {
-    private InMemoryAssetLoader index;
+    private InMemoryAssetIndex index;
 
     @BeforeEach
     void setUp() {
-        index = new InMemoryAssetLoader(new CriterionToPredicateConverter());
+        index = new InMemoryAssetIndex(new AssetPredicateConverter());
     }
 
     @Test
@@ -177,6 +181,76 @@ class InMemoryAssetIndexTest {
         var assets = index.queryAssets(selector);
 
         assertThat(assets).hasSize(2).containsExactlyInAnyOrder(testAsset1, testAsset2);
+    }
+
+    @Test
+    void findAll_noQuerySpec() {
+        var assets = IntStream.range(0, 10).mapToObj(i -> createAsset("test-asset", "id" + i))
+                .peek(a -> index.accept(a, createDataAddress(a))).collect(Collectors.toList());
+
+
+        assertThat(index.queryAssets(QuerySpec.Builder.newInstance().build())).containsAll(assets);
+    }
+
+    @Test
+    void findAll_withPaging_noSortOrderDesc() {
+        IntStream.range(0, 10)
+                .mapToObj(i -> createAsset("test-asset", "id" + i))
+                .forEach(a -> index.accept(a, createDataAddress(a)));
+
+        var spec = QuerySpec.Builder.newInstance().sortOrder(SortOrder.DESC).offset(5).limit(2).build();
+
+        var all = index.queryAssets(spec);
+        assertThat(all).hasSize(2);
+    }
+
+    @Test
+    void findAll_withPaging_noSortOrderAsc() {
+        IntStream.range(0, 10)
+                .mapToObj(i -> createAsset("test-asset", "id" + i))
+                .forEach(a -> index.accept(a, createDataAddress(a)));
+
+        var spec = QuerySpec.Builder.newInstance().sortOrder(SortOrder.ASC).offset(3).limit(3).build();
+
+        var all = index.queryAssets(spec);
+        assertThat(all).hasSize(3);
+    }
+
+    @Test
+    void findAll_withFiltering() {
+        var assets = IntStream.range(0, 10)
+                .mapToObj(i -> createAsset("test-asset", "id" + i))
+                .peek(a -> index.accept(a, createDataAddress(a)))
+                .collect(Collectors.toList());
+
+        var spec = QuerySpec.Builder.newInstance().equalsAsContains(false).filter(Asset.PROPERTY_ID + " = id1").build();
+        assertThat(index.queryAssets(spec)).hasSize(1).containsExactly(assets.get(1));
+    }
+
+
+    @Test
+    void findAll_withFiltering_limitExceedsResultSize() {
+        IntStream.range(0, 10)
+                .mapToObj(i -> createAsset("test-asset" + i))
+                .forEach(a -> index.accept(a, createDataAddress(a)));
+
+        var spec = QuerySpec.Builder.newInstance()
+                .sortOrder(SortOrder.ASC)
+                .offset(15)
+                .limit(10)
+                .build();
+        assertThat(index.queryAssets(spec)).isEmpty();
+    }
+
+    @Test
+    void findAll_withSorting() {
+        var assets = IntStream.range(0, 10)
+                .mapToObj(i -> createAsset("test-asset", "id" + i))
+                .peek(a -> index.accept(a, createDataAddress(a)))
+                .collect(Collectors.toList());
+
+        var spec = QuerySpec.Builder.newInstance().sortField(Asset.PROPERTY_ID).sortOrder(SortOrder.ASC).build();
+        assertThat(index.queryAssets(spec)).containsAll(assets);
     }
 
     @NotNull

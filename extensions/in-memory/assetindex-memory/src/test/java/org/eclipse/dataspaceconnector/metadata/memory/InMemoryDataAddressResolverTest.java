@@ -1,26 +1,22 @@
 package org.eclipse.dataspaceconnector.metadata.memory;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class InMemoryDataAddressResolverTest {
-    private InMemoryAssetLoader resolver;
+    private InMemoryAssetIndex resolver;
 
 
     @BeforeEach
     void setUp() {
-        resolver = new InMemoryAssetLoader(new CriterionToPredicateConverter());
+        resolver = new InMemoryAssetIndex(new AssetPredicateConverter());
     }
 
     @Test

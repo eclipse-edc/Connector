@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.api.exception.mappers;
 
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
-import org.eclipse.dataspaceconnector.api.exception.AuthorizationFailedException;
+import org.eclipse.dataspaceconnector.api.exception.AuthenticationFailedException;
 import org.eclipse.dataspaceconnector.api.exception.NotAuthorizedException;
 import org.eclipse.dataspaceconnector.api.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
@@ -31,13 +31,17 @@ public class EdcApiExceptionMapper implements ExceptionMapper<Throwable> {
         exceptionMap = Map.of(
                 IllegalArgumentException.class, 400,
                 NullPointerException.class, 400,
-                AuthorizationFailedException.class, 401,
+                AuthenticationFailedException.class, 401,
                 NotAuthorizedException.class, 403,
                 ObjectNotFoundException.class, 404,
                 ObjectExistsException.class, 409,
                 ObjectNotModifiableException.class, 423,
                 UnsupportedOperationException.class, 501
         );
+    }
+
+    public EdcApiExceptionMapper(Map<Class<? extends Throwable>, Integer> exceptionMap) {
+        this.exceptionMap = exceptionMap;
     }
 
     @Override

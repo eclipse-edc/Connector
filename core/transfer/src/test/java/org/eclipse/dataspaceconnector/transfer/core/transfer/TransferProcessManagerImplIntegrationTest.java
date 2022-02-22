@@ -1,11 +1,10 @@
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
-import org.eclipse.dataspaceconnector.core.base.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.proxy.DataProxyManager;
+import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
@@ -68,12 +67,11 @@ class TransferProcessManagerImplIntegrationTest {
                 .commandRunner((CommandRunner<TransferProcessCommand>) mock(CommandRunner.class))
                 .typeManager(new TypeManager())
                 .statusCheckerRegistry(mock(StatusCheckerRegistry.class))
-                .dataProxyManager(mock(DataProxyManager.class))
-                .proxyEntryHandlerRegistry(new ProxyEntryHandlerRegistryImpl())
                 .observable(mock(TransferProcessObservable.class))
+                .store(store)
                 .build();
 
-        transferProcessManager.start(store);
+        transferProcessManager.start();
     }
 
     @Test

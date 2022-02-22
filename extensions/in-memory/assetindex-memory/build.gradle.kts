@@ -20,6 +20,8 @@ plugins {
 dependencies {
     api(project(":spi"))
     api(project(":extensions:dataloading"))
+
+    implementation(project(":common:util"))
 }
 publishing {
     publications {

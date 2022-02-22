@@ -14,12 +14,12 @@
 
 package org.eclipse.dataspaceconnector.core.security.azure;
 
-import org.eclipse.dataspaceconnector.core.security.VaultPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.security.VaultPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 
