@@ -2,9 +2,9 @@ package org.eclipse.dataspaceconnector.contract.definition.store;
 
 import com.azure.cosmos.models.SqlQuerySpec;
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument;
 import org.eclipse.dataspaceconnector.contract.definition.store.model.ContractDefinitionDocument;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDocument;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -184,7 +184,7 @@ class CosmosContractDefinitionStoreTest {
 
         var all = store.findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build()).collect(Collectors.toList());
         assertThat(all).hasSize(10).isSortedAccordingTo(Comparator.comparing(ContractDefinition::getId));
-        
+
         verify(cosmosDbApiMock).queryAllItems();
         verifyNoMoreInteractions(cosmosDbApiMock);
     }

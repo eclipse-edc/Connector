@@ -23,9 +23,8 @@ import com.azure.cosmos.models.CosmosContainerResponse;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
@@ -93,7 +92,7 @@ class CosmosAssetIndexIntegrationTest {
         container = database.getContainer(containerIfNotExists.getProperties().getId());
         TypeManager typeManager = new TypeManager();
         typeManager.registerTypes(Asset.class, AssetDocument.class);
-        CosmosDbApi api = new CosmosDbApiImpl(container, true);
+        var api = new CosmosDbApiImpl(container, true);
         assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, new RetryPolicy<>());
     }
 

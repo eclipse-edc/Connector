@@ -23,11 +23,10 @@ import com.azure.cosmos.models.CosmosDatabaseResponse;
 import com.azure.cosmos.models.PartitionKey;
 import com.azure.cosmos.util.CosmosPagedIterable;
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.catalog.node.directory.azure.model.FederatedCacheNodeDocument;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNode;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -93,7 +92,7 @@ class CosmosFederatedCacheNodeDirectoryIntegrationTest {
         container = database.getContainer(containerIfNotExists.getProperties().getId());
         typeManager = new TypeManager();
         typeManager.registerTypes(FederatedCacheNode.class, FederatedCacheNodeDocument.class);
-        CosmosDbApi cosmosDbApi = new CosmosDbApiImpl(container, true);
+        var cosmosDbApi = new CosmosDbApiImpl(container, true);
         store = new CosmosFederatedCacheNodeDirectory(cosmosDbApi, TEST_PARTITION_KEY, typeManager, new RetryPolicy<>());
     }
 

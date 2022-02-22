@@ -15,9 +15,8 @@
 package org.eclipse.dataspaceconnector.contract.definition.store;
 
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.contract.definition.store.model.ContractDefinitionDocument;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -39,7 +38,7 @@ public class CosmosContractDefinitionStoreExtension implements ServiceExtension 
         var configuration = new CosmosContractDefinitionStoreConfig(context);
         Vault vault = context.getService(Vault.class);
 
-        CosmosDbApi cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
+        var cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
         var store = new CosmosContractDefinitionStore(cosmosDbApi, context.getTypeManager(), (RetryPolicy<Object>) context.getService(RetryPolicy.class));
         context.registerService(ContractDefinitionStore.class, store);
 

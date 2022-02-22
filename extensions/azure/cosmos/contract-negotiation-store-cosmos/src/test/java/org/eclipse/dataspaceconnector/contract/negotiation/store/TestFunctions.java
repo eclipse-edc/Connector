@@ -17,8 +17,12 @@ public class TestFunctions {
     }
 
     public static ContractNegotiation generateNegotiation(ContractNegotiationStates state) {
+        return generateNegotiation(UUID.randomUUID().toString(), state);
+    }
+
+    public static ContractNegotiation generateNegotiation(String id, ContractNegotiationStates state) {
         return ContractNegotiation.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
+                .id(id)
                 .correlationId(UUID.randomUUID().toString())
                 .counterPartyId("test-counterparty-1")
                 .counterPartyAddress("test-counterparty-address")

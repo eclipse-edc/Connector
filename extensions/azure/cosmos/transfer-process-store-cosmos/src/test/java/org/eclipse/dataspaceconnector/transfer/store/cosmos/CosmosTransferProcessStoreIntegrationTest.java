@@ -29,8 +29,8 @@ import com.azure.cosmos.models.CosmosStoredProcedureResponse;
 import com.azure.cosmos.models.PartitionKey;
 import com.azure.cosmos.util.CosmosPagedIterable;
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -42,6 +42,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.temporal.ChronoUnit;
@@ -177,8 +178,7 @@ class CosmosTransferProcessStoreIntegrationTest {
 
         store.create(tp);
         store.create(tp2);
-        CosmosItemResponse<Object> response = container.readItem(id2, new PartitionKey(partitionKey), Object.class);
-        TransferProcessDocument item = convert(response.getItem());
+        TransferProcessDocument item = readDocument(id2);
         item.acquireLease("test-leaser");
         container.upsertItem(item);
 
@@ -190,20 +190,20 @@ class CosmosTransferProcessStoreIntegrationTest {
     }
 
     @Test
-    void nextForState_selfCanLeaseAgain() {
+    void nextForState_selfCannotLeaseAgain() {
         var tp1 = createTransferProcess("process1", TransferProcessStates.INITIAL);
         var doc = new TransferProcessDocument(tp1, partitionKey);
         doc.acquireLease(connectorId);
-        var originalTs = doc.getLease().getLeasedAt();
+        var originalTimestamp = doc.getLease().getLeasedAt();
         container.upsertItem(doc);
 
         var result = store.nextForState(TransferProcessStates.INITIAL.code(), 5);
-        assertThat(result).hasSize(1);
+        assertThat(result).isEmpty();
 
         var updatedDoc = readDocument(tp1.getId());
-        assertThat(updatedDoc.getLease().getLeasedAt()).isNotEqualTo(originalTs);
+        assertThat(updatedDoc.getLease().getLeasedAt()).isEqualTo(originalTimestamp);
         assertThat(doc.getLease().getLeasedBy()).isEqualTo(connectorId);
-        assertThat(doc.getLease().getLeaseDuration()).isEqualTo(60);
+        assertThat(doc.getLease().getLeaseDuration()).isEqualTo(60000L);
 
     }
 
@@ -259,6 +259,79 @@ class CosmosTransferProcessStoreIntegrationTest {
         var processes = store.nextForState(TransferProcessStates.INITIAL.code(), 3);
         assertThat(processes).hasSize(3);
     }
+
+    @Test
+    @DisplayName("Verifies that calling nextForState locks the TP for any subsequent calls")
+    void nextForState_locksEntity() {
+        var tp = createTransferProcess("test-id", TransferProcessStates.IN_PROGRESS);
+        var doc = new TransferProcessDocument(tp, partitionKey);
+
+        container.upsertItem(doc);
+        var result = store.nextForState(TransferProcessStates.IN_PROGRESS.code(), 5);
+        assertThat(result).hasSize(1).containsExactly(tp);
+
+        //make sure the lease is acquired
+        var leasedDoc = readDocument(tp.getId());
+        assertThat(leasedDoc.getLease()).isNotNull();
+
+        assertThat(leasedDoc.getLease().getLeasedBy()).isEqualTo(connectorId);
+        assertThat(leasedDoc.getLease().getLeaseDuration()).isEqualTo(60_000L);
+        assertThat(leasedDoc.getLease().getLeasedAt()).isGreaterThan(0);
+
+        //make sure a subsequent call does not return the TP
+        assertThat(store.nextForState(TransferProcessStates.IN_PROGRESS.code(), 5)).isEmpty();
+
+        //make sure that findById still returns the entity
+        assertThat(store.find(tp.getId())).isEqualTo(tp);
+    }
+
+    @Test
+    @DisplayName("Verify that the lease on a TP is cleared by an update")
+    void nextForState_verifyUpdateClearsLease() {
+        var tp = createTransferProcess("test-id", TransferProcessStates.IN_PROGRESS);
+        var doc = new TransferProcessDocument(tp, partitionKey);
+
+        var initialTimestamp = tp.getStateTimestamp();
+
+        container.upsertItem(doc);
+        var result = store.nextForState(TransferProcessStates.IN_PROGRESS.code(), 5);
+        assertThat(result).hasSize(1);
+
+        //make sure the lease is acquired
+        var leasedDoc = readDocument(tp.getId());
+        assertThat(leasedDoc.getLease()).isNotNull();
+
+        // make sure the next state update clears the lease
+        tp.transitionCompleted();
+        tp.updateStateTimestamp();
+        store.update(tp);
+
+        var updatedDocument = readDocument(tp.getId());
+        assertThat(updatedDocument.getLease()).isNull();
+        assertThat(updatedDocument.getWrappedInstance().getStateTimestamp()).isNotEqualTo(initialTimestamp);
+        assertThat(updatedDocument.getWrappedInstance().getState()).isEqualTo(TransferProcessStates.COMPLETED.code());
+    }
+
+    @Test
+    @DisplayName("Verify that a leased entity can still be deleted")
+    void nextForState_verifyDelete() {
+        var tp = createTransferProcess("test-id", TransferProcessStates.IN_PROGRESS);
+        var doc = new TransferProcessDocument(tp, partitionKey);
+
+        var initialTimestamp = tp.getStateTimestamp();
+
+        container.upsertItem(doc);
+        var result = store.nextForState(TransferProcessStates.IN_PROGRESS.code(), 5);
+        assertThat(result).hasSize(1);
+
+        //make sure the lease is acquired
+        var leasedDoc = readDocument(tp.getId());
+        assertThat(leasedDoc.getLease()).isNotNull();
+
+        store.delete(tp.getId());
+        assertThat(container.readAllItems(new PartitionKey(partitionKey), Object.class)).isEmpty();
+    }
+
 
     @Test
     void find() {

@@ -15,8 +15,7 @@
 package org.eclipse.dataspaceconnector.transfer.store.cosmos;
 
 import net.jodah.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
@@ -53,7 +52,7 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
         retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
         monitor.info("CosmosTransferProcessStore will use connector id '" + connectorId + "'");
         TransferProcessStoreCosmosConfig configuration = new TransferProcessStoreCosmosConfig(context);
-        CosmosDbApi cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
+        var cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
         context.registerService(TransferProcessStore.class, new CosmosTransferProcessStore(cosmosDbApi, context.getTypeManager(), configuration.getPartitionKey(), connectorId, retryPolicy));
 
         context.getTypeManager().registerTypes(TransferProcessDocument.class);

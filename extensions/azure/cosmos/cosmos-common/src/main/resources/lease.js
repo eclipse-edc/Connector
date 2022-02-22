@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,7 +12,14 @@
  *
  */
 
-function lease(processId, connectorId, shouldLease) {
+/**
+ * Use this stored procedure to acquire or break the lease of a document
+ * @param objectId The database ID of the document
+ * @param connectorId The name/identifier of the calling runtime
+ * @param shouldLease Whether the lease should be _acquired_ or _broken_
+ */
+
+function lease(objectId, connectorId, shouldLease) {
     var context = getContext();
     var collection = context.getCollection();
     var collectionLink = collection.getSelfLink();
@@ -21,12 +28,9 @@ function lease(processId, connectorId, shouldLease) {
 
     // first query
     var filterQuery = {
-        'query': 'SELECT * FROM ContractNegotiationDocument t WHERE t.id = @negotiationId',
-        'parameters': [
-            {
-                'name': '@negotiationId', 'value': processId
-            }
-        ]
+        'query': 'SELECT * FROM t WHERE t.wrappedInstance.id = @objectId', 'parameters': [{
+            'name': '@objectId', 'value': objectId
+        }]
     };
 
     var accept = collection.queryDocuments(collectionLink, filterQuery, {}, function (err, items, responseOptions) {
@@ -66,7 +70,7 @@ function lease(processId, connectorId, shouldLease) {
         document.lease = {
             leasedBy: connectorId,
             leasedAt: Date.now(),
-            leaseDuration: 60
+            leaseDuration: 60000
         };
 
         var accept = collection.replaceDocument(document._self, document, function (err, itemReplaced) {

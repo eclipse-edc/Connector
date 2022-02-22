@@ -1,12 +1,16 @@
 package org.eclipse.dataspaceconnector.contract.negotiation.store;
 
+import com.azure.cosmos.implementation.BadRequestException;
 import com.azure.cosmos.models.SqlParameter;
 import com.azure.cosmos.models.SqlQuerySpec;
 import com.fasterxml.jackson.core.type.TypeReference;
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.azure.cosmos.dialect.SqlStatement;
+import org.eclipse.dataspaceconnector.azure.cosmos.util.LeaseContext;
+import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractNegotiationDocument;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -17,6 +21,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -29,11 +34,13 @@ import static net.jodah.failsafe.Failsafe.with;
  * database.
  */
 public class CosmosContractNegotiationStore implements ContractNegotiationStore {
+    private static final String NEXT_FOR_STATE_SPROC_NAME = "nextForState";
     private final CosmosDbApi cosmosDbApi;
     private final TypeManager typeManager;
     private final RetryPolicy<Object> retryPolicy;
     private final String connectorId;
     private final String partitionKey;
+    private final LeaseContext leaseContext;
 
     public CosmosContractNegotiationStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy, String connectorId) {
         this.cosmosDbApi = cosmosDbApi;
@@ -41,6 +48,7 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
         this.retryPolicy = retryPolicy;
         this.connectorId = connectorId;
         partitionKey = connectorId;
+        leaseContext = LeaseContext.with(cosmosDbApi, partitionKey, connectorId).usingRetry(List.of(retryPolicy));
     }
 
     @Override
@@ -73,18 +81,34 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
 
     @Override
     public void save(ContractNegotiation negotiation) {
-        cosmosDbApi.saveItem(new ContractNegotiationDocument(negotiation, partitionKey));
+        try {
+            leaseContext.acquireLease(negotiation.getId());
+            with(retryPolicy).run(() -> cosmosDbApi.saveItem(new ContractNegotiationDocument(negotiation, partitionKey)));
+            leaseContext.breakLease(negotiation.getId());
+        } catch (BadRequestException ex) {
+            throw new EdcException(ex);
+        }
     }
 
     @Override
     public void delete(String negotiationId) {
-        cosmosDbApi.deleteItem(negotiationId);
+        try {
+            leaseContext.acquireLease(negotiationId);
+            with(retryPolicy).run(() -> cosmosDbApi.deleteItem(negotiationId));
+            leaseContext.breakLease(negotiationId);
+        } catch (BadRequestException ex) {
+            throw new EdcException(ex);
+        }
     }
 
     @Override
     public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
 
-        String rawJson = cosmosDbApi.invokeStoredProcedure("nextForState", partitionKey, state, max, connectorId);
+        String rawJson = with(retryPolicy).get(() -> cosmosDbApi.invokeStoredProcedure(NEXT_FOR_STATE_SPROC_NAME, partitionKey, state, max, connectorId));
+        if (StringUtils.isNullOrEmpty(rawJson)) {
+            return Collections.emptyList();
+        }
+
         var typeRef = new TypeReference<List<Object>>() {
         };
         var list = typeManager.readValue(rawJson, typeRef);
@@ -94,11 +118,7 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     @Override
     public Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
         var statement = new SqlStatement<>(ContractNegotiationDocument.class);
-        var query = statement.where(querySpec.getFilterExpression())
-                .offset(querySpec.getOffset())
-                .limit(querySpec.getLimit())
-                .orderBy(querySpec.getSortField(), querySpec.getSortOrder() == SortOrder.ASC)
-                .getQueryAsSqlQuerySpec();
+        var query = statement.where(querySpec.getFilterExpression()).offset(querySpec.getOffset()).limit(querySpec.getLimit()).orderBy(querySpec.getSortField(), querySpec.getSortOrder() == SortOrder.ASC).getQueryAsSqlQuerySpec();
 
         var objects = with(retryPolicy).get(() -> cosmosDbApi.queryItems(query));
         return objects.map(this::toNegotiation);
@@ -110,3 +130,4 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
         return typeManager.readValue(json, ContractNegotiationDocument.class).getWrappedInstance();
     }
 }
+

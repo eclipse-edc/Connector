@@ -17,8 +17,8 @@ package org.eclipse.dataspaceconnector.catalog.node.directory.azure.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNode;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDocument;
 
 @JsonTypeName("dataspaceconnector:federatedcatalognodedocument")
 public class FederatedCacheNodeDocument extends CosmosDocument<FederatedCacheNode> {
@@ -29,6 +29,7 @@ public class FederatedCacheNodeDocument extends CosmosDocument<FederatedCacheNod
         super(wrappedInstance, partitionKey);
     }
 
+    @Override
     public String getId() {
         return getWrappedInstance().getName();
     }
