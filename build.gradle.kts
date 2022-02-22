@@ -66,7 +66,10 @@ allprojects {
     apply(plugin = "maven-publish")
     apply(plugin = "checkstyle")
     apply(plugin = "java")
-    apply(plugin = "jacoco")
+
+    if (System.getenv("JACOCO") == "true") {
+        apply(plugin = "jacoco")
+    }
 
     checkstyle {
         toolVersion = "9.0"
@@ -174,9 +177,11 @@ allprojects {
     }
 
     // Generate XML reports for Codecov
-    tasks.jacocoTestReport {
-        reports {
-            xml.required.set(true)
+    if (System.getenv("JACOCO") == "true") {
+        tasks.jacocoTestReport {
+            reports {
+                xml.required.set(true)
+            }
         }
     }
 }
