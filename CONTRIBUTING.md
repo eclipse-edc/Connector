@@ -42,21 +42,18 @@ to GitHub.
 
 ### Discuss
 
+If you want to share an idea to further enhance
+the project or discuss potential use cases, please feel free to create a discussion at the
+[GitHub Discussions page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/discussions).
 If you feel there is a bug or an issue, contribute to the discussions in
 [existing issues](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues?q=is%3Aissue+is%3Aopen),
-otherwise [create a new issue](#create-an-issue). If you want to share an idea to further enhance 
-the project or discuss potential use cases, please feel free to create a discussion at the
-[GitHub Dssues page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/discussions).
+otherwise [create a new issue](#create-an-issue). 
 
 ### Create an Issue
 
 If you have identified a bug or want to formulate a working item that you want to concentrate on, 
 feel free to create a new issue at our project's corresponding
 [GitHub Issues page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/new).
-If an issue appears to cover changes that will have a (huge) impact on the code base and needs to 
-first be discussed, or if you just have a question regarding the usage of the software, please 
-create a [discussion](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/discussions) 
-before raising an issue. 
 
 Before doing so, please consider searching for potentially suitable
 [existing issues](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues?q=is%3Aissue+is%3Aopen).
@@ -64,11 +61,16 @@ Before doing so, please consider searching for potentially suitable
 We also use [GitHub's default label set](https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/managing-labels)
 extended by custom ones to classify issues and improve findability.
 
+If an issue appears to cover changes that will have a (huge) impact on the code base and needs to 
+first be discussed, or if you just have a question regarding the usage of the software, please 
+create a [discussion](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/discussions) 
+before raising an issue.
+
 Please note that if an issue covers a topic or the response to a question that may be interesting 
 for other developers or contributors, or for further discussions, it should be converted to a 
 discussion and not be closed.
 
-### Adhere to coding style guide
+### Adhere to Coding Style Guide
 
 We aim for a coherent and consistent code base, thus the coding style detailed in the 
 [styleguide](styleguide.md) should be followed.
