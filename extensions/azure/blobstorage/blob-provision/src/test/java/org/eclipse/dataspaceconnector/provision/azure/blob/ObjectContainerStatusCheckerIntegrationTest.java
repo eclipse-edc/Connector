@@ -48,8 +48,8 @@ class ObjectContainerStatusCheckerIntegrationTest extends AbstractAzureBlobTest 
         helloTxt = TestUtils.getFileFromResourceName("hello.txt");
         Vault vault = mock(Vault.class);
 
-        when(vault.resolveSecret(accountName + "-key1")).thenReturn(accountKey);
-        var blobStoreApi = new BlobStoreApiImpl(vault, endpoint);
+        when(vault.resolveSecret(account1Name + "-key1")).thenReturn(account1Key);
+        var blobStoreApi = new BlobStoreApiImpl(vault, getEndpoint(account1Name));
         checker = new ObjectContainerStatusChecker(blobStoreApi, policy);
     }
 
@@ -57,7 +57,7 @@ class ObjectContainerStatusCheckerIntegrationTest extends AbstractAzureBlobTest 
     void isComplete_noResources() {
         putBlob("hello.txt", helloTxt);
         putBlob(testRunId + ".complete", helloTxt);
-        var transferProcess = createTransferProcess(containerName);
+        var transferProcess = createTransferProcess(account1ContainerName);
 
         boolean complete = checker.isComplete(transferProcess, emptyList());
 
@@ -68,13 +68,13 @@ class ObjectContainerStatusCheckerIntegrationTest extends AbstractAzureBlobTest 
     void isComplete_noResources_notComplete() {
         putBlob("hello.txt", helloTxt);
 
-        var tp = createTransferProcess(containerName);
+        var tp = createTransferProcess(account1ContainerName);
         assertThat(checker.isComplete(tp, emptyList())).isFalse();
     }
 
     @Test
     void isComplete_noResources_containerNotExist() {
-        var tp = createTransferProcess(containerName);
+        var tp = createTransferProcess(account1ContainerName);
         assertThat(checker.isComplete(tp, emptyList())).isFalse();
     }
 
@@ -83,7 +83,7 @@ class ObjectContainerStatusCheckerIntegrationTest extends AbstractAzureBlobTest 
         putBlob("hello.txt", helloTxt);
         putBlob(testRunId + ".complete", helloTxt);
 
-        var tp = createTransferProcess(containerName);
+        var tp = createTransferProcess(account1ContainerName);
         var pr = createProvisionedResource(tp);
         assertThat(checker.isComplete(tp, singletonList(pr))).isTrue();
     }
@@ -92,14 +92,14 @@ class ObjectContainerStatusCheckerIntegrationTest extends AbstractAzureBlobTest 
     void isComplete_withResources_notComplete() {
         putBlob("hello.txt", helloTxt);
 
-        var tp = createTransferProcess(containerName);
+        var tp = createTransferProcess(account1ContainerName);
         var pr = createProvisionedResource(tp);
         assertThat(checker.isComplete(tp, singletonList(pr))).isFalse();
     }
 
     @Test
     void isComplete_withResources_containerNotExist() {
-        var tp = createTransferProcess(containerName);
+        var tp = createTransferProcess(account1ContainerName);
         var pr = createProvisionedResource(tp);
         assertThat(checker.isComplete(tp, singletonList(pr))).isFalse();
     }
@@ -112,7 +112,7 @@ class ObjectContainerStatusCheckerIntegrationTest extends AbstractAzureBlobTest 
                         .dataDestination(DataAddress.Builder.newInstance()
                                 .type(AzureBlobStoreSchema.TYPE)
                                 .property(AzureBlobStoreSchema.CONTAINER_NAME, containerName)
-                                .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)
+                                .property(AzureBlobStoreSchema.ACCOUNT_NAME, account1Name)
                                 //.property(AzureBlobStoreSchema.BLOB_NAME, ???) omitted on purpose
                                 .build())
                         .build())
@@ -121,8 +121,8 @@ class ObjectContainerStatusCheckerIntegrationTest extends AbstractAzureBlobTest 
 
     private ObjectContainerProvisionedResource createProvisionedResource(TransferProcess tp) {
         return ObjectContainerProvisionedResource.Builder.newInstance()
-                .containerName(containerName)
-                .accountName(accountName)
+                .containerName(account1ContainerName)
+                .accountName(account1Name)
                 .resourceDefinitionId(UUID.randomUUID().toString())
                 .transferProcessId(tp.getId())
                 .id(UUID.randomUUID().toString())
