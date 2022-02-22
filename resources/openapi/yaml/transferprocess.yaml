@@ -2,7 +2,7 @@ openapi: 3.0.1
 paths:
   /transferprocess/{id}/cancel:
     post:
-      operationId: createContractDefinition
+      operationId: cancelTransferProcess
       parameters:
       - name: id
         in: path
@@ -16,7 +16,7 @@ paths:
             application/json: {}
   /transferprocess/{id}/deprovision:
     post:
-      operationId: deleteContractDefinition
+      operationId: deprovisionTransferProcess
       parameters:
       - name: id
         in: path
@@ -97,7 +97,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TransferProcessDto'
+                type: string
 components:
   schemas:
     DataRequestDto:
