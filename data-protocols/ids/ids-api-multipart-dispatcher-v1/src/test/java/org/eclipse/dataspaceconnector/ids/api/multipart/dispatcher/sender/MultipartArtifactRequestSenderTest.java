@@ -74,6 +74,7 @@ class MultipartArtifactRequestSenderTest {
         assertThat(message).isInstanceOf(ArtifactRequestMessage.class);
         assertThat((ArtifactRequestMessage) message)
                 .satisfies(msg -> {
+                    assertThat(msg.getId()).hasToString(request.getId());
                     assertThat(msg.getModelVersion()).isEqualTo(IdsProtocol.INFORMATION_MODEL_VERSION);
                     assertThat(msg.getSecurityToken()).isEqualTo(token);
                     assertThat(msg.getIssuerConnector()).isEqualTo(sender.getConnectorId());
