@@ -31,6 +31,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -52,7 +53,7 @@ class DataSourceToDataSinkTests {
         when(interceptor.intercept(isA(Interceptor.Chain.class)))
                 .thenAnswer(invocation -> createResponse(200, getRequest(invocation)));
 
-        var sourceClient = new OkHttpClient.Builder()
+        var sourceClient = testOkHttpClient().newBuilder()
                 .addInterceptor(interceptor)
                 .build();
 
@@ -66,7 +67,7 @@ class DataSourceToDataSinkTests {
                 .method("GET")
                 .build();
 
-        var sinkClient = new OkHttpClient.Builder()
+        var sinkClient = testOkHttpClient().newBuilder()
                 .addInterceptor(interceptor)
                 .build();
 
@@ -95,7 +96,7 @@ class DataSourceToDataSinkTests {
         when(sourceInterceptor.intercept(isA(Interceptor.Chain.class)))
                 .thenAnswer(invocation -> createResponse(500, getRequest(invocation)));
 
-        var sourceClient = new OkHttpClient.Builder()
+        var sourceClient = testOkHttpClient().newBuilder()
                 .addInterceptor(sourceInterceptor)
                 .build();
 
@@ -136,7 +137,7 @@ class DataSourceToDataSinkTests {
         when(sourceInterceptor.intercept(isA(Interceptor.Chain.class)))
                 .thenAnswer(invocation -> createResponse(200, getRequest(invocation)));
 
-        var sourceClient = new OkHttpClient.Builder()
+        var sourceClient = testOkHttpClient().newBuilder()
                 .addInterceptor(sourceInterceptor)
                 .build();
 
@@ -155,7 +156,8 @@ class DataSourceToDataSinkTests {
         when(sinkInterceptor.intercept(isA(Interceptor.Chain.class)))
                 .thenAnswer(invocation -> createResponse(500, getRequest(invocation)));
 
-        var sinkClient = new OkHttpClient.Builder()
+
+        var sinkClient = testOkHttpClient().newBuilder()
                 .addInterceptor(sinkInterceptor)
                 .build();
 

@@ -25,6 +25,7 @@ dependencies {
     implementation(project(":common:util"))
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("net.jodah:failsafe:${jodahFailsafeVersion}")
+    testImplementation(testFixtures(project(":common:util")))
 }
 
 publishing {

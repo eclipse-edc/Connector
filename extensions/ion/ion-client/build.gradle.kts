@@ -13,6 +13,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
 
     testImplementation(project(":extensions:iam:decentralized-identity:identity-did-crypto")) // for the KeyPairFactory
+    testImplementation(testFixtures(project(":common:util")))
 }
 
 publishing {
