@@ -14,7 +14,13 @@
 
 package org.eclipse.dataspaceconnector.common.reflection;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Field;
+import java.util.Comparator;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -86,5 +92,60 @@ class ReflectionUtilTest {
                 .isInstanceOf(NullPointerException.class).hasMessage("object");
     }
 
+    @Test
+    void propertyComparator_whenAscending() {
+        var testObjects = IntStream.range(0, 10).mapToObj(i -> new TestObject("id" + i, i)).collect(Collectors.toList());
+        var comparator = ReflectionUtil.propertyComparator(true, "description");
+        assertThat(testObjects.stream().sorted(comparator)).isSortedAccordingTo(Comparator.comparing(TestObject::getDescription));
+    }
 
+    @Test
+    void propertyComparator_whenDescending() {
+        var testObjects = IntStream.range(0, 10).mapToObj(i -> new TestObject("id" + i, i)).collect(Collectors.toList());
+        var comparator = ReflectionUtil.propertyComparator(false, "description");
+        assertThat(testObjects.stream().sorted(comparator)).isSortedAccordingTo(Comparator.comparing(TestObject::getDescription).reversed());
+    }
+
+    @Test
+    void propertyComparator_whenPropertyNotFound() {
+        var testObjects = IntStream.range(0, 10).mapToObj(i -> new TestObject("id" + i, i)).collect(Collectors.toList());
+        var comparator = ReflectionUtil.propertyComparator(true, "notexist");
+        assertThat(testObjects.stream().sorted(comparator)).containsExactlyInAnyOrder(testObjects.toArray(new TestObject[]{}));
+    }
+
+    @Test
+    void getAllFieldsRecursive() {
+        var to = new TestObjectSubclass("test-desc", 1, "foobar");
+
+        assertThat(ReflectionUtil.getAllFieldsRecursive(to.getClass())).hasSize(3).extracting(Field::getName)
+                .containsExactlyInAnyOrder("description", "priority", "testProperty");
+    }
+
+    @Test
+    void getFieldRecursive_whenDeclaredInSuperclass() {
+        var to = new TestObjectSubclass("test-desc", 1, "foobar");
+        assertThat(ReflectionUtil.getFieldRecursive(to.getClass(), "description")).isNotNull();
+    }
+
+    @Test
+    void getFieldRecursive_whenDeclaredInClass() throws IllegalAccessException {
+        var to = new TestObjectSubclass("test-desc", 1, "foobar");
+        Field testProperty = ReflectionUtil.getFieldRecursive(to.getClass(), "testProperty");
+        assertThat(testProperty).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Should pick the property from the object highest in the object hierarchy")
+    void getFieldRecursive_whenDeclaredInBoth() {
+        var to = new TestObjectSubSubclass("test-desc", 2, "foobar");
+        assertThat(ReflectionUtil.getFieldRecursive(to.getClass(), "description")).isNotNull().extracting(Field::getDeclaringClass)
+                .isEqualTo(TestObject.class);
+
+    }
+
+    @Test
+    void getFieldRecursive_whenNotDeclared() {
+        var to = new TestObjectSubclass("test-desc", 1, "foobar");
+        assertThat(ReflectionUtil.getFieldRecursive(to.getClass(), "notExist")).isNull();
+    }
 }

@@ -258,6 +258,11 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         }
 
         @Override
+        public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public void save(Collection<ContractDefinition> definitions) {
             contractDefinitions.addAll(definitions);
         }
@@ -312,7 +317,11 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         public NegotiationResult declined(ClaimToken token, String negotiationId) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
-    
+
+        @Override
+        public void enqueueCommand(ContractNegotiationCommand command) {
+        }
+
         @Override
         public NegotiationResult requested(ClaimToken token, ContractOfferRequest request) {
             return NegotiationResult.success(fakeContractNegotiation());
@@ -326,10 +335,6 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         @Override
         public NegotiationResult consumerApproved(ClaimToken token, String correlationId, ContractAgreement agreement, String hash) {
             return NegotiationResult.success(fakeContractNegotiation());
-        }
-    
-        @Override
-        public void enqueueCommand(ContractNegotiationCommand command) {
         }
     }
 
@@ -354,7 +359,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         public NegotiationResult declined(ClaimToken token, String negotiationId) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
-    
+
         @Override
         public void enqueueCommand(ContractNegotiationCommand command) {
         }

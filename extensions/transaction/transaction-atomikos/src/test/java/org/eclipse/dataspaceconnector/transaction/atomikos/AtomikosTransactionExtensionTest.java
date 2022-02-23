@@ -14,7 +14,7 @@
 package org.eclipse.dataspaceconnector.transaction.atomikos;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
@@ -51,7 +51,8 @@ class AtomikosTransactionExtensionTest {
 
         when(extensionContext.getConfig(isA(String.class))).thenAnswer(a -> createDataSourceConfig());
         when(extensionContext.getConfig()).thenAnswer(a -> createAtomikosConfig());
-        when(extensionContext.getMonitor()).thenReturn(new ConsoleMonitor());
+        when(extensionContext.getMonitor()).thenReturn(new Monitor() {
+        });
 
         var dsRegistry = new DataSourceRegistry[1];
         doAnswer(invocation -> {
@@ -95,19 +96,17 @@ class AtomikosTransactionExtensionTest {
 
         // verify rollback on exception in a nested block
 
-        assertThatExceptionOfType(EdcException.class)
-                .isThrownBy(() ->
-                        transactionContext[0].execute(() -> {
-                            try (var conn = dsRegistry[0].resolve("default").getConnection()) {
-                                Statement s1 = conn.createStatement();
-                                s1.execute("INSERT into Foo values (2)");
-                                transactionContext[0].execute(() -> {
-                                    throw new RuntimeException();
-                                });
-                            } catch (SQLException e) {
-                                throw new EdcException(e);
-                            }
-                        }));
+        assertThatExceptionOfType(EdcException.class).isThrownBy(() -> transactionContext[0].execute(() -> {
+            try (var conn = dsRegistry[0].resolve("default").getConnection()) {
+                Statement s1 = conn.createStatement();
+                s1.execute("INSERT into Foo values (2)");
+                transactionContext[0].execute(() -> {
+                    throw new RuntimeException();
+                });
+            } catch (SQLException e) {
+                throw new EdcException(e);
+            }
+        }));
 
         transactionContext[0].execute(() -> {
             try (var conn = dsRegistry[0].resolve("default").getConnection()) {
