@@ -342,8 +342,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                 transitionToCompleted(process);
                 return true;
             } else {
-                process.transitionInProgress();
-                transferProcessStore.update(process);
+                // Process is not finished yet, so it stays in the IN_PROGRESS state
                 monitor.info(format("Transfer process %s not COMPLETED yet. The process will not advance to the COMPLETED state.", process.getId()));
                 return false;
             }
