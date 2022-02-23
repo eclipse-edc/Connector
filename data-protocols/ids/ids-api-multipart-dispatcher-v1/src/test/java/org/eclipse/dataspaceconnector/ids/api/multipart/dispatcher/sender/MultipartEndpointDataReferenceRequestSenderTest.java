@@ -56,12 +56,6 @@ class MultipartEndpointDataReferenceRequestSenderTest {
     }
 
     @Test
-    void retrieveRemoteConnectorId() {
-        var request = createEdrRequest();
-        assertThat(sender.retrieveRemoteConnectorId(request)).isEqualTo(request.getConnectorId());
-    }
-
-    @Test
     void retrieveRemoteConnectorAddress() {
         var request = createEdrRequest();
         assertThat(sender.retrieveRemoteConnectorAddress(request)).isEqualTo(request.getConnectorAddress());

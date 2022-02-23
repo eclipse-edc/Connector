@@ -51,11 +51,6 @@ public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSen
     }
 
     @Override
-    protected String retrieveRemoteConnectorId(EndpointDataReferenceRequest request) {
-        return request.getConnectorId();
-    }
-
-    @Override
     protected String retrieveRemoteConnectorAddress(EndpointDataReferenceRequest request) {
         return request.getConnectorAddress();
     }
