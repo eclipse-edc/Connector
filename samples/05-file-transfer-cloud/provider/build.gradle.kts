@@ -34,6 +34,8 @@ dependencies {
     implementation(project(":extensions:azure:vault"))
     implementation(project(":extensions:http"))
 
+    implementation(project(":extensions:api:data-management"))
+
     implementation(project(":data-protocols:ids"))
 
     implementation(project(":samples:05-file-transfer-cloud:transfer-file"))
