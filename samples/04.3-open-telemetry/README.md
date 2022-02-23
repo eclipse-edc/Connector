@@ -1,10 +1,13 @@
-# Visualize tracing of connectors with Open Telemetry and Jaeger
+# Telemetry with OpenTelemetry and Micrometer
 
-This sample builds on top of [sample 04.0-file-transfer](../04.0-file-transfer) to show how you can generate traces with Open Telemetry and collect and visualize them with [Jaeger](https://www.jaegertracing.io/).
+This sample builds on top of [sample 04.0-file-transfer](../04.0-file-transfer) to show how you can:
+
+- generate traces with [OpenTelemetry](https://opentelemetry.io) and collect and visualize them with [Jaeger](https://www.jaegertracing.io/).
+- automatically collect metrics from infrastructure, server endpoints and client libraries with [Micrometer](https://micrometer.io) and visualize them with [Prometheus](https://prometheus.io).
 
 For this, this sample uses the Open Telemetry Java Agent, which dynamically injects bytecode to capture telemetry from several popular [libraries and frameworks](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation).
 
-In order to visualize and analyze the traces, we need to use an [OpenTelemetry exporter](https://opentelemetry.io/docs/instrumentation/js/exporters/) to export data into the Jaeger tracing backend.
+In order to visualize and analyze the traces and metrics, we use [OpenTelemetry exporters](https://opentelemetry.io/docs/instrumentation/js/exporters/) to export data into the Jaeger tracing backend and a Prometheus endpoint.  
 
 ## Prerequisites
 
@@ -14,12 +17,12 @@ Download the [opentelemetry-javaagent.jar](https://github.com/open-telemetry/ope
 
 We will use a single docker-compose to run the consumer, the provider, and a Jaeger backend.
 Let's have a look to the [docker-compose.yaml](docker-compose.yaml). We created a consumer and a provider service with entry points specifying the OpenTelemetry Java Agent as a JVM parameter.
-In addition, the [Jaeger exporter](https://github.com/open-telemetry/opentelemetry-java/blob/main/sdk-extensions/autoconfigure/README.md#jaeger-exporter) is configured using environmental variables as required by OpenTelemetry.
+In addition, the [Jaeger exporter](https://github.com/open-telemetry/opentelemetry-java/blob/main/sdk-extensions/autoconfigure/README.md#jaeger-exporter) is configured using environmental variables as required by OpenTelemetry. The [Prometheus exporter](https://github.com/open-telemetry/opentelemetry-java/blob/main/sdk-extensions/autoconfigure/README.md#prometheus-exporter) is configured to expose a Prometheus metrics endpoint.
 
 To run the consumer, the provider, and Jaeger execute the following commands in the project root folder:
 
 ```bash
-./gradlew samples:04.0-file-transfer:consumer:build samples:04.0-file-transfer:provider:build
+./gradlew samples:04.3-open-telemetry:consumer:build samples:04.0-file-transfer:provider:build
 docker-compose -f samples/04.3-open-telemetry/docker-compose.yaml up --abort-on-container-exit
 ```
 
@@ -37,6 +40,9 @@ A trace represents an event and is composed of several spans. You can inspect de
 
 OkHttp and Jetty are part the [libraries and frameworks](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation) that OpenTelemetry can capture telemetry from. We can observe spans related to OkHttp and Jetty as EDC uses both frameworks internally. The `otel.library.name` tag of the different spans indicates the framework each span is coming from.
 
+You can access the Prometheus UI on your browser at `http://localhost:9090`.
+Click the globe icon near the top right corner (Metrics Explorer) and select a metric to display. Metrics include System (e.g. CPU usage), JVM (e.g. memory usage), Executor service (call timings and thread pools), and the instrumented OkHttp, Jetty and Jersey libraries (HTTP client and server).
+
 ## Using another monitoring backend
 
 Other monitoring backends can be plugged in easily with OpenTelemetry. For instance, if you want to use Azure Application Insights instead of Jaeger, you can replace the OpenTelemetry Java Agent by the [Application Insights Java Agent](https://docs.microsoft.com/en-us/azure/azure-monitor/app/java-in-process-agent#download-the-jar-file) instead, which has to be stored in the root folder of this sample as well. The only additional configuration required are the `APPLICATIONINSIGHTS_CONNECTION_STRING` and `APPLICATIONINSIGHTS_ROLE_NAME` env variables:
@@ -53,8 +59,10 @@ Other monitoring backends can be plugged in easily with OpenTelemetry. For insta
       - ../:/samples
     ports:
       - 9191:8181
-    entrypoint: java -javaagent:/samples/04.3-open-telemetry/applicationinsights-agent-3.2.5.jar -jar /samples/04.0-file-transfer/consumer/build/libs/consumer.jar
+    entrypoint: java -javaagent:/samples/04.3-open-telemetry/applicationinsights-agent-3.2.5.jar -jar /samples/04.3-open-telemetry/consumer/build/libs/consumer.jar
 ```
+
+The Application Insights Java agent will automatically collect metrics from Micrometer, without any configuration needed.
 
 ## Provide your own OpenTelemetry implementation
 

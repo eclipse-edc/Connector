@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.core.health;
 
+import org.eclipse.dataspaceconnector.core.executor.NoopExecutorInstrumentationImplementation;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
 import org.eclipse.dataspaceconnector.spi.system.health.LivenessProvider;
 import org.eclipse.dataspaceconnector.spi.system.health.ReadinessProvider;
@@ -32,7 +33,7 @@ class HealthCheckServiceImplTest {
                 .readinessPeriod(PERIOD)
                 .startupStatusPeriod(PERIOD)
                 .build();
-        service = new HealthCheckServiceImpl(config);
+        service = new HealthCheckServiceImpl(config, new NoopExecutorInstrumentationImplementation());
         service.start();
     }
 
