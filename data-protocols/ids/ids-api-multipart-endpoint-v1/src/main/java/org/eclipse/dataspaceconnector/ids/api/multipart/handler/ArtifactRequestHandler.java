@@ -19,6 +19,7 @@ import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import de.fraunhofer.iais.eis.Message;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.util.MessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
@@ -43,26 +44,27 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.UUID;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
 
 public class ArtifactRequestHandler implements Handler {
 
     private final TransferProcessManager transferProcessManager;
-    private final String connectorId;
+    private final URI connectorId;
     private final Monitor monitor;
     private final ObjectMapper objectMapper;
     private final ContractValidationService contractValidationService;
     private final ContractNegotiationStore contractNegotiationStore;
     private final Vault vault;
+    private final MessageFactory messageFactory;
 
     public ArtifactRequestHandler(
             @NotNull Monitor monitor,
-            @NotNull String connectorId,
+            @NotNull URI connectorId,
             @NotNull ObjectMapper objectMapper,
             @NotNull ContractNegotiationStore contractNegotiationStore,
             @NotNull ContractValidationService contractValidationService,
             @NotNull TransferProcessManager transferProcessManager,
-            @NotNull Vault vault) {
+            @NotNull Vault vault,
+            @NotNull MessageFactory messageFactory) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
         this.objectMapper = Objects.requireNonNull(objectMapper);
@@ -70,6 +72,7 @@ public class ArtifactRequestHandler implements Handler {
         this.contractValidationService = Objects.requireNonNull(contractValidationService);
         this.transferProcessManager = Objects.requireNonNull(transferProcessManager);
         this.vault = Objects.requireNonNull(vault);
+        this.messageFactory = Objects.requireNonNull(messageFactory);
     }
 
     @Override
@@ -114,8 +117,8 @@ public class ArtifactRequestHandler implements Handler {
 
         ArtifactRequestMessagePayload artifactRequestMessagePayload;
         try {
-            artifactRequestMessagePayload =
-                    objectMapper.readValue(multipartRequest.getPayload(), ArtifactRequestMessagePayload.class);
+            // As this is no IDS object use the ObjectMapper instead of the IDS Serializer
+            artifactRequestMessagePayload = objectMapper.readValue(multipartRequest.getPayload(), ArtifactRequestMessagePayload.class);
         } catch (IOException e) {
             return createBadParametersErrorMultipartResponse(artifactRequestMessage);
         }
@@ -132,7 +135,7 @@ public class ArtifactRequestHandler implements Handler {
                 .id(UUID.randomUUID().toString())
                 .protocol(Protocols.IDS_MULTIPART)
                 .dataDestination(dataAddress)
-                .connectorId(connectorId)
+                .connectorId(connectorId.toString())
                 .assetId(artifactIdsId.getValue())
                 .contractId(contractIdsId.getValue())
                 .properties(props)
@@ -145,17 +148,15 @@ public class ArtifactRequestHandler implements Handler {
             vault.storeSecret(dataAddress.getKeyName(), artifactRequestMessagePayload.getSecret());
         }
 
-        var multipartResponse = MultipartResponse.Builder.newInstance()
-                .header(ResponseMessageUtil.createDummyResponse(connectorId, artifactRequestMessage)) // TODO Change this response so that it matches our UML pictures
+        return MultipartResponse.Builder.newInstance()
+                .header(messageFactory.createDummyResponse(artifactRequestMessage))
                 .payload(result.getData())
                 .build();
-        return multipartResponse;
     }
 
     private MultipartResponse createBadParametersErrorMultipartResponse(Message message) {
         return MultipartResponse.Builder.newInstance()
-                .header(badParameters(message, connectorId))
+                .header(messageFactory.badParameters(message))
                 .build();
     }
-
 }

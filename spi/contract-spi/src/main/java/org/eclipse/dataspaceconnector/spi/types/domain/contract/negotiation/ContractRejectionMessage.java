@@ -18,12 +18,15 @@ import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 
 import java.util.Objects;
 
-public class ContractRejection implements RemoteMessage {
+public class ContractRejectionMessage implements RemoteMessage {
 
     private String protocol;
     private String connectorId;
     private String connectorAddress;
-    private String correlationId; // TODO hand over the contract offer/agreement - not an id?
+    /**
+     * Message ID of the ContractOfferRequest, that is rejected.
+     */
+    private String contractOfferMessageId;
     private String rejectionReason; // TODO pre-define a set of enums (+ mapping to IDS) ?
 
     @Override
@@ -39,8 +42,8 @@ public class ContractRejection implements RemoteMessage {
         return connectorAddress;
     }
 
-    public String getCorrelationId() {
-        return correlationId;
+    public String getContractOfferMessageId() {
+        return contractOfferMessageId;
     }
 
     public String getRejectionReason() {
@@ -48,10 +51,10 @@ public class ContractRejection implements RemoteMessage {
     }
 
     public static class Builder {
-        private final ContractRejection contractRejection;
+        private final ContractRejectionMessage contractRejectionMessage;
 
         private Builder() {
-            this.contractRejection = new ContractRejection();
+            this.contractRejectionMessage = new ContractRejectionMessage();
         }
 
         public static Builder newInstance() {
@@ -59,37 +62,37 @@ public class ContractRejection implements RemoteMessage {
         }
 
         public Builder protocol(String protocol) {
-            this.contractRejection.protocol = protocol;
+            this.contractRejectionMessage.protocol = protocol;
             return this;
         }
 
         public Builder connectorId(String connectorId) {
-            this.contractRejection.connectorId = connectorId;
+            this.contractRejectionMessage.connectorId = connectorId;
             return this;
         }
 
         public Builder connectorAddress(String connectorAddress) {
-            this.contractRejection.connectorAddress = connectorAddress;
+            this.contractRejectionMessage.connectorAddress = connectorAddress;
             return this;
         }
 
-        public Builder correlationId(String correlationId) {
-            this.contractRejection.correlationId = correlationId;
+        public Builder correlationMessageId(String correlationMessageId) {
+            this.contractRejectionMessage.contractOfferMessageId = correlationMessageId;
             return this;
         }
 
         public Builder rejectionReason(String rejectionReason) {
-            this.contractRejection.rejectionReason = rejectionReason;
+            this.contractRejectionMessage.rejectionReason = rejectionReason;
             return this;
         }
 
-        public ContractRejection build() {
-            Objects.requireNonNull(contractRejection.protocol, "protocol");
-            Objects.requireNonNull(contractRejection.connectorId, "connectorId");
-            Objects.requireNonNull(contractRejection.connectorAddress, "connectorAddress");
-            Objects.requireNonNull(contractRejection.correlationId, "correlationId");
-            Objects.requireNonNull(contractRejection.rejectionReason, "rejectionReason");
-            return contractRejection;
+        public ContractRejectionMessage build() {
+            Objects.requireNonNull(contractRejectionMessage.protocol, "protocol");
+            Objects.requireNonNull(contractRejectionMessage.connectorId, "connectorId");
+            Objects.requireNonNull(contractRejectionMessage.connectorAddress, "connectorAddress");
+            Objects.requireNonNull(contractRejectionMessage.contractOfferMessageId, "correlationMessageId");
+            Objects.requireNonNull(contractRejectionMessage.rejectionReason, "rejectionReason");
+            return contractRejectionMessage;
         }
     }
 }

@@ -18,6 +18,7 @@ import de.fraunhofer.iais.eis.Artifact;
 import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.RepresentationInstance;
 import de.fraunhofer.iais.eis.Resource;
+import de.fraunhofer.iais.eis.util.TypedLiteral;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
@@ -27,6 +28,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -78,8 +80,25 @@ public class IdsResourceToAssetTransformer implements IdsTypeTransformer<Resourc
                 var artifact = (Artifact) representation.getInstance().get(0);
                 assetBuilder.property(TransformKeys.KEY_ASSET_FILE_NAME, artifact.getFileName());
                 assetBuilder.property(TransformKeys.KEY_ASSET_BYTE_SIZE, artifact.getByteSize());
+
                 if (artifact.getProperties() != null) {
-                    artifact.getProperties().forEach(assetBuilder::property);
+                    for (Map.Entry<String, Object> entry : artifact.getProperties().entrySet()) {
+                        /* do not overwrite already mapped properties to avoid side effects */
+                        if (entry.getKey().equals(Asset.PROPERTY_ID) ||
+                                entry.getKey().equals(Asset.PROPERTY_DESCRIPTION) ||
+                                entry.getKey().equals(TransformKeys.KEY_ASSET_FILE_NAME) ||
+                                entry.getKey().equals(TransformKeys.KEY_ASSET_BYTE_SIZE) ||
+                                entry.getKey().equals(TransformKeys.KEY_ASSET_FILE_EXTENSION)) {
+                            continue;
+                        }
+                        if (entry.getValue() instanceof TypedLiteral) {
+                            TypedLiteral literal = (TypedLiteral) entry.getValue();
+                            assetBuilder.property(entry.getKey(), literal.getValue());
+                        } else {
+                            assetBuilder.property(entry.getKey(), entry.getValue());
+                        }
+
+                    }
                 }
             }
         }

@@ -15,7 +15,9 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
+import de.fraunhofer.iais.eis.DescriptionResponseMessage;
 import de.fraunhofer.iais.eis.Representation;
+import org.eclipse.dataspaceconnector.ids.api.multipart.util.MessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
@@ -25,6 +27,7 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -44,7 +47,7 @@ import static org.mockito.Mockito.when;
 
 public class RepresentationDescriptionRequestHandlerTest {
 
-    private static final String CONNECTOR_ID = "urn:connector:edc";
+    private static final URI CONNECTOR_ID = URI.create("urn:connector:edc");
 
     private RepresentationDescriptionRequestHandler representationDescriptionRequestHandler;
 
@@ -53,6 +56,8 @@ public class RepresentationDescriptionRequestHandlerTest {
     private DescriptionRequestMessage descriptionRequestMessage;
     private AssetIndex assetIndex;
     private Representation representation;
+    private MultipartResponseFactory multipartResponseFactory;
+    private MessageFactory messageFactory;
 
     @BeforeEach
     public void setup() throws URISyntaxException {
@@ -68,19 +73,28 @@ public class RepresentationDescriptionRequestHandlerTest {
 
         descriptionRequestMessage = mockDescriptionRequestMessage(representation.getId());
 
-        representationDescriptionRequestHandler = new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, transformerRegistry);
+        multipartResponseFactory = mock(MultipartResponseFactory.class);
+        messageFactory = mock(MessageFactory.class);
+
+        representationDescriptionRequestHandler = new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, transformerRegistry, multipartResponseFactory, messageFactory);
+
+        Mockito.when(messageFactory.createDescriptionResponseMessage(Mockito.any())).thenReturn(mock(DescriptionResponseMessage.class));
     }
 
     @Test
     public void testConstructorArgumentsNotNullable() {
         assertThrows(NullPointerException.class,
-                () -> new RepresentationDescriptionRequestHandler(null, CONNECTOR_ID, assetIndex, transformerRegistry));
+                () -> new RepresentationDescriptionRequestHandler(null, CONNECTOR_ID, assetIndex, transformerRegistry, multipartResponseFactory, messageFactory));
         assertThrows(NullPointerException.class,
-                () -> new RepresentationDescriptionRequestHandler(monitor, null, assetIndex, transformerRegistry));
+                () -> new RepresentationDescriptionRequestHandler(monitor, null, assetIndex, transformerRegistry, multipartResponseFactory, messageFactory));
         assertThrows(NullPointerException.class,
-                () -> new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, null, transformerRegistry));
+                () -> new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, null, transformerRegistry, multipartResponseFactory, messageFactory));
         assertThrows(NullPointerException.class,
-                () -> new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, null));
+                () -> new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, null, multipartResponseFactory, messageFactory));
+        assertThrows(NullPointerException.class,
+                () -> new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, transformerRegistry, null, messageFactory));
+        assertThrows(NullPointerException.class,
+                () -> new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, transformerRegistry, multipartResponseFactory, null));
     }
 
     @Test

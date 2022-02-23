@@ -1,15 +1,14 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.ids.jsonld.Serializer;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -24,7 +23,7 @@ class IdsMultipartSenderTest {
     @Test
     void should_fail_if_token_retrieval_fails() {
         when(identityService.obtainClientCredentials("remoteConnectorId")).thenReturn(Result.failure("error"));
-        var sender = new TestIdsMultipartSender("any", mock(OkHttpClient.class), new ObjectMapper(), mock(Monitor.class), identityService, mock(TransformerRegistry.class));
+        var sender = new TestIdsMultipartSender("any", "https://localhost", mock(OkHttpClient.class), new Serializer(), mock(Monitor.class), identityService, mock(TransformerRegistry.class));
 
         var result = sender.send(new TestRemoteMessage(), () -> "any");
 
@@ -33,9 +32,9 @@ class IdsMultipartSenderTest {
 
     private static class TestIdsMultipartSender extends IdsMultipartSender<TestRemoteMessage, Object> {
 
-        protected TestIdsMultipartSender(String connectorId, OkHttpClient httpClient, ObjectMapper objectMapper,
+        protected TestIdsMultipartSender(String connectorId, String idsWebhookAddress, OkHttpClient httpClient, Serializer serializer,
                                          Monitor monitor, IdentityService identityService, TransformerRegistry transformerRegistry) {
-            super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+            super(connectorId, idsWebhookAddress, httpClient, monitor, identityService, transformerRegistry, serializer);
         }
 
         @Override

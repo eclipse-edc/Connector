@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import de.fraunhofer.iais.eis.ContractRequest;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
@@ -53,7 +52,7 @@ public class IdsContractRequestToContractOfferTransformer implements IdsTypeTran
             return null;
         }
 
-        var contractRequest = (ContractRequest) object.getContract();
+        var contractRequest = object.getContract();
         var asset = object.getAsset();
 
         var edcPermissions = new ArrayList<Permission>();

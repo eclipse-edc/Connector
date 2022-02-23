@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 
 import de.fraunhofer.iais.eis.Representation;
+import org.eclipse.dataspaceconnector.ids.api.multipart.util.MessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
@@ -25,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.URI;
 import java.util.Objects;
 
 public class RepresentationDescriptionRequestHandler extends AbstractDescriptionRequestHandler<Asset, Representation> {
@@ -32,16 +34,19 @@ public class RepresentationDescriptionRequestHandler extends AbstractDescription
 
     public RepresentationDescriptionRequestHandler(
             @NotNull Monitor monitor,
-            @NotNull String connectorId,
+            @NotNull URI connectorId,
             @NotNull AssetIndex assetIndex,
-            @NotNull TransformerRegistry transformerRegistry) {
+            @NotNull TransformerRegistry transformerRegistry,
+            @NotNull MultipartResponseFactory multipartResponseFactory,
+            @NotNull MessageFactory messageFactory) {
         super(
                 connectorId,
                 monitor,
                 transformerRegistry,
                 IdsType.REPRESENTATION,
-                Representation.class
-        );
+                Representation.class,
+                multipartResponseFactory,
+                messageFactory);
         this.assetIndex = Objects.requireNonNull(assetIndex);
     }
 

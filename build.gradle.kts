@@ -21,6 +21,7 @@ plugins {
 
 repositories {
     mavenCentral()
+    maven (url = "https://maven.iais.fraunhofer.de/artifactory/eis-ids-public/")
 }
 
 

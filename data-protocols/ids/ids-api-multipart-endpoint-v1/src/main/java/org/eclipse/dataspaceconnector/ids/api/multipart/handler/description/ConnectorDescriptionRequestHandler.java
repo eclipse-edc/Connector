@@ -18,8 +18,7 @@ import de.fraunhofer.iais.eis.Connector;
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import de.fraunhofer.iais.eis.DescriptionResponseMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
-import org.eclipse.dataspaceconnector.ids.spi.IdsType;
+import org.eclipse.dataspaceconnector.ids.api.multipart.util.MessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -31,25 +30,27 @@ import org.jetbrains.annotations.Nullable;
 import java.net.URI;
 import java.util.Objects;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionResponseMessageUtil.createDescriptionResponseMessage;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartResponseUtil.createBadParametersErrorMultipartResponse;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartResponseUtil.createErrorMultipartResponse;
-
 public class ConnectorDescriptionRequestHandler implements DescriptionRequestHandler {
-    private final String connectorId;
+    private final URI connectorId;
     private final Monitor monitor;
     private final ConnectorService connectorService;
     private final TransformerRegistry transformerRegistry;
+    private final MultipartResponseFactory multipartResponseFactory;
+    private final MessageFactory messageFactory;
 
     public ConnectorDescriptionRequestHandler(
             @NotNull Monitor monitor,
-            @NotNull String connectorId,
+            @NotNull URI connectorId,
             @NotNull ConnectorService connectorService,
-            @NotNull TransformerRegistry transformerRegistry) {
+            @NotNull TransformerRegistry transformerRegistry,
+            @NotNull MultipartResponseFactory multipartResponseFactory,
+            @NotNull MessageFactory messageFactory) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorService = Objects.requireNonNull(connectorService);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
         this.connectorId = Objects.requireNonNull(connectorId);
+        this.multipartResponseFactory = Objects.requireNonNull(multipartResponseFactory);
+        this.messageFactory = Objects.requireNonNull(messageFactory);
     }
 
     @Override
@@ -60,10 +61,10 @@ public class ConnectorDescriptionRequestHandler implements DescriptionRequestHan
         Objects.requireNonNull(descriptionRequestMessage);
 
         if (!isRequestingCurrentConnectorsDescription(descriptionRequestMessage)) {
-            return createErrorMultipartResponse(connectorId, descriptionRequestMessage);
+            return multipartResponseFactory.createErrorMultipartResponse(descriptionRequestMessage);
         }
 
-        DescriptionResponseMessage descriptionResponseMessage = createDescriptionResponseMessage(connectorId, descriptionRequestMessage);
+        DescriptionResponseMessage descriptionResponseMessage = messageFactory.createDescriptionResponseMessage(descriptionRequestMessage);
 
         Result<Connector> transformResult = transformerRegistry.transform(connectorService.getConnector(verificationResult), Connector.class);
         if (transformResult.failed()) {
@@ -73,7 +74,7 @@ public class ConnectorDescriptionRequestHandler implements DescriptionRequestHan
                             String.join(", ", transformResult.getFailureMessages())
                     )
             );
-            return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
+            return multipartResponseFactory.createBadParametersErrorMultipartResponse(descriptionRequestMessage);
         }
 
         Connector connector = transformResult.getContent();
@@ -91,12 +92,6 @@ public class ConnectorDescriptionRequestHandler implements DescriptionRequestHan
             return true;
         }
 
-        URI connectorIdUri = URI.create(String.join(
-                IdsIdParser.DELIMITER,
-                IdsIdParser.SCHEME,
-                IdsType.CONNECTOR.getValue(),
-                connectorId));
-
-        return requestedConnectorId.equals(connectorIdUri);
+        return requestedConnectorId.equals(connectorId);
     }
 }

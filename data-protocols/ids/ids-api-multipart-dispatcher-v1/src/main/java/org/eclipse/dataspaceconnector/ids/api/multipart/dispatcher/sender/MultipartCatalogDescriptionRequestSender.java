@@ -14,15 +14,13 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.BaseConnector;
 import de.fraunhofer.iais.eis.DescriptionRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
-import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.ResourceCatalogBuilder;
+import de.fraunhofer.iais.eis.ids.jsonld.Serializer;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
@@ -35,14 +33,11 @@ import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+
+import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregorianNow;
 
 /**
  * IdsMultipartSender implementation for connector catalog requests. Sends IDS DescriptionRequestMessages and
@@ -51,12 +46,13 @@ import java.util.Objects;
 public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender<CatalogRequest, Catalog> {
 
     public MultipartCatalogDescriptionRequestSender(@NotNull String connectorId,
+                                                    @NotNull String senderAgent,
                                                     @NotNull OkHttpClient httpClient,
-                                                    @NotNull ObjectMapper objectMapper,
+                                                    @NotNull Serializer serializer,
                                                     @NotNull Monitor monitor,
                                                     @NotNull IdentityService identityService,
                                                     @NotNull TransformerRegistry transformerRegistry) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+        super(connectorId, senderAgent, httpClient, monitor, identityService, transformerRegistry, serializer);
     }
 
     @Override
@@ -78,10 +74,10 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
     protected Message buildMessageHeader(CatalogRequest request, DynamicAttributeToken token) {
         return new DescriptionRequestMessageBuilder()
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
-                //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+                ._issued_(gregorianNow())
                 ._securityToken_(token)
                 ._issuerConnector_(getConnectorId())
-                ._senderAgent_(getConnectorId())
+                ._senderAgent_(getSenderAgentURI())
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 .build();
     }
@@ -92,21 +88,13 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
             throw new EdcException("Payload was null but connector self-description was expected");
         }
 
-        BaseConnector baseConnector = getBaseConnector(getObjectMapper(), parts);
+        BaseConnector baseConnector = getBaseConnector(getSerializer(), parts);
         if (baseConnector.getResourceCatalog() == null || baseConnector.getResourceCatalog().isEmpty()) {
             throw new EdcException("Resource catalog is null in connector self-description, should not happen");
         }
 
-        // If there is no resource catalog in connector self-description, we initialize a new empty resource catalog.
-        ResourceCatalog resourceCatalog = baseConnector.getResourceCatalog().stream()
-                .findFirst()
-                .orElse(new ResourceCatalogBuilder().build());
-
-        if (catalogDoesNotContainAnyOfferResource(resourceCatalog)) {
-            createOfferResourcesFromProperties(resourceCatalog, getObjectMapper());
-        }
-
-        Result<Catalog> transformResult = getTransformerRegistry().transform(resourceCatalog, Catalog.class);
+        ResourceCatalog catalog = baseConnector.getResourceCatalog().stream().findFirst().orElse(new ResourceCatalogBuilder().build());
+        Result<Catalog> transformResult = getTransformerRegistry().transform(catalog, Catalog.class);
 
         if (transformResult.failed()) {
             throw new EdcException(String.format("Could not transform ids data catalog: %s", String.join(", ", transformResult.getFailureMessages())));
@@ -115,32 +103,10 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
         return transformResult.getContent();
     }
 
-    private static void createOfferResourcesFromProperties(ResourceCatalog catalog, ObjectMapper mapper) {
-        if (catalog.getProperties() != null) {
-            for (Map.Entry<String, Object> entry : catalog.getProperties().entrySet()) {
-                if ("ids:offeredResource".equals(entry.getKey())) {
-                    JsonNode node = mapper.convertValue(entry.getValue(), JsonNode.class);
-                    List<Resource> offeredResources = new LinkedList<>();
-                    for (JsonNode objNode : node.get("objectList")) {
-                        Map<String, Object> resource = new HashMap<>();
-                        resource.put("@type", "ids:Resource");
-                        resource.putAll(mapper.convertValue(objNode, Map.class));
-                        offeredResources.add(mapper.convertValue(resource, Resource.class));
-                    }
-                    catalog.setOfferedResource(offeredResources);
-                }
-            }
-        }
-    }
-
-    private static boolean catalogDoesNotContainAnyOfferResource(ResourceCatalog catalog) {
-        return catalog.getOfferedResource() == null || catalog.getOfferedResource().isEmpty();
-    }
-
-    private static BaseConnector getBaseConnector(ObjectMapper mapper, IdsMultipartParts parts) {
+    private static BaseConnector getBaseConnector(Serializer serializer, IdsMultipartParts parts) {
         try {
-            InputStream payload = Objects.requireNonNull(parts.getPayload());
-            return mapper.readValue(payload.readAllBytes(), BaseConnector.class);
+            String payload = Objects.requireNonNull(parts.getPayload());
+            return serializer.deserialize(payload, BaseConnector.class);
         } catch (IOException exception) {
             throw new EdcException(String.format("Could not deserialize connector self-description: %s", exception.getMessage()));
         }

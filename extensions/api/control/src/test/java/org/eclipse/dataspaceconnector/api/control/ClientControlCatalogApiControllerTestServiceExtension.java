@@ -17,7 +17,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
@@ -128,7 +128,7 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
         }
 
         @Override
-        public @Nullable ContractNegotiation findForCorrelationId(String correlationId) {
+        public @Nullable ContractNegotiation findContractOfferByLatestMessageId(String contractOfferMessageId) {
             return null;
         }
 
@@ -156,23 +156,23 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
     private static class FakeConsumerNegotiationManager implements ConsumerContractNegotiationManager {
 
         @Override
-        public NegotiationResult initiate(ContractOfferRequest contractOffer) {
+        public NegotiationResult initiate(ContractOfferMessage contractOffer) {
             return null;
         }
 
         @Override
-        public NegotiationResult offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
+        public NegotiationResult offerReceived(ClaimToken token, ContractOffer contractOffer, String hash) {
             return null;
         }
 
         @Override
-        public NegotiationResult confirmed(ClaimToken token, String negotiationId,
+        public NegotiationResult confirmed(ClaimToken token, String negotiationMessageId,
                                            ContractAgreement contract, String hash) {
             return null;
         }
 
         @Override
-        public NegotiationResult declined(ClaimToken token, String negotiationId) {
+        public NegotiationResult declined(ClaimToken token, String correlationMessageId) {
             return null;
         }
     }

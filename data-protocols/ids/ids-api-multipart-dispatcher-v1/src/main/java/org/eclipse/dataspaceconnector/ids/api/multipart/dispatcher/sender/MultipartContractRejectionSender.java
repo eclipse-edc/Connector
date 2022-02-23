@@ -14,77 +14,93 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractRejectionMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.ids.jsonld.Serializer;
 import de.fraunhofer.iais.eis.util.TypedLiteral;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
+import org.eclipse.dataspaceconnector.ids.spi.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
+import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejectionMessage;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
 
+import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregorianNow;
+
 /**
  * IdsMultipartSender implementation for contract rejections. Sends IDS ContractRequestMessages and
  * expects an IDS RequestInProcessMessage as the response.
  */
-public class MultipartContractRejectionSender extends IdsMultipartSender<ContractRejection, MultipartMessageProcessedResponse> {
+public class MultipartContractRejectionSender extends IdsMultipartSender<ContractRejectionMessage, MultipartMessageProcessedResponse> {
 
     public MultipartContractRejectionSender(@NotNull String connectorId,
+                                            @NotNull String idsWebhookAddress,
                                             @NotNull OkHttpClient httpClient,
-                                            @NotNull ObjectMapper objectMapper,
+                                            @NotNull Serializer serializer,
                                             @NotNull Monitor monitor,
                                             @NotNull IdentityService identityService,
                                             @NotNull TransformerRegistry transformerRegistry) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+        super(connectorId, idsWebhookAddress, httpClient, monitor, identityService, transformerRegistry, serializer);
     }
 
     @Override
-    public Class<ContractRejection> messageType() {
-        return ContractRejection.class;
+    public Class<ContractRejectionMessage> messageType() {
+        return ContractRejectionMessage.class;
     }
 
     @Override
-    protected String retrieveRemoteConnectorId(ContractRejection rejection) {
+    protected String retrieveRemoteConnectorId(ContractRejectionMessage rejection) {
         return rejection.getConnectorId();
     }
 
     @Override
-    protected String retrieveRemoteConnectorAddress(ContractRejection rejection) {
+    protected String retrieveRemoteConnectorAddress(ContractRejectionMessage rejection) {
         return rejection.getConnectorAddress();
     }
 
     @Override
-    protected Message buildMessageHeader(ContractRejection rejection, DynamicAttributeToken token) throws Exception {
+    protected Message buildMessageHeader(ContractRejectionMessage rejection, DynamicAttributeToken token) {
+
+        IdsId rejectionMessageId = IdsId.Builder.newInstance().type(IdsType.MESSAGE).value(rejection.getContractOfferMessageId()).build();
+        Result<URI> rejectionMessageUri = getTransformerRegistry().transform(rejectionMessageId, URI.class);
+        if (rejectionMessageUri.failed()) {
+            throw new EdcException("Cannot convert message id to URI");
+        }
+
         return new ContractRejectionMessageBuilder()
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
-                //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+                ._issued_(gregorianNow())
                 ._securityToken_(token)
                 ._issuerConnector_(getConnectorId())
-                ._senderAgent_(getConnectorId())
+                ._senderAgent_(getSenderAgentURI())
                 ._recipientConnector_(Collections.singletonList(URI.create(rejection.getConnectorId())))
+                ._recipientAgent_(Collections.singletonList(URI.create(rejection.getConnectorId())))
                 ._contractRejectionReason_(new TypedLiteral(rejection.getRejectionReason()))
+                ._correlationMessage_(rejectionMessageUri.getContent())
                 .build();
     }
 
     @Override
-    protected String buildMessagePayload(ContractRejection rejection) throws Exception {
+    protected String buildMessagePayload(ContractRejectionMessage rejection) throws Exception {
         return rejection.getRejectionReason();
     }
 
     @Override
     protected MultipartMessageProcessedResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        Message header = getObjectMapper().readValue(parts.getHeader(), Message.class);
+        Message header = getSerializer().deserialize(parts.getHeader(), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
-            payload = new String(parts.getPayload().readAllBytes());
+            payload = parts.getPayload();
         }
 
         return MultipartMessageProcessedResponse.Builder.newInstance()

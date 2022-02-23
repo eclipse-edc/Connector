@@ -27,10 +27,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.Objects;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 public class ContractAgreementToIdsContractAgreementTransformer implements IdsTypeTransformer<ContractAgreement, de.fraunhofer.iais.eis.ContractAgreement> {
 
@@ -48,8 +53,7 @@ public class ContractAgreementToIdsContractAgreementTransformer implements IdsTy
     }
 
     @Override
-    public @Nullable de.fraunhofer.iais.eis.ContractAgreement transform(ContractAgreement object,
-                                                                        @NotNull TransformerContext context) {
+    public @Nullable de.fraunhofer.iais.eis.ContractAgreement transform(ContractAgreement object, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (object == null) {
             return null;
@@ -101,24 +105,27 @@ public class ContractAgreementToIdsContractAgreementTransformer implements IdsTy
             context.reportProblem("cannot convert empty providerId string to URI");
         }
 
-        try {
-            builder._contractStart_(DatatypeFactory.newInstance().newXMLGregorianCalendar(String.valueOf(object.getContractStartDate())));
-        } catch (DatatypeConfigurationException e) {
-            context.reportProblem("cannot convert contract start time to XMLGregorian");
-        }
-
-        try {
-            builder._contractEnd_(DatatypeFactory.newInstance().newXMLGregorianCalendar(String.valueOf(object.getContractEndDate())));
-        } catch (DatatypeConfigurationException e) {
-            context.reportProblem("cannot convert contract end time to XMLGregorian");
-        }
-
-        try {
-            builder._contractDate_(DatatypeFactory.newInstance().newXMLGregorianCalendar(String.valueOf(object.getContractSigningDate())));
-        } catch (DatatypeConfigurationException e) {
-            context.reportProblem("cannot convert contract signing time to XMLGregorian");
-        }
+        builder._contractStart_(calendarFromEpochTime(object.getContractStartDate(), context));
+        builder._contractEnd_(calendarFromEpochTime(object.getContractEndDate(), context));
+        builder._contractDate_(calendarFromEpochTime(object.getContractSigningDate(), context));
 
         return builder.build();
+    }
+
+    private XMLGregorianCalendar calendarFromEpochTime(Long epochSecond, TransformerContext context) {
+        if (epochSecond == null) {
+            return null;
+        }
+
+        try {
+            Instant instant = Instant.ofEpochSecond(epochSecond);
+            ZonedDateTime dateTime = instant.atZone(ZoneId.of("UTC"));
+            GregorianCalendar gregorianCalendar =
+                    new GregorianCalendar(dateTime.getYear(), dateTime.getMonthValue(), dateTime.getDayOfMonth(), dateTime.getHour(), dateTime.getMinute(), dateTime.getSecond());
+            return DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar);
+        } catch (DatatypeConfigurationException e) {
+            context.reportProblem("cannot convert contract signing time to XMLGregorian");
+            return null;
+        }
     }
 }

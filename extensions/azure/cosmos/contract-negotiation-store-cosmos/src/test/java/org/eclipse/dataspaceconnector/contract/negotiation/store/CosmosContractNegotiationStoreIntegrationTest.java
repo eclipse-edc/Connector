@@ -114,33 +114,6 @@ class CosmosContractNegotiationStoreIntegrationTest {
     }
 
     @Test
-    void findForCorrelationId() {
-        var doc1 = generateDocument();
-        var doc2 = generateDocument();
-
-        container.createItem(doc1);
-        container.createItem(doc2);
-
-        var corrId = doc1.getWrappedInstance().getCorrelationId();
-        var foundItem = store.findForCorrelationId(corrId);
-
-        assertThat(foundItem).isNotNull().usingRecursiveComparison().isEqualTo(doc1.getWrappedInstance());
-    }
-
-    @Test
-    void findForCorrelationId_notFound() {
-        var doc1 = generateDocument();
-        var doc2 = generateDocument();
-
-        container.createItem(doc1);
-        container.createItem(doc2);
-
-        var foundItem = store.findForCorrelationId("not-exit");
-
-        assertThat(foundItem).isNull();
-    }
-
-    @Test
     void findContractAgreement() {
         var doc1 = generateDocument();
         var doc2 = generateDocument();

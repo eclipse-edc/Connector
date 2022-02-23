@@ -85,7 +85,21 @@ public class AssetToIdsArtifactTransformer implements IdsTypeTransformer<Asset, 
             }
         }
         Artifact artifact = artifactBuilder.build();
-        object.getProperties().forEach(artifact::setProperty);
+
+        if (object.getProperties() != null) {
+            for (Map.Entry<String, Object> entry : object.getProperties().entrySet()) {
+                /* do not overwrite already mapped properties to avoid side effects */
+                if (entry.getKey().equals(Asset.PROPERTY_ID) ||
+                        entry.getKey().equals(Asset.PROPERTY_DESCRIPTION) ||
+                        entry.getKey().equals(TransformKeys.KEY_ASSET_FILE_NAME) ||
+                        entry.getKey().equals(TransformKeys.KEY_ASSET_BYTE_SIZE) ||
+                        entry.getKey().equals(TransformKeys.KEY_ASSET_FILE_EXTENSION)) {
+                    continue;
+                }
+                artifact.setProperty(entry.getKey(), entry.getValue());
+            }
+        }
+
         return artifact;
     }
 }

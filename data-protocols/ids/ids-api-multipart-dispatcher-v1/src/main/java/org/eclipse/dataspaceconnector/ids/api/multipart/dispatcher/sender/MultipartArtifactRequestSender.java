@@ -19,6 +19,7 @@ import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.RequestInProcessMessage;
+import de.fraunhofer.iais.eis.ids.jsonld.Serializer;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
@@ -37,6 +38,8 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Objects;
 
+import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregorianNow;
+
 /**
  * IdsMultipartSender implementation for data requests. Sends IDS ArtifactRequestMessages and
  * expects an IDS RequestInProcessMessage as the response.
@@ -44,16 +47,20 @@ import java.util.Objects;
 public class MultipartArtifactRequestSender extends IdsMultipartSender<DataRequest, MultipartRequestInProcessResponse> {
 
     private final Vault vault;
+    private final ObjectMapper objectMapper;
 
     public MultipartArtifactRequestSender(@NotNull String connectorId,
+                                          @NotNull String senderAgent,
                                           @NotNull OkHttpClient httpClient,
+                                          @NotNull Serializer serializer,
                                           @NotNull ObjectMapper objectMapper,
                                           @NotNull Monitor monitor,
                                           @NotNull Vault vault,
                                           @NotNull IdentityService identityService,
                                           @NotNull TransformerRegistry transformerRegistry) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+        super(connectorId, senderAgent, httpClient, monitor, identityService, transformerRegistry, serializer);
         this.vault = Objects.requireNonNull(vault);
+        this.objectMapper = Objects.requireNonNull(objectMapper);
     }
 
     @Override
@@ -96,15 +103,15 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
 
         var message = new ArtifactRequestMessageBuilder()
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
-                //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+                ._issued_(gregorianNow())
                 ._securityToken_(token)
                 ._issuerConnector_(getConnectorId())
-                ._senderAgent_(getConnectorId())
+                ._senderAgent_(getSenderAgentURI())
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 ._requestedArtifact_(artifactId)
                 ._transferContract_(contractId)
                 .build();
-        request.getProperties().forEach((k, v) -> message.setProperty(k, v));
+        request.getProperties().forEach(message::setProperty);
         return message;
     }
 
@@ -119,16 +126,16 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
             requestPayloadBuilder = requestPayloadBuilder.secret(secret);
         }
 
-        ObjectMapper objectMapper = getObjectMapper();
+        // As this is no IDS object use the ObjectMapper instead of the IDS Serializer
         return objectMapper.writeValueAsString(requestPayloadBuilder.build());
     }
 
     @Override
     protected MultipartRequestInProcessResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        Message header = getObjectMapper().readValue(parts.getHeader(), Message.class);
+        Message header = getSerializer().deserialize(parts.getHeader(), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
-            payload = new String(parts.getPayload().readAllBytes());
+            payload = parts.getPayload();
         }
 
         if (header instanceof RequestInProcessMessage) {

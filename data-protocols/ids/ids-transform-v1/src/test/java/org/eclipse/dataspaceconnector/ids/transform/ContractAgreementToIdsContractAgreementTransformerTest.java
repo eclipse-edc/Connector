@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -113,8 +114,8 @@ public class ContractAgreementToIdsContractAgreementTransformerTest {
                 .providerAgentId(PROVIDER_ID)
                 .asset(Asset.Builder.newInstance().build())
                 .consumerAgentId("id")
-                .contractStartDate(Instant.MIN.getEpochSecond())
-                .contractEndDate(Instant.MAX.getEpochSecond())
+                .contractStartDate(Instant.now().getEpochSecond())
+                .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(Instant.now().getEpochSecond())
                 .policy(policy)
                 .build();

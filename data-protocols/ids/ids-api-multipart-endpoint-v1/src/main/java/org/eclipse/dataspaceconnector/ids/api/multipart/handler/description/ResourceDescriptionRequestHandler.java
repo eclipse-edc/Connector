@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 
 import de.fraunhofer.iais.eis.Resource;
+import org.eclipse.dataspaceconnector.ids.api.multipart.util.MessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
@@ -30,6 +31,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 
@@ -41,17 +43,20 @@ public class ResourceDescriptionRequestHandler extends AbstractDescriptionReques
 
     public ResourceDescriptionRequestHandler(
             @NotNull Monitor monitor,
-            @NotNull String connectorId,
+            @NotNull URI connectorId,
             @NotNull AssetIndex assetIndex,
             @NotNull ContractOfferService contractOfferService,
-            @NotNull TransformerRegistry transformerRegistry) {
+            @NotNull TransformerRegistry transformerRegistry,
+            @NotNull MultipartResponseFactory multipartResponseFactory,
+            @NotNull MessageFactory messageFactory) {
         super(
                 connectorId,
                 monitor,
                 transformerRegistry,
                 IdsType.RESOURCE,
-                Resource.class
-        );
+                Resource.class,
+                multipartResponseFactory,
+                messageFactory);
         this.assetIndex = Objects.requireNonNull(assetIndex);
         this.contractOfferService = Objects.requireNonNull(contractOfferService);
     }

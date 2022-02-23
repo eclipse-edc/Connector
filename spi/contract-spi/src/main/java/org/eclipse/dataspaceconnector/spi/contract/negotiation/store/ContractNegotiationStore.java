@@ -41,13 +41,13 @@ public interface ContractNegotiationStore {
      * Returns the contract negotiation for the correlation id provided by the consumer or null.
      */
     @Nullable
-    ContractNegotiation findForCorrelationId(String correlationId);
+    ContractNegotiation findContractOfferByLatestMessageId(String contractOfferMessageId);
 
     /**
      * Returns the contract agreement for the id or null.
      */
     @Nullable
-    ContractAgreement findContractAgreement(String contractId);
+    ContractAgreement findContractAgreement(String contractAgreementId);
 
     /**
      * Persists a contract negotiation. This follows UPSERT semantics, so if the object didn't exit before, it's created.

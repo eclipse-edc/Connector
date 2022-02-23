@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -57,7 +58,6 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
 @JsonDeserialize(builder = ContractNegotiation.Builder.class)
 public class ContractNegotiation {
     private String id;
-    private String correlationId;
     private String counterPartyId;
     private String counterPartyAddress;
     private String protocol;
@@ -67,7 +67,7 @@ public class ContractNegotiation {
     private long stateTimestamp;
     private String errorDetail;
     private ContractAgreement contractAgreement;
-    private List<ContractOffer> contractOffers = new ArrayList<>();
+    private final List<ContractOffer> contractOffers = new ArrayList<>();
 
     public Type getType() {
         return type;
@@ -83,13 +83,6 @@ public class ContractNegotiation {
 
     public String getCounterPartyAddress() {
         return counterPartyAddress;
-    }
-
-    /**
-     * Returns the correlation id sent by the client or null if this is a client-side negotiation.
-     */
-    public String getCorrelationId() {
-        return correlationId;
     }
 
     /**
@@ -135,7 +128,7 @@ public class ContractNegotiation {
      * @return The contract offers.
      */
     public List<ContractOffer> getContractOffers() {
-        return contractOffers;
+        return Collections.unmodifiableList(contractOffers);
     }
 
     /**
@@ -341,9 +334,8 @@ public class ContractNegotiation {
      * @return The copy.
      */
     public ContractNegotiation copy() {
-        return ContractNegotiation.Builder.newInstance().id(id).correlationId(correlationId).counterPartyId(counterPartyId)
-                .counterPartyAddress(counterPartyAddress).protocol(protocol).type(type).state(state).stateCount(stateCount)
-                .stateTimestamp(stateTimestamp).errorDetail(errorDetail).contractAgreement(contractAgreement).contractOffers(contractOffers).build();
+        return ContractNegotiation.Builder.newInstance().id(id).counterPartyId(counterPartyId).counterPartyAddress(counterPartyAddress).protocol(protocol).type(type).state(state).stateCount(stateCount).stateTimestamp(stateTimestamp)
+                .errorDetail(errorDetail).contractAgreement(contractAgreement).contractOffers(contractOffers).build();
     }
 
     /**
@@ -355,7 +347,7 @@ public class ContractNegotiation {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, correlationId, counterPartyId, protocol, type, state, stateCount, stateTimestamp, contractAgreement, contractOffers);
+        return Objects.hash(id, contractOffers, counterPartyId, protocol, type, state, stateCount, stateTimestamp, contractAgreement, contractOffers);
     }
 
     @Override
@@ -368,7 +360,7 @@ public class ContractNegotiation {
         }
         ContractNegotiation that = (ContractNegotiation) o;
         return state == that.state && stateCount == that.stateCount && stateTimestamp == that.stateTimestamp && Objects.equals(id, that.id) &&
-                Objects.equals(correlationId, that.correlationId) && Objects.equals(counterPartyId, that.counterPartyId) && Objects.equals(protocol, that.protocol) &&
+                Objects.equals(counterPartyId, that.counterPartyId) && Objects.equals(protocol, that.protocol) &&
                 type == that.type && Objects.equals(contractAgreement, that.contractAgreement) && Objects.equals(contractOffers, that.contractOffers);
     }
 
@@ -453,11 +445,6 @@ public class ContractNegotiation {
             return this;
         }
 
-        public Builder correlationId(String id) {
-            negotiation.correlationId = id;
-            return this;
-        }
-
         public Builder contractAgreement(ContractAgreement agreement) {
             negotiation.contractAgreement = agreement;
             return this;
@@ -465,7 +452,7 @@ public class ContractNegotiation {
 
         //used mainly for JSON deserialization
         public Builder contractOffers(List<ContractOffer> contractOffers) {
-            negotiation.contractOffers = contractOffers;
+            negotiation.contractOffers.addAll(contractOffers);
             return this;
         }
 
@@ -484,9 +471,7 @@ public class ContractNegotiation {
             Objects.requireNonNull(negotiation.counterPartyId);
             Objects.requireNonNull(negotiation.counterPartyAddress);
             Objects.requireNonNull(negotiation.protocol);
-            if (Type.PROVIDER == negotiation.type) {
-                Objects.requireNonNull(negotiation.correlationId);
-            }
+
             return negotiation;
         }
     }

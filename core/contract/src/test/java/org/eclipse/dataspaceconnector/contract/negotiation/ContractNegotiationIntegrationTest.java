@@ -15,7 +15,7 @@ package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -33,11 +33,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
 
     @Test
     void testNegotiation_initialOfferAccepted() throws Exception {
-        consumerNegotiationId = null;
         ContractOffer offer = getContractOffer();
-        when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
-        when(validationService.validate(eq(token), any(ContractAgreement.class),
-                any(ContractOffer.class))).thenReturn(true);
+        when(validationService.validate(eq(token), any(ContractOffer.class))).thenReturn(Result.success(offer));
+        when(validationService.validate(eq(token), any(ContractOffer.class), any(ContractOffer.class))).thenReturn(Result.success(offer));
+        when(validationService.validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(true);
 
         // Create and register listeners for provider and consumer
         providerManager.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
@@ -48,13 +47,14 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         consumerManager.start(consumerStore);
 
         // Create an initial request and trigger consumer manager
-        ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
+        ContractOfferMessage request = ContractOfferMessage.Builder.newInstance()
+                .type(ContractOfferMessage.Type.INITIAL)
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(offer)
                 .protocol("protocol")
                 .build();
-        consumerManager.initiate(request);
+        var consumerNegotiationId = consumerManager.initiate(request).getContent().getId();
 
         // Wait for negotiation to finish with time out at 15 seconds
         var success = countDownLatch.await(15, TimeUnit.SECONDS);
@@ -62,7 +62,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         assertThat(success).isTrue();
 
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
+        // this works because the exact some offer is part of the same stores
+        var providerNegotiation = providerStore.findContractOfferByLatestMessageId(consumerNegotiation.getLastContractOffer().getProperty(ContractOffer.PROPERTY_MESSAGE_ID));
 
         // Assert that provider and consumer have the same offers and agreement stored
         assertThat(consumerNegotiation).isNotNull();
@@ -72,7 +73,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
         assertThat(consumerNegotiation.getContractAgreement()).isNotNull();
         assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
-        verify(validationService).validate(token, offer);
+        verify(validationService).validate(eq(token), any(ContractOffer.class));
         verify(validationService).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
 
         // Stop provider and consumer negotiation managers
@@ -82,11 +83,11 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
 
     @Test
     void testNegotiation_initialOfferDeclined() throws Exception {
-        consumerNegotiationId = null;
         ContractOffer offer = getContractOffer();
 
-        when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
-    
+        when(validationService.validate(eq(token), any(ContractOffer.class))).thenReturn(Result.success(offer));
+        when(validationService.validate(eq(token), any(ContractOffer.class), any())).thenReturn(Result.success(offer));
+
         // Create and register listeners for provider and consumer
         providerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
         consumerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
@@ -96,21 +97,23 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         consumerManager.start(consumerStore);
 
         // Create an initial request and trigger consumer manager
-        ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
+        ContractOfferMessage request = ContractOfferMessage.Builder.newInstance()
+                .type(ContractOfferMessage.Type.INITIAL)
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(offer)
                 .protocol("protocol")
                 .build();
-        consumerManager.initiate(request);
+        var consumerNegotiationId = consumerManager.initiate(request).getContent().getId();
 
         // Wait for negotiation to finish with time out at 15 seconds
-        var success = countDownLatch.await(15, TimeUnit.SECONDS);
+        var success = countDownLatch.await(1500, TimeUnit.SECONDS);
 
         assertThat(success).isTrue();
 
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
+        // this works because the exact some offer is part of the same stores
+        var providerNegotiation = providerStore.findContractOfferByLatestMessageId(consumerNegotiation.getLastContractOffer().getProperty(ContractOffer.PROPERTY_MESSAGE_ID));
 
         // Assert that provider and consumer have the same offers stored
         assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
@@ -120,7 +123,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         // Assert that no agreement has been stored on either side
         assertThat(consumerNegotiation.getContractAgreement()).isNull();
         assertThat(providerNegotiation.getContractAgreement()).isNull();
-        verify(validationService).validate(token, offer);
+        verify(validationService).validate(eq(token), any(ContractOffer.class));
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -129,13 +132,12 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
 
     @Test
     void testNegotiation_agreementDeclined() throws Exception {
-        consumerNegotiationId = null;
         ContractOffer offer = getContractOffer();
 
-        when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
+        when(validationService.validate(eq(token), any(ContractOffer.class))).thenReturn(Result.success(offer));
         when(validationService.validate(eq(token), any(ContractAgreement.class),
                 any(ContractOffer.class))).thenReturn(false);
-    
+
         // Create and register listeners for provider and consumer
         providerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
         consumerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
@@ -145,13 +147,14 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         consumerManager.start(consumerStore);
 
         // Create an initial request and trigger consumer manager
-        ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
+        ContractOfferMessage request = ContractOfferMessage.Builder.newInstance()
+                .type(ContractOfferMessage.Type.INITIAL)
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(offer)
                 .protocol("protocol")
                 .build();
-        consumerManager.initiate(request);
+        var consumerNegotiationId = consumerManager.initiate(request).getContent().getId();
 
         // Wait for negotiation to finish with time out at 15 seconds
         var success = countDownLatch.await(15, TimeUnit.SECONDS);
@@ -159,7 +162,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         assertThat(success).isTrue();
 
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
+        // this works because the exact some offer is part of the same stores
+        var providerNegotiation = providerStore.findContractOfferByLatestMessageId(consumerNegotiation.getLastContractOffer().getProperty(ContractOffer.PROPERTY_MESSAGE_ID));
 
         // Assert that provider and consumer have the same offers stored
         assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
@@ -169,7 +173,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         // Assert that no agreement has been stored on either side
         assertThat(consumerNegotiation.getContractAgreement()).isNull();
         assertThat(providerNegotiation.getContractAgreement()).isNull();
-        verify(validationService).validate(token, offer);
+        verify(validationService).validate(eq(token), any(ContractOffer.class));
         verify(validationService).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
 
         // Stop provider and consumer negotiation managers
@@ -180,7 +184,6 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
     @Test
     @Disabled
     void testNegotiation_counterOfferAccepted() throws Exception {
-        consumerNegotiationId = null;
         ContractOffer initialOffer = getContractOffer();
         ContractOffer counterOffer = getCounterOffer();
 
@@ -198,13 +201,13 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         consumerManager.start(consumerStore);
 
         // Create an initial request and trigger consumer manager
-        ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
+        ContractOfferMessage request = ContractOfferMessage.Builder.newInstance()
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(initialOffer)
                 .protocol("protocol")
                 .build();
-        consumerManager.initiate(request);
+        var consumerNegotiationId = consumerManager.initiate(request).getContent().getId();
 
         // Wait for negotiation to finish with time out at 15 seconds
         var success = countDownLatch.await(15, TimeUnit.SECONDS);
@@ -212,7 +215,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         assertThat(success).isTrue();
 
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
+        // this works because the exact some offer is part of the same stores
+        var providerNegotiation = providerStore.findContractOfferByLatestMessageId(initialOffer.getProperty(ContractOffer.PROPERTY_MESSAGE_ID));
 
         // Assert that provider and consumer have the same number of offers stored
         assertThat(consumerNegotiation.getContractOffers()).hasSize(2);
@@ -240,14 +244,12 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
     @Test
     @Disabled
     void testNegotiation_counterOfferDeclined() throws Exception {
-        consumerNegotiationId = null;
-
         ContractOffer initialOffer = getContractOffer();
         ContractOffer counterOffer = getCounterOffer();
 
         when(validationService.validate(token, initialOffer)).thenReturn(Result.success(null));
         when(validationService.validate(token, counterOffer, initialOffer)).thenReturn(Result.success(null));
-    
+
         // Create and register listeners for provider and consumer
         providerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
         consumerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
@@ -257,13 +259,13 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         consumerManager.start(consumerStore);
 
         // Create an initial request and trigger consumer manager
-        ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
+        ContractOfferMessage request = ContractOfferMessage.Builder.newInstance()
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(initialOffer)
                 .protocol("protocol")
                 .build();
-        consumerManager.initiate(request);
+        var consumerNegotiationId = consumerManager.initiate(request).getContent().getId();
 
         // Wait for negotiation to finish with time out at 15 seconds
         var success = countDownLatch.await(15, TimeUnit.SECONDS);
@@ -271,7 +273,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         assertThat(success).isTrue();
 
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
+        var providerNegotiation = providerStore.findContractOfferByLatestMessageId(consumerNegotiationId);
 
         // Assert that provider and consumer have the same number of offers stored
         assertThat(consumerNegotiation.getContractOffers()).hasSize(2);
@@ -298,8 +300,6 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
     @Test
     @Disabled
     void testNegotiation_consumerCounterOfferAccepted() throws Exception {
-        consumerNegotiationId = null;
-
         // Create an initial contract offer and two counter offers
         ContractOffer initialOffer = getContractOffer();
         ContractOffer counterOffer = getCounterOffer();
@@ -326,13 +326,13 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         consumerManager.start(consumerStore);
 
         // Create an initial request and trigger consumer manager
-        ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
+        ContractOfferMessage request = ContractOfferMessage.Builder.newInstance()
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(initialOffer)
                 .protocol("protocol")
                 .build();
-        consumerManager.initiate(request);
+        var consumerNegotiationId = consumerManager.initiate(request).getContent().getId();
 
         // Wait for negotiation to finish with time out at 15 seconds
         var success = countDownLatch.await(15, TimeUnit.SECONDS);
@@ -340,7 +340,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         assertThat(success).isTrue();
 
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
+        var providerNegotiation = providerStore.findContractOfferByLatestMessageId(consumerNegotiationId);
 
         // Assert that provider and consumer have the same number of offers stored
         assertThat(consumerNegotiation.getContractOffers()).hasSize(3);
@@ -372,8 +372,6 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
     @Test
     @Disabled
     void testNegotiation_consumerCounterOfferDeclined() throws Exception {
-        consumerNegotiationId = null;
-
         // Create an initial contract offer and two counter offers
         ContractOffer initialOffer = getContractOffer();
         ContractOffer counterOffer = getCounterOffer();
@@ -387,7 +385,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
 
         //Mock validation of second counter offer on provider side => decline
         when(validationService.validate(token, consumerCounterOffer, counterOffer)).thenReturn(Result.success(null));
-        
+
         // Create and register listeners for provider and consumer
         providerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
         consumerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
@@ -397,13 +395,13 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         consumerManager.start(consumerStore);
 
         // Create an initial request and trigger consumer manager
-        ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
+        ContractOfferMessage request = ContractOfferMessage.Builder.newInstance()
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(initialOffer)
                 .protocol("protocol")
                 .build();
-        consumerManager.initiate(request);
+        var consumerNegotiationId = consumerManager.initiate(request).getContent().getId();
 
         // Wait for negotiation to finish with time out at 15 seconds
         var success = countDownLatch.await(15, TimeUnit.SECONDS);
@@ -411,7 +409,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         assertThat(success).isTrue();
 
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
+        // this works because the exact some offer is part of the same stores
+        var providerNegotiation = providerStore.findContractOfferByLatestMessageId(initialOffer.getProperty(ContractOffer.PROPERTY_MESSAGE_ID));
 
         // Assert that provider and consumer have the same number of offers stored
         assertThat(consumerNegotiation.getContractOffers()).hasSize(3);

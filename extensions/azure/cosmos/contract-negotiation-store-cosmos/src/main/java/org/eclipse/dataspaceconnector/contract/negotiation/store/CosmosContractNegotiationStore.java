@@ -11,7 +11,6 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitio
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,11 +45,10 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
         return object != null ? toNegotiation(object) : null;
     }
 
-
     @Override
-    public @Nullable ContractNegotiation findForCorrelationId(String correlationId) {
-        final String query = "SELECT * FROM c WHERE (c.wrappedInstance.correlationId = @corrId)";
-        SqlParameter param = new SqlParameter("@corrId", correlationId);
+    public @Nullable ContractNegotiation findContractOfferByLatestMessageId(String contractOfferMessageId) {
+        final String query = "SELECT * FROM c WHERE (ARRAY_SLICE(c.wrappedInstance.contractOffers, -1)[0].properties[\"contract-offer:prop:message-id\"] = @contractOfferMessageId)";
+        SqlParameter param = new SqlParameter("@contractOfferMessageId", contractOfferMessageId);
         var querySpec = new SqlQuerySpec(query, param);
 
         //todo: throw exception if more than 1 element?

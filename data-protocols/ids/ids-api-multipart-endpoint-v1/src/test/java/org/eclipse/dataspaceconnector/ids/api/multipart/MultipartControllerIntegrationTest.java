@@ -25,6 +25,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeAll;
@@ -40,7 +41,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MultipartControllerIntegrationTest extends AbstractMultipartControllerIntegrationTest {
-    private static final String CONNECTOR_ID = UUID.randomUUID().toString();
     private static final String CATALOG_ID = UUID.randomUUID().toString();
 
     private static OkHttpClient httpClient;
@@ -77,14 +77,25 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonHeader = JsonAssertions.assertThatJson(new String(header, StandardCharsets.UTF_8));
 
+        jsonHeader.inPath("$.@context").isObject();
+        jsonHeader.inPath("$.@context.ids").isString().isEqualTo("https://w3id.org/idsa/core/");
         jsonHeader.inPath("$.@type").isString().isEqualTo("ids:DescriptionResponseMessage");
         jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
         jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
         jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");
-        //TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
-        //jsonHeader.inPath("$.ids:issued").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}UTC$");
-        jsonHeader.inPath("$.ids:issuerConnector").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
-        jsonHeader.inPath("$.ids:senderAgent").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+        jsonHeader.inPath("$.ids:issued").isObject();
+        jsonHeader.inPath("$.ids:issued.@type").isString().isEqualTo("http://www.w3.org/2001/XMLSchema#dateTimeStamp");
+        jsonHeader.inPath("$.ids:issued.@value").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\\+[0-9]{2}:[0-9]{2}$");
+        jsonHeader.inPath("$.ids:issuerConnector").isObject();
+        jsonHeader.inPath("$.ids:issuerConnector.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientConnector").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientConnector[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientConnector[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
+        jsonHeader.inPath("$.ids:senderAgent").isObject();
+        jsonHeader.inPath("$.ids:senderAgent.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientAgent").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientAgent[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientAgent[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
 
         var payload = content.stream().filter(n -> "payload".equalsIgnoreCase(n.getName()))
                 .map(NamedMultipartContent::getContent)
@@ -93,8 +104,11 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonPayload = JsonAssertions.assertThatJson(new String(payload, StandardCharsets.UTF_8));
 
+        jsonPayload.inPath("$.@context").isObject();
+        jsonPayload.inPath("$.@context.ids").isString().isEqualTo("https://w3id.org/idsa/core/");
+        jsonPayload.inPath("$.@context.idsc").isString().isEqualTo("https://w3id.org/idsa/code/");
         jsonPayload.inPath("$.@type").isString().isEqualTo("ids:BaseConnector");
-        jsonPayload.inPath("$.@id").isString().matches("urn:connector:" + CONNECTOR_ID);
+        jsonPayload.inPath("$.@id").isString().matches(CONNECTOR_ID_REQUEST_RECEIVER);
         jsonPayload.inPath("$.ids:version").isString().isEqualTo("0.0.1");
         jsonPayload.inPath("$.ids:resourceCatalog").isPresent().isArray().hasSizeGreaterThanOrEqualTo(1);
         jsonPayload.inPath("$.ids:resourceCatalog[0].@type").isString().isEqualTo("ids:ResourceCatalog");
@@ -112,9 +126,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
     @Test
     void testRequestConnectorSelfDescriptionWithId() throws Exception {
         // prepare
-        Request request = createRequest(getDescriptionRequestMessage(
-                IdsId.Builder.newInstance().value(CONNECTOR_ID).type(IdsType.CONNECTOR).build()
-        ));
+        Request request = createRequest(getDescriptionRequestMessage(IdsIdParser.parse(CONNECTOR_ID_REQUEST_RECEIVER)));
 
         // invoke
         Response response = httpClient.newCall(request).execute();
@@ -137,13 +149,25 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonHeader = JsonAssertions.assertThatJson(new String(header, StandardCharsets.UTF_8));
 
+        jsonHeader.inPath("$.@context").isObject();
+        jsonHeader.inPath("$.@context.ids").isString().isEqualTo("https://w3id.org/idsa/core/");
         jsonHeader.inPath("$.@type").isString().isEqualTo("ids:DescriptionResponseMessage");
         jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
         jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
         jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");
-        //jsonHeader.inPath("$.ids:issued").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}UTC$");
-        jsonHeader.inPath("$.ids:issuerConnector").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
-        jsonHeader.inPath("$.ids:senderAgent").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+        jsonHeader.inPath("$.ids:issued").isObject();
+        jsonHeader.inPath("$.ids:issued.@type").isString().isEqualTo("http://www.w3.org/2001/XMLSchema#dateTimeStamp");
+        jsonHeader.inPath("$.ids:issued.@value").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\\+[0-9]{2}:[0-9]{2}$");
+        jsonHeader.inPath("$.ids:issuerConnector").isObject();
+        jsonHeader.inPath("$.ids:issuerConnector.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientConnector").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientConnector[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientConnector[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
+        jsonHeader.inPath("$.ids:senderAgent").isObject();
+        jsonHeader.inPath("$.ids:senderAgent.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientAgent").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientAgent[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientAgent[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
 
         var payload = content.stream().filter(n -> "payload".equalsIgnoreCase(n.getName()))
                 .map(NamedMultipartContent::getContent)
@@ -152,8 +176,11 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonPayload = JsonAssertions.assertThatJson(new String(payload, StandardCharsets.UTF_8));
 
+        jsonPayload.inPath("$.@context").isObject();
+        jsonPayload.inPath("$.@context.ids").isString().isEqualTo("https://w3id.org/idsa/core/");
+        jsonPayload.inPath("$.@context.idsc").isString().isEqualTo("https://w3id.org/idsa/code/");
         jsonPayload.inPath("$.@type").isString().isEqualTo("ids:BaseConnector");
-        jsonPayload.inPath("$.@id").isString().matches("urn:connector:" + CONNECTOR_ID);
+        jsonPayload.inPath("$.@id").isString().matches(CONNECTOR_ID_REQUEST_RECEIVER);
         jsonPayload.inPath("$.ids:version").isString().isEqualTo("0.0.1");
         jsonPayload.inPath("$.ids:resourceCatalog").isPresent().isArray().hasSizeGreaterThanOrEqualTo(1);
         jsonPayload.inPath("$.ids:resourceCatalog[0].@type").isString().isEqualTo("ids:ResourceCatalog");
@@ -205,13 +232,25 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonHeader = JsonAssertions.assertThatJson(new String(header, StandardCharsets.UTF_8));
 
+        jsonHeader.inPath("$.@context").isObject();
+        jsonHeader.inPath("$.@context.ids").isString().isEqualTo("https://w3id.org/idsa/core/");
         jsonHeader.inPath("$.@type").isString().isEqualTo("ids:DescriptionResponseMessage");
         jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
         jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
         jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");
-        //jsonHeader.inPath("$.ids:issued").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}UTC$");
-        jsonHeader.inPath("$.ids:issuerConnector").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
-        jsonHeader.inPath("$.ids:senderAgent").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+        jsonHeader.inPath("$.ids:issued").isObject();
+        jsonHeader.inPath("$.ids:issued.@type").isString().isEqualTo("http://www.w3.org/2001/XMLSchema#dateTimeStamp");
+        jsonHeader.inPath("$.ids:issued.@value").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\\+[0-9]{2}:[0-9]{2}$");
+        jsonHeader.inPath("$.ids:issuerConnector").isObject();
+        jsonHeader.inPath("$.ids:issuerConnector.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientConnector").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientConnector[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientConnector[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
+        jsonHeader.inPath("$.ids:senderAgent").isObject();
+        jsonHeader.inPath("$.ids:senderAgent.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientAgent").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientAgent[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientAgent[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
 
         var payload = content.stream().filter(n -> "payload".equalsIgnoreCase(n.getName()))
                 .map(NamedMultipartContent::getContent)
@@ -220,22 +259,27 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonPayload = JsonAssertions.assertThatJson(new String(payload, StandardCharsets.UTF_8));
 
+        jsonPayload.inPath("$.@context").isObject();
+        jsonPayload.inPath("$.@context.ids").isString().isEqualTo("https://w3id.org/idsa/core/");
+        jsonPayload.inPath("$.@context.idsc").isString().isEqualTo("https://w3id.org/idsa/code/");
         jsonPayload.inPath("$.@type").isString().isEqualTo("ids:ResourceCatalog");
         jsonPayload.inPath("$.@id").isString().matches("urn:catalog:" + CATALOG_ID);
-        jsonPayload.inPath("$.ids:offeredResource.objectList[0].@id").isString().matches("urn:resource:" + assetId);
-        jsonPayload.inPath("$.ids:offeredResource.objectList[0].ids:contractOffer[0].@type").isString().isEqualTo("ids:ContractOffer");
-        jsonPayload.inPath("$.ids:offeredResource.objectList[0].ids:contractOffer[0].@id").isString().matches("urn:contractoffer:.*");
-        jsonPayload.inPath("$.ids:offeredResource.objectList[0].ids:contractOffer[0].ids:permission[0].@type").isString().isEqualTo("ids:Permission");
-        jsonPayload.inPath("$.ids:offeredResource.objectList[0].ids:contractOffer[0].ids:permission[0].@id").isString().matches("urn:permission:.*");
-        jsonPayload.inPath("$.ids:offeredResource.objectList[0].ids:contractOffer[0].ids:permission[0].ids:action[0].@id").isString().isEqualTo("https://w3id.org/idsa/code/USE");
-        jsonPayload.inPath("$.ids:offeredResource.objectList[0].ids:representation[0].@type").isString().isEqualTo("ids:Representation");
-        jsonPayload.inPath("$.ids:offeredResource.objectList[0].ids:representation[0].@id").isString().matches("urn:representation:" + assetId);
-        jsonPayload.inPath("$.ids:offeredResource.objectList[0].ids:representation[0].ids:instance[0].@type").isString().isEqualTo("ids:Artifact");
-        jsonPayload.inPath("$.ids:offeredResource.objectList[0].ids:representation[0].ids:instance[0].@id").isString().matches("urn:artifact:" + assetId);
-        jsonPayload.inPath("$.ids:offeredResource.objectList[0].ids:representation[0].ids:instance[0].ids:fileName").isString().isEqualTo("test.txt");
-        jsonPayload.inPath("$.ids:offeredResource.objectList[0].ids:representation[0].ids:instance[0].ids:byteSize").isIntegralNumber().isEqualTo(10);
-        jsonPayload.inPath("$.ids:offeredResource.objectList[0].ids:representation[0].ids:mediaType.@type").isString().isEqualTo("ids:CustomMediaType");
-        jsonPayload.inPath("$.ids:offeredResource.objectList[0].ids:representation[0].ids:mediaType.ids:filenameExtension").isString().isEqualTo("txt");
+        jsonPayload.inPath("$.ids:offeredResource").isArray();
+        jsonPayload.inPath("$.ids:offeredResource[0].@type").isString().isEqualTo("ids:Resource");
+        jsonPayload.inPath("$.ids:offeredResource[0].@id").isString().matches("urn:resource:" + assetId);
+        jsonPayload.inPath("$.ids:offeredResource[0].ids:contractOffer[0].@type").isString().isEqualTo("ids:ContractOffer");
+        jsonPayload.inPath("$.ids:offeredResource[0].ids:contractOffer[0].@id").isString().matches("urn:contractoffer:.*");
+        jsonPayload.inPath("$.ids:offeredResource[0].ids:contractOffer[0].ids:permission[0].@type").isString().isEqualTo("ids:Permission");
+        jsonPayload.inPath("$.ids:offeredResource[0].ids:contractOffer[0].ids:permission[0].@id").isString().matches("urn:permission:.*");
+        jsonPayload.inPath("$.ids:offeredResource[0].ids:contractOffer[0].ids:permission[0].ids:action[0].@id").isString().isEqualTo("https://w3id.org/idsa/code/USE");
+        jsonPayload.inPath("$.ids:offeredResource[0].ids:representation[0].@type").isString().isEqualTo("ids:Representation");
+        jsonPayload.inPath("$.ids:offeredResource[0].ids:representation[0].@id").isString().matches("urn:representation:" + assetId);
+        jsonPayload.inPath("$.ids:offeredResource[0].ids:representation[0].ids:instance[0].@type").isString().isEqualTo("ids:Artifact");
+        jsonPayload.inPath("$.ids:offeredResource[0].ids:representation[0].ids:instance[0].@id").isString().matches("urn:artifact:" + assetId);
+        jsonPayload.inPath("$.ids:offeredResource[0].ids:representation[0].ids:instance[0].ids:fileName").isString().isEqualTo("test.txt");
+        jsonPayload.inPath("$.ids:offeredResource[0].ids:representation[0].ids:instance[0].ids:byteSize").isIntegralNumber().isEqualTo(10);
+        jsonPayload.inPath("$.ids:offeredResource[0].ids:representation[0].ids:mediaType.@type").isString().isEqualTo("ids:CustomMediaType");
+        jsonPayload.inPath("$.ids:offeredResource[0].ids:representation[0].ids:mediaType.ids:filenameExtension").isString().isEqualTo("txt");
     }
 
     @Test
@@ -266,13 +310,25 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonHeader = JsonAssertions.assertThatJson(new String(header, StandardCharsets.UTF_8));
 
+        jsonHeader.inPath("$.@context").isObject();
+        jsonHeader.inPath("$.@context.ids").isString().isEqualTo("https://w3id.org/idsa/core/");
         jsonHeader.inPath("$.@type").isString().isEqualTo("ids:DescriptionResponseMessage");
         jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
         jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
         jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");
-        //jsonHeader.inPath("$.ids:issued").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}UTC$");
-        jsonHeader.inPath("$.ids:issuerConnector").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
-        jsonHeader.inPath("$.ids:senderAgent").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+        jsonHeader.inPath("$.ids:issued").isObject();
+        jsonHeader.inPath("$.ids:issued.@type").isString().isEqualTo("http://www.w3.org/2001/XMLSchema#dateTimeStamp");
+        jsonHeader.inPath("$.ids:issued.@value").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\\+[0-9]{2}:[0-9]{2}$");
+        jsonHeader.inPath("$.ids:issuerConnector").isObject();
+        jsonHeader.inPath("$.ids:issuerConnector.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientConnector").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientConnector[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientConnector[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
+        jsonHeader.inPath("$.ids:senderAgent").isObject();
+        jsonHeader.inPath("$.ids:senderAgent.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientAgent").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientAgent[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientAgent[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
 
         var payload = content.stream().filter(n -> "payload".equalsIgnoreCase(n.getName()))
                 .map(NamedMultipartContent::getContent)
@@ -281,6 +337,9 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonPayload = JsonAssertions.assertThatJson(new String(payload, StandardCharsets.UTF_8));
 
+        jsonPayload.inPath("$.@context").isObject();
+        jsonPayload.inPath("$.@context.ids").isString().isEqualTo("https://w3id.org/idsa/core/");
+        jsonPayload.inPath("$.@context.idsc").isString().isEqualTo("https://w3id.org/idsa/code/");
         jsonPayload.inPath("$.@type").isString().isEqualTo("ids:ResourceCatalog");
         jsonPayload.inPath("$.@id").isString().matches("urn:catalog:" + CATALOG_ID);
         jsonPayload.inPath("$.ids:offeredResource.objectList[0]").isAbsent();
@@ -323,13 +382,25 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonHeader = JsonAssertions.assertThatJson(new String(header, StandardCharsets.UTF_8));
 
+        jsonHeader.inPath("$.@context").isObject();
+        jsonHeader.inPath("$.@context.ids").isString().isEqualTo("https://w3id.org/idsa/core/");
         jsonHeader.inPath("$.@type").isString().isEqualTo("ids:DescriptionResponseMessage");
         jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
         jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
         jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");
-        //jsonHeader.inPath("$.ids:issued").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}UTC$");
-        jsonHeader.inPath("$.ids:issuerConnector").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
-        jsonHeader.inPath("$.ids:senderAgent").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+        jsonHeader.inPath("$.ids:issued").isObject();
+        jsonHeader.inPath("$.ids:issued.@type").isString().isEqualTo("http://www.w3.org/2001/XMLSchema#dateTimeStamp");
+        jsonHeader.inPath("$.ids:issued.@value").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\\+[0-9]{2}:[0-9]{2}$");
+        jsonHeader.inPath("$.ids:issuerConnector").isObject();
+        jsonHeader.inPath("$.ids:issuerConnector.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientConnector").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientConnector[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientConnector[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
+        jsonHeader.inPath("$.ids:senderAgent").isObject();
+        jsonHeader.inPath("$.ids:senderAgent.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientAgent").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientAgent[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientAgent[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
 
         var payload = content.stream().filter(n -> "payload".equalsIgnoreCase(n.getName()))
                 .map(NamedMultipartContent::getContent)
@@ -338,6 +409,8 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonPayload = JsonAssertions.assertThatJson(new String(payload, StandardCharsets.UTF_8));
 
+        jsonPayload.inPath("$.@context").isObject();
+        jsonPayload.inPath("$.@context.ids").isString().isEqualTo("https://w3id.org/idsa/core/");
         jsonPayload.inPath("$.@type").isString().isEqualTo("ids:Artifact");
         jsonPayload.inPath("$.@id").isString().matches("urn:artifact:" + assetId);
         jsonPayload.inPath("$.ids:fileName").isString().isEqualTo("test.txt");
@@ -381,13 +454,26 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonHeader = JsonAssertions.assertThatJson(new String(header, StandardCharsets.UTF_8));
 
+        jsonHeader.inPath("$.@context").isObject();
+        jsonHeader.inPath("$.@context.ids").isString().isEqualTo("https://w3id.org/idsa/core/");
         jsonHeader.inPath("$.@type").isString().isEqualTo("ids:DescriptionResponseMessage");
         jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
         jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
         jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");
-        //jsonHeader.inPath("$.ids:issued").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}UTC$");
-        jsonHeader.inPath("$.ids:issuerConnector").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
-        jsonHeader.inPath("$.ids:senderAgent").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+        jsonHeader.inPath("$.ids:issued").isObject();
+        jsonHeader.inPath("$.ids:issued.@type").isString().isEqualTo("http://www.w3.org/2001/XMLSchema#dateTimeStamp");
+        jsonHeader.inPath("$.ids:issued.@value").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\\+[0-9]{2}:[0-9]{2}$");
+        jsonHeader.inPath("$.ids:issuerConnector").isObject();
+        jsonHeader.inPath("$.ids:issuerConnector.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientConnector").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientConnector[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientConnector[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
+        jsonHeader.inPath("$.ids:senderAgent").isObject();
+        jsonHeader.inPath("$.ids:senderAgent.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientAgent").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientAgent[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientAgent[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
+
 
         var payload = content.stream().filter(n -> "payload".equalsIgnoreCase(n.getName()))
                 .map(NamedMultipartContent::getContent)
@@ -396,6 +482,9 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonPayload = JsonAssertions.assertThatJson(new String(payload, StandardCharsets.UTF_8));
 
+        jsonPayload.inPath("$.@context").isObject();
+        jsonPayload.inPath("$.@context.ids").isString().isEqualTo("https://w3id.org/idsa/core/");
+        jsonPayload.inPath("$.@context.idsc").isString().isEqualTo("https://w3id.org/idsa/code/");
         jsonPayload.inPath("$.@type").isString().isEqualTo("ids:Representation");
         jsonPayload.inPath("$.@id").isString().matches("urn:representation:" + assetId);
         jsonPayload.inPath("$.ids:mediaType.@type").isString().isEqualTo("ids:CustomMediaType");
@@ -443,13 +532,26 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonHeader = JsonAssertions.assertThatJson(new String(header, StandardCharsets.UTF_8));
 
+        jsonHeader.inPath("$.@context").isObject();
+        jsonHeader.inPath("$.@context.ids").isString().isEqualTo("https://w3id.org/idsa/core/");
         jsonHeader.inPath("$.@type").isString().isEqualTo("ids:DescriptionResponseMessage");
         jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
         jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
         jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");
-        //jsonHeader.inPath("$.ids:issued").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}UTC$");
-        jsonHeader.inPath("$.ids:issuerConnector").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
-        jsonHeader.inPath("$.ids:senderAgent").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+        jsonHeader.inPath("$.ids:issued").isObject();
+        jsonHeader.inPath("$.ids:issued.@type").isString().isEqualTo("http://www.w3.org/2001/XMLSchema#dateTimeStamp");
+        jsonHeader.inPath("$.ids:issued.@value").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\\+[0-9]{2}:[0-9]{2}$");
+        jsonHeader.inPath("$.ids:issuerConnector").isObject();
+        jsonHeader.inPath("$.ids:issuerConnector.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientConnector").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientConnector[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientConnector[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
+        jsonHeader.inPath("$.ids:senderAgent").isObject();
+        jsonHeader.inPath("$.ids:senderAgent.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientAgent").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientAgent[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientAgent[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
+
 
         var payload = content.stream().filter(n -> "payload".equalsIgnoreCase(n.getName()))
                 .map(NamedMultipartContent::getContent)
@@ -458,6 +560,11 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonPayload = JsonAssertions.assertThatJson(new String(payload, StandardCharsets.UTF_8));
 
+        System.out.println(new String(payload, StandardCharsets.UTF_8));
+
+        jsonPayload.inPath("$.@context").isObject();
+        jsonPayload.inPath("$.@context.ids").isString().isEqualTo("https://w3id.org/idsa/core/");
+        jsonPayload.inPath("$.@context.idsc").isString().isEqualTo("https://w3id.org/idsa/code/");
         jsonPayload.inPath("$.@type").isString().isEqualTo("ids:Resource");
         jsonPayload.inPath("$.@id").isString().matches("urn:resource:" + assetId);
         jsonPayload.inPath("$.ids:contractOffer[0].@type").isString().isEqualTo("ids:ContractOffer");
@@ -488,7 +595,6 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
                         .build());
         addAsset(Asset.Builder.newInstance().id(assetId).build());
 
-
         // invoke
         var response = httpClient.newCall(request).execute();
 
@@ -509,13 +615,25 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonHeader = JsonAssertions.assertThatJson(new String(header, StandardCharsets.UTF_8));
 
+        jsonHeader.inPath("$.@context").isObject();
+        jsonHeader.inPath("$.@context.ids").isString().isEqualTo("https://w3id.org/idsa/core/");
         jsonHeader.inPath("$.@type").isString().isEqualTo("ids:RequestInProcessMessage");
         jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
         jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
         jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");
-        //jsonHeader.inPath("$.ids:issued").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}UTC$");
-        jsonHeader.inPath("$.ids:issuerConnector").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
-        jsonHeader.inPath("$.ids:senderAgent").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+        jsonHeader.inPath("$.ids:issued").isObject();
+        jsonHeader.inPath("$.ids:issued.@type").isString().isEqualTo("http://www.w3.org/2001/XMLSchema#dateTimeStamp");
+        jsonHeader.inPath("$.ids:issued.@value").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\\+[0-9]{2}:[0-9]{2}$");
+        jsonHeader.inPath("$.ids:issuerConnector").isObject();
+        jsonHeader.inPath("$.ids:issuerConnector.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientConnector").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientConnector[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientConnector[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
+        jsonHeader.inPath("$.ids:senderAgent").isObject();
+        jsonHeader.inPath("$.ids:senderAgent.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientAgent").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientAgent[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientAgent[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
     }
 
     @Test
@@ -544,13 +662,25 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonHeader = JsonAssertions.assertThatJson(new String(header, StandardCharsets.UTF_8));
 
+        jsonHeader.inPath("$.@context").isObject();
+        jsonHeader.inPath("$.@context.ids").isString().isEqualTo("https://w3id.org/idsa/core/");
         jsonHeader.inPath("$.@type").isString().isEqualTo("ids:RequestInProcessMessage");
         jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
         jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
         jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");
-        //jsonHeader.inPath("$.ids:issued").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}UTC$");
-        jsonHeader.inPath("$.ids:issuerConnector").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
-        jsonHeader.inPath("$.ids:senderAgent").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+        jsonHeader.inPath("$.ids:issued").isObject();
+        jsonHeader.inPath("$.ids:issued.@type").isString().isEqualTo("http://www.w3.org/2001/XMLSchema#dateTimeStamp");
+        jsonHeader.inPath("$.ids:issued.@value").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\\+[0-9]{2}:[0-9]{2}$");
+        jsonHeader.inPath("$.ids:issuerConnector").isObject();
+        jsonHeader.inPath("$.ids:issuerConnector.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientConnector").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientConnector[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientConnector[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
+        jsonHeader.inPath("$.ids:senderAgent").isObject();
+        jsonHeader.inPath("$.ids:senderAgent.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientAgent").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientAgent[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientAgent[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
     }
 
     @Test
@@ -559,8 +689,8 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         var assetId = "1234";
         var request = createRequestWithPayload(getContractAgreementMessage(),
                 new ContractAgreementBuilder(URI.create("urn:contractagreement:1"))
-                        ._provider_(URI.create("http://provider"))
-                        ._consumer_(URI.create("http://consumer"))
+                        ._provider_(URI.create("urn:connector:provider"))
+                        ._consumer_(URI.create("urn:connector:consumer"))
                         ._permission_(new PermissionBuilder()
                                 ._target_(URI.create("urn:artifact:" + assetId))
                                 .build())
@@ -590,19 +720,32 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonHeader = JsonAssertions.assertThatJson(new String(header, StandardCharsets.UTF_8));
 
+        jsonHeader.inPath("$.@context").isObject();
+        jsonHeader.inPath("$.@context.ids").isString().isEqualTo("https://w3id.org/idsa/core/");
         jsonHeader.inPath("$.@type").isString().isEqualTo("ids:MessageProcessedNotificationMessage");
         jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
         jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
         jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");
-        //jsonHeader.inPath("$.ids:issued").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}UTC$");
-        jsonHeader.inPath("$.ids:issuerConnector").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
-        jsonHeader.inPath("$.ids:senderAgent").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+        jsonHeader.inPath("$.ids:issued").isObject();
+        jsonHeader.inPath("$.ids:issued.@type").isString().isEqualTo("http://www.w3.org/2001/XMLSchema#dateTimeStamp");
+        jsonHeader.inPath("$.ids:issued.@value").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\\+[0-9]{2}:[0-9]{2}$");
+        jsonHeader.inPath("$.ids:issuerConnector").isObject();
+        jsonHeader.inPath("$.ids:issuerConnector.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientConnector").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientConnector[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientConnector[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
+        jsonHeader.inPath("$.ids:senderAgent").isObject();
+        jsonHeader.inPath("$.ids:senderAgent.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientAgent").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientAgent[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientAgent[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
     }
 
     @Test
     void testHandleContractRejection() throws Exception {
         // prepare
-        var request = createRequest(getContractRejectionMessage());
+        var rejectionMessage = getContractRejectionMessage();
+        var request = createRequest(rejectionMessage);
 
         // invoke
         var response = httpClient.newCall(request).execute();
@@ -624,13 +767,25 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonHeader = JsonAssertions.assertThatJson(new String(header, StandardCharsets.UTF_8));
 
+        jsonHeader.inPath("$.@context").isObject();
+        jsonHeader.inPath("$.@context.ids").isString().isEqualTo("https://w3id.org/idsa/core/");
         jsonHeader.inPath("$.@type").isString().isEqualTo("ids:MessageProcessedNotificationMessage");
         jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
         jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
         jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");
-        //jsonHeader.inPath("$.ids:issued").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}UTC$");
-        jsonHeader.inPath("$.ids:issuerConnector").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
-        jsonHeader.inPath("$.ids:senderAgent").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+        jsonHeader.inPath("$.ids:issued").isObject();
+        jsonHeader.inPath("$.ids:issued.@type").isString().isEqualTo("http://www.w3.org/2001/XMLSchema#dateTimeStamp");
+        jsonHeader.inPath("$.ids:issued.@value").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}\\+[0-9]{2}:[0-9]{2}$");
+        jsonHeader.inPath("$.ids:issuerConnector").isObject();
+        jsonHeader.inPath("$.ids:issuerConnector.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientConnector").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientConnector[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientConnector[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
+        jsonHeader.inPath("$.ids:senderAgent").isObject();
+        jsonHeader.inPath("$.ids:senderAgent.@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_RECEIVER);
+        jsonHeader.inPath("$.ids:recipientAgent").isArray().hasSize(1);
+        jsonHeader.inPath("$.ids:recipientAgent[0]").isObject();
+        jsonHeader.inPath("$.ids:recipientAgent[0].@id").isString().isEqualTo(CONNECTOR_ID_REQUEST_SENDER);
     }
 
     @Override
@@ -638,7 +793,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         return new HashMap<>() {
             {
                 put("web.http.port", String.valueOf(getPort()));
-                put("edc.ids.id", "urn:connector:" + CONNECTOR_ID);
+                put("edc.ids.id", CONNECTOR_ID_REQUEST_RECEIVER);
                 put("edc.ids.catalog.id", "urn:catalog:" + CATALOG_ID);
             }
         };

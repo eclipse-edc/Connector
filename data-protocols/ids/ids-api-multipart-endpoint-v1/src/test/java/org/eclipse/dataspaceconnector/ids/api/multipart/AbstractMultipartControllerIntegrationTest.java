@@ -15,11 +15,6 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import de.fraunhofer.iais.eis.Contract;
 import de.fraunhofer.iais.eis.ContractAgreementMessage;
 import de.fraunhofer.iais.eis.ContractAgreementMessageBuilder;
@@ -34,6 +29,8 @@ import de.fraunhofer.iais.eis.DescriptionRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.TokenFormat;
+import de.fraunhofer.iais.eis.ids.jsonld.Serializer;
 import jakarta.ws.rs.core.MediaType;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
@@ -46,44 +43,48 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartCont
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
+import org.eclipse.dataspaceconnector.ids.spi.IdsType;
+import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
+import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.URI;
 import java.net.http.HttpHeaders;
-import java.text.SimpleDateFormat;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregorianNow;
 
 @ExtendWith(EdcExtension.class)
 abstract class AbstractMultipartControllerIntegrationTest {
-    // TODO needs to be replaced by an objectmapper capable to understand IDS JSON-LD
-    //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    static {
-        OBJECT_MAPPER.registerModule(new JavaTimeModule());
-        OBJECT_MAPPER.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
-        OBJECT_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        OBJECT_MAPPER.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        OBJECT_MAPPER.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-    }
+    protected static final String CONNECTOR_ID_REQUEST_SENDER = "urn:connector:sender";
+    protected static final String CONNECTOR_ID_REQUEST_RECEIVER = "urn:connector:receiver";
 
     public static final String HEADER = "header";
     public static final String PAYLOAD = "payload";
     private static final AtomicReference<Integer> PORT = new AtomicReference<>();
     private static final List<Asset> ASSETS = new LinkedList<>();
+
+    private Serializer serializer;
 
     @BeforeEach
     protected void before(EdcExtension extension) {
@@ -94,6 +95,10 @@ abstract class AbstractMultipartControllerIntegrationTest {
         }
 
         extension.registerSystemExtension(ServiceExtension.class, new IdsApiMultipartEndpointV1IntegrationTestServiceExtension(ASSETS));
+        serializer = new Serializer();
+        IdentityService identityService = Mockito.mock(IdentityService.class);
+        TokenRepresentation token = TokenRepresentation.Builder.newInstance().token("").build();
+        Mockito.when(identityService.obtainClientCredentials(Mockito.any())).thenReturn(Result.success(token));
     }
 
     @AfterEach
@@ -130,59 +135,93 @@ abstract class AbstractMultipartControllerIntegrationTest {
     protected abstract Map<String, String> getSystemProperties();
 
     protected DynamicAttributeToken getDynamicAttributeToken() {
-        return new DynamicAttributeTokenBuilder()._tokenValue_("fake").build();
+        return new DynamicAttributeTokenBuilder()._tokenFormat_(TokenFormat.JWT)._tokenValue_("xxxxx.yyyyy.zzzzz").build();
     }
 
     protected String toJson(Message message) throws Exception {
-        return OBJECT_MAPPER.writeValueAsString(message);
+        return serializer.serialize(message);
     }
 
     protected String toJson(Contract contract) throws Exception {
-        return OBJECT_MAPPER.writeValueAsString(contract);
+        return serializer.serialize(contract);
     }
 
     protected DescriptionRequestMessage getDescriptionRequestMessage() {
         return getDescriptionRequestMessage(null);
     }
 
-    protected DescriptionRequestMessage getDescriptionRequestMessage(IdsId idsId) {
-        DescriptionRequestMessageBuilder builder = new DescriptionRequestMessageBuilder()
-                ._securityToken_(getDynamicAttributeToken());
+    protected DescriptionRequestMessage getDescriptionRequestMessage(@Nullable IdsId idsId) {
 
+        DescriptionRequestMessageBuilder builder = new DescriptionRequestMessageBuilder(getRandomMessageURI())
+                ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                ._issued_(gregorianNow())
+                ._securityToken_(getDynamicAttributeToken())
+                ._issuerConnector_(URI.create(CONNECTOR_ID_REQUEST_SENDER))
+                ._senderAgent_(URI.create(CONNECTOR_ID_REQUEST_SENDER))
+                // request on issuer connector because it doesn't matter
+                ._recipientConnector_(Collections.singletonList(URI.create(CONNECTOR_ID_REQUEST_RECEIVER)));
+
+        // can be null to request self description
         if (idsId != null) {
             builder._requestedElement_(
                     URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, idsId.getType().getValue(), idsId.getValue())));
         }
+
         return builder.build();
     }
 
     protected ContractRequestMessage getContractRequestMessage() {
-        var message = new ContractRequestMessageBuilder()
-                ._correlationMessage_(URI.create("correlationId"))
+
+        var message = new ContractRequestMessageBuilder(getRandomMessageURI())
+                ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                ._issued_(gregorianNow())
                 ._securityToken_(getDynamicAttributeToken())
+                ._issuerConnector_(URI.create(CONNECTOR_ID_REQUEST_SENDER))
+                ._senderAgent_(URI.create(CONNECTOR_ID_REQUEST_SENDER))
+                // request on issuer connector because it doesn't matter
+                ._recipientConnector_(Collections.singletonList(URI.create(CONNECTOR_ID_REQUEST_RECEIVER)))
+                ._correlationMessage_(getRandomMessageURI())
                 .build();
         message.setProperty("idsWebhookAddress", "http://someUrl");
         return message;
     }
 
     protected ContractAgreementMessage getContractAgreementMessage() {
-        return new ContractAgreementMessageBuilder()
-                ._correlationMessage_(URI.create("correlationId"))
+        return new ContractAgreementMessageBuilder(getRandomMessageURI())
+                ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                ._issued_(gregorianNow())
                 ._securityToken_(getDynamicAttributeToken())
+                ._issuerConnector_(URI.create(CONNECTOR_ID_REQUEST_SENDER))
+                ._senderAgent_(URI.create(CONNECTOR_ID_REQUEST_SENDER))
+                // request on issuer connector because it doesn't matter
+                ._recipientConnector_(Collections.singletonList(URI.create(CONNECTOR_ID_REQUEST_RECEIVER)))
+                ._correlationMessage_(getRandomMessageURI())
                 .build();
     }
 
     protected ContractRejectionMessage getContractRejectionMessage() {
-        return new ContractRejectionMessageBuilder()
-                ._correlationMessage_(URI.create("correlationId"))
+        return new ContractRejectionMessageBuilder(getRandomMessageURI())
+                ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                ._issued_(gregorianNow())
                 ._securityToken_(getDynamicAttributeToken())
+                ._issuerConnector_(URI.create(CONNECTOR_ID_REQUEST_SENDER))
+                ._senderAgent_(URI.create(CONNECTOR_ID_REQUEST_SENDER))
+                ._recipientConnector_(Collections.singletonList(URI.create(CONNECTOR_ID_REQUEST_RECEIVER)))
+                ._correlationMessage_(getRandomMessageURI())
                 .build();
     }
 
     protected ContractOfferMessage getContractOfferMessage() {
-        return new ContractOfferMessageBuilder()
-                ._correlationMessage_(URI.create("correlationId"))
+
+        return new ContractOfferMessageBuilder(getRandomMessageURI())
+                ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                ._issued_(gregorianNow())
                 ._securityToken_(getDynamicAttributeToken())
+                ._issuerConnector_(URI.create(CONNECTOR_ID_REQUEST_SENDER))
+                ._senderAgent_(URI.create(CONNECTOR_ID_REQUEST_SENDER))
+                // request on issuer connector because it doesn't matter
+                ._recipientConnector_(Collections.singletonList(URI.create(CONNECTOR_ID_REQUEST_RECEIVER)))
+                ._correlationMessage_(getRandomMessageURI())
                 .build();
     }
 
@@ -268,7 +307,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 }
 
                 if (multipartName.equalsIgnoreCase(HEADER)) {
-                    header = OBJECT_MAPPER.readValue(part.body().inputStream(), Message.class);
+                    header = serializer.deserialize(part.body().readString(StandardCharsets.UTF_8), Message.class);
                 } else if (multipartName.equalsIgnoreCase(PAYLOAD)) {
                     payload = part.body().readByteArray();
                 }
@@ -305,6 +344,11 @@ abstract class AbstractMultipartControllerIntegrationTest {
         }
 
         return namedMultipartContentList;
+    }
+
+    private URI getRandomMessageURI() {
+        IdsId messageId = IdsId.Builder.newInstance().type(IdsType.MESSAGE).value(UUID.randomUUID().toString()).build();
+        return URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, messageId.getType().getValue(), messageId.getValue()));
     }
 
     public static class NamedMultipartContent {

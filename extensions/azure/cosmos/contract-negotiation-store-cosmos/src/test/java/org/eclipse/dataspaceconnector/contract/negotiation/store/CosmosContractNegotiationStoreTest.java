@@ -60,7 +60,7 @@ class CosmosContractNegotiationStoreTest {
         var doc = generateDocument();
         when(cosmosDbApi.queryItems(any(SqlQuerySpec.class))).thenReturn(Stream.of(doc));
 
-        assertThat(store.findForCorrelationId("some-correlation-id")).usingRecursiveComparison().isEqualTo(doc.getWrappedInstance());
+        assertThat(store.findContractOfferByLatestMessageId("some-correlation-id")).usingRecursiveComparison().isEqualTo(doc.getWrappedInstance());
         verify(cosmosDbApi).queryItems(any(SqlQuerySpec.class));
         verifyNoMoreInteractions(cosmosDbApi);
     }

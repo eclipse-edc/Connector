@@ -163,11 +163,6 @@ public class Policy extends Identifiable {
             return this;
         }
 
-        public Builder duty(String inheritsFrom) {
-            policy.inheritsFrom = inheritsFrom;
-            return this;
-        }
-
         public Builder assigner(String assigner) {
             policy.assigner = assigner;
             return this;

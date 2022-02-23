@@ -44,7 +44,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
@@ -52,7 +52,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.LocalDate;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -78,7 +79,6 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
     private static ContractNegotiation fakeContractNegotiation() {
         return ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .correlationId(UUID.randomUUID().toString())
                 .counterPartyId("test-counterparty-1")
                 .counterPartyAddress("test-counterparty-address")
                 .protocol("test-protocol")
@@ -88,9 +88,9 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
                         .consumerAgentId("consumer")
                         .asset(Asset.Builder.newInstance().build())
                         .policy(Policy.Builder.newInstance().build())
-                        .contractSigningDate(LocalDate.MIN.toEpochDay())
-                        .contractStartDate(LocalDate.MIN.toEpochDay())
-                        .contractEndDate(LocalDate.MAX.toEpochDay())
+                        .contractSigningDate(Instant.now().getEpochSecond())
+                        .contractStartDate(Instant.now().getEpochSecond())
+                        .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                         .id("1:2").build())
                 .state(ContractNegotiationStates.CONFIRMED.code())
                 .build();
@@ -177,7 +177,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
 
         @Override
         public @NotNull List<TransferProcess> nextForState(int state, int max) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
 
         @Override
@@ -307,22 +307,22 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
     private static class FakeProviderContractNegotiationManager implements ProviderContractNegotiationManager {
 
         @Override
-        public NegotiationResult declined(ClaimToken token, String negotiationId) {
+        public NegotiationResult declined(ClaimToken token, String correlationMessageId) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResult requested(ClaimToken token, ContractOfferRequest request) {
+        public NegotiationResult requested(ClaimToken token, ContractOfferMessage request) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResult offerReceived(ClaimToken token, String correlationId, ContractOffer offer, String hash) {
+        public NegotiationResult offerReceived(ClaimToken token, ContractOffer offer, String hash) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResult consumerApproved(ClaimToken token, String correlationId, ContractAgreement agreement, String hash) {
+        public NegotiationResult consumerApproved(ClaimToken token, String correlationMessageId, ContractAgreement agreement, String hash) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
     }
@@ -330,22 +330,22 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
     private static class FakeConsumerContractNegotiationManager implements ConsumerContractNegotiationManager {
 
         @Override
-        public NegotiationResult initiate(ContractOfferRequest contractOffer) {
+        public NegotiationResult initiate(ContractOfferMessage contractOffer) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResult offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
+        public NegotiationResult offerReceived(ClaimToken token, ContractOffer contractOffer, String hash) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResult confirmed(ClaimToken token, String negotiationId, ContractAgreement contract, String hash) {
+        public NegotiationResult confirmed(ClaimToken token, String negotiationMessageId, ContractAgreement contract, String hash) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResult declined(ClaimToken token, String negotiationId) {
+        public NegotiationResult declined(ClaimToken token, String correlationMessageId) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
     }

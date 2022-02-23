@@ -46,7 +46,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
@@ -79,7 +79,6 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
     private static ContractNegotiation fakeContractNegotiation() {
         return ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .correlationId(UUID.randomUUID().toString())
                 .counterPartyId("test-counterparty-1")
                 .counterPartyAddress("test-counterparty-address")
                 .protocol("test-protocol")
@@ -310,7 +309,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         }
 
         @Override
-        public @Nullable ContractNegotiation findForCorrelationId(String correlationId) {
+        public @Nullable ContractNegotiation findContractOfferByLatestMessageId(String contractOfferMessageId) {
             return null;
         }
 
@@ -338,22 +337,22 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
     private static class FakeProviderContractNegotiationManager implements ProviderContractNegotiationManager {
 
         @Override
-        public NegotiationResult declined(ClaimToken token, String negotiationId) {
+        public NegotiationResult declined(ClaimToken token, String correlationMessageId) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResult requested(ClaimToken token, ContractOfferRequest request) {
+        public NegotiationResult requested(ClaimToken token, ContractOfferMessage request) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResult offerReceived(ClaimToken token, String correlationId, ContractOffer offer, String hash) {
+        public NegotiationResult offerReceived(ClaimToken token, ContractOffer offer, String hash) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResult consumerApproved(ClaimToken token, String correlationId, ContractAgreement agreement, String hash) {
+        public NegotiationResult consumerApproved(ClaimToken token, String correlationMessageId, ContractAgreement agreement, String hash) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
     }
@@ -361,22 +360,22 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
     private static class FakeConsumerContractNegotiationManager implements ConsumerContractNegotiationManager {
 
         @Override
-        public NegotiationResult initiate(ContractOfferRequest contractOffer) {
+        public NegotiationResult initiate(ContractOfferMessage contractOffer) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResult offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
+        public NegotiationResult offerReceived(ClaimToken token, ContractOffer contractOffer, String hash) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResult confirmed(ClaimToken token, String negotiationId, ContractAgreement contract, String hash) {
+        public NegotiationResult confirmed(ClaimToken token, String negotiationMessageId, ContractAgreement contract, String hash) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResult declined(ClaimToken token, String negotiationId) {
+        public NegotiationResult declined(ClaimToken token, String correlationMessageId) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
     }

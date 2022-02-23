@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
@@ -26,15 +27,16 @@ import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistr
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferMessage;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejectionMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.LocalDate;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -95,19 +97,24 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
      * Initiates a new {@link ContractNegotiation}. The ContractNegotiation is created and
      * persisted, which moves it to state REQUESTING.
      *
-     * @param contractOffer Container object containing all relevant request parameters.
+     * @param contractOfferMessage Container object containing all relevant request parameters.
      * @return a {@link NegotiationResult}: OK
      */
     @Override
-    public NegotiationResult initiate(ContractOfferRequest contractOffer) {
+    public NegotiationResult initiate(ContractOfferMessage contractOfferMessage) {
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .protocol(contractOffer.getProtocol())
-                .counterPartyId(contractOffer.getConnectorId())
-                .counterPartyAddress(contractOffer.getConnectorAddress())
+                .type(ContractNegotiation.Type.CONSUMER)
+                .protocol(contractOfferMessage.getProtocol())
+                .counterPartyId(contractOfferMessage.getConnectorId())
+                .counterPartyAddress(contractOfferMessage.getConnectorAddress())
                 .build();
 
-        negotiation.addContractOffer(contractOffer.getContractOffer());
+        ContractOffer contractOffer = ContractOffer.Builder.copy(contractOfferMessage.getContractOffer())
+                .property(ContractOffer.PROPERTY_MESSAGE_ID, UUID.randomUUID().toString())
+                .build();
+
+        negotiation.addContractOffer(contractOffer);
         negotiation.transitionInitial();
         negotiationStore.save(negotiation);
         invokeForEach(l -> l.requesting(negotiation));
@@ -124,16 +131,23 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
      * CONSUMER_OFFERING or DECLINING.
      *
      * @param token Claim token of the consumer that send the contract request.
-     * @param negotiationId Id of the ContractNegotiation.
      * @param contractOffer The contract offer.
      * @param hash A hash of all previous contract offers.
      * @return a {@link NegotiationResult}: FATAL_ERROR, if no match found for Id or no last
      *         offer found for negotiation; OK otherwise
      */
     @Override
-    public NegotiationResult offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
-        var negotiation = negotiationStore.find(negotiationId);
+    public NegotiationResult offerReceived(ClaimToken token, ContractOffer contractOffer, String hash) {
+
+        var correlationMessageId = contractOffer.getProperty(ContractOffer.PROPERTY_MESSAGE_ID);
+        if (correlationMessageId == null) {
+            monitor.severe("[Consumer] Cannot process offer without correlation message/offer id");
+            return NegotiationResult.failure(FATAL_ERROR);
+        }
+
+        var negotiation = negotiationStore.findContractOfferByLatestMessageId(correlationMessageId);
         if (negotiation == null) {
+            monitor.severe(String.format("[Consumer] No negotiation stored for correlation message/offer id %s", correlationMessageId));
             return NegotiationResult.failure(FATAL_ERROR);
         }
 
@@ -160,7 +174,7 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
             negotiationStore.save(negotiation);
             invokeForEach(l -> l.consumerApproving(negotiation));
         }
-        
+
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
@@ -173,16 +187,17 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
      * transitions the corresponding {@link ContractNegotiation} to state CONFIRMED or DECLINING.
      *
      * @param token Claim token of the consumer that send the contract request.
-     * @param negotiationId Id of the ContractNegotiation.
+     * @param negotiationMessageId Id of the contract offer message.
      * @param agreement Agreement sent by provider.
      * @param hash A hash of all previous contract offers.
      * @return a {@link NegotiationResult}: FATAL_ERROR, if no match found for Id or no last
      *         offer found for negotiation; OK otherwise
      */
     @Override
-    public NegotiationResult confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, String hash) {
-        var negotiation = negotiationStore.find(negotiationId);
+    public NegotiationResult confirmed(ClaimToken token, String negotiationMessageId, ContractAgreement agreement, String hash) {
+        var negotiation = negotiationStore.findContractOfferByLatestMessageId(negotiationMessageId);
         if (negotiation == null) {
+            monitor.severe(String.format("[Consumer] No negotiation stored for correlation message/offer id %s", negotiationMessageId));
             return NegotiationResult.failure(FATAL_ERROR);
         }
 
@@ -227,14 +242,15 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
      * Transitions the corresponding ContractNegotiation to state DECLINED.
      *
      * @param token Claim token of the consumer that sent the rejection.
-     * @param negotiationId Id of the ContractNegotiation.
+     * @param contractOfferMessageId Id of the contract offer message.
      * @return a {@link NegotiationResult}: OK, if successfully transitioned to declined;
      *         FATAL_ERROR, if no match found for Id.
      */
     @Override
-    public NegotiationResult declined(ClaimToken token, String negotiationId) {
-        var negotiation = negotiationStore.find(negotiationId);
+    public NegotiationResult declined(ClaimToken token, String contractOfferMessageId) {
+        var negotiation = negotiationStore.findContractOfferByLatestMessageId(contractOfferMessageId);
         if (negotiation == null) {
+            monitor.severe(String.format("[Consumer] No negotiation stored for correlation message/offer id %s", contractOfferMessageId));
             return NegotiationResult.failure(FATAL_ERROR);
         }
 
@@ -248,25 +264,30 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
     }
 
     /**
-     * Builds and sends a {@link ContractOfferRequest} for a given {@link ContractNegotiation} and
+     * Builds and sends a {@link ContractOfferMessage} for a given {@link ContractNegotiation} and
      * {@link ContractOffer}.
      *
-     * @param offer The contract offer.
+     * @param offer   The contract offer.
      * @param process The contract negotiation.
      * @return The response to the sent message.
      */
-    private CompletableFuture<Object> sendOffer(ContractOffer offer, ContractNegotiation process, ContractOfferRequest.Type type) {
-        var request = ContractOfferRequest.Builder.newInstance()
+    private CompletableFuture<Object> sendOffer(ContractOffer offer, ContractNegotiation process, ContractOfferMessage.Type type) {
+
+        String correlationId = process.getLastContractOffer().getProperty(ContractOffer.PROPERTY_MESSAGE_ID);
+        if (correlationId == null) {
+            throw new EdcException("Cannot send counter offer without message/correlation id");
+        }
+
+        var request = ContractOfferMessage.Builder.newInstance()
                 .contractOffer(offer)
                 .connectorAddress(process.getCounterPartyAddress())
                 .protocol(process.getProtocol())
                 .connectorId(process.getCounterPartyId())
-                .correlationId(process.getId())
                 .type(type)
                 .build();
 
         // TODO protocol-independent response type?
-        return dispatcherRegistry.send(Object.class, request, process::getId);
+        return dispatcherRegistry.send(Object.class, request, null);
     }
 
     /**
@@ -285,7 +306,7 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
             negotiation.transitionRequesting();
             negotiationStore.save(negotiation);
 
-            sendOffer(offer, negotiation, ContractOfferRequest.Type.INITIAL)
+            sendOffer(offer, negotiation, ContractOfferMessage.Type.INITIAL)
                     .whenComplete(onOfferSent(negotiation.getId(), offer));
         }
 
@@ -330,7 +351,7 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
 
         for (ContractNegotiation process : processes) {
             var offer = process.getLastContractOffer();
-            sendOffer(offer, process, ContractOfferRequest.Type.COUNTER_OFFER)
+            sendOffer(offer, process, ContractOfferMessage.Type.COUNTER_OFFER)
                     .whenComplete((response, throwable) -> {
                         if (throwable == null) {
                             process.transitionOffered();
@@ -376,21 +397,20 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
 
             var agreement = ContractAgreement.Builder.newInstance()
                     .id(ContractId.createContractId(definitionId))
-                    .contractSigningDate(LocalDate.MIN.toEpochDay())
-                    .contractStartDate(LocalDate.MIN.toEpochDay())
-                    .contractEndDate(LocalDate.MAX.toEpochDay())
+                    .contractStartDate(Instant.now().getEpochSecond())
+                    .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond()) // TODO Make configurable (issue #722)
+                    .contractSigningDate(Instant.now().getEpochSecond())
                     .providerAgentId(String.valueOf(lastOffer.getProvider()))
                     .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
                     .policy(lastOffer.getPolicy())
                     .asset(lastOffer.getAsset())
                     .build();
 
-            var request = ContractAgreementRequest.Builder.newInstance()
+            var request = ContractAgreementMessage.Builder.newInstance()
                     .protocol(process.getProtocol())
                     .connectorId(process.getCounterPartyId())
                     .connectorAddress(process.getCounterPartyAddress())
                     .contractAgreement(agreement)
-                    .correlationId(process.getId())
                     .build();
 
             // TODO protocol-independent response type?
@@ -427,11 +447,17 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
         var processes = negotiationStore.nextForState(DECLINING.code(), batchSize);
 
         for (ContractNegotiation process : processes) {
-            var rejection = ContractRejection.Builder.newInstance()
+
+            String correlationMsgId = process.getLastContractOffer().getProperty(ContractOffer.PROPERTY_MESSAGE_ID);
+            if (correlationMsgId == null) {
+                throw new EdcException("Cannot decline contract offer without correlation message id");
+            }
+
+            var rejection = ContractRejectionMessage.Builder.newInstance()
                     .protocol(process.getProtocol())
                     .connectorId(process.getCounterPartyId())
                     .connectorAddress(process.getCounterPartyAddress())
-                    .correlationId(process.getId())
+                    .correlationMessageId(correlationMsgId)
                     .rejectionReason(process.getErrorDetail())
                     .build();
 

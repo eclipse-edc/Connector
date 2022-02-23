@@ -28,11 +28,10 @@ import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferMessage;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejectionMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,8 +56,6 @@ public abstract class AbstractContractNegotiationIntegrationTest {
     protected InMemoryContractNegotiationStore consumerStore;
 
     protected ContractValidationService validationService;
-
-    protected String consumerNegotiationId;
 
     protected ClaimToken token;
 
@@ -92,40 +89,40 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .waitStrategy(() -> 1000)
                 .build();
         consumerStore = new InMemoryContractNegotiationStore();
-        
+
         countDownLatch = new CountDownLatch(2);
     }
-    
+
     /**
      * Implementation of the ContractNegotiationListener that signals a CountDownLatch when the
      * confirmed state has been reached.
      */
     protected class ConfirmedContractNegotiationListener implements ContractNegotiationListener {
-        
+
         private final CountDownLatch countDownLatch;
-        
+
         public ConfirmedContractNegotiationListener(CountDownLatch countDownLatch) {
             this.countDownLatch = countDownLatch;
         }
-        
+
         @Override
         public void confirmed(ContractNegotiation negotiation) {
             countDownLatch.countDown();
         }
     }
-    
+
     /**
      * Implementation of the ContractNegotiationListener that signals a CountDownLatch when the
      * declined state has been reached.
      */
     protected class DeclinedContractNegotiationListener implements ContractNegotiationListener {
-        
+
         private final CountDownLatch countDownLatch;
-        
+
         public DeclinedContractNegotiationListener(CountDownLatch countDownLatch) {
             this.countDownLatch = countDownLatch;
         }
-        
+
         @Override
         public void declined(ContractNegotiation negotiation) {
             countDownLatch.countDown();
@@ -150,15 +147,15 @@ public abstract class AbstractContractNegotiationIntegrationTest {
 
         public CompletableFuture<Object> send(RemoteMessage message) {
             NegotiationResult result;
-            if (message instanceof ContractOfferRequest) {
-                var request = (ContractOfferRequest) message;
-                result = consumerManager.offerReceived(token, request.getCorrelationId(), request.getContractOffer(), "hash");
-            } else if (message instanceof ContractAgreementRequest) {
-                var request = (ContractAgreementRequest) message;
-                result = consumerManager.confirmed(token, request.getCorrelationId(), request.getContractAgreement(), "hash");
-            } else if (message instanceof ContractRejection) {
-                var request = (ContractRejection) message;
-                result = consumerManager.declined(token, request.getCorrelationId());
+            if (message instanceof ContractOfferMessage) {
+                var request = (ContractOfferMessage) message;
+                result = consumerManager.offerReceived(token, request.getContractOffer(), "hash");
+            } else if (message instanceof ContractAgreementMessage) {
+                var request = (ContractAgreementMessage) message;
+                result = consumerManager.confirmed(token, request.getContractOfferMessageId(), request.getContractAgreement(), "hash");
+            } else if (message instanceof ContractRejectionMessage) {
+                var request = (ContractRejectionMessage) message;
+                result = consumerManager.declined(token, request.getContractOfferMessageId());
             } else {
                 throw new IllegalArgumentException("Unknown message type.");
             }
@@ -192,19 +189,18 @@ public abstract class AbstractContractNegotiationIntegrationTest {
 
         public CompletableFuture<Object> send(RemoteMessage message) {
             NegotiationResult result;
-            if (message instanceof ContractOfferRequest) {
-                var request = (ContractOfferRequest) message;
-                consumerNegotiationId = request.getCorrelationId();
-                result = providerManager.offerReceived(token, request.getCorrelationId(), request.getContractOffer(), "hash");
+            if (message instanceof ContractOfferMessage) {
+                var request = (ContractOfferMessage) message;
+                result = providerManager.offerReceived(token, request.getContractOffer(), "hash");
                 if (NegotiationResult.Status.FATAL_ERROR.equals(result.getFailure().getStatus())) {
                     result = providerManager.requested(token, request);
                 }
-            } else if (message instanceof ContractAgreementRequest) {
-                var request = (ContractAgreementRequest) message;
-                result = providerManager.consumerApproved(token, request.getCorrelationId(), request.getContractAgreement(), "hash");
-            } else if (message instanceof ContractRejection) {
-                var request = (ContractRejection) message;
-                result = providerManager.declined(token, request.getCorrelationId());
+            } else if (message instanceof ContractAgreementMessage) {
+                var request = (ContractAgreementMessage) message;
+                result = providerManager.consumerApproved(token, request.getContractOfferMessageId(), request.getContractAgreement(), "hash");
+            } else if (message instanceof ContractRejectionMessage) {
+                var request = (ContractRejectionMessage) message;
+                result = providerManager.declined(token, request.getContractOfferMessageId());
             } else {
                 throw new IllegalArgumentException("Unknown message type.");
             }
@@ -278,6 +274,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .provider(URI.create("provider"))
                 .consumer(URI.create("consumer"))
                 .asset(Asset.Builder.newInstance().build())
+                .property(ContractOffer.PROPERTY_MESSAGE_ID, "1")
                 .policy(Policy.Builder.newInstance()
                         .id(UUID.randomUUID().toString())
                         .type(PolicyType.CONTRACT)

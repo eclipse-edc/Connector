@@ -23,13 +23,12 @@ import java.util.Objects;
  * Object that wraps the contract offer and provides additional information about e.g. protocol
  * and recipient.
  */
-public class ContractOfferRequest implements RemoteMessage {
+public class ContractOfferMessage implements RemoteMessage {
 
     private Type type = Type.COUNTER_OFFER;
     private String protocol;
     private String connectorId;
     private String connectorAddress;
-    private String correlationId;
     private ContractOffer contractOffer;
 
     @Override
@@ -45,10 +44,6 @@ public class ContractOfferRequest implements RemoteMessage {
         return connectorAddress;
     }
 
-    public String getCorrelationId() {
-        return correlationId;
-    }
-
     public Type getType() {
         return type;
     }
@@ -58,10 +53,10 @@ public class ContractOfferRequest implements RemoteMessage {
     }
 
     public static class Builder {
-        private final ContractOfferRequest contractOfferRequest;
+        private final ContractOfferMessage contractOfferMessage;
 
         private Builder() {
-            this.contractOfferRequest = new ContractOfferRequest();
+            this.contractOfferMessage = new ContractOfferMessage();
         }
 
         public static Builder newInstance() {
@@ -69,41 +64,36 @@ public class ContractOfferRequest implements RemoteMessage {
         }
 
         public Builder protocol(String protocol) {
-            this.contractOfferRequest.protocol = protocol;
+            this.contractOfferMessage.protocol = protocol;
             return this;
         }
 
         public Builder connectorId(String connectorId) {
-            this.contractOfferRequest.connectorId = connectorId;
+            this.contractOfferMessage.connectorId = connectorId;
             return this;
         }
 
         public Builder connectorAddress(String connectorAddress) {
-            this.contractOfferRequest.connectorAddress = connectorAddress;
-            return this;
-        }
-
-        public Builder correlationId(String correlationId) {
-            this.contractOfferRequest.correlationId = correlationId;
+            this.contractOfferMessage.connectorAddress = connectorAddress;
             return this;
         }
 
         public Builder contractOffer(ContractOffer contractOffer) {
-            this.contractOfferRequest.contractOffer = contractOffer;
+            this.contractOfferMessage.contractOffer = contractOffer;
             return this;
         }
 
         public Builder type(Type type) {
-            this.contractOfferRequest.type = type;
+            this.contractOfferMessage.type = type;
             return this;
         }
 
-        public ContractOfferRequest build() {
-            Objects.requireNonNull(contractOfferRequest.protocol, "protocol");
-            Objects.requireNonNull(contractOfferRequest.connectorId, "connectorId");
-            Objects.requireNonNull(contractOfferRequest.connectorAddress, "connectorAddress");
-            Objects.requireNonNull(contractOfferRequest.contractOffer, "contractOffer");
-            return contractOfferRequest;
+        public ContractOfferMessage build() {
+            Objects.requireNonNull(contractOfferMessage.protocol, "protocol");
+            Objects.requireNonNull(contractOfferMessage.connectorId, "connectorId");
+            Objects.requireNonNull(contractOfferMessage.connectorAddress, "connectorAddress");
+            Objects.requireNonNull(contractOfferMessage.contractOffer, "contractOffer");
+            return contractOfferMessage;
         }
     }
 

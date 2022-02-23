@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import de.fraunhofer.iais.eis.ids.jsonld.Serializer;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ArtifactRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractAgreementHandler;
@@ -31,8 +32,10 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ArtifactDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ConnectorDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DataCatalogDescriptionRequestHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartResponseFactory;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.RepresentationDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ResourceDescriptionRequestHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.util.MessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
@@ -57,6 +60,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import java.util.List;
@@ -97,6 +101,9 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     @Inject
     private ContractValidationService contractValidationService;
 
+    public IdsMultipartApiServiceExtension() {
+    }
+
     @Override
     public String name() {
         return "IDS Multipart API";
@@ -112,18 +119,29 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
     private void registerControllers(ServiceExtensionContext serviceExtensionContext) {
 
-        String connectorId = resolveConnectorId(serviceExtensionContext);
+        URI connectorId = resolveConnectorId(serviceExtensionContext);
 
         // create description request handlers
-        ArtifactDescriptionRequestHandler artifactDescriptionRequestHandler = new ArtifactDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry);
-        DataCatalogDescriptionRequestHandler dataCatalogDescriptionRequestHandler = new DataCatalogDescriptionRequestHandler(monitor, connectorId, dataCatalogService, transformerRegistry);
-        RepresentationDescriptionRequestHandler representationDescriptionRequestHandler = new RepresentationDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry);
-        ResourceDescriptionRequestHandler resourceDescriptionRequestHandler = new ResourceDescriptionRequestHandler(monitor, connectorId, assetIndex, contractOfferService, transformerRegistry);
-        ConnectorDescriptionRequestHandler connectorDescriptionRequestHandler = new ConnectorDescriptionRequestHandler(monitor, connectorId, connectorService, transformerRegistry);
+        IdentityService identityService = serviceExtensionContext.getService(IdentityService.class);
+        MessageFactory messageFactory = new MessageFactory(connectorId, identityService);
+        MultipartResponseFactory multipartResponseFactory = new MultipartResponseFactory(messageFactory);
+        ArtifactDescriptionRequestHandler artifactDescriptionRequestHandler = new ArtifactDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry, multipartResponseFactory, messageFactory);
+        DataCatalogDescriptionRequestHandler dataCatalogDescriptionRequestHandler = new DataCatalogDescriptionRequestHandler(monitor, connectorId, dataCatalogService, transformerRegistry, multipartResponseFactory, messageFactory);
+        RepresentationDescriptionRequestHandler representationDescriptionRequestHandler = new RepresentationDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry, multipartResponseFactory, messageFactory);
+        ResourceDescriptionRequestHandler resourceDescriptionRequestHandler = new ResourceDescriptionRequestHandler(monitor, connectorId, assetIndex, contractOfferService, transformerRegistry, multipartResponseFactory, messageFactory);
+        ConnectorDescriptionRequestHandler connectorDescriptionRequestHandler = new ConnectorDescriptionRequestHandler(monitor, connectorId, connectorService, transformerRegistry, multipartResponseFactory, messageFactory);
 
-        // create & register controller
-        // TODO ObjectMapper needs to be replaced by one capable to write proper IDS JSON-LD
-        //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+        // create request handler
+        DescriptionHandler descriptionHandler = new DescriptionHandler(
+                monitor,
+                transformerRegistry,
+                artifactDescriptionRequestHandler,
+                dataCatalogDescriptionRequestHandler,
+                representationDescriptionRequestHandler,
+                resourceDescriptionRequestHandler,
+                connectorDescriptionRequestHandler,
+                messageFactory);
+
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
@@ -132,36 +150,26 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
 
-        // create request handler
-        DescriptionHandler descriptionHandler = new DescriptionHandler(
-                monitor,
-                connectorId,
-                transformerRegistry,
-                artifactDescriptionRequestHandler,
-                dataCatalogDescriptionRequestHandler,
-                representationDescriptionRequestHandler,
-                resourceDescriptionRequestHandler,
-                connectorDescriptionRequestHandler);
-
+        Serializer serializer = new Serializer();
         List<Handler> handlers = new LinkedList<>();
         handlers.add(descriptionHandler);
 
         Vault vault = serviceExtensionContext.getService(Vault.class);
-        ArtifactRequestHandler artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault);
+        ArtifactRequestHandler artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault, messageFactory);
         handlers.add(artifactRequestHandler);
 
         // create contract message handlers
-        handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager, transformerRegistry, assetIndex));
-        handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager, transformerRegistry, assetIndex));
-        handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper, providerNegotiationManager, consumerNegotiationManager));
-        handlers.add(new ContractRejectionHandler(monitor, connectorId, providerNegotiationManager, consumerNegotiationManager));
+        handlers.add(new ContractRequestHandler(monitor, serializer, providerNegotiationManager, transformerRegistry, assetIndex, messageFactory));
+        handlers.add(new ContractAgreementHandler(monitor, serializer, consumerNegotiationManager, transformerRegistry, messageFactory));
+        handlers.add(new ContractOfferHandler(monitor, serializer, messageFactory));
+        handlers.add(new ContractRejectionHandler(monitor, providerNegotiationManager, consumerNegotiationManager, messageFactory));
 
         // create & register controller
-        MultipartController multipartController = new MultipartController(connectorId, objectMapper, identityService, handlers);
+        MultipartController multipartController = new MultipartController(messageFactory, new Serializer(), identityService, handlers);
         webService.registerController(multipartController);
     }
 
-    private String resolveConnectorId(@NotNull ServiceExtensionContext context) {
+    private URI resolveConnectorId(@NotNull ServiceExtensionContext context) {
         Objects.requireNonNull(context);
 
         String value = context.getSetting(EDC_IDS_ID, null);
@@ -176,14 +184,14 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
             // Hint: use stringified uri to keep uri path and query
             IdsId idsId = IdsIdParser.parse(value);
             if (idsId != null && idsId.getType() == IdsType.CONNECTOR) {
-                return idsId.getValue();
+                return URI.create(value);
             }
         } catch (IllegalArgumentException e) {
             String message = "IDS Settings: Expected valid URN for setting '%s', but was %s'. Expected format: 'urn:connector:[id]'";
             throw new EdcException(String.format(message, EDC_IDS_ID, DEFAULT_EDC_IDS_ID));
         }
 
-        return value;
+        return URI.create(String.join(IdsType.CONNECTOR.getValue(), IdsIdParser.DELIMITER, value));
     }
 
 }

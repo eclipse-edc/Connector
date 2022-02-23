@@ -14,20 +14,23 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractOfferMessageBuilder;
 import de.fraunhofer.iais.eis.ContractRequestBuilder;
 import de.fraunhofer.iais.eis.ContractRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.ids.jsonld.Serializer;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse;
+import org.eclipse.dataspaceconnector.ids.spi.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
+import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,89 +38,96 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Objects;
 
+import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregorianNow;
+
 /**
  * IdsMultipartSender implementation for contract requests. Sends IDS ContractRequestMessages and
  * expects an IDS RequestInProcessMessage as the response.
  */
-public class MultipartContractOfferSender extends IdsMultipartSender<ContractOfferRequest, MultipartRequestInProcessResponse> {
-
-    private final String idsWebhookAddress;
+public class MultipartContractOfferSender extends IdsMultipartSender<ContractOfferMessage, MultipartRequestInProcessResponse> {
 
     public MultipartContractOfferSender(@NotNull String connectorId,
                                         @NotNull OkHttpClient httpClient,
-                                        @NotNull ObjectMapper objectMapper,
+                                        @NotNull Serializer serializer,
                                         @NotNull Monitor monitor,
                                         @NotNull IdentityService identityService,
                                         @NotNull TransformerRegistry transformerRegistry,
                                         @NotNull String idsWebhookAddress) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
-
-        this.idsWebhookAddress = idsWebhookAddress;
+        super(connectorId, idsWebhookAddress, httpClient, monitor, identityService, transformerRegistry, serializer);
     }
 
     @Override
-    public Class<ContractOfferRequest> messageType() {
-        return ContractOfferRequest.class;
+    public Class<ContractOfferMessage> messageType() {
+        return ContractOfferMessage.class;
     }
 
     @Override
-    protected String retrieveRemoteConnectorId(ContractOfferRequest request) {
+    protected String retrieveRemoteConnectorId(ContractOfferMessage request) {
         return request.getConnectorId();
     }
 
     @Override
-    protected String retrieveRemoteConnectorAddress(ContractOfferRequest request) {
+    protected String retrieveRemoteConnectorAddress(ContractOfferMessage request) {
         return request.getConnectorAddress();
     }
 
     @Override
-    protected Message buildMessageHeader(ContractOfferRequest request, DynamicAttributeToken token) {
-        if (request.getType() == ContractOfferRequest.Type.INITIAL) {
-            var message = new ContractRequestMessageBuilder()
+    protected Message buildMessageHeader(ContractOfferMessage request, DynamicAttributeToken token) {
+
+        String messageId = request.getContractOffer().getProperty(ContractOffer.PROPERTY_MESSAGE_ID);
+        if (messageId == null) {
+            throw new EdcException("Cannot send out an ContractOffer without trackable message id");
+        }
+
+        IdsId msgId = IdsId.Builder.newInstance().type(IdsType.MESSAGE).value(messageId).build();
+        Result<URI> msgUri = getTransformerRegistry().transform(msgId, URI.class);
+        if (msgUri.failed()) {
+            throw new EdcException("Cannot convert message id to URI");
+        }
+
+        if (request.getType() == ContractOfferMessage.Type.INITIAL) {
+
+            ContractRequestMessageBuilder builder = new ContractRequestMessageBuilder(msgUri.getContent())
                     ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
-                    //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+                    ._issued_(gregorianNow())
                     ._securityToken_(token)
                     ._issuerConnector_(getConnectorId())
-                    ._senderAgent_(getConnectorId())
-                    ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
-                    ._transferContract_(URI.create(request.getCorrelationId()))
-                    .build();
-            message.setProperty("idsWebhookAddress", idsWebhookAddress + "/api/ids/multipart");
+                    ._senderAgent_(getSenderAgentURI())
+                    ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())));
 
-            return message;
+            return builder.build();
         } else {
-            var message =  new ContractOfferMessageBuilder()
+
+            ContractOfferMessageBuilder builder = new ContractOfferMessageBuilder(msgUri.getContent())
                     ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
-                    //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+                    ._issued_(gregorianNow())
                     ._securityToken_(token)
                     ._issuerConnector_(getConnectorId())
-                    ._senderAgent_(getConnectorId())
-                    ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
-                    ._transferContract_(URI.create(request.getCorrelationId()))
-                    .build();
-            message.setProperty("idsWebhookAddress", idsWebhookAddress + "/api/ids/multipart");
+                    ._senderAgent_(getSenderAgentURI())
+                    ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())));
 
-            return message;
+            return builder.build();
         }
     }
 
+
     @Override
-    protected String buildMessagePayload(ContractOfferRequest request) throws Exception {
+    protected String buildMessagePayload(ContractOfferMessage request) throws Exception {
         var contractOffer = request.getContractOffer();
 
-        if (request.getType() == ContractOfferRequest.Type.INITIAL) {
-            return getObjectMapper().writeValueAsString(createContractRequest(contractOffer));
+        if (request.getType() == ContractOfferMessage.Type.INITIAL) {
+            return getSerializer().serialize(createContractRequest(contractOffer));
         } else {
-            return getObjectMapper().writeValueAsString(createContractOffer(contractOffer));
+            return getSerializer().serialize(createContractOffer(contractOffer));
         }
     }
 
     @Override
     protected MultipartRequestInProcessResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        Message header = getObjectMapper().readValue(parts.getHeader(), Message.class);
+        Message header = getSerializer().deserialize(parts.getHeader(), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
-            payload = new String(parts.getPayload().readAllBytes());
+            payload = parts.getPayload();
         }
 
         return MultipartRequestInProcessResponse.Builder.newInstance()

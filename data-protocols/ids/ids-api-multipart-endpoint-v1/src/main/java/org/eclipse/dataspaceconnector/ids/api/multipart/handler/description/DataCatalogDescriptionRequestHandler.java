@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 
 import de.fraunhofer.iais.eis.ResourceCatalog;
+import org.eclipse.dataspaceconnector.ids.api.multipart.util.MessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
@@ -25,21 +26,26 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.URI;
+
 public class DataCatalogDescriptionRequestHandler extends AbstractDescriptionRequestHandler<Catalog, ResourceCatalog> {
     private final CatalogService dataCatalogService;
 
     public DataCatalogDescriptionRequestHandler(
             @NotNull Monitor monitor,
-            @NotNull String connectorId,
+            @NotNull URI connectorId,
             @NotNull CatalogService dataCatalogService,
-            @NotNull TransformerRegistry transformerRegistry) {
+            @NotNull TransformerRegistry transformerRegistry,
+            @NotNull MultipartResponseFactory multipartResponseFactory,
+            @NotNull MessageFactory messageFactory) {
         super(
                 connectorId,
                 monitor,
                 transformerRegistry,
                 IdsType.CATALOG,
-                ResourceCatalog.class
-        );
+                ResourceCatalog.class,
+                multipartResponseFactory,
+                messageFactory);
         this.dataCatalogService = dataCatalogService;
     }
 

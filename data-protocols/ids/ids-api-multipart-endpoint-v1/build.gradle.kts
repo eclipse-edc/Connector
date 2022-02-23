@@ -14,6 +14,7 @@
 val infoModelVersion: String by project
 val rsApi: String by project
 val jerseyVersion: String by project
+val infoModelSerializerVersion : String by project
 
 plugins {
     `java-library`
@@ -27,6 +28,7 @@ dependencies {
     api(project(":core:transfer"))
     api(project(":extensions:http"))
 
+    implementation("de.fraunhofer.iais.eis.ids:infomodel-serializer:${infoModelSerializerVersion}")
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
 

@@ -7,7 +7,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.Contra
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 
-import java.time.LocalDate;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 public class TestFunctions {
@@ -19,7 +20,6 @@ public class TestFunctions {
     public static ContractNegotiation generateNegotiation(ContractNegotiationStates state) {
         return ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .correlationId(UUID.randomUUID().toString())
                 .counterPartyId("test-counterparty-1")
                 .counterPartyAddress("test-counterparty-address")
                 .protocol("test-protocol")
@@ -29,9 +29,9 @@ public class TestFunctions {
                         .consumerAgentId("consumer")
                         .asset(Asset.Builder.newInstance().build())
                         .policy(Policy.Builder.newInstance().build())
-                        .contractSigningDate(LocalDate.MIN.toEpochDay())
-                        .contractStartDate(LocalDate.MIN.toEpochDay())
-                        .contractEndDate(LocalDate.MAX.toEpochDay())
+                        .contractSigningDate(Instant.now().getEpochSecond())
+                        .contractStartDate(Instant.now().getEpochSecond())
+                        .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                         .id("1:2").build())
                 .state(state.code())
                 .build();

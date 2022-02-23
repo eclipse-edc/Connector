@@ -30,6 +30,6 @@ public interface ContractNegotiationManager {
     /**
      * A negotiation was declined by the counter-party represented by the claim token.
      */
-    NegotiationResult declined(ClaimToken token, String negotiationId);
+    NegotiationResult declined(ClaimToken token, String contractOfferMessageId);
 
 }

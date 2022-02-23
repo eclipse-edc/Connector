@@ -15,7 +15,9 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
+import de.fraunhofer.iais.eis.DescriptionResponseMessage;
 import de.fraunhofer.iais.eis.Resource;
+import org.eclipse.dataspaceconnector.ids.api.multipart.util.MessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
@@ -23,11 +25,13 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -48,7 +52,7 @@ import static org.mockito.Mockito.when;
 
 public class ResourceDescriptionRequestHandlerTest {
 
-    private static final String CONNECTOR_ID = "urn:connector:edc";
+    private static final URI CONNECTOR_ID = URI.create("urn:connector:edc");
 
     private ResourceDescriptionRequestHandler resourceDescriptionRequestHandler;
 
@@ -56,10 +60,12 @@ public class ResourceDescriptionRequestHandlerTest {
     private TransformerRegistry transformerRegistry;
     private DescriptionRequestMessage descriptionRequestMessage;
     private ContractOfferService contractOfferService;
+    private MultipartResponseFactory multipartResponseFactory;
     private AssetIndex assetIndex;
     private Resource resource;
+    private MessageFactory messageFactory;
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @BeforeEach
     public void setup() throws URISyntaxException {
         monitor = mock(Monitor.class);
@@ -71,22 +77,33 @@ public class ResourceDescriptionRequestHandlerTest {
         assetIndex = mockAssetIndex();
         transformerRegistry = mockTransformerRegistry(IdsType.RESOURCE);
 
-        resourceDescriptionRequestHandler = new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, contractOfferService, transformerRegistry);
+        IdentityService identityService = mock(IdentityService.class);
+        MessageFactory messageFactory = new MessageFactory(CONNECTOR_ID, identityService);
+        multipartResponseFactory = mock(MultipartResponseFactory.class);
+        messageFactory = mock(MessageFactory.class);
+
+        resourceDescriptionRequestHandler = new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, contractOfferService, transformerRegistry, multipartResponseFactory, messageFactory);
+
+        Mockito.when(messageFactory.createDescriptionResponseMessage(Mockito.any())).thenReturn(mock(DescriptionResponseMessage.class));
     }
 
     @Test
     @SuppressWarnings("ConstantConditions")
     public void testConstructorArgumentsNotNullable() {
         assertThrows(NullPointerException.class,
-                () -> new ResourceDescriptionRequestHandler(null, CONNECTOR_ID, assetIndex, contractOfferService, transformerRegistry));
+                () -> new ResourceDescriptionRequestHandler(null, CONNECTOR_ID, assetIndex, contractOfferService, transformerRegistry, multipartResponseFactory, messageFactory));
         assertThrows(NullPointerException.class,
-                () -> new ResourceDescriptionRequestHandler(monitor, null, assetIndex, contractOfferService, transformerRegistry));
+                () -> new ResourceDescriptionRequestHandler(monitor, null, assetIndex, contractOfferService, transformerRegistry, multipartResponseFactory, messageFactory));
         assertThrows(NullPointerException.class,
-                () -> new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, null, contractOfferService, transformerRegistry));
+                () -> new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, null, contractOfferService, transformerRegistry, multipartResponseFactory, messageFactory));
         assertThrows(NullPointerException.class,
-                () -> new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, null, transformerRegistry));
+                () -> new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, null, transformerRegistry, multipartResponseFactory, messageFactory));
         assertThrows(NullPointerException.class,
-                () -> new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, contractOfferService, null));
+                () -> new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, contractOfferService, null, multipartResponseFactory, messageFactory));
+        assertThrows(NullPointerException.class,
+                () -> new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, contractOfferService, transformerRegistry, null, messageFactory));
+        assertThrows(NullPointerException.class,
+                () -> new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, contractOfferService, transformerRegistry, multipartResponseFactory, null));
     }
 
     @Test

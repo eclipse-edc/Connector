@@ -29,7 +29,7 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractN
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 
@@ -68,7 +68,7 @@ public class ClientController {
 
     @POST
     @Path("negotiation")
-    public Response initiateNegotiation(ContractOfferRequest contractOffer) { // TODO allow to the idsWebhookAddress via parameter
+    public Response initiateNegotiation(ContractOfferMessage contractOffer) { // TODO allow to the idsWebhookAddress via parameter
         if (contractOffer == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }

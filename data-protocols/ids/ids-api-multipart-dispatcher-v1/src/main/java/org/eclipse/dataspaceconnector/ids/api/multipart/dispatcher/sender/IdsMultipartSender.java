@@ -14,11 +14,11 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.TokenFormat;
+import de.fraunhofer.iais.eis.ids.jsonld.Serializer;
 import jakarta.ws.rs.core.MediaType;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
@@ -41,11 +41,11 @@ import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpHeaders;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -59,24 +59,27 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
  */
 abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMessageSender<M, R> {
     private final URI connectorId;
+    private final URI idsWebhookAddress;
     private final OkHttpClient httpClient;
-    private final ObjectMapper objectMapper;
     private final Monitor monitor;
     private final IdentityService identityService;
     private final TransformerRegistry transformerRegistry;
+    private final Serializer serializer;
 
     protected IdsMultipartSender(@NotNull String connectorId,
+                                 @NotNull String idsWebhookAddress,
                                  @NotNull OkHttpClient httpClient,
-                                 @NotNull ObjectMapper objectMapper,
                                  @NotNull Monitor monitor,
                                  @NotNull IdentityService identityService,
-                                 @NotNull TransformerRegistry transformerRegistry) {
+                                 @NotNull TransformerRegistry transformerRegistry,
+                                 @NotNull Serializer serializer) {
+        this.idsWebhookAddress = URI.create(idsWebhookAddress + "/api/ids/multipart");
         this.connectorId = createConnectorIdUri(Objects.requireNonNull(connectorId, "connectorId"));
         this.httpClient = Objects.requireNonNull(httpClient, "httpClient");
-        this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
         this.monitor = Objects.requireNonNull(monitor, "monitor");
         this.identityService = Objects.requireNonNull(identityService, "identityService");
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry, "transformerRegistry");
+        this.serializer = Objects.requireNonNull(serializer, "serializer");
     }
 
     private static URI createConnectorIdUri(String connectorId) {
@@ -137,7 +140,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
         RequestBody headerRequestBody;
         try {
             headerRequestBody = RequestBody.create(
-                    objectMapper.writeValueAsString(message),
+                    serializer.serialize(message),
                     okhttp3.MediaType.get(MediaType.APPLICATION_JSON));
         } catch (IOException exception) {
             return failedFuture(exception);
@@ -222,13 +225,18 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
     }
 
     @NotNull
-    protected ObjectMapper getObjectMapper() {
-        return objectMapper;
+    protected Serializer getSerializer() {
+        return serializer;
     }
 
     @NotNull
     protected URI getConnectorId() {
         return connectorId;
+    }
+
+    @NotNull
+    protected URI getSenderAgentURI() {
+        return idsWebhookAddress;
     }
 
     /**
@@ -287,8 +295,8 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
      * @throws Exception if parsing the response fails.
      */
     private IdsMultipartParts extractResponseParts(ResponseBody body) throws Exception {
-        InputStream header = null;
-        InputStream payload = null;
+        String header = null;
+        String payload = null;
         try (var multipartReader = new MultipartReader(Objects.requireNonNull(body))) {
             MultipartReader.Part part;
             while ((part = multipartReader.nextPart()) != null) {
@@ -306,9 +314,9 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
                 var multipartName = contentDisposition.getParameters().get("name");
 
                 if ("header".equalsIgnoreCase(multipartName)) {
-                    header = new ByteArrayInputStream(part.body().readByteArray());
+                    header = part.body().readString(StandardCharsets.UTF_8);
                 } else if ("payload".equalsIgnoreCase(multipartName)) {
-                    payload = new ByteArrayInputStream(part.body().readByteArray());
+                    payload = part.body().readString(StandardCharsets.UTF_8);
                 }
             }
         }

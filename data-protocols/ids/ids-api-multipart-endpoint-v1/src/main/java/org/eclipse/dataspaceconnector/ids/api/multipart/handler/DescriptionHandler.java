@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.Repr
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ResourceDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.util.MessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
@@ -34,36 +35,33 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.messageTypeNotSupported;
-
 public class DescriptionHandler implements Handler {
     private final Monitor monitor;
-    private final String connectorId;
     private final TransformerRegistry transformerRegistry;
     private final ArtifactDescriptionRequestHandler artifactDescriptionRequestHandler;
     private final DataCatalogDescriptionRequestHandler dataCatalogDescriptionRequestHandler;
     private final RepresentationDescriptionRequestHandler representationDescriptionRequestHandler;
     private final ResourceDescriptionRequestHandler resourceDescriptionRequestHandler;
     private final ConnectorDescriptionRequestHandler connectorDescriptionRequestHandler;
+    private final MessageFactory messageFactory;
 
     public DescriptionHandler(
             @NotNull Monitor monitor,
-            @NotNull String connectorId,
             @NotNull TransformerRegistry transformerRegistry,
             @NotNull ArtifactDescriptionRequestHandler artifactDescriptionRequestHandler,
             @NotNull DataCatalogDescriptionRequestHandler dataCatalogDescriptionRequestHandler,
             @NotNull RepresentationDescriptionRequestHandler representationDescriptionRequestHandler,
             @NotNull ResourceDescriptionRequestHandler resourceDescriptionRequestHandler,
-            @NotNull ConnectorDescriptionRequestHandler connectorDescriptionRequestHandler) {
+            @NotNull ConnectorDescriptionRequestHandler connectorDescriptionRequestHandler,
+            @NotNull MessageFactory messageFactory) {
         this.monitor = Objects.requireNonNull(monitor);
-        this.connectorId = Objects.requireNonNull(connectorId);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
         this.artifactDescriptionRequestHandler = Objects.requireNonNull(artifactDescriptionRequestHandler);
         this.dataCatalogDescriptionRequestHandler = Objects.requireNonNull(dataCatalogDescriptionRequestHandler);
         this.representationDescriptionRequestHandler = Objects.requireNonNull(representationDescriptionRequestHandler);
         this.resourceDescriptionRequestHandler = Objects.requireNonNull(resourceDescriptionRequestHandler);
         this.connectorDescriptionRequestHandler = Objects.requireNonNull(connectorDescriptionRequestHandler);
+        this.messageFactory = Objects.requireNonNull(messageFactory);
     }
 
     @Override
@@ -133,13 +131,13 @@ public class DescriptionHandler implements Handler {
 
     private MultipartResponse createBadParametersErrorMultipartResponse(Message message) {
         return MultipartResponse.Builder.newInstance()
-                .header(badParameters(message, connectorId))
+                .header(messageFactory.badParameters(message))
                 .build();
     }
 
     private MultipartResponse createErrorMultipartResponse(Message message) {
         return MultipartResponse.Builder.newInstance()
-                .header(messageTypeNotSupported(message, connectorId))
+                .header(messageFactory.messageTypeNotSupported(message))
                 .build();
     }
 }

@@ -24,6 +24,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -31,6 +34,9 @@ import java.util.Objects;
  */
 @JsonDeserialize(builder = ContractOffer.Builder.class)
 public class ContractOffer {
+
+    public static final String PROPERTY_MESSAGE_ID = "contract-offer:prop:message-id";
+
     private String id;
 
     /**
@@ -70,6 +76,10 @@ public class ContractOffer {
      * Timestamp defining the end date when the contract becomes terminated
      */
     private ZonedDateTime contractEnd;
+    /**
+     * Properties of the contract offer. Properties are not send to the other connector and are intended to help the connector manage contract offers.
+     */
+    private Map<String, String> properties;
 
     @NotNull
     public String getId() {
@@ -116,9 +126,19 @@ public class ContractOffer {
         return policy;
     }
 
+    @NotNull
+    public Map<String, String> getProperties() {
+        return Collections.unmodifiableMap(properties);
+    }
+
+    @Nullable
+    public String getProperty(String key) {
+        return properties.get(key);
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hash(id, policy, asset, provider, consumer, offerStart, offerEnd, contractStart, contractEnd);
+        return Objects.hash(id, policy, asset, properties, provider, consumer, offerStart, offerEnd, contractStart, contractEnd);
     }
 
     @Override
@@ -132,7 +152,7 @@ public class ContractOffer {
         ContractOffer that = (ContractOffer) o;
         return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(asset, that.asset) && Objects.equals(provider, that.provider) &&
                 Objects.equals(consumer, that.consumer) && Objects.equals(offerStart, that.offerStart) && Objects.equals(offerEnd, that.offerEnd) &&
-                Objects.equals(contractStart, that.contractStart) && Objects.equals(contractEnd, that.contractEnd);
+                Objects.equals(properties, that.properties) && Objects.equals(contractStart, that.contractStart) && Objects.equals(contractEnd, that.contractEnd);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -146,13 +166,20 @@ public class ContractOffer {
         private ZonedDateTime offerEnd;
         private ZonedDateTime contractStart;
         private ZonedDateTime contractEnd;
+        private final Map<String, String> properties;
 
         private Builder() {
+            properties = new HashMap<>();
         }
 
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
+        }
+
+        public static Builder copy(ContractOffer contractOffer) {
+            return new Builder().id(contractOffer.id).properties(contractOffer.properties).asset(contractOffer.asset).policy(contractOffer.policy).provider(contractOffer.provider).consumer(contractOffer.consumer).offerStart(contractOffer.offerStart)
+                    .offerEnd(contractOffer.offerEnd).contractStart(contractOffer.contractStart).contractEnd(contractOffer.contractEnd);
         }
 
         public Builder id(String id) {
@@ -200,6 +227,16 @@ public class ContractOffer {
             return this;
         }
 
+        public Builder properties(Map<String, String> properties) {
+            this.properties.putAll(properties);
+            return this;
+        }
+
+        public Builder property(String key, String value) {
+            this.properties.put(key, value);
+            return this;
+        }
+
         public ContractOffer build() {
             Objects.requireNonNull(policy);
             Objects.requireNonNull(id);
@@ -214,6 +251,7 @@ public class ContractOffer {
             offer.offerEnd = this.offerEnd;
             offer.contractStart = this.contractStart;
             offer.contractEnd = this.contractEnd;
+            offer.properties = this.properties;
             return offer;
         }
     }

@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import de.fraunhofer.iais.eis.DescriptionResponseMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.util.MessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
@@ -29,29 +30,34 @@ import org.jetbrains.annotations.Nullable;
 import java.net.URI;
 import java.util.Objects;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionResponseMessageUtil.createDescriptionResponseMessage;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartResponseUtil.createBadParametersErrorMultipartResponse;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartResponseUtil.createNotFoundErrorMultipartResponse;
-
 abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionRequestHandler {
-    protected final String connectorId;
+    protected final URI connectorId;
     protected final Monitor monitor;
     protected final TransformerRegistry transformerRegistry;
     protected final IdsType targetIdsType;
     protected final Class<S> resultType;
+    protected final MultipartResponseFactory multipartResponseFactory;
+    private final MessageFactory messageFactory;
 
     public AbstractDescriptionRequestHandler(
-            @NotNull String connectorId,
+            @NotNull URI connectorId,
             @NotNull Monitor monitor,
             @NotNull TransformerRegistry transformerRegistry,
             @NotNull IdsType targetIdsType,
-            @NotNull Class<S> resultType
-    ) {
+            @NotNull Class<S> resultType,
+            @NotNull MultipartResponseFactory multipartResponseFactory,
+            @NotNull MessageFactory messageFactory) {
         this.connectorId = Objects.requireNonNull(connectorId);
         this.monitor = Objects.requireNonNull(monitor);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
         this.targetIdsType = Objects.requireNonNull(targetIdsType);
         this.resultType = Objects.requireNonNull(resultType);
+        this.multipartResponseFactory = Objects.requireNonNull(multipartResponseFactory);
+        this.messageFactory = Objects.requireNonNull(messageFactory);
+    }
+
+    public MultipartResponseFactory getMultipartResponseFactory() {
+        return multipartResponseFactory;
     }
 
     @Override
@@ -63,7 +69,7 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
 
         URI uri = descriptionRequestMessage.getRequestedElement();
         if (uri == null) {
-            return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
+            return multipartResponseFactory.createBadParametersErrorMultipartResponse(descriptionRequestMessage);
         }
 
         var result = transformerRegistry.transform(uri, IdsId.class);
@@ -74,17 +80,17 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
                             String.join(", ", result.getFailureMessages())
                     )
             );
-            return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
+            return multipartResponseFactory.createBadParametersErrorMultipartResponse(descriptionRequestMessage);
         }
 
         IdsId idsId = result.getContent();
         if (Objects.requireNonNull(idsId).getType() != targetIdsType) {
-            return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
+            return multipartResponseFactory.createBadParametersErrorMultipartResponse(descriptionRequestMessage);
         }
 
         T retrievedObject = retrieveObject(idsId, verificationResult);
         if (retrievedObject == null) {
-            return createNotFoundErrorMultipartResponse(connectorId, descriptionRequestMessage);
+            return multipartResponseFactory.createNotFoundErrorMultipartResponse(descriptionRequestMessage);
         }
 
         Result<S> transformResult = transformerRegistry.transform(retrievedObject, resultType);
@@ -97,12 +103,12 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
                             String.join(", ", transformResult.getFailureMessages())
                     )
             );
-            return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
+            return multipartResponseFactory.createBadParametersErrorMultipartResponse(descriptionRequestMessage);
         }
 
         S handlerResult = transformResult.getContent();
 
-        DescriptionResponseMessage descriptionResponseMessage = createDescriptionResponseMessage(connectorId, descriptionRequestMessage);
+        DescriptionResponseMessage descriptionResponseMessage = messageFactory.createDescriptionResponseMessage(descriptionRequestMessage);
 
         return MultipartResponse.Builder.newInstance()
                 .header(descriptionResponseMessage)

@@ -19,6 +19,7 @@ import de.fraunhofer.iais.eis.Message;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.util.MessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -34,8 +35,6 @@ import static org.mockito.Mockito.when;
 
 class DescriptionHandlerTest {
 
-    private static final String CONNECTOR_ID = "urn:connector:edc";
-
     private DescriptionHandler descriptionHandler;
 
     private Monitor monitor;
@@ -45,6 +44,7 @@ class DescriptionHandlerTest {
     private RepresentationDescriptionRequestHandler representationDescriptionRequestHandler;
     private ResourceDescriptionRequestHandler resourceDescriptionRequestHandler;
     private ConnectorDescriptionRequestHandler connectorDescriptionRequestHandler;
+    private MessageFactory messageFactory;
 
     @BeforeEach
     void setUp() {
@@ -55,16 +55,17 @@ class DescriptionHandlerTest {
         representationDescriptionRequestHandler = mock(RepresentationDescriptionRequestHandler.class);
         resourceDescriptionRequestHandler = mock(ResourceDescriptionRequestHandler.class);
         connectorDescriptionRequestHandler = mock(ConnectorDescriptionRequestHandler.class);
+        messageFactory = mock(MessageFactory.class);
 
         descriptionHandler = new DescriptionHandler(
                 monitor,
-                CONNECTOR_ID,
                 transformerRegistry,
                 artifactDescriptionRequestHandler,
                 dataCatalogDescriptionRequestHandler,
                 representationDescriptionRequestHandler,
                 resourceDescriptionRequestHandler,
-                connectorDescriptionRequestHandler);
+                connectorDescriptionRequestHandler,
+                messageFactory);
     }
 
     @Test

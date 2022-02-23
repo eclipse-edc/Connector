@@ -27,31 +27,31 @@ import java.util.Objects;
  */
 class IdsMultipartParts {
 
-    private final InputStream header;
+    private final String header;
 
     @Nullable
-    private final InputStream payload;
+    private final String payload;
 
-    IdsMultipartParts(@NotNull InputStream header, @Nullable InputStream payload) {
+    IdsMultipartParts(@NotNull String header, @Nullable String payload) {
         this.header = header;
         this.payload = payload;
     }
 
     @NotNull
-    public InputStream getHeader() {
+    public String getHeader() {
         return header;
     }
 
     @Nullable
-    public InputStream getPayload() {
+    public String getPayload() {
         return payload;
     }
 
     public static class Builder {
-        private InputStream header;
+        private String header;
 
         @Nullable
-        private InputStream payload;
+        private String payload;
 
         private Builder() {
         }
@@ -60,12 +60,12 @@ class IdsMultipartParts {
             return new Builder();
         }
 
-        public Builder header(InputStream header) {
+        public Builder header(String header) {
             this.header = header;
             return this;
         }
 
-        public Builder payload(InputStream payload) {
+        public Builder payload(String payload) {
             this.payload = payload;
             return this;
         }

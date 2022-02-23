@@ -28,7 +28,7 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.Negotiat
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 
@@ -37,8 +37,8 @@ import java.util.UUID;
 
 import static java.lang.String.format;
 
-@Consumes({MediaType.APPLICATION_JSON})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path("/")
 public class ConsumerApiController {
 
@@ -68,12 +68,12 @@ public class ConsumerApiController {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        var contractOfferRequest = ContractOfferRequest.Builder.newInstance()
+        var contractOfferRequest = ContractOfferMessage.Builder.newInstance()
                 .contractOffer(contractOffer)
                 .protocol("ids-multipart")
                 .connectorId("consumer")
                 .connectorAddress(connectorAddress)
-                .type(ContractOfferRequest.Type.INITIAL)
+                .type(ContractOfferMessage.Type.INITIAL)
                 .build();
 
         var result = consumerNegotiationManager.initiate(contractOfferRequest);

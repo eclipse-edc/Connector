@@ -14,23 +14,31 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.util;
 
+import de.fraunhofer.iais.eis.DescriptionRequestMessageBuilder;
+import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RejectionReason;
+import de.fraunhofer.iais.eis.TokenFormat;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
+import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
+import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregorianNow;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class RejectionMessageUtilTest {
+class MessageFactoryTest {
     private final String connectorId = "38bfeade-3566-11ec-8d3d-0242ac130003";
     private final URI connectorIdUri = URI.create("urn:connector:" + connectorId);
     private final URI correlationMessageId = URI.create("urn:message:7c35205e-3566-11ec-8d3d-0242ac130003");
@@ -39,13 +47,18 @@ class RejectionMessageUtilTest {
 
     private Message correlationMessage;
 
+    private MessageFactory messageFactory;
+
     @BeforeEach
     void setUp() {
         correlationMessage = mock(Message.class);
+        IdentityService identityService = mock(IdentityService.class);
+        messageFactory = new MessageFactory(connectorIdUri, identityService);
 
         when(correlationMessage.getId()).thenReturn(correlationMessageId);
         when(correlationMessage.getSenderAgent()).thenReturn(senderAgent);
         when(correlationMessage.getIssuerConnector()).thenReturn(issuerConnector);
+        when(identityService.obtainClientCredentials("")).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c").build()));
     }
 
     @AfterEach
@@ -57,28 +70,28 @@ class RejectionMessageUtilTest {
 
     @Test
     public void testNotFound() {
-        var rejectionMessage = RejectionMessageUtil
-                .notFound(null, null);
+        var rejectionMessage = messageFactory
+                .rejectNotFound(createMessage());
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_FOUND);
 
         // just correlationMessage, no connectorId
-        rejectionMessage = RejectionMessageUtil
-                .notFound(correlationMessage, null);
+        rejectionMessage = messageFactory
+                .rejectNotFound(correlationMessage);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_FOUND);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
 
         // no correlationMessage, just connectorId
-        rejectionMessage = RejectionMessageUtil
-                .notFound(null, connectorId);
+        rejectionMessage = messageFactory
+                .rejectNotFound(createMessage());
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_FOUND);
         assertConnectorIdPropertiesMapped(rejectionMessage);
 
         // both correlationMessage and connectorId
-        rejectionMessage = RejectionMessageUtil
-                .notFound(correlationMessage, connectorId);
+        rejectionMessage = messageFactory
+                .rejectNotFound(correlationMessage);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_FOUND);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
@@ -87,25 +100,25 @@ class RejectionMessageUtilTest {
 
     @Test
     public void testNotAuthenticated() {
-        var rejectionMessage = RejectionMessageUtil
-                .notAuthenticated(null, null);
+        var rejectionMessage = messageFactory
+                .rejectNotAuthenticated(createMessage());
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHENTICATED);
 
-        rejectionMessage = RejectionMessageUtil
-                .notAuthenticated(correlationMessage, null);
+        rejectionMessage = messageFactory
+                .rejectNotAuthenticated(correlationMessage);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHENTICATED);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
 
-        rejectionMessage = RejectionMessageUtil
-                .notAuthenticated(null, connectorId);
+        rejectionMessage = messageFactory
+                .rejectNotAuthenticated(createMessage());
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHENTICATED);
         assertConnectorIdPropertiesMapped(rejectionMessage);
 
-        rejectionMessage = RejectionMessageUtil
-                .notAuthenticated(correlationMessage, connectorId);
+        rejectionMessage = messageFactory
+                .rejectNotAuthenticated(correlationMessage);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHENTICATED);
         assertConnectorIdPropertiesMapped(rejectionMessage);
@@ -114,25 +127,25 @@ class RejectionMessageUtilTest {
 
     @Test
     public void testNotAuthorized() {
-        var rejectionMessage = RejectionMessageUtil
-                .notAuthorized(null, null);
+        var rejectionMessage = messageFactory
+                .notAuthorized(createMessage());
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHORIZED);
 
-        rejectionMessage = RejectionMessageUtil
-                .notAuthorized(correlationMessage, null);
+        rejectionMessage = messageFactory
+                .notAuthorized(correlationMessage);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHORIZED);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
 
-        rejectionMessage = RejectionMessageUtil
-                .notAuthorized(null, connectorId);
+        rejectionMessage = messageFactory
+                .notAuthorized(createMessage());
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHORIZED);
         assertConnectorIdPropertiesMapped(rejectionMessage);
 
-        rejectionMessage = RejectionMessageUtil
-                .notAuthorized(correlationMessage, connectorId);
+        rejectionMessage = messageFactory
+                .notAuthorized(correlationMessage);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHORIZED);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
@@ -141,26 +154,26 @@ class RejectionMessageUtilTest {
 
     @Test
     public void testMalformedMessage() {
-        var rejectionMessage = RejectionMessageUtil
-                .malformedMessage(null, null);
+        var rejectionMessage = messageFactory
+                .malformedMessage(createMessage());
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.MALFORMED_MESSAGE);
 
-        rejectionMessage = RejectionMessageUtil
-                .malformedMessage(correlationMessage, null);
+        rejectionMessage = messageFactory
+                .malformedMessage(correlationMessage);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.MALFORMED_MESSAGE);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
 
-        rejectionMessage = RejectionMessageUtil
-                .malformedMessage(null, connectorId);
+        rejectionMessage = messageFactory
+                .malformedMessage(createMessage());
 
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.MALFORMED_MESSAGE);
         assertConnectorIdPropertiesMapped(rejectionMessage);
 
-        rejectionMessage = RejectionMessageUtil
-                .malformedMessage(correlationMessage, connectorId);
+        rejectionMessage = messageFactory
+                .malformedMessage(correlationMessage);
 
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.MALFORMED_MESSAGE);
@@ -170,26 +183,26 @@ class RejectionMessageUtilTest {
 
     @Test
     public void testMessageTypeNotSupported() {
-        var rejectionMessage = RejectionMessageUtil
-                .messageTypeNotSupported(null, null);
+        var rejectionMessage = messageFactory
+                .messageTypeNotSupported(createMessage());
 
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
 
-        rejectionMessage = RejectionMessageUtil
-                .messageTypeNotSupported(correlationMessage, null);
+        rejectionMessage = messageFactory
+                .messageTypeNotSupported(correlationMessage);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
 
-        rejectionMessage = RejectionMessageUtil
-                .messageTypeNotSupported(null, connectorId);
+        rejectionMessage = messageFactory
+                .messageTypeNotSupported(createMessage());
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
         assertConnectorIdPropertiesMapped(rejectionMessage);
 
-        rejectionMessage = RejectionMessageUtil
-                .messageTypeNotSupported(correlationMessage, connectorId);
+        rejectionMessage = messageFactory
+                .messageTypeNotSupported(correlationMessage);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
@@ -198,25 +211,25 @@ class RejectionMessageUtilTest {
 
     @Test
     public void testInternalRecipientError() {
-        var rejectionMessage = RejectionMessageUtil
-                .internalRecipientError(null, null);
+        var rejectionMessage = messageFactory
+                .internalRecipientError(createMessage());
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.INTERNAL_RECIPIENT_ERROR);
 
-        rejectionMessage = RejectionMessageUtil
-                .internalRecipientError(correlationMessage, null);
+        rejectionMessage = messageFactory
+                .internalRecipientError(correlationMessage);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.INTERNAL_RECIPIENT_ERROR);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
 
-        rejectionMessage = RejectionMessageUtil
-                .internalRecipientError(null, connectorId);
+        rejectionMessage = messageFactory
+                .internalRecipientError(createMessage());
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.INTERNAL_RECIPIENT_ERROR);
         assertConnectorIdPropertiesMapped(rejectionMessage);
 
-        rejectionMessage = RejectionMessageUtil
-                .internalRecipientError(correlationMessage, connectorId);
+        rejectionMessage = messageFactory
+                .internalRecipientError(correlationMessage);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.INTERNAL_RECIPIENT_ERROR);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
@@ -229,7 +242,7 @@ class RejectionMessageUtilTest {
 
         assertThat(rejectionMessage.getContentVersion()).isEqualTo(IdsProtocol.INFORMATION_MODEL_VERSION);
         assertThat(rejectionMessage.getModelVersion()).isEqualTo(IdsProtocol.INFORMATION_MODEL_VERSION);
-        //assertThat(rejectionMessage.getIssued()).isNotNull(); TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+        assertThat(rejectionMessage.getIssued()).isNotNull();
     }
 
     private void assertCorrelationMessagePropertiesMapped(RejectionMessage rejectionMessage) {
@@ -251,5 +264,17 @@ class RejectionMessageUtilTest {
 
         assertThat(rejectionMessage.getIssuerConnector()).isEqualTo(connectorIdUri);
         assertThat(rejectionMessage.getSenderAgent()).isEqualTo(connectorIdUri);
+    }
+
+    private Message createMessage() {
+        return new DescriptionRequestMessageBuilder()
+                ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                ._issued_(gregorianNow())
+                ._securityToken_(new DynamicAttributeTokenBuilder()._tokenFormat_(TokenFormat.JWT)._tokenValue_("xxxxx.yyyyy.zzzzz").build())
+                ._issuerConnector_(URI.create("urn:connector:issuer"))
+                ._senderAgent_(URI.create("urn:connector:sender"))
+                ._recipientConnector_(Collections.singletonList(URI.create("urn:connector:recipient")))
+                ._requestedElement_(URI.create("urn:artifact:1"))
+                .build();
     }
 }

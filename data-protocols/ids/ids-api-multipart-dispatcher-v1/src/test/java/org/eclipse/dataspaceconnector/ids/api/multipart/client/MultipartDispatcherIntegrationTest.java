@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.Action;
 import de.fraunhofer.iais.eis.BaseConnector;
 import de.fraunhofer.iais.eis.ContractAgreementBuilder;
@@ -22,9 +23,10 @@ import de.fraunhofer.iais.eis.DescriptionResponseMessage;
 import de.fraunhofer.iais.eis.MessageProcessedNotificationMessage;
 import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageImpl;
 import de.fraunhofer.iais.eis.PermissionBuilder;
-import de.fraunhofer.iais.eis.RejectionMessage;
+import de.fraunhofer.iais.eis.RequestInProcessMessage;
 import de.fraunhofer.iais.eis.RequestInProcessMessageImpl;
 import de.fraunhofer.iais.eis.ResponseMessage;
+import de.fraunhofer.iais.eis.ids.jsonld.Serializer;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.IdsMultipartRemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartDescriptionResponse;
@@ -37,7 +39,11 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.Multip
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractRejectionSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
+import org.eclipse.dataspaceconnector.ids.spi.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
+import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
+import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -46,9 +52,9 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementMessage;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferMessage;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejectionMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.MetadataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -81,16 +87,23 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
         Vault vault = mock(Vault.class);
         var httpClient = new OkHttpClient.Builder().build();
+        var serializer = new Serializer();
 
         var idsWebhookAddress = "http://webhook";
 
+        when(transformerRegistry.transform(any(IdsId.class), eq(URI.class)))
+                .thenAnswer(invocation -> {
+                    IdsId idsId = invocation.getArgument(0, IdsId.class);
+                    return Result.success(URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, idsId.getType().getValue(), idsId.getValue())));
+                });
+
         multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
-        multipartDispatcher.register(new MultipartDescriptionRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
-        multipartDispatcher.register(new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, vault, identityService, transformerRegistry));
-        multipartDispatcher.register(new MultipartContractOfferSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry, idsWebhookAddress));
-        multipartDispatcher.register(new MultipartContractAgreementSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry, idsWebhookAddress));
-        multipartDispatcher.register(new MultipartContractRejectionSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
-        multipartDispatcher.register(new MultipartCatalogDescriptionRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
+        multipartDispatcher.register(new MultipartDescriptionRequestSender(CONNECTOR_ID, idsWebhookAddress, httpClient, serializer, monitor, identityService, transformerRegistry, OBJECT_MAPPER));
+        multipartDispatcher.register(new MultipartArtifactRequestSender(CONNECTOR_ID, idsWebhookAddress, httpClient, serializer, new ObjectMapper(), monitor, vault, identityService, transformerRegistry));
+        multipartDispatcher.register(new MultipartContractOfferSender(CONNECTOR_ID, httpClient, serializer, monitor, identityService, transformerRegistry, idsWebhookAddress));
+        multipartDispatcher.register(new MultipartContractAgreementSender(CONNECTOR_ID, httpClient, serializer, monitor, identityService, transformerRegistry, idsWebhookAddress));
+        multipartDispatcher.register(new MultipartContractRejectionSender(CONNECTOR_ID, idsWebhookAddress, httpClient, serializer, monitor, identityService, transformerRegistry));
+        multipartDispatcher.register(new MultipartCatalogDescriptionRequestSender(CONNECTOR_ID, idsWebhookAddress, httpClient, serializer, monitor, identityService, transformerRegistry));
     }
 
     @Test
@@ -141,17 +154,27 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
     @Test
     void testSendContractOfferMessage() throws Exception {
-        var contractOffer = ContractOffer.Builder.newInstance().id("id").policy(Policy.Builder.newInstance().build()).build();
-        when(transformerRegistry.transform(any(), any()))
-                .thenReturn(Result.success(getIdsContractOffer()));
+        var asset = Asset.Builder.newInstance().id("1").build();
+        addAsset(asset);
+        var initialOfferId = UUID.randomUUID().toString();
+        var initialOffer = ContractOffer.Builder.newInstance().id("id")
+                .property(ContractOffer.PROPERTY_MESSAGE_ID, initialOfferId)
+                .policy(Policy.Builder.newInstance().build()).build();
+        when(transformerRegistry.transform(any(ContractTransformerInput.class), eq(ContractOffer.class)))
+                .thenReturn(Result.success(initialOffer));
+        when(transformerRegistry.transform(any(ContractOffer.class), eq(de.fraunhofer.iais.eis.ContractOffer.class)))
+                .thenReturn(Result.success(getIdsContractOffer(asset.getId())));
 
-        var request = ContractOfferRequest.Builder.newInstance()
-                .type(ContractOfferRequest.Type.COUNTER_OFFER)
+        var counterOffer = ContractOffer.Builder.newInstance().id("id")
+                .property(ContractOffer.PROPERTY_MESSAGE_ID, initialOfferId)
+                .policy(Policy.Builder.newInstance().build()).build();
+
+        var request = ContractOfferMessage.Builder.newInstance()
+                .type(ContractOfferMessage.Type.COUNTER_OFFER)
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(Protocols.IDS_MULTIPART)
-                .contractOffer(contractOffer)
-                .correlationId("1")
+                .contractOffer(counterOffer)
                 .build();
 
         var result = multipartDispatcher.send(MultipartRequestInProcessResponse.class, request, () -> null).get();
@@ -161,22 +184,27 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
         assertThat(result.getHeader()).isInstanceOf(RequestInProcessMessageImpl.class);
         assertThat(result.getPayload()).isNull();
-        verify(transformerRegistry).transform(any(), any());
+        verify(transformerRegistry).transform(any(), eq(de.fraunhofer.iais.eis.ContractOffer.class));
     }
 
     @Test
     void testSendContractRequestMessage() throws Exception {
-        var contractOffer = ContractOffer.Builder.newInstance().id("id").policy(Policy.Builder.newInstance().build()).build();
-        when(transformerRegistry.transform(any(), any()))
-                .thenReturn(Result.success(getIdsContractOffer()));
+        var asset = Asset.Builder.newInstance().id("1").build();
+        addAsset(asset);
+        var contractOffer = ContractOffer.Builder.newInstance().id("id")
+                .property(ContractOffer.PROPERTY_MESSAGE_ID, UUID.randomUUID().toString())
+                .policy(Policy.Builder.newInstance().build()).build();
+        when(transformerRegistry.transform(any(), eq(de.fraunhofer.iais.eis.ContractOffer.class)))
+                .thenReturn(Result.success(getIdsContractOffer(asset.getId())));
+        when(transformerRegistry.transform(any(), eq(URI.class)))
+                .thenReturn(Result.success(URI.create("urn:message:123")));
 
-        var request = ContractOfferRequest.Builder.newInstance()
-                .type(ContractOfferRequest.Type.INITIAL)
+        var request = ContractOfferMessage.Builder.newInstance()
+                .type(ContractOfferMessage.Type.INITIAL)
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(Protocols.IDS_MULTIPART)
                 .contractOffer(contractOffer)
-                .correlationId("1")
                 .build();
 
         var result = multipartDispatcher.send(MultipartRequestInProcessResponse.class, request, () -> null).get();
@@ -184,10 +212,9 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
 
-        // TODO Should be RequestInProcess
-        assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
+        assertThat(result.getHeader()).isInstanceOf(RequestInProcessMessage.class);
         assertThat(result.getPayload()).isNull();
-        verify(transformerRegistry).transform(any(), any());
+        verify(transformerRegistry).transform(any(), eq(de.fraunhofer.iais.eis.ContractOffer.class));
     }
 
     @Test
@@ -200,15 +227,13 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
         when(transformerRegistry.transform(any(), eq(de.fraunhofer.iais.eis.ContractAgreement.class)))
                 .thenReturn(Result.success(getIdsContractAgreement()));
-        when(transformerRegistry.transform(any(), eq(URI.class)))
-                .thenReturn(Result.success(URI.create("https://example.com")));
 
-        var request = ContractAgreementRequest.Builder.newInstance()
+        var request = ContractAgreementMessage.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(Protocols.IDS_MULTIPART)
                 .contractAgreement(contractAgreement)
-                .correlationId("1")
+                .contractOfferMessageId(UUID.randomUUID().toString())
                 .build();
 
         var result = multipartDispatcher.send(MultipartMessageProcessedResponse.class, request, () -> null).get();
@@ -218,17 +243,17 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
         assertThat(result.getHeader()).isInstanceOf(MessageProcessedNotificationMessageImpl.class);
         assertThat(result.getPayload()).isNull();
-        verify(transformerRegistry, times(2)).transform(any(), any());
+        verify(transformerRegistry, times(3)).transform(any(), any());
     }
 
     @Test
     void testSendContractRejectionMessage() throws Exception {
-        var rejection = ContractRejection.Builder.newInstance()
+        var rejection = ContractRejectionMessage.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(Protocols.IDS_MULTIPART)
                 .rejectionReason("Modified policy in contract offer.")
-                .correlationId(UUID.randomUUID().toString())
+                .correlationMessageId(UUID.randomUUID().toString())
                 .build();
 
         var result = multipartDispatcher.send(MultipartMessageProcessedResponse.class, rejection, () -> null).get();
@@ -251,20 +276,22 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         };
     }
 
-    private de.fraunhofer.iais.eis.ContractOffer getIdsContractOffer() {
-        return new ContractOfferBuilder()
-                ._consumer_(URI.create("consumer"))
-                ._provider_(URI.create("provider"))
+    private de.fraunhofer.iais.eis.ContractOffer getIdsContractOffer(String targetAssetId) {
+        return new ContractOfferBuilder(URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, IdsType.CONTRACT_OFFER.getValue(), UUID.randomUUID().toString())))
+                ._consumer_(URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, IdsType.CONNECTOR.getValue(), "consumer")))
+                ._provider_(URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, IdsType.CONNECTOR.getValue(), "provider")))
                 ._permission_(new PermissionBuilder()
                         ._action_(Action.USE)
+                        ._target_(URI.create(
+                                String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, IdsType.ARTIFACT.getValue(), targetAssetId)))
                         .build())
                 .build();
     }
 
     private de.fraunhofer.iais.eis.ContractAgreement getIdsContractAgreement() {
-        return new ContractAgreementBuilder(URI.create("urn:contractagreement:1"))
-                ._consumer_(URI.create("consumer"))
-                ._provider_(URI.create("provider"))
+        return new ContractAgreementBuilder(URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, IdsType.CONTRACT_AGREEMENT.getValue(), UUID.randomUUID().toString())))
+                ._consumer_(URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, IdsType.CONNECTOR.getValue(), "consumer")))
+                ._provider_(URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, IdsType.CONNECTOR.getValue(), "provider")))
                 ._contractDate_(CalendarUtil.gregorianNow())
                 ._contractEnd_(CalendarUtil.gregorianNow())
                 ._contractStart_(CalendarUtil.gregorianNow())

@@ -14,15 +14,17 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractAgreementMessage;
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.ids.jsonld.Serializer;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.util.MessageFactory;
+import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
+import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -34,10 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.Objects;
-
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
 
 /**
  * This class handles and processes incoming IDS {@link ContractAgreementMessage}s.
@@ -45,25 +44,22 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMes
 public class ContractAgreementHandler implements Handler {
 
     private final Monitor monitor;
-    private final ObjectMapper objectMapper;
-    private final String connectorId;
+    private final Serializer serializer;
     private final ConsumerContractNegotiationManager negotiationManager;
     private final TransformerRegistry transformerRegistry;
-    private final AssetIndex assetIndex;
+    private final MessageFactory messageFactory;
 
     public ContractAgreementHandler(
             @NotNull Monitor monitor,
-            @NotNull String connectorId,
-            @NotNull ObjectMapper objectMapper,
+            @NotNull Serializer serializer,
             @NotNull ConsumerContractNegotiationManager negotiationManager,
             @NotNull TransformerRegistry transformerRegistry,
-            @NotNull AssetIndex assetIndex) {
+            @NotNull MessageFactory messageFactory) {
         this.monitor = Objects.requireNonNull(monitor);
-        this.connectorId = Objects.requireNonNull(connectorId);
-        this.objectMapper = Objects.requireNonNull(objectMapper);
+        this.serializer = Objects.requireNonNull(serializer);
         this.negotiationManager = Objects.requireNonNull(negotiationManager);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
-        this.assetIndex = Objects.requireNonNull(assetIndex);
+        this.messageFactory = Objects.requireNonNull(messageFactory);
     }
 
     @Override
@@ -82,14 +78,9 @@ public class ContractAgreementHandler implements Handler {
 
         de.fraunhofer.iais.eis.ContractAgreement contractAgreement;
         try {
-            var map = objectMapper.readValue(multipartRequest.getPayload(), new TypeReference<Map<String, Object>>() {});
-            map.remove("ids:contractEnd");
-            map.remove("ids:contractStart");
-            map.remove("ids:contractDate");
-            contractAgreement = objectMapper.convertValue(map, de.fraunhofer.iais.eis.ContractAgreement.class);
+            contractAgreement = serializer.deserialize(multipartRequest.getPayload(), de.fraunhofer.iais.eis.ContractAgreement.class);
         } catch (IOException e) {
-            monitor.severe("ContractAgreementHandler: Contract Agreement is invalid", e);
-            return createBadParametersErrorMultipartResponse(message);
+            throw new EdcException(e);
         }
 
         // extract target from contract request
@@ -119,28 +110,35 @@ public class ContractAgreementHandler implements Handler {
 
         // TODO get hash from message
         var agreement = result.getContent();
-        var processId = message.getTransferContract();
+        var contractOfferMessageUri = message.getCorrelationMessage();
+        var contractOfferMessageIdsId = IdsIdParser.parse(contractOfferMessageUri.toString());
+        if (contractOfferMessageIdsId.getType() != IdsType.MESSAGE) {
+            monitor.debug("ContractAgreementHandler: Correlation message ID should be of type IdsType.MESSAGE");
+            return createBadParametersErrorMultipartResponse(message);
+        }
+
+        var contractOfferMessageId = contractOfferMessageIdsId.getValue();
         var negotiationResponse = negotiationManager.confirmed(verificationResult.getContent(),
-                String.valueOf(processId), agreement, null);
+                contractOfferMessageId, agreement, null);
         if (negotiationResponse.failed() && negotiationResponse.getStatus() == NegotiationResult.Status.FATAL_ERROR) {
             monitor.debug("ContractAgreementHandler: Could not process contract agreement");
             return createBadParametersErrorMultipartResponse(message);
         }
 
         return MultipartResponse.Builder.newInstance()
-                .header(ResponseMessageUtil.createMessageProcessedNotificationMessage(connectorId, message))
+                .header(messageFactory.createMessageProcessedNotificationMessage(message))
                 .build();
     }
 
     private MultipartResponse createBadParametersErrorMultipartResponse(Message message) {
         return MultipartResponse.Builder.newInstance()
-                .header(badParameters(message, connectorId))
+                .header(messageFactory.badParameters(message))
                 .build();
     }
 
     private MultipartResponse createBadParametersErrorMultipartResponse(Message message, String payload) {
         return MultipartResponse.Builder.newInstance()
-                .header(badParameters(message, connectorId))
+                .header(messageFactory.badParameters(message))
                 .payload(payload)
                 .build();
     }
