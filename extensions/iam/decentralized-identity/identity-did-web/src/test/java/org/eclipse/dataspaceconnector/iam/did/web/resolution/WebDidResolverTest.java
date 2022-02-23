@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.iam.did.web.resolution;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -28,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 
 import static okhttp3.Protocol.HTTP_1_1;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
 import static org.mockito.Mockito.mock;
 
 class WebDidResolverTest {
@@ -70,7 +70,7 @@ class WebDidResolverTest {
     }
 
     private WebDidResolver createResolver(Interceptor... interceptors) {
-        var builder = new OkHttpClient.Builder();
+        var builder = testOkHttpClient().newBuilder();
         for (Interceptor interceptor : interceptors) {
             builder.addInterceptor(interceptor);
         }

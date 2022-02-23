@@ -25,7 +25,6 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.Oauth2Configuration;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.jwt.JwtDecoratorRegistryImpl;
 import org.eclipse.dataspaceconnector.spi.iam.PublicKeyResolver;
@@ -40,6 +39,7 @@ import java.util.Date;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -75,7 +75,7 @@ class Oauth2ServiceImplTest {
                 .identityProviderKeyResolver(publicKeyResolverMock)
                 .build();
 
-        authService = new Oauth2ServiceImpl(configuration, jwsSigner, new OkHttpClient.Builder().build(), new JwtDecoratorRegistryImpl(), new TypeManager());
+        authService = new Oauth2ServiceImpl(configuration, jwsSigner, testOkHttpClient(), new JwtDecoratorRegistryImpl(), new TypeManager());
     }
 
     @Test
