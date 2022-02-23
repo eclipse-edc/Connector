@@ -29,7 +29,6 @@ dependencies {
     implementation(project(":extensions:in-memory:transfer-store-memory"))
     implementation(project(":extensions:in-memory:negotiation-store-memory"))
     implementation(project(":extensions:in-memory:contractdefinition-store-memory"))
-    implementation(project(":extensions:http"))
 
     implementation(project(":extensions:api:observability"))
 

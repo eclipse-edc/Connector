@@ -34,6 +34,6 @@ public class ApiEndpointExtension implements ServiceExtension {
         var processManager = context.getService(TransferProcessManager.class);
         var negotiationManager = context.getService(ConsumerContractNegotiationManager.class);
         var transferProcessStore = context.getService(TransferProcessStore.class);
-        webService.registerController(new ConsumerApiController(context.getMonitor(), processManager, negotiationManager, transferProcessStore));
+        webService.registerResource(new ConsumerApiController(context.getMonitor(), processManager, negotiationManager, transferProcessStore));
     }
 }

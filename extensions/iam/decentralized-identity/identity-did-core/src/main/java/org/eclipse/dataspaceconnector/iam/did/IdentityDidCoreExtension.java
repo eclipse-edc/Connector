@@ -82,7 +82,7 @@ public class IdentityDidCoreExtension implements ServiceExtension {
         context.registerService(IdentityHub.class, hub);
 
         var controller = new IdentityHubController(hub);
-        webService.registerController(controller);
+        webService.registerResource(controller);
 
         // contribute to the liveness probe
         var hcs = context.getService(HealthCheckService.class, true);

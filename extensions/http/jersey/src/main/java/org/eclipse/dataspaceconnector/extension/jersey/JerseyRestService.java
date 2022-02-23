@@ -50,11 +50,6 @@ public class JerseyRestService implements WebService {
     }
 
     @Override
-    public void registerController(Object controller) {
-        registerResource(controller);
-    }
-
-    @Override
     public void registerResource(Object resource) {
         controllers.computeIfAbsent(DEFAULT_CONTEXT_ALIAS, s -> new ArrayList<>())
                 .add(resource);

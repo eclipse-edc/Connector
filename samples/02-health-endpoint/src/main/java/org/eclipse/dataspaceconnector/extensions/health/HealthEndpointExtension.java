@@ -11,6 +11,6 @@ public class HealthEndpointExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var webService = context.getService(WebService.class);
-        webService.registerController(new HealthApiController(context.getMonitor()));
+        webService.registerResource(new HealthApiController(context.getMonitor()));
     }
 }

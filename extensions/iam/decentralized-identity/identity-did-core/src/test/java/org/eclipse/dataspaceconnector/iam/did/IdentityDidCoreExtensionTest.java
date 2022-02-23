@@ -55,6 +55,6 @@ class IdentityDidCoreExtensionTest {
         verify(contextMock).registerService(eq(DidPublicKeyResolver.class), isA(DidPublicKeyResolverImpl.class));
         verify(contextMock).registerService(eq(IdentityHub.class), isA(IdentityHubImpl.class));
         verify(contextMock).registerService(eq(IdentityHubClient.class), isA(IdentityHubClientImpl.class));
-        verify(webserviceMock).registerController(isA(IdentityHubController.class));
+        verify(webserviceMock).registerResource(isA(IdentityHubController.class));
     }
 }
