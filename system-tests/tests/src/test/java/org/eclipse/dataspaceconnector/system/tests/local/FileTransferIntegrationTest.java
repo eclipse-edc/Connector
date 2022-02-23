@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       ZF Friedrichshafen AG - add management api configurations
  *
  */
 

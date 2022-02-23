@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - added dependencies
+ *       ZF Friedrichshafen AG - add dependency
  *
  */
 
