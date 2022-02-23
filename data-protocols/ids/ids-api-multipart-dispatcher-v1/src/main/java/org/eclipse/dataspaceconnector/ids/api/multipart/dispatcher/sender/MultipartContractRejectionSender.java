@@ -52,11 +52,6 @@ public class MultipartContractRejectionSender extends IdsMultipartSender<Contrac
     }
 
     @Override
-    protected String retrieveRemoteConnectorId(ContractRejection rejection) {
-        return rejection.getConnectorId();
-    }
-
-    @Override
     protected String retrieveRemoteConnectorAddress(ContractRejection rejection) {
         return rejection.getConnectorAddress();
     }

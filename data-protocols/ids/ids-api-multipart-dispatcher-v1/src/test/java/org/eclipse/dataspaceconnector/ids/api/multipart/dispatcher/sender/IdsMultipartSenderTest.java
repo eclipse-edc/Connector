@@ -9,7 +9,6 @@ import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -23,7 +22,7 @@ class IdsMultipartSenderTest {
 
     @Test
     void should_fail_if_token_retrieval_fails() {
-        when(identityService.obtainClientCredentials("remoteConnectorId")).thenReturn(Result.failure("error"));
+        when(identityService.obtainClientCredentials("idsc:IDS_CONNECTOR_ATTRIBUTES_ALL")).thenReturn(Result.failure("error"));
         var sender = new TestIdsMultipartSender("any", mock(OkHttpClient.class), new ObjectMapper(), mock(Monitor.class), identityService, mock(TransformerRegistry.class));
 
         var result = sender.send(new TestRemoteMessage(), () -> "any");
@@ -41,11 +40,6 @@ class IdsMultipartSenderTest {
         @Override
         public Class<TestRemoteMessage> messageType() {
             return null;
-        }
-
-        @Override
-        protected String retrieveRemoteConnectorId(TestRemoteMessage request) {
-            return "remoteConnectorId";
         }
 
         @Override

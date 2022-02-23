@@ -60,11 +60,6 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
     }
 
     @Override
-    protected String retrieveRemoteConnectorId(MetadataRequest request) {
-        return request.getConnectorId();
-    }
-
-    @Override
     protected String retrieveRemoteConnectorAddress(MetadataRequest request) {
         return request.getConnectorAddress();
     }
