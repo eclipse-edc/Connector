@@ -32,16 +32,23 @@ import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.tempD
 import static org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils.PROVIDER_ASSET_NAME;
 import static org.eclipse.dataspaceconnector.system.tests.utils.GatlingUtils.runGatling;
 
-
 public class FileTransferIntegrationTest {
-    public static final String PROVIDER_ASSET_PATH = format("%s/%s.txt", tempDirectory(), PROVIDER_ASSET_NAME);
 
     public static final String CONSUMER_ASSET_PATH = tempDirectory();
     public static final int CONSUMER_CONNECTOR_PORT = getFreePort();
+    static static final int CONSUMER_MANAGEMENT_PORT = getFreePort();
+    public static final String CONSUMER_CONNECTOR_PATH = "/api";
+    static static final String CONSUMER_MANAGEMENT_PATH = "/api/v1/data";
     public static final String CONSUMER_CONNECTOR_HOST = "http://localhost:" + CONSUMER_CONNECTOR_PORT;
-    public static final String API_KEY_CONTROL_AUTH = "password";
+
+    public static final String PROVIDER_ASSET_PATH = format("%s/%s.txt", tempDirectory(), PROVIDER_ASSET_NAME);
     public static final int PROVIDER_CONNECTOR_PORT = getFreePort();
+    static static final int PROVIDER_MANAGEMENT_PORT = getFreePort();
+    static static final String PROVIDER_CONNECTOR_PATH = "/api";
+    static static final String PROVIDER_MANAGEMENT_PATH = "/api/v1/data";
     public static final String PROVIDER_CONNECTOR_HOST = "http://localhost:" + PROVIDER_CONNECTOR_PORT;
+
+    public static final String API_KEY_CONTROL_AUTH = "password";
 
     @RegisterExtension
     static EdcRuntimeExtension consumer = new EdcRuntimeExtension(
@@ -49,6 +56,9 @@ public class FileTransferIntegrationTest {
             "consumer",
             Map.of(
                     "web.http.port", String.valueOf(CONSUMER_CONNECTOR_PORT),
+                    "web.http.path", CONSUMER_CONNECTOR_PATH,
+                    "web.http.data.port", String.valueOf(CONSUMER_MANAGEMENT_PORT),
+                    "web.http.data.path", CONSUMER_MANAGEMENT_PATH,
                     "edc.api.control.auth.apikey.value", API_KEY_CONTROL_AUTH,
                     "ids.webhook.address", CONSUMER_CONNECTOR_HOST));
 
@@ -59,6 +69,10 @@ public class FileTransferIntegrationTest {
             Map.of(
                     "web.http.port", String.valueOf(PROVIDER_CONNECTOR_PORT),
                     "edc.test.asset.path", PROVIDER_ASSET_PATH,
+                    "web.http.path", PROVIDER_CONNECTOR_PATH,
+                    "web.http.data.port", String.valueOf(PROVIDER_MANAGEMENT_PORT),
+                    "web.http.data.path", PROVIDER_MANAGEMENT_PATH,
+                    "edc.samples.04.asset.path", PROVIDER_ASSET_PATH,
                     "ids.webhook.address", PROVIDER_CONNECTOR_HOST));
 
     @Test
@@ -69,7 +83,14 @@ public class FileTransferIntegrationTest {
         Files.write(Path.of(PROVIDER_ASSET_PATH), fileContent.getBytes(StandardCharsets.UTF_8));
 
         // Act
-        runGatling(FileTransferLocalSimulation.class, FileTransferSimulationUtils.DESCRIPTION);
+        var client = new FileTransferTestUtils();
+        client.setConsumerUrl(CONSUMER_CONNECTOR_HOST);
+        client.setProviderUrl(PROVIDER_CONNECTOR_HOST);
+        client.setDestinationPath(CONSUMER_ASSET_PATH);
+        client.setApiKey(API_KEY_CONTROL_AUTH);
+
+        var contractAgreementId = client.negotiateContractAgreement();
+        client.performFileTransfer(contractAgreementId);
 
         // Assert
         var copiedFilePath = Path.of(format(CONSUMER_ASSET_PATH + "/%s.txt", PROVIDER_ASSET_NAME));
