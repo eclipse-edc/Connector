@@ -28,6 +28,7 @@ jobs:
       - name: Gradle Test Core
         env:
           INTEGRATION_TEST: false
+          JACOCO: true
         # checkstyle would also run as part of the `check` task
         run: ./gradlew clean check jacocoTestReport -x checkstyleMain -x checkstyleTest
 
