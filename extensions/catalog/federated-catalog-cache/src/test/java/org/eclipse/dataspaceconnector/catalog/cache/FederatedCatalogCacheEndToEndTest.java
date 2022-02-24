@@ -3,7 +3,6 @@ package org.eclipse.dataspaceconnector.catalog.cache;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Call;
 import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
@@ -27,6 +26,8 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createOffer;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
+
 
 @ExtendWith(EdcExtension.class)
 class FederatedCatalogCacheEndToEndTest {
@@ -51,7 +52,7 @@ class FederatedCatalogCacheEndToEndTest {
     }
 
     @Test
-    void verifySuccess(FederatedCacheStore store, OkHttpClient client) throws IOException {
+    void verifySuccess(FederatedCacheStore store) throws IOException {
         int nbAssets = 3;
 
         // generate assets and populate the store
@@ -68,7 +69,7 @@ class FederatedCatalogCacheEndToEndTest {
                 .post(body)
                 .build();
 
-        Call call = client.newCall(request);
+        Call call = testOkHttpClient().newCall(request);
         Response response = call.execute();
 
         // test
