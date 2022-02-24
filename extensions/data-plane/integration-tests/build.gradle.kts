@@ -20,22 +20,26 @@ val jupiterVersion: String by project
 val restAssured: String by project
 val assertj: String by project
 val awaitility: String by project
+val faker: String by project
+val httpMockServer: String by project
 
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
     testImplementation("org.assertj:assertj-core:${assertj}")
     testImplementation("org.awaitility:awaitility:${awaitility}")
+    testImplementation("com.github.javafaker:javafaker:${faker}")
+    testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
+    testImplementation("org.mock-server:mockserver-client-java:${httpMockServer}:shaded")
 
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(testFixtures(project(":extensions:data-plane:data-plane-http")))
+    testImplementation(project(":extensions:data-plane:data-plane-spi"))
 
-    testRuntimeOnly(project(":samples:04.0-file-transfer:provider"))
-    testRuntimeOnly(project(":samples:04.0-file-transfer:consumer"))
+    testRuntimeOnly(project(":launchers:data-plane-server"))
 }
 
 tasks.getByName<Test>("test") {
-    testLogging {
-        showStandardStreams = true
-    }
+    useJUnitPlatform()
 }

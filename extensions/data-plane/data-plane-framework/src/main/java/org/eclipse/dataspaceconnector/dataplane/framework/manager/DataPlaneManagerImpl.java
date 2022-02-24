@@ -18,6 +18,8 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
+import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore;
+import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore.State;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
@@ -32,7 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Default data manager implementation.
- *
+ * <p>
  * This implementation uses a simple bounded queue to support backpressure when the system is overloaded. This should support sufficient performance since data transfers
  * generally do not require low-latency. If low-latency operation becomes a requirement, a concurrent queuing mechanism can be used.
  */
@@ -48,6 +50,7 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
     private ExecutorService executorService;
 
     private AtomicBoolean active = new AtomicBoolean();
+    private DataPlaneStore store;
 
     public void start() {
         queue = new ArrayBlockingQueue<>(queueCapacity);
@@ -79,6 +82,7 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
 
     public void initiateTransfer(DataFlowRequest dataRequest) {
         queue.add(dataRequest);
+        store.received(dataRequest.getProcessId());
     }
 
     @Override
@@ -89,6 +93,11 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
     @Override
     public CompletableFuture<TransferResult> transfer(DataSink sink, DataFlowRequest request) {
         return pipelineService.transfer(sink, request);
+    }
+
+    @Override
+    public State transferState(String processId) {
+        return store.getState(processId);
     }
 
     private void run() {
@@ -102,7 +111,8 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
                 final var polledRequest = request;
                 pipelineService.transfer(request).whenComplete((result, exception) -> {
                     if (polledRequest.isTrackable()) {
-                        // TODO persist result
+                        // TODO persist TransferResult or error details
+                        store.completed(polledRequest.getProcessId());
                     }
                 });
             } catch (InterruptedException e) {
@@ -114,8 +124,9 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
                     monitor.severe("Unable to dequeue data request", e);
                 } else {
                     monitor.severe("Error processing data request: " + request.getProcessId(), e);
+                    // TODO persist error details
+                    store.completed(request.getProcessId());
                 }
-                // TODO mark request in error
             }
         }
     }
@@ -149,6 +160,11 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
 
         public Builder waitTimeout(long waitTimeout) {
             manager.waitTimeout = waitTimeout;
+            return this;
+        }
+
+        public Builder store(DataPlaneStore store) {
+            manager.store = store;
             return this;
         }
 

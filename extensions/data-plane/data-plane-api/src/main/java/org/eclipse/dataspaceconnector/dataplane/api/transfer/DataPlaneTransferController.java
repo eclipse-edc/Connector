@@ -15,8 +15,10 @@
 package org.eclipse.dataspaceconnector.dataplane.api.transfer;
 
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -52,5 +54,13 @@ public class DataPlaneTransferController {
         }
         dataPlaneManager.initiateTransfer(request);
         return Response.ok().build();
+    }
+
+    @GET
+    @Path("/{processId}")
+    public Response transferResult(@PathParam("processId") String processId) {
+        return Response
+                .ok(dataPlaneManager.transferState(processId))
+                .build();
     }
 }

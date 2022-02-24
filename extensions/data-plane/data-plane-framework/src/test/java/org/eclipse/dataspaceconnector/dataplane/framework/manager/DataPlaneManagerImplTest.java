@@ -13,6 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.dataplane.framework.manager;
 
+import org.eclipse.dataspaceconnector.dataplane.framework.store.InMemoryDataPlaneStore;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -100,6 +101,7 @@ class DataPlaneManagerImplTest {
                 .workers(1)
                 .waitTimeout(10)
                 .pipelineService(pipelineService)
+                .store(new InMemoryDataPlaneStore(10))
                 .monitor(monitor).build();
     }
 
