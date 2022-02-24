@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.negotiation.store.memory;
 
-import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -30,23 +30,20 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
-import static org.eclipse.dataspaceconnector.negotiation.store.memory.ContractNegotiationFunctions.property;
+import static org.eclipse.dataspaceconnector.common.reflection.ReflectionUtil.propertyComparator;
 
 /**
  * An in-memory, threadsafe process store.
  * This implementation is intended for testing purposes only.
  */
 public class InMemoryContractNegotiationStore implements ContractNegotiationStore {
-    private static final int TIMEOUT = 1000;
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private final LockManager lockManager = new LockManager(new ReentrantReadWriteLock());
     private final Map<String, ContractNegotiation> processesById = new HashMap<>();
     private final Map<String, ContractNegotiation> processesByCorrelationId = new HashMap<>();
     private final Map<String, ContractNegotiation> contractAgreements = new HashMap<>();
@@ -54,7 +51,7 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
 
     @Override
     public ContractNegotiation find(String id) {
-        return readLock(() -> processesById.get(id));
+        return lockManager.readLock(() -> processesById.get(id));
     }
 
     @Override
@@ -72,7 +69,7 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
 
     @Override
     public void save(ContractNegotiation negotiation) {
-        writeLock(() -> {
+        lockManager.writeLock(() -> {
             negotiation.updateStateTimestamp();
             delete(negotiation.getId());
             ContractNegotiation internalCopy = negotiation.copy();
@@ -89,7 +86,7 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
 
     @Override
     public void delete(String processId) {
-        writeLock(() -> {
+        lockManager.writeLock(() -> {
             ContractNegotiation process = processesById.remove(processId);
             if (process != null) {
                 var tempCache = new HashMap<Integer, List<ContractNegotiation>>();
@@ -111,7 +108,7 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
 
     @Override
     public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
-        return readLock(() -> {
+        return lockManager.readLock(() -> {
             var set = stateCache.get(state);
             return set == null ? Collections.emptyList() : set.stream()
                     .sorted(Comparator.comparingLong(ContractNegotiation::getStateTimestamp)) //order by state timestamp, oldest first
@@ -123,7 +120,7 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
 
     @Override
     public Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
-        return readLock(() -> {
+        return lockManager.readLock(() -> {
             Stream<ContractNegotiation> negotiationStream = processesById.values().stream();
             // filter
             var andPredicate = querySpec.getFilterExpression().stream().map(this::toPredicate).reduce(x -> true, Predicate::and);
@@ -133,7 +130,7 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
             var sortField = querySpec.getSortField();
 
             if (sortField != null) {
-                var comparator = propertyComparator(querySpec, sortField);
+                var comparator = propertyComparator(querySpec.getSortOrder() == SortOrder.ASC, sortField);
                 negotiationStream = negotiationStream.sorted(comparator);
             }
 
@@ -144,59 +141,9 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
         });
     }
 
-    @NotNull
-    private Comparator<ContractNegotiation> propertyComparator(QuerySpec querySpec, String property) {
-        return (negotiation1, negotiation2) -> {
-            var o1 = property(negotiation1, property);
-            var o2 = property(negotiation2, property);
-
-            if (o1 == null || o2 == null) {
-                return 0;
-            }
-
-            if (!(o1 instanceof Comparable)) {
-                throw new IllegalArgumentException("A property '" + property + "' is not comparable!");
-            }
-            var comp1 = (Comparable) o1;
-            var comp2 = (Comparable) o2;
-            return querySpec.getSortOrder() == SortOrder.ASC ? comp1.compareTo(comp2) : comp2.compareTo(comp1);
-        };
-    }
-
     private Predicate<ContractNegotiation> toPredicate(Criterion criterion) {
         return new ContractNegotiationPredicateConverter().convert(criterion);
     }
 
-    private <T> T readLock(Supplier<T> work) {
-        try {
-            if (!lock.readLock().tryLock(TIMEOUT, TimeUnit.MILLISECONDS)) {
-                throw new EdcException("Timeout acquiring read lock");
-            }
-            try {
-                return work.get();
-            } finally {
-                lock.readLock().unlock();
-            }
-        } catch (InterruptedException e) {
-            Thread.interrupted();
-            throw new EdcException(e);
-        }
-    }
-
-    private <T> T writeLock(Supplier<T> work) {
-        try {
-            if (!lock.writeLock().tryLock(TIMEOUT, TimeUnit.MILLISECONDS)) {
-                throw new EdcException("Timeout acquiring write lock");
-            }
-            try {
-                return work.get();
-            } finally {
-                lock.writeLock().unlock();
-            }
-        } catch (InterruptedException e) {
-            Thread.interrupted();
-            throw new EdcException(e);
-        }
-    }
 
 }

@@ -1,5 +1,33 @@
 openapi: 3.0.1
 paths:
+  /transferprocess/{id}/cancel:
+    post:
+      operationId: cancelTransferProcess
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /transferprocess/{id}/deprovision:
+    post:
+      operationId: deprovisionTransferProcess
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
   /transferprocess:
     get:
       operationId: getAllContractDefinitions
@@ -38,21 +66,9 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/TransferProcessDto'
-    post:
-      operationId: createContractDefinition
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TransferProcessDto'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
   /transferprocess/{id}:
     get:
-      operationId: getContractDefinition
+      operationId: getTransferProcess
       parameters:
       - name: id
         in: path
@@ -66,8 +82,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TransferProcessDto'
-    delete:
-      operationId: deleteContractDefinition
+  /transferprocess/{id}/state:
+    get:
+      operationId: getTransferProcessState
       parameters:
       - name: id
         in: path
@@ -78,7 +95,9 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: string
 components:
   schemas:
     DataRequestDto:

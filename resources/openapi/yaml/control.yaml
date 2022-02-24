@@ -119,8 +119,6 @@ components:
           $ref: '#/components/schemas/TransferType'
         destinationType:
           type: string
-        sync:
-          type: boolean
     TransferType:
       type: object
       properties:

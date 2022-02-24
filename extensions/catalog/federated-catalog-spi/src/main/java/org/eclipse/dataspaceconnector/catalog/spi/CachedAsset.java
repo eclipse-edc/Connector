@@ -16,7 +16,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 @JsonDeserialize(builder = CachedAsset.Builder.class)
 public class CachedAsset extends Asset {
 
-    private static final String PROPERTY_ORIGINATOR = "asset:prop:originator";
+    public static final String PROPERTY_ORIGINATOR = "asset:prop:originator";
     private static final String PROPERTY_POLICY = "asset:prop:policy";
 
     private CachedAsset() {

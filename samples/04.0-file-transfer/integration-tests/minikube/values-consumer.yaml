@@ -1,0 +1,11 @@
+image:
+  repository: consumer
+  tag: latest
+service:
+  type: NodePort
+  port: 8181
+edc:
+  env:
+    IDS_WEBHOOK_ADDRESS: http://consumer-dataspace-connector:8181
+  envSecrets:
+    EDC_API_CONTROL_AUTH_APIKEY_VALUE: password

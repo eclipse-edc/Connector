@@ -65,11 +65,6 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
     }
 
     @Override
-    protected String retrieveRemoteConnectorId(CatalogRequest request) {
-        return request.getConnectorId();
-    }
-
-    @Override
     protected String retrieveRemoteConnectorAddress(CatalogRequest request) {
         return request.getConnectorAddress();
     }

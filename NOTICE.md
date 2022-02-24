@@ -28,40 +28,40 @@ The project maintains the following source code repositoriy:
 
 ## Third-party Content (Overarching All Modules)
 
-AWS SDK for Java - BOM
-* Project: https://aws.amazon.com/sdkforjava
-* Maven Artifact: com.amazonaws/aws-java-sdk-bom/1.11.1018
-
-AWS SDK for Java - Core
-* Project: https://aws.amazon.com/sdkforjava
-* Maven Artifact: com.amazonaws/aws-java-sdk-core/1.11.1018
+Atomikos Util
+* Project: https://www.atomikos.com/Main/WebHome
+* Source: scm:git@github.com:atomikos/transactions-essentials.git
+* Maven Artifact: com.atomikos/atomikos-util/5.0.8
 * License: Apache-2.0
 
-AWS Java SDK for AWS KMS
-* Project: https://aws.amazon.com/sdkforjava
-* Maven Artifact: com.amazonaws/aws-java-sdk-kms/1.11.1018
+Atomikos Transactions API
+* Project: https://www.atomikos.com/Main/WebHome
+* Source: scm:git@github.com:atomikos/transactions-essentials.git
+* Maven Artifact: com.atomikos/transactions-api/5.0.8
 * License: Apache-2.0
 
-AWS Java SDK for Amazon S3
-* Project: https://aws.amazon.com/sdkforjava
-* Maven Artifact: com.amazonaws/aws-java-sdk-s3/1.11.1018
+Atomikos Transactions JDBC
+* Project: https://www.atomikos.com/Main/WebHome
+* Source: scm:git@github.com:atomikos/transactions-essentials.git
+* Maven Artifact: com.atomikos/transactions-jdbc/5.0.8
 * License: Apache-2.0
 
-JMES Path Query library
-* Project: https://aws.amazon.com/sdkforjava
-* Maven Artifact: com.amazonaws/jmespath-java/1.11.1018
+Atomikos Transactions JTA
+* Project: https://www.atomikos.com/Main/WebHome
+* Source: scm:git@github.com:atomikos/transactions-essentials.git
+* Maven Artifact: com.atomikos/transactions-jta/5.0.8
+* License: Apache-2.0
+
+Atomikos Transactions Core
+* Project: https://www.atomikos.com/Main/WebHome
+* Source: scm:git@github.com:atomikos/transactions-essentials.git
+* Maven Artifact: com.atomikos/transactions/5.0.8
 * License: Apache-2.0
 
 java jwt
 * Project: https://github.com/auth0/java-jwt
 * Source: scm:git@github.com:auth0/java-jwt.git
 * Maven Artifact: com.auth0/java-jwt/3.13.0
-* License: MIT
-
-Microsoft Azure Java Client Runtime for AutoRest
-* Project: https://github.com/Azure/autorest-clientruntime-for-java
-* Source: scm:git:https://github.com/Azure/autorest-clientruntime-for-java
-* Maven Artifact: com.microsoft.azure/azure-client-runtime/1.17.14
 * License: MIT
 
 Microsoft Azure SDK for App Platform Management
@@ -229,6 +229,18 @@ Microsoft Azure Netty HTTP Client Library
 Microsoft Azure Netty HTTP Client Library
 * Project: https://github.com/Azure/azure-sdk-for-java
 * Source: scm:git:https://github.com/Azure/azure-sdk-for-java.git
+* Maven Artifact: com.azure/azure-core-http-netty/1.11.2
+* License: MIT
+
+Microsoft Azure Netty HTTP Client Library
+* Project: https://github.com/Azure/azure-sdk-for-java
+* Source: scm:git:https://github.com/Azure/azure-sdk-for-java.git
+* Maven Artifact: com.azure/azure-core-http-netty/1.11.4
+* License: MIT
+
+Microsoft Azure Netty HTTP Client Library
+* Project: https://github.com/Azure/azure-sdk-for-java
+* Source: scm:git:https://github.com/Azure/azure-sdk-for-java.git
 * Maven Artifact: com.azure/azure-core-http-netty/1.6.3
 * License: MIT
 
@@ -274,10 +286,22 @@ Microsoft Azure Java Core Library
 * Maven Artifact: com.azure/azure-core/1.17.0
 * License: MIT
 
+Microsoft Azure Java Core Library
+* Project: https://github.com/Azure/azure-sdk-for-java
+* Source: scm:git:https://github.com/Azure/azure-sdk-for-java.git
+* Maven Artifact: com.azure/azure-core/1.22.0
+* License: MIT
+
+Microsoft Azure Java Core Library
+* Project: https://github.com/Azure/azure-sdk-for-java
+* Source: scm:git:https://github.com/Azure/azure-sdk-for-java.git
+* Maven Artifact: com.azure/azure-core/1.23.1
+* License: MIT
+
 Microsoft Azure SDK for SQL API of Azure Cosmos DB Service
 * Project: https://github.com/Azure/azure-sdk-for-java
 * Source: scm:git:git@github.com:Azure/azure-sdk-for-java.git
-* Maven Artifact: com.azure/azure-cosmos/4.16.0
+* Maven Artifact: com.azure/azure-cosmos/4.23.0
 * License: MIT
 
 Microsoft Azure client library for Identity
@@ -317,13 +341,13 @@ Microsoft Azure client library for KeyVault Secrets
 Microsoft Azure client library for Blob Storage
 * Project: https://github.com/Azure/azure-sdk-for-java
 * Source: scm:git:git@github.com:Azure/azure-sdk-for-java.git
-* Maven Artifact: com.azure/azure-storage-blob/12.11.0
+* Maven Artifact: com.azure/azure-storage-blob/12.14.2
 * License: MIT
 
 Microsoft Azure common module for Storage
 * Project: https://github.com/Azure/azure-sdk-for-java
 * Source: scm:git:git@github.com:Azure/azure-sdk-for-java.git
-* Maven Artifact: com.azure/azure-storage-common/12.11.0
+* Maven Artifact: com.azure/azure-storage-common/12.14.1
 * License: MIT
 
 Microsoft Azure common module for Storage
@@ -341,19 +365,19 @@ Microsoft Azure client library for File Share Storage
 Microsoft Azure internal Avro module for Storage
 * Project: https://github.com/Azure/azure-sdk-for-java
 * Source: scm:git:git@github.com:Azure/azure-sdk-for-java.git
-* Maven Artifact: com.azure/azure-storage-internal-avro/12.0.3
+* Maven Artifact: com.azure/azure-storage-internal-avro/12.1.2
+* License: MIT
+
+Microsoft Azure Java Client Runtime For AutoRest
+* Project: https://github.com/Azure/autorest-clientruntime-for-java
+* Source: scm:git:https://github.com/Azure/autorest-clientruntime-for-java
+* Maven Artifact: com.microsoft.azure/azure-client-runtime/1.7.14
 * License: MIT
 
 Jackson-annotations
 * Project: http://github.com/FasterXML/jackson
 * Source: scm:git:git@github.com:FasterXML/jackson-annotations.git
-* Maven Artifact: com.fasterxml.jackson.core/jackson-annotations/2.11.0
-* License: Apache-2.0
-
-Jackson-annotations
-* Project: http://github.com/FasterXML/jackson
-* Source: scm:git:git@github.com:FasterXML/jackson-annotations.git
-* Maven Artifact: com.fasterxml.jackson.core/jackson-annotations/2.11.3
+* Maven Artifact: com.fasterxml.jackson.core/jackson-annotations/2.11.2
 * License: Apache-2.0
 
 Jackson-annotations
@@ -374,6 +398,24 @@ Jackson-annotations
 * Maven Artifact: com.fasterxml.jackson.core/jackson-annotations/2.12.3
 * License: Apache-2.0
 
+Jackson-annotations
+* Project: http://github.com/FasterXML/jackson
+* Source: scm:git:git@github.com:FasterXML/jackson-annotations.git
+* Maven Artifact: com.fasterxml.jackson.core/jackson-annotations/2.12.5
+* License: Apache-2.0
+
+Jackson-annotations
+* Project: http://github.com/FasterXML/jackson
+* Source: scm:git:git@github.com:FasterXML/jackson-annotations.git
+* Maven Artifact: com.fasterxml.jackson.core/jackson-annotations/2.13.0
+* License: Apache-2.0
+
+Jackson-annotations
+* Project: http://github.com/FasterXML/jackson
+* Source: scm:git:git@github.com:FasterXML/jackson-annotations.git
+* Maven Artifact: com.fasterxml.jackson.core/jackson-annotations/2.13.1
+* License: Apache-2.0
+
 Jackson-core
 * Project: https://github.com/FasterXML/jackson-core
 * Source: scm:git:git@github.com:FasterXML/jackson-core.git
@@ -392,6 +434,24 @@ Jackson-core
 * Maven Artifact: com.fasterxml.jackson.core/jackson-core/2.12.3
 * License: Apache-2.0
 
+Jackson-core
+* Project: https://github.com/FasterXML/jackson-core
+* Source: scm:git:git@github.com:FasterXML/jackson-core.git
+* Maven Artifact: com.fasterxml.jackson.core/jackson-core/2.12.5
+* License: Apache-2.0
+
+Jackson-core
+* Project: https://github.com/FasterXML/jackson-core
+* Source: scm:git:git@github.com:FasterXML/jackson-core.git
+* Maven Artifact: com.fasterxml.jackson.core/jackson-core/2.13.0
+* License: Apache-2.0
+
+Jackson-core
+* Project: https://github.com/FasterXML/jackson-core
+* Source: scm:git:git@github.com:FasterXML/jackson-core.git
+* Maven Artifact: com.fasterxml.jackson.core/jackson-core/2.13.1
+* License: Apache-2.0
+
 jackson-databind
 * Project: http://github.com/FasterXML/jackson
 * Source: scm:git:git@github.com:FasterXML/jackson-databind.git
@@ -402,12 +462,6 @@ jackson-databind
 * Project: http://github.com/FasterXML/jackson
 * Source: scm:git:git@github.com:FasterXML/jackson-databind.git
 * Maven Artifact: com.fasterxml.jackson.core/jackson-databind/2.11.0
-* License: Apache-2.0
-
-jackson-databind
-* Project: http://github.com/FasterXML/jackson
-* Source: scm:git:git@github.com:FasterXML/jackson-databind.git
-* Maven Artifact: com.fasterxml.jackson.core/jackson-databind/2.11.3
 * License: Apache-2.0
 
 jackson-databind
@@ -431,7 +485,19 @@ jackson-databind
 jackson-databind
 * Project: http://github.com/FasterXML/jackson
 * Source: scm:git:git@github.com:FasterXML/jackson-databind.git
-* Maven Artifact: com.fasterxml.jackson.core/jackson-databind/2.6.7.4
+* Maven Artifact: com.fasterxml.jackson.core/jackson-databind/2.12.5
+* License: Apache-2.0
+
+jackson-databind
+* Project: http://github.com/FasterXML/jackson
+* Source: scm:git:git@github.com:FasterXML/jackson-databind.git
+* Maven Artifact: com.fasterxml.jackson.core/jackson-databind/2.13.0
+* License: Apache-2.0
+
+jackson-databind
+* Project: http://github.com/FasterXML/jackson
+* Source: scm:git:git@github.com:FasterXML/jackson-databind.git
+* Maven Artifact: com.fasterxml.jackson.core/jackson-databind/2.13.1
 * License: Apache-2.0
 
 jackson-databind
@@ -440,32 +506,10 @@ jackson-databind
 * Maven Artifact: com.fasterxml.jackson.core/jackson-databind/2.9.8
 * License: Apache-2.0
 
-Jackson dataformat: CBOR
-* Project: http://github.com/FasterXML/jackson-dataformats-binary
-* Maven Artifact: com.fasterxml.jackson.dataformat/jackson-dataformat-cbor/2.12.1
-* License: Apache-2.0
-
-Jackson dataformat: CBOR
-* Project: http://github.com/FasterXML/jackson-dataformats-binary
-* Maven Artifact: com.fasterxml.jackson.dataformat/jackson-dataformat-cbor/2.12.3
-* License: Apache-2.0
-
-Jackson-dataformat-CBOR
-* Project: http://wiki.fasterxml.com/JacksonForCbor
-* Source: scm:git:git@github.com:FasterXML/jackson-dataformat-cbor.git
-* Maven Artifact: com.fasterxml.jackson.dataformat/jackson-dataformat-cbor/2.6.7
-* License: Apache-2.0
-
 Jackson-dataformat-XML
 * Project: https://github.com/FasterXML/jackson-dataformat-xml
 * Source: scm:git:git@github.com:FasterXML/jackson-dataformat-xml.git
 * Maven Artifact: com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.11.2
-* License: Apache-2.0
-
-Jackson-dataformat-XML
-* Project: https://github.com/FasterXML/jackson-dataformat-xml
-* Source: scm:git:git@github.com:FasterXML/jackson-dataformat-xml.git
-* Maven Artifact: com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.12.1
 * License: Apache-2.0
 
 Jackson-dataformat-XML
@@ -480,6 +524,34 @@ Jackson-dataformat-XML
 * Maven Artifact: com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.12.3
 * License: Apache-2.0
 
+Jackson-dataformat-XML
+* Project: https://github.com/FasterXML/jackson-dataformat-xml
+* Source: scm:git:git@github.com:FasterXML/jackson-dataformat-xml.git
+* Maven Artifact: com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.12.5
+* License: Apache-2.0
+
+Jackson-dataformat-XML
+* Project: https://github.com/FasterXML/jackson-dataformat-xml
+* Source: scm:git:git@github.com:FasterXML/jackson-dataformat-xml.git
+* Maven Artifact: com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.13.0
+* License: Apache-2.0
+
+Jackson-dataformat-XML
+* Project: https://github.com/FasterXML/jackson-dataformat-xml
+* Source: scm:git:git@github.com:FasterXML/jackson-dataformat-xml.git
+* Maven Artifact: com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.13.1
+* License: Apache-2.0
+
+Jackson-dataformat-YAML
+* Project: https://github.com/FasterXML/jackson-dataformats-text
+* Maven Artifact: com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.12.1
+* License: Apache-2.0
+
+Jackson-dataformat-YAML
+* Project: https://github.com/FasterXML/jackson-dataformats-text
+* Maven Artifact: com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.13.1
+* License: Apache-2.0
+
 Jackson-datatype-Joda
 * Project: http://wiki.fasterxml.com/JacksonModuleJoda
 * Source: scm:git:git@github.com:FasterXML/jackson-datatype-joda.git
@@ -489,7 +561,7 @@ Jackson-datatype-Joda
 Jackson datatype: Joda
 * Project: https://github.com/FasterXML/jackson-datatype-joda
 * Source: scm:git:git@github.com:FasterXML/jackson-datatype-joda.git
-* Maven Artifact: com.fasterxml.jackson.datatype/jackson-datatype-joda/2.12.2
+* Maven Artifact: com.fasterxml.jackson.datatype/jackson-datatype-joda/2.13.1
 * License: Apache-2.0
 
 Jackson datatype: JSR310
@@ -508,24 +580,26 @@ Jackson datatype: JSR310
 * Maven Artifact: com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.12.3
 * License: Apache-2.0
 
-Jackson module: Afterburner
-* Project: https://github.com/FasterXML/jackson-modules-base
-* Maven Artifact: com.fasterxml.jackson.module/jackson-module-afterburner/2.12.2
+Jackson datatype: JSR310
+* Maven Artifact: com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.12.5
+* License: Apache-2.0
+
+Jackson datatype: JSR310
+* Maven Artifact: com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.13.0
+* License: Apache-2.0
+
+Jackson datatype: JSR310
+* Maven Artifact: com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.13.1
 * License: Apache-2.0
 
 Jackson module: Afterburner
 * Project: https://github.com/FasterXML/jackson-modules-base
-* Maven Artifact: com.fasterxml.jackson.module/jackson-module-afterburner/2.12.3
+* Maven Artifact: com.fasterxml.jackson.module/jackson-module-afterburner/2.12.5
 * License: Apache-2.0
 
-Jackson module: JAXB Annotations
+Jackson module: Afterburner
 * Project: https://github.com/FasterXML/jackson-modules-base
-* Maven Artifact: com.fasterxml.jackson.module/jackson-module-jaxb-annotations/2.11.3
-* License: Apache-2.0
-
-Jackson module: JAXB Annotations
-* Project: https://github.com/FasterXML/jackson-modules-base
-* Maven Artifact: com.fasterxml.jackson.module/jackson-module-jaxb-annotations/2.12.1
+* Maven Artifact: com.fasterxml.jackson.module/jackson-module-afterburner/2.13.1
 * License: Apache-2.0
 
 Jackson module: JAXB Annotations
@@ -533,9 +607,9 @@ Jackson module: JAXB Annotations
 * Maven Artifact: com.fasterxml.jackson.module/jackson-module-jaxb-annotations/2.12.2
 * License: Apache-2.0
 
-Jackson module: JAXB Annotations
+Jackson module: Old JAXB Annotations (javax.xml.bind)
 * Project: https://github.com/FasterXML/jackson-modules-base
-* Maven Artifact: com.fasterxml.jackson.module/jackson-module-jaxb-annotations/2.12.3
+* Maven Artifact: com.fasterxml.jackson.module/jackson-module-jaxb-annotations/2.13.1
 * License: Apache-2.0
 
 Jackson BOM
@@ -547,30 +621,30 @@ Jackson BOM
 Jackson BOM
 * Project: https://github.com/FasterXML/jackson-bom
 * Source: scm:git:git@github.com:FasterXML/jackson-bom.git
-* Maven Artifact: com.fasterxml.jackson/jackson-bom/2.12.2
-* License: Apache-2.0
-
-Jackson BOM
-* Project: https://github.com/FasterXML/jackson-bom
-* Source: scm:git:git@github.com:FasterXML/jackson-bom.git
-* Maven Artifact: com.fasterxml.jackson/jackson-bom/2.12.3
-* License: Apache-2.0
+* Maven Artifact: com.fasterxml.jackson/jackson-bom/2.13.1
+* License:
 
 Woodstox
 * Project: https://github.com/FasterXML/woodstox
 * Source: scm:git:git@github.com:FasterXML/woodstox.git
-* Maven Artifact: com.fasterxml.woodstox/woodstox-core/6.2.3
-* License: Apache-2.0
-
-Woodstox
-* Project: https://github.com/FasterXML/woodstox
-* Source: scm:git:git@github.com:FasterXML/woodstox.git
-* Maven Artifact: com.fasterxml.woodstox/woodstox-core/6.2.4
+* Maven Artifact: com.fasterxml.woodstox/woodstox-core/6.2.7
 * License: Apache-2.0
 
 aalto-xml
 * Source: scm:git:git@github.com:FasterXML/aalto-xml.git
 * Maven Artifact: com.fasterxml/aalto-xml/1.0.0
+* License: Apache-2.0
+
+Java Faker
+* Project: http://github.com/DiUS/java-faker
+* Source: scm:git:git://github.com/DiUS/java-faker.git
+* Maven Artifact: com.github.javafaker/javafaker/1.0.2
+* License: Apache-2.0
+
+Generex
+* Project: https://github.com/mifmif/Generex/tree/master
+* Source: scm:git:git@github.com:mifmif/Generex.git
+* Maven Artifact: com.github.mifmif/generex/1.0.2
 * License: Apache-2.0
 
 JCIP Annotations under Apache License
@@ -617,15 +691,28 @@ Guava: Google Core Libraries for Java
 
 Guava ListenableFuture only
 * Maven Artifact: com.google.guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava
+* License: NONE
 
 J2ObjC Annotations
 * Project: https://github.com/google/j2objc/
 * Maven Artifact: com.google.j2objc/j2objc-annotations/1.3
 * License: Apache-2.0
 
-Protocol Buffers [Core]
+Protocol Buffers Core
 * Maven Artifact: com.google.protobuf/protobuf-java/3.14.0
 * License: BSD-3-Clause
+
+H2 Database Engine
+* Project: https://h2database.com
+* Source: scm:git:https://github.com/h2database/h2database
+* Maven Artifact: com.h2database/h2/2.1.210
+* License: MPL-2.0
+
+project ':json-path'
+* Project: https://github.com/jayway/JsonPath
+* Source: scm:git:git://github.com/jayway/JsonPath.git
+* Maven Artifact: com.jayway.jsonpath/json-path/2.4.0
+* License: Apache-2.0
 
 Spongy Castle
 * Project: http://rtyley.github.io/spongycastle/
@@ -724,6 +811,12 @@ Nimbus JOSE+JWT
 * Maven Artifact: com.nimbusds/nimbus-jose-jwt/8.20.1
 * License: Apache-2.0
 
+Nimbus JOSE+JWT
+* Project: https://bitbucket.org/connect2id/nimbus-jose-jwt
+* Source: scm:git:https://bitbucket.org/connect2id/nimbus-jose-jwt.git
+* Maven Artifact: com.nimbusds/nimbus-jose-jwt/8.22.1
+* License: Apache-2.0
+
 OAuth 2.0 SDK with OpenID Connect extensions
 * Project: https://bitbucket.org/connect2id/oauth-2.0-sdk-with-openid-connect-extensions
 * Source: scm:git:https://bitbucket.org/connect2id/oauth-2.0-sdk-with-openid-connect-extensions.git
@@ -748,8 +841,20 @@ OAuth 2.0 SDK with OpenID Connect extensions
 * Maven Artifact: com.nimbusds/oauth2-oidc-sdk/8.36
 * License: Apache-2.0
 
+checkstyle
+* Project: https://checkstyle.org/
+* Source: scm:git:git@github.com:checkstyle/checkstyle.git
+* Maven Artifact: com.puppycrawl.tools/checkstyle/9.0
+* License: Apache-2.0
+
 OkHttp Logging Interceptor
 * Maven Artifact: com.squareup.okhttp3/logging-interceptor/3.12.12
+* License: Apache-2.0
+
+okhttp-dnsoverhttps
+* Project: https://square.github.io/okhttp/
+* Source: scm:git:https://github.com/square/okhttp.git
+* Maven Artifact: com.squareup.okhttp3/okhttp-dnsoverhttps/4.9.3
 * License: Apache-2.0
 
 OkHttp URLConnection
@@ -767,7 +872,11 @@ OkHttp
 okhttp
 * Project: https://square.github.io/okhttp/
 * Source: scm:git:https://github.com/square/okhttp.git
-* Maven Artifact: com.squareup.okhttp3/okhttp/4.9.0
+* Maven Artifact: com.squareup.okhttp3/okhttp/4.9.3
+* License: Apache-2.0
+
+Okio
+* Maven Artifact: com.squareup.okio/okio/1.15.0
 * License: Apache-2.0
 
 Okio
@@ -795,6 +904,10 @@ Jakarta Activation
 JavaMail API
 * Maven Artifact: com.sun.mail/javax.mail/1.6.1
 * License: CDDL
+
+Old JAXB Runtime
+* Maven Artifact: com.sun.xml.bind/jaxb-impl/2.3.3
+* License: BSD-3-Clause
 
 Netty Reactive Streams HTTP support
 * Maven Artifact: com.typesafe.netty/netty-reactive-streams-http/2.0.4
@@ -834,22 +947,10 @@ Apache Commons Codec
 * Maven Artifact: commons-codec/commons-codec/1.14
 * License: Apache-2.0
 
-Apache Commons Codec
-* Project: https://commons.apache.org/proper/commons-codec/
-* Source: scm:git:https://gitbox.apache.org/repos/asf?p=commons-codec.git
-* Maven Artifact: commons-codec/commons-codec/1.15
-* License: Apache-2.0
-
 Apache Commons Collections
 * Project: http://commons.apache.org/collections/
 * Source: scm:svn:http://svn.apache.org/repos/asf/commons/proper/collections/trunk
 * Maven Artifact: commons-collections/commons-collections/3.2.2
-* License: Apache-2.0
-
-Commons Logging
-* Project: http://commons.apache.org/proper/commons-logging/
-* Source: scm:svn:http://svn.apache.org/repos/asf/commons/proper/logging/trunk
-* Maven Artifact: commons-logging/commons-logging/1.1.3
 * License: Apache-2.0
 
 Apache Commons Logging
@@ -858,24 +959,59 @@ Apache Commons Logging
 * Maven Artifact: commons-logging/commons-logging/1.2
 * License: Apache-2.0
 
+Automaton
+* Project: http://www.brics.dk/automaton/
+* Maven Artifact: dk.brics.automaton/automaton/1.11-8
+* License: BSD-2-Clause
+
 picocli - a mighty tiny Command Line Interface
 * Project: http://picocli.info
 * Source: scm:git:https://github.com/remkop/picocli.git
 * Maven Artifact: info.picocli/picocli/4.6.1
 * License: Apache-2.0
 
+picocli
+* Project: http://picocli.info
+* Source: scm:git:https://github.com/remkop/picocli.git
+* Maven Artifact: info.picocli/picocli/4.6.2
+* License: Apache-2.0
+
 Metrics Core
 * Maven Artifact: io.dropwizard.metrics/metrics-core/4.1.0
 * License: Apache-2.0
+
+ClassGraph
+* Project: https://github.com/classgraph/classgraph
+* Source: scm:git:git@github.com:classgraph/classgraph.git
+* Maven Artifact: io.github.classgraph/classgraph/4.8.117
+* License: MIT
+
+ClassGraph
+* Project: https://github.com/classgraph/classgraph
+* Source: scm:git:git@github.com:classgraph/classgraph.git
+* Maven Artifact: io.github.classgraph/classgraph/4.8.95
+* License: MIT
 
 java-json-canonicalization
 * Project: https://github.com/erdtman/java-json-canonicalization
 * Maven Artifact: io.github.erdtman/java-json-canonicalization/1.1
 * License: Apache-2.0
 
+ToolFactory JVM Driver
+* Project: https://toolfactory.github.io/jvm-driver/
+* Source: scm:git:${repository.url}
+* Maven Artifact: io.github.toolfactory/jvm-driver/4.0.0
+* License: MIT
+
+Narcissus
+* Project: https://github.com/toolfactory/narcissus
+* Source: scm:git:https://toolfactory@github.com/toolfactory/narcissus.git
+* Maven Artifact: io.github.toolfactory/narcissus/1.0.1
+* License: MIT
+
 micrometer-core
 * Project: https://github.com/micrometer-metrics/micrometer
-* Maven Artifact: io.micrometer/micrometer-core/1.7.0
+* Maven Artifact: io.micrometer/micrometer-core/1.8.0
 * License: Apache-2.0
 
 Netty/Buffer
@@ -898,12 +1034,28 @@ Netty/Buffer
 * Maven Artifact: io.netty/netty-buffer/4.1.65.Final
 * License: Apache-2.0
 
+Netty/Buffer
+* Maven Artifact: io.netty/netty-buffer/4.1.68.Final
+* License: Apache-2.0
+
+Netty/Buffer
+* Maven Artifact: io.netty/netty-buffer/4.1.70.Final
+* License: Apache-2.0
+
 Netty/Codec/DNS
 * Maven Artifact: io.netty/netty-codec-dns/4.1.59.Final
 * License: Apache-2.0
 
 Netty/Codec/DNS
 * Maven Artifact: io.netty/netty-codec-dns/4.1.63.Final
+* License: Apache-2.0
+
+Netty/Codec/DNS
+* Maven Artifact: io.netty/netty-codec-dns/4.1.68.Final
+* License: Apache-2.0
+
+Netty/Codec/DNS
+* Maven Artifact: io.netty/netty-codec-dns/4.1.70.Final
 * License: Apache-2.0
 
 Netty/Codec/HTTP
@@ -930,6 +1082,14 @@ Netty/Codec/HTTP
 * Maven Artifact: io.netty/netty-codec-http/4.1.65.Final
 * License: Apache-2.0
 
+Netty/Codec/HTTP
+* Maven Artifact: io.netty/netty-codec-http/4.1.68.Final
+* License: Apache-2.0
+
+Netty/Codec/HTTP
+* Maven Artifact: io.netty/netty-codec-http/4.1.70.Final
+* License: Apache-2.0
+
 Netty/Codec/HTTP2
 * Maven Artifact: io.netty/netty-codec-http2/4.1.52.Final
 * License: Apache-2.0
@@ -950,6 +1110,14 @@ Netty/Codec/HTTP2
 * Maven Artifact: io.netty/netty-codec-http2/4.1.65.Final
 * License: Apache-2.0
 
+Netty/Codec/HTTP2
+* Maven Artifact: io.netty/netty-codec-http2/4.1.68.Final
+* License: Apache-2.0
+
+Netty/Codec/HTTP2
+* Maven Artifact: io.netty/netty-codec-http2/4.1.70.Final
+* License: Apache-2.0
+
 Netty/Codec/Socks
 * Maven Artifact: io.netty/netty-codec-socks/4.1.52.Final
 * License: Apache-2.0
@@ -960,6 +1128,14 @@ Netty/Codec/Socks
 
 Netty/Codec/Socks
 * Maven Artifact: io.netty/netty-codec-socks/4.1.65.Final
+* License: Apache-2.0
+
+Netty/Codec/Socks
+* Maven Artifact: io.netty/netty-codec-socks/4.1.68.Final
+* License: Apache-2.0
+
+Netty/Codec/Socks
+* Maven Artifact: io.netty/netty-codec-socks/4.1.70.Final
 * License: Apache-2.0
 
 Netty/Codec
@@ -982,6 +1158,14 @@ Netty/Codec
 * Maven Artifact: io.netty/netty-codec/4.1.65.Final
 * License: Apache-2.0
 
+Netty/Codec
+* Maven Artifact: io.netty/netty-codec/4.1.68.Final
+* License: Apache-2.0
+
+Netty/Codec
+* Maven Artifact: io.netty/netty-codec/4.1.70.Final
+* License: Apache-2.0
+
 Netty/Common
 * Maven Artifact: io.netty/netty-common/4.1.52.Final
 * License: Apache-2.0
@@ -1002,6 +1186,14 @@ Netty/Common
 * Maven Artifact: io.netty/netty-common/4.1.65.Final
 * License: Apache-2.0
 
+Netty/Common
+* Maven Artifact: io.netty/netty-common/4.1.68.Final
+* License: Apache-2.0
+
+Netty/Common
+* Maven Artifact: io.netty/netty-common/4.1.70.Final
+* License: Apache-2.0
+
 Netty/Handler/Proxy
 * Maven Artifact: io.netty/netty-handler-proxy/4.1.52.Final
 * License: Apache-2.0
@@ -1020,6 +1212,14 @@ Netty/Handler/Proxy
 
 Netty/Handler/Proxy
 * Maven Artifact: io.netty/netty-handler-proxy/4.1.65.Final
+* License: Apache-2.0
+
+Netty/Handler/Proxy
+* Maven Artifact: io.netty/netty-handler-proxy/4.1.68.Final
+* License: Apache-2.0
+
+Netty/Handler/Proxy
+* Maven Artifact: io.netty/netty-handler-proxy/4.1.70.Final
 * License: Apache-2.0
 
 Netty/Handler
@@ -1046,6 +1246,18 @@ Netty/Handler
 * Maven Artifact: io.netty/netty-handler/4.1.65.Final
 * License: Apache-2.0
 
+Netty/Handler
+* Maven Artifact: io.netty/netty-handler/4.1.68.Final
+* License: Apache-2.0
+
+Netty/Handler
+* Maven Artifact: io.netty/netty-handler/4.1.70.Final
+* License: Apache-2.0
+
+Netty/Resolver/DNS/Classes/MacOS
+* Maven Artifact: io.netty/netty-resolver-dns-classes-macos/4.1.70.Final
+* License: Apache-2.0
+
 Netty/Resolver/DNS/MacOS
 * Maven Artifact: io.netty/netty-resolver-dns-native-macos/4.1.59.Final
 * License: Apache-2.0
@@ -1054,12 +1266,28 @@ Netty/Resolver/DNS/MacOS
 * Maven Artifact: io.netty/netty-resolver-dns-native-macos/4.1.63.Final
 * License: Apache-2.0
 
+Netty/Resolver/DNS/MacOS
+* Maven Artifact: io.netty/netty-resolver-dns-native-macos/4.1.68.Final
+* License: Apache-2.0
+
+Netty/Resolver/DNS/Native/MacOS
+* Maven Artifact: io.netty/netty-resolver-dns-native-macos/4.1.70.Final
+* License: Apache-2.0
+
 Netty/Resolver/DNS
 * Maven Artifact: io.netty/netty-resolver-dns/4.1.59.Final
 * License: Apache-2.0
 
 Netty/Resolver/DNS
 * Maven Artifact: io.netty/netty-resolver-dns/4.1.63.Final
+* License: Apache-2.0
+
+Netty/Resolver/DNS
+* Maven Artifact: io.netty/netty-resolver-dns/4.1.68.Final
+* License: Apache-2.0
+
+Netty/Resolver/DNS
+* Maven Artifact: io.netty/netty-resolver-dns/4.1.70.Final
 * License: Apache-2.0
 
 Netty/Resolver
@@ -1082,6 +1310,14 @@ Netty/Resolver
 * Maven Artifact: io.netty/netty-resolver/4.1.65.Final
 * License: Apache-2.0
 
+Netty/Resolver
+* Maven Artifact: io.netty/netty-resolver/4.1.68.Final
+* License: Apache-2.0
+
+Netty/Resolver
+* Maven Artifact: io.netty/netty-resolver/4.1.70.Final
+* License: Apache-2.0
+
 Netty/TomcatNative [BoringSSL - Static]
 * Maven Artifact: io.netty/netty-tcnative-boringssl-static/2.0.34.Final
 * License: Apache-2.0
@@ -1092,6 +1328,26 @@ Netty/TomcatNative [BoringSSL - Static]
 
 Netty/TomcatNative [BoringSSL - Static]
 * Maven Artifact: io.netty/netty-tcnative-boringssl-static/2.0.39.Final
+* License: Apache-2.0
+
+Netty/TomcatNative [BoringSSL - Static]
+* Maven Artifact: io.netty/netty-tcnative-boringssl-static/2.0.43.Final
+* License: Apache-2.0
+
+Netty/TomcatNative [BoringSSL - Static]
+* Maven Artifact: io.netty/netty-tcnative-boringssl-static/2.0.46.Final
+* License: Apache-2.0
+
+Netty/TomcatNative [OpenSSL - Classes]
+* Maven Artifact: io.netty/netty-tcnative-classes/2.0.46.Final
+* License: Apache-2.0
+
+Netty/Transport/Classes/Epoll
+* Maven Artifact: io.netty/netty-transport-classes-epoll/4.1.70.Final
+* License: Apache-2.0
+
+Netty/Transport/Classes/KQueue
+* Maven Artifact: io.netty/netty-transport-classes-kqueue/4.1.70.Final
 * License: Apache-2.0
 
 Netty/Transport/Native/Epoll
@@ -1114,6 +1370,14 @@ Netty/Transport/Native/Epoll
 * Maven Artifact: io.netty/netty-transport-native-epoll/4.1.65.Final
 * License: Apache-2.0
 
+Netty/Transport/Native/Epoll
+* Maven Artifact: io.netty/netty-transport-native-epoll/4.1.68.Final
+* License: Apache-2.0
+
+Netty/Transport/Native/Epoll
+* Maven Artifact: io.netty/netty-transport-native-epoll/4.1.70.Final
+* License: Apache-2.0
+
 Netty/Transport/Native/KQueue
 * Maven Artifact: io.netty/netty-transport-native-kqueue/4.1.52.Final
 * License: Apache-2.0
@@ -1124,6 +1388,14 @@ Netty/Transport/Native/KQueue
 
 Netty/Transport/Native/KQueue
 * Maven Artifact: io.netty/netty-transport-native-kqueue/4.1.65.Final
+* License: Apache-2.0
+
+Netty/Transport/Native/KQueue
+* Maven Artifact: io.netty/netty-transport-native-kqueue/4.1.68.Final
+* License: Apache-2.0
+
+Netty/Transport/Native/KQueue
+* Maven Artifact: io.netty/netty-transport-native-kqueue/4.1.70.Final
 * License: Apache-2.0
 
 Netty/Transport/Native/Unix/Common
@@ -1146,6 +1418,14 @@ Netty/Transport/Native/Unix/Common
 * Maven Artifact: io.netty/netty-transport-native-unix-common/4.1.65.Final
 * License: Apache-2.0
 
+Netty/Transport/Native/Unix/Common
+* Maven Artifact: io.netty/netty-transport-native-unix-common/4.1.68.Final
+* License: Apache-2.0
+
+Netty/Transport/Native/Unix/Common
+* Maven Artifact: io.netty/netty-transport-native-unix-common/4.1.70.Final
+* License: Apache-2.0
+
 Netty/Transport
 * Maven Artifact: io.netty/netty-transport/4.1.52.Final
 * License: Apache-2.0
@@ -1164,6 +1444,44 @@ Netty/Transport
 
 Netty/Transport
 * Maven Artifact: io.netty/netty-transport/4.1.65.Final
+* License: Apache-2.0
+
+Netty/Transport
+* Maven Artifact: io.netty/netty-transport/4.1.68.Final
+* License: Apache-2.0
+
+Netty/Transport
+* Maven Artifact: io.netty/netty-transport/4.1.70.Final
+* License: Apache-2.0
+
+OpenTelemetry Java
+* Project: https://github.com/open-telemetry/opentelemetry-java
+* Source: scm:git:git@github.com:open-telemetry/opentelemetry-java.git
+* Maven Artifact: io.opentelemetry/opentelemetry-api/1.11.0
+* License: Apache-2.0
+
+OpenTelemetry Java
+* Project: https://github.com/open-telemetry/opentelemetry-java
+* Source: scm:git:git@github.com:open-telemetry/opentelemetry-java.git
+* Maven Artifact: io.opentelemetry/opentelemetry-context/1.11.0
+* License: Apache-2.0
+
+OpenTelemetry Java
+* Project: https://github.com/open-telemetry/opentelemetry-java
+* Source: scm:git:git@github.com:open-telemetry/opentelemetry-java.git
+* Maven Artifact: io.opentelemetry/opentelemetry-extension-annotations/1.11.0
+* License: Apache-2.0
+
+Core functionality for the Reactor Netty library
+* Project: https://github.com/reactor/reactor-netty
+* Source: scm:git:git://github.com/reactor/reactor-netty
+* Maven Artifact: io.projectreactor.netty/reactor-netty-core/1.0.11
+* License: Apache-2.0
+
+Core functionality for the Reactor Netty library
+* Project: https://github.com/reactor/reactor-netty
+* Source: scm:git:git://github.com/reactor/reactor-netty
+* Maven Artifact: io.projectreactor.netty/reactor-netty-core/1.0.13
 * License: Apache-2.0
 
 Core functionality for the Reactor Netty library
@@ -1188,6 +1506,18 @@ Brave instrumentation for Reactor Netty HTTP
 * Project: https://github.com/reactor/reactor-netty
 * Source: scm:git:git://github.com/reactor/reactor-netty
 * Maven Artifact: io.projectreactor.netty/reactor-netty-http-brave/1.0.7
+* License: Apache-2.0
+
+HTTP functionality for the Reactor Netty library
+* Project: https://github.com/reactor/reactor-netty
+* Source: scm:git:git://github.com/reactor/reactor-netty
+* Maven Artifact: io.projectreactor.netty/reactor-netty-http/1.0.11
+* License: Apache-2.0
+
+HTTP functionality for the Reactor Netty library
+* Project: https://github.com/reactor/reactor-netty
+* Source: scm:git:git://github.com/reactor/reactor-netty
+* Maven Artifact: io.projectreactor.netty/reactor-netty-http/1.0.13
 * License: Apache-2.0
 
 HTTP functionality for the Reactor Netty library
@@ -1229,6 +1559,18 @@ Non-Blocking Reactive Foundation for the JVM
 Non-Blocking Reactive Foundation for the JVM
 * Project: https://github.com/reactor/reactor-core
 * Source: scm:git:git://github.com/reactor/reactor-core
+* Maven Artifact: io.projectreactor/reactor-core/3.4.10
+* License: Apache-2.0
+
+Non-Blocking Reactive Foundation for the JVM
+* Project: https://github.com/reactor/reactor-core
+* Source: scm:git:git://github.com/reactor/reactor-core
+* Maven Artifact: io.projectreactor/reactor-core/3.4.12
+* License: Apache-2.0
+
+Non-Blocking Reactive Foundation for the JVM
+* Project: https://github.com/reactor/reactor-core
+* Source: scm:git:git://github.com/reactor/reactor-core
 * Maven Artifact: io.projectreactor/reactor-core/3.4.3
 * License: Apache-2.0
 
@@ -1251,6 +1593,76 @@ rxjava
 rxjava
 * Project: https://github.com/ReactiveX/RxJava
 * Maven Artifact: io.reactivex/rxjava/1.3.8
+* License: Apache-2.0
+
+json-path
+* Project: http://maven.apache.org
+* Maven Artifact: io.rest-assured/json-path/4.4.0
+* License: Apache-2.0
+
+json-path
+* Project: http://maven.apache.org
+* Maven Artifact: io.rest-assured/json-path/4.5.0
+* License: Apache-2.0
+
+rest-assured-common
+* Project: http://maven.apache.org
+* Maven Artifact: io.rest-assured/rest-assured-common/4.4.0
+* License: Apache-2.0
+
+rest-assured-common
+* Project: http://maven.apache.org
+* Maven Artifact: io.rest-assured/rest-assured-common/4.5.0
+* License: Apache-2.0
+
+REST Assured
+* Project: http://code.google.com/p/rest-assured
+* Maven Artifact: io.rest-assured/rest-assured/4.4.0
+* License: Apache-2.0
+
+REST Assured
+* Project: http://code.google.com/p/rest-assured
+* Maven Artifact: io.rest-assured/rest-assured/4.5.0
+* License: Apache-2.0
+
+Swagger Annotations Jakarta
+* Maven Artifact: io.swagger.core.v3/swagger-annotations-jakarta/2.1.11
+* License: Apache-2.0
+
+Swagger Annotations
+* Maven Artifact: io.swagger.core.v3/swagger-annotations/2.1.12
+* License: Apache-2.0
+
+Swagger Core Jakarta
+* Maven Artifact: io.swagger.core.v3/swagger-core-jakarta/2.1.11
+* License: Apache-2.0
+
+Swagger Core
+* Maven Artifact: io.swagger.core.v3/swagger-core/2.1.12
+* License: Apache-2.0
+
+Swagger Integration Jakarta
+* Maven Artifact: io.swagger.core.v3/swagger-integration-jakarta/2.1.11
+* License: Apache-2.0
+
+Swagger Integration
+* Maven Artifact: io.swagger.core.v3/swagger-integration/2.1.12
+* License: Apache-2.0
+
+Swagger JAXRS2 Jakarta
+* Maven Artifact: io.swagger.core.v3/swagger-jaxrs2-jakarta/2.1.11
+* License: Apache-2.0
+
+Swagger JAXRS2
+* Maven Artifact: io.swagger.core.v3/swagger-jaxrs2/2.1.12
+* License: Apache-2.0
+
+Swagger Models Jakarta
+* Maven Artifact: io.swagger.core.v3/swagger-models-jakarta/2.1.11
+* License: Apache-2.0
+
+Swagger Models
+* Maven Artifact: io.swagger.core.v3/swagger-models/2.1.12
 * License: Apache-2.0
 
 Brave Instrumentation: Http Adapters
@@ -1289,17 +1701,23 @@ Jakarta Dependency Injection
 * Maven Artifact: jakarta.inject/jakarta.inject-api/2.0.0
 * License: Apache-2.0
 
-Jakarta Transaction API
+${extension.name} API
 * Project: https://projects.eclipse.org/projects/ee4j.jta
 * Source: scm:git:https://github.com/eclipse-ee4j/jta-api.git
-* Maven Artifact: jakarta.transaction/jakarta.transaction-api/2.0.0-RC1
-* License: EPL-2.0
+* Maven Artifact: jakarta.transaction/jakarta.transaction-api/2.0.0
+* License: EPL-1.0
+
+Jakarta Bean Validation API
+* Project: https://beanvalidation.org
+* Source: scm:git:git://github.com/eclipse-ee4j/beanvalidation-api.git
+* Maven Artifact: jakarta.validation/jakarta.validation-api/2.0.2
+* License: EPL-1.0
 
 Jakarta Bean Validation API
 * Project: https://beanvalidation.org
 * Source: scm:git:git://github.com/eclipse-ee4j/beanvalidation-api.git
 * Maven Artifact: jakarta.validation/jakarta.validation-api/3.0.0
-* License: Apache-2.0
+* License: EPL-1.0
 
 Jakarta WebSocket - Server API
 * Project: https://projects.eclipse.org/projects/ee4j.websocket
@@ -1313,6 +1731,10 @@ jakarta.ws.rs-api
 * License: EPL-2.0
 
 Jakarta XML Binding API
+* Maven Artifact: jakarta.xml.bind/jakarta.xml.bind-api/2.3.3
+* License: BSD-3-Clause
+
+Jakarta XML Binding API
 * Maven Artifact: jakarta.xml.bind/jakarta.xml.bind-api/3.0.0
 * License: BSD-3-Clause
 
@@ -1323,7 +1745,19 @@ JavaBeans Activation Framework (JAF)
 
 JavaBeans Activation Framework API jar
 * Maven Artifact: javax.activation/javax.activation-api/1.2.0
-* License: CDDL-1.1
+* License: CDDL-1.0
+
+Java Servlet API
+* Project: http://servlet-spec.java.net
+* Source: scm:svn:https://svn.java.net/svn/glassfish~svn/tags/javax.servlet-api-3.1.0
+* Maven Artifact: javax.servlet/javax.servlet-api/3.1.0
+* License: CDDL-1.0
+
+Javax Transaction API
+* Project: http://jta-spec.java.net
+* Source: scm:git:https://github.com/javaee/javax.transaction.git
+* Maven Artifact: javax.transaction/javax.transaction-api/1.3
+* License: CDDL-1.0
 
 Bean Validation API
 * Project: http://beanvalidation.org
@@ -1331,16 +1765,24 @@ Bean Validation API
 * Maven Artifact: javax.validation/validation-api/2.0.1.Final
 * License: Apache-2.0
 
+Javax WS RS API
+* Project: http://jax-rs-spec.java.net
+* Source: scm:git:https://github.com/jax-rs/api.git
+* Maven Artifact: javax.ws.rs/javax.ws.rs-api/2.1
+* License: CDDL-1.1
+
 Joda-Time
 * Project: https://www.joda.org/joda-time/
 * Source: scm:git:https://github.com/JodaOrg/joda-time.git
 * Maven Artifact: joda-time/joda-time/2.10.8
 * License: Apache-2.0
 
-Joda-Time
-* Project: http://www.joda.org/joda-time/
-* Source: scm:git:https://github.com/JodaOrg/joda-time.git
-* Maven Artifact: joda-time/joda-time/2.8.1
+Byte Buddy agent
+* Maven Artifact: net.bytebuddy/byte-buddy-agent/1.12.4
+* License: Apache-2.0
+
+Byte Buddy (without dependencies)
+* Maven Artifact: net.bytebuddy/byte-buddy/1.12.4
 * License: Apache-2.0
 
 Java Native Access Platform
@@ -1368,15 +1810,21 @@ Java Native Access
 * License: Apache-2.0
 
 Failsafe
-* Project: http://github.com/jhalterman/failsafe/
-* Source: scm:git:git@github.com:jhalterman/failsafe.git
-* Maven Artifact: net.jodah/failsafe/2.4.0
+* Project: https://failsafe-lib.github.io
+* Source: scm:git:git@github.com:failsafe-lib/failsafe.git
+* Maven Artifact: net.jodah/failsafe/2.4.3
 * License: Apache-2.0
 
 ASM based accessors helper used by json-smart
 * Project: http://www.minidev.net/
 * Source: scm:git:https://github.com/netplex/json-smart-v2.git
 * Maven Artifact: net.minidev/accessors-smart/1.2
+* License: Apache-2.0
+
+ASM based accessors helper used by json-smart
+* Project: https://urielch.github.io/
+* Source: scm:git:https://github.com/netplex/json-smart-v2.git
+* Maven Artifact: net.minidev/accessors-smart/2.4.7
 * License: Apache-2.0
 
 JSON Small and Fast Parser
@@ -1396,9 +1844,33 @@ ANTLR 4 Runtime
 * License: BSD-3-Clause
 
 Apache Commons Lang
+* Project: https://commons.apache.org/proper/commons-lang/
+* Source: scm:git:http://gitbox.apache.org/repos/asf/commons-lang.git
+* Maven Artifact: org.apache.commons/commons-lang3/3.11
+* License: Apache-2.0
+
+Apache Commons Lang
 * Project: http://commons.apache.org/proper/commons-lang/
 * Source: scm:svn:http://svn.apache.org/repos/asf/commons/proper/lang/tags/LANG_3_4
 * Maven Artifact: org.apache.commons/commons-lang3/3.4
+* License: Apache-2.0
+
+Apache Commons Lang
+* Project: http://commons.apache.org/proper/commons-lang/
+* Source: scm:git:http://git-wip-us.apache.org/repos/asf/commons-lang.git
+* Maven Artifact: org.apache.commons/commons-lang3/3.5
+* License: Apache-2.0
+
+Apache Commons Lang
+* Project: http://commons.apache.org/proper/commons-lang/
+* Source: scm:git:http://git-wip-us.apache.org/repos/asf/commons-lang.git
+* Maven Artifact: org.apache.commons/commons-lang3/3.7
+* License: Apache-2.0
+
+Apache Commons Pool
+* Project: https://commons.apache.org/proper/commons-pool/
+* Source: scm:git:https://gitbox.apache.org/repos/asf/commons-pool.git
+* Maven Artifact: org.apache.commons/commons-pool2/2.11.1
 * License: Apache-2.0
 
 Apache HttpClient
@@ -1421,10 +1893,15 @@ Apache HttpCore
 * Maven Artifact: org.apache.httpcomponents/httpcore/4.4.5
 * License: Apache-2.0
 
+Apache HttpClient Mime
+* Project: http://hc.apache.org/httpcomponents-client
+* Maven Artifact: org.apache.httpcomponents/httpmime/4.5.13
+* License: Apache-2.0
+
 org.apiguardian:apiguardian-api
 * Project: https://github.com/apiguardian-team/apiguardian
 * Source: scm:git:git://github.com/apiguardian-team/apiguardian.git
-* Maven Artifact: org.apiguardian/apiguardian-api/1.1.0
+* Maven Artifact: org.apiguardian/apiguardian-api/1.1.2
 * License: Apache-2.0
 
 AssertJ fluent assertions
@@ -1432,16 +1909,87 @@ AssertJ fluent assertions
 * Maven Artifact: org.assertj/assertj-core/3.19.0
 * License: Apache-2.0
 
+AssertJ fluent assertions
+* Source: scm:git:git@github.com:assertj/assertj-core.git
+* Maven Artifact: org.assertj/assertj-core/3.20.2
+* License: Apache-2.0
+
+AssertJ fluent assertions
+* Source: scm:git:git@github.com:assertj/assertj-core.git
+* Maven Artifact: org.assertj/assertj-core/3.21.0
+* License: Apache-2.0
+
+AssertJ fluent assertions
+* Source: scm:git:https://github.com/assertj/assertj-core.git
+* Maven Artifact: org.assertj/assertj-core/3.22.0
+* License: Apache-2.0
+
+Awaitility
+* Project: http://awaitility.org
+* Maven Artifact: org.awaitility/awaitility/4.1.1
+* License: Apache-2.0
+
+Bouncy Castle PKIX, CMS, EAC, TSP, PKCS, OCSP, CMP, and CRMF APIs
+* Project: http://www.bouncycastle.org/java.html
+* Maven Artifact: org.bouncycastle/bcpkix-jdk15on/1.56
+* License: MIT
+
+Bouncy Castle Provider
+* Project: http://www.bouncycastle.org/java.html
+* Maven Artifact: org.bouncycastle/bcprov-jdk15on/1.56
+* License: MIT
+
 Bouncy Castle Provider
 * Project: https://www.bouncycastle.org/java.html
 * Maven Artifact: org.bouncycastle/bcprov-jdk15on/1.69
 * License: MIT
+
+TagSoup
+* Project: http://home.ccil.org/~cowan/XML/tagsoup/
+* Maven Artifact: org.ccil.cowan.tagsoup/tagsoup/1.2.1
+* License: Apache-2.0
 
 Checker Qual
 * Project: https://checkerframework.org
 * Source: https://github.com/typetools/checker-framework.git
 * Maven Artifact: org.checkerframework/checker-qual/3.8.0
 * License: MIT
+
+Apache Groovy
+* Project: https://groovy-lang.org
+* Source: scm:git:https://github.com/apache/groovy.git
+* Maven Artifact: org.codehaus.groovy/groovy-json/3.0.8
+* License: Apache-2.0
+
+Apache Groovy
+* Project: https://groovy-lang.org
+* Source: scm:git:https://github.com/apache/groovy.git
+* Maven Artifact: org.codehaus.groovy/groovy-json/3.0.9
+* License: Apache-2.0
+
+Apache Groovy
+* Project: https://groovy-lang.org
+* Source: scm:git:https://github.com/apache/groovy.git
+* Maven Artifact: org.codehaus.groovy/groovy-xml/3.0.8
+* License: Apache-2.0
+
+Apache Groovy
+* Project: https://groovy-lang.org
+* Source: scm:git:https://github.com/apache/groovy.git
+* Maven Artifact: org.codehaus.groovy/groovy-xml/3.0.9
+* License: Apache-2.0
+
+Apache Groovy
+* Project: https://groovy-lang.org
+* Source: scm:git:https://github.com/apache/groovy.git
+* Maven Artifact: org.codehaus.groovy/groovy/3.0.8
+* License: Apache-2.0
+
+Apache Groovy
+* Project: https://groovy-lang.org
+* Source: scm:git:https://github.com/apache/groovy.git
+* Maven Artifact: org.codehaus.groovy/groovy/3.0.9
+* License: Apache-2.0
 
 Stax2 API
 * Project: http://github.com/FasterXML/stax2-api
@@ -1455,114 +2003,110 @@ Stax2 API
 * Maven Artifact: org.codehaus.woodstox/stax2-api/4.2.1
 * License: BSD-2-Clause
 
-Mockito
-* Maven Artifact: org.mockito:mockito-core/4.1.0
-* License: MIT
-
 Jetty :: Jakarta Servlet API and Schemas for JPMS and OSGi
 * Source: scm:git:https://github.com/eclipse/jetty.toolchain.git
-* Maven Artifact: org.eclipse.jetty.toolchain/jetty-jakarta-servlet-api/5.0.1
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty.toolchain/jetty-jakarta-servlet-api/5.0.2
+* License: EPL-2.0
 
 Jetty :: Jakarta WebSocket API for JPMS and OSGi
 * Source: scm:git:https://github.com/eclipse/jetty.toolchain.git
 * Maven Artifact: org.eclipse.jetty.toolchain/jetty-jakarta-websocket-api/2.0.0
-* License: Apache-2.0
+* License: EPL-2.0
 
 Jetty :: Websocket :: Core :: Client
-* Maven Artifact: org.eclipse.jetty.websocket/websocket-core-client/11.0.0
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty.websocket/websocket-core-client/11.0.6
+* License: EPL-2.0
 
 Jetty :: Websocket :: Core :: Common
-* Maven Artifact: org.eclipse.jetty.websocket/websocket-core-common/11.0.0
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty.websocket/websocket-core-common/11.0.6
+* License: EPL-2.0
 
 Jetty :: Websocket :: Core :: Server
-* Maven Artifact: org.eclipse.jetty.websocket/websocket-core-server/11.0.0
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty.websocket/websocket-core-server/11.0.6
+* License: EPL-2.0
 
 Jetty :: Websocket :: jakarta.websocket :: Client
-* Maven Artifact: org.eclipse.jetty.websocket/websocket-jakarta-client/11.0.0
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty.websocket/websocket-jakarta-client/11.0.6
+* License: EPL-2.0
 
 Jetty :: Websocket :: jakarta.websocket :: Common
-* Maven Artifact: org.eclipse.jetty.websocket/websocket-jakarta-common/11.0.0
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty.websocket/websocket-jakarta-common/11.0.6
+* License: EPL-2.0
 
 Jetty :: Websocket :: jakarta.websocket :: Server
-* Maven Artifact: org.eclipse.jetty.websocket/websocket-jakarta-server/11.0.0
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty.websocket/websocket-jakarta-server/11.0.6
+* License: EPL-2.0
 
 Jetty :: Websocket :: Servlet
-* Maven Artifact: org.eclipse.jetty.websocket/websocket-servlet/11.0.0
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty.websocket/websocket-servlet/11.0.6
+* License: EPL-2.0
 
 Jetty :: ALPN :: Client
-* Maven Artifact: org.eclipse.jetty/jetty-alpn-client/11.0.0
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty/jetty-alpn-client/11.0.6
+* License: EPL-2.0
 
 Jetty :: Servlet Annotations
-* Maven Artifact: org.eclipse.jetty/jetty-annotations/11.0.0
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty/jetty-annotations/11.0.6
+* License: EPL-2.0
 
 Jetty :: Asynchronous HTTP Client
-* Maven Artifact: org.eclipse.jetty/jetty-client/11.0.0
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty/jetty-client/11.0.6
+* License: EPL-2.0
 
 Jetty :: Http Utility
-* Maven Artifact: org.eclipse.jetty/jetty-http/11.0.0
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty/jetty-http/11.0.6
+* License: EPL-2.0
 
 Jetty :: IO Utility
-* Maven Artifact: org.eclipse.jetty/jetty-io/11.0.0
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty/jetty-io/11.0.6
+* License: EPL-2.0
 
 Jetty :: JNDI Naming
-* Maven Artifact: org.eclipse.jetty/jetty-jndi/11.0.0
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty/jetty-jndi/11.0.6
+* License: EPL-2.0
 
 Jetty :: Plus
-* Maven Artifact: org.eclipse.jetty/jetty-plus/11.0.0
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty/jetty-plus/11.0.6
+* License: EPL-2.0
 
 Jetty :: Security
-* Maven Artifact: org.eclipse.jetty/jetty-security/11.0.0
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty/jetty-security/11.0.6
+* License: EPL-2.0
 
 Jetty :: Server Core
-* Maven Artifact: org.eclipse.jetty/jetty-server/11.0.0
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty/jetty-server/11.0.6
+* License: EPL-2.0
 
 Jetty :: Servlet Handling
-* Maven Artifact: org.eclipse.jetty/jetty-servlet/11.0.0
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty/jetty-servlet/11.0.6
+* License: EPL-2.0
 
 Jetty :: Utilities
-* Maven Artifact: org.eclipse.jetty/jetty-util/11.0.0
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty/jetty-util/11.0.6
+* License: EPL-2.0
 
 Jetty :: Webapp Application Support
-* Maven Artifact: org.eclipse.jetty/jetty-webapp/11.0.0
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty/jetty-webapp/11.0.6
+* License: EPL-2.0
 
 Jetty :: XML utilities
-* Maven Artifact: org.eclipse.jetty/jetty-xml/11.0.0
-* License: Apache-2.0
+* Maven Artifact: org.eclipse.jetty/jetty-xml/11.0.6
+* License: EPL-2.0
 
-aopalliance repackaged as a module
-* Maven Artifact: org.glassfish.hk2.external/aopalliance-repackaged/3.0.0-RC1
+aopalliance version ${aopalliance.version} repackaged as a module
+* Maven Artifact: org.glassfish.hk2.external/aopalliance-repackaged/3.0.1
 * License: EPL-2.0
 
 HK2 API module
-* Maven Artifact: org.glassfish.hk2/hk2-api/3.0.0-RC1
+* Maven Artifact: org.glassfish.hk2/hk2-api/3.0.1
 * License: EPL-2.0
 
 ServiceLocator Default Implementation
-* Maven Artifact: org.glassfish.hk2/hk2-locator/3.0.0-RC1
+* Maven Artifact: org.glassfish.hk2/hk2-locator/3.0.1
 * License: EPL-2.0
 
 HK2 Implementation Utilities
-* Maven Artifact: org.glassfish.hk2/hk2-utils/3.0.0-RC1
+* Maven Artifact: org.glassfish.hk2/hk2-utils/3.0.1
 * License: EPL-2.0
 
 OSGi resource locator
@@ -1571,46 +2115,80 @@ OSGi resource locator
 * License: CDDL-1.0
 
 jersey-container-servlet-core
-* Maven Artifact: org.glassfish.jersey.containers/jersey-container-servlet-core/3.0.0
+* Maven Artifact: org.glassfish.jersey.containers/jersey-container-servlet-core/3.0.3
 * License: EPL-2.0
 
 jersey-container-servlet
-* Maven Artifact: org.glassfish.jersey.containers/jersey-container-servlet/3.0.0
+* Maven Artifact: org.glassfish.jersey.containers/jersey-container-servlet/3.0.3
 * License: EPL-2.0
 
 jersey-core-client
-* Maven Artifact: org.glassfish.jersey.core/jersey-client/3.0.0
+* Maven Artifact: org.glassfish.jersey.core/jersey-client/3.0.3
 * License: EPL-2.0
 
 jersey-core-common
-* Maven Artifact: org.glassfish.jersey.core/jersey-common/3.0.0
+* Maven Artifact: org.glassfish.jersey.core/jersey-common/3.0.3
 * License: EPL-2.0
 
 jersey-core-server
-* Maven Artifact: org.glassfish.jersey.core/jersey-server/3.0.0
+* Maven Artifact: org.glassfish.jersey.core/jersey-server/3.0.3
 * License: EPL-2.0
 
 jersey-ext-entity-filtering
-* Maven Artifact: org.glassfish.jersey.ext/jersey-entity-filtering/3.0.0
+* Maven Artifact: org.glassfish.jersey.ext/jersey-entity-filtering/3.0.3
 * License: EPL-2.0
 
 jersey-inject-hk2
-* Maven Artifact: org.glassfish.jersey.inject/jersey-hk2/3.0.0
-* License: EPL-2.0
-
-jersey-media-jaxb
-* Maven Artifact: org.glassfish.jersey.media/jersey-media-jaxb/3.0.0
+* Maven Artifact: org.glassfish.jersey.inject/jersey-hk2/3.0.3
 * License: EPL-2.0
 
 jersey-media-json-jackson
-* Maven Artifact: org.glassfish.jersey.media/jersey-media-json-jackson/3.0.0
+* Maven Artifact: org.glassfish.jersey.media/jersey-media-json-jackson/3.0.3
 * License: EPL-2.0
+
+jersey-media-multipart
+* Maven Artifact: org.glassfish.jersey.media/jersey-media-multipart/3.0.3
+* License: EPL-2.0
+
+Hamcrest Core
+* Project: http://hamcrest.org/JavaHamcrest/
+* Source: git@github.com:hamcrest/JavaHamcrest.git
+* Maven Artifact: org.hamcrest/hamcrest-core/2.2
+* License: BSD-3-Clause
+
+Hamcrest
+* Project: http://hamcrest.org/JavaHamcrest/
+* Source: git@github.com:hamcrest/JavaHamcrest.git
+* Maven Artifact: org.hamcrest/hamcrest/2.1
+* License: BSD-3-Clause
+
+Hamcrest
+* Project: http://hamcrest.org/JavaHamcrest/
+* Source: git@github.com:hamcrest/JavaHamcrest.git
+* Maven Artifact: org.hamcrest/hamcrest/2.2
+* License: BSD-3-Clause
 
 HdrHistogram
 * Project: http://hdrhistogram.github.io/HdrHistogram/
 * Source: scm:git:git://github.com/HdrHistogram/HdrHistogram.git
 * Maven Artifact: org.hdrhistogram/HdrHistogram/2.1.12
 * License: BSD-2-Clause
+
+JaCoCo :: Agent
+* Maven Artifact: org.jacoco/org.jacoco.agent/0.8.7
+* License: EPL-2.0
+
+JaCoCo :: Ant
+* Maven Artifact: org.jacoco/org.jacoco.ant/0.8.7
+* License: EPL-2.0
+
+JaCoCo :: Core
+* Maven Artifact: org.jacoco/org.jacoco.core/0.8.7
+* License: EPL-2.0
+
+JaCoCo :: Report
+* Maven Artifact: org.jacoco/org.jacoco.report/0.8.7
+* License: EPL-2.0
 
 Javassist
 * Project: http://www.javassist.org/
@@ -1634,6 +2212,18 @@ org.jetbrains.kotlin:kotlin-stdlib-common
 * Project: https://kotlinlang.org/
 * Source: scm:git:https://github.com/JetBrains/kotlin.git
 * Maven Artifact: org.jetbrains.kotlin/kotlin-stdlib-common/1.4.10
+* License: Apache-2.0
+
+org.jetbrains.kotlin:kotlin-stdlib-jdk7
+* Project: https://kotlinlang.org/
+* Source: scm:git:https://github.com/JetBrains/kotlin.git
+* Maven Artifact: org.jetbrains.kotlin/kotlin-stdlib-jdk7/1.4.10
+* License: Apache-2.0
+
+org.jetbrains.kotlin:kotlin-stdlib-jdk8
+* Project: https://kotlinlang.org/
+* Source: scm:git:https://github.com/JetBrains/kotlin.git
+* Maven Artifact: org.jetbrains.kotlin/kotlin-stdlib-jdk8/1.4.10
 * License: Apache-2.0
 
 org.jetbrains.kotlin:kotlin-stdlib
@@ -1667,32 +2257,62 @@ JLine Bundle
 JUnit Jupiter API
 * Project: https://junit.org/junit5/
 * Source: scm:git:git://github.com/junit-team/junit5.git
-* Maven Artifact: org.junit.jupiter/junit-jupiter-api/5.5.2
+* Maven Artifact: org.junit.jupiter/junit-jupiter-api/5.8.1
+* License: EPL-2.0
+
+JUnit Jupiter API
+* Project: https://junit.org/junit5/
+* Source: scm:git:git://github.com/junit-team/junit5.git
+* Maven Artifact: org.junit.jupiter/junit-jupiter-api/5.8.2
 * License: EPL-2.0
 
 JUnit Jupiter Engine
 * Project: https://junit.org/junit5/
 * Source: scm:git:git://github.com/junit-team/junit5.git
-* Maven Artifact: org.junit.jupiter/junit-jupiter-engine/5.5.2
+* Maven Artifact: org.junit.jupiter/junit-jupiter-engine/5.8.1
+* License: EPL-2.0
+
+JUnit Jupiter Engine
+* Project: https://junit.org/junit5/
+* Source: scm:git:git://github.com/junit-team/junit5.git
+* Maven Artifact: org.junit.jupiter/junit-jupiter-engine/5.8.2
 * License: EPL-2.0
 
 JUnit Jupiter Params
 * Project: https://junit.org/junit5/
 * Source: scm:git:git://github.com/junit-team/junit5.git
-* Maven Artifact: org.junit.jupiter/junit-jupiter-params/5.5.2
+* Maven Artifact: org.junit.jupiter/junit-jupiter-params/5.8.1
+* License: EPL-2.0
+
+JUnit Jupiter Params
+* Project: https://junit.org/junit5/
+* Source: scm:git:git://github.com/junit-team/junit5.git
+* Maven Artifact: org.junit.jupiter/junit-jupiter-params/5.8.2
 * License: EPL-2.0
 
 JUnit Platform Commons
 * Project: https://junit.org/junit5/
 * Source: scm:git:git://github.com/junit-team/junit5.git
-* Maven Artifact: org.junit.platform/junit-platform-commons/1.5.2
+* Maven Artifact: org.junit.platform/junit-platform-commons/1.8.2
 * License: EPL-2.0
 
 JUnit Platform Engine API
 * Project: https://junit.org/junit5/
 * Source: scm:git:git://github.com/junit-team/junit5.git
-* Maven Artifact: org.junit.platform/junit-platform-engine/1.5.2
+* Maven Artifact: org.junit.platform/junit-platform-engine/1.8.2
 * License: EPL-2.0
+
+JUnit 5 (Bill of Materials)
+* Project: https://junit.org/junit5/
+* Source: scm:git:git://github.com/junit-team/junit5.git
+* Maven Artifact: org.junit/junit-bom/5.8.2
+* License: EPL-2.0
+
+MIME streaming extension
+* Project: https://github.com/eclipse-ee4j/metro-mimepull
+* Source: scm:git:ssh://git@github.com/eclipse-ee4j/metro-mimepull.git
+* Maven Artifact: org.jvnet.mimepull/mimepull/1.9.13
+* License: EDL 1.0
 
 LatencyUtils
 * Project: http://latencyutils.github.io/LatencyUtils/
@@ -1728,9 +2348,18 @@ PWDB :: Database
 * Maven Artifact: org.linguafranca.pwdb/database/2.1.4
 * License: Apache-2.0
 
+mockito-core
+* Project: https://github.com/mockito/mockito
+* Maven Artifact: org.mockito/mockito-core/4.2.0
+* License: MIT
+
+mockito-inline
+* Project: https://github.com/mockito/mockito
+* Maven Artifact: org.mockito/mockito-inline/4.2.0
+* License: MIT
+
 Objenesis
-* Project: http://objenesis.org
-* Maven Artifact: org.objenesis/objenesis/3.1
+* Maven Artifact: org.objenesis/objenesis/3.2
 * License: Apache-2.0
 
 org.opentest4j:opentest4j
@@ -1742,19 +2371,19 @@ org.opentest4j:opentest4j
 asm-analysis
 * Project: http://asm.ow2.io/
 * Source: scm:git:https://gitlab.ow2.org/asm/asm/
-* Maven Artifact: org.ow2.asm/asm-analysis/9.0
+* Maven Artifact: org.ow2.asm/asm-analysis/9.1
 * License: BSD-3-Clause
 
 asm-commons
 * Project: http://asm.ow2.io/
 * Source: scm:git:https://gitlab.ow2.org/asm/asm/
-* Maven Artifact: org.ow2.asm/asm-commons/9.0
+* Maven Artifact: org.ow2.asm/asm-commons/9.1
 * License: BSD-3-Clause
 
 asm-tree
 * Project: http://asm.ow2.io/
 * Source: scm:git:https://gitlab.ow2.org/asm/asm/
-* Maven Artifact: org.ow2.asm/asm-tree/9.0
+* Maven Artifact: org.ow2.asm/asm-tree/9.1
 * License: BSD-3-Clause
 
 ASM Core
@@ -1764,7 +2393,7 @@ ASM Core
 asm
 * Project: http://asm.ow2.io/
 * Source: scm:git:https://gitlab.ow2.org/asm/asm/
-* Maven Artifact: org.ow2.asm/asm/9.0
+* Maven Artifact: org.ow2.asm/asm/9.1
 * License: BSD-3-Clause
 
 quartz
@@ -1801,6 +2430,11 @@ SLF4J API Module
 
 SLF4J API Module
 * Project: http://www.slf4j.org
+* Maven Artifact: org.slf4j/slf4j-api/1.7.25
+* License: MIT
+
+SLF4J API Module
+* Project: http://www.slf4j.org
 * Maven Artifact: org.slf4j/slf4j-api/1.7.26
 * License: MIT
 
@@ -1812,6 +2446,11 @@ SLF4J API Module
 SLF4J API Module
 * Project: http://www.slf4j.org
 * Maven Artifact: org.slf4j/slf4j-api/1.7.30
+* License: MIT
+
+SLF4J API Module
+* Project: http://www.slf4j.org
+* Maven Artifact: org.slf4j/slf4j-api/1.7.32
 * License: MIT
 
 SLF4J API Module
@@ -1833,6 +2472,24 @@ SLF4J Simple Binding
 * Project: http://www.slf4j.org
 * Maven Artifact: org.slf4j/slf4j-simple/1.7.5
 * License: MIT
+
+SnakeYAML
+* Project: http://www.snakeyaml.org
+* Source: scm:hg:http://bitbucket.org/asomov/snakeyaml
+* Maven Artifact: org.yaml/snakeyaml/1.23
+* License: Apache-2.0
+
+SnakeYAML
+* Project: http://www.snakeyaml.org
+* Source: scm:git:http://bitbucket.org/asomov/snakeyaml
+* Maven Artifact: org.yaml/snakeyaml/1.27
+* License: Apache-2.0
+
+SnakeYAML
+* Project: http://www.snakeyaml.org
+* Source: scm:git:http://bitbucket.org/asomov/snakeyaml
+* Maven Artifact: org.yaml/snakeyaml/1.28
+* License: Apache-2.0
 
 AWS Java SDK :: Annotations
 * Maven Artifact: software.amazon.awssdk/annotations/2.16.60
@@ -1866,10 +2523,6 @@ AWS Java SDK :: Core :: Protocols :: AWS Xml Protocol
 * Project: https://aws.amazon.com/sdkforjava
 * Maven Artifact: software.amazon.awssdk/aws-xml-protocol/2.16.60
 * License: Apache-2.0
-
-AWS Java SDK :: Bill of Materials
-* Project: https://aws.amazon.com/sdkforjava
-* Maven Artifact: software.amazon.awssdk/bom/2.16.60
 
 AWS Java SDK :: HTTP Client Interface
 * Maven Artifact: software.amazon.awssdk/http-client-spi/2.16.60
@@ -1926,12 +2579,6 @@ AWS Event Stream
 * Maven Artifact: software.amazon.eventstream/eventstream/1.0.1
 * License: Apache-2.0
 
-Amazon Ion Java
-* Project: https://github.com/amznlabs/ion-java/
-* Source: scm:git:git@github.com:amznlabs/ion-java.git
-* Maven Artifact: software.amazon.ion/ion-java/1.0.2
-* License: Apache-2.0
-
 StAX API
 * Project: http://stax.codehaus.org/
 * Maven Artifact: stax/stax-api/1.0.1
@@ -1946,13 +2593,13 @@ StAX
 The International Data Spaces (IDS) Information Model
 * Project: https://github.com/International-Data-Spaces-Association/InformationModel
 * Source: scm:git:https://github.com/International-Data-Spaces-Association/InformationModel.git
-* Maven Artifact: de.fraunhofer.iais.eis.ids.infomodel/java/4.0.0
+* Maven Artifact: de.fraunhofer.iais.eis.ids.infomodel/java/4.2.7
 * License: Apache-2.0
 
-JSON Small and Fast Parser
-* Project: http://www.minidev.net
-* Source: scm:git:https://github.com/netplex/json-smart-v2.git
-* Maven Artifact: net.minidev/json-smart/2.3
+The International Data Spaces (IDS) Information Model Util
+* Project: https://github.com/International-Data-Spaces-Association/InformationModel
+* Source: scm:git:https://github.com/International-Data-Spaces-Association/InformationModel.git
+* Maven Artifact: de.fraunhofer.iais.eis.infomodel/util/4.2.7
 * License: Apache-2.0
 
 ## Cryptography

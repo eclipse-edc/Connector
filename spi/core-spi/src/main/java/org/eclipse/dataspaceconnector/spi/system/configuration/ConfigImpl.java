@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -32,8 +33,7 @@ import static java.util.stream.Collectors.toMap;
 
 public class ConfigImpl implements Config {
 
-    static final Collector<Map.Entry<String, String>, ?, Map<String, String>> TO_MAP =
-            toMap(Map.Entry::getKey, Map.Entry::getValue);
+    static final Collector<Map.Entry<String, String>, ?, Map<String, String>> TO_MAP = toMap(Map.Entry::getKey, Map.Entry::getValue);
 
     private final Map<String, String> entries;
     private final String rootPath;
@@ -44,8 +44,12 @@ public class ConfigImpl implements Config {
 
     protected ConfigImpl(String rootPath, Map<String, String> entries) {
         Objects.requireNonNull(rootPath, "rootPath");
-        this.entries = entries;
-        this.rootPath = rootPath;
+
+        // convert upper snake case to Java Property format: SOME_KEY=value will become some.key=value
+        this.entries = entries.entrySet().stream()
+                .collect(Collectors.toMap(e -> e.getKey().toLowerCase().replace("_", "."),
+                        Map.Entry::getValue, (o, o2) -> o2));
+        this.rootPath = rootPath.toLowerCase().replace("_", ".");
     }
 
     @Override
@@ -114,8 +118,7 @@ public class ConfigImpl implements Config {
 
     @Override
     public Map<String, String> getRelativeEntries() {
-        return getEntries().entrySet().stream()
-                .map(entry -> Map.entry(removePrefix(entry.getKey(), rootPath), entry.getValue()))
+        return getEntries().entrySet().stream().map(entry -> Map.entry(removePrefix(entry.getKey(), rootPath), entry.getValue()))
                 .collect(TO_MAP);
     }
 

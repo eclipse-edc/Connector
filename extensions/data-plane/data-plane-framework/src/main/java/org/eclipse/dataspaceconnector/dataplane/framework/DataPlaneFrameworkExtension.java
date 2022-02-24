@@ -15,9 +15,12 @@ package org.eclipse.dataspaceconnector.dataplane.framework;
 
 import org.eclipse.dataspaceconnector.dataplane.framework.manager.DataPlaneManagerImpl;
 import org.eclipse.dataspaceconnector.dataplane.framework.pipeline.PipelineServiceImpl;
+import org.eclipse.dataspaceconnector.dataplane.framework.store.InMemoryDataPlaneStore;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -27,6 +30,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
  */
 @Provides({DataPlaneManager.class, PipelineService.class})
 public class DataPlaneFrameworkExtension implements ServiceExtension {
+    private static final int IN_MEMORY_STORE_CAPACITY = 1000;
 
     @EdcSetting
     private static final String QUEUE_CAPACITY = "edc.dataplane.queue.capacity";
@@ -40,7 +44,10 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     private static final String WAIT_TIMEOUT = "edc.dataplane.wait";
     private static final long DEFAULT_WAIT_TIMEOUT = 1000;
 
+    private ServiceExtensionContext context;
+
     private DataPlaneManagerImpl dataPlaneManager;
+    private Monitor monitor;
 
     @Override
     public String name() {
@@ -49,10 +56,11 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        this.context = context;
         var pipelineService = new PipelineServiceImpl();
         context.registerService(PipelineService.class, pipelineService);
 
-        var monitor = context.getMonitor();
+        monitor = context.getMonitor();
         var queueCapacity = context.getSetting(QUEUE_CAPACITY, DEFAULT_QUEUE_CAPACITY);
         var workers = context.getSetting(WORKERS, DEFAULT_WORKERS);
         var waitTimeout = context.getSetting(WAIT_TIMEOUT, DEFAULT_WAIT_TIMEOUT);
@@ -69,6 +77,10 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
 
     @Override
     public void start() {
+        if (!context.hasService(DataPlaneStore.class)) {
+            monitor.info("Registering in-memory Data Plane store.");
+            context.registerService(DataPlaneStore.class, new InMemoryDataPlaneStore(IN_MEMORY_STORE_CAPACITY));
+        }
         dataPlaneManager.start();
     }
 

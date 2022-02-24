@@ -60,7 +60,7 @@ public class JettyConfiguration {
 
 
         if (jettyConfig.getPortMappings().isEmpty()) {
-            jettyConfig.portMapping(new PortMapping());
+            jettyConfig.portMapping(PortMapping.getDefault());
         }
 
         return jettyConfig;

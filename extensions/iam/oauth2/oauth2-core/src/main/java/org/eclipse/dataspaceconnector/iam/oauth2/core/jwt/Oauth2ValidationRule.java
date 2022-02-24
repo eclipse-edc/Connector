@@ -2,8 +2,9 @@ package org.eclipse.dataspaceconnector.iam.oauth2.core.jwt;
 
 import com.nimbusds.jwt.JWTClaimsSet;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.Oauth2Configuration;
-import org.eclipse.dataspaceconnector.iam.oauth2.spi.ValidationRule;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.token.JwtClaimValidationRule;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -13,11 +14,13 @@ import java.util.List;
 
 import static java.time.ZoneOffset.UTC;
 
-public class Oauth2ValidationRule implements ValidationRule {
+public class Oauth2ValidationRule implements JwtClaimValidationRule {
 
+    private final String audience;
     private final Oauth2Configuration configuration;
 
-    public Oauth2ValidationRule(Oauth2Configuration configuration) {
+    public Oauth2ValidationRule(@NotNull String audience, @NotNull Oauth2Configuration configuration) {
+        this.audience = audience;
         this.configuration = configuration;
     }
 
@@ -25,7 +28,7 @@ public class Oauth2ValidationRule implements ValidationRule {
      * Validates the JWT by checking the audience, nbf, and expiration. Accessible for testing.
      */
     @Override
-    public Result<JWTClaimsSet> checkRule(JWTClaimsSet toVerify, String audience) {
+    public Result<JWTClaimsSet> checkRule(@NotNull JWTClaimsSet toVerify) {
         Instant nowUtc = Instant.now();
         List<String> errors = new ArrayList<>();
 

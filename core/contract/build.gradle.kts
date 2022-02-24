@@ -13,6 +13,7 @@
 */
 
 val slf4jVersion: String by project
+val openTelemetryVersion: String by project
 
 plugins {
     `java-library`
@@ -24,6 +25,7 @@ dependencies {
     api("org.slf4j:slf4j-api:${slf4jVersion}")
     implementation(project(":core:policy:policy-engine"))
     implementation(project(":common:util"))
+    implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
 }
 

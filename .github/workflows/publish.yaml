@@ -11,8 +11,11 @@ on:
       - completed
 
 jobs:
-  Unit-Test:
+  Publish:
+    # run only on upstream repo
+    if: github.repository_owner == 'eclipse-dataspaceconnector'
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
       packages: write

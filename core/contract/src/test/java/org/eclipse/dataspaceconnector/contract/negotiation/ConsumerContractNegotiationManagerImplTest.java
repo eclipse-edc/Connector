@@ -60,30 +60,19 @@ class ConsumerContractNegotiationManagerImplTest {
     private ConsumerContractNegotiationManagerImpl negotiationManager;
 
     @BeforeEach
-    void setUp() throws Exception {
-
-        Monitor monitor = mock(Monitor.class);
-
-        // Create CommandQueue mock
-        CommandQueue<ContractNegotiationCommand> queue = (CommandQueue<ContractNegotiationCommand>) mock(CommandQueue.class);
+    void setUp() {
+        CommandQueue<ContractNegotiationCommand> queue = mock(CommandQueue.class);
         when(queue.dequeue(anyInt())).thenReturn(new ArrayList<>());
-
-        // Create CommandRunner mock
-        CommandRunner<ContractNegotiationCommand> runner = (CommandRunner<ContractNegotiationCommand>) mock(CommandRunner.class);
 
         negotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .validationService(validationService)
                 .dispatcherRegistry(dispatcherRegistry)
-                .monitor(monitor)
+                .monitor(mock(Monitor.class))
                 .commandQueue(queue)
-                .commandRunner(runner)
+                .commandRunner(mock(CommandRunner.class))
                 .observable(mock(ContractNegotiationObservable.class))
+                .store(store)
                 .build();
-
-        //TODO hand over store in start method, but run method should not be executed
-        var negotiationStoreField = ConsumerContractNegotiationManagerImpl.class.getDeclaredField("negotiationStore");
-        negotiationStoreField.setAccessible(true);
-        negotiationStoreField.set(negotiationManager, store);
     }
 
     @Test

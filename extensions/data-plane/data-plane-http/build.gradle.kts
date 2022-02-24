@@ -14,6 +14,7 @@
 
 val okHttpVersion: String by project
 val jodahFailsafeVersion: String by project
+val rsApi: String by project
 
 plugins {
     `java-library`
@@ -24,6 +25,7 @@ dependencies {
     implementation(project(":common:util"))
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("net.jodah:failsafe:${jodahFailsafeVersion}")
+    testImplementation(testFixtures(project(":common:util")))
 }
 
 publishing {

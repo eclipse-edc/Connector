@@ -17,8 +17,11 @@ import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
+
+import java.util.Map;
 
 import static okhttp3.Protocol.HTTP_2;
 
@@ -27,6 +30,7 @@ public class HttpTestFixtures {
     public static DataFlowRequest.Builder createRequest(String type) {
         return DataFlowRequest.Builder.newInstance()
                 .id("1").processId("1")
+                .properties(Map.of(DataFlowRequestSchema.METHOD, "GET"))
                 .sourceDataAddress(DataAddress.Builder.newInstance().type(type).build())
                 .destinationDataAddress(DataAddress.Builder.newInstance().type(type).build());
     }

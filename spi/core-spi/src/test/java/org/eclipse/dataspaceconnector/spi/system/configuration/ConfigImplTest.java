@@ -243,4 +243,19 @@ class ConfigImplTest {
         assertThat(node).isEqualTo("subgroup");
     }
 
+    @Test
+    void verify_snakeCaseGetConverted() {
+        assertThat(new ConfigImpl("GROUP_SUBGROUP", emptyMap()).currentNode()).isEqualTo("subgroup");
+        assertThat(new ConfigImpl(Map.of("SOME_GROUP", "value")).getEntries()).containsEntry("some.group", "value");
+        ConfigImpl config = new ConfigImpl("ROOT_PATH", Map.of("SOME_GROUP", "value"));
+        assertThat(config.getEntries()).containsEntry("some.group", "value");
+        assertThat(config.currentNode()).isEqualTo("path");
+
+    }
+
+    @Test
+    void verify_snakeCaseGetConverted_duplicateKeys() {
+        ConfigImpl config = new ConfigImpl(Map.of("SOME_GROUP", "value", "some.group", "value2"));
+        assertThat(config.getEntries()).hasSize(1);
+    }
 }

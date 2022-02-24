@@ -64,6 +64,8 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
     private final Monitor monitor;
     private final IdentityService identityService;
     private final TransformerRegistry transformerRegistry;
+    
+    private static final String TOKEN_SCOPE = "idsc:IDS_CONNECTOR_ATTRIBUTES_ALL";
 
     protected IdsMultipartSender(@NotNull String connectorId,
                                  @NotNull OkHttpClient httpClient,
@@ -97,11 +99,8 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
      */
     @Override
     public CompletableFuture<R> send(M request, MessageContext context) {
-        // Get connector ID
-        var recipientConnectorId = retrieveRemoteConnectorId(request);
-
         // Get Dynamic Attribute Token
-        var tokenResult = identityService.obtainClientCredentials(recipientConnectorId);
+        var tokenResult = identityService.obtainClientCredentials(TOKEN_SCOPE);
         if (tokenResult.failed()) {
             String message = "Failed to obtain token: " + String.join(",", tokenResult.getFailureMessages());
             monitor.severe(message);
@@ -230,14 +229,6 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
     protected URI getConnectorId() {
         return connectorId;
     }
-
-    /**
-     * Returns the ID of the recipient connector.
-     *
-     * @param request the request.
-     * @return the recipient connector's ID.
-     */
-    protected abstract String retrieveRemoteConnectorId(M request);
 
     /**
      * Returns the address of the recipient connector, which is the destination for the multipart
