@@ -5,7 +5,7 @@ elegant way.
 
 The Eclipse Dataspace Connector exposes configuration through its `ConfigurationExtension` interface. That is a "
 special" extension in that sense that it gets loaded at a very early stage. There is also a default implementation
-named [`FsConfigurationExtension.java`](../../extensions/filesystem/configuration-fs/src/main/java/org/eclipse/dataspaceconnector/configuration/fs/FsConfigurationExtension.java) 
+named [`FsConfigurationExtension.java`](../../extensions/filesystem/configuration-fs/src/main/java/org/eclipse/dataspaceconnector/configuration/fs/FsConfigurationExtension.java)
 which uses a standard Java properties file to store configuration entries.
 
 In the previous steps we had not included that in the JAR file, so we need to add
@@ -20,12 +20,14 @@ dependencies {
 ```
 
 We compile and run the application with:
+
 ```
 ./gradlew clean samples:03-configuration:build
 `java -jar samples/03-configuration/build/libs/filsystem-config-connector.jar`
 ```
 
 you will notice an additional log line stating that the "configuration file does not exist":
+
 ```bash
 INFO 2021-09-07T08:26:08.282159 Configuration file does not exist: dataspaceconnector-configuration.properties. Ignoring.
 ```
@@ -51,10 +53,10 @@ the `config.properties` with a text editor of your choice and add the following 
 web.http.port=9191
 ```
 
-An example file can be found [here](config.properties). Clean, rebuild and run the connector
-again, but this time passing the path to the config file:
+An example file can be found [here](config.properties). Clean, rebuild and run the connector again, but this time
+passing the path to the config file:
 
-```properties
+```bash
 java -Dedc.fs.config=/etc/eclipse/dataspaceconnector/config.properties -jar samples/03-configuration/build/libs/filsystem-config-connector.jar
 ```
 
@@ -109,8 +111,8 @@ Next, we must modify the constructor signature of the `HealthApiController` clas
 
 ```java
 
-@Consumes({MediaType.APPLICATION_JSON})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path("/")
 public class HealthApiController {
 
@@ -141,3 +143,34 @@ There are a few things worth mentioning here:
   required business logic (e.g. the controller). The extension itself should not contain any business logic
 - it's better to pass the config value directly into the business logic than passing the
   entire `ServiceExtensionContext`, using configuration objects when there are more than one
+
+## Management API
+
+Part of most connectors will be the management api defined in the
+[`:extensions:api:data-management`](../../extensions/api/data-management) module. Therefor, we need to add the module to
+the dependency list in our `build.gradle.kts`:
+
+```kotlin
+dependencies {
+    // ...
+    implementation(project(":extensions:api:data-management"))
+    // ...
+}
+```
+
+As described in the [README.md](../../extensions/api/data-management/api-configuration/README.md) of
+the [api-configuration module](../../extensions/api/data-management/api-configuration), the management api should be
+exposed on a separate jetty context. Therefor, it is necessary to provide the following configuration to the connector:
+
+> Note: The ports could be chosen arbitrarily. In this example, they are aligned to the already existing `web.http.port` setting described above.
+
+```properties
+web.http.port=9191
+web.http.path=/api
+web.http.data.port=9192
+web.http.data.path=/api/v1/data
+```
+
+_**Caution**: If you do not provide this configuration, it leads to the problem that the authentication mechanism is
+also applied to EVERY request in the _default_ context of Jetty, which includes the IDS communication between two
+connectors._
