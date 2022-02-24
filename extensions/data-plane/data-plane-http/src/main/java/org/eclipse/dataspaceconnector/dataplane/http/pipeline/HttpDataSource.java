@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -54,11 +55,11 @@ public class HttpDataSource implements DataSource {
     }
 
     private String createUrl() {
-        var url = sourceEndpoint + "/" + name;
-        if (queryParams != null) {
-            url += "?" + queryParams;
-        }
-        return url;
+        return sourceEndpoint + Optional.ofNullable(name).map(s -> "/" + name).orElse("") +
+                Optional.ofNullable(queryParams)
+                        .filter(qp -> !qp.isBlank())
+                        .map(s -> "?" + queryParams)
+                        .orElse("");
     }
 
     private HttpPart getPart() {
@@ -144,8 +145,8 @@ public class HttpDataSource implements DataSource {
         }
 
         public HttpDataSource build() {
+            dataSource.headers.forEach((s, s2) -> Objects.requireNonNull(s2, "value for header: " + s));
             Objects.requireNonNull(dataSource.sourceEndpoint, "sourceEndpoint");
-            Objects.requireNonNull(dataSource.name, "name");
             Objects.requireNonNull(dataSource.method, "method");
             Objects.requireNonNull(dataSource.requestId, "requestId");
             Objects.requireNonNull(dataSource.httpClient, "httpClient");
