@@ -1,59 +1,7 @@
 # Domain Model
 ---
 
-## Definitions:
-
-### EDC connector
-
-<p style='text-align: justify;'> EDC is an interoperable, cross-organization framework for data sharing between 2 or more Organizations in a trusted and
-compliant way. This framework has focused to develop in 4 key technological key points for safer data sharing: Identity
-of the user(s), Trust, Policies and Interoperability. The Eclipse Dataspace Connector framework provides different
-modules for performing data queries, exchanges, policy enforcement, monitoring and auditing.
-
-Before deepening into EDC complex structure and extensions, it is important to define some concepts in order to make
-this document clearer.</p>
-
-#### 1. What does a connector really do?
-
-<p style='text-align: justify;'> The connector is a framework for sovereign, inter-organizational data exchange and contains the technology component that allows each organization involved in the exchange to define how digital processes, infrastructures, and data flows are structured, built, and managed to ensure adherence to corporate policies and data sovereignty regulations<sup>1</sup></p>
-
-A connector is composed of 2 subsystems:
-
-| **Control Plane (First checking step)** | **Data Plane (Second checking step)** |
-|:----------------------------------------|:--------------------------------------|
-| User verification (access to data)      | Moves bits.                           |
-| Contract negotiation.                   | Big Data Tasks.                       |
-| Overseeing of Policy enforcement.       | Streaming.                            |
-| Provisioning management.                | Events.                               |
-
-<p style='text-align: justify;'> The connector processes requests asynchronously, which are useful for example in case one has to deal with lengthy data preparation</p>
-
-#### 2. Definitions related to the EDC Connector
-
-<p style='text-align: justify;'> When publishing and accessing to data in a dataspace, it is necessary to have at least 2 different components: One to publish or make data available, and another one which can access to that data. For this case, we will call them provider and consumer. </p>
-
-* **Data Provider**:
-
-  <p style='text-align: justify;'> The Data Provider makes data available for being exchanged between a Data Owner and a Data Consumer. The Data Provider
-  may log the details of the successful (or unsuccessful) completion of the transaction at a Clearing House (
-  intermediary that provides clearing and settlement services for all financial and data exchange transactions) to
-  facilitate billing or resolve a conflict. Furthermore, the Data Provider can use Data Apps to enrich or transform the
-  data in some way, or to improve its quality (Data Apps are specific applications that can be integrated into the data
-  exchange workflow between two or more participants in the Industrial Data Space)<sup>2</sup> The data owner can also be the data
-  provider, when it is not, then a contract is needed between the client and provider in order to start a transfer of
-  data. </p>
-
-* **Data consumer**:
-
-  <p style='text-align: justify;'>The Data Consumer receives data from a Data Provider. Before the connection to a Data Provider can be established, the
-  Data Consumer can search for existing datasets by making an inquiry at a Broker Service Provider (provides the required
-  metadata for the Data Consumer to connect to a Data Provider.). Alternatively (In case the information to connect with
-  the Data Provider is already known to the Data Consumer), the Data Consumer can establish a connection with a Data
-  Provider directly<sup>2</sup> The data user, can also be the data consumer.</p>
-
-![img_3.png](dataConsumerDiagram.png)
-
-The following definitions are used in the terminology for the domain model.
+The following are the most common terms related to the domain model:
 
 #### Asset:
 
@@ -101,7 +49,7 @@ several stages which are explained in the following:
 #### Policy:
 
 [policy]: Contract policies represent permitted and prohibited actions over a certain asset. These actions can be
-limited further by constraints (temporal or spatial) and duties (e. g. deletion of the data after 30 days). Further
+limited further by constraints (temporal or spatial) and duties (e.g. deletion of the data after 30 days). Further
 information is provided in a separate [section](Policies.md).
 
 #### Data Request:
@@ -114,10 +62,3 @@ the [Contract (Agreement)](#contract-agreement).
 
 Representation of the data transfer. Runs through a state machine which defines certain states like provisioning,
 transferring, completed.
-
-## Domain model
-
-## References
-
-1. https://projects.eclipse.org/projects/technology.dsconnector/reviews/creation-review
-2. https://www.fraunhofer.de/content/dam/zv/de/Forschungsfelder/industrial-data-space/IDS_Referenz_Architecture.pdf
