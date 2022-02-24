@@ -62,3 +62,5 @@ the [Contract (Agreement)](#contract-agreement).
 
 Representation of the data transfer. Runs through a state machine which defines certain states like provisioning,
 transferring, completed.
+
+![domain_model](diagrams/domain-model.png)

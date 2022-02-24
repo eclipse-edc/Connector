@@ -1,0 +1,73 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+class Policy{
+  Technically processable contract
+  Currently not enforced
+}
+
+class ContractOffer{
+  1 Asset
+  Policy
+  Dynamically
+  Persistent nowhere
+}
+
+class ContractNegotiation{
+  Persistent in contractNegotiationStore
+}
+
+class ContractAgreement{
+  1 Asset
+  Policy
+  Persistent
+}
+
+class Resource{
+  Describes resources of the data transfer
+  provisioned and/or deprovisioned
+  generated at the beginning of the process
+}
+
+class Asset{
+  Metadata
+  Tripplet [Resource, representation, artifact]
+}
+
+class ContractDefinition{
+  Template for contract offers
+  1 Access Policy
+  1 Contract Policy
+  1 Assetselector
+}
+
+class DataAddress{
+  Describes datasource for Asset-Data
+}
+
+class DataDestination{
+  Where the data should be copied
+}
+
+class DataRequest{
+  Contains AssetID and ContractID
+}
+
+class TransferProcess{
+  Runs through a state machine
+  Symbolizes the data transfer on the side of the control plane
+}
+
+ContractDefinition --> Policy
+ContractDefinition --> Asset: Assetselector (0..* Assets)
+ContractDefinition --> ContractOffer: Generates x \n contract offers
+Asset "1" --> "1" DataAddress
+ContractNegotiation --> ContractOffer: Contains history of\nseveral offers
+ContractNegotiation --> ContractAgreement: Maintained tilla\ncontract agreement\nis made
+ContractOffer --> ContractAgreement: After agreement
+TransferProcess "0" --> "*" Resource
+TransferProcess --> DataRequest
+DataRequest --> DataDestination
+DataDestination --> DataAddress
+
+@enduml
