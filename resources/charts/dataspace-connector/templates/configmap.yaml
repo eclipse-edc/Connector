@@ -8,3 +8,9 @@ data:
   {{- range $envName, $value := .Values.edc.env }}
   {{ $envName | quote }}: {{ $value | quote }}
   {{- end }}
+  {{ if eq .Values.edc.managementApi.enabled true }}
+  WEB_HTTP_PORT: {{ .Values.edc.port | quote }}
+  WEB_HTTP_PATH: {{ .Values.edc.path | quote }}
+  WEB_HTTP_DATA_PORT: {{ .Values.edc.managementApi.port | quote }}
+  WEB_HTTP_DATA_PATH: {{ .Values.edc.managementApi.path | quote }}
+  {{ end }}
