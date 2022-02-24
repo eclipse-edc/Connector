@@ -65,7 +65,12 @@ class CosmosContractNegotiationStoreIntegrationTest {
     static void prepareCosmosClient() {
         var key = propOrEnv("COSMOS_KEY", null);
         Objects.requireNonNull(key, "COSMOS_KEY cannot be null!");
-        var client = new CosmosClientBuilder().key(key).preferredRegions(Collections.singletonList(REGION)).consistencyLevel(ConsistencyLevel.SESSION).endpoint("https://" + ACCOUNT_NAME + ".documents.azure.com:443/").buildClient();
+        var client = new CosmosClientBuilder()
+                .key(key)
+                .preferredRegions(Collections.singletonList(REGION))
+                .consistencyLevel(ConsistencyLevel.SESSION)
+                .endpoint("https://" + ACCOUNT_NAME + ".documents.azure.com:443/")
+                .buildClient();
 
         CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
         database = client.getDatabase(response.getProperties().getId());
@@ -227,7 +232,10 @@ class CosmosContractNegotiationStoreIntegrationTest {
         var state = ContractNegotiationStates.CONFIRMED;
         var numElements = 10;
 
-        var preparedNegotiations = IntStream.range(0, numElements).mapToObj(i -> generateNegotiation(state)).peek(n -> container.createItem(new ContractNegotiationDocument(n, partitionKey))).collect(Collectors.toList());
+        var preparedNegotiations = IntStream.range(0, numElements)
+                .mapToObj(i -> generateNegotiation(state))
+                .peek(n -> container.createItem(new ContractNegotiationDocument(n, partitionKey)))
+                .collect(Collectors.toList());
 
         var result = store.nextForState(state.code(), 4);
         assertThat(result).hasSize(4).allSatisfy(r -> assertThat(preparedNegotiations).extracting(ContractNegotiation::getId).contains(r.getId()));
@@ -374,7 +382,11 @@ class CosmosContractNegotiationStoreIntegrationTest {
     @Test
     void findAll_verifyPaging() {
 
-        var all = IntStream.range(0, 10).mapToObj(i -> generateDocument()).peek(d -> container.createItem(d)).map(ContractNegotiationDocument::getId).collect(Collectors.toList());
+        var all = IntStream.range(0, 10)
+                .mapToObj(i -> generateDocument())
+                .peek(d -> container.createItem(d))
+                .map(ContractNegotiationDocument::getId)
+                .collect(Collectors.toList());
 
         // page size fits
         assertThat(store.queryNegotiations(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4).extracting(ContractNegotiation::getId).isSubsetOf(all);
@@ -384,7 +396,10 @@ class CosmosContractNegotiationStoreIntegrationTest {
     @Test
     void findAll_verifyPaging_pageSizeLargerThanCollection() {
 
-        var all = IntStream.range(0, 10).mapToObj(i -> generateDocument()).peek(d -> container.createItem(d)).map(ContractNegotiationDocument::getId).collect(Collectors.toList());
+        var all = IntStream.range(0, 10)
+                .mapToObj(i -> generateDocument())
+                .peek(d -> container.createItem(d)).map(ContractNegotiationDocument::getId)
+                .collect(Collectors.toList());
 
         // page size fits
         assertThat(store.queryNegotiations(QuerySpec.Builder.newInstance().offset(3).limit(40).build())).hasSize(7).extracting(ContractNegotiation::getId).isSubsetOf(all);
@@ -392,7 +407,10 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
     @Test
     void findAll_verifyFiltering() {
-        var documents = IntStream.range(0, 10).mapToObj(i -> generateDocument()).peek(d -> container.createItem(d)).collect(Collectors.toList());
+        var documents = IntStream.range(0, 10)
+                .mapToObj(i -> generateDocument())
+                .peek(d -> container.createItem(d))
+                .collect(Collectors.toList());
 
         var expectedId = documents.get(3).getId();
 
