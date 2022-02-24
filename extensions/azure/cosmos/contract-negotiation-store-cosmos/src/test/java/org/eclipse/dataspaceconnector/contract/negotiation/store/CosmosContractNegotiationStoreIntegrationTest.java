@@ -1,18 +1,18 @@
 package org.eclipse.dataspaceconnector.contract.negotiation.store;
 
-import com.azure.cosmos.ConsistencyLevel;
-import com.azure.cosmos.CosmosClientBuilder;
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
 import com.azure.cosmos.CosmosScripts;
 import com.azure.cosmos.implementation.BadRequestException;
 import com.azure.cosmos.models.CosmosContainerResponse;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
+import com.azure.cosmos.models.CosmosItemRequestOptions;
 import com.azure.cosmos.models.CosmosStoredProcedureProperties;
 import com.azure.cosmos.models.CosmosStoredProcedureResponse;
 import com.azure.cosmos.models.PartitionKey;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
+import org.eclipse.dataspaceconnector.azure.testfixtures.CosmosTestClient;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractNegotiationDocument;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -26,16 +26,14 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.Objects;
 import java.util.Scanner;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -43,16 +41,13 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
 import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateDocument;
 import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateNegotiation;
 
 @IntegrationTest
 class CosmosContractNegotiationStoreIntegrationTest {
-    public static final String REGION = "westeurope";
     public static final String CONNECTOR_ID = "test-connector";
     private static final String TEST_ID = UUID.randomUUID().toString();
-    private static final String ACCOUNT_NAME = "cosmos-itest";
     private static final String DATABASE_NAME = "connector-itest-" + TEST_ID;
     private static final String CONTAINER_PREFIX = "ContractNegotiationStore-";
     private static CosmosContainer container;
@@ -63,17 +58,15 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
     @BeforeAll
     static void prepareCosmosClient() {
-        var key = propOrEnv("COSMOS_KEY", null);
-        Objects.requireNonNull(key, "COSMOS_KEY cannot be null!");
-        var client = new CosmosClientBuilder()
-                .key(key)
-                .preferredRegions(Collections.singletonList(REGION))
-                .consistencyLevel(ConsistencyLevel.SESSION)
-                .endpoint("https://" + ACCOUNT_NAME + ".documents.azure.com:443/")
-                .buildClient();
+        var client = CosmosTestClient.createClient();
 
         CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
         database = client.getDatabase(response.getProperties().getId());
+        var containerName = CONTAINER_PREFIX + UUID.randomUUID();
+        CosmosContainerResponse containerIfNotExists = database.createContainerIfNotExists(containerName, "/partitionKey");
+        container = database.getContainer(containerIfNotExists.getProperties().getId());
+        uploadStoredProcedure(container, "nextForState");
+        uploadStoredProcedure(container, "lease");
     }
 
     @AfterAll
@@ -85,18 +78,19 @@ class CosmosContractNegotiationStoreIntegrationTest {
     }
 
     @BeforeEach
-    void setUp(TestInfo testInfo) {
-        var containerName = CONTAINER_PREFIX + testInfo.getDisplayName();
+    void setUp() {
         assertThat(database).describedAs("CosmosDB database is null - did something go wrong during initialization?").isNotNull();
-        CosmosContainerResponse containerIfNotExists = database.createContainerIfNotExists(containerName, "/partitionKey");
-        container = database.getContainer(containerIfNotExists.getProperties().getId());
-        uploadStoredProcedure(container, "nextForState");
-        uploadStoredProcedure(container, "lease");
 
         typeManager = new TypeManager();
         typeManager.registerTypes(ContractDefinition.class, ContractNegotiationDocument.class);
         var cosmosDbApi = new CosmosDbApiImpl(container, true);
         store = new CosmosContractNegotiationStore(cosmosDbApi, typeManager, new RetryPolicy<>().withMaxRetries(3).withBackoff(1, 5, ChronoUnit.SECONDS), CONNECTOR_ID);
+    }
+
+    @AfterEach
+    void tearDown() {
+        container.deleteAllItemsByPartitionKey(new PartitionKey(partitionKey), new CosmosItemRequestOptions());
+        container.deleteAllItemsByPartitionKey(new PartitionKey("test-part-key"), new CosmosItemRequestOptions());
     }
 
     @Test
@@ -447,21 +441,6 @@ class CosmosContractNegotiationStoreIntegrationTest {
         assertThat(store.queryNegotiations(descendingQuery)).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
     }
 
-    // @Test
-    // void findAll_sorting_nonExistentProperty() {
-    //
-    //     var allIds = IntStream.range(0, 10).mapToObj(i -> generateDocument())
-    //         .peek(d -> container.createItem(d))
-    //         .map(ContractNegotiationDocument::getId)
-    //         .collect(Collectors.toList());
-    //
-    //
-    //     var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
-    //
-    //     var all = store.queryNegotiations(query).collect(Collectors.toList());
-    //     assertThat(all).isEmpty();
-    // }
-
     private ContractNegotiationDocument toDocument(Object object) {
         var json = typeManager.writeValueAsString(object);
         return typeManager.readValue(json, ContractNegotiationDocument.class);
@@ -471,7 +450,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
         return toDocument(object).getWrappedInstance();
     }
 
-    private void uploadStoredProcedure(CosmosContainer container, String name) {
+    private static void uploadStoredProcedure(CosmosContainer container, String name) {
         // upload stored procedure
         var is = Thread.currentThread().getContextClassLoader().getResourceAsStream(name + ".js");
         if (is == null) {

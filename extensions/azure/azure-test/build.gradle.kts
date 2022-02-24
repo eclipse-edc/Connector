@@ -18,19 +18,17 @@ plugins {
     `maven-publish`
 }
 
-val awsVersion: String by project
+val cosmosSdkVersion: String by project
 val storageBlobVersion: String by project;
 val jupiterVersion: String by project
 
 dependencies {
     api(project(":spi"))
 
+    testFixturesApi(project(":common:util"))
+    testFixturesApi("com.azure:azure-cosmos:${cosmosSdkVersion}")
     testFixturesApi("com.azure:azure-storage-blob:${storageBlobVersion}")
-
-    testFixturesImplementation(project(":common:util"))
-
-    testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
-    testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
+    testFixturesApi("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
 }
 
 publishing {
