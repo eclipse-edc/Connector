@@ -44,15 +44,15 @@ import static org.mockito.Mockito.when;
 class TokenValidationServiceImplTest {
 
     private TokenValidationService tokenValidationService;
-    private RSAKey key;
-    private JwtClaimValidationRule rule;
-    private Date now;
+    private RSAKey            key;
+    private JwtValidationRule rule;
+    private Date              now;
     private String publicKeyId;
 
     @BeforeEach
     public void setUp() throws JOSEException {
         key = testKey();
-        rule = mock(JwtClaimValidationRule.class);
+        rule = mock(JwtValidationRule.class);
         var publicKey = (RSAPublicKey) key.toPublicKey();
         publicKeyId = UUID.randomUUID().toString();
         var resolver = new PublicKeyResolver() {
@@ -69,7 +69,9 @@ class TokenValidationServiceImplTest {
     @Test
     void validationSuccess() throws JOSEException {
         var claims = createClaims(now);
-        when(rule.checkRule(any())).thenReturn(Result.success(claims));
+        var header = new JWSHeader.Builder(JWSAlgorithm.RS256).build();
+        var jwt = new SignedJWT(header, claims);
+        when(rule.checkRule(any(), any())).thenReturn(Result.success(jwt));
 
         var result = tokenValidationService.validate(createJwt(publicKeyId, claims, key.toPrivateKey()));
 
@@ -82,7 +84,7 @@ class TokenValidationServiceImplTest {
     @Test
     void validationFailure_cannotResolvePublicKey() throws JOSEException {
         var claims = createClaims(now);
-        when(rule.checkRule(any())).thenReturn(Result.failure("Rule validation failed!"));
+        when(rule.checkRule(any(), any())).thenReturn(Result.failure("Rule validation failed!"));
 
         var result = tokenValidationService.validate(createJwt("unknown-key", claims, key.toPrivateKey()));
 
@@ -93,7 +95,7 @@ class TokenValidationServiceImplTest {
     @Test
     void validationFailure_validationRuleKo() throws JOSEException {
         var claims = createClaims(now);
-        when(rule.checkRule(any())).thenReturn(Result.failure("Rule validation failed!"));
+        when(rule.checkRule(any(), any())).thenReturn(Result.failure("Rule validation failed!"));
 
         var result = tokenValidationService.validate(createJwt(publicKeyId, claims, key.toPrivateKey()));
 

@@ -20,6 +20,7 @@ val nimbusVersion: String by project
 
 dependencies {
     api(project(":spi"))
+    api(project(":extensions:token:token-validation"))
 
     implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
 }

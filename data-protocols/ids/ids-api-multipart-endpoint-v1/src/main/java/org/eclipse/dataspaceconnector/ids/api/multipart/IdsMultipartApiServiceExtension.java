@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
- *       Fraunhofer Institute for Software and Systems Engineering - add contract and notification message handlers
+ *       Fraunhofer Institute for Software and Systems Engineering
  *
  */
 
@@ -172,7 +172,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         handlers.add(new NotificationMessageHandler(connectorId, notificationHandlersRegistry));
 
         // create & register controller
-        var multipartController = new MultipartController(connectorId, objectMapper, identityService, handlers);
+        var multipartController = new MultipartController(monitor, connectorId, objectMapper, identityService, handlers);
         webService.registerResource(multipartController);
     }
 

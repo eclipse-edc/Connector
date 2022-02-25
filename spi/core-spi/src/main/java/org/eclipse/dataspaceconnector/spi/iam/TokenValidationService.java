@@ -22,5 +22,25 @@ import org.jetbrains.annotations.NotNull;
  */
 @FunctionalInterface
 public interface TokenValidationService {
-    Result<ClaimToken> validate(@NotNull String token);
+    /**
+     * Validates the token and offers possibility for additional information for validations.
+     *
+     * @param tokenRepresentation A token representation including the token to verify.
+     * @return Result of the validation.
+     */
+    Result<ClaimToken> validate(TokenRepresentation tokenRepresentation);
+
+    /**
+     * Validates the token.
+     *
+     * @param token The token to be validated.
+     * @return Result of the validation.
+     */
+    default Result<ClaimToken> validate(@NotNull String token) {
+        var tokenRepresentation = TokenRepresentation.Builder.newInstance()
+                .token(token)
+                .build();
+
+        return validate(tokenRepresentation);
+    }
 }

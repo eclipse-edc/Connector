@@ -18,12 +18,13 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
+import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.PublicKeyResolver;
+import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.iam.TokenValidationService;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.jetbrains.annotations.NotNull;
 
 import java.text.ParseException;
 import java.util.Collection;
@@ -35,20 +36,24 @@ import java.util.stream.Collectors;
 
 public class TokenValidationServiceImpl implements TokenValidationService {
 
-    private final PublicKeyResolver publicKeyResolver;
-    private final List<JwtClaimValidationRule> validationRules;
+    private final PublicKeyResolver       publicKeyResolver;
+    private final List<JwtValidationRule> validationRules;
 
-    public TokenValidationServiceImpl(PublicKeyResolver publicKeyResolver, List<JwtClaimValidationRule> validationRules) {
+    public TokenValidationServiceImpl(PublicKeyResolver publicKeyResolver, List<JwtValidationRule> validationRules) {
         this.publicKeyResolver = publicKeyResolver;
         this.validationRules = Collections.unmodifiableList(validationRules);
     }
 
     @Override
-    public Result<ClaimToken> validate(@NotNull String token) {
+    public Result<ClaimToken> validate(TokenRepresentation tokenRepresentation) {
+        var token = tokenRepresentation.getToken();
+        var additional = tokenRepresentation.getAdditional();
+        JWTClaimsSet claimsSet;
         try {
             var signedJwt = SignedJWT.parse(token);
             var publicKeyId = signedJwt.getHeader().getKeyID();
             var verifierCreationResult = createVerifier(signedJwt.getHeader(), publicKeyId);
+
             if (verifierCreationResult.failed()) {
                 return Result.failure(verifierCreationResult.getFailureMessages());
             }
@@ -57,9 +62,10 @@ public class TokenValidationServiceImpl implements TokenValidationService {
                 return Result.failure("Token verification failed");
             }
 
-            var claimsSet = signedJwt.getJWTClaimsSet();
+            claimsSet = signedJwt.getJWTClaimsSet();
+
             var errors = validationRules.stream()
-                    .map(r -> r.checkRule(claimsSet))
+                    .map(r -> r.checkRule(signedJwt, additional))
                     .filter(Result::failed)
                     .map(Result::getFailureMessages)
                     .flatMap(Collection::stream)
@@ -76,6 +82,7 @@ public class TokenValidationServiceImpl implements TokenValidationService {
                     .forEach(entry -> tokenBuilder.claim(entry.getKey(), entry.getValue()));
 
             return Result.success(tokenBuilder.build());
+
         } catch (JOSEException e) {
             return Result.failure(e.getMessage());
         } catch (ParseException e) {
