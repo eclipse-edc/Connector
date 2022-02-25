@@ -173,7 +173,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
         // create & register controller
         var multipartController = new MultipartController(connectorId, objectMapper, identityService, handlers);
-        webService.registerController(multipartController);
+        webService.registerResource(multipartController);
     }
 
     private String resolveConnectorId(@NotNull ServiceExtensionContext context) {

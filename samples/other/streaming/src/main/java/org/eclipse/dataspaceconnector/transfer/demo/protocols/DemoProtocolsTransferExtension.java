@@ -90,7 +90,7 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
         new WebSocketFactory().publishEndpoint(PubSubServerEndpoint.class, () -> new PubSubServerEndpoint(topicManager, objectMapper, monitor), jettyService);
 
         httpEndpoint = new PubSubHttpEndpoint(topicManager);
-        context.getService(WebService.class).registerController(httpEndpoint);
+        context.getService(WebService.class).registerResource(httpEndpoint);
 
         var messageDispatcher = context.getService(RemoteMessageDispatcherRegistry.class);
         var processManager = context.getService(TransferProcessManager.class);

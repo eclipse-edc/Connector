@@ -21,7 +21,7 @@ public class RegistrationServiceApiExtension implements ServiceExtension {
 
         // register the service as REST controller
         var webService = context.getService(WebService.class);
-        webService.registerController(regSrv);
+        webService.registerResource(regSrv);
 
         context.getMonitor().info("Registration Service REST API initialized");
     }

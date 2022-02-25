@@ -82,7 +82,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         context.registerService(QueryEngine.class, queryEngine);
         monitor = context.getMonitor();
         var catalogController = new CatalogController(monitor, queryEngine);
-        webService.registerController(catalogController);
+        webService.registerResource(catalogController);
 
         // contribute to the liveness probe
         if (healthCheckService != null) {

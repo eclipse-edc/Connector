@@ -32,7 +32,7 @@ class ObservabilityApiExtensionTest {
 
         extension.initialize(contextMock);
 
-        verify(webServiceMock).registerController(isA(ObservabilityApiController.class));
+        verify(webServiceMock).registerResource(isA(ObservabilityApiController.class));
         verify(healthServiceMock).addReadinessProvider(isA(ReadinessProvider.class));
         verify(healthServiceMock).addLivenessProvider(isA(LivenessProvider.class));
         verifyNoMoreInteractions(webServiceMock);
