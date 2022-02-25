@@ -151,6 +151,7 @@ to push an empty commit. This will trigger another run.
 git commit --allow-empty -m "trigger CI" && git push
 ```
 
+If an issue labeled with `Bug` and `FlakyTest` is assigned to you, please prioritize addressing this issue as other people will be affected.
 We are taking the quality of our code very serious and reporting on flaky tests is an important step toward improvement
 in that area.
 
