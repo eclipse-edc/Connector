@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,15 +12,26 @@
  *
  */
 
+/**
+ * Returns the next batch of documents that are in a certain state and acquires an exclusive lock on it (a "lease").
+ * This SPROC will only return items that are not yet leased, or where the lease has expired. Thus, two subsequent calls with identical parameters
+ * will yield different results.
+ *
+ * @param state the desired state
+ * @param limit the batch size
+ * @param connectorId The name of the calling runtime
+ */
+
 function nextForState(state, limit, connectorId) {
     var context = getContext();
     var collection = context.getCollection();
     var collectionLink = collection.getSelfLink();
     var response = context.getResponse();
 
+
     // first query
     var filterQuery = {
-        'query': 'SELECT * FROM t WHERE t.wrappedInstance.state = @state AND (t.lease = null OR t.lease.leasedBy = @leaser OR (t.lease.leasedAt + t.lease.leaseDuration) < @now) ORDER BY t.wrappedInstance.stateTimestamp OFFSET 0 LIMIT @limit',
+        'query': 'SELECT * FROM t WHERE t.wrappedInstance.state = @state AND (t.lease = null OR (t.lease.leasedAt + t.lease.leaseDuration) < @now) ORDER BY t.wrappedInstance.stateTimestamp OFFSET 0 LIMIT @limit',
         'parameters': [
             {
                 'name': '@state', 'value': parseInt(state, 10)
@@ -61,7 +72,7 @@ function nextForState(state, limit, connectorId) {
         document.lease = {
             leasedBy: connectorId,
             leasedAt: Date.now(),
-            leaseDuration: 60
+            leaseDuration: 60000
         };
 
         var accept = collection.replaceDocument(document._self, document, function (err, itemReplaced) {

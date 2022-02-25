@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.eclipse.dataspaceconnector.cosmos.azure.CosmosDocument.sanitize;
+import static org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument.sanitize;
 
 /**
  * Represents in a structural way a WHERE clause in an SQL statement. Attempts to use parameterized statements using

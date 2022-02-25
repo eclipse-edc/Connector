@@ -16,8 +16,7 @@ package org.eclipse.dataspaceconnector.assetindex.azure;
 
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
@@ -43,7 +42,7 @@ public class CosmosAssetIndexExtension implements ServiceExtension {
         var configuration = new AssetIndexCosmosConfig(context);
         Vault vault = context.getService(Vault.class);
 
-        CosmosDbApi cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
+        var cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
         var assetIndex = new CosmosAssetIndex(cosmosDbApi, configuration.getPartitionKey(), context.getTypeManager(), context.getService(RetryPolicy.class));
         context.registerService(AssetIndex.class, assetIndex);
         context.registerService(AssetLoader.class, assetIndex);

@@ -8,6 +8,7 @@ import com.azure.cosmos.models.CosmosContainerResponse;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
 import com.azure.cosmos.models.CosmosItemRequestOptions;
 import com.azure.cosmos.models.PartitionKey;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -34,7 +35,7 @@ class CosmosDbApiImplIntegrationTest {
     private static final String CONTAINER_NAME = "CosmosAssetIndexTest-" + TEST_ID;
     private static CosmosContainer container;
     private static CosmosDatabase database;
-    private CosmosDbApi cosmosDbApi;
+    private CosmosDbApiImpl cosmosDbApi;
     private ArrayList<TestCosmosDocument> record;
 
     @BeforeAll

@@ -1,6 +1,6 @@
 package org.eclipse.dataspaceconnector.catalog.node.directory.azure;
 
-import org.eclipse.dataspaceconnector.cosmos.azure.AbstractCosmosConfig;
+import org.eclipse.dataspaceconnector.azure.cosmos.AbstractCosmosConfig;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 

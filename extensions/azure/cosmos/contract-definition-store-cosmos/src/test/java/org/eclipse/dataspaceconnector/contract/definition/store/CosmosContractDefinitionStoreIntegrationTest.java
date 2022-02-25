@@ -9,10 +9,9 @@ import com.azure.cosmos.models.CosmosContainerResponse;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
 import com.azure.cosmos.models.PartitionKey;
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.contract.definition.store.model.ContractDefinitionDocument;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
@@ -56,7 +55,12 @@ public class CosmosContractDefinitionStoreIntegrationTest {
     static void prepareCosmosClient() {
         var key = propOrEnv("COSMOS_KEY", null);
         if (key != null) {
-            var client = new CosmosClientBuilder().key(key).preferredRegions(Collections.singletonList(REGION)).consistencyLevel(ConsistencyLevel.SESSION).endpoint("https://" + ACCOUNT_NAME + ".documents.azure.com:443/").buildClient();
+            var client = new CosmosClientBuilder()
+                    .key(key)
+                    .preferredRegions(Collections.singletonList(REGION))
+                    .consistencyLevel(ConsistencyLevel.SESSION)
+                    .endpoint("https://" + ACCOUNT_NAME + ".documents.azure.com:443/")
+                    .buildClient();
 
             CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
             database = client.getDatabase(response.getProperties().getId());
@@ -79,7 +83,7 @@ public class CosmosContractDefinitionStoreIntegrationTest {
         container = database.getContainer(containerIfNotExists.getProperties().getId());
         typeManager = new TypeManager();
         typeManager.registerTypes(ContractDefinition.class, ContractDefinitionDocument.class);
-        CosmosDbApi cosmosDbApi = new CosmosDbApiImpl(container, true);
+        var cosmosDbApi = new CosmosDbApiImpl(container, true);
         store = new CosmosContractDefinitionStore(cosmosDbApi, typeManager, new RetryPolicy<>().withMaxRetries(3).withBackoff(1, 5, ChronoUnit.SECONDS));
     }
 
@@ -169,11 +173,12 @@ public class CosmosContractDefinitionStoreIntegrationTest {
 
         var updatedDefinition = convert(container.readItem(doc1.getId(), new PartitionKey(doc1.getPartitionKey()), Object.class).getItem());
         assertThat(updatedDefinition.getId()).isEqualTo(definition.getId());
-        assertThat(updatedDefinition.getSelectorExpression().getCriteria()).hasSize(2).anySatisfy(criterion -> {
-            assertThat(criterion.getOperandLeft()).isNotEqualTo("anotherKey");
-            assertThat(criterion.getOperator()).isNotEqualTo("NOT EQUAL");
-            assertThat(criterion.getOperandLeft()).isNotEqualTo("anotherValue");
-        }); //we modified that earlier
+        assertThat(updatedDefinition.getSelectorExpression().getCriteria()).hasSize(2)
+                .anySatisfy(criterion -> {
+                    assertThat(criterion.getOperandLeft()).isNotEqualTo("anotherKey");
+                    assertThat(criterion.getOperator()).isNotEqualTo("NOT EQUAL");
+                    assertThat(criterion.getOperandLeft()).isNotEqualTo("anotherValue");
+                }); //we modified that earlier
     }
 
     @Test
@@ -200,7 +205,9 @@ public class CosmosContractDefinitionStoreIntegrationTest {
 
     @Test
     void delete_notExist() {
-        assertThatThrownBy(() -> store.delete("not-exist-id")).isInstanceOf(NotFoundException.class).hasMessageContaining("An object with the ID not-exist-id could not be found!");
+        assertThatThrownBy(() -> store.delete("not-exist-id"))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("An object with the ID not-exist-id could not be found!");
     }
 
     @Test

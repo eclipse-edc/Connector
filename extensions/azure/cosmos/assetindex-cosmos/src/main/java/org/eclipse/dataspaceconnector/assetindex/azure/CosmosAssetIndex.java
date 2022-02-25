@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.assetindex.azure;
 import com.azure.cosmos.models.SqlQuerySpec;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.dataloading.AssetEntry;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
