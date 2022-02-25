@@ -4,22 +4,22 @@
 
 The following are the most common terms related to the domain model:
 
-## Asset:
+## Asset
 
 The data (Databases, Files, Cache Information, etc) to be published and shared between organizations is represented as
 an asset. Every asset owns its [Data address](#data-address).
 
-## Data Address:
+## Data Address
 
 Description of the location where the asset data is or will be located.
 
-## Contract:
+## Contract
 
 A contract always contains one or more [Assets](#asset), one or more [Policies](#policy). The contract construct is used
 to define the arrangement between two parties (consumer and provider). Regarding this arrangement, the contract passes
 several stages which are explained in the following:
 
-* ### Contract Definition:
+* ### Contract Definition
 
   contract definition is a top-down design that associates policies with assets. This contract definition contains
   access policies, contract policies, and an asset selector which links the contract to one or more assets. Access
@@ -47,19 +47,19 @@ several stages which are explained in the following:
   agreed usage between data provider and data consumer after a contract negotiation. It points to a contract offer and
   can have expiry or cancellation date.
 
-## Policy:
+## Policy
 
 Contract policies represent permitted and prohibited actions over a certain asset. These actions can be limited further
 by constraints (temporal or spatial) and duties (e.g. deletion of the data after 30 days). Further information is
 provided in a separate [section](Policies.md).
 
-## Data Request:
+## Data Request
 
 Data Request is a representation which creation initialize the data [transfer process](#transfer-process) on the
 consumer side. It contains a reference of the to be transferred [Asset](#asset) and
 the [Contract (Agreement)](#contract-agreement).
 
-## Transfer process:
+## Transfer process
 
 Representation of the data transfer. Runs through a state machine which defines certain states like provisioning,
 transferring, completed.

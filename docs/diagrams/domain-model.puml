@@ -9,73 +9,71 @@ skinParam AgentBackgroundColor White
 skinParam AgentBorderColor SkyBlue
 skinparam shadowing false
 
-object policy {
+object "Policy" as policy {
   Technically processable contract
-  Currently not enforced
 }
 
-object contractOffer{
-   1 Asset
+object "Contract Offer" as contract_offer{
+   Dynamically generated and \nnot persisted anywhere
+   --contains--
+   Asset
    Policy
-   Dynamically
-   Persistent nowhere
 }
 
-object contractNegotiation{
+object "Contract Negotiation" as contractNegotiation{
     Persistent in contractNegotiationStore
 }
 
-object contractAgreement{
+object "Contract Agreement" as contractAgreement{
     1 Asset
     Policy
     Persistent
 }
 
-object resource{
+object "Resource" as resource{
     Describes resources of the data transfer
-    provisioned and/or deprovisioned
-    generated at the beginning of the process
 }
 
-object asset{
-    Metadata
+object "Asset" as asset{
+    Describes data which should be transferred
     Tripplet [Resource, representation, artifact]
 }
 
-object contractDefinition{
+object "Contract Definition" as contractDefinition{
     Template for contract offers
-    1 Access Policy
-    1 Contract Policy
-    1 Assetselector
+    --Contains--
+    * Access Policy
+    * Contract Policy
+    * Asset selector
 }
 
-object dataAddress{
-    Describes datasource for Asset-Data
+object "Data Address" as dataAddress{
+    Describes datasource for Asset-Data.
 }
 
-object dataDestination{
-    Where the data should be copied
+object "Data Request" as dataRequest{
+    -- Contains --
+    * AssetID
+    * ContractID
+    * dataDestination
 }
 
-object dataRequest{
-    Contains AssetID and ContractID
+object "Transfer Process" as transferProcess{
+    Runs through a state machine.
+    Symbolizes the data transfer on the control plane.
 }
 
-object transferProcess{
-    Runs through a state machine
-    Symbolizes the data transfer on the side of the control plane
-}
-
-contractDefinition --> policy
-contractDefinition --> asset: asset selector\n(0..* Assets)
-contractDefinition --> contractOffer: Generates x \n contract offers
-asset "1" --> "1" dataAddress
-contractNegotiation --> contractOffer: Contains history of\nseveral offers
-contractNegotiation --> contractAgreement: maintained till a\ncontract agreement\nis
-contractOffer --> contractAgreement: After agreement
-transferProcess "0" --> "*" resource
-transferProcess --> dataRequest
-dataRequest --> dataDestination
-dataDestination --> dataAddress
+contractDefinition --> policy: contains
+contractDefinition --> asset: selects (0..*) \nvia AssetSelector
+contract_offer --> contractAgreement: After agreement
+asset "1" --> "1" dataAddress: contains
+contractDefinition --> contract_offer: Generates x \n contract offers
+contractNegotiation --> contractAgreement: Contains the\nfinal agreement
+contractDefinition --> contract_offer: Generates x \n contract offers
+transferProcess --> resource: Provisions,\ntransfers,\nand deprovisions
+transferProcess --> dataRequest: Contains
+dataRequest --> dataAddress: Describes where the\ndata should be copied
+contractNegotiation --> contract_offer: Contains history of\nseveral offers
 
 @enduml
+
