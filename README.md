@@ -134,3 +134,7 @@ Please refer to the dedicated [style guide](styleguide.md) and the patterns we d
 ## Contributing
 
 See [how to contribute](CONTRIBUTING.md).
+
+# Tags
+
+* Code for the ION Hackathon demo can be found under the tag `ion-hackaton`
