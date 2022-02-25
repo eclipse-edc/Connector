@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.dataplane.http.pipeline.HttpTestFixtures.createRequest;
+import static org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures.createRequest;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema.AUTHENTICATION_KEY;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema.ENDPOINT;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema.NAME;

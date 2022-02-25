@@ -82,21 +82,26 @@ public class HttpDataSourceFactory implements DataSourceFactory {
         if (authKey != null && authCode == null || authKey == null && authCode != null) {
             return Result.failure("Invalid authorization header for request: " + request.getId());
         }
-
-        var queryParams = request.getProperties().get(QUERY_PARAMS);
-
+        var httpDataSourceBuilder = HttpDataSource.Builder.newInstance()
+                .httpClient(httpClient)
+                .requestId(request.getId())
+                .sourceUrl(endpoint)
+                .name(name)
+                .method(method)
+                .retryPolicy(retryPolicy)
+                .monitor(monitor);
         try {
-            return Result.success(HttpDataSource.Builder.newInstance()
-                    .httpClient(httpClient)
-                    .sourceUrl(endpoint)
-                    .name(name)
-                    .method(method)
-                    .header(authKey, authCode)
-                    .queryParams(queryParams)
-                    .requestId(request.getId())
-                    .retryPolicy(retryPolicy)
-                    .monitor(monitor)
-                    .build());
+
+            if (authKey != null && authCode != null) {
+                httpDataSourceBuilder.header(authKey, authCode);
+            }
+
+            var queryParams = request.getProperties().get(QUERY_PARAMS);
+            if (queryParams != null) {
+                httpDataSourceBuilder.queryParams(queryParams);
+            }
+
+            return Result.success(httpDataSourceBuilder.build());
         } catch (Exception e) {
             return Result.failure("Failed to build HttpDataSource: " + e.getMessage());
         }

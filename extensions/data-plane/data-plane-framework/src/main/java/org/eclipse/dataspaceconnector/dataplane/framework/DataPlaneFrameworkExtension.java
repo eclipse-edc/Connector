@@ -70,6 +70,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
                 .workers(workers)
                 .waitTimeout(waitTimeout)
                 .pipelineService(pipelineService)
+                .store(new InMemoryDataPlaneStore(IN_MEMORY_STORE_CAPACITY))
                 .monitor(monitor).build();
 
         context.registerService(DataPlaneManager.class, dataPlaneManager);
