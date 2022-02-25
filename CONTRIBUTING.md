@@ -136,6 +136,24 @@ we would appreciate if your pull request applies to the following points:
       has been signed as well as commits have been signed-off and
     * _Continuous Integration_ performing various test conventions.
 
+### Report on flaky tests
+
+If you discover a randomly failing ("flaky") test, please take the time to check whether an issue for that already
+exists and if not, create an issue yourself, providing meaningful description and a link to the failing run. Please also
+label it with `Bug` and `FlakyTest`. Then assign it to whoever was the original author of the relevant piece of code or
+whoever worked on it last. If assigning the issue is not possible due to missing rights, please just comment and
+@mention the author/last editor.
+
+Please do not just restart the run, as this would overwrite the results. If you need to, a better way of doing this is
+to push an empty commit. This will trigger another run.
+
+```bash
+git commit --allow-empty -m "trigger CI" && git push
+```
+
+We are taking the quality of our code very serious and reporting on flaky tests is an important step toward improvement
+in that area.
+
 ## Project and Milestone Planning
 
 We use milestones to set a common focus for a period of 6 to 8 weeks. 
