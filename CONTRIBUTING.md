@@ -13,6 +13,7 @@ the [Eclipse Dataspace Connector](https://projects.eclipse.org/projects/technolo
   * [Discuss](#discuss)
   * [Create an Issue](#create-an-issue)
   * [Submit a Pull Request](#submit-a-pull-request)
+  * [Report on Flaky Tests](#report-on-flaky-tests)
 * [Project and Milestone Planning](#project-and-milestone-planning)
   * [Milestones](#milestones)
   * [Projects](#projects)
@@ -136,7 +137,7 @@ we would appreciate if your pull request applies to the following points:
       has been signed as well as commits have been signed-off and
     * _Continuous Integration_ performing various test conventions.
 
-### Report on flaky tests
+### Report on Flaky Tests
 
 If you discover a randomly failing ("flaky") test, please take the time to check whether an issue for that already
 exists and if not, create an issue yourself, providing meaningful description and a link to the failing run. Please also
