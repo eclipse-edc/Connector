@@ -1,6 +1,6 @@
 # Domain Model
 
-![domain_model](diagrams/domain-model.png)
+![domain-model](diagrams/domain-model.png)
 
 The following are the most common terms related to the domain model:
 
