@@ -35,6 +35,7 @@ import java.util.concurrent.CompletableFuture;
 import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.CONTRACT_ID_CLAIM;
 import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.DATA_ADDRESS_CLAIM;
 import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.EXPIRATION_DATE_CLAIM;
+import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.PROCESS_ID_CLAIM;
 
 public class HttpProviderProxyProvisioner implements Provisioner<HttpProviderProxyResourceDefinition, HttpProviderProxyProvisionedResource> {
 

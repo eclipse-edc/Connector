@@ -184,3 +184,8 @@ include(":samples:05-file-transfer-cloud:api")
 include(":samples:05-file-transfer-cloud:data-seeder")
 include(":samples:05-file-transfer-cloud:transfer-file")
 
+include(":system-tests:e2e-transfer-test:runner")
+include(":system-tests:e2e-transfer-test:backend-service")
+include(":system-tests:e2e-transfer-test:control-plane")
+include(":system-tests:e2e-transfer-test:data-plane")
+

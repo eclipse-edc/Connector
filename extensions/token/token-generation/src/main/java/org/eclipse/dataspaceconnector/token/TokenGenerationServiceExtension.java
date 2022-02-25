@@ -45,6 +45,7 @@ public class TokenGenerationServiceExtension implements ServiceExtension {
         if (privateKeyAlias == null) {
             throw new EdcException(String.format("Missing mandatory private key alias setting `%s`", PRIVATE_KEY_ALIAS));
         }
+
         var privateKeyResolver = context.getService(PrivateKeyResolver.class);
         var signer = createSigner(privateKeyResolver, privateKeyAlias);
         var tokenGenerationService = new TokenGenerationServiceImpl(signer);

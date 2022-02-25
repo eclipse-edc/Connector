@@ -14,6 +14,7 @@
 package org.eclipse.dataspaceconnector.junit.launcher;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
@@ -152,7 +153,7 @@ public class EdcRuntimeExtension extends EdcExtension {
         // Start thread and wait for EDC to start up.
         runtimeThread.start();
 
-        if (!latch.await(10, SECONDS)) {
+        if (!latch.await(20, SECONDS)) {
             throw new EdcException("Failed to start EDC runtime");
         }
 

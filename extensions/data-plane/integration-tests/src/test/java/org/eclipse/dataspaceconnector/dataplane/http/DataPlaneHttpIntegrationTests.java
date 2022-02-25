@@ -137,14 +137,22 @@ public class DataPlaneHttpIntegrationTests {
     @Test
     void transfer_success() {
         // Arrange
-        // HTTP Source Request & Response
         var body = FAKER.internet().uuid();
         var processId = FAKER.internet().uuid();
+<<<<<<< HEAD
         httpSourceClientAndServer.when(getRequest(), once())
                 .respond(withResponse(HttpStatusCode.OK_200, body));
 
         // HTTP Sink Request & Response
         httpSinkClientAndServer.when(postRequest(body), once())
+=======
+        httpSourceClientAndServer
+                .when(getRequest(), once())
+                .respond(withResponse(HttpStatusCode.OK_200, body));
+
+        httpSinkClientAndServer
+                .when(postRequest(body), once())
+>>>>>>> 0366db675 (Introduce a data plane HTTP Pull sync scenario end-to-end test)
                 .respond(withResponse());
 
         // Act & Assert
@@ -459,7 +467,6 @@ public class DataPlaneHttpIntegrationTests {
 
         return request
                 .withMethod(HttpMethod.GET.name())
-                .withHeader(new Header(AUTH_HEADER_KEY, SOURCE_AUTH_VALUE))
                 .withPath("/" + DPF_HTTP_API_PART_NAME);
     }
 
