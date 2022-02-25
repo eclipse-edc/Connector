@@ -1,73 +1,81 @@
 @startuml
-'https://plantuml.com/class-diagram
+'https://plantuml.com/object-diagram
 
-class Policy{
+skinParam NoteBackgroundColor WhiteSmoke
+skinParam NoteFontColor Black
+skinParam ParticipantBackgroundColor WhiteSmoke
+skinParam ActorBackgroundColor WhiteSmoke
+skinParam AgentBackgroundColor White
+skinParam AgentBorderColor SkyBlue
+skinparam shadowing false
+
+object policy {
   Technically processable contract
   Currently not enforced
 }
 
-class ContractOffer{
-  1 Asset
-  Policy
-  Dynamically
-  Persistent nowhere
+object contractOffer{
+   1 Asset
+   Policy
+   Dynamically
+   Persistent nowhere
 }
 
-class ContractNegotiation{
-  Persistent in contractNegotiationStore
+object contractNegotiation{
+    Persistent in contractNegotiationStore
 }
 
-class ContractAgreement{
-  1 Asset
-  Policy
-  Persistent
+object contractAgreement{
+    1 Asset
+    Policy
+    Persistent
 }
 
-class Resource{
-  Describes resources of the data transfer
-  provisioned and/or deprovisioned
-  generated at the beginning of the process
+object resource{
+    Describes resources of the data transfer
+    provisioned and/or deprovisioned
+    generated at the beginning of the process
 }
 
-class Asset{
-  Metadata
-  Tripplet [Resource, representation, artifact]
+object asset{
+    Metadata
+    Tripplet [Resource, representation, artifact]
 }
 
-class ContractDefinition{
-  Template for contract offers
-  1 Access Policy
-  1 Contract Policy
-  1 Assetselector
+object contractDefinition{
+    Template for contract offers
+    1 Access Policy
+    1 Contract Policy
+    1 Assetselector
 }
 
-class DataAddress{
-  Describes datasource for Asset-Data
+object dataAddress{
+    Describes datasource for Asset-Data
 }
 
-class DataDestination{
-  Where the data should be copied
+object dataDestination{
+    Where the data should be copied
 }
 
-class DataRequest{
-  Contains AssetID and ContractID
+object dataRequest{
+    Contains AssetID and ContractID
 }
 
-class TransferProcess{
-  Runs through a state machine
-  Symbolizes the data transfer on the side of the control plane
+object transferProcess{
+    Runs through a state machine
+    Symbolizes the data transfer on the side of the control plane
 }
 
-ContractDefinition --> Policy
-ContractDefinition --> Asset: Assetselector (0..* Assets)
-ContractDefinition --> ContractOffer: Generates x \n contract offers
-Asset "1" --> "1" DataAddress
-ContractNegotiation --> ContractOffer: Contains history of\nseveral offers
-ContractNegotiation --> ContractAgreement: Maintained tilla\ncontract agreement\nis made
-ContractOffer --> ContractAgreement: After agreement
-TransferProcess "0" --> "*" Resource
-TransferProcess --> DataRequest
-DataRequest --> DataDestination
-DataDestination --> DataAddress
+contractDefinition --> policy
+contractDefinition --> asset: asset selector\n(0..* Assets)
+contractDefinition --> contractOffer: Generates x \n contract offers
+asset "1" --> "1" dataAddress
+contractNegotiation --> contractOffer: Contains history of\nseveral offers
+contractNegotiation --> contractAgreement: maintained till a\ncontract agreement\nis
+contractOffer --> contractAgreement: After agreement
+transferProcess "0" --> "*" resource
+transferProcess --> dataRequest
+dataRequest --> dataDestination
+dataDestination --> dataAddress
 
 @enduml
