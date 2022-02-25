@@ -17,8 +17,7 @@ modules for performing data queries, exchanges, policy enforcement, monitoring a
 
 The connector is a framework for sovereign, inter-organizational data exchange and contains the technology component
 that allows each organization involved in the exchange to define how digital processes, infrastructures, and data flows
-are structured, built, and managed to ensure adherence to corporate policies and data sovereignty regulations<sup>
-1</sup>
+are structured, built, and managed to ensure adherence to corporate policies and data sovereignty regulations
 
 A connector is composed of 2 subsystems:
 
@@ -29,7 +28,8 @@ A connector is composed of 2 subsystems:
 | Overseeing of Policy enforcement.       | Streaming.                            |
 | Provisioning management.                | Events.                               |
 
-<p style='text-align: justify;'> The connector processes requests asynchronously, which are useful for example in case one has to deal with lengthy data preparation</p>
+The connector processes requests asynchronously, which are useful for example in case one has to deal with lengthy data
+preparation
 
 ## Configuration
 
