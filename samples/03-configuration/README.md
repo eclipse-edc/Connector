@@ -163,6 +163,7 @@ the [api-configuration module](../../extensions/api/data-management/api-configur
 exposed on a separate jetty context. Therefor, it is necessary to provide the following configuration to the connector:
 
 > Note: The ports could be chosen arbitrarily. In this example, they are aligned to the already existing `web.http.port` setting described above.
+
 ```properties
 web.http.port=9191
 web.http.path=/api
