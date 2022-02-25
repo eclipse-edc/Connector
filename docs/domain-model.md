@@ -1,8 +1,7 @@
 # Domain Model
 
 ![domain-model](diagrams/domain-model.png)
-
-The following are the most common terms related to the domain model:
+> The shown picture illustrates only a generic view of the Domain Model and is not intended to show all aspects of the project.
 
 ## Asset
 
