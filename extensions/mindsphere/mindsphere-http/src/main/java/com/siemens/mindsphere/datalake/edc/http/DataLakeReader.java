@@ -28,10 +28,10 @@ public class DataLakeReader implements DataReader {
     public Result<ByteArrayInputStream> read(DataAddress source) {
         // get target path
         final String targetPath = source.getProperty("path");
-        // get pre-signed URL
-        final URL targetUrl = dataLakeClient.getDownloadUrl(targetPath);
-        // read the URL
         try {
+            // get pre-signed URL
+            final URL targetUrl = dataLakeClient.getDownloadUrl(targetPath);
+            // read the URL
             return Result.success(new ByteArrayInputStream(targetUrl.openStream().readAllBytes()));
         } catch (IOException e) {
             return Result.failure("Error while getting the resource input stream");

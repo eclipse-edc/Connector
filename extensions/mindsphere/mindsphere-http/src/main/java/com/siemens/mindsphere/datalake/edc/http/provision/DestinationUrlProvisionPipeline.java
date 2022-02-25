@@ -17,15 +17,15 @@ public class DestinationUrlProvisionPipeline {
     }
 
     private final RetryPolicy<Object> retryPolicy;
-    private Monitor monitor;
-    private DataLakeClient dataLakeClient;
+    private final Monitor monitor;
+    private final DataLakeClient dataLakeClient;
 
     public CompletableFuture<DestinationUrlProvisionResponse> provision(DestinationUrlResourceDefinition resourceDefinition) {
         monitor.info("Provisioning destination HTTP url for path: " + resourceDefinition.getPath());
         return Failsafe.with(retryPolicy)
-                .getStageAsync(() -> CompletableFuture.supplyAsync(() -> dataLakeClient.getUploadUrl(resourceDefinition.getPath()))
+                .getAsync(() -> dataLakeClient.getUploadUrl(resourceDefinition.getPath()))
                         .thenApply(url -> new DestinationUrlProvisionResponse(resourceDefinition.getPath(),
-                                url.toString())));
+                                url.toString()));
     }
 
     static class Builder {
