@@ -20,12 +20,14 @@ dependencies {
 ```
 
 We compile and run the application with:
+
 ```
 ./gradlew clean samples:03-configuration:build
 `java -jar samples/03-configuration/build/libs/filsystem-config-connector.jar`
 ```
 
 you will notice an additional log line stating that the "configuration file does not exist":
+
 ```bash
 INFO 2021-09-07T08:26:08.282159 Configuration file does not exist: dataspaceconnector-configuration.properties. Ignoring.
 ```
@@ -51,8 +53,8 @@ the `config.properties` with a text editor of your choice and add the following 
 web.http.port=9191
 ```
 
-An example file can be found [here](config.properties). Clean, rebuild and run the connector
-again, but this time passing the path to the config file:
+An example file can be found [here](config.properties). Clean, rebuild and run the connector again, but this time
+passing the path to the config file:
 
 ```properties
 java -Dedc.fs.config=/etc/eclipse/dataspaceconnector/config.properties -jar samples/03-configuration/build/libs/filsystem-config-connector.jar
@@ -108,6 +110,7 @@ public class HealthEndpointExtension implements ServiceExtension {
 Next, we must modify the constructor signature of the `HealthApiController` class and store the `logPrefix` as variable:
 
 ```java
+
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/")
