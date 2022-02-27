@@ -19,8 +19,7 @@ import okhttp3.EventListener;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.core.base.CommandHandlerRegistryImpl;
 import org.eclipse.dataspaceconnector.core.base.RemoteMessageDispatcherRegistryImpl;
-import org.eclipse.dataspaceconnector.core.executor.ExecutorInstrumentationImplementation;
-import org.eclipse.dataspaceconnector.core.executor.NoopExecutorInstrumentationImplementation;
+import org.eclipse.dataspaceconnector.core.executor.NoopExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceConfiguration;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceImpl;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -44,12 +43,13 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.Optional.ofNullable;
+
 @BaseExtension
-@Provides({RetryPolicy.class, ExecutorInstrumentation.class, HealthCheckService.class, OkHttpClient.class, RemoteMessageDispatcherRegistry.class})
+@Provides({RetryPolicy.class, HealthCheckService.class, OkHttpClient.class, RemoteMessageDispatcherRegistry.class})
 public class CoreServicesExtension implements ServiceExtension {
 
     @EdcSetting
@@ -66,6 +66,10 @@ public class CoreServicesExtension implements ServiceExtension {
     public static final String READINESS_PERIOD_SECONDS_SETTING = "edc.core.system.health.check.readiness-period";
     @EdcSetting
     public static final String THREADPOOL_SIZE_SETTING = "edc.core.system.health.check.threadpool-size";
+
+    private static final long DEFAULT_DURATION = 60;
+    private static final int DEFAULT_TP_SIZE = 3;
+
     /**
      * An optional OkHttp {@link EventListener} that can be used to instrument OkHttp client for collecting metrics.
      * Used by the optional {@code micrometer} module.
@@ -76,10 +80,8 @@ public class CoreServicesExtension implements ServiceExtension {
      * An optional instrumentor for {@link ExecutorService}. Used by the optional {@code micrometer} module.
      */
     @Inject(required = false)
-    private ExecutorInstrumentationImplementation executorInstrumentationImplementation;
+    private ExecutorInstrumentation executorInstrumentation;
 
-    private static final long DEFAULT_DURATION = 60;
-    private static final int DEFAULT_TP_SIZE = 3;
     private HealthCheckServiceImpl healthCheckService;
 
     @Override
@@ -92,11 +94,11 @@ public class CoreServicesExtension implements ServiceExtension {
         addHttpClient(context);
         addRetryPolicy(context);
         registerParser(context);
-        addExecutorInstrumentation(context);
+        var executorInstrumentation = registerExecutorInstrumentation(context);
         var config = getHealthCheckConfig(context);
 
         // health check service
-        healthCheckService = new HealthCheckServiceImpl(config, context.getService(ExecutorInstrumentation.class));
+        healthCheckService = new HealthCheckServiceImpl(config, executorInstrumentation);
         context.registerService(HealthCheckService.class, healthCheckService);
 
         // remote message dispatcher registry
@@ -159,18 +161,18 @@ public class CoreServicesExtension implements ServiceExtension {
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS);
 
-        if (okHttpEventListener != null) {
-            builder.eventListener(okHttpEventListener);
-        }
+        ofNullable(okHttpEventListener).ifPresent(builder::eventListener);
 
         var client = builder.build();
 
         context.registerService(OkHttpClient.class, client);
     }
 
-    private void addExecutorInstrumentation(ServiceExtensionContext context) {
-        context.registerService(ExecutorInstrumentation.class,
-                Objects.requireNonNullElseGet(executorInstrumentationImplementation, NoopExecutorInstrumentationImplementation::new));
+    private ExecutorInstrumentation registerExecutorInstrumentation(ServiceExtensionContext context) {
+        var executorInstrumentationImpl = ofNullable(this.executorInstrumentation).orElse(new NoopExecutorInstrumentation());
+        // Register ExecutorImplementation with default noop implementation if none available
+        context.registerService(ExecutorInstrumentation.class, executorInstrumentationImpl);
+        return executorInstrumentationImpl;
     }
 
 }
