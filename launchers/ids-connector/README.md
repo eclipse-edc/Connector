@@ -90,7 +90,7 @@ This will return output similar to the following, where the second line is the `
 
 ```shell
 X509v3 Subject Key Identifier: 
-    69:D1:31:8E:56:F6:2C:8C:25:43:67:9D:FE:F6:60:05:39:D7:09:2C
+    52:71:9A:45:C9:78:EB:A3:0C:B5:57:25:87:35:3A:BF:94:46:A3:B8
 ```
 
 #### Getting the Authority Key Identifier
@@ -105,22 +105,16 @@ This will return output similar to the following, where the second line is the `
 
 ```shell
 X509v3 Authority Key Identifier: 
-    keyid:CB:8C:C7:B6:85:79:A8:23:A6:CB:15:AB:17:50:2F:E6:65:43:5D:E8
+    keyid:52:71:9A:45:C9:78:EB:A3:0C:B5:57:25:87:35:3A:BF:94:46:A3:B8
 ```
 
 #### Composing the identifier
 
 The `Subject Key Identifier` and the `Authority Key Identifier`, separated by a colon, compose the certificate
-identifier:
+identifier. So your resulting identifier should look as follows:
 
 ```
-Subject Key Identifier:Authority Key Identifier
-```
-
-So your resulting identifier should look as follows:
-
-```
-AE:7E:5A:08:B7:C2:6D:06:2F:D5:17:CB:16:D7:7A:B7:EB:D5:67:58:keyid:EB:58:A4:72:B8:B4:00:8A:BD:E7:8A:00:D6:95:60:3B:E7:4A:25:B2
+52:71:9A:45:C9:78:EB:A3:0C:B5:57:25:87:35:3A:BF:94:46:A3:B8:keyid:52:71:9A:45:C9:78:EB:A3:0C:B5:57:25:87:35:3A:BF:94:46:A3:B8
 ```
 
 Set this identifier in the `config.properties` for `edc.oauth.client.id`.
@@ -197,14 +191,17 @@ If you do not have access to an external DAPS, you can set up your own local ins
 these steps:
 
 1. Checkout the [Omejdn DAPS repository](https://github.com/International-Data-Spaces-Association/omejdn-daps)
-2. Retrieve the submodules: `git submodule update --init --remote`
+2. Retrieve the submodules: 
+   > git submodule update --init --remote
 3. Generate a key and a certificate for the DAPS instance:
-   `openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout keys/omejdn/omejdn.key -out daps.cert`
+   > openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout keys/omejdn/omejdn.key -out daps.cert
 4. Modify `.env` in the project root: set `DAPS_DOMAIN` to the URL your DAPS instance will be running at.
-5. Register a connector: `scripts/register_connector.sh <client-name-for-connector> <security-profile>`. The
-   security profile is optional and will default to *idsc:BASE_SECURITY_PROFILE* if not specified.
+5. Register a connector (the security profile is optional and will default to *idsc:BASE_SECURITY_PROFILE* if not
+   specified):
+   > scripts/register_connector.sh <client-name-for-connector> <security-profile>
 6. Optionally, you can register more connectors by running step 5 multiple times with different client names.
-7. Run the DAPS: `docker compose -f compose-development.yml up`
+7. Run the DAPS:
+   > docker compose -f compose-development.yml up
 8. When you see `omejdn-server_1  | == Sinatra (v2.1.0) has taken the stage on 4567 for development with backup from Thin`
    in the logs, the DAPS is ready to accept requests.
    
