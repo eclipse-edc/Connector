@@ -194,12 +194,12 @@ addition to just confirming or declining an offer.
 
 In order to trigger the negotiation, we use the endpoint previously created in the `api` extension. We specify the
 address of the provider connector as a query parameter and set our contract offer in the request body. The contract
-offer is prepared in [contractoffer.json](client/src/main/resources/contractoffer.json)
+offer is prepared in [contractoffer.json](integration-tests/src/test/resources/contractoffer.json)
 and can be used as is. In a real scenario, a potential consumer would first need to request a description of the
 provider's offers in order to get the provider's contract offer.
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -d @samples/04.0-file-transfer/client/src/main/resources/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://localhost:8181/api/ids/multipart"
+curl -X POST -H "Content-Type: application/json" -d @samples/04.0-file-transfer/integration-tests/src/test/resources/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://localhost:8181/api/ids/multipart"
 ```
 
 In the response we'll get a UUID that we can use to get the contract agreement negotiated between provider and consumer.
