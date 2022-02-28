@@ -30,9 +30,8 @@ export CONSUMER_URL=$(minikube service --url consumer-dataspace-connector)
 export PROVIDER_URL="http://provider-dataspace-connector"
 export DESTINATION_PATH="/tmp/destination-file-$RANDOM"
 export API_KEY="password"
-export RUN_INTEGRATION_TEST="true"
 
-./gradlew :system-tests:tests:test --tests org.eclipse.dataspaceconnector.system.tests.remote.FileTransferAsClientIntegrationTest
+./gradlew :system-tests:tests:test -DincludeTags="IntegrationTest" --tests org.eclipse.dataspaceconnector.system.tests.remote.FileTransferAsClientIntegrationTest
 
 kubectl exec deployment/provider-dataspace-connector -- wc -l $DESTINATION_PATH
 echo "Test succeeded."

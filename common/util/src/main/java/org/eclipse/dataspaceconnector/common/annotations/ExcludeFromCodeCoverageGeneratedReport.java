@@ -14,20 +14,18 @@
 
 package org.eclipse.dataspaceconnector.common.annotations;
 
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Common annotation for integration testing.  It applies integration-test Junit Tag.
+ * Exclude a block of code from code coverage.
+ * <p>
+ * JaCoCo automatically excludes code with an annotation containing
+ * the string "Generated" in its name.
  */
-@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@Test
-@Tag("IntegrationTest")
-public @interface IntegrationTest {
+@Target({ElementType.METHOD, ElementType.TYPE})
+public @interface ExcludeFromCodeCoverageGeneratedReport {
 }

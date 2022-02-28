@@ -156,6 +156,7 @@ jobs:
       - name: Test
         run: |
           eval $(minikube -p minikube docker-env)
+          chmod +x system-tests/minikube/minikube-test.sh
           system-tests/minikube/minikube-test.sh
 
       - name: Kubernetes logs

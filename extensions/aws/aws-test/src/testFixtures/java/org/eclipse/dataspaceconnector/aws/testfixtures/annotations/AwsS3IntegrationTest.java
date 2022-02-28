@@ -12,10 +12,10 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.common.annotations;
+package org.eclipse.dataspaceconnector.aws.testfixtures.annotations;
 
+import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -23,11 +23,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Common annotation for integration testing.  It applies integration-test Junit Tag.
+ * Annotation for AWS S3 integration testing.  It applies specific Junit Tag.
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@Test
-@Tag("IntegrationTest")
-public @interface IntegrationTest {
+@IntegrationTest
+@Tag("AwsS3IntegrationTest")
+public @interface AwsS3IntegrationTest {
 }

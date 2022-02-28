@@ -25,12 +25,42 @@ eventually we might want to write an integration test that uses a CosmosDB test 
 
 ## Coding Guidelines
 
-An integration test is annotated with `@IntegrationTest`, which causes the test runner to ignore it unless the
-`RUN_INTEGRATION_TEST` environment variable is set to `true`.
+EDC codebase has few annotations and these annotation focuses on two important aspects:
 
-All integration tests should have the `"...IntegrationTest"` postfix to distinguish them clearly from unit tests. They
-should reside in the same package as unit tests because all tests should maintain package consistency to their test
-subject.
+- Exclude integration tests by default from JUnit test runner as these tests relies on external systems which might not
+be available during a local execution.
+- Categorize integration tests with help of
+[JUnit Tags](https://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering).
+
+Following are some available annotations:
+
+- `@IntegrationTest`: Marks an integration test with `IntegrationTest` Junit tag. This is the default tag and can be
+used if you do not want to specify any other tags on your test to do further categorization.
+
+Below annotations are used to categorize integration tests based on the runtime components that must be available for
+the test to run. All of these annotations are composite annotations and contains `@IntegrationTest` annotation as well.
+
+- `@AzureStorageIntegrationTest`: Marks an integration test with `AzureStorageIntegrationTest` Junit tag. This should be
+used when the integration test requires the Azure Storage emulator to run.
+- `@AzureCosmosDbIntegrationTest`: Marks an integration test with `AzureCosmosDbIntegrationTest` Junit tag. This should
+be used when the integration test requires the Azure CosmosDB emulator to run.
+- `@AwsS3IntegrationTest`: Marks an integration test with `AwsS3IntegrationTest` Junit tag. This should be used when the
+integration test requires the AWS S3 storage emulator to run.
+- `@DapsTest`: Marks an integration test with `DapsIntegrationTest` Junit tag. This should be used when the integration
+test is requires Daps IAM endpoint to run.
+
+We encourage you to use these available annotation but if your integration test does not fit in one of these available
+annotations, and you want to categorize them based on their technologies then feel free to create a new annotations but
+make sure to use composite annotations which contains `@IntegrationTest`. If you do not wish to categorize based on
+their technologies then you can use already available `@IntegrationTest` annotation.
+
+- By default, JUnit test runner ignores all integration tests because in root `build.gradle.kts` file we have excluded
+all tests marked with `IntegrationTest` Junit tag.
+- If your integration test does not rely on an external system then you may not want to use above-mentioned annotations.
+
+All integration tests should specify annotation to categorize them and the `"...IntegrationTest"` postfix to distinguish
+them clearly from unit tests. They should reside in the same package as unit tests because all tests should maintain
+package consistency to their test subject.
 
 Any credentials, secrets, passwords, etc. that are required by the integration tests should be passed in using
 environment variables. A good way to access them is `ConfigurationFunctions.propOrEnv()` because then the credentials
@@ -52,20 +82,47 @@ any residue before and after the test.
 
 ## Running them locally
 
-The JUnit runner won't pick up integration tests unless the `RUN_INTEGRATION_TEST` environment variable is set to `true`
-. Also, don't forget to define any credentials that are needed.
+As mentioned above the JUnit runner won't pick up integration tests unless a tag is provided. For example to run
+`Azure CosmosDB` integration tests pass `includeTags` parameter with tag value to the `gradlew` command:
+
+```bash
+./gradlew test -p path/to/module -DincludeTags="AzureCosmosDbIntegrationTest"
+```
+
+_Cosmos DB integration tests are run by default against a locally running
+[Cosmos DB Emulator](https://docs.microsoft.com/azure/cosmos-db/local-emulator). You can also use an instance of Cosmos
+DB running in Azure, in which case you should set the `COSMOS_KEY` environment variable._
+
+if needed to run all types of tests(e.g. unit & integration) then it can be achieved by passing the `runAllTests=true`
+parameter to the `gradlew` command:
+
+```bash
+./gradlew test -DrunAllTests="true"
+```
+
+For example to run all integration tests from Azure cosmos db module and its sub-modules:
+
+```bash
+./gradlew -p extensions/azure/cosmos test -DincludeTags="AzureCosmosDbIntegrationTest"
+```
+
+_Command as `./gradlew :extensions:azure:cosmos test -DincludeTags="AzureCosmosDbIntegrationTest"` does not execute
+tests from all sub-modules so we need to use `-p` to specify the module project path._
 
 Cosmos DB integration tests are run by default against a locally running [Cosmos DB Emulator](https://docs.microsoft.com/azure/cosmos-db/local-emulator). You can also use an instance of Cosmos DB running in Azure, in which case you should set the `COSMOS_KEY` environment variable.
 
 ## Running them in the CI pipeline
 
-All integration tests should go into the [integration test workflow](../.github/workflows/integrationtests.yaml),
-every "technology" should have its own job, every test should go into a step.
+All integration tests should go into the [integration test workflow](../.github/workflows/integrationtests.yaml), every
+"technology" should have its own job, and technology specific tests can be targeted using Junit tags with
+`-DincludeTags` property as described above in document.
 
 For example let's assume we've implemented a Postgres-based Asset Index, then the integration tests for that should go
-into a "Postgres" `job`, and every module that adds a test (here: `extensions:postgres:assetindex`) should go into its
-own
-`step`. Let's also make sure that the code is checked out before and integration tests only run on the upstream repo.
+into a "Postgres" `job`, and every module that adds a test (here: `extensions:postgres:assetindex`) should apply a
+composite annotation (here: `@PostgresIntegrationTest` adding a tag `PostgresIntegrationTest`) on its integration tests.
+This tagging will be used by the CI pipeline step to target and execute the integration tests related to Postgres.
+
+Let's also make sure that the code is checked out before and integration tests only run on the upstream repo.
 
 ```yaml
 jobs:
@@ -99,10 +156,9 @@ jobs:
 
       - name: Postgres Asset Index Test   #just an example!
         env:
-          RUN_INTEGRATION_TEST: true
           POSTGRES_USER: ${{ secrets.POSTGRES_USERNAME }}
           POSTGRES_PWD: ${{ secrets.POSTGRES_PASSWORD }}
-        run: ./gradlew extensions:postgres:assetindex:check
+        run: ./gradlew -p extensions/postgres test -DincludeTags="PostgresIntegrationTest"
 ```
 
 It is important to note that the secrets (here: `POSTGRES_USERNAME` and `POSTGRES_PASSWORD`) must be defined within the
