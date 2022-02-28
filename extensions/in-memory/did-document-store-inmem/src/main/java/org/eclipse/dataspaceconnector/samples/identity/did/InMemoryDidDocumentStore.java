@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
@@ -87,6 +88,19 @@ public class InMemoryDidDocumentStore implements DidStore {
         @Override
         public int compareTo(Entity<T> other) {
             return createTime.compareTo(other.getCreateTime());
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Entity<?> entity = (Entity<?>) o;
+            return createTime.equals(entity.createTime) && payload.equals(entity.payload);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(createTime, payload);
         }
     }
 }

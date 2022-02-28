@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -160,7 +161,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
                 .queue(updateQueue)
                 .errorReceiver(getErrorWorkItemConsumer(context, workItems))
                 .protocolAdapters(protocolAdapters)
-                .workQueuePollTimeout(() -> Duration.ofMillis(2000 + new Random().nextInt(3000)))
+                .workQueuePollTimeout(() -> Duration.ofMillis(2000 + ThreadLocalRandom.current().nextInt(3000)))
                 .build();
     }
 

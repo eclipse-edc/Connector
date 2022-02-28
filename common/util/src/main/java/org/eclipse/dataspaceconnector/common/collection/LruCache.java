@@ -38,4 +38,9 @@ public class LruCache<K, V> extends LinkedHashMap<K, V> {
     protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
         return size() > capacity;
     }
+
+    @Override
+    public Object clone() {
+        throw new UnsupportedOperationException();
+    }
 }
