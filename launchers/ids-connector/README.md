@@ -38,7 +38,7 @@ The following extensions are used for this launcher:
 
 All stores used in this launcher are in-memory implementations, meaning all data will be lost once the connector
 is shut down. If you want data to be persisted even after the connector shuts down, you may want to exchange the
-in-memory implementations by e.g. `CosmosDB` backed implementations.
+in-memory implementations for e.g. `CosmosDB` backed implementations.
 
 ## Configuration
 
@@ -72,7 +72,7 @@ You can get the identifier of the certificate by using `openssl`. For this, a `.
 If you only have the `.p12` file available, you can extract the certificate by running:
 
 ```shell
-openssl pkcs12 -in <your-keystore>.p12 -out <output-name-of-your-cert>.crt -nodes
+openssl pkcs12 -in <your-keystore>.p12 -out <output-name-of-your-cert>.cert -nodes
 ```
 
 When you have the `.cert` file available, you next need to extract the `Subject Key Identifier` and the
@@ -83,7 +83,7 @@ When you have the `.cert` file available, you next need to extract the `Subject 
 To get the `Subject Key Identifier`, run the following command:
 
 ```shell
-openssl x509 -in <path-to-.cert-file> -noout -text | grep -A1 "Subject Key Identifier"
+openssl x509 -in <your-cert>.cert -noout -text | grep -A1 "Subject Key Identifier"
 ```
 
 This will return output similar to the following, where the second line is the `Subject Key Identifier`:
@@ -98,7 +98,7 @@ X509v3 Subject Key Identifier:
 To get the `Authority Key Identifier`, run the following command:
 
 ```shell
-openssl x509 -in <path-to-.cert-file> -noout -text | grep -A1 "Authority Key Identifier"
+openssl x509 -in <your-cert>.cert -noout -text | grep -A1 "Authority Key Identifier"
 ```
 
 This will return output similar to the following, where the second line is the `Authority Key Identifier`:
@@ -155,9 +155,9 @@ java -Dedc.fs.config=<path-to-config.properties> \
 ### Docker
 
 This launcher provides a [Dockerfile](./Dockerfile), which builds the connector and uses environment variables for
-setting the system properties in the java command. Thus, the image only has to be built once and can then be used
+setting the system properties from the `java` command. Thus, the image only has to be built once and can then be used
 for different deployments. By default, no custom truststore is supplied in the Dockerfile. If you need to use a custom
-truststore, please add the system properties `javax.net.ssl.trustStore` and `javax.net.ssl.trustStorePassword`
+truststore, please add the system properties `JAVAX_NET_SSL_TRUSTSTORE` and `JAVAX_NET_SSL_TRUSTSTOREPASSWORD`
 in the Dockerfile using `ENV`.
 
 To build the image, run the following command in the root directory of the project:
