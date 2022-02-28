@@ -212,9 +212,8 @@ The URL under which the connector can reach the DAPS is `http://localhost:80` du
 
 After running step 5 from the above list, two files named `<client-name-from-step-5>.cert` and
 `<client-name-from-step-5>.key` have been added in the `keys` directory. Using `openssl` and these files,
-a keystore can be created. The following command will create the keystore in the directory you are
-running the command in. To create it in a specific directory, precede `<client-name>.p12` with the
-desired output path.
+a keystore can be created. The following command will create the keystore in the root directory of the DAPS repository.
+To create it in a specific directory, precede `<client-name>.p12` with the desired output path.
 
 ```bash
 openssl pkcs12 -export -in keys/<client-name>.cert -inkey keys/<client-name>.key -out <client-name>.p12
