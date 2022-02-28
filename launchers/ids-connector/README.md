@@ -173,7 +173,8 @@ in the container. Therefore, make sure that the paths match the mount paths in t
 
 In the following command, adjust the port if you changed it in your `config.properties` and adjust the mounted volumes
 to match your environment. The mounted volumes should contain the `config.properties` file as well as the
-keystore.
+keystore. If you added the system properties for a custom truststore to the `Dockerfile`, make sure to mount the
+truststore as well.
 
 ```shell
 docker run -p 8181:8181 \
