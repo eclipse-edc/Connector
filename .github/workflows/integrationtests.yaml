@@ -1,9 +1,6 @@
 name: Integration Tests
 
-on:
-  push:
-    branches: [ main ]
-  pull_request_target:
+on: [ push, pull_request ]
 
 jobs:
 
@@ -36,13 +33,10 @@ jobs:
         run: ./gradlew extensions:azure:blobstorage:blob-provision:check
 
   Azure-CosmosDB-Integration-Test:
-    # run only on upstream repo (requires secret access)
-    if: github.repository_owner == 'eclipse-dataspaceconnector'
-    runs-on: ubuntu-latest
+    runs-on: windows-2019
 
     env:
       RUN_INTEGRATION_TEST: true
-      COSMOS_KEY: ${{ secrets.COSMOS_KEY }}
 
     steps:
       - uses: actions/checkout@v2
@@ -51,7 +45,15 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '11'
-          cache: 'gradle'
+
+      - name: Setup Gradle cache
+        uses: gradle/gradle-build-action@v2
+
+      # Cosmos DB Emulator is preinstalled on GitHub Actions workers
+      - name: Launch Cosmos DB Emulator
+        run: |
+          Import-Module "$env:ProgramFiles\Azure Cosmos DB Emulator\PSModules\Microsoft.Azure.CosmosDB.Emulator"
+          Start-CosmosDbEmulator -Timeout 1200
 
       - name: CosmosDB Transfer Process Store Test
         run: ./gradlew extensions:azure:cosmos:transfer-process-store-cosmos:test
