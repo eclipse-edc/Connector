@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -35,9 +35,9 @@ class ContractDefinitionDocumentSerializationTest {
     @Test
     void testSerialization() {
         var def = generateDefinition();
-        var pk = def.getAccessPolicy().getUid();
+        var pk = "test-part-key";
 
-        var document = new ContractDefinitionDocument(def);
+        var document = new ContractDefinitionDocument(def, pk);
 
         String s = typeManager.writeValueAsString(document);
 
@@ -52,7 +52,7 @@ class ContractDefinitionDocumentSerializationTest {
     void testDeserialization() {
         var def = generateDefinition();
 
-        var document = new ContractDefinitionDocument(def);
+        var document = new ContractDefinitionDocument(def, "test-part-key");
         String json = typeManager.writeValueAsString(document);
 
         var transferProcessDeserialized = typeManager.readValue(json, ContractDefinitionDocument.class);

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -24,9 +24,10 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDe
 public class ContractDefinitionDocument extends CosmosDocument<ContractDefinition> {
 
     @JsonCreator
-    public ContractDefinitionDocument(@JsonProperty("wrappedInstance") ContractDefinition contractDefinition) {
+    public ContractDefinitionDocument(@JsonProperty("wrappedInstance") ContractDefinition contractDefinition,
+                                      @JsonProperty("partitionKey") String partitionKey) {
         //todo: lets think about whether this a good partition key
-        super(contractDefinition, contractDefinition.getAccessPolicy().getUid());
+        super(contractDefinition, partitionKey);
     }
 
 

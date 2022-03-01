@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.contract.negotiation.store;
 
 import com.azure.cosmos.CosmosContainer;
@@ -6,7 +20,6 @@ import com.azure.cosmos.CosmosScripts;
 import com.azure.cosmos.implementation.BadRequestException;
 import com.azure.cosmos.models.CosmosContainerResponse;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
-import com.azure.cosmos.models.CosmosItemRequestOptions;
 import com.azure.cosmos.models.CosmosStoredProcedureProperties;
 import com.azure.cosmos.models.CosmosStoredProcedureResponse;
 import com.azure.cosmos.models.PartitionKey;
@@ -62,11 +75,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
         CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
         database = client.getDatabase(response.getProperties().getId());
-        var containerName = CONTAINER_PREFIX + UUID.randomUUID();
-        CosmosContainerResponse containerIfNotExists = database.createContainerIfNotExists(containerName, "/partitionKey");
-        container = database.getContainer(containerIfNotExists.getProperties().getId());
-        uploadStoredProcedure(container, "nextForState");
-        uploadStoredProcedure(container, "lease");
+
     }
 
     @AfterAll
@@ -77,8 +86,30 @@ class CosmosContractNegotiationStoreIntegrationTest {
         }
     }
 
+    private static void uploadStoredProcedure(CosmosContainer container, String name) {
+        // upload stored procedure
+        var is = Thread.currentThread().getContextClassLoader().getResourceAsStream(name + ".js");
+        if (is == null) {
+            throw new AssertionError("The input stream referring to the " + name + " file cannot be null!");
+        }
+
+        Scanner s = new Scanner(is).useDelimiter("\\A");
+        String body = s.hasNext() ? s.next() : "";
+        CosmosStoredProcedureProperties props = new CosmosStoredProcedureProperties(name, body);
+
+        CosmosScripts scripts = container.getScripts();
+        if (scripts.readAllStoredProcedures().stream().noneMatch(sp -> sp.getId().equals(name))) {
+            CosmosStoredProcedureResponse storedProcedure = scripts.createStoredProcedure(props);
+        }
+    }
+
     @BeforeEach
     void setUp() {
+        var containerName = CONTAINER_PREFIX + UUID.randomUUID();
+        CosmosContainerResponse containerIfNotExists = database.createContainerIfNotExists(containerName, "/partitionKey");
+        container = database.getContainer(containerIfNotExists.getProperties().getId());
+        uploadStoredProcedure(container, "nextForState");
+        uploadStoredProcedure(container, "lease");
         assertThat(database).describedAs("CosmosDB database is null - did something go wrong during initialization?").isNotNull();
 
         typeManager = new TypeManager();
@@ -89,8 +120,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
     @AfterEach
     void tearDown() {
-        container.deleteAllItemsByPartitionKey(new PartitionKey(partitionKey), new CosmosItemRequestOptions());
-        container.deleteAllItemsByPartitionKey(new PartitionKey("test-part-key"), new CosmosItemRequestOptions());
+        container.delete();
     }
 
     @Test
@@ -234,7 +264,6 @@ class CosmosContractNegotiationStoreIntegrationTest {
         var result = store.nextForState(state.code(), 4);
         assertThat(result).hasSize(4).allSatisfy(r -> assertThat(preparedNegotiations).extracting(ContractNegotiation::getId).contains(r.getId()));
     }
-
 
     @Test
     void nextForState_noResult() {
@@ -448,23 +477,6 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
     private ContractNegotiation toNegotiation(Object object) {
         return toDocument(object).getWrappedInstance();
-    }
-
-    private static void uploadStoredProcedure(CosmosContainer container, String name) {
-        // upload stored procedure
-        var is = Thread.currentThread().getContextClassLoader().getResourceAsStream(name + ".js");
-        if (is == null) {
-            throw new AssertionError("The input stream referring to the " + name + " file cannot be null!");
-        }
-
-        Scanner s = new Scanner(is).useDelimiter("\\A");
-        String body = s.hasNext() ? s.next() : "";
-        CosmosStoredProcedureProperties props = new CosmosStoredProcedureProperties(name, body);
-
-        CosmosScripts scripts = container.getScripts();
-        if (scripts.readAllStoredProcedures().stream().noneMatch(sp -> sp.getId().equals(name))) {
-            CosmosStoredProcedureResponse storedProcedure = scripts.createStoredProcedure(props);
-        }
     }
 
     private ContractNegotiationDocument readItem(String id) {

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -18,7 +18,6 @@ import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
 import com.azure.cosmos.CosmosScripts;
 import com.azure.cosmos.implementation.BadRequestException;
-import com.azure.cosmos.models.CosmosItemRequestOptions;
 import com.azure.cosmos.models.CosmosItemResponse;
 import com.azure.cosmos.models.CosmosStoredProcedureProperties;
 import com.azure.cosmos.models.CosmosStoredProcedureRequestOptions;
@@ -71,14 +70,10 @@ class CosmosTransferProcessStoreIntegrationTest {
     @BeforeAll
     static void prepareCosmosClient() {
         var client = CosmosTestClient.createClient();
-        var containerName = CONTAINER_PREFIX + UUID.randomUUID();
 
         var response = client.createDatabaseIfNotExists(DATABASE_NAME);
         database = client.getDatabase(response.getProperties().getId());
-        var containerIfNotExists = database.createContainerIfNotExists(containerName, "/partitionKey");
-        container = database.getContainer(containerIfNotExists.getProperties().getId());
-        uploadStoredProcedure(container, "nextForState");
-        uploadStoredProcedure(container, "lease");
+
     }
 
     @AfterAll
@@ -89,12 +84,34 @@ class CosmosTransferProcessStoreIntegrationTest {
         }
     }
 
+    private static void uploadStoredProcedure(CosmosContainer container, String name) {
+        var is = Thread.currentThread().getContextClassLoader().getResourceAsStream(name + ".js");
+        if (is == null) {
+            throw new AssertionError("The input stream referring to the " + name + " file cannot be null!");
+        }
+
+        Scanner s = new Scanner(is).useDelimiter("\\A");
+        String body = s.hasNext() ? s.next() : "";
+        CosmosStoredProcedureProperties props = new CosmosStoredProcedureProperties(name, body);
+
+        CosmosScripts scripts = container.getScripts();
+        if (scripts.readAllStoredProcedures().stream().noneMatch(sp -> sp.getId().equals(name))) {
+            CosmosStoredProcedureResponse storedProcedure = scripts.createStoredProcedure(props);
+        }
+    }
+
     @BeforeEach
     void setUp() {
         assertThat(database).describedAs("CosmosDB database is null - did something go wrong during initialization?").isNotNull();
 
         typeManager = new TypeManager();
         typeManager.registerTypes(DataRequest.class);
+
+        var containerName = CONTAINER_PREFIX + UUID.randomUUID();
+        var containerIfNotExists = database.createContainerIfNotExists(containerName, "/partitionKey");
+        container = database.getContainer(containerIfNotExists.getProperties().getId());
+        uploadStoredProcedure(container, "nextForState");
+        uploadStoredProcedure(container, "lease");
         var retryPolicy = new RetryPolicy<>().withMaxRetries(5).withBackoff(1, 3, ChronoUnit.SECONDS);
         var cosmosDbApi = new CosmosDbApiImpl(container, false);
         store = new CosmosTransferProcessStore(cosmosDbApi, typeManager, partitionKey, connectorId, retryPolicy);
@@ -102,7 +119,7 @@ class CosmosTransferProcessStoreIntegrationTest {
 
     @AfterEach
     void tearDown() {
-        container.deleteAllItemsByPartitionKey(new PartitionKey(partitionKey), new CosmosItemRequestOptions());
+        container.delete();
     }
 
     @Test
@@ -321,7 +338,6 @@ class CosmosTransferProcessStoreIntegrationTest {
         assertThat(container.readAllItems(new PartitionKey(partitionKey), Object.class)).isEmpty();
     }
 
-
     @Test
     void find() {
         var tp = createTransferProcess("tp-id");
@@ -490,22 +506,6 @@ class CosmosTransferProcessStoreIntegrationTest {
                     .hasFieldOrProperty("leasedAt");
         });
 
-    }
-
-    private static void uploadStoredProcedure(CosmosContainer container, String name) {
-        var is = Thread.currentThread().getContextClassLoader().getResourceAsStream(name + ".js");
-        if (is == null) {
-            throw new AssertionError("The input stream referring to the " + name + " file cannot be null!");
-        }
-
-        Scanner s = new Scanner(is).useDelimiter("\\A");
-        String body = s.hasNext() ? s.next() : "";
-        CosmosStoredProcedureProperties props = new CosmosStoredProcedureProperties(name, body);
-
-        CosmosScripts scripts = container.getScripts();
-        if (scripts.readAllStoredProcedures().stream().noneMatch(sp -> sp.getId().equals(name))) {
-            CosmosStoredProcedureResponse storedProcedure = scripts.createStoredProcedure(props);
-        }
     }
 
     private TransferProcessDocument convert(Object obj) {

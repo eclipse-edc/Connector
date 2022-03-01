@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.catalog.node.directory.azure;
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
-import com.azure.cosmos.models.CosmosItemRequestOptions;
 import com.azure.cosmos.models.PartitionKey;
 import com.azure.cosmos.util.CosmosPagedIterable;
 import net.jodah.failsafe.RetryPolicy;
@@ -57,8 +56,7 @@ class CosmosFederatedCacheNodeDirectoryIntegrationTest {
 
         var response = client.createDatabaseIfNotExists(DATABASE_NAME);
         database = client.getDatabase(response.getProperties().getId());
-        var containerIfNotExists = database.createContainerIfNotExists(CONTAINER_NAME, "/partitionKey");
-        container = database.getContainer(containerIfNotExists.getProperties().getId());
+
     }
 
     @AfterAll
@@ -69,8 +67,16 @@ class CosmosFederatedCacheNodeDirectoryIntegrationTest {
         }
     }
 
+    private static boolean assertNodesAreEqual(FederatedCacheNode node1, FederatedCacheNode node2) {
+        return node1.getName().equals(node2.getName()) &&
+                node1.getTargetUrl().equals(node2.getTargetUrl()) &&
+                node1.getSupportedProtocols().equals(node2.getSupportedProtocols());
+    }
+
     @BeforeEach
     void setUp() {
+        var containerIfNotExists = database.createContainerIfNotExists(CONTAINER_NAME, "/partitionKey");
+        container = database.getContainer(containerIfNotExists.getProperties().getId());
         assertThat(database).describedAs("CosmosDB database is null - did something go wrong during initialization?").isNotNull();
         typeManager = new TypeManager();
         typeManager.registerTypes(FederatedCacheNode.class, FederatedCacheNodeDocument.class);
@@ -80,7 +86,7 @@ class CosmosFederatedCacheNodeDirectoryIntegrationTest {
 
     @AfterEach
     void teardown() {
-        container.deleteAllItemsByPartitionKey(new PartitionKey(TEST_PARTITION_KEY), new CosmosItemRequestOptions());
+        container.delete();
     }
 
     @Test
@@ -109,12 +115,6 @@ class CosmosFederatedCacheNodeDirectoryIntegrationTest {
         assertThat(result).hasSize(2)
                 .anyMatch(node -> assertNodesAreEqual(node, node1))
                 .anyMatch(node -> assertNodesAreEqual(node, node2));
-    }
-
-    private static boolean assertNodesAreEqual(FederatedCacheNode node1, FederatedCacheNode node2) {
-        return node1.getName().equals(node2.getName()) &&
-                node1.getTargetUrl().equals(node2.getTargetUrl()) &&
-                node1.getSupportedProtocols().equals(node2.getSupportedProtocols());
     }
 
     private FederatedCacheNodeDocument convert(Object obj) {
