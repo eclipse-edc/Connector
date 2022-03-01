@@ -2,6 +2,7 @@ package org.eclipse.dataspaceconnector.azure.testfixtures;
 
 import com.azure.cosmos.CosmosClient;
 import com.azure.cosmos.CosmosClientBuilder;
+import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
 import java.io.FileInputStream;
@@ -27,7 +28,7 @@ public interface CosmosTestClient {
 
     static CosmosClient createClient() {
         var cosmosKey = propOrEnv("COSMOS_KEY", null);
-        if (cosmosKey != null) {
+        if (!StringUtils.isNullOrBlank(cosmosKey)) {
             return azureClient(cosmosKey);
         } else {
             return localClient();

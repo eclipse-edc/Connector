@@ -55,6 +55,8 @@ any residue before and after the test.
 The JUnit runner won't pick up integration tests unless the `RUN_INTEGRATION_TEST` environment variable is set to `true`
 . Also, don't forget to define any credentials that are needed.
 
+Cosmos DB integration tests are run by default against a locally running [Cosmos DB Emulator](https://docs.microsoft.com/azure/cosmos-db/local-emulator). You can also use an instance of Cosmos DB running in Azure, in which case you should set the `COSMOS_KEY` environment variable.
+
 ## Running them in the CI pipeline
 
 All integration tests should go into the [integration test workflow](../.github/workflows/integrationtests.yaml),

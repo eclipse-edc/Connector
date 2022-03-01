@@ -34,6 +34,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.PARTITION_KEY;
 import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDefinition;
 import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDocument;
 
@@ -46,6 +47,8 @@ public class CosmosContractDefinitionStoreIntegrationTest {
     private static CosmosDatabase database;
     private TypeManager typeManager;
     private CosmosContractDefinitionStore store;
+
+    private static final String PARTITION_KEY_AFTER_UPDATE = "test-ap-id1-new";
 
     @BeforeAll
     static void prepareCosmosClient() {
@@ -77,7 +80,8 @@ public class CosmosContractDefinitionStoreIntegrationTest {
 
     @AfterEach
     void tearDown() {
-        container.deleteAllItemsByPartitionKey(new PartitionKey("test-ap-id1"), new CosmosItemRequestOptions());
+        container.deleteAllItemsByPartitionKey(new PartitionKey(PARTITION_KEY), new CosmosItemRequestOptions());
+        container.deleteAllItemsByPartitionKey(new PartitionKey(PARTITION_KEY_AFTER_UPDATE), new CosmosItemRequestOptions());
     }
 
     @Test
@@ -295,7 +299,7 @@ public class CosmosContractDefinitionStoreIntegrationTest {
         // modify the object
         var modifiedDef = ContractDefinition.Builder.newInstance().id(def.getId())
                 .contractPolicy(Policy.Builder.newInstance().id("test-cp-id-new").build())
-                .accessPolicy(Policy.Builder.newInstance().id("test-ap-id-new").build())
+                .accessPolicy(Policy.Builder.newInstance().id(PARTITION_KEY_AFTER_UPDATE).build())
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals("somekey", "someval").build())
                 .build();
 
