@@ -9,7 +9,7 @@ components:
 - a module providing the implementation, typically located in the `extensions` directory
 - the service registry, i.e. the `ServiceExtensionContext`. Since it is not quite an IoC container, we'll henceforth
   refer to it as the "context".
-- a hook point into the loading sequence: an extension that that instantiates and registers the implementation class
+- a hook point into the loading sequence: an extension that instantiates and registers the implementation class
   with the context
 
 ## Registering a service implementation
