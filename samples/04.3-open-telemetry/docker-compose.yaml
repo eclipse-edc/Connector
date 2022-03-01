@@ -8,13 +8,14 @@ services:
       OTEL_SERVICE_NAME: consumer
       OTEL_TRACES_EXPORTER: jaeger
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14250
+      OTEL_METRICS_EXPORTER: prometheus
       edc.api.control.auth.apikey.value: password
       ids.webhook.address: http://consumer:8181
     volumes:
       - ../:/samples
     ports:
       - 9191:8181
-    entrypoint: java -javaagent:/samples/04.3-open-telemetry/opentelemetry-javaagent.jar -jar /samples/04.0-file-transfer/consumer/build/libs/consumer.jar
+    entrypoint: java -javaagent:/samples/04.3-open-telemetry/opentelemetry-javaagent.jar -jar /samples/04.3-open-telemetry/consumer/build/libs/consumer.jar
 
   provider:
     image: openjdk:11-jre-slim-buster
@@ -33,3 +34,11 @@ services:
     image: jaegertracing/all-in-one
     ports:
       - 16686:16686
+
+  prometheus:
+    image: prom/prometheus:v2.30.3
+    container_name: prometheus
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+    ports:
+      - 9090:9090

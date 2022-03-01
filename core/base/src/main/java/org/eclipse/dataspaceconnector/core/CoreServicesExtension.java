@@ -15,9 +15,11 @@
 package org.eclipse.dataspaceconnector.core;
 
 import net.jodah.failsafe.RetryPolicy;
+import okhttp3.EventListener;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.core.base.CommandHandlerRegistryImpl;
 import org.eclipse.dataspaceconnector.core.base.RemoteMessageDispatcherRegistryImpl;
+import org.eclipse.dataspaceconnector.core.executor.NoopExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceConfiguration;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceImpl;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -26,6 +28,8 @@ import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.BaseExtension;
+import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -39,7 +43,10 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import static java.util.Optional.ofNullable;
 
 @BaseExtension
 @Provides({RetryPolicy.class, HealthCheckService.class, OkHttpClient.class, RemoteMessageDispatcherRegistry.class})
@@ -62,6 +69,19 @@ public class CoreServicesExtension implements ServiceExtension {
 
     private static final long DEFAULT_DURATION = 60;
     private static final int DEFAULT_TP_SIZE = 3;
+
+    /**
+     * An optional OkHttp {@link EventListener} that can be used to instrument OkHttp client for collecting metrics.
+     * Used by the optional {@code micrometer} module.
+     */
+    @Inject(required = false)
+    private EventListener okHttpEventListener;
+    /**
+     * An optional instrumentor for {@link ExecutorService}. Used by the optional {@code micrometer} module.
+     */
+    @Inject(required = false)
+    private ExecutorInstrumentation executorInstrumentation;
+
     private HealthCheckServiceImpl healthCheckService;
 
     @Override
@@ -74,10 +94,11 @@ public class CoreServicesExtension implements ServiceExtension {
         addHttpClient(context);
         addRetryPolicy(context);
         registerParser(context);
+        var executorInstrumentation = registerExecutorInstrumentation(context);
         var config = getHealthCheckConfig(context);
 
         // health check service
-        healthCheckService = new HealthCheckServiceImpl(config);
+        healthCheckService = new HealthCheckServiceImpl(config, executorInstrumentation);
         context.registerService(HealthCheckService.class, healthCheckService);
 
         // remote message dispatcher registry
@@ -136,11 +157,22 @@ public class CoreServicesExtension implements ServiceExtension {
     }
 
     private void addHttpClient(ServiceExtensionContext context) {
-        OkHttpClient client = new OkHttpClient.Builder()
+        var builder = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .build();
+                .readTimeout(30, TimeUnit.SECONDS);
+
+        ofNullable(okHttpEventListener).ifPresent(builder::eventListener);
+
+        var client = builder.build();
 
         context.registerService(OkHttpClient.class, client);
     }
+
+    private ExecutorInstrumentation registerExecutorInstrumentation(ServiceExtensionContext context) {
+        var executorInstrumentationImpl = ofNullable(this.executorInstrumentation).orElse(new NoopExecutorInstrumentation());
+        // Register ExecutorImplementation with default noop implementation if none available
+        context.registerService(ExecutorInstrumentation.class, executorInstrumentationImpl);
+        return executorInstrumentationImpl;
+    }
+
 }
