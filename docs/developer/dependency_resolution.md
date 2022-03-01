@@ -15,7 +15,7 @@ components:
 ## Registering a service implementation
 
 As a general rule the module that provides the implementation also has to register it with
-the `ServiceExtensionContext` ("context" for short). This is done in an accompanying service extension. For example,
+the `ServiceExtensionContext`. This is done in an accompanying service extension. For example,
 providing a CosmosDB based implementation for a `FooStore` (stores `Foo` objects) would require the following classes:
 
 1. A `FooStore.java` interface, located in SPI:
@@ -138,18 +138,11 @@ positions in the list, and thus have already been initialized.
 
 ## Limitations and differences to fully-fledged IoC containers
 
-#### Only available in `ServiceExtensions` (and why that's not entirely true)
+#### Only available in `ServiceExtensions`
 
 Services can only be injected into `ServiceExtension` objects at this time as they are the main hook points for plugins,
 and they have a clearly defined interface. All subsequent object creation must be done manually using conventional
 mechanisms like constructors or builders.
-
-**Well, actually...**
-
-However, using the `ReflectiveObjectFactory` together with an `Injector` and an `InjectionPointScanner` would
-theoretically enable dependency injection for all object types, not only `ServiceExtension`s. Note that this is largely
-unproven at this time, and some work still needs to be done there, especially in decoupling this from
-the `ServiceExtensionContext`. **Use at your own risk!**
 
 #### No multiple registrations
 
