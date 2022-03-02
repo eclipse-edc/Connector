@@ -13,25 +13,20 @@
  */
 
 plugins {
-    java
+    `java-library`
 }
 
-val jupiterVersion: String by project
-val restAssured: String by project
-val assertj: String by project
-val awaitility: String by project
+val gatlingVersion: String by project
 
 dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
-    testImplementation("io.rest-assured:rest-assured:${restAssured}")
-    testImplementation("org.assertj:assertj-core:${assertj}")
-    testImplementation("org.awaitility:awaitility:${awaitility}")
+    testImplementation("io.gatling:gatling-http-java:${gatlingVersion}")
+    testImplementation("io.gatling.highcharts:gatling-charts-highcharts:${gatlingVersion}")
 
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":launchers:junit")))
 
-    testRuntimeOnly(project(":samples:04.0-file-transfer:provider"))
-    testRuntimeOnly(project(":samples:04.0-file-transfer:consumer"))
+    testRuntimeOnly(project(":system-tests:runtimes:file-transfer-provider"))
+    testRuntimeOnly(project(":system-tests:runtimes:file-transfer-consumer"))
 }
 
 tasks.getByName<Test>("test") {

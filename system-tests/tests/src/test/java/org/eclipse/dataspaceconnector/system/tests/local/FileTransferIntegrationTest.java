@@ -12,9 +12,10 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.samples;
+package org.eclipse.dataspaceconnector.system.tests.local;
 
 import org.eclipse.dataspaceconnector.junit.launcher.EdcRuntimeExtension;
+import org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -28,27 +29,23 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.tempDirectory;
-import static org.eclipse.dataspaceconnector.samples.FileTransferTestUtils.PROVIDER_ASSET_NAME;
+import static org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils.PROVIDER_ASSET_NAME;
+import static org.eclipse.dataspaceconnector.system.tests.utils.GatlingUtils.runGatling;
 
 
-/**
- * System Test for Sample 04.0-file-transfer
- */
-class FileTransferIntegrationTest {
-    static final String PROVIDER_ASSET_PATH = format("%s/%s.txt", tempDirectory(), PROVIDER_ASSET_NAME);
+public class FileTransferIntegrationTest {
+    public static final String PROVIDER_ASSET_PATH = format("%s/%s.txt", tempDirectory(), PROVIDER_ASSET_NAME);
 
-    static final String CONSUMER_ASSET_PATH = tempDirectory();
-    static final int CONSUMER_CONNECTOR_PORT = getFreePort();
-    static final String CONSUMER_CONNECTOR_HOST = "http://localhost:" + CONSUMER_CONNECTOR_PORT;
-
-    static final int PROVIDER_CONNECTOR_PORT = getFreePort();
-    static final String PROVIDER_CONNECTOR_HOST = "http://localhost:" + PROVIDER_CONNECTOR_PORT;
-
-    static final String API_KEY_CONTROL_AUTH = "password";
+    public static final String CONSUMER_ASSET_PATH = tempDirectory();
+    public static final int CONSUMER_CONNECTOR_PORT = getFreePort();
+    public static final String CONSUMER_CONNECTOR_HOST = "http://localhost:" + CONSUMER_CONNECTOR_PORT;
+    public static final String API_KEY_CONTROL_AUTH = "password";
+    public static final int PROVIDER_CONNECTOR_PORT = getFreePort();
+    public static final String PROVIDER_CONNECTOR_HOST = "http://localhost:" + PROVIDER_CONNECTOR_PORT;
 
     @RegisterExtension
     static EdcRuntimeExtension consumer = new EdcRuntimeExtension(
-            ":samples:04.0-file-transfer:consumer",
+            ":system-tests:runtimes:file-transfer-consumer",
             "consumer",
             Map.of(
                     "web.http.port", String.valueOf(CONSUMER_CONNECTOR_PORT),
@@ -57,29 +54,22 @@ class FileTransferIntegrationTest {
 
     @RegisterExtension
     static EdcRuntimeExtension provider = new EdcRuntimeExtension(
-            ":samples:04.0-file-transfer:provider",
+            ":system-tests:runtimes:file-transfer-provider",
             "provider",
             Map.of(
                     "web.http.port", String.valueOf(PROVIDER_CONNECTOR_PORT),
-                    "edc.samples.04.asset.path", PROVIDER_ASSET_PATH,
+                    "edc.test.asset.path", PROVIDER_ASSET_PATH,
                     "ids.webhook.address", PROVIDER_CONNECTOR_HOST));
 
     @Test
     public void transferFile_success() throws Exception {
         // Arrange
         // Create a file with test data on provider file system.
-        var fileContent = "Sample04-test-" + UUID.randomUUID();
+        var fileContent = "FileTransfer-test-" + UUID.randomUUID();
         Files.write(Path.of(PROVIDER_ASSET_PATH), fileContent.getBytes(StandardCharsets.UTF_8));
 
         // Act
-        var client = new FileTransferTestUtils();
-        client.setConsumerUrl(CONSUMER_CONNECTOR_HOST);
-        client.setProviderUrl(PROVIDER_CONNECTOR_HOST);
-        client.setDestinationPath(CONSUMER_ASSET_PATH);
-        client.setApiKey(API_KEY_CONTROL_AUTH);
-
-        var contractAgreementId = client.negotiateContractAgreement();
-        client.performFileTransfer(contractAgreementId);
+        runGatling(FileTransferLocalSimulation.class, FileTransferSimulationUtils.DESCRIPTION);
 
         // Assert
         var copiedFilePath = Path.of(format(CONSUMER_ASSET_PATH + "/%s.txt", PROVIDER_ASSET_NAME));
