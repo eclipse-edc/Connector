@@ -37,9 +37,6 @@ include(":data-protocols:ids:ids-spi")
 include(":data-protocols:ids:ids-transform-v1")
 include(":data-protocols:ids:ids-token-validation")
 
-include(":extensions:ion:ion-core")
-include(":extensions:ion:ion-client")
-
 // modules for technology- or cloud-provider extensions
 include(":extensions:aws")
 include(":extensions:api:control")
