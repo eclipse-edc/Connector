@@ -3,7 +3,7 @@ version: "3.8"
 services:
 
   consumer:
-    image: openjdk:11-jre-slim-buster
+    image: openjdk:17-jdk-slim-buster
     environment:
       OTEL_SERVICE_NAME: consumer
       OTEL_TRACES_EXPORTER: jaeger
@@ -22,7 +22,7 @@ services:
       -jar /samples/04.3-open-telemetry/consumer/build/libs/consumer.jar
 
   provider:
-    image: openjdk:11-jre-slim-buster
+    image: openjdk:17-jdk-slim-buster
     environment:
       OTEL_SERVICE_NAME: provider
       OTEL_TRACES_EXPORTER: jaeger

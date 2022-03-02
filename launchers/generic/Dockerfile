@@ -12,7 +12,7 @@
 #
 #
 
-FROM openjdk:11-jre-slim
+FROM openjdk:17-jdk-slim
 ARG JAR
 
 COPY $JAR app.jar

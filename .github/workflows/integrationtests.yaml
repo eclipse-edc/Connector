@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-java@v2
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '17'
           cache: 'gradle'
 
       - name: Azure Storage Tests
@@ -35,8 +35,8 @@ jobs:
 
       - uses: actions/setup-java@v2
         with:
+          java-version: '17'
           distribution: 'temurin'
-          java-version: '11'
           cache: 'gradle'
 
       # Cosmos DB Emulator is preinstalled on GitHub Actions workers
@@ -65,8 +65,8 @@ jobs:
 
       - uses: actions/setup-java@v2
         with:
+          java-version: '17'
           distribution: 'temurin'
-          java-version: '11'
           cache: 'gradle'
 
       - name: AWS S3 Tests
@@ -94,8 +94,8 @@ jobs:
 
       - uses: actions/setup-java@v2
         with:
+          java-version: '17'
           distribution: 'temurin'
-          java-version: '11'
           cache: 'gradle'
 
       - name: Daps Integration Tests

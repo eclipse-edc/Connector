@@ -132,19 +132,6 @@ abstract class DecentralizedIdentityServiceTest {
         return new EcPrivateKeyWrapper((ECKey) privateKey);
     }
 
-    public static class WithSecp256k1 extends DecentralizedIdentityServiceTest {
-
-        @Override
-        protected @NotNull JWK getKeyPair() {
-            return KeyPairFactory.generateKeyPair();
-        }
-
-        @Override
-        protected @NotNull JWSAlgorithm getHeaderAlgorithm() {
-            return JWSAlgorithm.ES256K;
-        }
-    }
-
     public static class WithP256 extends DecentralizedIdentityServiceTest {
         @Override
         protected @NotNull JWK getKeyPair() {

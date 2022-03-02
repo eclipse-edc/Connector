@@ -84,6 +84,12 @@ allprojects {
         toolchain {
             languageVersion.set(JavaLanguageVersion.of(javaVersion))
         }
+
+        tasks.withType(JavaCompile::class.java) {
+            // making sure the code does not use any APIs from a more recent version.
+            // Ref: https://docs.gradle.org/current/userguide/building_java_projects.html#sec:java_cross_compilation
+            options.release.set(javaVersion.toInt())
+        }
     }
 
     // EdcRuntimeExtension uses this to determine the runtime classpath of the module to run.
@@ -226,8 +232,4 @@ openApiMerger {
             }
         }
     }
-}
-
-val test by tasks.getting(Test::class) {
-    useJUnitPlatform()
 }
