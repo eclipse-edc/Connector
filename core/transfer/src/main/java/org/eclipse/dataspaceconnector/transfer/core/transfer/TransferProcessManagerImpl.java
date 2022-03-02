@@ -97,13 +97,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private CommandProcessor<TransferProcessCommand> commandProcessor;
     private Monitor monitor;
     private Telemetry telemetry;
-    private StateMachine loop;
+    private StateMachine stateMachine;
 
     private TransferProcessManagerImpl() {
     }
 
     public void start() {
-        loop = StateMachine.Builder.newInstance("transfer-process", monitor, waitStrategy)
+        stateMachine = StateMachine.Builder.newInstance("transfer-process", monitor, waitStrategy)
                 .processor(processTransfersInState(INITIAL, this::processInitial))
                 .processor(processTransfersInState(PROVISIONED, this::processProvisioned))
                 .processor(processTransfersInState(REQUESTED_ACK, this::processAckRequested))
@@ -112,12 +112,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                 .processor(processTransfersInState(DEPROVISIONED, this::processDeprovisioned))
                 .processor(onCommands(this::processCommand))
                 .build();
-        loop.start();
+        stateMachine.start();
     }
 
     public void stop() {
-        if (loop != null) {
-            loop.stop();
+        if (stateMachine != null) {
+            stateMachine.stop();
         }
     }
 

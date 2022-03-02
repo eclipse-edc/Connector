@@ -74,7 +74,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     private CommandProcessor<ContractNegotiationCommand> commandProcessor;
     private Monitor monitor;
     private Telemetry telemetry;
-    private StateMachine loop;
+    private StateMachine stateMachine;
 
     private ProviderContractNegotiationManagerImpl() {
     }
@@ -84,19 +84,19 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     //TODO validate previous offers against hash?
 
     public void start() {
-        loop = StateMachine.Builder.newInstance("provider-contract-negotiation", monitor, waitStrategy)
+        stateMachine = StateMachine.Builder.newInstance("provider-contract-negotiation", monitor, waitStrategy)
                 .processor(processNegotiationsInState(PROVIDER_OFFERING, this::processProviderOffering))
                 .processor(processNegotiationsInState(DECLINING, this::processDeclining))
                 .processor(processNegotiationsInState(CONFIRMING, this::processConfirming))
                 .processor(onCommands(this::processCommand))
                 .build();
 
-        loop.start();
+        stateMachine.start();
     }
 
     public void stop() {
-        if (loop != null) {
-            loop.stop();
+        if (stateMachine != null) {
+            stateMachine.stop();
         }
     }
 

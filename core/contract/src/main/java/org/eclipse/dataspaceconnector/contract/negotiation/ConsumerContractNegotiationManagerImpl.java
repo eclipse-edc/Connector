@@ -78,12 +78,12 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     private CommandProcessor<ContractNegotiationCommand> commandProcessor;
     private Telemetry telemetry;
     private Monitor monitor;
-    private StateMachine loop;
+    private StateMachine stateMachine;
 
     private ConsumerContractNegotiationManagerImpl() { }
 
     public void start() {
-        loop = StateMachine.Builder.newInstance("consumer-contract-negotiation", monitor, waitStrategy)
+        stateMachine = StateMachine.Builder.newInstance("consumer-contract-negotiation", monitor, waitStrategy)
                 .processor(processNegotiationsInState(INITIAL, this::processInitial))
                 .processor(processNegotiationsInState(CONSUMER_OFFERING, this::processConsumerOffering))
                 .processor(processNegotiationsInState(CONSUMER_APPROVING, this::processConsumerApproving))
@@ -91,12 +91,12 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                 .processor(onCommands(this::processCommand))
                 .build();
 
-        loop.start();
+        stateMachine.start();
     }
 
     public void stop() {
-        if (loop != null) {
-            loop.stop();
+        if (stateMachine != null) {
+            stateMachine.stop();
         }
     }
 

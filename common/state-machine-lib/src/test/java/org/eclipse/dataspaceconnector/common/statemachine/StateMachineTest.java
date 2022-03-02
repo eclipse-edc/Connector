@@ -37,16 +37,16 @@ class StateMachineTest {
             Thread.sleep(100L);
             return 1L;
         });
-        var loop = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
+        var stateMachine = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
                 .processor(processor)
                 .shutdownTimeout(1)
                 .build();
 
-        loop.start();
+        stateMachine.start();
         assertThat(latch.await(1, SECONDS)).isTrue();
         verify(processor, atLeastOnce()).run();
 
-        assertThat(loop.stop()).succeedsWithin(2, SECONDS);
+        assertThat(stateMachine.stop()).succeedsWithin(2, SECONDS);
         verifyNoMoreInteractions(processor);
     }
 
@@ -59,11 +59,11 @@ class StateMachineTest {
             latch.countDown();
             return 1L;
         }).when(waitStrategy).success();
-        var loop = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
+        var stateMachine = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
                 .processor(processor)
                 .build();
 
-        loop.start();
+        stateMachine.start();
 
         assertThat(latch.await(1, SECONDS)).isTrue();
         verify(waitStrategy, never()).waitForMillis();
@@ -80,11 +80,11 @@ class StateMachineTest {
             latch.countDown();
             return 0L;
         }).when(waitStrategy).success();
-        var loop = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
+        var stateMachine = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
                 .processor(processor)
                 .build();
 
-        loop.start();
+        stateMachine.start();
 
         assertThat(latch.await(1, SECONDS)).isTrue();
         verify(waitStrategy, atLeastOnce()).waitForMillis();
@@ -95,12 +95,12 @@ class StateMachineTest {
     void shouldExitWithAnExceptionIfProcessorExitsWithAnUnrecoverableError() {
         var processor = mock(EntitiesProcessor.class);
         when(processor.run()).thenThrow(new Error("unrecoverable"));
-        var loop = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
+        var stateMachine = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
                 .processor(processor)
                 .build();
 
-        assertThat(loop.start()).succeedsWithin(1, SECONDS);
-        assertThat(loop.isActive()).isFalse();
+        assertThat(stateMachine.start()).succeedsWithin(1, SECONDS);
+        assertThat(stateMachine.isActive()).isFalse();
     }
 
     @Test
@@ -112,14 +112,14 @@ class StateMachineTest {
             latch.countDown();
             return 1L;
         });
-        var loop = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
+        var stateMachine = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
                 .processor(processor)
                 .build();
 
-        loop.start();
+        stateMachine.start();
 
         assertThat(latch.await(1, SECONDS)).isTrue();
-        assertThat(loop.isActive()).isTrue();
+        assertThat(stateMachine.isActive()).isTrue();
         verify(waitStrategy).retryInMillis();
     }
 }
