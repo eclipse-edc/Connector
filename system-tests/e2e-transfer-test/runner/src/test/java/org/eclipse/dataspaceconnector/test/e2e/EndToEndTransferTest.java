@@ -212,7 +212,7 @@ public class EndToEndTransferTest {
                 .id(UUID.randomUUID().toString())
                 .contractId(contractAgreementId)
                 .connectorId("provider")
-                .connectorAddress(provider + "/api/ids/multipart")
+                .connectorAddress(provider + "/api/ids/data")
                 .protocol("ids-multipart")
                 .assetId(assetId)
                 .dataDestination(DataAddress.Builder.newInstance().type("HttpProxy").build())
@@ -259,7 +259,7 @@ public class EndToEndTransferTest {
     private String negotiateContractFor(String assetId, URI instance, URI provider) {
         var request = ContractOfferRequest.Builder.newInstance()
                 .connectorId("provider")
-                .connectorAddress(provider + "/api/ids/multipart")
+                .connectorAddress(provider + "/api/ids/data")
                 .protocol("ids-multipart")
                 .contractOffer(ContractOffer.Builder.newInstance()
                         .id("1:1")
