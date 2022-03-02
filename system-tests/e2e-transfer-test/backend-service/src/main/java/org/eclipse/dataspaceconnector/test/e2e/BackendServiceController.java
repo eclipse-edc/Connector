@@ -22,7 +22,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
 
@@ -58,12 +57,12 @@ public class BackendServiceController {
 
         try (var response = httpClient.newCall(request).execute()) {
             var body = response.body();
+            var string = body.string();
             if (response.isSuccessful()) {
-                String string = body.string();
                 monitor.info("Data plane responded correctly: " + string);
                 providerData.set(string);
             } else {
-                monitor.warning(format("Data plane responded with error: %s %s", response.code(), body.string()));
+                monitor.warning(format("Data plane responded with error: %s %s", response.code(), string));
             }
         } catch (Exception e) {
             monitor.severe(format("Error in calling the data plane at %s", url), e);

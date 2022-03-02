@@ -16,10 +16,12 @@ plugins {
     `java-library`
 }
 
+val rsApi: String by project
+
 dependencies {
     api(project(":extensions:http"))
     api(project(":core:boot"))
     api(project(":core:base"))
 
-    api("jakarta.ws.rs:jakarta.ws.rs-api:3.0.0")
+    api("jakarta.ws.rs:jakarta.ws.rs-api:$rsApi")
 }
