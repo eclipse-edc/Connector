@@ -22,6 +22,5 @@ package org.eclipse.dataspaceconnector.spi.types.domain.edr;
 public interface EndpointDataReferenceClaimsSchema {
     String DATA_ADDRESS_CLAIM = "dad";
     String CONTRACT_ID_CLAIM = "cid";
-    String PROCESS_ID_CLAIM = "pid";
     String EXPIRATION_DATE_CLAIM = "exp";
 }
