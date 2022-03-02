@@ -102,9 +102,9 @@ class ContractNegotiationCommandQueueIntegrationTest {
                 .observable(observable)
                 .store(store)
                 .build();
+
         negotiationManager.start();
 
-        // Enqueue command
         negotiationManager.enqueueCommand(command);
 
         // Wait for CommandHandler to modify negotiation with time out at 15 seconds

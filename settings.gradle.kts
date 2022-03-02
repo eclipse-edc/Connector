@@ -18,6 +18,7 @@ rootProject.name = "dataspaceconnector"
 // modules for common/util code
 
 include(":common:util")
+include(":common:state-machine-lib")
 
 // EDC core modules
 include(":core")
