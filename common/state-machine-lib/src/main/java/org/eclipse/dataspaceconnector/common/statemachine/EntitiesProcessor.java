@@ -16,9 +16,10 @@ package org.eclipse.dataspaceconnector.common.statemachine;
 
 /**
  * Interface that declares an abstraction for a component that process some entities and return the number of the processed ones.
- * Used by {@link StateMachineLoop} to decide whether to apply wait strategy in loop iteration
+ * Used by {@link StateMachine} to decide whether to apply wait strategy in loop iteration
  *
  */
+@FunctionalInterface
 public interface EntitiesProcessor {
 
     /**

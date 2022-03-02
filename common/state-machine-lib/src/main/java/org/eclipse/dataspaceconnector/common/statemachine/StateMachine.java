@@ -33,7 +33,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * On every iteration it runs all the set processors sequentially,
  * applying a wait strategy in the case no entities are processed on the iteration.
  */
-public class StateMachineLoop {
+public class StateMachine {
 
     private final List<EntitiesProcessor> processors = new ArrayList<>();
     private final ExecutorService executor;
@@ -43,13 +43,13 @@ public class StateMachineLoop {
     private final String name;
     private int shutdownTimeout = 10;
 
-    private StateMachineLoop(String name, Monitor monitor, WaitStrategy waitStrategy) {
+    private StateMachine(String name, Monitor monitor, WaitStrategy waitStrategy) {
         this.name = name;
         this.monitor = monitor;
         this.waitStrategy = waitStrategy;
         this.executor = Executors.newSingleThreadExecutor(r -> {
             var thread = Executors.defaultThreadFactory().newThread(r);
-            thread.setName("StateMachineLoop-" + name);
+            thread.setName("StateMachine-" + name);
             return thread;
         });
     }
@@ -77,7 +77,7 @@ public class StateMachineLoop {
             try {
                 return executor.awaitTermination(shutdownTimeout, SECONDS);
             } catch (InterruptedException e) {
-                monitor.severe(format("StateMachineLoop [%s] await termination failed", name), e);
+                monitor.severe(format("StateMachine [%s] await termination failed", name), e);
                 return false;
             }
         });
@@ -106,14 +106,14 @@ public class StateMachineLoop {
                     waitStrategy.success();
                 } catch (Error | InterruptedException e) {
                     active.set(false);
-                    monitor.severe(format("StateMachineLoop [%s] unrecoverable error", name), e);
+                    monitor.severe(format("StateMachine [%s] unrecoverable error", name), e);
                 } catch (Throwable e) {
                     try {
-                        monitor.severe(format("StateMachineLoop [%s] error caught", name), e);
+                        monitor.severe(format("StateMachine [%s] error caught", name), e);
                         Thread.sleep(waitStrategy.retryInMillis());
                     } catch (InterruptedException ex) {
                         active.set(false);
-                        monitor.severe(format("StateMachineLoop [%s] unrecoverable error", name), e);
+                        monitor.severe(format("StateMachine [%s] unrecoverable error", name), e);
                     }
                 }
             }
@@ -122,10 +122,10 @@ public class StateMachineLoop {
 
     public static class Builder {
 
-        private final StateMachineLoop loop;
+        private final StateMachine loop;
 
         private Builder(String name, Monitor monitor, WaitStrategy waitStrategy) {
-            this.loop = new StateMachineLoop(name, monitor, waitStrategy);
+            this.loop = new StateMachine(name, monitor, waitStrategy);
         }
 
         public static Builder newInstance(String name, Monitor monitor, WaitStrategy waitStrategy) {
@@ -142,7 +142,7 @@ public class StateMachineLoop {
             return this;
         }
 
-        public StateMachineLoop build() {
+        public StateMachine build() {
             return loop;
         }
     }

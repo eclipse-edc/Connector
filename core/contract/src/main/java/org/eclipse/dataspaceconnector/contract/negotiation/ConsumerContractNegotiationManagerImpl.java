@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.common.statemachine.EntitiesProcessorImpl;
-import org.eclipse.dataspaceconnector.common.statemachine.StateMachineLoop;
+import org.eclipse.dataspaceconnector.common.statemachine.StateMachine;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
@@ -78,12 +78,12 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     private CommandProcessor<ContractNegotiationCommand> commandProcessor;
     private Telemetry telemetry;
     private Monitor monitor;
-    private StateMachineLoop loop;
+    private StateMachine loop;
 
     private ConsumerContractNegotiationManagerImpl() { }
 
     public void start() {
-        loop = StateMachineLoop.Builder.newInstance("consumer-contract-negotiation", monitor, waitStrategy)
+        loop = StateMachine.Builder.newInstance("consumer-contract-negotiation", monitor, waitStrategy)
                 .processor(processNegotiationsInState(INITIAL, this::processInitial))
                 .processor(processNegotiationsInState(CONSUMER_OFFERING, this::processConsumerOffering))
                 .processor(processNegotiationsInState(CONSUMER_APPROVING, this::processConsumerApproving))

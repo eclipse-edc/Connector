@@ -18,7 +18,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-class StateMachineLoopTest {
+class StateMachineTest {
 
     private final WaitStrategy waitStrategy = mock(WaitStrategy.class);
     private final Monitor monitor = mock(Monitor.class);
@@ -37,7 +37,7 @@ class StateMachineLoopTest {
             Thread.sleep(100L);
             return 1L;
         });
-        var loop = StateMachineLoop.Builder.newInstance("test", monitor, waitStrategy)
+        var loop = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
                 .processor(processor)
                 .shutdownTimeout(1)
                 .build();
@@ -59,7 +59,7 @@ class StateMachineLoopTest {
             latch.countDown();
             return 1L;
         }).when(waitStrategy).success();
-        var loop = StateMachineLoop.Builder.newInstance("test", monitor, waitStrategy)
+        var loop = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
                 .processor(processor)
                 .build();
 
@@ -80,7 +80,7 @@ class StateMachineLoopTest {
             latch.countDown();
             return 0L;
         }).when(waitStrategy).success();
-        var loop = StateMachineLoop.Builder.newInstance("test", monitor, waitStrategy)
+        var loop = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
                 .processor(processor)
                 .build();
 
@@ -95,7 +95,7 @@ class StateMachineLoopTest {
     void shouldExitWithAnExceptionIfProcessorExitsWithAnUnrecoverableError() {
         var processor = mock(EntitiesProcessor.class);
         when(processor.run()).thenThrow(new Error("unrecoverable"));
-        var loop = StateMachineLoop.Builder.newInstance("test", monitor, waitStrategy)
+        var loop = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
                 .processor(processor)
                 .build();
 
@@ -112,7 +112,7 @@ class StateMachineLoopTest {
             latch.countDown();
             return 1L;
         });
-        var loop = StateMachineLoop.Builder.newInstance("test", monitor, waitStrategy)
+        var loop = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
                 .processor(processor)
                 .build();
 

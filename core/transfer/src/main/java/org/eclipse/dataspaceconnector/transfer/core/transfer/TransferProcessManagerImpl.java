@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.common.statemachine.EntitiesProcessorImpl;
-import org.eclipse.dataspaceconnector.common.statemachine.StateMachineLoop;
+import org.eclipse.dataspaceconnector.common.statemachine.StateMachine;
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
@@ -97,13 +97,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private CommandProcessor<TransferProcessCommand> commandProcessor;
     private Monitor monitor;
     private Telemetry telemetry;
-    private StateMachineLoop loop;
+    private StateMachine loop;
 
     private TransferProcessManagerImpl() {
     }
 
     public void start() {
-        loop = StateMachineLoop.Builder.newInstance("transfer-process", monitor, waitStrategy)
+        loop = StateMachine.Builder.newInstance("transfer-process", monitor, waitStrategy)
                 .processor(processTransfersInState(INITIAL, this::processInitial))
                 .processor(processTransfersInState(PROVISIONED, this::processProvisioned))
                 .processor(processTransfersInState(REQUESTED_ACK, this::processAckRequested))

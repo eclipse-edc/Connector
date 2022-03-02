@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.common.statemachine.EntitiesProcessorImpl;
-import org.eclipse.dataspaceconnector.common.statemachine.StateMachineLoop;
+import org.eclipse.dataspaceconnector.common.statemachine.StateMachine;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
@@ -74,7 +74,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     private CommandProcessor<ContractNegotiationCommand> commandProcessor;
     private Monitor monitor;
     private Telemetry telemetry;
-    private StateMachineLoop loop;
+    private StateMachine loop;
 
     private ProviderContractNegotiationManagerImpl() {
     }
@@ -84,7 +84,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     //TODO validate previous offers against hash?
 
     public void start() {
-        loop = StateMachineLoop.Builder.newInstance("provider-contract-negotiation", monitor, waitStrategy)
+        loop = StateMachine.Builder.newInstance("provider-contract-negotiation", monitor, waitStrategy)
                 .processor(processNegotiationsInState(PROVIDER_OFFERING, this::processProviderOffering))
                 .processor(processNegotiationsInState(DECLINING, this::processDeclining))
                 .processor(processNegotiationsInState(CONFIRMING, this::processConfirming))
