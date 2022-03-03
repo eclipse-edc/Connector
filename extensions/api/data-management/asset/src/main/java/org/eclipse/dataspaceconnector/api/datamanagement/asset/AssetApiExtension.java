@@ -1,14 +1,15 @@
 /*
- * Copyright (c) 2022 ZF Friedrichshafen AG
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
- * This program and the accompanying materials are made available under the
- * terms of the Apache License, Version 2.0 which is available at
- * https://www.apache.org/licenses/LICENSE-2.0
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ *  SPDX-License-Identifier: Apache-2.0
  *
- * Contributors:
- *    ZF Friedrichshafen AG - Initial API and Implementation
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
@@ -20,7 +21,7 @@ import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
-public class AssetControllerServiceExtension implements ServiceExtension {
+public class AssetApiExtension implements ServiceExtension {
 
     @Inject
     private WebService webService;
