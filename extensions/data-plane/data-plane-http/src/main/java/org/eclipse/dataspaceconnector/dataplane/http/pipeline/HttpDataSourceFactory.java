@@ -14,7 +14,10 @@
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
 import net.jodah.failsafe.RetryPolicy;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
+import okhttp3.RequestBody;
+import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSourceFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema;
@@ -24,6 +27,10 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
+import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.BODY;
+import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.MEDIA_TYPE;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema.AUTHENTICATION_CODE;
@@ -69,20 +76,16 @@ public class HttpDataSourceFactory implements DataSourceFactory {
     private Result<HttpDataSource> createDataSource(DataFlowRequest request) {
         var dataAddress = request.getSourceDataAddress();
         var endpoint = dataAddress.getProperty(ENDPOINT);
-        if (endpoint == null) {
+        if (StringUtils.isNullOrBlank(endpoint)) {
             return Result.failure("HTTP data source endpoint not provided for request: " + request.getId());
         }
         var method = request.getProperties().get(METHOD);
-        if (method == null) {
+        if (StringUtils.isNullOrBlank(method)) {
             return Result.failure("Method not provided for request: " + request.getId());
         }
+
         var name = dataAddress.getProperty(NAME);
-        var authKey = request.getProperties().get(AUTHENTICATION_KEY);
-        var authCode = request.getProperties().get(AUTHENTICATION_CODE);
-        if (authKey != null && authCode == null || authKey == null && authCode != null) {
-            return Result.failure("Invalid authorization header for request: " + request.getId());
-        }
-        var httpDataSourceBuilder = HttpDataSource.Builder.newInstance()
+        var builder = HttpDataSource.Builder.newInstance()
                 .httpClient(httpClient)
                 .requestId(request.getId())
                 .sourceUrl(endpoint)
@@ -90,18 +93,15 @@ public class HttpDataSourceFactory implements DataSourceFactory {
                 .method(method)
                 .retryPolicy(retryPolicy)
                 .monitor(monitor);
+        Optional.ofNullable(request.getProperties().get(MEDIA_TYPE))
+                .ifPresent(mediaType -> builder.requestBody(RequestBody.create(request.getProperties().get(BODY), MediaType.parse(mediaType))));
+        Optional.ofNullable(dataAddress.getProperty(AUTHENTICATION_KEY))
+                .ifPresent(s -> builder.header(s, dataAddress.getProperty(AUTHENTICATION_CODE)));
+        Optional.ofNullable(request.getProperties().get(QUERY_PARAMS))
+                .ifPresent(builder::queryParams);
+
         try {
-
-            if (authKey != null && authCode != null) {
-                httpDataSourceBuilder.header(authKey, authCode);
-            }
-
-            var queryParams = request.getProperties().get(QUERY_PARAMS);
-            if (queryParams != null) {
-                httpDataSourceBuilder.queryParams(queryParams);
-            }
-
-            return Result.success(httpDataSourceBuilder.build());
+            return Result.success(builder.build());
         } catch (Exception e) {
             return Result.failure("Failed to build HttpDataSource: " + e.getMessage());
         }

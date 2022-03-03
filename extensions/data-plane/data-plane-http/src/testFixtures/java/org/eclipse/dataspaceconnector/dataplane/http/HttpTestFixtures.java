@@ -29,7 +29,7 @@ import static okhttp3.Protocol.HTTP_2;
 
 public class HttpTestFixtures {
 
-    private static Faker faker = new Faker();
+    private static final Faker FAKER = new Faker();
 
     public static DataFlowRequest.Builder createRequest(String type) {
         return createRequest(
@@ -41,8 +41,8 @@ public class HttpTestFixtures {
 
     public static DataFlowRequest.Builder createRequest(Map<String, String> properties, DataAddress source, DataAddress destination) {
         return DataFlowRequest.Builder.newInstance()
-                .id(faker.internet().uuid())
-                .processId(faker.internet().uuid())
+                .id(FAKER.internet().uuid())
+                .processId(FAKER.internet().uuid())
                 .properties(properties)
                 .sourceDataAddress(source)
                 .destinationDataAddress(destination)

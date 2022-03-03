@@ -21,12 +21,18 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures.createDataAddress;
 import static org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures.createRequest;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema.AUTHENTICATION_KEY;
+import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema.ENDPOINT;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema.NAME;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema.TYPE;
@@ -34,78 +40,80 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
 class HttpDataSourceFactoryTest {
+
+    private static final String TEST_ENDPOINT = "http://example.com";
+
     private HttpDataSourceFactory factory;
 
     @Test
     void verifyCanHandle() {
-        DataFlowRequest httpRequest = createRequest(TYPE).build();
-        DataFlowRequest nonHttpRequest = createRequest("Unknown").build();
+        assertThat(factory.canHandle(createRequest(TYPE).build())).isTrue();
+    }
 
-        assertThat(factory.canHandle(httpRequest)).isTrue();
-        assertThat(factory.canHandle(nonHttpRequest)).isFalse();
+    @Test
+    void verifyCannotHandle() {
+        assertThat(factory.canHandle(createRequest("dummy").build())).isFalse();
     }
 
     @Test
     void verifyValidation_success() {
-        var dataAddress = DataAddress.Builder.newInstance().property(ENDPOINT, "http://example.com").property(NAME, "foo").type(TYPE).build();
-        var validRequest = createRequest(TYPE).sourceDataAddress(dataAddress).build();
-        assertThat(factory.validate(validRequest).succeeded()).isTrue();
+        var request = defaultRequest(defaultDataAddress());
+
+        assertThat(factory.validate(request).succeeded()).isTrue();
+    }
+
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("provideInvalidRequests")
+    void verifyValidation_failure(String name, DataFlowRequest request) {
+        assertThat(factory.validate(request).failed()).isTrue();
     }
 
     @Test
-    void verifyValidation_failsBecauseMissingEndpoint() {
-        var missingEndpointRequest = createRequest("Unknown").build();
-        assertThat(factory.validate(missingEndpointRequest).failed()).isTrue();
+    void verifyCreateSource_success() {
+        var request = defaultRequest(defaultDataAddress());
+
+        assertThat(factory.createSource(request)).isNotNull();
     }
 
-    @Test
-    void verifyValidation_failsBecauseMissingName() {
-        var missingNameAddress = DataAddress.Builder.newInstance().property(ENDPOINT, "http://example.com").type(TYPE).build();
-        var missingNameRequest = createRequest(TYPE).sourceDataAddress(missingNameAddress).build();
-        assertThat(factory.validate(missingNameRequest).failed()).isTrue();
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("provideInvalidRequests")
+    void verifyCreateSource_failure(String name, DataFlowRequest request) {
+        assertThrows(EdcException.class, () -> factory.createSource(request));
     }
 
-    @Test
-    void verifyValidation_failsBecauseMissingAuthCode() {
-        var missingAuthCodeAddress = DataAddress.Builder.newInstance().property(ENDPOINT, "http://example.com").type(TYPE).build();
-        var missingAuthCodeRequest = createRequest(TYPE).sourceDataAddress(missingAuthCodeAddress)
-                .properties(Map.of(AUTHENTICATION_KEY, "Api-Key"))
-                .build();
-        assertThat(factory.validate(missingAuthCodeRequest).failed()).isTrue();
-    }
-
-    @Test
-    void verifyCreateSource() {
-        var dataAddress = DataAddress.Builder.newInstance()
+    private static DataAddress defaultDataAddress() {
+        return DataAddress.Builder.newInstance()
                 .type(TYPE)
-                .property(ENDPOINT, "http://example.com")
+                .property(ENDPOINT, TEST_ENDPOINT)
                 .property(NAME, "foo.json")
                 .build();
+    }
 
+    private static DataFlowRequest defaultRequest(DataAddress address) {
+        return defaultRequest(address, Map.of());
+    }
 
-        var missingEndpointAddress = DataAddress.Builder.newInstance()
-                .type(TYPE)
-                .property(ENDPOINT, "http://example.com")
-                .build();
+    private static DataFlowRequest defaultRequest(DataAddress address, Map<String, String> additional) {
+        var properties = new HashMap<String, String>();
+        properties.put(METHOD, "GET");
+        properties.putAll(additional);
+        return createRequest(TYPE).sourceDataAddress(address).properties(properties).build();
+    }
 
-        var missingNameAddress = DataAddress.Builder.newInstance()
-                .type(TYPE)
-                .property(NAME, "foo.json")
-                .build();
-
-        var validRequest = createRequest(TYPE).sourceDataAddress(dataAddress).build();
-        var missingEndpointRequest = createRequest(TYPE).sourceDataAddress(missingEndpointAddress).build();
-        var missingNameRequest = createRequest(TYPE).sourceDataAddress(missingNameAddress).build();
-
-
-        assertThat(factory.createSource(validRequest)).isNotNull();
-        assertThrows(EdcException.class, () -> factory.createSource(missingEndpointRequest));
-        assertThrows(EdcException.class, () -> factory.createSource(missingNameRequest));
+    /**
+     * Serves some invalid {@link DataFlowRequest}.
+     */
+    private static Stream<Arguments> provideInvalidRequests() {
+        var validAddress = defaultDataAddress();
+        var missingEndpoint = createDataAddress(TYPE, Map.of()).build();
+        return Stream.of(
+                Arguments.of("MISSING METHOD", createRequest(Map.of(), validAddress, validAddress).build()),
+                Arguments.of("MISSING ENDPOINT", defaultRequest(missingEndpoint))
+        );
     }
 
     @BeforeEach
     void setUp() {
         factory = new HttpDataSourceFactory(mock(OkHttpClient.class), new RetryPolicy<>(), mock(Monitor.class));
     }
-
 }

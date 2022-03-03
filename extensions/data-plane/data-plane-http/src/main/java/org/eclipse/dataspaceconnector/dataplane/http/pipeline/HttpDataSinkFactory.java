@@ -49,7 +49,7 @@ public class HttpDataSinkFactory implements DataSinkFactory {
 
     @Override
     public boolean canHandle(DataFlowRequest request) {
-        return TYPE.equals(request.getSourceDataAddress().getType());
+        return TYPE.equals(request.getDestinationDataAddress().getType());
     }
 
     @Override
