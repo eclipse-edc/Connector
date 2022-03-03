@@ -1,14 +1,15 @@
 /*
- * Copyright (c) 2022 ZF Friedrichshafen AG
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
- * This program and the accompanying materials are made available under the
- * terms of the Apache License, Version 2.0 which is available at
- * https://www.apache.org/licenses/LICENSE-2.0
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ *  SPDX-License-Identifier: Apache-2.0
  *
- * Contributors:
- *   ZF Friedrichshafen AG - Initial API and Implementation
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
@@ -21,6 +22,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractAgreementDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractNegotiationDto;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -88,5 +90,12 @@ public class ContractNegotiationController {
         // TODO move Negotiation to the DECLINING/DECLINED state
         // TODO Throw IllegalStateException if not possible
         monitor.debug(format("Attempting to decline contract negotiation with id %s", id));
+    }
+
+    @GET
+    @Path("/{id}/agreement")
+    public ContractAgreementDto getAgreementForNegotiation(@PathParam("id") String negotiationId) {
+        //TODO: fetch agreement for negotiation-id
+        return ContractAgreementDto.Builder.newInstance().negotiationId(negotiationId).build();
     }
 }
