@@ -41,16 +41,16 @@ import static org.mockito.Mockito.when;
 
 class ContractNegotiationCommandQueueIntegrationTest {
 
-    private ContractNegotiationStore store;
-    private ContractValidationService validationService;
-    private RemoteMessageDispatcherRegistry dispatcherRegistry;
+    private final ContractNegotiationStore store = mock(ContractNegotiationStore.class);
+    private final ContractValidationService validationService = mock(ContractValidationService.class);
+    private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
+    private final ContractNegotiationObservable observable = mock(ContractNegotiationObservable.class);
+    private final Monitor monitor = mock(Monitor.class);
+    private final String errorDetail = "Updated by command handler";
     private CommandQueue<ContractNegotiationCommand> commandQueue;
     private CommandRunner<ContractNegotiationCommand> commandRunner;
-    private ContractNegotiationObservable observable;
-    private Monitor monitor;
 
     private CountDownLatch countDownLatch;
-    private String errorDetail;
 
     private String negotiationId;
     private ContractNegotiation negotiation;
@@ -58,31 +58,17 @@ class ContractNegotiationCommandQueueIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        // Create mocks
-        monitor = mock(Monitor.class);
-        store = mock(ContractNegotiationStore.class);
-        validationService = mock(ContractValidationService.class);
-        dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
-        observable = mock(ContractNegotiationObservable.class);
-
         var commandHandlerRegistry = mock(CommandHandlerRegistry.class);
 
-        // Set error detail that will be set on the negotiation by the command handler
-        errorDetail = "Updated by command handler";
-
-        // Create & register CommandHandler
         countDownLatch = new CountDownLatch(1);
         TestCommandHandler handler = new TestCommandHandler(store, countDownLatch, errorDetail);
 
         when(commandHandlerRegistry.get(TestCommand.class)).thenReturn(handler);
 
-        // Create CommandRunner
         commandRunner = new CommandRunner<>(commandHandlerRegistry, monitor);
 
-        // Create CommandQueue
         commandQueue = new BoundedCommandQueue<>(1);
 
-        // Create ContractNegotiation and TestCommand
         negotiationId = "test";
         negotiation = getNegotiation(negotiationId);
         command = new TestCommand(negotiationId);
@@ -102,9 +88,9 @@ class ContractNegotiationCommandQueueIntegrationTest {
                 .observable(observable)
                 .store(store)
                 .build();
+
         negotiationManager.start();
 
-        // Enqueue command
         negotiationManager.enqueueCommand(command);
 
         // Wait for CommandHandler to modify negotiation with time out at 15 seconds

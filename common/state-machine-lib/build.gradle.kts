@@ -12,27 +12,20 @@
  *
  */
 
-val openTelemetryVersion: String by project
-
 plugins {
     `java-library`
+    `java-test-fixtures`
+    `maven-publish`
 }
 
 dependencies {
-    api(project(":spi:transfer-spi"))
-    api(project(":common:state-machine-lib"))
-    api(project(":common:util"))
-
-    implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
-
-    testImplementation(project(":extensions:in-memory:transfer-store-memory"))
+    api(project(":spi:core-spi"))
 }
-
 
 publishing {
     publications {
-        create<MavenPublication>("transfer") {
-            artifactId = "transfer"
+        create<MavenPublication>("state-machine-lib") {
+            artifactId = "state-machine-lib"
             from(components["java"])
         }
     }
