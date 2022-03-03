@@ -170,7 +170,7 @@ supplied in the Dockerfile. If you need to use a custom truststore, please add t
 To build the image, run the following command in the root directory of the project:
 
 ```shell
-docker build -t edc-ids-connector ./launchers/ids-connector
+docker build -t edc-ids-connector -f launchers/ids-connector/Dockerfile .
 ```
 
 Before running the image, you need to create an `.env` file supplying the system properties. You can 

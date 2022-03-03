@@ -22,7 +22,7 @@ RUN gradle :launchers:ids-connector:build --no-daemon
 FROM openjdk:11-jre-slim
 
 WORKDIR /app
-COPY --from=build /home/gradle/project/build/libs/dataspace-connector.jar /app
+COPY --from=build /home/gradle/project/launchers/ids-connector/build/libs/dataspace-connector.jar /app
 
 ENV EDC_FS_CONFIG=$EDC_FS_CONFIG
 ENV EDC_VAULT=$EDC_VAULT
