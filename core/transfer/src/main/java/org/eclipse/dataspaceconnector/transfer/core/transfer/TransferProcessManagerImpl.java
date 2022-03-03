@@ -15,8 +15,8 @@
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
 import io.opentelemetry.extension.annotations.WithSpan;
-import org.eclipse.dataspaceconnector.common.statemachine.EntitiesProcessorImpl;
 import org.eclipse.dataspaceconnector.common.statemachine.StateMachine;
+import org.eclipse.dataspaceconnector.common.statemachine.StateProcessorImpl;
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
@@ -233,13 +233,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         return TransferInitiateResult.success(process.getId());
     }
 
-    private EntitiesProcessorImpl<TransferProcess> processTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
+    private StateProcessorImpl<TransferProcess> processTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
         var functionWithTraceContext = telemetry.contextPropagationMiddleware(function);
-        return new EntitiesProcessorImpl<>(() -> transferProcessStore.nextForState(state.code(), batchSize), functionWithTraceContext);
+        return new StateProcessorImpl<>(() -> transferProcessStore.nextForState(state.code(), batchSize), functionWithTraceContext);
     }
 
-    private EntitiesProcessorImpl<TransferProcessCommand> onCommands(Function<TransferProcessCommand, Boolean> process) {
-        return new EntitiesProcessorImpl<>(() -> commandQueue.dequeue(5), process);
+    private StateProcessorImpl<TransferProcessCommand> onCommands(Function<TransferProcessCommand, Boolean> process) {
+        return new StateProcessorImpl<>(() -> commandQueue.dequeue(5), process);
     }
 
     private boolean processCommand(TransferProcessCommand command) {

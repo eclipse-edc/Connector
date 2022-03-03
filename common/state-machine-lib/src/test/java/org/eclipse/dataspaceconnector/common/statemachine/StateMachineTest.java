@@ -31,8 +31,8 @@ class StateMachineTest {
     @Test
     void shouldExecuteProcessorsAsyncAndCanBeStopped() throws InterruptedException {
         var latch = new CountDownLatch(2);
-        var processor = mock(EntitiesProcessor.class);
-        when(processor.run()).thenAnswer(i -> {
+        var processor = mock(StateProcessor.class);
+        when(processor.process()).thenAnswer(i -> {
             latch.countDown();
             Thread.sleep(100L);
             return 1L;
@@ -44,7 +44,7 @@ class StateMachineTest {
 
         stateMachine.start();
         assertThat(latch.await(1, SECONDS)).isTrue();
-        verify(processor, atLeastOnce()).run();
+        verify(processor, atLeastOnce()).process();
 
         assertThat(stateMachine.stop()).succeedsWithin(2, SECONDS);
         verifyNoMoreInteractions(processor);
@@ -52,8 +52,8 @@ class StateMachineTest {
 
     @Test
     void shouldNotWaitForSomeTimeIfTheresAtLeastOneProcessedEntity() throws InterruptedException {
-        var processor = mock(EntitiesProcessor.class);
-        when(processor.run()).thenReturn(1L);
+        var processor = mock(StateProcessor.class);
+        when(processor.process()).thenReturn(1L);
         var latch = new CountDownLatch(1);
         doAnswer(i -> {
             latch.countDown();
@@ -72,8 +72,8 @@ class StateMachineTest {
 
     @Test
     void shouldWaitForSomeTimeIfNoEntityIsProcessed() throws InterruptedException {
-        var processor = mock(EntitiesProcessor.class);
-        when(processor.run()).thenReturn(0L);
+        var processor = mock(StateProcessor.class);
+        when(processor.process()).thenReturn(0L);
         var latch = new CountDownLatch(1);
         var waitStrategy = mock(WaitStrategy.class);
         doAnswer(i -> {
@@ -93,8 +93,8 @@ class StateMachineTest {
 
     @Test
     void shouldExitWithAnExceptionIfProcessorExitsWithAnUnrecoverableError() {
-        var processor = mock(EntitiesProcessor.class);
-        when(processor.run()).thenThrow(new Error("unrecoverable"));
+        var processor = mock(StateProcessor.class);
+        when(processor.process()).thenThrow(new Error("unrecoverable"));
         var stateMachine = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
                 .processor(processor)
                 .build();
@@ -106,8 +106,8 @@ class StateMachineTest {
     @Test
     void shouldWaitRetryTimeWhenAnExceptionIsThrownByAnProcessor() throws InterruptedException {
         var latch = new CountDownLatch(1);
-        var processor = mock(EntitiesProcessor.class);
-        when(processor.run()).thenThrow(new EdcException("exception")).thenReturn(0L);
+        var processor = mock(StateProcessor.class);
+        when(processor.process()).thenThrow(new EdcException("exception")).thenReturn(0L);
         when(waitStrategy.retryInMillis()).thenAnswer(i -> {
             latch.countDown();
             return 1L;

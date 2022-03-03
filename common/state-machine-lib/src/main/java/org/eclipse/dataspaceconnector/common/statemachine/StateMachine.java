@@ -35,7 +35,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  */
 public class StateMachine {
 
-    private final List<EntitiesProcessor> processors = new ArrayList<>();
+    private final List<StateProcessor> processors = new ArrayList<>();
     private final ExecutorService executor;
     private final AtomicBoolean active = new AtomicBoolean();
     private final WaitStrategy waitStrategy;
@@ -97,7 +97,7 @@ public class StateMachine {
             while (active.get()) {
                 try {
                     var processed = processors.stream()
-                            .mapToLong(EntitiesProcessor::run)
+                            .mapToLong(StateProcessor::process)
                             .sum();
 
                     if (processed == 0) {
@@ -132,7 +132,7 @@ public class StateMachine {
             return new Builder(name, monitor, waitStrategy);
         }
 
-        public Builder processor(EntitiesProcessor processor) {
+        public Builder processor(StateProcessor processor) {
             loop.processors.add(processor);
             return this;
         }

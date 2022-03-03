@@ -20,28 +20,29 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
- * Utility class that permits to process entities that are supplied by a specific supplier, that could be a query on
- * an entity store. On every entity a process is applied.
- * A process is a function that returns a boolean that indicates if the entity has processed or not in the scope of the
- * function.
- * The run method returns the count of how many entities have been processed, this is used by the state machine
- * loop to decide to apply the wait strategy or not.
+ * Permits processing states on the entities that are supplied by a specific supplier,
+ * that could be a query on an entity store.
+ * On every entity a process is applied.
+ * A process is a function that returns a boolean that indicates if the entity has been processed or not in
+ * the scope of the function.
+ * The run method returns the processed state count, this is used by the state machine to decide
+ * to apply the wait strategy or not.
  *
  * @param <T> the entity that is processed
  */
-public class EntitiesProcessorImpl<T> implements EntitiesProcessor {
+public class StateProcessorImpl<T> implements StateProcessor {
 
     private final Supplier<Collection<T>> entities;
     private final Function<T, Boolean> process;
     private final Predicate<Boolean> isProcessed = it -> it;
 
-    public EntitiesProcessorImpl(Supplier<Collection<T>> entitiesSupplier, Function<T, Boolean> process) {
+    public StateProcessorImpl(Supplier<Collection<T>> entitiesSupplier, Function<T, Boolean> process) {
         this.entities = entitiesSupplier;
         this.process = process;
     }
 
     @Override
-    public Long run() {
+    public Long process() {
         return entities.get().stream()
                 .map(process)
                 .filter(isProcessed)

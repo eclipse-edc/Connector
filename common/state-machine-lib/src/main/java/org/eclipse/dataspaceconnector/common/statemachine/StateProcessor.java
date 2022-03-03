@@ -20,12 +20,12 @@ package org.eclipse.dataspaceconnector.common.statemachine;
  *
  */
 @FunctionalInterface
-public interface EntitiesProcessor {
+public interface StateProcessor {
 
     /**
-     * Process the entities retrieved by the supplier with the function specified
+     * Process states
      *
-     * @return the processed entities count
+     * @return the processed states count
      */
-    Long run();
+    Long process();
 }
