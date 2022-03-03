@@ -32,4 +32,5 @@ dependencies {
     api(project(":extensions:data-plane-transfer:data-plane-transfer-core"))
     api(project(":extensions:data-plane-transfer:data-plane-transfer-sync"))
     api(project(":extensions:http-receiver"))
+    api(project(":extensions:token:token-generation"))
 }

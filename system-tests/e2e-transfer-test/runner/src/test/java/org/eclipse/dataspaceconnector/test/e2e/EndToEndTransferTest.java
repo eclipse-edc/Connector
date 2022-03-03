@@ -54,10 +54,12 @@ public class EndToEndTransferTest {
     private static final String API_KEY_CONTROL_AUTH = "password";
 
     private static final URI CONSUMER_CONTROL_PLANE = URI.create("http://localhost:" + getFreePort());
+    private static final URI CONSUMER_CONTROL_PLANE_VALIDATION = URI.create("http://localhost:" + getFreePort() + "/validation");
     private static final URI CONSUMER_DATA_PLANE = URI.create("http://localhost:" + getFreePort());
     private static final URI CONSUMER_DATA_PLANE_PUBLIC = URI.create("http://localhost:" + getFreePort() + "/public");
     private static final URI CONSUMER_BACKEND_SERVICE = URI.create("http://localhost:" + getFreePort());
     private static final URI PROVIDER_CONTROL_PLANE = URI.create("http://localhost:" + getFreePort());
+    private static final URI PROVIDER_CONTROL_PLANE_VALIDATION = URI.create("http://localhost:" + getFreePort() + "/validation");
     private static final URI PROVIDER_DATA_PLANE = URI.create("http://localhost:" + getFreePort());
     private static final URI PROVIDER_DATA_PLANE_PUBLIC = URI.create("http://localhost:" + getFreePort() + "/public");
     private static final URI PROVIDER_BACKEND_SERVICE = URI.create("http://localhost:" + getFreePort());
@@ -70,6 +72,8 @@ public class EndToEndTransferTest {
                     {
                         put("web.http.port", String.valueOf(CONSUMER_CONTROL_PLANE.getPort()));
                         put("web.http.path", "/api");
+                        put("web.http.validation.port", String.valueOf(CONSUMER_CONTROL_PLANE_VALIDATION.getPort()));
+                        put("web.http.validation.path", "/validation");
                         put("edc.vault", resourceAbsolutePath("consumer-vault.properties"));
                         put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                         put("edc.keystore.password", "123456");
@@ -77,9 +81,8 @@ public class EndToEndTransferTest {
                         put("ids.webhook.address", CONSUMER_CONTROL_PLANE.toString());
                         put("edc.receiver.http.endpoint", CONSUMER_BACKEND_SERVICE + "/api/service/pull");
                         put("edc.security.private-key.alias", "1");
-                        put("edc.transfer.sync.public-key.alias", "public-key");
-                        put("edc.transfer.sync.data-api.address", CONSUMER_DATA_PLANE_PUBLIC.toString());
-                        put("edc.transfer.sync.consumer-proxy.address", CONSUMER_DATA_PLANE_PUBLIC.toString());
+                        put("edc.public.key.alias", "public-key");
+                        put("edc.transfer.dataplane.sync.endpoint", CONSUMER_DATA_PLANE_PUBLIC.toString());
                     }
                 }
         );
@@ -96,7 +99,7 @@ public class EndToEndTransferTest {
                     put("web.http.public.path", "/public");
                     put("web.http.control.port", String.valueOf(getFreePort())); // TODO it's needed?
                     put("web.http.control.path", "/control"); // TODO it's needed?
-                    put("edc.controlplane.validation-endpoint", CONSUMER_CONTROL_PLANE + "/api/validation");
+                    put("edc.controlplane.validation-endpoint", CONSUMER_CONTROL_PLANE_VALIDATION + "/validation");
                 }
             }
     );
@@ -124,7 +127,7 @@ public class EndToEndTransferTest {
                     put("web.http.public.path", "/public");
                     put("web.http.control.port", String.valueOf(getFreePort())); // TODO it's needed?
                     put("web.http.control.path", "/control"); // TODO it's needed?
-                    put("edc.controlplane.validation-endpoint", PROVIDER_CONTROL_PLANE + "/api/validation");
+                    put("edc.controlplane.validation-endpoint", PROVIDER_CONTROL_PLANE_VALIDATION + "/validation");
                 }
             }
     );
@@ -137,6 +140,8 @@ public class EndToEndTransferTest {
                     {
                         put("web.http.port", String.valueOf(PROVIDER_CONTROL_PLANE.getPort()));
                         put("web.http.path", "/api");
+                        put("web.http.validation.port", String.valueOf(PROVIDER_CONTROL_PLANE_VALIDATION.getPort()));
+                        put("web.http.validation.path", "/validation");
                         put("edc.vault", resourceAbsolutePath("provider-vault.properties"));
                         put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                         put("edc.keystore.password", "123456");
@@ -144,9 +149,8 @@ public class EndToEndTransferTest {
                         put("ids.webhook.address", PROVIDER_CONTROL_PLANE.toString());
                         put("edc.receiver.http.endpoint", PROVIDER_BACKEND_SERVICE + "/api/service/pull");
                         put("edc.security.private-key.alias", "1");
-                        put("edc.transfer.sync.public-key.alias", "public-key");
-                        put("edc.transfer.sync.data-api.address", PROVIDER_DATA_PLANE_PUBLIC.toString());
-                        put("edc.transfer.sync.consumer-proxy.address", PROVIDER_DATA_PLANE_PUBLIC.toString());
+                        put("edc.public.key.alias", "public-key");
+                        put("edc.transfer.dataplane.sync.endpoint", PROVIDER_DATA_PLANE_PUBLIC.toString());
                     }
                 }
         );

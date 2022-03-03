@@ -26,15 +26,14 @@ dependencies {
     api(project(":spi:contract-spi"))
     api(project(":spi:transfer-spi"))
     api(project(":spi:web-spi"))
-    implementation(project(":extensions:data-plane-transfer:data-plane-transfer-core"))
-    implementation(project(":extensions:token:token-validation"))
-
+    api(project(":extensions:data-plane-transfer:data-plane-transfer-core"))
+    api(project(":extensions:token:token-validation"))
     api("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
-
+    api("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
     // Note: nimbus requires bouncycastle as mentioned in documentation:
     // https://www.javadoc.io/doc/com.nimbusds/nimbus-jose-jwt/7.2.1/com/nimbusds/jose/jwk/JWK.html#parseFromPEMEncodedObjects-java.lang.String-
-    testRuntimeOnly("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
+    api("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
+
     testImplementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
 }
 

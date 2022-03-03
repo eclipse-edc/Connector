@@ -53,8 +53,9 @@ import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessMana
  * Provides core data transfer services to the system.
  */
 @CoreExtension
-@Provides({StatusCheckerRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class, TransferProcessObservable.class,
-        DataOperatorRegistry.class, DataFlowManager.class, EndpointDataReferenceReceiverRegistry.class, EndpointDataReferenceTransformer.class})
+@Provides({StatusCheckerRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class,
+        TransferProcessObservable.class, DataOperatorRegistry.class, DataFlowManager.class, ProvisionManager.class,
+        EndpointDataReferenceReceiverRegistry.class, EndpointDataReferenceTransformer.class})
 public class CoreTransferExtension implements ServiceExtension {
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
 
