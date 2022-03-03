@@ -32,7 +32,7 @@ public class TransferRequestDto {
     private boolean managedResources = true;
     private Map<String, String> properties = new HashMap<>();
     private TransferType transferType;
-    private String protocol;
+    private String protocol = "ids-multipart";
     private String connectorId;
 
     public String getConnectorAddress() {

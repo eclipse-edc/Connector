@@ -1,15 +1,15 @@
 /*
- *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ * Copyright (c) 2022 ZF Friedrichshafen AG
  *
- *  This program and the accompanying materials are made available under the
- *  terms of the Apache License, Version 2.0 which is available at
- *  https://www.apache.org/licenses/LICENSE-2.0
+ * This program and the accompanying materials are made available under the
+ * terms of the Apache License, Version 2.0 which is available at
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
- *  SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors:
- *       Microsoft Corporation - initial API and implementation
- *
+ * Contributors:
+ *    ZF Friedrichshafen AG - Initial API and Implementation
+ *    Microsoft Corporation - Added initiate-negotiation endpoint
  */
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
@@ -22,8 +22,10 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractAgreementDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractNegotiationDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
@@ -97,5 +99,19 @@ public class ContractNegotiationController {
     public ContractAgreementDto getAgreementForNegotiation(@PathParam("id") String negotiationId) {
         //TODO: fetch agreement for negotiation-id
         return ContractAgreementDto.Builder.newInstance().negotiationId(negotiationId).build();
+    }
+
+    @POST
+    public String initiateContractNegotiation(NegotiationInitiateRequestDto initiateDto) {
+
+        if (!isValid(initiateDto)) {
+            throw new IllegalArgumentException("Negotiation request is invalid");
+        }
+
+        return "not-implemente"; //will be the negotiation-id
+    }
+
+    private boolean isValid(NegotiationInitiateRequestDto initiateDto) {
+        return StringUtils.isNoneBlank(initiateDto.getConnectorId(), initiateDto.getConnectorAddress(), initiateDto.getProtocol(), initiateDto.getOfferId());
     }
 }
