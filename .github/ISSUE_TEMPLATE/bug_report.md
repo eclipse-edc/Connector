@@ -36,4 +36,4 @@ Add any other context about the problem here.
 If applicable, add screenshots and logs to help explain your problem.
 
 ## Possible Implementation
-You already have an idea why this happened and how to fix it? Feel free to share your thoughts.
+You already know the root cause of the erroneous state and how to fix it? Feel free to share your thoughts.
