@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Fraunhofer Institute for Software and Systems Engineering
+ *  Copyright (c) 2021 Fraunhofer Institute for Software and Systems Engineering, Daimler TSS GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Daimler TSS GmbH - introduce factory to create RequestInProcessMessage
  *
  */
 
@@ -20,6 +21,7 @@ import de.fraunhofer.iais.eis.ContractRequestMessage;
 import de.fraunhofer.iais.eis.Message;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
@@ -51,6 +53,7 @@ public class ContractRequestHandler implements Handler {
     private final ProviderContractNegotiationManager negotiationManager;
     private final TransformerRegistry transformerRegistry;
     private final AssetIndex assetIndex;
+    private final IdsResponseMessageFactory responseMessageFactory;
 
     public ContractRequestHandler(
             @NotNull Monitor monitor,
@@ -58,13 +61,15 @@ public class ContractRequestHandler implements Handler {
             @NotNull ObjectMapper objectMapper,
             @NotNull ProviderContractNegotiationManager negotiationManager,
             @NotNull TransformerRegistry transformerRegistry,
-            @NotNull AssetIndex assetIndex) {
+            @NotNull AssetIndex assetIndex,
+            @NotNull IdsResponseMessageFactory responseMessageFactory) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
         this.objectMapper = Objects.requireNonNull(objectMapper);
         this.negotiationManager = Objects.requireNonNull(negotiationManager);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
         this.assetIndex = Objects.requireNonNull(assetIndex);
+        this.responseMessageFactory = Objects.requireNonNull(responseMessageFactory);
     }
 
     @Override
@@ -145,7 +150,7 @@ public class ContractRequestHandler implements Handler {
         negotiationManager.requested(verificationResult.getContent(), requestObj);
 
         return MultipartResponse.Builder.newInstance()
-                .header(ResponseMessageUtil.createRequestInProcessMessage(connectorId, message))
+                .header(responseMessageFactory.createRequestInProcessMessage(message))
                 .build();
     }
 
