@@ -78,7 +78,7 @@ public class FileTransferTestUtils {
                 givenConsumerRequest()
                         .noContentType()
                         .pathParam(FILE_NAME_PARAM, PROVIDER_ASSET_NAME)
-                        .queryParam(CONNECTOR_ADDRESS_PARAM, format("%s/api/ids/data", providerUrl))
+                        .queryParam(CONNECTOR_ADDRESS_PARAM, format("%s/api/v1/ids/data", providerUrl))
                         .queryParam(DESTINATION_PARAM, destinationPath)
                         .queryParam(CONTRACT_ID_PARAM, contractAgreementId)
                 .when()
@@ -110,7 +110,7 @@ public class FileTransferTestUtils {
         var contractNegotiationRequestId =
                 givenConsumerRequest()
                         .contentType(ContentType.JSON)
-                        .queryParam(CONNECTOR_ADDRESS_PARAM, format("%s/api/ids/data", providerUrl))
+                        .queryParam(CONNECTOR_ADDRESS_PARAM, format("%s/api/v1/ids/data", providerUrl))
                         .body(contractOffer)
                 .when()
                         .post(CONTRACT_NEGOTIATION_PATH)

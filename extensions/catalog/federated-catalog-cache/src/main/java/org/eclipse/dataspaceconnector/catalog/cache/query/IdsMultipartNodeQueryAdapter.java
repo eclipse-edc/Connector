@@ -37,8 +37,8 @@ public class IdsMultipartNodeQueryAdapter implements NodeQueryAdapter {
     // adds /api/ids/data if not already there
     private String getNodeUrl(UpdateRequest updateRequest) {
         var url = updateRequest.getNodeUrl();
-        if (!url.endsWith("/api/ids/data")) {
-            url += "/api/ids/data";
+        if (!url.endsWith("/ids/data")) {
+            url += "/api/v1/ids/data";
         }
 
         return url;
