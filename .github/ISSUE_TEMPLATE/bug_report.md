@@ -10,7 +10,7 @@ assignees: ''
 # Bug Report
 
 ## Describe the Bug
-A clear and concise description of what the bug is.
+A clear and concise description of the bug.
 
 ### Expected Behavior
 A clear and concise description of what you expected to happen.
