@@ -128,6 +128,12 @@ we would appreciate if your pull request applies to the following points:
 
 * Where code is not self-explanatory, add documentation providing extra clarification.
 
+* Add relevant changes (e.g., no typo fixes, updated readme files, fixes of stuck test) to the 
+  [changelog](CHANGELOG.md). If these refer to a new feature, add this to the `Overview` section 
+  and add your changes to the `Detailed Changes` section according to the rules documented on 
+  <http://keepachangelog.com>. Include more information via linking to existing pull requests,
+  issues, or discussions.
+
 * PR descriptions should use the current [PR template](.github/PULL_REQUEST_TEMPLATE.md)
 
 * Submit a draft pull request at early-stage and add people previously working on the same code as 
