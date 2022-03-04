@@ -25,6 +25,7 @@ or issues.
 
 #### Removed
 * Remove ION extension (#664)
+* Remove module `:samples:other:commandline` (#820)
 
 #### Fixed
 
