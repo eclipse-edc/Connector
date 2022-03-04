@@ -32,7 +32,7 @@ class ClientControlCatalogApiControllerTest extends AbstractClientControlCatalog
 
     @Test
     void testUnauthorized() {
-        String requestUri = String.format("%s%s", getUrl(), String.format("/api/control/catalog?provider=%s/api/ids/multipart", getUrl()));
+        String requestUri = String.format("%s%s", getUrl(), String.format("/api/control/catalog?provider=%s/api/v1/ids/data", getUrl()));
 
         RestAssured.given()
                 .log().all()
@@ -44,7 +44,7 @@ class ClientControlCatalogApiControllerTest extends AbstractClientControlCatalog
 
     @Test
     void testForbidden() {
-        String requestUri = String.format("%s%s", getUrl(), String.format("/api/control/catalog?provider=%s/api/ids/multipart", getUrl()));
+        String requestUri = String.format("%s%s", getUrl(), String.format("/api/control/catalog?provider=%s/api/v1/ids/data", getUrl()));
 
         RestAssured.given()
                 .headers(API_KEY_HEADER, "invalidApiKey")
@@ -57,7 +57,7 @@ class ClientControlCatalogApiControllerTest extends AbstractClientControlCatalog
 
     @Test
     void testSuccess() {
-        String requestUri = String.format("%s%s", getUrl(), String.format("/api/control/catalog?provider=%s/api/ids/multipart", getUrl()));
+        String requestUri = String.format("%s%s", getUrl(), String.format("/api/control/catalog?provider=%s/api/v1/ids/data", getUrl()));
 
         JsonPath jsonPath = RestAssured.given()
                 .headers(API_KEY_HEADER, API_KEY)

@@ -107,7 +107,7 @@ class ArtifactRequestHandlerTest {
                 ._requestedArtifact_(createUri(IdsType.ARTIFACT, artifactId))
                 ._transferContract_(createUri(IdsType.CONTRACT, contractId))
                 .build();
-        message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, "http://example.com/api/ids/multipart");
+        message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, "http://example.com/api/v1/ids/data");
         message.setProperty("foo", "bar");
 
         var payload = ArtifactRequestMessagePayload.Builder.newInstance()
