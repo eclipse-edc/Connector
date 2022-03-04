@@ -137,7 +137,6 @@ public class DataPlaneHttpIntegrationTests {
     @Test
     void transfer_success() {
         // Arrange
-        // HTTP Source Request & Response
         var body = FAKER.internet().uuid();
         var processId = FAKER.internet().uuid();
         httpSourceClientAndServer.when(getRequest(), once())
@@ -459,7 +458,7 @@ public class DataPlaneHttpIntegrationTests {
 
         return request
                 .withMethod(HttpMethod.GET.name())
-                .withHeader(new Header(AUTH_HEADER_KEY, SOURCE_AUTH_VALUE))
+                .withHeader(AUTH_HEADER_KEY, SOURCE_AUTH_VALUE)
                 .withPath("/" + DPF_HTTP_API_PART_NAME);
     }
 
