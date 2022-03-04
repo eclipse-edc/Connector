@@ -1,10 +1,10 @@
-## What this PR changes/adds:
+## What this PR changes/adds
 
-_briefly describe WHAT your pr changes, which features it adds/modifies._
+_Briefly describe WHAT your pr changes, which features it adds/modifies._
 
 ## Why it does that
 
-_briefly state why the change was necessary_
+_Briefly state why the change was necessary._
 
 ## Further notes
 
@@ -22,3 +22,5 @@ Closes # <-- _insert Issue number if one exists_
 - [ ] added/updated copyright headers?
 - [ ] documented public classes/methods?
 - [ ] added/updated relevant documentation?
+- [ ] added relevant details to the changelog?
+- [ ] linked GitHub project?
