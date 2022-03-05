@@ -1,7 +1,8 @@
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.provision;
 
+import com.nimbusds.jwt.JWTClaimsSet;
+import org.eclipse.dataspaceconnector.common.token.TokenGenerationService;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
-import org.eclipse.dataspaceconnector.spi.iam.TokenGenerationService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -13,7 +14,6 @@ import org.mockito.ArgumentCaptor;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -21,12 +21,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.byLessThan;
 import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.CONTRACT_ID_CLAIM;
 import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.DATA_ADDRESS_CLAIM;
-import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.EXPIRATION_DATE_CLAIM;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.sync.schema.HttpProxySchema.ENDPOINT;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.sync.schema.HttpProxySchema.EXPIRATION;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.sync.schema.HttpProxySchema.TOKEN;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.sync.schema.HttpProxySchema.TYPE;
-import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -75,19 +74,20 @@ class HttpProviderProxyProvisionerTest {
         var rd = createResourceDefinition(TYPE);
         var address = DataAddress.Builder.newInstance().type("test").build();
         var token = TokenRepresentation.Builder.newInstance().token(UUID.randomUUID().toString()).build();
-        var claimsCaptor = ArgumentCaptor.forClass(Map.class);
+        var claimsCaptor = ArgumentCaptor.forClass(JWTClaimsSet.class);
         when(dataAddressResolverMock.resolveForAsset(rd.getAssetId())).thenReturn(address);
-        when(tokenGenerationServiceMock.generate(anyMap())).thenReturn(Result.success(token));
+        when(tokenGenerationServiceMock.generate(any(JWTClaimsSet.class))).thenReturn(Result.success(token));
         when(encrypterMock.encrypt(typeManager.writeValueAsString(address))).thenReturn("encrypted-data-address");
 
         var future = provisioner.provision(rd);
 
         verify(tokenGenerationServiceMock, times(1)).generate(claimsCaptor.capture());
 
-        assertThat(claimsCaptor.getValue())
-                .containsEntry(CONTRACT_ID_CLAIM, rd.getContractId())
-                .containsEntry(DATA_ADDRESS_CLAIM, "encrypted-data-address")
-                .containsKey(EXPIRATION_DATE_CLAIM);
+        assertThat(claimsCaptor.getValue()).satisfies(claimsSet -> {
+            assertThat(claimsSet.getExpirationTime()).isNotNull().isAfter(Instant.now());
+            assertThat(claimsSet.getClaim(CONTRACT_ID_CLAIM)).hasToString(rd.getContractId());
+            assertThat(claimsSet.getClaim(DATA_ADDRESS_CLAIM)).hasToString("encrypted-data-address");
+        });
 
         assertThat(future).succeedsWithin(500L, TimeUnit.MILLISECONDS)
                 .satisfies(response -> {

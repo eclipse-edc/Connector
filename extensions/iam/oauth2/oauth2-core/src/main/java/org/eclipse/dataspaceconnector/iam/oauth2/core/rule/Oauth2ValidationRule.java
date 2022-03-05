@@ -16,10 +16,10 @@ package org.eclipse.dataspaceconnector.iam.oauth2.core.rule;
 
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.dataspaceconnector.common.token.TokenValidationRule;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.Oauth2Configuration;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.token.JwtValidationRule;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.ParseException;
@@ -32,7 +32,7 @@ import java.util.Map;
 
 import static java.time.ZoneOffset.UTC;
 
-public class Oauth2ValidationRule implements JwtValidationRule {
+public class Oauth2ValidationRule implements TokenValidationRule {
     private final Oauth2Configuration configuration;
 
     public Oauth2ValidationRule(Oauth2Configuration configuration) {
@@ -42,7 +42,7 @@ public class Oauth2ValidationRule implements JwtValidationRule {
     /**
      * Validates the JWT by checking the audience, nbf, and expiration. Accessible for testing.
      *
-     * @param toVerify The jwt including the claims.
+     * @param toVerify   The jwt including the claims.
      * @param additional No more additional information needed for this validation, can be null.
      */
     @Override

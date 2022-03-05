@@ -15,15 +15,15 @@
 package org.eclipse.dataspaceconnector.ids.token.validation.rule;
 
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.dataspaceconnector.common.token.TokenValidationRule;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.token.JwtValidationRule;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.ParseException;
 import java.util.Map;
 
-public class IdsValidationRule implements JwtValidationRule {
+public class IdsValidationRule implements TokenValidationRule {
     private final boolean validateReferring;
 
     public IdsValidationRule(boolean validateReferring) {
