@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Daimler TSS GmbH - fixed contract dates to epoch seconds
  *
  */
 
@@ -53,7 +54,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.LocalDate;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -89,9 +91,9 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
                         .consumerAgentId("consumer")
                         .asset(Asset.Builder.newInstance().build())
                         .policy(Policy.Builder.newInstance().build())
-                        .contractSigningDate(LocalDate.MIN.toEpochDay())
-                        .contractStartDate(LocalDate.MIN.toEpochDay())
-                        .contractEndDate(LocalDate.MAX.toEpochDay())
+                        .contractSigningDate(Instant.now().getEpochSecond())
+                        .contractStartDate(Instant.now().getEpochSecond())
+                        .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                         .id("1:2").build())
                 .state(ContractNegotiationStates.CONFIRMED.code())
                 .build();
