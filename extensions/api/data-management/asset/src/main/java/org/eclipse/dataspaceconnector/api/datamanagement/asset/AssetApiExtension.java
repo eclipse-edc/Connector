@@ -9,6 +9,7 @@
  *
  * Contributors:
  *    ZF Friedrichshafen AG - Initial API and Implementation
+ *    Microsoft Corporation - name refactoring
  */
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
@@ -20,7 +21,7 @@ import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
-public class AssetControllerServiceExtension implements ServiceExtension {
+public class AssetApiExtension implements ServiceExtension {
 
     @Inject
     private WebService webService;
