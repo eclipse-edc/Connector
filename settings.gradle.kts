@@ -135,8 +135,6 @@ include(":launchers:data-loader-cli")
 include(":launchers:data-plane-server")
 
 // modules for code samples
-include(":samples:other:commandline:consumer")
-include(":samples:other:commandline:consumer-runtime")
 include(":samples:other:copy-file-to-s3bucket")
 include(":samples:other:dataseed:dataseed-aws")
 include(":samples:other:dataseed:dataseed-azure")
@@ -188,7 +186,6 @@ include(":system-tests:e2e-transfer-test:runner")
 include(":system-tests:e2e-transfer-test:backend-service")
 include(":system-tests:e2e-transfer-test:control-plane")
 include(":system-tests:e2e-transfer-test:data-plane")
-
 include(":system-tests:runtimes:file-transfer-provider")
 include(":system-tests:runtimes:file-transfer-consumer")
 include(":system-tests:tests")
