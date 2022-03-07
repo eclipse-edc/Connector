@@ -21,7 +21,6 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.iam.TokenGenerationService;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
-import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -35,9 +34,6 @@ public class TokenGenerationServiceExtension implements ServiceExtension {
     @EdcSetting
     private static final String PRIVATE_KEY_ALIAS = "edc.security.private-key.alias";
 
-    @Inject
-    private PrivateKeyResolver privateKeyResolver;
-
     @Override
     public String name() {
         return "Token Generation Service";
@@ -50,13 +46,14 @@ public class TokenGenerationServiceExtension implements ServiceExtension {
             throw new EdcException(String.format("Missing mandatory private key alias setting `%s`", PRIVATE_KEY_ALIAS));
         }
 
-        var signer = createSigner(privateKeyAlias);
+        var privateKeyResolver = context.getService(PrivateKeyResolver.class);
+        var signer = createSigner(privateKeyResolver, privateKeyAlias);
         var tokenGenerationService = new TokenGenerationServiceImpl(signer);
         context.registerService(TokenGenerationService.class, tokenGenerationService);
     }
 
-    private JWSSigner createSigner(String pkAlias) {
-        var privateKey = privateKeyResolver.resolvePrivateKey(pkAlias, PrivateKey.class);
+    private JWSSigner createSigner(PrivateKeyResolver resolver, String pkAlias) {
+        var privateKey = resolver.resolvePrivateKey(pkAlias, PrivateKey.class);
         if (privateKey == null) {
             throw new EdcException("Failed to resolve private with alias: " + pkAlias);
         }

@@ -85,7 +85,7 @@ class MultipartArtifactRequestSenderTest {
                     assertThat(msg.getProperties())
                             .hasSize(request.getProperties().size() + 1)
                             .containsAllEntriesOf(request.getProperties())
-                            .containsEntry(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + "/api/ids/multipart");
+                            .containsEntry(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + "/api/v1/ids/data");
                 });
     }
 

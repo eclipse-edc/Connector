@@ -18,6 +18,7 @@ rootProject.name = "dataspaceconnector"
 // modules for common/util code
 
 include(":common:util")
+include(":common:state-machine-lib")
 
 // EDC core modules
 include(":core")
@@ -109,9 +110,9 @@ include(":extensions:transaction:transaction-spi")
 include(":extensions:transaction:transaction-datasource-spi")
 include(":extensions:transaction:transaction-atomikos")
 include(":extensions:transaction:transaction-local")
-include(":extensions:sync-data-transfer:sync-data-transfer-consumer")
-include(":extensions:sync-data-transfer:sync-data-transfer-provider")
-include(":extensions:sync-data-transfer:sync-data-transfer-api")
+include(":extensions:data-plane-transfer:data-plane-transfer-spi")
+include(":extensions:data-plane-transfer:data-plane-transfer-core")
+include(":extensions:data-plane-transfer:data-plane-transfer-sync")
 include(":extensions:data-plane:data-plane-spi")
 include(":extensions:data-plane:data-plane-framework")
 include(":extensions:data-plane:data-plane-http")
@@ -182,6 +183,11 @@ include(":samples:05-file-transfer-cloud:provider")
 include(":samples:05-file-transfer-cloud:api")
 include(":samples:05-file-transfer-cloud:data-seeder")
 include(":samples:05-file-transfer-cloud:transfer-file")
+
+include(":system-tests:e2e-transfer-test:runner")
+include(":system-tests:e2e-transfer-test:backend-service")
+include(":system-tests:e2e-transfer-test:control-plane")
+include(":system-tests:e2e-transfer-test:data-plane")
 
 include(":system-tests:runtimes:file-transfer-provider")
 include(":system-tests:runtimes:file-transfer-consumer")

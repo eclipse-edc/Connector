@@ -30,7 +30,12 @@ public interface DataFlowRequestSchema {
     String QUERY_PARAMS = "queryParams";
 
     /**
-     * The destination authentication key property name (optional).
+     * Media-type of the request body.
+     */
+    String MEDIA_TYPE = "mediaType";
+
+    /**
+     * The request body.
      */
     String BODY = "body";
 }

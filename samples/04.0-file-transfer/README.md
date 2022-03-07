@@ -199,7 +199,7 @@ and can be used as is. In a real scenario, a potential consumer would first need
 provider's offers in order to get the provider's contract offer.
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://localhost:8181/api/ids/multipart"
+curl -X POST -H "Content-Type: application/json" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://localhost:8181/api/v1/ids/data"
 ```
 
 In the response we'll get a UUID that we can use to get the contract agreement negotiated between provider and consumer.
@@ -249,7 +249,7 @@ provide the address of the provider connector, the path where we want the file c
 query parameters:
 
 ```bash
-curl -X POST "http://localhost:9191/api/file/test-document?connectorAddress=http://localhost:8181/api/ids/multipart&destination=/path/on/yourmachine&contractId={agreement ID}"
+curl -X POST "http://localhost:9191/api/file/test-document?connectorAddress=http://localhost:8181/api/v1/ids/data&destination=/path/on/yourmachine&contractId={agreement ID}"
 ```
 
 Again, we will get a UUID in the response. This time, this is the ID of the `TransferProcess`
@@ -266,7 +266,7 @@ You can also check the logs of the connectors to see that the transfer has been 
 Consumer side:
 
 ```bash
-INFO 2021-12-08T10:54:46.55678709 Received request for file test-document against provider http://localhost:8181/api/ids/multipart
+INFO 2021-12-08T10:54:46.55678709 Received request for file test-document against provider http://localhost:8181/api/v1/ids/data
 DEBUG 2021-12-08T10:54:47.454351767 Request approved and acknowledged for process: 98512dc2-3985-4696-937e-2c12c5ef77e3
 DEBUG 2021-12-08T10:54:52.123863179 Process 98512dc2-3985-4696-937e-2c12c5ef77e3 is now IN_PROGRESS
 DEBUG 2021-12-08T10:54:52.124975956 Process 98512dc2-3985-4696-937e-2c12c5ef77e3 is now COMPLETED

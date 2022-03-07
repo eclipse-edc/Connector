@@ -15,7 +15,8 @@
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
 import io.opentelemetry.extension.annotations.WithSpan;
-import org.eclipse.dataspaceconnector.common.stream.EntitiesProcessor;
+import org.eclipse.dataspaceconnector.common.statemachine.StateMachine;
+import org.eclipse.dataspaceconnector.common.statemachine.StateProcessorImpl;
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
@@ -45,9 +46,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.Transfer
 
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 import static java.lang.String.format;
@@ -82,7 +80,6 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
  * A wait strategy may implement a backoff scheme.
  */
 public class TransferProcessManagerImpl implements TransferProcessManager {
-    private final AtomicBoolean active = new AtomicBoolean();
 
     private int batchSize = 5;
     private WaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
@@ -91,7 +88,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private TransferProcessStore transferProcessStore;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private DataFlowManager dataFlowManager;
-    private ExecutorService executor;
     private StatusCheckerRegistry statusCheckerRegistry;
     private Vault vault;
     private TypeManager typeManager;
@@ -101,20 +97,27 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private CommandProcessor<TransferProcessCommand> commandProcessor;
     private Monitor monitor;
     private Telemetry telemetry;
+    private StateMachine stateMachine;
 
     private TransferProcessManagerImpl() {
     }
 
     public void start() {
-        active.set(true);
-        executor = Executors.newSingleThreadExecutor();
-        executor.submit(this::run);
+        stateMachine = StateMachine.Builder.newInstance("transfer-process", monitor, waitStrategy)
+                .processor(processTransfersInState(INITIAL, this::processInitial))
+                .processor(processTransfersInState(PROVISIONED, this::processProvisioned))
+                .processor(processTransfersInState(REQUESTED_ACK, this::processAckRequested))
+                .processor(processTransfersInState(IN_PROGRESS, this::processInProgress))
+                .processor(processTransfersInState(DEPROVISIONING_REQ, this::processDeprovisioningRequest))
+                .processor(processTransfersInState(DEPROVISIONED, this::processDeprovisioned))
+                .processor(onCommands(this::processCommand))
+                .build();
+        stateMachine.start();
     }
 
     public void stop() {
-        active.set(false);
-        if (executor != null) {
-            executor.shutdownNow();
+        if (stateMachine != null) {
+            stateMachine.stop();
         }
     }
 
@@ -230,49 +233,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         return TransferInitiateResult.success(process.getId());
     }
 
-    private void run() {
-        while (active.get()) {
-            try {
-                long initial = processTransfersInState(INITIAL, this::processInitial);
-                long provisioned = processTransfersInState(PROVISIONED, this::processProvisioned);
-                long ackRequested = processTransfersInState(REQUESTED_ACK, this::processAckRequested);
-                long inProgress = processTransfersInState(IN_PROGRESS, this::processInProgress);
-                long deprovisioningRequest = processTransfersInState(DEPROVISIONING_REQ, this::processDeprovisioningRequest);
-                long deprovisioned = processTransfersInState(DEPROVISIONED, this::processDeprovisioned);
-
-                long commandsProcessed = onCommands().doProcess(this::processCommand);
-
-                var totalProcessed = initial + provisioned + ackRequested + inProgress + deprovisioningRequest + deprovisioned + commandsProcessed;
-                if (totalProcessed == 0) {
-                    Thread.sleep(waitStrategy.waitForMillis());
-                }
-                waitStrategy.success();
-            } catch (Error e) {
-                throw e; // let the thread die and don't reschedule as the error is unrecoverable
-            } catch (InterruptedException e) {
-                Thread.interrupted();
-                active.set(false);
-                break;
-            } catch (Throwable e) {
-                monitor.severe("Error caught in transfer process manager", e);
-                try {
-                    Thread.sleep(waitStrategy.retryInMillis());
-                } catch (InterruptedException e2) {
-                    Thread.interrupted();
-                    active.set(false);
-                    break;
-                }
-            }
-        }
-    }
-
-    private long processTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
+    private StateProcessorImpl<TransferProcess> processTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
         var functionWithTraceContext = telemetry.contextPropagationMiddleware(function);
-        return new EntitiesProcessor<>(() -> transferProcessStore.nextForState(state.code(), batchSize)).doProcess(functionWithTraceContext);
+        return new StateProcessorImpl<>(() -> transferProcessStore.nextForState(state.code(), batchSize), functionWithTraceContext);
     }
 
-    private EntitiesProcessor<TransferProcessCommand> onCommands() {
-        return new EntitiesProcessor<>(() -> commandQueue.dequeue(5));
+    private StateProcessorImpl<TransferProcessCommand> onCommands(Function<TransferProcessCommand, Boolean> process) {
+        return new StateProcessorImpl<>(() -> commandQueue.dequeue(5), process);
     }
 
     private boolean processCommand(TransferProcessCommand command) {

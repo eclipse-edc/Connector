@@ -42,6 +42,5 @@ public interface HttpDataSchema {
      * The destination authentication code property name (optional).
      */
     String AUTHENTICATION_CODE = "authCode";
-
-
+    
 }
