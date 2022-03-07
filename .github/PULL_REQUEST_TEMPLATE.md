@@ -22,5 +22,5 @@ Closes # <-- _insert Issue number if one exists_
 - [ ] added/updated copyright headers?
 - [ ] documented public classes/methods?
 - [ ] added/updated relevant documentation?
-- [ ] added relevant details to the changelog?
-- [ ] linked GitHub project?
+- [ ] added relevant details to the changelog? (skip with label `no-changelog`)
+- [ ] linked GitHub project? (see the section on the right-hand side -->)
