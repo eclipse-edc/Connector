@@ -80,7 +80,7 @@ public abstract class FileTransferSimulationUtils {
      * @param contractAgreement Contract agreement definition in JSON format.
      */
     private static ChainBuilder startContractAgreement(String providerUrl, String contractAgreement) {
-        String connectorAddress = format("%s/api/ids/multipart", providerUrl);
+        String connectorAddress = format("%s/api/v1/ids/data", providerUrl);
         return group("Contract negotiation")
                 .on(exec(
                         // Initiate a contract negotiation
@@ -143,7 +143,7 @@ public abstract class FileTransferSimulationUtils {
      * @param destinationPath File copy destination path. If it includes the character sequence {@code %s}, that sequence is replaced with a random string in each iteration.
      */
     private static ChainBuilder startFileTransfer(String providerUrl, String destinationPath) {
-        String connectorAddress = format("%s/api/ids/multipart", providerUrl);
+        String connectorAddress = format("%s/api/v1/ids/data", providerUrl);
         return group("Initiate transfer")
                 .on(exec(
                         // Initiate a file transfer
