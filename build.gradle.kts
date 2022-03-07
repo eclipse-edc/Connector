@@ -30,8 +30,10 @@ val jacksonVersion: String by project
 val javaVersion: String by project
 val jupiterVersion: String by project
 val mockitoVersion: String by project
+val assertj: String by project
 val rsApi: String by project
 val swaggerJaxrs2Version: String by project
+val faker: String by project
 
 val groupId: String = "org.eclipse.dataspaceconnector"
 var edcVersion: String = "0.0.1-SNAPSHOT"
@@ -106,8 +108,8 @@ allprojects {
             testImplementation("org.junit.jupiter:junit-jupiter-params:${jupiterVersion}")
             testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
             testImplementation("org.mockito:mockito-core:${mockitoVersion}")
-            testImplementation("org.assertj:assertj-core:3.19.0")
-            testImplementation("com.github.javafaker:javafaker:1.0.2")
+            testImplementation("org.assertj:assertj-core:${assertj}")
+            testImplementation("com.github.javafaker:javafaker:${faker}")
         }
 
         publishing {
