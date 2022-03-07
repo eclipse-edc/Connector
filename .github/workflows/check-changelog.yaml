@@ -1,0 +1,18 @@
+name: Scan Changelog
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  CheckForChanges:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check for new entries
+        uses: brettcannon/check-for-changed-files@v1
+        with:
+          file-pattern: 'CHANGELOG.md'
+          skip-label: 'no-changelog'
+          failure-message: 'Missing changes in CHANGELOG.md. Please add relevant information if needed.'
