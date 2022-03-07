@@ -27,10 +27,8 @@ import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.eclipse.dataspaceconnector.sql.contractdefinition.schema.SqlContractDefinitionTables;
 import org.jetbrains.annotations.NotNull;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
@@ -50,7 +48,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
     @SuppressWarnings("unchecked")
     private static <T> T readObject(String value) {
         try {
-            Envelope envelope = OBJECT_MAPPER.readValue(value, Envelope.class);
+            var envelope = OBJECT_MAPPER.readValue(value, Envelope.class);
             return (T) OBJECT_MAPPER.readValue(envelope.getContent(), Class.forName(envelope.getClassName()));
         } catch (Exception e) {
             throw new EdcException(e.getMessage(), e);
@@ -59,9 +57,9 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
 
     @Override
     public @NotNull Collection<ContractDefinition> findAll() {
-        String query = "SELECT * from %s";
+        var query = "SELECT * from %s";
 
-        try (Connection connection = dataSource.getConnection()) {
+        try (var connection = dataSource.getConnection()) {
             return SqlQueryExecutor.executeQuery(
                     connection,
                     ContractDefinitionMapper.INSTANCE,
@@ -75,15 +73,15 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
     public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
         Objects.requireNonNull(spec);
 
-        Limit limit = Limit.Builder.newInstance()
+        var limit = Limit.Builder.newInstance()
                 .limit(spec.getLimit())
                 .offset(spec.getOffset())
                 .build();
 
-        String query = "SELECT * from %s " + limit.getStatement();
+        var query = "SELECT * from %s " + limit.getStatement();
 
-        try (Connection connection = dataSource.getConnection()) {
-            List<ContractDefinition> definitions = SqlQueryExecutor.executeQuery(
+        try (var connection = dataSource.getConnection()) {
+            var definitions = SqlQueryExecutor.executeQuery(
                     connection,
                     ContractDefinitionMapper.INSTANCE,
                     String.format(query, SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE));
@@ -94,10 +92,10 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
     }
 
     @Override
-    public void save(Collection<ContractDefinition> definitions) {
+    public void save(Collection<ContractDefinition> definitions) throws EdcPersistenceException {
         Objects.requireNonNull(definitions);
 
-        String query = String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)",
+        var query = String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)",
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE,
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID,
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ACCESS_POLICY,
@@ -105,23 +103,21 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_SELECTOR);
 
         transactionContext.execute(() -> {
-            try (Connection connection = dataSource.getConnection()) {
+            try (var connection = dataSource.getConnection()) {
                 definitions.forEach((definition) -> executeQuery(connection, query,
                         definition.getId(),
                         writeObject(definition.getAccessPolicy()),
                         writeObject(definition.getContractPolicy()),
                         writeObject(definition.getSelectorExpression())));
-            } catch (Exception exception) {
-                throw new EdcPersistenceException(exception);
             }
         });
     }
 
     @Override
-    public void save(ContractDefinition definition) {
+    public void save(ContractDefinition definition) throws EdcPersistenceException {
         Objects.requireNonNull(definition);
 
-        String query = String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)",
+        var query = String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)",
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE,
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID,
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ACCESS_POLICY,
@@ -129,23 +125,21 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_SELECTOR);
 
         transactionContext.execute(() -> {
-            try (Connection connection = dataSource.getConnection()) {
+            try (var connection = dataSource.getConnection()) {
                 executeQuery(connection, query,
                         definition.getId(),
                         writeObject(definition.getAccessPolicy()),
                         writeObject(definition.getContractPolicy()),
                         writeObject(definition.getSelectorExpression()));
-            } catch (Exception exception) {
-                throw new EdcPersistenceException(exception);
             }
         });
     }
 
     @Override
-    public void update(ContractDefinition definition) {
+    public void update(ContractDefinition definition) throws EdcPersistenceException {
         Objects.requireNonNull(definition);
 
-        String query = String.format("UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = ? WHERE contract_definition_id = ?",
+        var query = String.format("UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = ? WHERE contract_definition_id = ?",
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE,
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID,
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ACCESS_POLICY,
@@ -154,43 +148,39 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
 
 
         transactionContext.execute(() -> {
-            try (Connection connection = dataSource.getConnection()) {
+            try (var connection = dataSource.getConnection()) {
                 executeQuery(connection, query,
                         definition.getId(),
                         writeObject(definition.getAccessPolicy()),
                         writeObject(definition.getContractPolicy()),
                         writeObject(definition.getSelectorExpression()),
                         definition.getId());
-            } catch (Exception exception) {
-                throw new EdcPersistenceException(exception);
             }
         });
     }
 
     @Override
-    public void delete(String id) {
+    public void delete(String id) throws EdcPersistenceException {
         Objects.requireNonNull(id);
 
-        String query = String.format("DELETE FROM %s WHERE %s = ?",
+        var query = String.format("DELETE FROM %s WHERE %s = ?",
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE,
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID);
 
         transactionContext.execute(() -> {
-            try (Connection connection = dataSource.getConnection()) {
+            try (var connection = dataSource.getConnection()) {
                 executeQuery(connection, query,
                         id);
-            } catch (Exception exception) {
-                throw new EdcPersistenceException(exception);
             }
         });
     }
 
     private String writeObject(Object object) {
         try {
-            String className = object.getClass().getName();
-            String content = OBJECT_MAPPER.writeValueAsString(object);
+            var className = object.getClass().getName();
+            var content = OBJECT_MAPPER.writeValueAsString(object);
 
-            Envelope envelope = new Envelope(className, content);
+            var envelope = new Envelope(className, content);
 
             return OBJECT_MAPPER.writeValueAsString(envelope);
         } catch (Exception e) {

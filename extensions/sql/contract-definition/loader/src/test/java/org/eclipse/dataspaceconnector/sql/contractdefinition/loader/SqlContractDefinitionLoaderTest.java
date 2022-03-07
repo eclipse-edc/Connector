@@ -63,22 +63,22 @@ class SqlContractDefinitionLoaderTest extends AbstractSqlContractDefinitionLoade
     @Test
     @DisplayName("Context Loads, tables exist")
     void contextLoads() throws SQLException {
-        String query = String.format("SELECT 1 FROM %s", SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE);
+        var query = String.format("SELECT 1 FROM %s", SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE);
         executeQuery(getDataSourceRegistry().resolve(DATASOURCE_NAME).getConnection(), query);
     }
 
     @Test
     @DisplayName("Accepts and persists ContractDefinition")
     void testAcceptEntry() throws SQLException {
-        Policy accessPolicy = Policy.Builder.newInstance()
+        var accessPolicy = Policy.Builder.newInstance()
                 .id("access")
                 .build();
-        Policy contractPolicy = Policy.Builder.newInstance()
+        var contractPolicy = Policy.Builder.newInstance()
                 .id("contract")
                 .build();
-        AssetSelectorExpression expression = AssetSelectorExpression.Builder.newInstance()
+        var expression = AssetSelectorExpression.Builder.newInstance()
                 .build();
-        ContractDefinition definition = ContractDefinition.Builder.newInstance()
+        var definition = ContractDefinition.Builder.newInstance()
                 .id("id")
                 .accessPolicy(accessPolicy)
                 .contractPolicy(contractPolicy)
@@ -87,11 +87,11 @@ class SqlContractDefinitionLoaderTest extends AbstractSqlContractDefinitionLoade
 
         getContractDefinitionLoader().accept(definition);
 
-        String query = String.format("SELECT count(*) FROM %s WHERE %s=?",
+        var query = String.format("SELECT count(*) FROM %s WHERE %s=?",
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE,
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID);
 
-        Long definitionCount = executeQuery(getDataSourceRegistry().resolve(DATASOURCE_NAME).getConnection(),
+        var definitionCount = executeQuery(getDataSourceRegistry().resolve(DATASOURCE_NAME).getConnection(),
                 (rs) -> rs.getLong(1),
                 query, "id").iterator().next();
 

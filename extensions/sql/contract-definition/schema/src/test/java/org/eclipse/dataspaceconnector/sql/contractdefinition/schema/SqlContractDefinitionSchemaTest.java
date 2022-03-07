@@ -61,7 +61,7 @@ class SqlContractDefinitionSchemaTest extends AbstractSqlContractDefinitionSchem
     @Test
     @DisplayName("Context Loads, tables exist")
     void contextLoads() throws SQLException {
-        String query = String.format("SELECT 1 FROM %s", SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE);
+        var query = String.format("SELECT 1 FROM %s", SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE);
         executeQuery(getDataSourceRegistry().resolve(DATASOURCE_NAME).getConnection(), query);
     }
 }

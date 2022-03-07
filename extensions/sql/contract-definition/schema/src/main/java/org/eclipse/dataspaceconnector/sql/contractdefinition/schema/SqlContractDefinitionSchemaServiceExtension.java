@@ -21,10 +21,8 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.flywaydb.core.Flyway;
-import org.flywaydb.core.api.output.MigrateResult;
 
 import java.util.Objects;
-import javax.sql.DataSource;
 
 public class SqlContractDefinitionSchemaServiceExtension implements ServiceExtension {
     private static final String MIGRATION_LOCATION = String.format("classpath:%s", SqlContractDefinitionSchemaServiceExtension.class.getPackageName().replaceAll("\\.", "/"));
@@ -44,21 +42,21 @@ public class SqlContractDefinitionSchemaServiceExtension implements ServiceExten
 
     @Override
     public void start() {
-        DataSource dataSource = Objects.requireNonNull(
+        var dataSource = Objects.requireNonNull(
                 dataSourceRegistry.resolve(dataSourceName),
                 String.format("DataSource %s could not be resolved", dataSourceName));
 
-        FlywayDataSource flywayDataSource = new FlywayDataSource(dataSource);
-        String schemaHistoryTableName = getSchemaHistoryTableName(dataSourceName);
+        var flywayDataSource = new FlywayDataSource(dataSource);
+        var schemaHistoryTableName = getSchemaHistoryTableName(dataSourceName);
 
-        Flyway flyway = Flyway.configure()
+        var flyway = Flyway.configure()
                 .dataSource(flywayDataSource)
                 .table(schemaHistoryTableName)
                 .locations(MIGRATION_LOCATION)
                 .load();
 
         transactionContext.execute(() -> {
-            MigrateResult migrateResult = flyway.migrate();
+            var migrateResult = flyway.migrate();
 
             if (!migrateResult.success) {
                 throw new EdcPersistenceException(String.format("Migrating DataSource %s failed: %s", dataSourceName, String.join(", ", migrateResult.warnings)));

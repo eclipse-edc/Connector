@@ -19,6 +19,7 @@ plugins {
 }
 
 val flywayVersion: String by project
+val h2Version: String by project
 
 dependencies {
     api(project(":spi"))
@@ -31,7 +32,7 @@ dependencies {
     testImplementation(project(":core:base"))
     testImplementation(project(":extensions:sql:pool:apache-commons-pool"))
     testImplementation(project(":extensions:transaction:transaction-local"))
-    testImplementation("com.h2database:h2:2.1.210")
+    testImplementation("com.h2database:h2:${h2Version}")
 }
 
 publishing {

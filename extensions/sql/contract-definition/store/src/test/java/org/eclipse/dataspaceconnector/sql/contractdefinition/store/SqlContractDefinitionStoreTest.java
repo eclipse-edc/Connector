@@ -25,12 +25,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -55,7 +52,7 @@ public class SqlContractDefinitionStoreTest extends AbstractSqlContractDefinitio
     @AfterEach
     void tearDown() {
         getTransactionContext().execute(() -> {
-            try (Connection connection = getDataSourceRegistry().resolve(DATASOURCE_NAME).getConnection()) {
+            try (var connection = getDataSourceRegistry().resolve(DATASOURCE_NAME).getConnection()) {
                 executeQuery(connection, String.format("DELETE FROM %s", SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE));
             } catch (SQLException e) {
                 throw new RuntimeException(e);
@@ -65,13 +62,13 @@ public class SqlContractDefinitionStoreTest extends AbstractSqlContractDefinitio
     }
 
     private ContractDefinition getContractDefinition(String id, String contractId, String policyId) {
-        Policy accessPolicy = Policy.Builder.newInstance()
+        var accessPolicy = Policy.Builder.newInstance()
                 .id(policyId)
                 .build();
-        Policy contractPolicy = Policy.Builder.newInstance()
+        var contractPolicy = Policy.Builder.newInstance()
                 .id(contractId)
                 .build();
-        AssetSelectorExpression expression = AssetSelectorExpression.Builder.newInstance()
+        var expression = AssetSelectorExpression.Builder.newInstance()
                 .build();
 
         return ContractDefinition.Builder.newInstance()
@@ -83,7 +80,7 @@ public class SqlContractDefinitionStoreTest extends AbstractSqlContractDefinitio
     }
 
     private ArrayList<ContractDefinition> getContractDefinitions(int count) {
-        ArrayList<ContractDefinition> definitions = new ArrayList<>();
+        var definitions = new ArrayList<ContractDefinition>();
 
         for (int i = 0; i < count; i++) {
             definitions.add(getContractDefinition("id" + i, "contract" + i, "policy" + i));
@@ -95,17 +92,17 @@ public class SqlContractDefinitionStoreTest extends AbstractSqlContractDefinitio
     @Test
     @DisplayName("Context Loads, tables exist")
     void contextLoads() throws SQLException {
-        String query = String.format("SELECT 1 FROM %s", SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE);
+        var query = String.format("SELECT 1 FROM %s", SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE);
         executeQuery(getDataSourceRegistry().resolve(DATASOURCE_NAME).getConnection(), query);
     }
 
     @Test
     @DisplayName("Save a single Contract Definition")
     void saveOne() {
-        ContractDefinition definition = getContractDefinition("id", "contract", "policy");
+        var definition = getContractDefinition("id", "contract", "policy");
         getContractDefinitionStore().save(definition);
 
-        Collection<ContractDefinition> definitions = getContractDefinitionStore().findAll();
+        var definitions = getContractDefinitionStore().findAll();
 
         Assertions.assertNotNull(definitions);
         Assertions.assertEquals(1, definitions.size());
@@ -114,10 +111,10 @@ public class SqlContractDefinitionStoreTest extends AbstractSqlContractDefinitio
     @Test
     @DisplayName("Save multiple Contract Definitions")
     void saveMany() {
-        List<ContractDefinition> definitionsCreated = getContractDefinitions(10);
+        var definitionsCreated = getContractDefinitions(10);
         getContractDefinitionStore().save(definitionsCreated);
 
-        Collection<ContractDefinition> definitionsRetrieved = getContractDefinitionStore().findAll();
+        var definitionsRetrieved = getContractDefinitionStore().findAll();
 
         Assertions.assertNotNull(definitionsRetrieved);
         Assertions.assertEquals(definitionsCreated.size(), definitionsRetrieved.size());
@@ -126,17 +123,17 @@ public class SqlContractDefinitionStoreTest extends AbstractSqlContractDefinitio
     @Test
     @DisplayName("Update a Contract Definition")
     void updateOne() throws SQLException {
-        ContractDefinition definition1 = getContractDefinition("id", "contract1", "policy1");
-        ContractDefinition definition2 = getContractDefinition("id", "contract2", "policy2");
+        var definition1 = getContractDefinition("id", "contract1", "policy1");
+        var definition2 = getContractDefinition("id", "contract2", "policy2");
 
         getContractDefinitionStore().save(definition1);
         getContractDefinitionStore().update(definition2);
 
-        String query = String.format("SELECT * FROM %s WHERE %s=?",
+        var query = String.format("SELECT * FROM %s WHERE %s=?",
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE,
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID);
 
-        List<ContractDefinition> definitions = executeQuery(getDataSourceRegistry().resolve(DATASOURCE_NAME).getConnection(),
+        var definitions = executeQuery(getDataSourceRegistry().resolve(DATASOURCE_NAME).getConnection(),
                 SqlContractDefinitionStore.ContractDefinitionMapper.INSTANCE,
                 query,
                 definition1.getId());
@@ -149,10 +146,10 @@ public class SqlContractDefinitionStoreTest extends AbstractSqlContractDefinitio
     @Test
     @DisplayName("Find all contract definitions")
     void findAll() {
-        List<ContractDefinition> definitionsExpected = getContractDefinitions(10);
+        var definitionsExpected = getContractDefinitions(10);
         getContractDefinitionStore().save(definitionsExpected);
 
-        Collection<ContractDefinition> definitionsRetrieved = getContractDefinitionStore().findAll();
+        var definitionsRetrieved = getContractDefinitionStore().findAll();
 
         Assertions.assertEquals(definitionsExpected.size(), definitionsRetrieved.size());
     }
@@ -160,17 +157,17 @@ public class SqlContractDefinitionStoreTest extends AbstractSqlContractDefinitio
     @Test
     @DisplayName("Find all contract definitions with limit and offset")
     void findAllWithSpec() {
-        int limit = 20;
+        var limit = 20;
 
-        List<ContractDefinition> definitionsExpected = getContractDefinitions(50);
+        var definitionsExpected = getContractDefinitions(50);
         getContractDefinitionStore().save(definitionsExpected);
 
-        QuerySpec spec = QuerySpec.Builder.newInstance()
+        var spec = QuerySpec.Builder.newInstance()
                 .limit(limit)
                 .offset(20)
                 .build();
 
-        Collection<ContractDefinition> definitionsRetrieved = getContractDefinitionStore().findAll(spec).collect(Collectors.toList());
+        var definitionsRetrieved = getContractDefinitionStore().findAll(spec).collect(Collectors.toList());
 
         Assertions.assertEquals(limit, definitionsRetrieved.size());
     }

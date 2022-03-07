@@ -32,7 +32,7 @@ class Limit {
     }
 
     public String getStatement() {
-        StringBuilder stringBuilder = new StringBuilder();
+        var stringBuilder = new StringBuilder();
         if (limit != null) {
             stringBuilder.append("LIMIT");
             stringBuilder.append(" ");

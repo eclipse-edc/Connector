@@ -77,13 +77,16 @@ class FlywayDataSourceConnection implements Connection {
     }
 
     @Override
-    public void setAutoCommit(boolean autoCommit) {}
+    public void setAutoCommit(boolean autoCommit) {
+    }
 
     @Override
-    public void commit() {}
+    public void commit() {
+    }
 
     @Override
-    public void rollback() {}
+    public void rollback() {
+    }
 
     @Override
     public void close() throws SQLException {
@@ -126,7 +129,8 @@ class FlywayDataSourceConnection implements Connection {
     }
 
     @Override
-    public void setTransactionIsolation(int level) {}
+    public void setTransactionIsolation(int level) {
+    }
 
     @Override
     public SQLWarning getWarnings() throws SQLException {

@@ -40,10 +40,10 @@ public class SqlContractDefinitionLoader implements ContractDefinitionLoader {
     }
 
     @Override
-    public void accept(ContractDefinition definition) {
+    public void accept(ContractDefinition definition) throws EdcPersistenceException {
         Objects.requireNonNull(definition);
 
-        String query = String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)",
+        var query = String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)",
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE,
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID,
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ACCESS_POLICY,
@@ -57,8 +57,6 @@ public class SqlContractDefinitionLoader implements ContractDefinitionLoader {
                         writeObject(definition.getAccessPolicy()),
                         writeObject(definition.getContractPolicy()),
                         writeObject(definition.getSelectorExpression()));
-            } catch (Exception exception) {
-                throw new EdcPersistenceException(exception);
             }
         });
 
@@ -66,10 +64,10 @@ public class SqlContractDefinitionLoader implements ContractDefinitionLoader {
 
     private String writeObject(Object object) {
         try {
-            String className = object.getClass().getName();
-            String content = OBJECT_MAPPER.writeValueAsString(object);
+            var className = object.getClass().getName();
+            var content = OBJECT_MAPPER.writeValueAsString(object);
 
-            Envelope envelope = new Envelope(className, content);
+            var envelope = new Envelope(className, content);
 
             return OBJECT_MAPPER.writeValueAsString(envelope);
         } catch (Exception e) {
@@ -80,7 +78,7 @@ public class SqlContractDefinitionLoader implements ContractDefinitionLoader {
     @SuppressWarnings("unchecked")
     private <T> T readObject(String value) {
         try {
-            Envelope envelope = OBJECT_MAPPER.readValue(value, Envelope.class);
+            var envelope = OBJECT_MAPPER.readValue(value, Envelope.class);
             return (T) OBJECT_MAPPER.readValue(envelope.getContent(), Class.forName(envelope.getClassName()));
         } catch (Exception e) {
             throw new EdcException(e.getMessage(), e);

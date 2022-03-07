@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
+package org.eclipse.dataspaceconnector.sql.contractdefinition.schema;
 
 import java.io.PrintWriter;
 import java.sql.Connection;
@@ -23,7 +23,7 @@ import java.util.function.Supplier;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
 
-class LazyDataSource implements DataSource {
+public class LazyDataSource implements DataSource {
     private final Supplier<DataSource> dataSourceSupplier;
     private DataSource instance = null;
 
@@ -62,6 +62,16 @@ class LazyDataSource implements DataSource {
     }
 
     @Override
+    public int getLoginTimeout() throws SQLException {
+        return getDataSource().getLoginTimeout();
+    }
+
+    @Override
+    public void setLoginTimeout(int i) throws SQLException {
+        getDataSource().setLoginTimeout(i);
+    }
+
+    @Override
     public boolean isWrapperFor(Class<?> type) throws SQLException {
         return getDataSource().isWrapperFor(type);
     }
@@ -71,15 +81,5 @@ class LazyDataSource implements DataSource {
             instance = dataSourceSupplier.get();
         }
         return instance;
-    }
-
-    @Override
-    public int getLoginTimeout() throws SQLException {
-        return getDataSource().getLoginTimeout();
-    }
-
-    @Override
-    public void setLoginTimeout(int i) throws SQLException {
-        getDataSource().setLoginTimeout(i);
     }
 }
