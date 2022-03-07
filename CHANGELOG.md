@@ -28,6 +28,7 @@ or issues.
 * Remove module `:samples:other:commandline` (#820)
 
 #### Fixed
+Flaky S3 StatusChecker Test (#794)
 
 ---
 
