@@ -14,14 +14,6 @@ public class ObservabilityApiExtension implements ServiceExtension {
     @Inject
     private HealthCheckService healthCheckService;
 
-    public ObservabilityApiExtension(WebService webServiceMock, HealthCheckService healthCheckService) {
-        webService = webServiceMock;
-        this.healthCheckService = healthCheckService;
-    }
-
-    public ObservabilityApiExtension() {
-    }
-
     @Override
     public String name() {
         return "Observability API";

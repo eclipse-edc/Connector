@@ -18,6 +18,7 @@ or issues.
 #### Added
 * `ContractDefinitionStore` supports paging (#717)
 * Add okhttp client timeouts (#735)
+* Unit test framework for Dependency Injection (#843)
 
 #### Changed
 * Change scope used for obtaining a token for ids multipart (#731)
