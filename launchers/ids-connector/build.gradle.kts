@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added dependencies
  *
  */
 
@@ -30,9 +31,12 @@ dependencies {
 
     implementation(project(":data-protocols:ids"))
 
-    implementation(project(":extensions:iam:iam-mock"))
-
     implementation(project(":extensions:filesystem:configuration-fs"))
+    implementation(project(":extensions:filesystem:vault-fs"))
+
+    implementation(project(":extensions:iam:oauth2:oauth2-core"))
+    implementation(project(":extensions:iam:daps"))
+
     implementation(project(":extensions:api:control"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
