@@ -51,7 +51,7 @@ public abstract class AbstractCosmosConfig {
 
         accountName = context.getSetting(getAccountNameSetting(), null);
         dbName = context.getSetting(getDbNameSetting(), null);
-        partitionKey = context.getSetting(getPartitionKeySetting(), context.getConnectorId());
+        partitionKey = context.getSetting(getPartitionKeySetting(), "0");
         preferredRegion = context.getSetting(getCosmosPreferredRegionSetting(), DEFAULT_REGION);
         containerName = context.getSetting(getContainerNameSetting(), null);
         queryMetricsEnabled = Boolean.parseBoolean(context.getSetting(getQueryMetricsEnabledSetting(), "true"));

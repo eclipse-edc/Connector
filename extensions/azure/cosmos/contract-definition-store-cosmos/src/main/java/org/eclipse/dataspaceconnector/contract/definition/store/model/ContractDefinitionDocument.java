@@ -26,7 +26,6 @@ public class ContractDefinitionDocument extends CosmosDocument<ContractDefinitio
     @JsonCreator
     public ContractDefinitionDocument(@JsonProperty("wrappedInstance") ContractDefinition contractDefinition,
                                       @JsonProperty("partitionKey") String partitionKey) {
-        //todo: lets think about whether this a good partition key
         super(contractDefinition, partitionKey);
     }
 

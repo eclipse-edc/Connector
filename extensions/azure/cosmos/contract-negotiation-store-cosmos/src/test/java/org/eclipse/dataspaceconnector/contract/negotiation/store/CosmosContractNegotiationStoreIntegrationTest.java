@@ -16,12 +16,8 @@ package org.eclipse.dataspaceconnector.contract.negotiation.store;
 
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
-import com.azure.cosmos.CosmosScripts;
 import com.azure.cosmos.implementation.BadRequestException;
-import com.azure.cosmos.models.CosmosContainerResponse;
-import com.azure.cosmos.models.CosmosDatabaseResponse;
 import com.azure.cosmos.models.CosmosStoredProcedureProperties;
-import com.azure.cosmos.models.CosmosStoredProcedureResponse;
 import com.azure.cosmos.models.PartitionKey;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
@@ -73,7 +69,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     static void prepareCosmosClient() {
         var client = CosmosTestClient.createClient();
 
-        CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
+        var response = client.createDatabaseIfNotExists(DATABASE_NAME);
         database = client.getDatabase(response.getProperties().getId());
 
     }
@@ -81,32 +77,36 @@ class CosmosContractNegotiationStoreIntegrationTest {
     @AfterAll
     static void deleteDatabase() {
         if (database != null) {
-            CosmosDatabaseResponse delete = database.delete();
+            var delete = database.delete();
             assertThat(delete.getStatusCode()).isBetween(200, 300);
         }
     }
 
     private static void uploadStoredProcedure(CosmosContainer container, String name) {
         // upload stored procedure
-        var is = Thread.currentThread().getContextClassLoader().getResourceAsStream(name + ".js");
+        var sprocName = ".js";
+        var is = Thread.currentThread().getContextClassLoader().getResourceAsStream(name + sprocName);
         if (is == null) {
             throw new AssertionError("The input stream referring to the " + name + " file cannot be null!");
         }
 
-        Scanner s = new Scanner(is).useDelimiter("\\A");
-        String body = s.hasNext() ? s.next() : "";
-        CosmosStoredProcedureProperties props = new CosmosStoredProcedureProperties(name, body);
+        var s = new Scanner(is).useDelimiter("\\A");
+        if (!s.hasNext()) {
+            throw new IllegalArgumentException("Error loading resource with name " + sprocName);
+        }
+        var body = s.next();
+        var props = new CosmosStoredProcedureProperties(name, body);
 
-        CosmosScripts scripts = container.getScripts();
+        var scripts = container.getScripts();
         if (scripts.readAllStoredProcedures().stream().noneMatch(sp -> sp.getId().equals(name))) {
-            CosmosStoredProcedureResponse storedProcedure = scripts.createStoredProcedure(props);
+            scripts.createStoredProcedure(props);
         }
     }
 
     @BeforeEach
     void setUp() {
         var containerName = CONTAINER_PREFIX + UUID.randomUUID();
-        CosmosContainerResponse containerIfNotExists = database.createContainerIfNotExists(containerName, "/partitionKey");
+        var containerIfNotExists = database.createContainerIfNotExists(containerName, "/partitionKey");
         container = database.getContainer(containerIfNotExists.getProperties().getId());
         uploadStoredProcedure(container, "nextForState");
         uploadStoredProcedure(container, "lease");
@@ -222,7 +222,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     @Test
     void save_leasedByOther_shouldRaiseException() {
         var negotiation = generateNegotiation("test-id", ContractNegotiationStates.CONFIRMED);
-        ContractNegotiationDocument item = new ContractNegotiationDocument(negotiation, partitionKey);
+        var item = new ContractNegotiationDocument(negotiation, partitionKey);
         item.acquireLease("someone-else");
         container.createItem(item);
 
@@ -234,7 +234,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     @Test
     void delete_leasedByOther_shouldRaiseException() {
         var negotiation = generateNegotiation("test-id", ContractNegotiationStates.CONFIRMED);
-        ContractNegotiationDocument item = new ContractNegotiationDocument(negotiation, partitionKey);
+        var item = new ContractNegotiationDocument(negotiation, partitionKey);
         item.acquireLease("someone-else");
         container.createItem(item);
 
