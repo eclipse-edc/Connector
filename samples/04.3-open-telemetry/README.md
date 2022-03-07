@@ -29,7 +29,7 @@ docker-compose -f samples/04.3-open-telemetry/docker-compose.yaml up --abort-on-
 Once the consumer and provider are up, start a contract negotiation by executing:
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -d @samples/04.0-file-transfer/integration-tests/src/test/resources/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://provider:8181/api/v1/ids/data"
+curl -X POST -H "Content-Type: application/json" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://provider:8181/api/v1/ids/data"
 ```
 
 The contract negotiation causes an HTTP request sent from the consumer to the provider connector, followed by another message from the provider to the consumer connector.
