@@ -5,4 +5,4 @@ edc:
   env:
     IDS_WEBHOOK_ADDRESS: http://provider-dataspace-connector
     # Use /etc/hosts as a copy source as it is a well-known file
-    EDC_SAMPLES_04_ASSET_PATH: /etc/hosts
+    EDC_TEST_ASSET_PATH: /etc/hosts

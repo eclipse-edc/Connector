@@ -35,6 +35,12 @@ jobs:
       - name: CodeCov
         uses: codecov/codecov-action@v2
 
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: Gatling reports
+          path: '**/build/reports/gatling/**'
+
   Sanity-Check:
     runs-on: ubuntu-latest
     steps:
@@ -140,12 +146,12 @@ jobs:
           ./minikube start --wait all
 
       - name: Build JARs
-        run: ./gradlew samples:04.0-file-transfer:consumer:shadowJar samples:04.0-file-transfer:provider:shadowJar --no-daemon
+        run: ./gradlew system-tests:runtimes:file-transfer-consumer:shadowJar system-tests:runtimes:file-transfer-provider:shadowJar --no-daemon
 
       - name: Test
         run: |
           eval $(minikube -p minikube docker-env)
-          samples/04.0-file-transfer/integration-tests/minikube/minikube-test.sh
+          system-tests/minikube/minikube-test.sh
 
       - name: Kubernetes logs
         if: always()
