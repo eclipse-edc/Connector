@@ -79,8 +79,8 @@ jobs:
         ports:
           - 9000:9000
         env:
-          MINIO_ACCESS_KEY: root
-          MINIO_SECRET_KEY: password
+          MINIO_ROOT_USER: root
+          MINIO_ROOT_PASSWORD: password
 
     steps:
       - uses: actions/checkout@v2
