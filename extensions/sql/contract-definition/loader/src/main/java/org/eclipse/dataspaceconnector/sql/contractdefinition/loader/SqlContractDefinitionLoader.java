@@ -50,7 +50,7 @@ public class SqlContractDefinitionLoader implements ContractDefinitionLoader {
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_SELECTOR);
 
         transactionContext.execute(() -> {
-            try (Connection connection = dataSource.getConnection()) {
+            try (var connection = dataSource.getConnection()) {
                 executeQuery(connection, query,
                         definition.getId(),
                         writeObject(definition.getAccessPolicy()),
