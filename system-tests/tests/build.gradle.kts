@@ -19,8 +19,17 @@ plugins {
 val gatlingVersion: String by project
 
 dependencies {
-    testImplementation("io.gatling:gatling-http-java:${gatlingVersion}")
-    testImplementation("io.gatling.highcharts:gatling-charts-highcharts:${gatlingVersion}")
+    testImplementation("io.gatling.highcharts:gatling-charts-highcharts:${gatlingVersion}") {
+        exclude(group = "io.gatling", module="gatling-jms")
+        exclude(group = "io.gatling", module="gatling-jms-java")
+        exclude(group = "io.gatling", module="gatling-mqtt")
+        exclude(group = "io.gatling", module="gatling-mqtt-java")
+        exclude(group = "io.gatling", module="gatling-jdbc")
+        exclude(group = "io.gatling", module="gatling-jdbc-java")
+        exclude(group = "io.gatling", module="gatling-redis")
+        exclude(group = "io.gatling", module="gatling-redis-java")
+        exclude(group = "io.gatling", module="gatling-graphite")
+    }
 
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":launchers:junit")))
