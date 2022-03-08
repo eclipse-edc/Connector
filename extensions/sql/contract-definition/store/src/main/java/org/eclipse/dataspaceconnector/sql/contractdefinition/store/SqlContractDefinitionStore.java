@@ -93,7 +93,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
     }
 
     @Override
-    public void save(Collection<ContractDefinition> definitions) throws EdcPersistenceException {
+    public void save(Collection<ContractDefinition> definitions) {
         Objects.requireNonNull(definitions);
 
         var query = String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)",
@@ -110,17 +110,19 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
                         writeObject(definition.getAccessPolicy()),
                         writeObject(definition.getContractPolicy()),
                         writeObject(definition.getSelectorExpression())));
+            } catch (Exception e) {
+                throw new EdcException(e.getMessage(), e);
             }
         });
     }
 
     @Override
-    public void save(ContractDefinition definition) throws EdcPersistenceException {
+    public void save(ContractDefinition definition) {
         save(Collections.singletonList(definition));
     }
 
     @Override
-    public void update(ContractDefinition definition) throws EdcPersistenceException {
+    public void update(ContractDefinition definition) {
         Objects.requireNonNull(definition);
 
         var query = String.format("UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = ? WHERE contract_definition_id = ?",
@@ -139,12 +141,14 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
                         writeObject(definition.getContractPolicy()),
                         writeObject(definition.getSelectorExpression()),
                         definition.getId());
+            } catch (Exception e) {
+                throw new EdcException(e.getMessage(), e);
             }
         });
     }
 
     @Override
-    public void delete(String id) throws EdcPersistenceException {
+    public void delete(String id) {
         Objects.requireNonNull(id);
 
         var query = String.format("DELETE FROM %s WHERE %s = ?",
@@ -155,6 +159,8 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
             try (var connection = dataSource.getConnection()) {
                 executeQuery(connection, query,
                         id);
+            } catch (Exception e) {
+                throw new EdcException(e.getMessage(), e);
             }
         });
     }

@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.sql.contractdefinition.loader;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.sql.contractdefinition.schema.SqlContractDefinitionTables;
@@ -40,7 +39,7 @@ public class SqlContractDefinitionLoader implements ContractDefinitionLoader {
     }
 
     @Override
-    public void accept(ContractDefinition definition) throws EdcPersistenceException {
+    public void accept(ContractDefinition definition) {
         Objects.requireNonNull(definition);
 
         var query = String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)",
@@ -57,6 +56,8 @@ public class SqlContractDefinitionLoader implements ContractDefinitionLoader {
                         writeObject(definition.getAccessPolicy()),
                         writeObject(definition.getContractPolicy()),
                         writeObject(definition.getSelectorExpression()));
+            } catch (Exception e) {
+                throw new EdcException(e.getMessage(), e);
             }
         });
 
