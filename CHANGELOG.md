@@ -34,7 +34,8 @@ the detailed section referring to by linking pull requests or issues.
 * Remove module `:samples:other:commandline` (#820)
 
 #### Fixed
-Flaky S3 StatusChecker Test (#794)
+* Flaky S3 StatusChecker Test (#794)
+* Added missing Data Management Asset controller openapi (#853) 
 
 ---
 
