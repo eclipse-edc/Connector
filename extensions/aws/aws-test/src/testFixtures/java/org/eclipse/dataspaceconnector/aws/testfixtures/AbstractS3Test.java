@@ -37,6 +37,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
@@ -73,6 +74,7 @@ public abstract class AbstractS3Test {
                     .with()
                     .pollInterval(Duration.ofSeconds(2))
                     .ignoreException(IOException.class) // thrown by pingMinio
+                    .ignoreException(ConnectException.class)
                     .until(AbstractS3Test::pingMinio);
         }
     }
