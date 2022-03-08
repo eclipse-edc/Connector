@@ -33,7 +33,7 @@ jobs:
         run: ./gradlew extensions:azure:blobstorage:blob-provision:check
 
   Azure-CosmosDB-Integration-Test:
-    runs-on: windows-2019
+    runs-on: windows-latest
 
     env:
       RUN_INTEGRATION_TEST: true
