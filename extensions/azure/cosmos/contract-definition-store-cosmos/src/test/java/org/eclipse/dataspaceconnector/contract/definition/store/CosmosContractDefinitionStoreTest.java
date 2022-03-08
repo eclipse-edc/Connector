@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.contract.definition.store;
 
 import com.azure.cosmos.models.SqlQuerySpec;
@@ -33,6 +47,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class CosmosContractDefinitionStoreTest {
+    private static final String TEST_PART_KEY = "test_part_key";
     private CosmosContractDefinitionStore store;
     private CosmosDbApi cosmosDbApiMock;
 
@@ -41,13 +56,13 @@ class CosmosContractDefinitionStoreTest {
         cosmosDbApiMock = mock(CosmosDbApi.class);
         var typeManager = new TypeManager();
         var retryPolicy = new RetryPolicy<>();
-        store = new CosmosContractDefinitionStore(cosmosDbApiMock, typeManager, retryPolicy);
+        store = new CosmosContractDefinitionStore(cosmosDbApiMock, typeManager, retryPolicy, TEST_PART_KEY);
     }
 
     @Test
     void findAll() {
-        var doc1 = generateDocument();
-        var doc2 = generateDocument();
+        var doc1 = generateDocument(TEST_PART_KEY);
+        var doc2 = generateDocument(TEST_PART_KEY);
         when(cosmosDbApiMock.queryAllItems()).thenReturn(List.of(doc1, doc2));
 
         store.reload();
@@ -121,7 +136,7 @@ class CosmosContractDefinitionStoreTest {
     @Test
     void findAll_noQuerySpec() {
 
-        when(cosmosDbApiMock.queryAllItems()).thenReturn(IntStream.range(0, 10).mapToObj(i -> generateDocument()).collect(Collectors.toList()));
+        when(cosmosDbApiMock.queryAllItems()).thenReturn(IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PART_KEY)).collect(Collectors.toList()));
 
         var all = store.findAll(QuerySpec.Builder.newInstance().build());
         assertThat(all).hasSize(10);
@@ -131,7 +146,7 @@ class CosmosContractDefinitionStoreTest {
 
     @Test
     void findAll_verifyPaging() {
-        when(cosmosDbApiMock.queryAllItems()).thenReturn(IntStream.range(0, 4).mapToObj(i -> generateDocument()).collect(Collectors.toList()));
+        when(cosmosDbApiMock.queryAllItems()).thenReturn(IntStream.range(0, 4).mapToObj(i -> generateDocument(TEST_PART_KEY)).collect(Collectors.toList()));
 
         // page size fits
         assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(1);
@@ -141,7 +156,7 @@ class CosmosContractDefinitionStoreTest {
 
     @Test
     void findAll_verifyPaging_tooLarge() {
-        when(cosmosDbApiMock.queryAllItems()).thenReturn(IntStream.range(0, 15).mapToObj(i -> generateDocument()).collect(Collectors.toList()));
+        when(cosmosDbApiMock.queryAllItems()).thenReturn(IntStream.range(0, 15).mapToObj(i -> generateDocument(TEST_PART_KEY)).collect(Collectors.toList()));
 
         // page size too large
         assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(10);
@@ -152,7 +167,7 @@ class CosmosContractDefinitionStoreTest {
 
     @Test
     void findAll_verifyFiltering() {
-        var doc = generateDocument();
+        var doc = generateDocument(TEST_PART_KEY);
         when(cosmosDbApiMock.queryAllItems()).thenReturn(List.of(doc));
 
         var all = store.findAll(QuerySpec.Builder.newInstance().filter("id=" + doc.getId()).build());
@@ -168,7 +183,7 @@ class CosmosContractDefinitionStoreTest {
 
     @Test
     void findAll_verifySorting_asc() {
-        when(cosmosDbApiMock.queryAllItems()).thenReturn(IntStream.range(0, 10).mapToObj(i -> generateDocument()).sorted(Comparator.comparing(ContractDefinitionDocument::getId).reversed()).collect(Collectors.toList()));
+        when(cosmosDbApiMock.queryAllItems()).thenReturn(IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PART_KEY)).sorted(Comparator.comparing(ContractDefinitionDocument::getId).reversed()).collect(Collectors.toList()));
 
         var all = store.findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build()).collect(Collectors.toList());
         assertThat(all).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
@@ -179,7 +194,7 @@ class CosmosContractDefinitionStoreTest {
 
     @Test
     void findAll_verifySorting_desc() {
-        when(cosmosDbApiMock.queryAllItems()).thenReturn(IntStream.range(0, 10).mapToObj(i -> generateDocument()).sorted(Comparator.comparing(ContractDefinitionDocument::getId)).collect(Collectors.toList()));
+        when(cosmosDbApiMock.queryAllItems()).thenReturn(IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PART_KEY)).sorted(Comparator.comparing(ContractDefinitionDocument::getId)).collect(Collectors.toList()));
 
 
         var all = store.findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build()).collect(Collectors.toList());
