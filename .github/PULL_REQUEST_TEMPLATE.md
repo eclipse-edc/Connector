@@ -17,10 +17,12 @@ Closes # <-- _insert Issue number if one exists_
 
 ## Checklist
 
+- [ ] formatted title correctly? (_see [here](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/CONTRIBUTING.md#submit-a-pull-request)
+      for formatting details_)
 - [ ] added appropriate tests?
 - [ ] performed checkstyle check locally?
 - [ ] added/updated copyright headers?
 - [ ] documented public classes/methods?
 - [ ] added/updated relevant documentation?
-- [ ] added relevant details to the changelog? (skip with label `no-changelog`)
-- [ ] linked GitHub project? (see the section on the right-hand side -->)
+- [ ] added relevant details to the changelog? (_skip with label `no-changelog`_)
+- [ ] linked GitHub project? (_see the section on the right-hand side -->_)

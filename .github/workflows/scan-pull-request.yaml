@@ -1,0 +1,29 @@
+name: Scan Pull Request
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  check-for-changelog-modifications:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check for new entries
+        uses: brettcannon/check-for-changed-files@v1
+        with:
+          file-pattern: 'CHANGELOG.md'
+          skip-label: 'no-changelog'
+          failure-message: 'Missing changes in CHANGELOG.md. Please add relevant information if needed.'
+
+  check-pull-request-title:
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    steps:
+      - uses: actions/checkout@v2
+      - uses: deepakputhraya/action-pr-title@master
+        with:
+          # Match pull request titles conventional commit syntax
+          regex: '(?<type>\w+)(?<scope>(?:\([^()\r\n]*\)|\()?(?<breaking>!)?):(?<subject>.*)?'
