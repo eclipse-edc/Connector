@@ -129,12 +129,14 @@ Please refer to the dedicated [style guide](styleguide.md) and the patterns we d
 
 ## Roadmap
 
-[TBW]
+See [here](CONTRIBUTING.md#project-and-milestone-planning) for more information about project and
+milestone planning. Scheduled and ongoing milestones are listed 
+[here](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/milestones).
 
 ## Contributing
 
 See [how to contribute](CONTRIBUTING.md).
 
-# Tags
+## Tags
 
-* Code for the ION Hackathon demo can be found under the tag `ion-hackaton`
+Available tags can be found [here](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/tags).
