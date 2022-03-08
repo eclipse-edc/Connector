@@ -20,15 +20,15 @@ CREATE TABLE IF NOT EXISTS edc_contract_definitions
 ) NOT NULL,
     access_policy VARCHAR
 (
-    65535
+    MAX
 ) NOT NULL,
     contract_policy VARCHAR
 (
-    65535
+    MAX
 ) NOT NULL,
     selector_expression VARCHAR
 (
-    65535
+    MAX
 ) NOT NULL,
     PRIMARY KEY
 (

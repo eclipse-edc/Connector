@@ -14,9 +14,15 @@
 
 package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 
+import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
+import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.sql.contractdefinition.schema.SqlContractDefinitionTables;
 import org.junit.jupiter.api.AfterEach;
@@ -24,16 +30,19 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
-public class SqlContractDefinitionStoreTest extends AbstractSqlContractDefinitionStoreTest {
+@ExtendWith(EdcExtension.class)
+public class SqlContractDefinitionStoreTest {
     private static final String DATASOURCE_NAME = "contractdefinition";
 
     private final Map<String, String> systemProperties = new HashMap<>() {
@@ -44,9 +53,16 @@ public class SqlContractDefinitionStoreTest extends AbstractSqlContractDefinitio
         }
     };
 
+    private final AtomicReference<ServiceExtensionContext> contextRef = new AtomicReference<>();
+
     @BeforeEach
-    void setUp() {
+    void setUp(EdcExtension extension) {
         systemProperties.forEach(System::setProperty);
+        extension.registerSystemExtension(ServiceExtension.class, new ServiceExtension() {
+            public void initialize(ServiceExtensionContext context) {
+                contextRef.set(context);
+            }
+        });
     }
 
     @AfterEach
@@ -59,6 +75,7 @@ public class SqlContractDefinitionStoreTest extends AbstractSqlContractDefinitio
             }
         });
         systemProperties.keySet().forEach(System::clearProperty);
+        contextRef.set(null);
     }
 
     private ContractDefinition getContractDefinition(String id, String contractId, String policyId) {
@@ -170,5 +187,17 @@ public class SqlContractDefinitionStoreTest extends AbstractSqlContractDefinitio
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec).collect(Collectors.toList());
 
         Assertions.assertEquals(limit, definitionsRetrieved.size());
+    }
+
+    protected DataSourceRegistry getDataSourceRegistry() {
+        return contextRef.get().getService(DataSourceRegistry.class);
+    }
+
+    protected TransactionContext getTransactionContext() {
+        return contextRef.get().getService(TransactionContext.class);
+    }
+
+    protected ContractDefinitionStore getContractDefinitionStore() {
+        return contextRef.get().getService(ContractDefinitionStore.class);
     }
 }

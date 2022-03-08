@@ -16,6 +16,10 @@
 package org.eclipse.dataspaceconnector.sql.contractdefinition.schema;
 
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
+import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,11 +30,12 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
 @ExtendWith(EdcExtension.class)
-class SqlContractDefinitionSchemaTest extends AbstractSqlContractDefinitionSchemaTest {
+class SqlContractDefinitionSchemaTest {
     private static final String DATASOURCE_NAME = "contractdefinition";
 
     private final Map<String, String> systemProperties = new HashMap<>() {
@@ -41,9 +46,16 @@ class SqlContractDefinitionSchemaTest extends AbstractSqlContractDefinitionSchem
         }
     };
 
+    private final AtomicReference<ServiceExtensionContext> contextRef = new AtomicReference<>();
+
     @BeforeEach
-    void setUp() {
+    void setUp(EdcExtension extension) {
         systemProperties.forEach(System::setProperty);
+        extension.registerSystemExtension(ServiceExtension.class, new ServiceExtension() {
+            public void initialize(ServiceExtensionContext context) {
+                contextRef.set(context);
+            }
+        });
     }
 
     @AfterEach
@@ -56,6 +68,15 @@ class SqlContractDefinitionSchemaTest extends AbstractSqlContractDefinitionSchem
             }
         });
         systemProperties.keySet().forEach(System::clearProperty);
+        contextRef.set(null);
+    }
+
+    protected DataSourceRegistry getDataSourceRegistry() {
+        return contextRef.get().getService(DataSourceRegistry.class);
+    }
+
+    protected TransactionContext getTransactionContext() {
+        return contextRef.get().getService(TransactionContext.class);
     }
 
     @Test
@@ -64,4 +85,5 @@ class SqlContractDefinitionSchemaTest extends AbstractSqlContractDefinitionSchem
         var query = String.format("SELECT 1 FROM %s", SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE);
         executeQuery(getDataSourceRegistry().resolve(DATASOURCE_NAME).getConnection(), query);
     }
+
 }

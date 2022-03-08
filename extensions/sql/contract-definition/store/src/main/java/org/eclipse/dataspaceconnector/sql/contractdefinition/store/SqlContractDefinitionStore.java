@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
@@ -115,24 +116,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
 
     @Override
     public void save(ContractDefinition definition) throws EdcPersistenceException {
-        Objects.requireNonNull(definition);
-
-        var query = String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)",
-                SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE,
-                SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID,
-                SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ACCESS_POLICY,
-                SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_CONTRACT_POLICY,
-                SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_SELECTOR);
-
-        transactionContext.execute(() -> {
-            try (var connection = dataSource.getConnection()) {
-                executeQuery(connection, query,
-                        definition.getId(),
-                        writeObject(definition.getAccessPolicy()),
-                        writeObject(definition.getContractPolicy()),
-                        writeObject(definition.getSelectorExpression()));
-            }
-        });
+        save(Collections.singletonList(definition));
     }
 
     @Override
