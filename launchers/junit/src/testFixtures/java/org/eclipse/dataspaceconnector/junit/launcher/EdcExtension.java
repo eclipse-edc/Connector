@@ -45,7 +45,9 @@ import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
 
 /**
  * A JUnit extension for running an embedded EDC runtime as part of a test fixture.
- * This extension attaches a EDC runtime to the {@link BeforeTestExecutionCallback} and {@link AfterTestExecutionCallback} lifecycle hooks. Parameter injection of runtime services is supported.
+ * This extension attaches an EDC runtime to the {@link BeforeTestExecutionCallback} and {@link AfterTestExecutionCallback} lifecycle hooks. Parameter injection of runtime services is supported.
+ * <p>
+ * If only basic dependency injection is needed, use {@link DependencyInjectionExtension} instead.
  */
 public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver {
     private final LinkedHashMap<Class<?>, Object> serviceMocks = new LinkedHashMap<>();
