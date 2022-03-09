@@ -363,7 +363,7 @@ class CosmosAssetIndexIntegrationTest {
         container.createItem(new AssetDocument(asset, TEST_PARTITION_KEY, dataAddress));
 
         Asset deletedAsset = assetIndex.deleteById(asset.getId());
-        assertThat(deletedAsset).isEqualTo(asset);
+        assertThat(deletedAsset.getProperties()).isEqualTo(asset.getProperties());
         assertThat(assetIndex.findById(asset.getId())).isNull();
     }
 
