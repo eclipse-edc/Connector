@@ -248,6 +248,24 @@ class CosmosAssetIndexTest {
         verify(api).queryItems(any(SqlQuerySpec.class));
     }
 
+    @Test
+    void deleteById_whenAssetPresent_returnsAsset() {
+        String id = "id-test";
+        AssetDocument document = createDocument(id);
+        when(api.queryItemById(eq(id))).thenReturn(document);
+
+        var deletedAsset = assetIndex.deleteById(id);
+        assertThat(deletedAsset.getProperties()).isEqualTo(document.getWrappedAsset().getProperties());
+        verify(api).deleteItem(eq(id));
+    }
+
+    @Test
+    void deleteById_whenMissingAsset_returnsNull() {
+        String id = "id-test";
+        when(api.queryItemById(eq(id))).thenReturn(null);
+        assertThat(assetIndex.deleteById(id)).isNull();
+    }
+
     @NotNull
     private PredicateMatcher<SqlQuerySpec> queryMatches(String expectedQuery) {
         return new PredicateMatcher<>(sqlQuerySpec -> sqlQuerySpec.getQueryText().equals(expectedQuery));
