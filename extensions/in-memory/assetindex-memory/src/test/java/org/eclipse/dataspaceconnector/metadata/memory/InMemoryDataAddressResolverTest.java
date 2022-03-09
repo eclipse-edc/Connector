@@ -41,7 +41,7 @@ class InMemoryDataAddressResolverTest {
     }
 
     @Test
-    void resolveForAsset_assetDeleted_raisesException() {
+    void resolveForAsset_whenAssetDeleted_raisesException() {
         var testAsset = createAsset("foobar", UUID.randomUUID().toString());
         var address = createDataAddress(testAsset);
         resolver.accept(testAsset, address);

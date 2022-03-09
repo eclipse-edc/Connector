@@ -254,7 +254,7 @@ class InMemoryAssetIndexTest {
     }
 
     @Test
-    void deleteById_assetExists_deleteAsset() {
+    void deleteById_whenPresent_shouldDelete() {
         var asset = createAsset("foobar");
         index.accept(asset, createDataAddress(asset));
         var deletedAsset = index.deleteById(asset.getId());
@@ -265,7 +265,7 @@ class InMemoryAssetIndexTest {
     }
 
     @Test
-    void deleteById_assetDoesNotExists_returnsNull() {
+    void deleteById_whenAlreadyMissing_shouldReturnNull() {
         assertThat(index.deleteById(UUID.randomUUID().toString())).isNull();
     }
 
