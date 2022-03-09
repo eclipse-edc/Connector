@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.transfer.store.memory;
 
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
@@ -26,9 +27,9 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
@@ -110,29 +111,8 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
-    public void createData(String processId, String key, Object data) {
-        throw new UnsupportedOperationException("Not yet implemented");
+    public Stream<TransferProcess> findAll(QuerySpec querySpec) {
+        return null;
     }
-
-    @Override
-    public void updateData(String processId, String key, Object data) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public void deleteData(String processId, String key) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public void deleteData(String processId, Set<String> keys) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public <T> T findData(Class<T> type, String processId, String resourceDefinitionId) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
 
 }

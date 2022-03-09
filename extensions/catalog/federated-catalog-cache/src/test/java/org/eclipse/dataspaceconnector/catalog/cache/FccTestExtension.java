@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.catalog.cache;
 
 import kotlin.NotImplementedError;
@@ -35,7 +49,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
@@ -144,23 +157,7 @@ public class FccTestExtension implements ServiceExtension {
         }
 
         @Override
-        public void createData(String processId, String key, Object data) {
-        }
-
-        @Override
-        public void updateData(String processId, String key, Object data) {
-        }
-
-        @Override
-        public void deleteData(String processId, String key) {
-        }
-
-        @Override
-        public void deleteData(String processId, Set<String> keys) {
-        }
-
-        @Override
-        public <T> T findData(Class<T> type, String processId, String resourceDefinitionId) {
+        public Stream<TransferProcess> findAll(QuerySpec querySpec) {
             return null;
         }
     }

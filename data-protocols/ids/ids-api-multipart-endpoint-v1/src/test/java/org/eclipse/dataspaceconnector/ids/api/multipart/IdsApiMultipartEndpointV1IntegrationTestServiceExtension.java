@@ -57,14 +57,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
@@ -216,25 +214,10 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         }
 
         @Override
-        public void createData(String processId, String key, Object data) {
-        }
-
-        @Override
-        public void updateData(String processId, String key, Object data) {
-        }
-
-        @Override
-        public void deleteData(String processId, String key) {
-        }
-
-        @Override
-        public void deleteData(String processId, Set<String> keys) {
-        }
-
-        @Override
-        public <T> T findData(Class<T> type, String processId, String resourceDefinitionId) {
+        public Stream<TransferProcess> findAll(QuerySpec querySpec) {
             return null;
         }
+
     }
 
     private static class FakeRemoteMessageDispatcherRegistry implements RemoteMessageDispatcherRegistry {

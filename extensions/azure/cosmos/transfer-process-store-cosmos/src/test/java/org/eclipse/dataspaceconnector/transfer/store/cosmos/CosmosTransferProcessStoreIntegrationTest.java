@@ -46,7 +46,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -473,15 +472,6 @@ class CosmosTransferProcessStoreIntegrationTest {
     void delete_notExist() {
         store.delete("not-exist");
         //no exception should be raised
-    }
-
-    @Test
-    void verifyAllNotImplemented() {
-        assertThatThrownBy(() -> store.createData("pid", "key", new Object())).isInstanceOf(UnsupportedOperationException.class);
-        assertThatThrownBy(() -> store.updateData("pid", "key", new Object())).isInstanceOf(UnsupportedOperationException.class);
-        assertThatThrownBy(() -> store.deleteData("pid", "key")).isInstanceOf(UnsupportedOperationException.class);
-        assertThatThrownBy(() -> store.deleteData("pid", Set.of("k1", "k2"))).isInstanceOf(UnsupportedOperationException.class);
-        assertThatThrownBy(() -> store.findData(String.class, "pid", "key")).isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
