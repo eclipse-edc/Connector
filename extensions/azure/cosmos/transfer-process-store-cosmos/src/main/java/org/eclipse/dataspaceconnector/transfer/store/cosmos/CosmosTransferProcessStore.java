@@ -25,9 +25,11 @@ import net.jodah.failsafe.Fallback;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument;
+import org.eclipse.dataspaceconnector.azure.cosmos.dialect.SqlStatement;
 import org.eclipse.dataspaceconnector.azure.cosmos.util.LeaseContext;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
@@ -167,7 +169,15 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
 
     @Override
     public Stream<TransferProcess> findAll(QuerySpec querySpec) {
-        return null;
+        var statement = new SqlStatement<>(TransferProcessDocument.class);
+        var query = statement.where(querySpec.getFilterExpression())
+                .offset(querySpec.getOffset())
+                .limit(querySpec.getLimit())
+                .orderBy(querySpec.getSortField(), querySpec.getSortOrder() == SortOrder.ASC)
+                .getQueryAsSqlQuerySpec();
+
+        var objects = failsafeExecutor.get(() -> cosmosDbApi.queryItems(query));
+        return objects.map(this::convertToDocument).map(TransferProcessDocument::getWrappedInstance);
     }
 
     private TransferProcessDocument convertToDocument(Object databaseDocument) {
