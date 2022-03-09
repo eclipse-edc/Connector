@@ -28,29 +28,23 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.Oauth2Configuration;
-import org.eclipse.dataspaceconnector.iam.oauth2.core.rule.Oauth2ValidationRule;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.JwtDecoratorRegistry;
-import org.eclipse.dataspaceconnector.iam.oauth2.spi.Oauth2Service;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
-import org.eclipse.dataspaceconnector.spi.iam.TokenValidationService;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.token.JwtValidationRule;
-import org.eclipse.dataspaceconnector.token.TokenValidationServiceImpl;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
 
 /**
  * Implements the OAuth2 client credentials flow and bearer token validation.
  */
-public class Oauth2ServiceImpl implements Oauth2Service {
+public class Oauth2ServiceImpl implements IdentityService {
 
     private static final String GRANT_TYPE = "client_credentials";
     private static final String ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
@@ -62,42 +56,31 @@ public class Oauth2ServiceImpl implements Oauth2Service {
     private final JWSSigner tokenSigner;
     private final JwtDecoratorRegistry jwtDecoratorRegistry;
     private final JWSAlgorithm jwsAlgorithm;
-
-    private List<JwtValidationRule> validationRules;
-    private TokenValidationService  tokenValidationService;
+    private final TokenValidationService tokenValidationService;
 
     /**
      * Creates a new instance of the OAuth2 Service
      *
-     * @param configuration             The configuration
-     * @param tokenSigner               A {@link JWSSigner} instance.
-     * @param client                    Http client
-     * @param jwtDecoratorRegistry      Registry containing the decorator for build the JWT
-     * @param typeManager               Type manager
+     * @param configuration          The configuration
+     * @param tokenSigner            A {@link JWSSigner} instance.
+     * @param client                 Http client
+     * @param jwtDecoratorRegistry   Registry containing the decorator for build the JWT
+     * @param typeManager            Type manager
+     * @param tokenValidationService Service used for token validation
      */
-    public Oauth2ServiceImpl(Oauth2Configuration configuration, JWSSigner tokenSigner, OkHttpClient client, JwtDecoratorRegistry jwtDecoratorRegistry, TypeManager typeManager) {
+    public Oauth2ServiceImpl(Oauth2Configuration configuration, JWSSigner tokenSigner, OkHttpClient client, JwtDecoratorRegistry jwtDecoratorRegistry, TypeManager typeManager, TokenValidationService tokenValidationService) {
         this.configuration = configuration;
         this.typeManager = typeManager;
         httpClient = client;
         this.jwtDecoratorRegistry = jwtDecoratorRegistry;
         this.tokenSigner = tokenSigner;
-
-        //OAuth2 validation must ALWAYS be done
-        validationRules = new ArrayList<>();
-        validationRules.add(new Oauth2ValidationRule(this.configuration));
-        this.tokenValidationService = new TokenValidationServiceImpl(configuration.getIdentityProviderKeyResolver(), Collections.unmodifiableList(validationRules));
+        this.tokenValidationService = tokenValidationService;
 
         if (tokenSigner instanceof ECDSASigner) {
             jwsAlgorithm = JWSAlgorithm.ES256;
         } else {
             jwsAlgorithm = JWSAlgorithm.RS256;
         }
-    }
-
-    @Override
-    public void addAdditionalValidationRule(JwtValidationRule additionalValidationRule) {
-        validationRules.add(additionalValidationRule);
-        this.tokenValidationService = new TokenValidationServiceImpl(configuration.getIdentityProviderKeyResolver(), Collections.unmodifiableList(validationRules));
     }
 
     @Override
