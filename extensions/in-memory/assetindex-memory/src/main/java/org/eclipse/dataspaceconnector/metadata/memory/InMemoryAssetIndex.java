@@ -154,12 +154,23 @@ public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, Asse
 
     @Override
     public Asset deleteById(String assetId) {
-        dataAddresses.remove(assetId);
-        return cache.remove(assetId);
+        lock.writeLock().lock();
+        Asset asset = null;
+        try {
+            asset = delete(assetId);
+        } finally {
+            lock.writeLock().unlock();
+        }
+        return asset;
     }
 
     private @Nullable Comparable asComparable(Object property) {
         return property instanceof Comparable ? (Comparable) property : null;
+    }
+
+    private Asset delete(String assetId) {
+        dataAddresses.remove(assetId);
+        return cache.remove(assetId);
     }
 
     /**
