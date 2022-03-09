@@ -15,8 +15,8 @@
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.api.rules;
 
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.dataspaceconnector.common.token.TokenValidationRule;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.token.JwtValidationRule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * Assert that token containing these claims is not expired yet.
  */
-public class ExpirationDateValidationRule implements JwtValidationRule {
+public class ExpirationDateValidationRule implements TokenValidationRule {
 
     @Override
     public Result<SignedJWT> checkRule(@NotNull SignedJWT toVerify, @Nullable Map<String, Object> additional) {

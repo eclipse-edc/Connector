@@ -39,7 +39,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.UUID;
@@ -94,14 +93,14 @@ public abstract class AbstractS3Test {
     }
 
     @BeforeEach
-    public void setupClient() throws URISyntaxException {
+    public void setupClient() {
         client = S3AsyncClient.builder()
                 .serviceConfiguration(S3Configuration.builder()
                         .pathStyleAccessEnabled(true)
                         .build())
                 .region(Region.of(REGION))
                 .credentialsProvider(this::getCredentials)
-                .endpointOverride(new URI(S3_ENDPOINT))
+                .endpointOverride(URI.create(S3_ENDPOINT))
                 .build();
 
         createBucket(bucketName);
@@ -152,7 +151,7 @@ public abstract class AbstractS3Test {
         return client.putObject(PutObjectRequest.builder().bucket(bucketName).key(key).build(), file.toPath());
     }
 
-    private @NotNull AwsCredentials getCredentials() {
+    protected @NotNull AwsCredentials getCredentials() {
         String profile = propOrEnv("AWS_PROFILE", null);
         if (profile != null) {
             return ProfileCredentialsProvider.create(profile).resolveCredentials();

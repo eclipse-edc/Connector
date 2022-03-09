@@ -21,6 +21,7 @@ the detailed section referring to by linking pull requests or issues.
 * `ContractDefinitionStore` supports paging (#717)
 * Add okhttp client timeouts (#735)
 * Unit test framework for Dependency Injection (#843)
+* Implemented S3BucketReader (#675)
 
 #### Changed
 

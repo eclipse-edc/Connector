@@ -14,7 +14,8 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.transformer;
 
-import org.eclipse.dataspaceconnector.spi.iam.TokenGenerationService;
+import com.nimbusds.jwt.JWTClaimsSet;
+import org.eclipse.dataspaceconnector.common.token.TokenGenerationService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -26,13 +27,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.time.Instant;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.CONTRACT_ID_CLAIM;
 import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.DATA_ADDRESS_CLAIM;
-import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.EXPIRATION_DATE_CLAIM;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -61,17 +60,18 @@ class ProxyEndpointDataReferenceTransformerTest {
     void transformationSuccessful() {
         var edr = createEndpointDataReference();
         var generatedToken = TokenRepresentation.Builder.newInstance().token(UUID.randomUUID().toString()).build();
-        var claimsCapture = ArgumentCaptor.forClass(Map.class);
+        var claimsCapture = ArgumentCaptor.forClass(JWTClaimsSet.class);
         var daCapture = ArgumentCaptor.forClass(String.class);
         when(tokenGenerationServiceMock.generate(claimsCapture.capture())).thenReturn(Result.success(generatedToken));
         when(dataEncrypterMock.encrypt(daCapture.capture())).thenReturn("encrypted-data-address");
 
         var result = transformer.execute(edr);
 
-        assertThat(claimsCapture.getValue())
-                .containsOnlyKeys(DATA_ADDRESS_CLAIM, CONTRACT_ID_CLAIM, EXPIRATION_DATE_CLAIM)
-                .hasEntrySatisfying(CONTRACT_ID_CLAIM, o -> assertThat(o).hasToString(edr.getContractId()))
-                .hasEntrySatisfying(DATA_ADDRESS_CLAIM, o -> assertThat(o).hasToString("encrypted-data-address"));
+        assertThat(claimsCapture.getValue()).satisfies(claimsSet -> {
+            assertThat(claimsSet.getExpirationTime()).isNotNull().isAfter(Instant.now());
+            assertThat(claimsSet.getClaim(CONTRACT_ID_CLAIM)).hasToString(edr.getContractId());
+            assertThat(claimsSet.getClaim(DATA_ADDRESS_CLAIM)).hasToString("encrypted-data-address");
+        });
 
         var da = typeManager.readValue(daCapture.getValue(), DataAddress.class);
         assertThat(da.getType()).isEqualTo("HttpData");

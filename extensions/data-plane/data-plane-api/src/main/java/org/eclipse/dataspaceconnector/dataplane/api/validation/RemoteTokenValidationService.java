@@ -17,13 +17,12 @@ package org.eclipse.dataspaceconnector.dataplane.api.validation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
-import org.eclipse.dataspaceconnector.spi.iam.TokenValidationService;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.io.IOException;
-import java.util.Optional;
 
 /**
  * Implementation of {@link TokenValidationService} that delegates to a remote token validate service.

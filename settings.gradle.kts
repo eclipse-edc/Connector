@@ -19,6 +19,9 @@ rootProject.name = "dataspaceconnector"
 
 include(":common:util")
 include(":common:state-machine-lib")
+include(":common:token-generation-lib")
+include(":common:token-validation-lib")
+
 
 // EDC core modules
 include(":core")
@@ -120,8 +123,6 @@ include(":extensions:data-plane:data-plane-http")
 include(":extensions:azure:data-plane-azure-storage")
 include(":extensions:data-plane:data-plane-api")
 include(":extensions:data-plane:integration-tests")
-include(":extensions:token:token-generation")
-include(":extensions:token:token-validation")
 include(":extensions:sql:common")
 include(":extensions:sql:pool:apache-commons-pool")
 include(":extensions:http-receiver")
