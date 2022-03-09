@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
  *       Daimler TSS GmbH - fixed contract dates to epoch seconds
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
@@ -432,8 +433,6 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 .build();
 
         //TODO protocol-independent response type?
-        negotiation.transitionConfirmingSent();
-        negotiationStore.save(negotiation);
         dispatcherRegistry.send(Object.class, request, () -> null)
                 .whenComplete(onAgreementSent(negotiation.getId(), agreement));
         return true;

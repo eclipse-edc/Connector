@@ -14,6 +14,7 @@
 package org.eclipse.dataspaceconnector.junit.launcher;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
@@ -123,8 +124,7 @@ public class EdcRuntimeExtension extends EdcExtension {
 
         // Create a ClassLoader that only has the target module class path, and is not
         // parented with the current ClassLoader.
-        var classLoader = URLClassLoader.newInstance(classPathEntries,
-                ClassLoader.getSystemClassLoader());
+        var classLoader = URLClassLoader.newInstance(classPathEntries, ClassLoader.getSystemClassLoader());
 
         // Temporarily inject system properties.
         var savedProperties = (Properties) System.getProperties().clone();
@@ -161,7 +161,6 @@ public class EdcRuntimeExtension extends EdcExtension {
         System.setProperties(savedProperties);
     }
 
-
     @Override
     public void afterTestExecution(ExtensionContext context) throws Exception {
         if (runtimeThread != null) {
@@ -172,8 +171,13 @@ public class EdcRuntimeExtension extends EdcExtension {
 
     @Override
     protected @NotNull Monitor createMonitor() {
-        return new Monitor() {
-        };
+        // disable logs when "quiet" log level is set
+        if (System.getProperty("org.gradle.logging.level") != null) {
+            return new Monitor() {
+            };
+        } else {
+            return new ConsoleMonitor(logPrefix, ConsoleMonitor.Level.DEBUG);
+        }
     }
 
     /**
