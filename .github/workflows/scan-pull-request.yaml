@@ -1,0 +1,40 @@
+name: Scan Pull Request
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, edited, synchronize, reopened, labeled, unlabeled]
+
+jobs:
+  check-for-changelog-modifications:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check for new entries
+        uses: brettcannon/check-for-changed-files@v1
+        with:
+          file-pattern: 'CHANGELOG.md'
+          skip-label: 'no-changelog'
+          failure-message: 'Missing changes in CHANGELOG.md. Please add relevant information if needed.'
+
+  check-pull-request-title:
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    steps:
+      - uses: actions/checkout@v2
+      - uses: deepakputhraya/action-pr-title@master
+        with:
+          # Match pull request titles conventional commit syntax (https://www.conventionalcommits.org/en/v1.0.0/)
+          # (online tool for regex quick check: https://regex101.com/r/V5J8kh/1)
+          #
+          # Valid examples would be
+          # - fix: resolve minor issue
+          # - assetindex: update some dependency
+          # - docs(sample5): update docs for configuration
+          # - feat(management-api)!: change path to access contract agreements
+          #
+          # Invalid examples would be
+          # - Add cool feature
+          # - Feature/some cool improvement
+          regex: '(?<type>\w+)(?<scope>(?:\([^()\r\n]*\)|\()?(?<breaking>!)?):(?<subject>.*)?'
