@@ -44,7 +44,7 @@ public class FileTransferLocalSimulation extends Simulation {
                 .protocols(http
                         .baseUrl(CONSUMER_CONNECTOR_HOST))
                 .assertions(
-                        global().responseTime().max().lt(2000),
+                        global().responseTime().max().lt(5000),
                         global().successfulRequests().percent().is(100.0)
                 );
     }
