@@ -358,7 +358,7 @@ class CosmosAssetIndexIntegrationTest {
     }
 
     @Test
-    void deleteById_whenPresent_shouldDelete() {
+    void deleteById_whenPresent_deletes() {
         Asset asset = createAsset(UUID.randomUUID().toString(), "test", "foobar");
         container.createItem(new AssetDocument(asset, TEST_PARTITION_KEY, dataAddress));
 
@@ -368,7 +368,7 @@ class CosmosAssetIndexIntegrationTest {
     }
 
     @Test
-    void deleteById_whenAlreadyMissing_shouldReturnNull() {
+    void deleteById_whenAlreadyMissing_returnsNull() {
         assertThat(assetIndex.deleteById(UUID.randomUUID().toString())).isNull();
     }
 
