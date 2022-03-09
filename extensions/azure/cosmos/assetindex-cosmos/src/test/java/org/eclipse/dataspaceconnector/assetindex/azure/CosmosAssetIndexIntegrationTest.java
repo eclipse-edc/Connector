@@ -357,6 +357,21 @@ class CosmosAssetIndexIntegrationTest {
 
     }
 
+    @Test
+    void deleteById_assetExists() {
+        Asset asset = createAsset(UUID.randomUUID().toString(), "test", "foobar");
+        container.createItem(new AssetDocument(asset, TEST_PARTITION_KEY, dataAddress));
+
+        Asset deletedAsset = assetIndex.deleteById(asset.getId());
+        assertThat(deletedAsset).isEqualTo(asset);
+        assertThat(assetIndex.findById(asset.getId())).isNull();
+    }
+
+    @Test
+    void deleteById_assetDoesNotExists() {
+        assertThat(assetIndex.deleteById(UUID.randomUUID().toString())).isNull();
+    }
+
     private Asset createAsset(String id, String somePropertyKey, String somePropertyValue) {
         return Asset.Builder.newInstance()
                 .id(id)

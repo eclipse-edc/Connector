@@ -108,7 +108,11 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetL
 
     @Override
     public Asset deleteById(String assetId) {
-        throw new NotImplementedException("CosmosAssetIndex.deleteById is not implemented yet");
+        var asset = findById(assetId);
+        if (asset != null) {
+            assetDb.deleteItem(assetId);
+        }
+        return asset;
     }
 
     @Override
