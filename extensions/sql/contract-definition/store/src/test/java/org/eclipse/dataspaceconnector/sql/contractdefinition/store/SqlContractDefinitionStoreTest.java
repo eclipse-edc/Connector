@@ -32,6 +32,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -151,7 +152,7 @@ public class SqlContractDefinitionStoreTest {
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID);
 
         var definitions = executeQuery(getDataSourceRegistry().resolve(DATASOURCE_NAME).getConnection(),
-                SqlContractDefinitionStore.ContractDefinitionMapper.INSTANCE,
+                SqlContractDefinitionStore::mapResultSet,
                 query,
                 definition1.getId());
 
@@ -189,15 +190,15 @@ public class SqlContractDefinitionStoreTest {
         Assertions.assertEquals(limit, definitionsRetrieved.size());
     }
 
-    protected DataSourceRegistry getDataSourceRegistry() {
+    private DataSourceRegistry getDataSourceRegistry() {
         return contextRef.get().getService(DataSourceRegistry.class);
     }
 
-    protected TransactionContext getTransactionContext() {
+    private TransactionContext getTransactionContext() {
         return contextRef.get().getService(TransactionContext.class);
     }
 
-    protected ContractDefinitionStore getContractDefinitionStore() {
+    private ContractDefinitionStore getContractDefinitionStore() {
         return contextRef.get().getService(ContractDefinitionStore.class);
     }
 }

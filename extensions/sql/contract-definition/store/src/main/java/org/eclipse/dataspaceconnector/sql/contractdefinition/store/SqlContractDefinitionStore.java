@@ -63,7 +63,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
         try (var connection = dataSource.getConnection()) {
             return SqlQueryExecutor.executeQuery(
                     connection,
-                    ContractDefinitionMapper.INSTANCE,
+                    SqlContractDefinitionStore::mapResultSet,
                     String.format(query, SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE));
         } catch (Exception exception) {
             throw new EdcPersistenceException(exception);
@@ -84,7 +84,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
         try (var connection = dataSource.getConnection()) {
             var definitions = SqlQueryExecutor.executeQuery(
                     connection,
-                    ContractDefinitionMapper.INSTANCE,
+                    SqlContractDefinitionStore::mapResultSet,
                     String.format(query, SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE));
             return definitions.stream();
         } catch (Exception exception) {
@@ -178,18 +178,13 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
         }
     }
 
-    enum ContractDefinitionMapper implements ResultSetMapper<ContractDefinition> {
-        INSTANCE;
-
-        @Override
-        public ContractDefinition mapResultSet(ResultSet resultSet) throws Exception {
-            return ContractDefinition.Builder.newInstance()
-                    .id(resultSet.getString(SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID))
-                    .accessPolicy(readObject(resultSet.getString(SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ACCESS_POLICY)))
-                    .contractPolicy(readObject(resultSet.getString(SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_CONTRACT_POLICY)))
-                    .selectorExpression(readObject(resultSet.getString(SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_SELECTOR)))
-                    .build();
-        }
+    public static ContractDefinition mapResultSet(ResultSet resultSet) throws Exception {
+        return ContractDefinition.Builder.newInstance()
+                .id(resultSet.getString(SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID))
+                .accessPolicy(readObject(resultSet.getString(SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ACCESS_POLICY)))
+                .contractPolicy(readObject(resultSet.getString(SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_CONTRACT_POLICY)))
+                .selectorExpression(readObject(resultSet.getString(SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_SELECTOR)))
+                .build();
     }
 
     private static final class Envelope {

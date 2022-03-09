@@ -71,11 +71,11 @@ class SqlContractDefinitionSchemaTest {
         contextRef.set(null);
     }
 
-    protected DataSourceRegistry getDataSourceRegistry() {
+    private DataSourceRegistry getDataSourceRegistry() {
         return contextRef.get().getService(DataSourceRegistry.class);
     }
 
-    protected TransactionContext getTransactionContext() {
+    private TransactionContext getTransactionContext() {
         return contextRef.get().getService(TransactionContext.class);
     }
 
