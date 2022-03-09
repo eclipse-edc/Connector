@@ -25,5 +25,16 @@ jobs:
       - uses: actions/checkout@v2
       - uses: deepakputhraya/action-pr-title@master
         with:
-          # Match pull request titles conventional commit syntax
+          # Match pull request titles conventional commit syntax (https://www.conventionalcommits.org/en/v1.0.0/)
+          # (online tool for regex quick check: https://regex101.com/r/V5J8kh/1)
+          #
+          # Valid examples would be
+          # - fix: resolve minor issue
+          # - assetindex: update some dependency
+          # - docs(sample5): update docs for configuration
+          # - feat(management-api)!: change path to access contract agreements
+          #
+          # Invalid examples would be
+          # - Add cool feature
+          # - Feature/some cool improvement
           regex: '(?<type>\w+)(?<scope>(?:\([^()\r\n]*\)|\()?(?<breaking>!)?):(?<subject>.*)?'

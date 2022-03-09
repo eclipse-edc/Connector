@@ -17,8 +17,9 @@ Closes # <-- _insert Issue number if one exists_
 
 ## Checklist
 
-- [ ] formatted title correctly? (_see [here](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/CONTRIBUTING.md#submit-a-pull-request)
-      for formatting details_)
+- [ ] formatted title correctly? (_take a look at the [CONTRIBUTING](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/CONTRIBUTING.md#submit-a-pull-request)
+      and [styleguide](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/styleguide.md) 
+      for details_)
 - [ ] added appropriate tests?
 - [ ] performed checkstyle check locally?
 - [ ] added/updated copyright headers?
