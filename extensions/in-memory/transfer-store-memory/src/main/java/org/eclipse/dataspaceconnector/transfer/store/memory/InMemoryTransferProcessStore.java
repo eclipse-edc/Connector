@@ -15,7 +15,9 @@
 package org.eclipse.dataspaceconnector.transfer.store.memory;
 
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
@@ -28,10 +30,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
+import static org.eclipse.dataspaceconnector.common.reflection.ReflectionUtil.propertyComparator;
 
 /**
  * An in-memory, threadsafe process store.
@@ -112,7 +116,29 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
 
     @Override
     public Stream<TransferProcess> findAll(QuerySpec querySpec) {
-        return null;
+        return lockManager.readLock(() -> {
+            Stream<TransferProcess> transferProcessStream = processesById.values().stream();
+            // filter
+            var andPredicate = querySpec.getFilterExpression().stream().map(this::toPredicate).reduce(x -> true, Predicate::and);
+            transferProcessStream = transferProcessStream.filter(andPredicate);
+
+            // sort
+            var sortField = querySpec.getSortField();
+
+            if (sortField != null) {
+                var comparator = propertyComparator(querySpec.getSortOrder() == SortOrder.ASC, sortField);
+                transferProcessStream = transferProcessStream.sorted(comparator);
+            }
+
+            //limit
+            transferProcessStream = transferProcessStream.skip(querySpec.getOffset()).limit(querySpec.getLimit());
+
+            return transferProcessStream;
+        });
+    }
+
+    private Predicate<TransferProcess> toPredicate(Criterion criterion) {
+        return new TransferProcessPredicateConverter().convert(criterion);
     }
 
 }

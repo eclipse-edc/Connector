@@ -14,8 +14,9 @@
 
 package org.eclipse.dataspaceconnector.transfer.store.memory;
 
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResourceSet;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
@@ -23,10 +24,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.dataspaceconnector.transfer.store.memory.TestFunctions.createProcess;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -35,6 +41,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InMemoryTransferProcessStoreTest {
     private InMemoryTransferProcessStore store;
+
+    @BeforeEach
+    void setUp() {
+        store = new InMemoryTransferProcessStore();
+    }
 
     @Test
     void verifyCreateUpdateDelete() {
@@ -148,20 +159,53 @@ class InMemoryTransferProcessStoreTest {
         assertThat(list1).isNotEqualTo(list2).doesNotContainAnyElementsOf(list2);
     }
 
-    @BeforeEach
-    void setUp() {
-        store = new InMemoryTransferProcessStore();
+    @Test
+    void findAll_noQuerySpec() {
+        IntStream.range(0, 10).forEach(i -> store.create(createProcess("test-neg-" + i)));
+
+        var all = store.findAll(QuerySpec.Builder.newInstance().build());
+        assertThat(all).hasSize(10);
     }
 
-    private TransferProcess createProcess(String name) {
-        DataRequest mock = DataRequest.Builder.newInstance().destinationType("type").build();
-        return TransferProcess.Builder.newInstance()
-                .type(TransferProcess.Type.CONSUMER)
-                .id(name)
-                .stateTimestamp(0)
-                .state(TransferProcessStates.UNSAVED.code())
-                .provisionedResourceSet(new ProvisionedResourceSet())
-                .dataRequest(mock)
-                .build();
+    @Test
+    void findAll_verifyPaging() {
+
+        IntStream.range(0, 10).forEach(i -> store.create(createProcess("test-neg-" + i)));
+
+        // page size fits
+        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4);
+
+        // page size too large
+        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(5);
+    }
+
+    @Test
+    void findAll_verifyFiltering() {
+        IntStream.range(0, 10).forEach(i -> store.create(createProcess("test-neg-" + i)));
+        assertThat(store.findAll(QuerySpec.Builder.newInstance().equalsAsContains(false).filter("id=test-neg-3").build())).extracting(TransferProcess::getId).containsOnly("test-neg-3");
+    }
+
+    @Test
+    void findAll_verifyFiltering_invalidFilterExpression() {
+        IntStream.range(0, 10).forEach(i -> store.create(createProcess("test-neg-" + i)));
+        assertThatThrownBy(() -> store.findAll(QuerySpec.Builder.newInstance().filter("something foobar other").build())).isInstanceOfAny(IllegalArgumentException.class);
+    }
+
+    @Test
+    void findAll_verifySorting() {
+        IntStream.range(0, 10).forEach(i -> store.create(createProcess("test-neg-" + i)));
+
+        assertThat(store.findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build())).hasSize(10).isSortedAccordingTo(Comparator.comparing(TransferProcess::getId));
+        assertThat(store.findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build())).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
+    }
+
+    @Test
+    void findAll_verifySorting_invalidProperty() {
+        IntStream.range(0, 10).forEach(i -> store.create(createProcess("test-neg-" + i)));
+
+        var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
+
+        // must actually collect, otherwise the stream is not materialized
+        assertThat(store.findAll(query).collect(Collectors.toList())).hasSize(10);
     }
 }
