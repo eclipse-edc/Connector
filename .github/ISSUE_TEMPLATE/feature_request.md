@@ -9,13 +9,13 @@ assignees: ''
 
 # Feature Request
 
-_If you have an idea or an improvement for this project that should be discussed first, please feel 
-free to open up a [discussion](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/discussions/categories/ideas)._
+_If you are missing a feature or have an idea how to improve this project that should first be 
+discussed, please feel free to open up a [discussion](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/discussions/categories/ideas)._
 
-## What Area Will This Influence?
+## Which Areas Would Be Affected?
 _e.g., DPF, CI, build, transfer, etc._
 
-## Why Is the Feature Wanted?
+## Why Is the Feature Desired?
 _Are there any requirements?_
 
 ## Solution Proposal
@@ -26,6 +26,5 @@ _i.e., new feature, improvement, cleanup, etc._
 
 ## Checklist
 
-- [ ] assigned correct label?
-- [ ] assigned project, if necessary? (_see the section on the right-hand side -->_)
+- [ ] assigned appropriate label?
 - [x] **Do NOT select a milestone or an assignee!**
