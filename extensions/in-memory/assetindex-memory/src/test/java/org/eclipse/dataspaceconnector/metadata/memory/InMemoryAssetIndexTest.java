@@ -253,6 +253,22 @@ class InMemoryAssetIndexTest {
         assertThat(index.queryAssets(spec)).containsAll(assets);
     }
 
+    @Test
+    void deleteById_assetExists_deleteAsset() {
+        var asset = createAsset("foobar");
+        index.accept(asset, createDataAddress(asset));
+        var deletedAsset = index.deleteById(asset.getId());
+
+        assertThat(deletedAsset).isEqualTo(asset);
+        var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, asset.getName()).build());
+        assertThat(assets).isEmpty();
+    }
+
+    @Test
+    void deleteById_assetDoesNotExists_returnsNull() {
+        assertThat(index.deleteById(UUID.randomUUID().toString())).isNull();
+    }
+
     @NotNull
     private Asset createAsset(String name) {
         return createAsset(name, UUID.randomUUID().toString());

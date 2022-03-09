@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.assetindex.azure;
 
+import com.azure.cosmos.implementation.apachecommons.lang.NotImplementedException;
 import com.azure.cosmos.models.SqlQuerySpec;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
@@ -103,6 +104,11 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetL
     public void accept(Asset asset, DataAddress dataAddress) {
         var assetDocument = new AssetDocument(asset, partitionKey, dataAddress);
         assetDb.saveItem(assetDocument);
+    }
+
+    @Override
+    public Asset deleteById(String assetId) {
+        throw new NotImplementedException("CosmosAssetIndex.deleteById is not implemented yet");
     }
 
     @Override

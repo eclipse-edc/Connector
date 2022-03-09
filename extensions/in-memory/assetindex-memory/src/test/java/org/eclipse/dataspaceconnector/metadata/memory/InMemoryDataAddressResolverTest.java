@@ -1,6 +1,7 @@
 package org.eclipse.dataspaceconnector.metadata.memory;
 
 import org.assertj.core.api.Assertions;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,17 @@ class InMemoryDataAddressResolverTest {
         resolver.accept(testAsset, address);
 
         assertThatThrownBy(() -> resolver.resolveForAsset(null)).isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void resolveForAsset_assetDeleted_raisesException() {
+        var testAsset = createAsset("foobar", UUID.randomUUID().toString());
+        var address = createDataAddress(testAsset);
+        resolver.accept(testAsset, address);
+        resolver.deleteById(testAsset.getId());
+        assertThatThrownBy(() -> resolver.resolveForAsset(testAsset.getId()))
+                .hasMessage(String.format("No DataAddress found for Asset ID=%s", testAsset.getId()))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     private Asset createAsset(String name, String id) {

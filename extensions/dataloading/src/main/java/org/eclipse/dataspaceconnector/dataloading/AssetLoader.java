@@ -22,4 +22,7 @@ public interface AssetLoader extends DataSink<AssetEntry> {
     String FEATURE = "edc:asset:assetindex:loader";
 
     void accept(Asset asset, DataAddress dataAddress);
+
+    public Asset deleteById(String assetId);
+
 }
