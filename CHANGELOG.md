@@ -25,6 +25,7 @@ the detailed section referring to by linking pull requests or issues.
 * Apply 2-state transition pattern to `ContractNegotiationManager`s (#870)
 * Implement S3BucketReader (#675)
 * Add configuration setting for state machine batch size (#872)
+* Add Jetty context alias for IDS API (#815)
 
 #### Changed
 
