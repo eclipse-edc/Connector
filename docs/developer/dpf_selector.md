@@ -24,7 +24,7 @@ Another key difference to (most) load balancers is the modularity and flexibilit
 
 ## Proposed solution
 
-We propose to create another "feature pack" in the EDC repository, essentially a meta module named `:extensions:data-plane:data-plane-selector`, which will contain (at least) the following submodules:
+We propose to create another "feature pack" in the EDC repository, essentially a meta module named `:extensions:data-plane-selector`, which will contain (at least) the following submodules:
 - `selector-spi`: for interfaces and extensibility points such as store, strategy
 - `selector-api`: REST API
 - `selector-core`: common code, default implementations for store and strategies
@@ -49,7 +49,7 @@ The main business object is the `DataPlaneInstance` which represents one particu
 ```java
 public interface DataPlaneInstance {
     boolean canHandle(DataRequest request);
-    URL getUrl();
+    URL getUrl(); //returns the url+path to the DataPlane API
     int turnCount(); //how often selected
     long lastActive(); //when selected last
 }
