@@ -24,13 +24,18 @@ jobs:
           reporter: 'github-check'
           filter_mode: 'nofilter'
 
-
       - name: Gradle Test Core
         env:
           INTEGRATION_TEST: false
           JACOCO: true
         # checkstyle would also run as part of the `check` task
         run: ./gradlew clean check jacocoTestReport -x checkstyleMain -x checkstyleTest
+
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: "**/test-results/**/*.xml"
 
       - name: CodeCov
         uses: codecov/codecov-action@v2
