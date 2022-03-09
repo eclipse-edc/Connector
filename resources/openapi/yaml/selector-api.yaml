@@ -1,0 +1,77 @@
+openapi: 3.0.1
+paths:
+  /instances:
+    get:
+      operationId: getAll
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataPlaneInstance'
+    post:
+      operationId: addEntry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataPlaneInstance'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /instances/select:
+    post:
+      operationId: find
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SelectionRequest'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataPlaneInstance'
+components:
+  schemas:
+    DataPlaneInstance:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+          format: url
+        turnCount:
+          type: integer
+          format: int32
+        lastActive:
+          type: integer
+          format: int64
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+    DataAddress:
+      type: object
+      properties:
+        properties:
+          type: object
+          additionalProperties:
+            type: string
+    SelectionRequest:
+      type: object
+      properties:
+        source:
+          $ref: '#/components/schemas/DataAddress'
+        destination:
+          $ref: '#/components/schemas/DataAddress'
+        strategy:
+          type: string
