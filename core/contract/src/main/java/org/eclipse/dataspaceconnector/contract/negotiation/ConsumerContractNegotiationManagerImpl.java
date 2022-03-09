@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Microsoft Corporation
+ *  Copyright (c) 2021-2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -10,12 +10,13 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
- *
+ *       Daimler TSS GmbH - fixed contract dates to epoch seconds
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import io.opentelemetry.extension.annotations.WithSpan;
-import org.eclipse.dataspaceconnector.common.stream.EntitiesProcessor;
+import org.eclipse.dataspaceconnector.common.statemachine.StateMachine;
+import org.eclipse.dataspaceconnector.common.statemachine.StateProcessorImpl;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
@@ -41,13 +42,12 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.comm
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -66,13 +66,11 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
  * Implementation of the {@link ConsumerContractNegotiationManager}.
  */
 public class ConsumerContractNegotiationManagerImpl implements ConsumerContractNegotiationManager {
-    private final AtomicBoolean active = new AtomicBoolean();
     private ContractNegotiationStore negotiationStore;
     private ContractValidationService validationService;
 
     private int batchSize = 5;
     private WaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
-    private ExecutorService executor;
 
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
 
@@ -82,19 +80,25 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     private CommandProcessor<ContractNegotiationCommand> commandProcessor;
     private Telemetry telemetry;
     private Monitor monitor;
+    private StateMachine stateMachine;
 
     private ConsumerContractNegotiationManagerImpl() { }
 
     public void start() {
-        active.set(true);
-        executor = Executors.newSingleThreadExecutor();
-        executor.submit(this::run);
+        stateMachine = StateMachine.Builder.newInstance("consumer-contract-negotiation", monitor, waitStrategy)
+                .processor(processNegotiationsInState(INITIAL, this::processInitial))
+                .processor(processNegotiationsInState(CONSUMER_OFFERING, this::processConsumerOffering))
+                .processor(processNegotiationsInState(CONSUMER_APPROVING, this::processConsumerApproving))
+                .processor(processNegotiationsInState(DECLINING, this::processDeclining))
+                .processor(onCommands(this::processCommand))
+                .build();
+
+        stateMachine.start();
     }
 
     public void stop() {
-        active.set(false);
-        if (executor != null) {
-            executor.shutdownNow();
+        if (stateMachine != null) {
+            stateMachine.stop();
         }
     }
 
@@ -406,9 +410,9 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
 
         var agreement = ContractAgreement.Builder.newInstance()
                 .id(ContractId.createContractId(definitionId))
-                .contractSigningDate(LocalDate.MIN.toEpochDay())
-                .contractStartDate(LocalDate.MIN.toEpochDay())
-                .contractEndDate(LocalDate.MAX.toEpochDay())
+                .contractStartDate(Instant.now().getEpochSecond())
+                .contractEndDate(Instant.now().plus(365, ChronoUnit.DAYS).getEpochSecond()) // TODO Make configurable (issue #722)
+                .contractSigningDate(Instant.now().getEpochSecond())
                 .providerAgentId(String.valueOf(lastOffer.getProvider()))
                 .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
                 .policy(lastOffer.getPolicy())
@@ -505,51 +509,12 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         };
     }
 
-    /**
-     * Continuously checks all unfinished {@link ContractNegotiation}s and performs actions based on
-     * their states.
-     */
-    private void run() {
-        while (active.get()) {
-            try {
-                long requesting = processNegotiationsInState(INITIAL, this::processInitial);
-                long offering = processNegotiationsInState(CONSUMER_OFFERING, this::processConsumerOffering);
-                long approving = processNegotiationsInState(CONSUMER_APPROVING, this::processConsumerApproving);
-                long declining = processNegotiationsInState(DECLINING, this::processDeclining);
-                long commandsProcessed = onCommands().doProcess(this::processCommand);
-
-                long totalProcessed = requesting + offering + approving + declining + commandsProcessed;
-
-                if (totalProcessed == 0) {
-                    Thread.sleep(waitStrategy.waitForMillis());
-                }
-                waitStrategy.success();
-            } catch (Error e) {
-                throw e; // let the thread die and don't reschedule as the error is unrecoverable
-            } catch (InterruptedException e) {
-                Thread.interrupted();
-                active.set(false);
-                break;
-            } catch (Throwable e) {
-                monitor.severe("Error caught in consumer contract negotiation manager", e);
-                try {
-                    Thread.sleep(waitStrategy.retryInMillis());
-                } catch (InterruptedException e2) {
-                    Thread.interrupted();
-                    active.set(false);
-                    break;
-                }
-            }
-        }
+    private StateProcessorImpl<ContractNegotiation> processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
+        return new StateProcessorImpl<>(() -> negotiationStore.nextForState(state.code(), batchSize), telemetry.contextPropagationMiddleware(function));
     }
 
-    private long processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
-        return new EntitiesProcessor<>(() -> negotiationStore.nextForState(state.code(), batchSize))
-                .doProcess(telemetry.contextPropagationMiddleware(function));
-    }
-
-    private EntitiesProcessor<ContractNegotiationCommand> onCommands() {
-        return new EntitiesProcessor<>(() -> commandQueue.dequeue(5));
+    private StateProcessorImpl<ContractNegotiationCommand> onCommands(Function<ContractNegotiationCommand, Boolean> process) {
+        return new StateProcessorImpl<>(() -> commandQueue.dequeue(5), process);
     }
 
     private boolean processCommand(ContractNegotiationCommand command) {

@@ -106,7 +106,7 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
                 ._requestedArtifact_(artifactId)
                 ._transferContract_(contractId)
                 .build();
-        message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + "/api/ids/multipart");
+        message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + "/api/v1/ids/data");
         request.getProperties().forEach(message::setProperty);
         return message;
     }

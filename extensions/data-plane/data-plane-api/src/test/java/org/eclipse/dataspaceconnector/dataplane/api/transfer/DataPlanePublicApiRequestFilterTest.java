@@ -14,27 +14,27 @@
 
 package org.eclipse.dataspaceconnector.dataplane.api.transfer;
 
+import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
-import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.InputStreamDataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
-import org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.iam.TokenValidationService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
-import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -46,7 +46,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSinkFactory.TYPE;
+import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.BODY;
+import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.MEDIA_TYPE;
+import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
+import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
+import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.DATA_ADDRESS_CLAIM;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -76,7 +83,8 @@ class DataPlanePublicApiRequestFilterTest {
     @Test
     void verifyDataFlowRequest() throws IOException {
         var claims = createClaimToken();
-        var context = createDefaultContext(testQueryParams());
+        var body = testJsonBody();
+        var context = createDefaultContext(testQueryParams(), MediaType.valueOf(APPLICATION_JSON), body);
         var data = "bar".getBytes();
         var dataSource = new InputStreamDataSource("foo", new ByteArrayInputStream(data));
 
@@ -94,23 +102,19 @@ class DataPlanePublicApiRequestFilterTest {
 
         var responseCapture = ArgumentCaptor.forClass(Response.class);
         verify(context, times(1)).abortWith(responseCapture.capture());
-        assertThat(responseCapture.getValue())
-                .isNotNull()
-                .satisfies(response -> {
-                    assertThat(response.getStatus()).isEqualTo(200);
-                    assertThat(response.getEntity())
-                            .isInstanceOf(Map.class)
-                            .satisfies(o -> assertThat((Map) o).containsEntry("data", "bar"));
-                });
+        assertSuccessResponse(responseCapture.getValue(), "bar");
         assertThat(validationCapture.getValue())
                 .isNotNull()
                 .isEqualTo(transferCapture.getValue())
                 .satisfies(dataFlowRequest -> {
                     assertThat(dataFlowRequest.isTrackable()).isFalse();
                     assertThat(dataFlowRequest.getSourceDataAddress().getType()).isEqualTo("test");
+                    assertThat(dataFlowRequest.getDestinationDataAddress().getType()).isEqualTo(TYPE);
                     assertThat(dataFlowRequest.getProperties())
-                            .containsEntry(DataFlowRequestSchema.METHOD, "GET")
-                            .containsEntry(DataFlowRequestSchema.QUERY_PARAMS, "foo=bar&hello=world");
+                            .containsEntry(METHOD, HttpMethod.POST)
+                            .containsEntry(QUERY_PARAMS, "foo=bar&hello=world")
+                            .containsEntry(MEDIA_TYPE, APPLICATION_JSON)
+                            .containsEntry(BODY, body);
                 });
     }
 
@@ -126,14 +130,7 @@ class DataPlanePublicApiRequestFilterTest {
 
         var responseCapture = ArgumentCaptor.forClass(Response.class);
         verify(context, times(1)).abortWith(responseCapture.capture());
-        assertThat(responseCapture.getValue())
-                .isNotNull()
-                .satisfies(response -> {
-                    assertThat(response.getStatus()).isEqualTo(401);
-                    assertThat(response.getEntity())
-                            .isInstanceOf(Map.class)
-                            .satisfies(o -> assertThat((Map) o).containsEntry("errors", List.of("Missing bearer token")));
-                });
+        assertErrorResponse(responseCapture.getValue(), 401, "Missing bearer token");
     }
 
     /**
@@ -141,21 +138,14 @@ class DataPlanePublicApiRequestFilterTest {
      */
     @Test
     void verifyDataFlowRequest_tokenValidationFailure() throws IOException {
-        var context = createDefaultContext(testQueryParams());
+        var context = createDefaultContext();
         when(tokenValidationService.validate(anyString())).thenReturn(Result.failure("token validation error"));
 
         filter.filter(context);
 
         var responseCapture = ArgumentCaptor.forClass(Response.class);
         verify(context, times(1)).abortWith(responseCapture.capture());
-        assertThat(responseCapture.getValue())
-                .isNotNull()
-                .satisfies(response -> {
-                    assertThat(response.getStatus()).isEqualTo(401);
-                    assertThat(response.getEntity())
-                            .isInstanceOf(Map.class)
-                            .satisfies(o -> assertThat((Map) o).containsEntry("errors", List.of("token validation error")));
-                });
+        assertErrorResponse(responseCapture.getValue(), 401, "token validation error");
     }
 
     /**
@@ -164,7 +154,7 @@ class DataPlanePublicApiRequestFilterTest {
     @Test
     void verifyDataFlowRequest_requestValidationFailure() throws IOException {
         var claims = createClaimToken();
-        var context = createDefaultContext(testQueryParams());
+        var context = createDefaultContext();
 
         when(tokenValidationService.validate(anyString())).thenReturn(Result.success(claims));
 
@@ -174,14 +164,7 @@ class DataPlanePublicApiRequestFilterTest {
 
         var responseCapture = ArgumentCaptor.forClass(Response.class);
         verify(context, times(1)).abortWith(responseCapture.capture());
-        assertThat(responseCapture.getValue())
-                .isNotNull()
-                .satisfies(response -> {
-                    assertThat(response.getStatus()).isEqualTo(400);
-                    assertThat(response.getEntity())
-                            .isInstanceOf(Map.class)
-                            .satisfies(o -> assertThat((Map) o).containsEntry("errors", List.of("request validation error")));
-                });
+        assertErrorResponse(responseCapture.getValue(), 400, "request validation error");
     }
 
     /**
@@ -190,7 +173,7 @@ class DataPlanePublicApiRequestFilterTest {
     @Test
     void verifyDataFlowRequest_transferFailure() throws IOException {
         var claims = createClaimToken();
-        var context = createDefaultContext(testQueryParams());
+        var context = createDefaultContext();
 
         when(tokenValidationService.validate(anyString())).thenReturn(Result.success(claims));
 
@@ -202,14 +185,7 @@ class DataPlanePublicApiRequestFilterTest {
 
         var responseCapture = ArgumentCaptor.forClass(Response.class);
         verify(context, times(1)).abortWith(responseCapture.capture());
-        assertThat(responseCapture.getValue())
-                .isNotNull()
-                .satisfies(response -> {
-                    assertThat(response.getStatus()).isEqualTo(500);
-                    assertThat(response.getEntity())
-                            .isInstanceOf(Map.class)
-                            .satisfies(o -> assertThat((Map) o).containsEntry("errors", List.of("transfer error")));
-                });
+        assertErrorResponse(responseCapture.getValue(), 500, "transfer error");
     }
 
     /**
@@ -218,7 +194,7 @@ class DataPlanePublicApiRequestFilterTest {
     @Test
     void verifyDataFlowRequest_transferErrorUnhandledException() throws IOException {
         var claims = createClaimToken();
-        var context = createDefaultContext(testQueryParams());
+        var context = createDefaultContext();
 
         when(tokenValidationService.validate(anyString())).thenReturn(Result.success(claims));
 
@@ -230,14 +206,25 @@ class DataPlanePublicApiRequestFilterTest {
 
         var responseCapture = ArgumentCaptor.forClass(Response.class);
         verify(context, times(1)).abortWith(responseCapture.capture());
-        assertThat(responseCapture.getValue())
-                .isNotNull()
-                .satisfies(response -> {
-                    assertThat(response.getStatus()).isEqualTo(500);
-                    assertThat(response.getEntity())
-                            .isInstanceOf(Map.class)
-                            .satisfies(o -> assertThat((Map) o).containsEntry("errors", List.of("Unhandled exception: transfer exception")));
-                });
+        assertErrorResponse(responseCapture.getValue(), 500, "Unhandled exception: transfer exception");
+    }
+
+    private static void assertSuccessResponse(Response response, String message) {
+        assertResponse(response, 200, "data", message);
+    }
+
+    private static void assertErrorResponse(Response response, int errorCode, String message) {
+        assertResponse(response, errorCode, "errors", List.of(message));
+    }
+
+    private static void assertResponse(Response response, int expectedStatusCode, String expectedEntityKey, Object expectedEntityValue) {
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(expectedStatusCode);
+        assertThat(response.getEntity())
+                .isInstanceOf(Map.class)
+                .satisfies(o -> assertThat((Map) o)
+                        .hasSize(1)
+                        .containsEntry(expectedEntityKey, expectedEntityValue));
     }
 
     private MultivaluedMap<String, String> testQueryParams() {
@@ -247,24 +234,36 @@ class DataPlanePublicApiRequestFilterTest {
         return queryParams;
     }
 
-    private ContainerRequestContext createDefaultContext(MultivaluedMap<String, String> queryParams) {
+    private String testJsonBody() {
+        return "{ \"foo\" : \"bar\"}";
+    }
+
+    private ContainerRequestContext createDefaultContext() {
+        return createDefaultContext(testQueryParams(), null, null);
+    }
+
+    private ContainerRequestContext createDefaultContext(MultivaluedMap<String, String> queryParams, @Nullable MediaType mediaType, @Nullable String body) {
         var uriInfo = mock(UriInfo.class);
         when(uriInfo.getQueryParameters()).thenReturn(queryParams);
 
-        var request = mock(Request.class);
-        when(request.getMethod()).thenReturn("GET");
-
         var context = mock(ContainerRequestContext.class);
         when(context.getUriInfo()).thenReturn(uriInfo);
-        when(context.getRequest()).thenReturn(request);
+        when(context.getMethod()).thenReturn(HttpMethod.POST);
         when(context.getHeaderString("Authorization")).thenReturn("test-token");
+
+        if (mediaType != null && body != null) {
+            when(context.hasEntity()).thenReturn(true);
+            when(context.getMediaType()).thenReturn(mediaType);
+            when(context.getEntityStream()).thenReturn(new ByteArrayInputStream(body.getBytes()));
+        }
+
         return context;
     }
 
     private ClaimToken createClaimToken() {
         var dataAddress = DataAddress.Builder.newInstance().type("test").build();
         return ClaimToken.Builder.newInstance()
-                .claim(EndpointDataReferenceClaimsSchema.DATA_ADDRESS_CLAIM, typeManager.writeValueAsString(dataAddress))
+                .claim(DATA_ADDRESS_CLAIM, typeManager.writeValueAsString(dataAddress))
                 .build();
     }
 }

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering
  *
  */
 
@@ -38,8 +39,8 @@ public class MockIdentityService implements IdentityService {
     }
 
     @Override
-    public Result<ClaimToken> verifyJwtToken(String token) {
-        switch (token) {
+    public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation) {
+        switch (tokenRepresentation.getToken()) {
             case "mock-eu":
                 return Result.success(ClaimToken.Builder.newInstance().claim("region", "eu").build());
             case "mock-us":

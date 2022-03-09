@@ -14,18 +14,17 @@
 
 package org.eclipse.dataspaceconnector.assetindex.azure;
 
-import com.azure.cosmos.ConsistencyLevel;
-import com.azure.cosmos.CosmosClientBuilder;
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
 import com.azure.cosmos.CosmosException;
-import com.azure.cosmos.models.CosmosContainerResponse;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
+import com.azure.cosmos.models.CosmosItemRequestOptions;
+import com.azure.cosmos.models.PartitionKey;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
+import org.eclipse.dataspaceconnector.azure.testfixtures.CosmosTestClient;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
@@ -38,7 +37,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -47,13 +45,10 @@ import java.util.stream.IntStream;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
 
 @IntegrationTest
 class CosmosAssetIndexIntegrationTest {
-    public static final String REGION = "westeurope";
     private static final String TEST_ID = UUID.randomUUID().toString();
-    private static final String ACCOUNT_NAME = "cosmos-itest";
     private static final String DATABASE_NAME = "connector-itest-" + TEST_ID;
     private static final String CONTAINER_NAME = "CosmosAssetIndexTest-" + TEST_ID;
     private static final String TEST_PARTITION_KEY = "test-partitionkey";
@@ -64,18 +59,12 @@ class CosmosAssetIndexIntegrationTest {
 
     @BeforeAll
     static void prepareCosmosClient() {
-        var key = propOrEnv("COSMOS_KEY", null);
-        if (key != null) {
-            var client = new CosmosClientBuilder()
-                    .key(key)
-                    .preferredRegions(Collections.singletonList(REGION))
-                    .consistencyLevel(ConsistencyLevel.SESSION)
-                    .endpoint("https://" + ACCOUNT_NAME + ".documents.azure.com:443/")
-                    .buildClient();
+        var client = CosmosTestClient.createClient();
 
-            CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
-            database = client.getDatabase(response.getProperties().getId());
-        }
+        CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
+        database = client.getDatabase(response.getProperties().getId());
+        var containerIfNotExists = database.createContainerIfNotExists(CONTAINER_NAME, "/partitionKey");
+        container = database.getContainer(containerIfNotExists.getProperties().getId());
     }
 
     @AfterAll
@@ -89,12 +78,16 @@ class CosmosAssetIndexIntegrationTest {
     @BeforeEach
     void setUp() {
         assertThat(database).describedAs("CosmosDB database is null - did something go wrong during initialization?").isNotNull();
-        CosmosContainerResponse containerIfNotExists = database.createContainerIfNotExists(CONTAINER_NAME, "/partitionKey");
-        container = database.getContainer(containerIfNotExists.getProperties().getId());
+
         TypeManager typeManager = new TypeManager();
         typeManager.registerTypes(Asset.class, AssetDocument.class);
-        CosmosDbApi api = new CosmosDbApiImpl(container, true);
+        var api = new CosmosDbApiImpl(container, true);
         assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, new RetryPolicy<>());
+    }
+
+    @AfterEach
+    void tearDown() {
+        container.deleteAllItemsByPartitionKey(new PartitionKey(TEST_PARTITION_KEY), new CosmosItemRequestOptions());
     }
 
     @Test
@@ -362,12 +355,6 @@ class CosmosAssetIndexIntegrationTest {
         var all = assetIndex.queryAssets(sortQuery);
         assertThat(all).hasSize(5).extracting(Asset::getId).containsExactly("id9", "id8", "id7", "id6", "id5");
 
-    }
-
-    @AfterEach
-    void teardown() {
-        CosmosContainerResponse delete = container.delete();
-        assertThat(delete.getStatusCode()).isGreaterThanOrEqualTo(200).isLessThan(300);
     }
 
     private Asset createAsset(String id, String somePropertyKey, String somePropertyValue) {

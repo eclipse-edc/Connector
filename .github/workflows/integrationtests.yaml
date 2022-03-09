@@ -1,14 +1,14 @@
 name: Integration Tests
 
-on:
-  push:
-    branches: [ main ]
-  pull_request_target:
+on: [ push, pull_request ]
 
 jobs:
 
   Azure-Storage-Integration-Test:
     runs-on: ubuntu-latest
+
+    env:
+      RUN_INTEGRATION_TEST: true
 
     services:
       azurite:
@@ -17,9 +17,6 @@ jobs:
           - 10000:10000
         env:
           AZURITE_ACCOUNTS: account1:key1;account2:key2
-
-    env:
-      RUN_INTEGRATION_TEST: true
 
     steps:
       - uses: actions/checkout@v2
@@ -36,36 +33,42 @@ jobs:
         run: ./gradlew extensions:azure:blobstorage:blob-provision:check
 
   Azure-CosmosDB-Integration-Test:
-    # run only on upstream repo (requires secret access)
-    if: github.repository_owner == 'eclipse-dataspaceconnector'
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     env:
       RUN_INTEGRATION_TEST: true
-      COSMOS_KEY: ${{ secrets.COSMOS_KEY }}
 
     steps:
       - uses: actions/checkout@v2
+
       - uses: actions/setup-java@v2
         with:
           distribution: 'temurin'
           java-version: '11'
-          cache: 'gradle'
+
+      - name: Setup Gradle cache
+        uses: gradle/gradle-build-action@v2
+
+      # Cosmos DB Emulator is preinstalled on GitHub Actions workers
+      - name: Launch Cosmos DB Emulator
+        run: |
+          Import-Module "$env:ProgramFiles\Azure Cosmos DB Emulator\PSModules\Microsoft.Azure.CosmosDB.Emulator"
+          Start-CosmosDbEmulator -Timeout 1200
 
       - name: CosmosDB Transfer Process Store Test
-        run: ./gradlew extensions:azure:cosmos:transfer-process-store-cosmos:check
+        run: ./gradlew extensions:azure:cosmos:transfer-process-store-cosmos:test
 
       - name: Cosmos-based Asset Index test
-        run: ./gradlew extensions:azure:cosmos:assetindex-cosmos:check
+        run: ./gradlew extensions:azure:cosmos:assetindex-cosmos:test
 
       - name: Cosmos-based FCN Directory test
-        run: ./gradlew extensions:azure:cosmos:transfer-process-store-cosmos:check
+        run: ./gradlew extensions:azure:cosmos:transfer-process-store-cosmos:test
 
       - name: Cosmos-based ContractDefinitionStore Test
-        run: ./gradlew extensions:azure:cosmos:contract-definition-store-cosmos:check
+        run: ./gradlew extensions:azure:cosmos:contract-definition-store-cosmos:test
 
       - name: Cosmos-based ContractNegotiationStore Test
-        run: ./gradlew extensions:azure:cosmos:contract-negotiation-store-cosmos:check
+        run: ./gradlew extensions:azure:cosmos:contract-negotiation-store-cosmos:test
 
   Aws-Integration-Test:
     runs-on: ubuntu-latest
@@ -76,8 +79,8 @@ jobs:
         ports:
           - 9000:9000
         env:
-          MINIO_ACCESS_KEY: root
-          MINIO_SECRET_KEY: password
+          MINIO_ROOT_USER: root
+          MINIO_ROOT_PASSWORD: password
 
     steps:
       - uses: actions/checkout@v2
@@ -92,6 +95,13 @@ jobs:
           S3_ACCESS_KEY_ID: root
           S3_SECRET_ACCESS_KEY: password
         run: ./gradlew extensions:aws:s3:s3-provision:check
+
+      - name: AWS S3 StatusChecker Test
+        env:
+          RUN_INTEGRATION_TEST: true
+          S3_ACCESS_KEY_ID: root
+          S3_SECRET_ACCESS_KEY: password
+        run: ./gradlew extensions:aws:s3:s3-data-operator:check
 
   Daps-Integration-Test:
     runs-on: ubuntu-latest

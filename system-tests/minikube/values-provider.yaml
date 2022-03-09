@@ -1,0 +1,8 @@
+image:
+  repository: provider
+  tag: latest
+edc:
+  env:
+    IDS_WEBHOOK_ADDRESS: http://provider-dataspace-connector
+    # Use /etc/hosts as a copy source as it is a well-known file
+    EDC_TEST_ASSET_PATH: /etc/hosts

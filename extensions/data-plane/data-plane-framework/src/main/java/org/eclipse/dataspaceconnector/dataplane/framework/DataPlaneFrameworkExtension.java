@@ -17,6 +17,7 @@ import org.eclipse.dataspaceconnector.dataplane.framework.manager.DataPlaneManag
 import org.eclipse.dataspaceconnector.dataplane.framework.pipeline.PipelineServiceImpl;
 import org.eclipse.dataspaceconnector.dataplane.framework.store.InMemoryDataPlaneStore;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
+import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
@@ -58,6 +59,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         this.context = context;
         var pipelineService = new PipelineServiceImpl();
+        pipelineService.registerFactory(new OutputStreamDataSinkFactory()); // Added by default to support synchronous data transfer, i.e. pull data
         context.registerService(PipelineService.class, pipelineService);
 
         monitor = context.getMonitor();
@@ -70,6 +72,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
                 .workers(workers)
                 .waitTimeout(waitTimeout)
                 .pipelineService(pipelineService)
+                .store(new InMemoryDataPlaneStore(IN_MEMORY_STORE_CAPACITY))
                 .monitor(monitor).build();
 
         context.registerService(DataPlaneManager.class, dataPlaneManager);

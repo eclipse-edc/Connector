@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.core.health;
 
+import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthStatus;
@@ -28,7 +29,8 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     private final ScheduledExecutorService executor;
     private final HealthCheckServiceConfiguration configuration;
 
-    public HealthCheckServiceImpl(HealthCheckServiceConfiguration configuration) {
+    public HealthCheckServiceImpl(HealthCheckServiceConfiguration configuration,
+                                  ExecutorInstrumentation executorInstrumentation) {
         this.configuration = configuration;
         readinessProviders = new CopyOnWriteArrayList<>();
         livenessProviders = new CopyOnWriteArrayList<>();
@@ -38,7 +40,9 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         cachedReadinessResults = new ConcurrentHashMap<>();
         cachedStartupStatus = new ConcurrentHashMap<>();
 
-        executor = Executors.newScheduledThreadPool(configuration.getThreadPoolSize());
+        executor = executorInstrumentation.instrument(
+                Executors.newScheduledThreadPool(configuration.getThreadPoolSize()),
+                HealthCheckService.class.getSimpleName());
     }
 
     @Override

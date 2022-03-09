@@ -74,24 +74,23 @@ public class InMemoryIdentityHubStore implements IdentityHubStore {
     @Override
     public Collection<HubObject> query(ObjectQuery query) {
         lock.readLock().lock();
-        switch (query.getInterface()) {
-            case Collections:
-                try {
+        try {
+            switch (query.getInterface()) {
+                case Collections:
                     var objects = hubCache.get(query.getQualifiedType());
                     if (objects == null) {
                         return Collections.emptyList();
                     }
-
                     return objects.values().stream().flatMap(Collection::stream).collect(toList());
-                } finally {
-                    lock.readLock().unlock();
-                }
-            case Actions:
-            case Permissions:
-            case Profile:
-                throw new UnsupportedOperationException("Not implemented");
-            default:
-                return null;
+                case Actions:
+                case Permissions:
+                case Profile:
+                    throw new UnsupportedOperationException("Not implemented");
+                default:
+                    return null;
+            }
+        } finally {
+            lock.readLock().unlock();
         }
     }
 

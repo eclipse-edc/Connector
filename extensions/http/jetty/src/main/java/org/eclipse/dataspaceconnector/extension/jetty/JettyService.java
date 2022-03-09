@@ -30,10 +30,13 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.security.KeyStore;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.eclipse.jetty.servlet.ServletContextHandler.NO_SESSIONS;
@@ -49,6 +52,7 @@ public class JettyService {
     private final Monitor monitor;
     private final KeyStore keyStore;
     private final Map<String, ServletContextHandler> handlers = new HashMap<>();
+    private final List<Consumer<ServerConnector>> connectorConfigurationCallbacks = new ArrayList<>();
     private Server server;
 
     public JettyService(JettyConfiguration configuration, Monitor monitor) {
@@ -148,6 +152,7 @@ public class JettyService {
         var sslConnectionFactory = new SslConnectionFactory(contextFactory, "http/1.1");
         var sslConnector = new ServerConnector(server, httpConnectionFactory(), sslConnectionFactory);
         sslConnector.setPort(port);
+        configure(sslConnector);
         return sslConnector;
     }
 
@@ -155,7 +160,16 @@ public class JettyService {
     private ServerConnector httpServerConnector(int port) {
         ServerConnector connector = new ServerConnector(server, httpConnectionFactory());
         connector.setPort(port);
+        configure(connector);
         return connector;
+    }
+
+    private void configure(ServerConnector connector) {
+        connectorConfigurationCallbacks.forEach(c -> c.accept(connector));
+    }
+
+    public void addConnectorConfigurationCallback(Consumer<ServerConnector> callback) {
+        connectorConfigurationCallbacks.add(callback);
     }
 
     @NotNull

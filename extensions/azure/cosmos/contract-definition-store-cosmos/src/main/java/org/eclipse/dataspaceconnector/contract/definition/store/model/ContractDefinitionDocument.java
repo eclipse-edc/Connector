@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -17,16 +17,16 @@ package org.eclipse.dataspaceconnector.contract.definition.store.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDocument;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 
 @JsonTypeName("dataspaceconnector:contractddefinitiondocument")
 public class ContractDefinitionDocument extends CosmosDocument<ContractDefinition> {
 
     @JsonCreator
-    public ContractDefinitionDocument(@JsonProperty("wrappedInstance") ContractDefinition contractDefinition) {
-        //todo: lets think about whether this a good partition key
-        super(contractDefinition, contractDefinition.getAccessPolicy().getUid());
+    public ContractDefinitionDocument(@JsonProperty("wrappedInstance") ContractDefinition contractDefinition,
+                                      @JsonProperty("partitionKey") String partitionKey) {
+        super(contractDefinition, partitionKey);
     }
 
 

@@ -1,13 +1,13 @@
 package org.eclipse.dataspaceconnector.cosmos.azure;
 
-import com.azure.cosmos.ConsistencyLevel;
-import com.azure.cosmos.CosmosClientBuilder;
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
 import com.azure.cosmos.models.CosmosContainerResponse;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
 import com.azure.cosmos.models.CosmosItemRequestOptions;
 import com.azure.cosmos.models.PartitionKey;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
+import org.eclipse.dataspaceconnector.azure.testfixtures.CosmosTestClient;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -16,41 +16,29 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
 
 @IntegrationTest
 class CosmosDbApiImplIntegrationTest {
 
-    public static final String REGION = "westeurope";
     public static final String PARTITION_KEY = "partitionKey";
     private static final String TEST_ID = UUID.randomUUID().toString();
-    private static final String ACCOUNT_NAME = "cosmos-itest";
     private static final String DATABASE_NAME = "connector-itest-" + TEST_ID;
     private static final String CONTAINER_NAME = "CosmosAssetIndexTest-" + TEST_ID;
     private static CosmosContainer container;
     private static CosmosDatabase database;
-    private CosmosDbApi cosmosDbApi;
+    private CosmosDbApiImpl cosmosDbApi;
     private ArrayList<TestCosmosDocument> record;
 
     @BeforeAll
     static void prepare() {
-        var key = propOrEnv("COSMOS_KEY", "RYNecVDtJq2WKAcIoONBLzuTBys06kUcP8Rw9Yz5zOzsOQFVGaP8oGuI5qgF5ONQY4VukjkpQ4x7a2jwVvo7SQ==");
-        if (key != null) {
-            var client = new CosmosClientBuilder()
-                    .key(key)
-                    .preferredRegions(Collections.singletonList(REGION))
-                    .consistencyLevel(ConsistencyLevel.SESSION)
-                    .endpoint("https://" + ACCOUNT_NAME + ".documents.azure.com:443/")
-                    .buildClient();
+        var client = CosmosTestClient.createClient();
 
-            CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
-            database = client.getDatabase(response.getProperties().getId());
-        }
+        CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
+        database = client.getDatabase(response.getProperties().getId());
     }
 
     @AfterAll

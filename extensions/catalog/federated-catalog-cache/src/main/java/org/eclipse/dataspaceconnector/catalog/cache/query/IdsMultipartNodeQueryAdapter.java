@@ -34,11 +34,11 @@ public class IdsMultipartNodeQueryAdapter implements NodeQueryAdapter {
         return future.thenApply(catalog -> new UpdateResponse(getNodeUrl(updateRequest), catalog));
     }
 
-    // adds /api/ids/multipart if not already there
+    // adds /api/ids/data if not already there
     private String getNodeUrl(UpdateRequest updateRequest) {
         var url = updateRequest.getNodeUrl();
-        if (!url.endsWith("/api/ids/multipart")) {
-            url += "/api/ids/multipart";
+        if (!url.endsWith("/ids/data")) {
+            url += "/api/v1/ids/data";
         }
 
         return url;

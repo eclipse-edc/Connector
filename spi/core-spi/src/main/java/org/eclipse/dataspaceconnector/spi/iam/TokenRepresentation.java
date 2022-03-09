@@ -9,23 +9,29 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering
  *
  */
 
 package org.eclipse.dataspaceconnector.spi.iam;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
- * The result of an obtain token operation.
+ * Representation of an obtained or incoming token.
  */
 public class TokenRepresentation {
     private String token;
     private long expiresIn;
+    private Map<String, Object> additional;
 
     private TokenRepresentation() {
+        additional = new HashMap<>();
     }
 
     /**
-     * Returns the bearer token if the flow was successful; otherwise null.
+     * Returns the bearer token if existent otherwise null.
      */
     public String getToken() {
         return token;
@@ -36,6 +42,10 @@ public class TokenRepresentation {
      */
     public long expiresIn() {
         return expiresIn;
+    }
+
+    public Map<String, Object> getAdditional() {
+        return additional;
     }
 
     public static class Builder {
@@ -56,6 +66,11 @@ public class TokenRepresentation {
 
         public Builder expiresIn(long expiresIn) {
             result.expiresIn = expiresIn;
+            return this;
+        }
+
+        public Builder additional(Map<String, Object> additional) {
+            result.additional = additional;
             return this;
         }
 

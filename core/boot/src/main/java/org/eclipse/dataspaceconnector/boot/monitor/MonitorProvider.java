@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.boot.monitor;
 
+import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.IMarkerFactory;
@@ -29,7 +30,7 @@ import org.slf4j.spi.SLF4JServiceProvider;
  * Bridges from SLF4J to a monitor.
  */
 public class MonitorProvider implements SLF4JServiceProvider {
-    private static Monitor INSTANCE;
+    private static Monitor INSTANCE = new ConsoleMonitor();
     private final IMarkerFactory markerFactory = new BasicMarkerFactory();
     private final MDCAdapter mdcAdapter = new NOPMDCAdapter();
 
@@ -63,6 +64,9 @@ public class MonitorProvider implements SLF4JServiceProvider {
     }
 
     private static class MonitorLogger extends AbstractLogger {
+        public MonitorLogger() {
+            name = getClass().getSimpleName();
+        }
 
         @Override
         public boolean isTraceEnabled() {

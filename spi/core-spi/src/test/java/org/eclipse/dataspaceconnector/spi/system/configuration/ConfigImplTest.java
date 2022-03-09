@@ -1,3 +1,16 @@
+/*
+ *  Copyright (c) 2022
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Fraunhofer Institute for Software and Systems Engineering
+ *
+ */
 package org.eclipse.dataspaceconnector.spi.system.configuration;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -126,6 +139,47 @@ class ConfigImplTest {
         var config = new ConfigImpl("", emptyMap());
 
         var value = config.getLong("key", null);
+
+        assertThat(value).isEqualTo(null);
+    }
+
+    @Test
+    void getBooleanConfig() {
+        var config = new ConfigImpl("", Map.of("key", "true"));
+
+        var value = config.getBoolean("key");
+
+        assertThat(value).isEqualTo(true);
+    }
+
+    @Test
+    void getBooleanShouldThrowExceptionIfKeyNotFoundAndNoDefaultDefined() {
+        var config = new ConfigImpl("", emptyMap());
+
+        assertThatThrownBy(() -> config.getBoolean("key")).isInstanceOf(EdcException.class);
+    }
+
+    @Test
+    void getBooleanShouldThrowExceptionIfValueIsNotValidBoolean() {
+        var config = new ConfigImpl("", Map.of("key", "not_a_boolean"));
+
+        assertThatThrownBy(() -> config.getBoolean("key")).isInstanceOf(EdcException.class);
+    }
+
+    @Test
+    void getBooleanShouldReturnDefaultIfKeyNotFound() {
+        var config = new ConfigImpl("", emptyMap());
+
+        var value = config.getBoolean("key", true);
+
+        assertThat(value).isEqualTo(true);
+    }
+
+    @Test
+    void getBooleanShouldReturnNullIfDefaultIsNull() {
+        var config = new ConfigImpl("", emptyMap());
+
+        var value = config.getBoolean("key", null);
 
         assertThat(value).isEqualTo(null);
     }

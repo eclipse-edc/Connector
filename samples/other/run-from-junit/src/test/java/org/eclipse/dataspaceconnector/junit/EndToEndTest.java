@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering
  *
  */
 
@@ -128,7 +129,7 @@ public class EndToEndTest {
                 }
 
                 @Override
-                public Result<ClaimToken> verifyJwtToken(String token) {
+                public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation) {
                     return Result.success(ClaimToken.Builder.newInstance().build());
                 }
             });

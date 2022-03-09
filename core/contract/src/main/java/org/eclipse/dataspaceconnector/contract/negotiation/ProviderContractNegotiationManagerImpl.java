@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Microsoft Corporation
+ *  Copyright (c) 2021-2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -10,12 +10,14 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
+ *       Daimler TSS GmbH - fixed contract dates to epoch seconds
  *
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import io.opentelemetry.extension.annotations.WithSpan;
-import org.eclipse.dataspaceconnector.common.stream.EntitiesProcessor;
+import org.eclipse.dataspaceconnector.common.statemachine.StateMachine;
+import org.eclipse.dataspaceconnector.common.statemachine.StateProcessorImpl;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
@@ -42,11 +44,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -64,21 +64,19 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
  */
 public class ProviderContractNegotiationManagerImpl implements ProviderContractNegotiationManager {
 
-    private final AtomicBoolean active = new AtomicBoolean();
-
     private int batchSize = 5;
     private WaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
 
     private ContractNegotiationStore negotiationStore;
     private ContractValidationService validationService;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
-    private ExecutorService executor;
     private ContractNegotiationObservable observable;
     private CommandQueue<ContractNegotiationCommand> commandQueue;
     private CommandRunner<ContractNegotiationCommand> commandRunner;
     private CommandProcessor<ContractNegotiationCommand> commandProcessor;
     private Monitor monitor;
     private Telemetry telemetry;
+    private StateMachine stateMachine;
 
     private ProviderContractNegotiationManagerImpl() {
     }
@@ -88,15 +86,19 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     //TODO validate previous offers against hash?
 
     public void start() {
-        active.set(true);
-        executor = Executors.newSingleThreadExecutor();
-        executor.submit(this::run);
+        stateMachine = StateMachine.Builder.newInstance("provider-contract-negotiation", monitor, waitStrategy)
+                .processor(processNegotiationsInState(PROVIDER_OFFERING, this::processProviderOffering))
+                .processor(processNegotiationsInState(DECLINING, this::processDeclining))
+                .processor(processNegotiationsInState(CONFIRMING, this::processConfirming))
+                .processor(onCommands(this::processCommand))
+                .build();
+
+        stateMachine.start();
     }
 
     public void stop() {
-        active.set(false);
-        if (executor != null) {
-            executor.shutdownNow();
+        if (stateMachine != null) {
+            stateMachine.stop();
         }
     }
 
@@ -271,50 +273,12 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         return NegotiationResult.success(negotiation);
     }
 
-    /**
-     * Continuously checks all unfinished {@link ContractNegotiation}s and performs actions based on
-     * their states.
-     */
-    private void run() {
-        while (active.get()) {
-            try {
-                long providerOffering = processNegotiationsInState(PROVIDER_OFFERING, this::processProviderOffering);
-                long declining = processNegotiationsInState(DECLINING, this::processDeclining);
-                long confirming = processNegotiationsInState(CONFIRMING, this::processConfirming);
-                long commandsProcessed = onCommands().doProcess(this::processCommand);
-
-                var totalProcessed = providerOffering + declining + confirming + commandsProcessed;
-
-                if (totalProcessed == 0) {
-                    Thread.sleep(waitStrategy.waitForMillis());
-                }
-                waitStrategy.success();
-            } catch (Error e) {
-                throw e; // let the thread die and don't reschedule as the error is unrecoverable
-            } catch (InterruptedException e) {
-                Thread.interrupted();
-                active.set(false);
-                break;
-            } catch (Throwable e) {
-                monitor.severe("Error caught in provider contract negotiation manager", e);
-                try {
-                    Thread.sleep(waitStrategy.retryInMillis());
-                } catch (InterruptedException e2) {
-                    Thread.interrupted();
-                    active.set(false);
-                    break;
-                }
-            }
-        }
+    private StateProcessorImpl<ContractNegotiation> processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
+        return new StateProcessorImpl<>(() -> negotiationStore.nextForState(state.code(), batchSize), telemetry.contextPropagationMiddleware(function));
     }
 
-    private long processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
-        return new EntitiesProcessor<>(() -> negotiationStore.nextForState(state.code(), batchSize))
-                .doProcess(telemetry.contextPropagationMiddleware(function));
-    }
-
-    private EntitiesProcessor<ContractNegotiationCommand> onCommands() {
-        return new EntitiesProcessor<>(() -> commandQueue.dequeue(5));
+    private StateProcessorImpl<ContractNegotiationCommand> onCommands(Function<ContractNegotiationCommand, Boolean> process) {
+        return new StateProcessorImpl<>(() -> commandQueue.dequeue(5), process);
     }
 
     private boolean processCommand(ContractNegotiationCommand command) {
@@ -447,9 +411,9 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             //TODO move to own service
             agreement = ContractAgreement.Builder.newInstance()
                     .id(ContractId.createContractId(definitionId))
-                    .contractEndDate(Instant.now().getEpochSecond() + 60 * 60 /* Five Minutes */) // TODO
-                    .contractSigningDate(Instant.now().getEpochSecond() - 60 * 5 /* Five Minutes */)
                     .contractStartDate(Instant.now().getEpochSecond())
+                    .contractEndDate(Instant.now().plus(365, ChronoUnit.DAYS).getEpochSecond()) // TODO Make configurable (issue #722)
+                    .contractSigningDate(Instant.now().getEpochSecond())
                     .providerAgentId(String.valueOf(lastOffer.getProvider()))
                     .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
                     .policy(lastOffer.getPolicy())
