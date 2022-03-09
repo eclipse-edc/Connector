@@ -120,7 +120,7 @@ public class CosmosDbApiImpl implements CosmosDbApi {
     }
 
     @Override
-    public void deleteItem(String id) {
+    public Object deleteItem(String id) {
 
         // we need to query the item first, because delete-by-id requires a partition key, which we might not have available here
         var item = queryItemById(id);
@@ -132,6 +132,7 @@ public class CosmosDbApiImpl implements CosmosDbApi {
         } catch (CosmosException e) {
             throw new EdcException(e);
         }
+        return item;
     }
 
     @Override

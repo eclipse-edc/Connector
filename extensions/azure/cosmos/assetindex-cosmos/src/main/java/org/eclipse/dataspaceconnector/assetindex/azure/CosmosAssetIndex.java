@@ -108,11 +108,8 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetL
 
     @Override
     public Asset deleteById(String assetId) {
-        var asset = findById(assetId);
-        if (asset != null) {
-            assetDb.deleteItem(assetId);
-        }
-        return asset;
+        var deletedItem = Optional.ofNullable(assetDb.deleteItem(assetId));
+        return deletedItem.map(this::convertObject).map(AssetDocument::getWrappedAsset).orElse(null);
     }
 
     @Override
