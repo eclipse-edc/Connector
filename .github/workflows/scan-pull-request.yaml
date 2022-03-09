@@ -3,7 +3,7 @@ name: Scan Pull Request
 on:
   pull_request:
     branches: [ main ]
-    types: [opened, edited, synchronize, reopened]
+    types: [opened, edited, synchronize, reopened, labeled, unlabeled]
 
 jobs:
   check-for-changelog-modifications:
