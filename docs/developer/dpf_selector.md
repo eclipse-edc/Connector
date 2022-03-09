@@ -52,11 +52,11 @@ public interface DataPlaneInstance {
     URL getUrl(); //returns the url+path to the DataPlane API
     int turnCount(); //how often selected
     long lastActive(); //when selected last
+    Map<String, Object> getProperties(); //extensible properties
 }
 ```
 
 Thus, the `DataPlaneInstance` itself determines whether it can support a particular data request, based on various capabilities such as its `DataSink` and `DataSource` implementations, streaming capabilities, etc.
-
 
 Requests come in either through an API or an SPI hit the `DataPlaneSelector`, which then filters its list of `DataPlaneInstace` records and selects the best fitting DPF based on a strategy. By default selection is made at random.
 
