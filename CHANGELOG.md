@@ -27,13 +27,13 @@ the detailed section referring to by linking pull requests or issues.
 * Change scope used for obtaining a token for ids multipart (#731)
 * Refactor ids token validation as extension (#625)
 * All `CosmosDocument` subclasses now use a configurable partition key (#780)
-* Added `findAll` method to `TransferProcessStore` (#859)
+* Add `findAll` method to `TransferProcessStore` (#859)
 
 #### Removed
 
 * Remove ION extension (#664)
 * Remove module `:samples:other:commandline` (#820)
-* Removed unneeded/unimplemented methods from `TransferProcessStore` (#859)
+* Remove unneeded/unimplemented methods from `TransferProcessStore` (#859)
 
 #### Fixed
 * Flaky S3 StatusChecker Test (#794)
