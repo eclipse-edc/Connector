@@ -28,7 +28,7 @@ public interface CosmosDbApi extends ReadinessProvider {
 
     void saveItems(Collection<CosmosDocument<?>> definitions);
 
-    @Nullable Object deleteItem(String id);
+    void deleteItem(String id);
 
     @Nullable Object queryItemById(String id);
 
