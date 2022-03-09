@@ -249,7 +249,7 @@ class CosmosAssetIndexTest {
     }
 
     @Test
-    void deleteById_whenAssetPresent_returnsAsset() {
+    void deleteById_whenPresent_deletesItem() {
         String id = "id-test";
         AssetDocument document = createDocument(id);
         when(api.queryItemById(eq(id))).thenReturn(document);
@@ -260,7 +260,7 @@ class CosmosAssetIndexTest {
     }
 
     @Test
-    void deleteById_whenMissingAsset_returnsNull() {
+    void deleteById_whenAlreadyMissing_returnsNull() {
         String id = "id-test";
         when(api.queryItemById(eq(id))).thenReturn(null);
         assertThat(assetIndex.deleteById(id)).isNull();
