@@ -2,6 +2,7 @@ package org.eclipse.dataspaceconnector.cosmos.azure;
 
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
+import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.models.CosmosContainerResponse;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
 import com.azure.cosmos.models.CosmosItemRequestOptions;
@@ -20,8 +21,8 @@ import java.util.LinkedHashMap;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@IntegrationTest
 class CosmosDbApiImplIntegrationTest {
 
     public static final String PARTITION_KEY = "partitionKey";
@@ -130,6 +131,27 @@ class CosmosDbApiImplIntegrationTest {
         var query = "SELECT * FROM t WHERE t.wrappedInstance='payload-two'";
         var result = cosmosDbApi.queryItems(query);
         assertThat(result).hasSize(2);
+    }
+
+    @Test
+    void deleteItem_whenItemPresent_deleted() {
+        var testItem = new TestCosmosDocument("payload", PARTITION_KEY);
+        container.createItem(testItem);
+        var deletedItem = cosmosDbApi.deleteItem(testItem.getId());
+
+        assertThat(deletedItem).isNotNull().isInstanceOf(LinkedHashMap.class);
+
+        assertThat((LinkedHashMap) deletedItem).containsEntry("id", testItem.getId())
+                .containsEntry("partitionKey", PARTITION_KEY)
+                .containsEntry("wrappedInstance", "payload");
+    }
+
+    @Test
+    void deleteItem_whenItemAlreadyMissing_throws() {
+        var id = UUID.randomUUID().toString();
+        assertThatThrownBy(() -> cosmosDbApi.deleteItem(id))
+                .hasMessageContaining(String.format("An object with the ID %s could not be found!", id))
+                .isInstanceOf(NotFoundException.class);
     }
 
 }
