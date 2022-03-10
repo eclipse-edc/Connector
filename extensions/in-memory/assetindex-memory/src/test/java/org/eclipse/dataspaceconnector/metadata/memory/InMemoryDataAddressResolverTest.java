@@ -45,6 +45,7 @@ class InMemoryDataAddressResolverTest {
         var testAsset = createAsset("foobar", UUID.randomUUID().toString());
         var address = createDataAddress(testAsset);
         resolver.accept(testAsset, address);
+
         resolver.deleteById(testAsset.getId());
         assertThatThrownBy(() -> resolver.resolveForAsset(testAsset.getId()))
                 .hasMessage(String.format("No DataAddress found for Asset ID=%s", testAsset.getId()))

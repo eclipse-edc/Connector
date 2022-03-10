@@ -253,7 +253,7 @@ class CosmosAssetIndexTest {
     void deleteById_whenPresent_deletesItem() {
         String id = "id-test";
         AssetDocument document = createDocument(id);
-        when(api.deleteItem(eq(id))).thenReturn(document);
+        when(api.deleteItem(id)).thenReturn(document);
 
         var deletedAsset = assetIndex.deleteById(id);
         assertThat(deletedAsset.getProperties()).isEqualTo(document.getWrappedAsset().getProperties());
