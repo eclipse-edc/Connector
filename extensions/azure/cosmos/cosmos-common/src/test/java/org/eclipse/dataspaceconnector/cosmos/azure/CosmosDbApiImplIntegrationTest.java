@@ -103,11 +103,11 @@ class CosmosDbApiImplIntegrationTest {
 
         assertThat(cosmosDbApi.queryAllItems()).hasSize(2)
                 .allSatisfy(o -> {
-                            assertThat(o)
-                                    .asInstanceOf(InstanceOfAssertFactories.MAP)
-                                    .containsEntry("wrappedInstance", "payload")
-                                    .hasEntrySatisfying("id", id -> assertThat(id).isIn(testItem.getId(), testItem2.getId()));
-                        }
+                        assertThat(o)
+                                .asInstanceOf(InstanceOfAssertFactories.MAP)
+                                .containsEntry("wrappedInstance", "payload")
+                                .hasEntrySatisfying("id", id -> assertThat(id).isIn(testItem.getId(), testItem2.getId()));
+                }
                 );
     }
 
