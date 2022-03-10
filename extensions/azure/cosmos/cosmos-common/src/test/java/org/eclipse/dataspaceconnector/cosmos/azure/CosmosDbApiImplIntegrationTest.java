@@ -7,6 +7,7 @@ import com.azure.cosmos.models.CosmosContainerResponse;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
 import com.azure.cosmos.models.CosmosItemRequestOptions;
 import com.azure.cosmos.models.PartitionKey;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.azure.testfixtures.CosmosTestClient;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
@@ -141,8 +142,10 @@ class CosmosDbApiImplIntegrationTest {
         container.createItem(testItem);
 
         var deletedItem = cosmosDbApi.deleteItem(testItem.getId());
-        assertThat(deletedItem).isInstanceOf(Map.class);
-        assertThat((Map) deletedItem).containsEntry("id", testItem.getId())
+
+        assertThat(deletedItem)
+                .asInstanceOf(InstanceOfAssertFactories.MAP)
+                .containsEntry("id", testItem.getId())
                 .containsEntry("partitionKey", PARTITION_KEY)
                 .containsEntry("wrappedInstance", "payload");
     }
