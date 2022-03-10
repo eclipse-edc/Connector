@@ -18,8 +18,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -84,9 +82,10 @@ class CosmosDbApiImplIntegrationTest {
         record.add(testItem);
 
         var queryResult = cosmosDbApi.queryItemById(testItem.getId());
-        assertThat(queryResult).isNotNull().isInstanceOf(LinkedHashMap.class);
 
-        assertThat((LinkedHashMap) queryResult).containsEntry("id", testItem.getId())
+        assertThat(queryResult)
+                .asInstanceOf(InstanceOfAssertFactories.MAP)
+                .containsEntry("id", testItem.getId())
                 .containsEntry("partitionKey", PARTITION_KEY)
                 .containsEntry("wrappedInstance", "payload");
 
@@ -104,10 +103,12 @@ class CosmosDbApiImplIntegrationTest {
 
         assertThat(cosmosDbApi.queryAllItems()).hasSize(2)
                 .allSatisfy(o -> {
-                    assertThat(o).isInstanceOf(LinkedHashMap.class);
-                    assertThat((LinkedHashMap) o).containsEntry("wrappedInstance", "payload");
-                    assertThat(((LinkedHashMap) o).get("id")).isIn(testItem.getId(), testItem2.getId());
-                });
+                            assertThat(o)
+                                    .asInstanceOf(InstanceOfAssertFactories.MAP)
+                                    .containsEntry("wrappedInstance", "payload")
+                                    .hasEntrySatisfying("id", id -> assertThat(id).isIn(testItem.getId(), testItem2.getId()));
+                        }
+                );
     }
 
     @Test
