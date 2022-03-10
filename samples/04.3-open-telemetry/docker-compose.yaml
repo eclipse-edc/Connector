@@ -8,6 +8,7 @@ services:
       OTEL_SERVICE_NAME: consumer
       OTEL_TRACES_EXPORTER: jaeger
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14250
+      OTEL_METRICS_EXPORTER: prometheus
       edc.api.control.auth.apikey.value: password
       ids.webhook.address: http://consumer:8181
     volumes:
@@ -34,7 +35,7 @@ services:
       - 8182:8182
     entrypoint: java
       -javaagent:/samples/04.3-open-telemetry/opentelemetry-javaagent.jar
-      -Dedc.fs.config=/samples/04.0-file-transfer/consumer/config.properties
+      -Dedc.fs.config=/samples/04.0-file-transfer/provider/config.properties
       -jar /samples/04.0-file-transfer/provider/build/libs/provider.jar
 
   jaeger:
