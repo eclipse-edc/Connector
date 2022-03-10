@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.common.matchers.PredicateMatcher;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -65,22 +66,22 @@ class CosmosAssetIndexTest {
         typeManager.registerTypes(AssetDocument.class, Asset.class);
         retryPolicy = new RetryPolicy<>().withMaxRetries(1);
         api = mock(CosmosDbApi.class);
-        assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, retryPolicy);
+        assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, retryPolicy, new ConsoleMonitor());
     }
 
     @Test
     void inputValidation() {
         // null cosmos api
         assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> new CosmosAssetIndex(null, TEST_PARTITION_KEY, null, retryPolicy));
+                .isThrownBy(() -> new CosmosAssetIndex(null, TEST_PARTITION_KEY, null, retryPolicy, new ConsoleMonitor()));
 
         // type manager is null
         assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> new CosmosAssetIndex(api, TEST_PARTITION_KEY, null, retryPolicy));
+                .isThrownBy(() -> new CosmosAssetIndex(api, TEST_PARTITION_KEY, null, retryPolicy, new ConsoleMonitor()));
 
         // retry policy is null
         assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, null));
+                .isThrownBy(() -> new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, null, new ConsoleMonitor()));
     }
 
     @Test
@@ -163,7 +164,7 @@ class CosmosAssetIndexTest {
         // let's verify that the query actually contains the proper WHERE clause
         var queryCapture = ArgumentCaptor.forClass(SqlQuerySpec.class);
         when(api.queryItems(queryCapture.capture())).thenReturn(Stream.of(createDocument(id1), createDocument(id2)));
-        CosmosAssetIndex assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, retryPolicy);
+        CosmosAssetIndex assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, retryPolicy, new ConsoleMonitor());
         var selectByName = AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, "somename").build();
 
         var assets = assetIndex.queryAssets(selectByName);

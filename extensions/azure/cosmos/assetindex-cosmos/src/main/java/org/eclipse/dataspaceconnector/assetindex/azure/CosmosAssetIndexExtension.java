@@ -43,7 +43,7 @@ public class CosmosAssetIndexExtension implements ServiceExtension {
         Vault vault = context.getService(Vault.class);
 
         var cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
-        var assetIndex = new CosmosAssetIndex(cosmosDbApi, configuration.getPartitionKey(), context.getTypeManager(), context.getService(RetryPolicy.class));
+        var assetIndex = new CosmosAssetIndex(cosmosDbApi, configuration.getPartitionKey(), context.getTypeManager(), context.getService(RetryPolicy.class), context.getMonitor());
         context.registerService(AssetIndex.class, assetIndex);
         context.registerService(AssetLoader.class, assetIndex);
         context.registerService(DataAddressResolver.class, assetIndex);

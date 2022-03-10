@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -43,6 +44,7 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetL
     private final TypeManager typeManager;
     private final RetryPolicy<Object> retryPolicy;
     private final CosmosAssetQueryBuilder queryBuilder;
+    private final Monitor monitor;
 
     /**
      * Creates a new instance of the CosmosDB-based for Asset storage.
@@ -52,11 +54,12 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetL
      * @param typeManager  The {@link TypeManager} that's used for serialization and deserialization.
      * @param retryPolicy  Retry policy if query to CosmosDB fails.
      */
-    public CosmosAssetIndex(CosmosDbApi assetDb, String partitionKey, TypeManager typeManager, RetryPolicy<Object> retryPolicy) {
+    public CosmosAssetIndex(CosmosDbApi assetDb, String partitionKey, TypeManager typeManager, RetryPolicy<Object> retryPolicy, Monitor monitor) {
         this.assetDb = Objects.requireNonNull(assetDb);
         this.partitionKey = partitionKey;
         this.typeManager = Objects.requireNonNull(typeManager);
         this.retryPolicy = Objects.requireNonNull(retryPolicy);
+        this.monitor = monitor;
         queryBuilder = new CosmosAssetQueryBuilder();
     }
 
@@ -112,6 +115,7 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetL
             var deletedItem = assetDb.deleteItem(assetId);
             return convertObject(deletedItem).getWrappedAsset();
         } catch (NotFoundException notFoundException) {
+            monitor.debug(String.format("Asset with id %s not found", assetId));
             return null;
         }
     }
