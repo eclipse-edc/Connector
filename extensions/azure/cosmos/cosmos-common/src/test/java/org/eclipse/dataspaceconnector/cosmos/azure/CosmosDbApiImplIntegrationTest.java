@@ -23,6 +23,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@IntegrationTest
 class CosmosDbApiImplIntegrationTest {
 
     public static final String PARTITION_KEY = "partitionKey";
