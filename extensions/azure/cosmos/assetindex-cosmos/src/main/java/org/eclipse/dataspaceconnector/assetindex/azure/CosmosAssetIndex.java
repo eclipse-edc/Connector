@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.assetindex.azure;
 
+import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.models.SqlQuerySpec;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
@@ -107,11 +108,12 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetL
 
     @Override
     public Asset deleteById(String assetId) {
-        var asset = findById(assetId);
-        if (asset != null) {
-            assetDb.deleteItem(assetId);
+        try {
+            var deletedItem = assetDb.deleteItem(assetId);
+            return convertObject(deletedItem).getWrappedAsset();
+        } catch (NotFoundException notFoundException) {
+            return null;
         }
-        return asset;
     }
 
     @Override

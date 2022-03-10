@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.assetindex.azure;
 
+import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.models.SqlQuerySpec;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
@@ -252,7 +253,7 @@ class CosmosAssetIndexTest {
     void deleteById_whenPresent_deletesItem() {
         String id = "id-test";
         AssetDocument document = createDocument(id);
-        when(api.queryItemById(eq(id))).thenReturn(document);
+        when(api.deleteItem(eq(id))).thenReturn(document);
 
         var deletedAsset = assetIndex.deleteById(id);
         assertThat(deletedAsset.getProperties()).isEqualTo(document.getWrappedAsset().getProperties());
@@ -262,7 +263,7 @@ class CosmosAssetIndexTest {
     @Test
     void deleteById_whenAlreadyMissing_returnsNull() {
         String id = "id-test";
-        when(api.queryItemById(eq(id))).thenReturn(null);
+        when(api.deleteItem(eq(id))).thenThrow(new NotFoundException());
         assertThat(assetIndex.deleteById(id)).isNull();
     }
 
