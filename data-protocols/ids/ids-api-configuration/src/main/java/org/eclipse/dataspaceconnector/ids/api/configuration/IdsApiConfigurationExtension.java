@@ -48,15 +48,13 @@ public class IdsApiConfigurationExtension implements ServiceExtension {
         int port = DEFAULT_PORT;
         
         Config config = context.getConfig(IDS_API_CONFIG);
-        if (config.getEntries().isEmpty() || !config.getEntries().containsKey("path")
-                || !config.getEntries().containsKey("port")) {
-            monitor.warning(format("Settings [%s] and/or [%s] were not provided. IDS API will be"
-                    + " registered in the default API context.", IDS_API_CONFIG + ".path",
-                    IDS_API_CONFIG + ".path"));
+        if (config.getEntries().isEmpty()) {
+            monitor.warning(format("Setting for [%s] and/or [%s] were not provided. Using default"
+                    + " value(s) instead.", IDS_API_CONFIG + ".path", IDS_API_CONFIG + ".path"));
         } else {
             contextAlias = IDS_API_CONTEXT_ALIAS;
-            path = config.getString("path");
-            port = config.getInteger("port");
+            path = config.getString("path", path);
+            port = config.getInteger("port", port);
         }
         
         monitor.info(format("IDS API will be available under [path=%s], [port=%s].", path, port));
