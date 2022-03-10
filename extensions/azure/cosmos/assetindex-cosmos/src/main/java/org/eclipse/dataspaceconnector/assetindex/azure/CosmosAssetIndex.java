@@ -115,7 +115,7 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetL
             var deletedItem = assetDb.deleteItem(assetId);
             return convertObject(deletedItem).getWrappedAsset();
         } catch (NotFoundException notFoundException) {
-            monitor.debug(String.format("Asset with id %s not found", assetId));
+            monitor.debug(() -> String.format("Asset with id %s not found", assetId));
             return null;
         }
     }
