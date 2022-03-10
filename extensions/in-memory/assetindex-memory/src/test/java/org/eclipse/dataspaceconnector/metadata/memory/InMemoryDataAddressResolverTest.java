@@ -48,8 +48,8 @@ class InMemoryDataAddressResolverTest {
 
         resolver.deleteById(testAsset.getId());
         assertThatThrownBy(() -> resolver.resolveForAsset(testAsset.getId()))
-                .hasMessage(String.format("No DataAddress found for Asset ID=%s", testAsset.getId()))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage(String.format("No DataAddress found for Asset ID=%s", testAsset.getId()));
     }
 
     private Asset createAsset(String name, String id) {

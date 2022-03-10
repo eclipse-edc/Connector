@@ -155,13 +155,11 @@ public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, Asse
     @Override
     public Asset deleteById(String assetId) {
         lock.writeLock().lock();
-        Asset asset = null;
         try {
-            asset = delete(assetId);
+            return delete(assetId);
         } finally {
             lock.writeLock().unlock();
         }
-        return asset;
     }
 
     private @Nullable Comparable asComparable(Object property) {
