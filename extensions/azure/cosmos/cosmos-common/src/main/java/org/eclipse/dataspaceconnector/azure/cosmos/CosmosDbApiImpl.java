@@ -32,6 +32,7 @@ import com.azure.cosmos.models.SqlParameter;
 import com.azure.cosmos.models.SqlQuerySpec;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
 import org.jetbrains.annotations.NotNull;
@@ -130,7 +131,7 @@ public class CosmosDbApiImpl implements CosmosDbApi {
         try {
             container.deleteItem(item, itemRequestOptions).getItem();
         } catch (CosmosException e) {
-            throw new EdcException(e);
+            throw new EdcPersistenceException(e);
         }
         return item;
     }
