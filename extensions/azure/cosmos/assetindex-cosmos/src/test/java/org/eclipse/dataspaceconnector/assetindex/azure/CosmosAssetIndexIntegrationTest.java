@@ -27,6 +27,7 @@ import org.eclipse.dataspaceconnector.azure.testfixtures.CosmosTestClient;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -46,6 +47,7 @@ import java.util.stream.IntStream;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 
 @IntegrationTest
 class CosmosAssetIndexIntegrationTest {
@@ -83,7 +85,7 @@ class CosmosAssetIndexIntegrationTest {
         TypeManager typeManager = new TypeManager();
         typeManager.registerTypes(Asset.class, AssetDocument.class);
         var api = new CosmosDbApiImpl(container, true);
-        assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, new RetryPolicy<>(), new ConsoleMonitor());
+        assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, new RetryPolicy<>(), mock(Monitor.class));
     }
 
     @AfterEach
