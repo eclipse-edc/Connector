@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -138,11 +139,10 @@ class CosmosDbApiImplIntegrationTest {
     void deleteItem_whenItemPresent_deleted() {
         var testItem = new TestCosmosDocument("payload", PARTITION_KEY);
         container.createItem(testItem);
+
         var deletedItem = cosmosDbApi.deleteItem(testItem.getId());
-
-        assertThat(deletedItem).isNotNull().isInstanceOf(LinkedHashMap.class);
-
-        assertThat((LinkedHashMap) deletedItem).containsEntry("id", testItem.getId())
+        assertThat(deletedItem).isInstanceOf(Map.class);
+        assertThat((Map) deletedItem).containsEntry("id", testItem.getId())
                 .containsEntry("partitionKey", PARTITION_KEY)
                 .containsEntry("wrappedInstance", "payload");
     }
