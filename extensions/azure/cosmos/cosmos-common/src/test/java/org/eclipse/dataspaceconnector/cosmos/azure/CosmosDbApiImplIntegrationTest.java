@@ -151,7 +151,7 @@ class CosmosDbApiImplIntegrationTest {
     }
 
     @Test
-    void deleteItem_whenItemAlreadyMissing_throws() {
+    void deleteItem_whenItemMissing_throws() {
         var id = UUID.randomUUID().toString();
         assertThatThrownBy(() -> cosmosDbApi.deleteItem(id))
                 .hasMessageContaining(String.format("An object with the ID %s could not be found!", id))
