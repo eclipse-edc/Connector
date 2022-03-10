@@ -59,7 +59,7 @@ public class IdsApiConfigurationExtension implements ServiceExtension {
         
         monitor.info(format("IDS API will be available under [path=%s], [port=%s].", path, port));
         
-        context.registerService(IdsApiConfiguration.class, new IdsApiConfiguration(contextAlias));
+        context.registerService(IdsApiConfiguration.class, new IdsApiConfiguration(contextAlias, path));
     }
     
 }

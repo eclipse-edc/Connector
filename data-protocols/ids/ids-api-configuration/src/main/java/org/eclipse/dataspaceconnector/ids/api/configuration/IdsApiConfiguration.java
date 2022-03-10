@@ -18,12 +18,19 @@ public class IdsApiConfiguration {
     
     private final String contextAlias;
     
-    public IdsApiConfiguration(String contextAlias) {
+    private final String path;
+    
+    public IdsApiConfiguration(String contextAlias, String path) {
         this.contextAlias = contextAlias;
+        this.path = path;
     }
     
     public String getContextAlias() {
         return contextAlias;
+    }
+    
+    public String getPath() {
+        return path;
     }
     
 }
