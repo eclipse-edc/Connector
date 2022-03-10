@@ -50,8 +50,8 @@ public class IdsApiConfigurationExtension implements ServiceExtension {
         
         Config config = context.getConfig(IDS_API_CONFIG);
         if (config.getEntries().isEmpty()) {
-            monitor.warning(format("Setting for [%s] and/or [%s] were not provided. Using default"
-                    + " value(s) instead.", IDS_API_CONFIG + ".path", IDS_API_CONFIG + ".path"));
+            monitor.warning(format("Setting for [%s] and/or [%s] were not provided. Using default" +
+                    " value(s) instead.", IDS_API_CONFIG + ".path", IDS_API_CONFIG + ".path"));
         } else {
             contextAlias = IDS_API_CONTEXT_ALIAS;
             path = config.getString("path", path);
