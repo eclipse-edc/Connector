@@ -1,0 +1,17 @@
+name: New Issue
+
+on:
+  issues:
+    types: [ opened ]
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  assign-project:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign to basic project
+        uses: Senzing/github-action-add-issue-to-project@1.0.0
+        with:
+          project: 'https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/projects/1'
+          column_name: 'Backlog'
