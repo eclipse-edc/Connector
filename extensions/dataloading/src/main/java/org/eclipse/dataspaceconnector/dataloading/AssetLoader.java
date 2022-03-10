@@ -24,7 +24,7 @@ public interface AssetLoader extends DataSink<AssetEntry> {
     void accept(Asset asset, DataAddress dataAddress);
 
     /**
-     * Delete an asset
+     * Deletes an asset.
      *
      * @param assetId Id of the asset to be deleted.
      * @return the deleted Asset or null if the asset did not exist.
