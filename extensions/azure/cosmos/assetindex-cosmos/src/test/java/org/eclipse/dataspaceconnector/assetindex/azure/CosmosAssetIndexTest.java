@@ -261,7 +261,7 @@ class CosmosAssetIndexTest {
     }
 
     @Test
-    void deleteById_whenAlreadyMissing_returnsNull() {
+    void deleteById_whenMissing_returnsNull() {
         String id = "id-test";
         when(api.deleteItem(eq(id))).thenThrow(new NotFoundException());
         assertThat(assetIndex.deleteById(id)).isNull();

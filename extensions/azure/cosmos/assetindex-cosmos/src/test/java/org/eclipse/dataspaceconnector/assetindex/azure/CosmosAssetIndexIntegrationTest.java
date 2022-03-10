@@ -368,7 +368,7 @@ class CosmosAssetIndexIntegrationTest {
     }
 
     @Test
-    void deleteById_whenAlreadyMissing_returnsNull() {
+    void deleteById_whenMissing_returnsNull() {
         assertThat(assetIndex.deleteById(UUID.randomUUID().toString())).isNull();
     }
 
