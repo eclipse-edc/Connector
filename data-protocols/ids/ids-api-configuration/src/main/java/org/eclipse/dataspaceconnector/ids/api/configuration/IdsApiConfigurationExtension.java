@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.api.configuration;
 
-import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -23,10 +22,12 @@ import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
 
 import static java.lang.String.format;
 
+/**
+ * Provides configuration information for IDS API endpoints to other extensions.
+ */
 @Provides(IdsApiConfiguration.class)
 public class IdsApiConfigurationExtension implements ServiceExtension {
     
-    @EdcSetting
     private static final String IDS_API_CONFIG = "web.http.ids";
     private static final String IDS_API_CONTEXT_ALIAS = "ids";
     

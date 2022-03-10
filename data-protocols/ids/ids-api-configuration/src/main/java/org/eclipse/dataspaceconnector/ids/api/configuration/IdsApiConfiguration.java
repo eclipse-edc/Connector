@@ -14,6 +14,9 @@
 
 package org.eclipse.dataspaceconnector.ids.api.configuration;
 
+/**
+ * Holds configuration information for the IDS API context.
+ */
 public class IdsApiConfiguration {
     
     private final String contextAlias;
