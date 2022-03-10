@@ -254,12 +254,12 @@ class CosmosAssetIndexTest {
 
         var deletedAsset = assetIndex.deleteById(TEST_ID);
         assertThat(deletedAsset.getProperties()).isEqualTo(document.getWrappedAsset().getProperties());
-        verify(api).deleteItem(eq(TEST_ID));
+        verify(api).deleteItem(TEST_ID);
     }
 
     @Test
     void deleteById_whenMissing_returnsNull() {
-        when(api.deleteItem(eq(TEST_ID))).thenThrow(new NotFoundException());
+        when(api.deleteItem(TEST_ID)).thenThrow(new NotFoundException());
         assertThat(assetIndex.deleteById(TEST_ID)).isNull();
     }
 
