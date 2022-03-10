@@ -51,6 +51,7 @@ import static org.mockito.Mockito.when;
 class CosmosAssetIndexTest {
 
     private static final String TEST_PARTITION_KEY = "test-partition-key";
+    private static final String TEST_ID = "id-test";
     private CosmosDbApi api;
     private TypeManager typeManager;
     private RetryPolicy<Object> retryPolicy;
@@ -86,14 +87,14 @@ class CosmosAssetIndexTest {
 
     @Test
     void findById() {
-        String id = "id-test";
-        AssetDocument document = createDocument(id);
-        when(api.queryItemById(eq(id))).thenReturn(document);
 
-        Asset actualAsset = assetIndex.findById(id);
+        AssetDocument document = createDocument(TEST_ID);
+        when(api.queryItemById(TEST_ID)).thenReturn(document);
+
+        Asset actualAsset = assetIndex.findById(TEST_ID);
 
         assertThat(actualAsset.getProperties()).isEqualTo(document.getWrappedAsset().getProperties());
-        verify(api).queryItemById(eq(id));
+        verify(api).queryItemById(TEST_ID);
     }
 
     @Test
@@ -179,8 +180,7 @@ class CosmosAssetIndexTest {
 
     @Test
     void findAll_noQuerySpec() {
-        String id = "id-test";
-        AssetDocument document = createDocument(id);
+        AssetDocument document = createDocument(TEST_ID);
         var expectedQuery = "SELECT * FROM AssetDocument OFFSET 0 LIMIT 50";
         when(api.queryItems(argThat(queryMatches(expectedQuery)))).thenReturn(Stream.of(document));
 
@@ -193,8 +193,7 @@ class CosmosAssetIndexTest {
 
     @Test
     void findAll_withPaging_SortingDesc() {
-        String id = "id-test";
-        AssetDocument document = createDocument(id);
+        AssetDocument document = createDocument(TEST_ID);
         var expectedQuery = "SELECT * FROM AssetDocument ORDER BY AssetDocument.wrappedInstance.anyField DESC OFFSET 5 LIMIT 100";
         when(api.queryItems(argThat(queryMatches(expectedQuery)))).thenReturn(Stream.of(document));
 
@@ -213,8 +212,7 @@ class CosmosAssetIndexTest {
 
     @Test
     void findAll_withPaging_SortingAsc() {
-        String id = "id-test";
-        AssetDocument document = createDocument(id);
+        AssetDocument document = createDocument(TEST_ID);
         var expectedQuery = "SELECT * FROM AssetDocument ORDER BY AssetDocument.wrappedInstance.anyField ASC OFFSET 5 LIMIT 100";
         when(api.queryItems(argThat(queryMatches(expectedQuery)))).thenReturn(Stream.of(document));
 
@@ -233,8 +231,7 @@ class CosmosAssetIndexTest {
 
     @Test
     void findAll_withFiltering() {
-        String id = "id-test";
-        AssetDocument document = createDocument(id);
+        AssetDocument document = createDocument(TEST_ID);
         var expectedQuery = "SELECT * FROM AssetDocument WHERE AssetDocument.wrappedInstance.someField = @someField OFFSET 5 LIMIT 100";
         when(api.queryItems(argThat(queryMatches(expectedQuery)))).thenReturn(Stream.of(document));
 
@@ -252,20 +249,18 @@ class CosmosAssetIndexTest {
 
     @Test
     void deleteById_whenPresent_deletesItem() {
-        String id = "id-test";
-        AssetDocument document = createDocument(id);
-        when(api.deleteItem(id)).thenReturn(document);
+        AssetDocument document = createDocument(TEST_ID);
+        when(api.deleteItem(TEST_ID)).thenReturn(document);
 
-        var deletedAsset = assetIndex.deleteById(id);
+        var deletedAsset = assetIndex.deleteById(TEST_ID);
         assertThat(deletedAsset.getProperties()).isEqualTo(document.getWrappedAsset().getProperties());
-        verify(api).deleteItem(eq(id));
+        verify(api).deleteItem(eq(TEST_ID));
     }
 
     @Test
     void deleteById_whenMissing_returnsNull() {
-        String id = "id-test";
-        when(api.deleteItem(eq(id))).thenThrow(new NotFoundException());
-        assertThat(assetIndex.deleteById(id)).isNull();
+        when(api.deleteItem(eq(TEST_ID))).thenThrow(new NotFoundException());
+        assertThat(assetIndex.deleteById(TEST_ID)).isNull();
     }
 
     @NotNull
