@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Microsoft Corporation
+ *  Copyright (c) 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -20,9 +20,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Transfers data from a source to a sink.
+ * A service that can satisfy a {@link DataFlowRequest} by transferring data from a source to a destination.
  */
-public interface PipelineService {
+public interface TransferService {
 
     /**
      * Returns true if this service can transfer the request.
@@ -38,24 +38,4 @@ public interface PipelineService {
      * Transfers data from source to destination.
      */
     CompletableFuture<TransferResult> transfer(DataFlowRequest request);
-
-    /**
-     * Transfers data using the supplied data source.
-     */
-    CompletableFuture<TransferResult> transfer(DataSource source, DataFlowRequest request);
-
-    /**
-     * Transfers data using the supplied data sink.
-     */
-    CompletableFuture<TransferResult> transfer(DataSink sink, DataFlowRequest request);
-
-    /**
-     * Registers a factory for creating data sources.
-     */
-    void registerFactory(DataSourceFactory factory);
-
-    /**
-     * Registers a factory for creating data sinks.
-     */
-    void registerFactory(DataSinkFactory factory);
 }

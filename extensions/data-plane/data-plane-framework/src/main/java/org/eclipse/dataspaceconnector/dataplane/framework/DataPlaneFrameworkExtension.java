@@ -15,16 +15,23 @@ package org.eclipse.dataspaceconnector.dataplane.framework;
 
 import org.eclipse.dataspaceconnector.dataplane.framework.manager.DataPlaneManagerImpl;
 import org.eclipse.dataspaceconnector.dataplane.framework.pipeline.PipelineServiceImpl;
+import org.eclipse.dataspaceconnector.dataplane.framework.pipeline.PipelineServiceTransferServiceImpl;
+import org.eclipse.dataspaceconnector.dataplane.framework.registry.TransferServiceRegistryImpl;
+import org.eclipse.dataspaceconnector.dataplane.framework.registry.TransferServiceSelectionStrategy;
 import org.eclipse.dataspaceconnector.dataplane.framework.store.InMemoryDataPlaneStore;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.dataspaceconnector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+
+import java.util.Objects;
 
 /**
  * Provides core services for the Data Plane Framework.
@@ -50,6 +57,9 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     private DataPlaneManagerImpl dataPlaneManager;
     private Monitor monitor;
 
+    @Inject(required = false)
+    private TransferServiceSelectionStrategy transferServiceSelectionStrategy;
+
     @Override
     public String name() {
         return "Data Plane Framework";
@@ -61,6 +71,12 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         var pipelineService = new PipelineServiceImpl();
         pipelineService.registerFactory(new OutputStreamDataSinkFactory()); // Added by default to support synchronous data transfer, i.e. pull data
         context.registerService(PipelineService.class, pipelineService);
+        var transferService = new PipelineServiceTransferServiceImpl(pipelineService);
+
+        var transferServiceRegistry = new TransferServiceRegistryImpl(Objects.requireNonNullElseGet(transferServiceSelectionStrategy,
+                TransferServiceSelectionStrategy::selectFirst));
+        transferServiceRegistry.registerTransferService(transferService);
+        context.registerService(TransferServiceRegistry.class, transferServiceRegistry);
 
         monitor = context.getMonitor();
         var queueCapacity = context.getSetting(QUEUE_CAPACITY, DEFAULT_QUEUE_CAPACITY);
@@ -72,6 +88,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
                 .workers(workers)
                 .waitTimeout(waitTimeout)
                 .pipelineService(pipelineService)
+                .transferServiceRegistry(transferServiceRegistry)
                 .store(new InMemoryDataPlaneStore(IN_MEMORY_STORE_CAPACITY))
                 .monitor(monitor).build();
 

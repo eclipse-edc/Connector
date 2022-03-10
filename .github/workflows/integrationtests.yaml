@@ -27,7 +27,7 @@ jobs:
           cache: 'gradle'
 
       - name: Data Plane Azure Storage Test
-        run: ./gradlew extensions:azure:data-plane-azure-storage:check
+        run: ./gradlew extensions:azure:data-plane:storage:check
 
       - name: Object Storage StatusChecker Test
         run: ./gradlew extensions:azure:blobstorage:blob-provision:check

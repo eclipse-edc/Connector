@@ -17,6 +17,8 @@ import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.TransferService;
+import org.eclipse.dataspaceconnector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore.State;
@@ -24,6 +26,8 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
@@ -51,6 +55,7 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
 
     private AtomicBoolean active = new AtomicBoolean();
     private DataPlaneStore store;
+    private TransferServiceRegistry transferServiceRegistry;
 
     public void start() {
         queue = new ArrayBlockingQueue<>(queueCapacity);
@@ -77,7 +82,10 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
 
     @Override
     public Result<Boolean> validate(DataFlowRequest dataRequest) {
-        return pipelineService.validate(dataRequest);
+        var transferService = transferServiceRegistry.resolveTransferService(dataRequest);
+        return transferService != null ?
+                transferService.validate(dataRequest) :
+                Result.failure("Cannot handle this request");
     }
 
     public void initiateTransfer(DataFlowRequest dataRequest) {
@@ -109,12 +117,20 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
                     continue;
                 }
                 final var polledRequest = request;
-                pipelineService.transfer(request).whenComplete((result, exception) -> {
-                    if (polledRequest.isTrackable()) {
-                        // TODO persist TransferResult or error details
-                        store.completed(polledRequest.getProcessId());
-                    }
-                });
+
+                var transferService = transferServiceRegistry.resolveTransferService(polledRequest);
+                if (transferService == null) {
+                    // Should not happen since resolving a transferService is part of payload validation
+                    // TODO persist error details
+                    store.completed(polledRequest.getProcessId());
+                } else {
+                    transferService.transfer(request).whenComplete((result, exception) -> {
+                        if (polledRequest.isTrackable()) {
+                            // TODO persist TransferResult or error details
+                            store.completed(polledRequest.getProcessId());
+                        }
+                    });
+                }
             } catch (InterruptedException e) {
                 Thread.interrupted();
                 active.set(false);
@@ -140,6 +156,11 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
 
         public Builder pipelineService(PipelineService pipelineService) {
             manager.pipelineService = pipelineService;
+            return this;
+        }
+
+        public Builder transferServiceRegistry(TransferServiceRegistry transferServiceRegistry) {
+            manager.transferServiceRegistry = transferServiceRegistry;
             return this;
         }
 
