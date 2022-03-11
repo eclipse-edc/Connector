@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 public abstract class AbstractResult<T, F extends Failure> {
 
@@ -32,7 +33,6 @@ public abstract class AbstractResult<T, F extends Failure> {
 
     @NotNull
     public T getContent() {
-        Objects.requireNonNull(content);
         return content;
     }
 
@@ -54,4 +54,5 @@ public abstract class AbstractResult<T, F extends Failure> {
     public boolean failed() {
         return !succeeded();
     }
+
 }
