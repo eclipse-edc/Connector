@@ -26,6 +26,8 @@ import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.azure.testfixtures.CosmosTestClient;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -45,6 +47,7 @@ import java.util.stream.IntStream;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 
 @IntegrationTest
 class CosmosAssetIndexIntegrationTest {
@@ -82,7 +85,7 @@ class CosmosAssetIndexIntegrationTest {
         TypeManager typeManager = new TypeManager();
         typeManager.registerTypes(Asset.class, AssetDocument.class);
         var api = new CosmosDbApiImpl(container, true);
-        assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, new RetryPolicy<>());
+        assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, new RetryPolicy<>(), mock(Monitor.class));
     }
 
     @AfterEach
@@ -355,6 +358,21 @@ class CosmosAssetIndexIntegrationTest {
         var all = assetIndex.queryAssets(sortQuery);
         assertThat(all).hasSize(5).extracting(Asset::getId).containsExactly("id9", "id8", "id7", "id6", "id5");
 
+    }
+
+    @Test
+    void deleteById_whenPresent_deletes() {
+        Asset asset = createAsset(UUID.randomUUID().toString(), "test", "foobar");
+        container.createItem(new AssetDocument(asset, TEST_PARTITION_KEY, dataAddress));
+
+        Asset deletedAsset = assetIndex.deleteById(asset.getId());
+        assertThat(deletedAsset.getProperties()).isEqualTo(asset.getProperties());
+        assertThat(assetIndex.findById(asset.getId())).isNull();
+    }
+
+    @Test
+    void deleteById_whenMissing_returnsNull() {
+        assertThat(assetIndex.deleteById(UUID.randomUUID().toString())).isNull();
     }
 
     private Asset createAsset(String id, String somePropertyKey, String somePropertyValue) {
