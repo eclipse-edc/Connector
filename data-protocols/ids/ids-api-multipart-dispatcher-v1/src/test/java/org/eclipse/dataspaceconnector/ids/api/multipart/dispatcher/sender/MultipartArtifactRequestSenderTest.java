@@ -58,7 +58,7 @@ class MultipartArtifactRequestSenderTest {
         String connectorId = UUID.randomUUID().toString();
         transformerRegistry = mock(TransformerRegistry.class);
         idsWebhookAddress = UUID.randomUUID().toString();
-        idsApiPath = "/api";
+        idsApiPath = "/api/v1/ids";
         sender = new MultipartArtifactRequestSender(connectorId, httpClient, mapper, monitor, vault, identityService, transformerRegistry, idsWebhookAddress, idsApiPath);
     }
 
