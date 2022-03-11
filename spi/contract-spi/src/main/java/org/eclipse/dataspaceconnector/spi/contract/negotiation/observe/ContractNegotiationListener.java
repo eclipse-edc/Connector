@@ -21,9 +21,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
  * Interface implemented by listeners registered to observe contract negotiation state changes
  * via {@link Observable#registerListener}.
  * <p>
- * Note that the listener is not guaranteed to be called after a state change, in case
- * the application restarts. That is relevant when using a persistent contract negotiation
- * store implementation.
+ * Note that the listener is called before state changes are persisted.
+ * Therefore, when using a persistent contract negotiation store implementation, it
+ * is guaranteed to be called at least once.
  */
 public interface ContractNegotiationListener {
     
@@ -125,7 +125,16 @@ public interface ContractNegotiationListener {
      */
     default void confirming(ContractNegotiation negotiation) {
     }
-    
+
+    /**
+     * Called after a {@link ContractNegotiation} has moved to state
+     * {@link ContractNegotiationStates#CONFIRMING_SENT}.
+     *
+     * @param negotiation the contract negotiation whose state has changed.
+     */
+    default void confirmingSent(ContractNegotiation negotiation) {
+    }
+
     /**
      * Called after a {@link ContractNegotiation} has moved to state
      * {@link ContractNegotiationStates#CONFIRMED}.
@@ -134,7 +143,7 @@ public interface ContractNegotiationListener {
      */
     default void confirmed(ContractNegotiation negotiation) {
     }
-    
+
     /**
      * Called after a {@link ContractNegotiation} has moved to state
      * {@link ContractNegotiationStates#ERROR}.
@@ -143,5 +152,4 @@ public interface ContractNegotiationListener {
      */
     default void error(ContractNegotiation negotiation) {
     }
-    
 }

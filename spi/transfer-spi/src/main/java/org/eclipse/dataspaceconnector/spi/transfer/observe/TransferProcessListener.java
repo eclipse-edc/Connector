@@ -22,9 +22,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessS
  * Interface implemented by listeners registered to observe transfer process
  * state changes via {@link Observable#registerListener}.
  * <p>
- * Note that the listener is not guaranteed to be called after a state change, in case
- * the application restarts. That is relevant when using a persistent transfer
- * store implementation.
+ * Note that the listener is called before state changes are persisted.
+ * Therefore, when using a persistent transfer store implementation, it
+ * is guaranteed to be called at least once.
  */
 public interface TransferProcessListener {
     /**
