@@ -137,7 +137,7 @@ class CosmosDbApiImplIntegrationTest {
     }
 
     @Test
-    void deleteItem_whenItemPresent_deleted() {
+    void deleteItem_whenItemPresent_deletes() {
         var testItem = new TestCosmosDocument("payload", PARTITION_KEY);
         container.createItem(testItem);
 
