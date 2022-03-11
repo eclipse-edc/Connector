@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added method
  *
  */
 
@@ -126,6 +127,15 @@ public class JettyService {
 
         var handler = getOrCreate(actualPath);
         handler.getServletHandler().addServletWithMapping(servletHolder, "/*");
+    }
+    
+    /**
+     * Allows adding a {@link PortMapping} that is not defined in the configuration.
+     *
+     * @param portMapping the port mapping.
+     */
+    public void addPortMapping(PortMapping portMapping) {
+        configuration.getPortMappings().add(portMapping);
     }
 
     public ServletContextHandler getHandler(String path) {

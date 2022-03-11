@@ -57,7 +57,7 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMes
 @Produces({MediaType.MULTIPART_FORM_DATA})
 @Path(MultipartController.PATH)
 public class MultipartController {
-    public static final String PATH = "/v1/ids/data";
+    public static final String PATH = "/data";
     private static final String HEADER = "header";
     private static final String PAYLOAD = "payload";
 

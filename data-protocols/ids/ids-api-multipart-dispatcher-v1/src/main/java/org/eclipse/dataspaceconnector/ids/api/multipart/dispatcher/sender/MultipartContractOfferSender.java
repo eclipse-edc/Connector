@@ -82,7 +82,7 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
                     ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                     ._transferContract_(URI.create(request.getCorrelationId()))
                     .build();
-            var path = idsApiPath + (idsApiPath.endsWith("/") ? "v1/ids/data" : "/v1/ids/data");
+            var path = idsApiPath + (idsApiPath.endsWith("/") ? "data" : "/data");
             message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + path);
 
             return message;
