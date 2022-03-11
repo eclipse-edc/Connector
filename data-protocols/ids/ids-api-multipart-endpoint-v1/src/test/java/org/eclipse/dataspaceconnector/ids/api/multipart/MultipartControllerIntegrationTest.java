@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
 
 public class MultipartControllerIntegrationTest extends AbstractMultipartControllerIntegrationTest {
@@ -638,6 +639,9 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         return new HashMap<>() {
             {
                 put("web.http.port", String.valueOf(getPort()));
+                put("web.http.path", "/api");
+                put("web.http.ids.port", String.valueOf(getIdsPort()));
+                put("web.http.ids.path", "/api/v1/ids");
                 put("edc.ids.id", "urn:connector:" + CONNECTOR_ID);
                 put("edc.ids.catalog.id", "urn:catalog:" + CATALOG_ID);
             }
