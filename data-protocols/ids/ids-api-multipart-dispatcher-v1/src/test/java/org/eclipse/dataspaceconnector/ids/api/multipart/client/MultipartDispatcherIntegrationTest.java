@@ -246,6 +246,9 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         return new HashMap<>() {
             {
                 put("web.http.port", String.valueOf(getPort()));
+                put("web.http.path", "/api");
+                put("web.http.ids.port", String.valueOf(getIdsPort()));
+                put("web.http.ids.path", "/api/v1/ids");
                 put("edc.ids.id", "urn:connector:" + CONNECTOR_ID);
                 put("ids.webhook.address", "http://webhook");
             }
