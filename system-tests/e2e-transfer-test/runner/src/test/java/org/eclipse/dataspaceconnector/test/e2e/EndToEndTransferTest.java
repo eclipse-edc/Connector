@@ -176,13 +176,13 @@ public class EndToEndTransferTest {
         var assetId = createAsset(PROVIDER_CONTROL_PLANE);
         createContractDefinition(assetId, PROVIDER_CONTROL_PLANE);
 
-        var negotiationId = negotiateContractFor(assetId, CONSUMER_CONTROL_PLANE, PROVIDER_CONTROL_PLANE);
+        var negotiationId = negotiateContractFor(assetId, CONSUMER_CONTROL_PLANE, PROVIDER_IDS_API);
 
         var contractAgreementId = getContractAgreementId(negotiationId, CONSUMER_CONTROL_PLANE);
 
         assertThat(contractAgreementId).isNotEmpty();
 
-        var transferProcessId = dataRequest(contractAgreementId, assetId, CONSUMER_CONTROL_PLANE, PROVIDER_CONTROL_PLANE);
+        var transferProcessId = dataRequest(contractAgreementId, assetId, CONSUMER_CONTROL_PLANE, PROVIDER_IDS_API);
 
         await().atMost(timeout).untilAsserted(() -> {
             var transferProcess = getTransferProcess(transferProcessId, CONSUMER_CONTROL_PLANE);
