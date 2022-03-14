@@ -34,10 +34,9 @@ The overarching story issues should contain a bulleted list with references to a
 This will cause GitHub to automatically track the sub-issues in the overarching story issue, and it will display a progress
 indicator on overview pages. More information can be found in the [documentation](https://docs.github.com/en/issues/tracking-your-work-with-issues/about-task-lists).
 
-For example, a story to add an API endpoint to the codebase could be split into the following sub-tasks:
-- add endpoint + swagger doc to controller
-- add service implementation + tests
-- add method to backing store + tests
-- add documentation
+For example, imagine a story that requires some lib analysis or evaluation before the lib is adopted into the code base could be split into the following sub-tasks:
+- evaluate lib X, lib Y and lib Z, create ADR
+- implement adapter for lib
+- add overall system-test 
 
 Generally speaking there should be one PR per sub-issue.
