@@ -130,11 +130,15 @@ public class JettyService {
     }
     
     /**
-     * Allows adding a {@link PortMapping} that is not defined in the configuration.
+     * Allows adding a {@link PortMapping} that is not defined in the configuration. This can only
+     * be done before the JettyService is started, i.e. before {@link #start()} is called.
      *
      * @param portMapping the port mapping.
      */
     public void addPortMapping(PortMapping portMapping) {
+        if (server.isStarted() || server.isStarting()) {
+            return;
+        }
         configuration.getPortMappings().add(portMapping);
     }
 
