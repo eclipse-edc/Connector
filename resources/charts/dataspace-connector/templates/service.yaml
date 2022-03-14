@@ -20,6 +20,6 @@ spec:
     - port: {{ .Values.service.idsPort }}
       targetPort: {{ .Values.edc.idsPort }}
       protocol: TCP
-      name: ids
+      name: http-ids
   selector:
     {{- include "dataspace-connector.selectorLabels" . | nindent 4 }}

@@ -34,7 +34,9 @@ edc:
     enabled: true
     port: 9191
     path: /api/v1/data
-  idsPort: 8282
+  idsApi:
+    port: 8282
+    path: /api/v1/ids
   env: {}
   envSecrets: {}
 service:
@@ -42,7 +44,8 @@ service:
   port: 80
   managementApi:
     port: 91
-  idsPort: 8282
+  idsApi:
+    port: 8282
 
 ingress:
   enabled: false
