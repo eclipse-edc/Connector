@@ -36,11 +36,11 @@ public class SqlContractDefinitionStoreServiceExtension implements ServiceExtens
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var dataSourceName = context.getConfig().getString(ConfigurationKeys.DATASOURCE_NAME);
+        var dataSourceName = context.getConfig().getString(ConfigurationKeys.DATASOURCE_SETTING_NAME);
 
         var dataSource = new LazyDataSource(() -> Objects.requireNonNull(dataSourceRegistry.resolve(dataSourceName), String.format("DataSource %s could not be resolved", dataSourceName)));
 
-        var sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSource, transactionContext);
+        var sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSource, transactionContext, context.getTypeManager().getMapper());
 
         context.registerService(ContractDefinitionStore.class, sqlContractDefinitionStore);
     }

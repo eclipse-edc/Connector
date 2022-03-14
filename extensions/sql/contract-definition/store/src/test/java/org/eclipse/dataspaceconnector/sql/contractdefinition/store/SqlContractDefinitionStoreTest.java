@@ -19,14 +19,16 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
+import org.eclipse.dataspaceconnector.sql.contractdefinition.schema.ConfigurationKeys;
 import org.eclipse.dataspaceconnector.sql.contractdefinition.schema.SqlContractDefinitionTables;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,17 +42,16 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
 @ExtendWith(EdcExtension.class)
 public class SqlContractDefinitionStoreTest {
-    private static final String DATASOURCE_NAME = "contractdefinition";
-
     private final Map<String, String> systemProperties = new HashMap<>() {
         {
-            put(String.format("edc.datasource.%s.url", DATASOURCE_NAME), "jdbc:h2:mem:test");
-            put(String.format("edc.datasource.%s.driverClassName", DATASOURCE_NAME), org.h2.Driver.class.getName());
-            put("edc.contractdefinition.datasource.name", DATASOURCE_NAME);
+            put(ConfigurationKeys.DATASOURCE_SETTING_URL, "jdbc:h2:mem:test");
+            put(ConfigurationKeys.DATASOURCE_SETTING_DRIVER_CLASS, org.h2.Driver.class.getName());
+            put(ConfigurationKeys.DATASOURCE_SETTING_NAME, ConfigurationKeys.DATASOURCE_NAME);
         }
     };
 
@@ -58,7 +59,7 @@ public class SqlContractDefinitionStoreTest {
 
     @BeforeEach
     void setUp(EdcExtension extension) {
-        systemProperties.forEach(System::setProperty);
+        extension.registerSystemExtension(ConfigurationExtension.class, (ConfigurationExtension) () -> ConfigFactory.fromMap(systemProperties));
         extension.registerSystemExtension(ServiceExtension.class, new ServiceExtension() {
             public void initialize(ServiceExtensionContext context) {
                 contextRef.set(context);
@@ -69,13 +70,12 @@ public class SqlContractDefinitionStoreTest {
     @AfterEach
     void tearDown() {
         getTransactionContext().execute(() -> {
-            try (var connection = getDataSourceRegistry().resolve(DATASOURCE_NAME).getConnection()) {
+            try (var connection = getDataSourceRegistry().resolve(ConfigurationKeys.DATASOURCE_NAME).getConnection()) {
                 executeQuery(connection, String.format("DELETE FROM %s", SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE));
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
         });
-        systemProperties.keySet().forEach(System::clearProperty);
         contextRef.set(null);
     }
 
@@ -111,7 +111,7 @@ public class SqlContractDefinitionStoreTest {
     @DisplayName("Context Loads, tables exist")
     void contextLoads() throws SQLException {
         var query = String.format("SELECT 1 FROM %s", SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE);
-        executeQuery(getDataSourceRegistry().resolve(DATASOURCE_NAME).getConnection(), query);
+        executeQuery(getDataSourceRegistry().resolve(ConfigurationKeys.DATASOURCE_NAME).getConnection(), query);
     }
 
     @Test
@@ -122,8 +122,8 @@ public class SqlContractDefinitionStoreTest {
 
         var definitions = getContractDefinitionStore().findAll();
 
-        Assertions.assertNotNull(definitions);
-        Assertions.assertEquals(1, definitions.size());
+        assertThat(definitions).isNotNull();
+        assertThat(definitions.size()).isEqualTo(1);
     }
 
     @Test
@@ -134,8 +134,8 @@ public class SqlContractDefinitionStoreTest {
 
         var definitionsRetrieved = getContractDefinitionStore().findAll();
 
-        Assertions.assertNotNull(definitionsRetrieved);
-        Assertions.assertEquals(definitionsCreated.size(), definitionsRetrieved.size());
+        assertThat(definitionsRetrieved).isNotNull();
+        assertThat(definitionsRetrieved.size()).isEqualTo(definitionsCreated.size());
     }
 
     @Test
@@ -151,14 +151,15 @@ public class SqlContractDefinitionStoreTest {
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE,
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID);
 
-        var definitions = executeQuery(getDataSourceRegistry().resolve(DATASOURCE_NAME).getConnection(),
-                SqlContractDefinitionStore::mapResultSet,
+        var definitions = executeQuery(getDataSourceRegistry().resolve(ConfigurationKeys.DATASOURCE_NAME).getConnection(),
+                ((SqlContractDefinitionStore) getContractDefinitionStore())::mapResultSet,
                 query,
                 definition1.getId());
 
-        Assertions.assertEquals(1, definitions.size());
-        Assertions.assertEquals(definition2.getContractPolicy().getUid(), definitions.get(0).getContractPolicy().getUid());
-        Assertions.assertEquals(definition2.getAccessPolicy().getUid(), definitions.get(0).getAccessPolicy().getUid());
+        assertThat(definitions).isNotNull();
+        assertThat(definitions.size()).isEqualTo(1);
+        assertThat(definitions.get(0).getContractPolicy().getUid()).isEqualTo(definition2.getContractPolicy().getUid());
+        assertThat(definitions.get(0).getAccessPolicy().getUid()).isEqualTo(definition2.getAccessPolicy().getUid());
     }
 
     @Test
@@ -169,7 +170,8 @@ public class SqlContractDefinitionStoreTest {
 
         var definitionsRetrieved = getContractDefinitionStore().findAll();
 
-        Assertions.assertEquals(definitionsExpected.size(), definitionsRetrieved.size());
+        assertThat(definitionsRetrieved).isNotNull();
+        assertThat(definitionsRetrieved.size()).isEqualTo(definitionsExpected.size());
     }
 
     @Test
@@ -187,7 +189,8 @@ public class SqlContractDefinitionStoreTest {
 
         var definitionsRetrieved = getContractDefinitionStore().findAll(spec).collect(Collectors.toList());
 
-        Assertions.assertEquals(limit, definitionsRetrieved.size());
+        assertThat(definitionsRetrieved).isNotNull();
+        assertThat(definitionsRetrieved.size()).isEqualTo(limit);
     }
 
     private DataSourceRegistry getDataSourceRegistry() {

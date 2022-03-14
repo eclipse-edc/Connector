@@ -35,11 +35,11 @@ public class SqlContractDefinitionLoaderServiceExtension implements ServiceExten
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var dataSourceName = context.getConfig().getString(ConfigurationKeys.DATASOURCE_NAME);
+        var dataSourceName = context.getConfig().getString(ConfigurationKeys.DATASOURCE_SETTING_NAME);
 
-        var dataSource = new LazyDataSource(() -> Objects.requireNonNull(dataSourceRegistry.resolve(context.getConfig().getString(ConfigurationKeys.DATASOURCE_NAME)), String.format("DataSource %s could not be resolved", dataSourceName)));
+        var dataSource = new LazyDataSource(() -> Objects.requireNonNull(dataSourceRegistry.resolve(dataSourceName), String.format("DataSource %s could not be resolved", dataSourceName)));
 
-        var sqlContractDefinitionLoader = new SqlContractDefinitionLoader(dataSource, transactionContext);
+        var sqlContractDefinitionLoader = new SqlContractDefinitionLoader(dataSource, transactionContext, context.getTypeManager().getMapper());
 
         context.registerService(ContractDefinitionLoader.class, sqlContractDefinitionLoader);
     }

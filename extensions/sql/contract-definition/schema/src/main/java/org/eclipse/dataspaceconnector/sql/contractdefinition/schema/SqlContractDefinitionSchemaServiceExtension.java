@@ -37,7 +37,7 @@ public class SqlContractDefinitionSchemaServiceExtension implements ServiceExten
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        dataSourceName = context.getConfig().getString(ConfigurationKeys.DATASOURCE_NAME);
+        dataSourceName = context.getConfig().getString(ConfigurationKeys.DATASOURCE_SETTING_NAME);
     }
 
     @Override

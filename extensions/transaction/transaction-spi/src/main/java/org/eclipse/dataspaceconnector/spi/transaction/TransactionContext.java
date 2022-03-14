@@ -13,7 +13,6 @@
  */
 package org.eclipse.dataspaceconnector.spi.transaction;
 
-import java.sql.SQLException;
 
 /**
  * Implementations execute code within a transactional boundary. A {@code TransactionContext} provides a consistent programming model for local and global (e.g. JTA) transaction
@@ -40,7 +39,7 @@ public interface TransactionContext {
         /**
          * Executes the transaction block.
          */
-        void execute() throws SQLException;
+        void execute();
 
     }
 }

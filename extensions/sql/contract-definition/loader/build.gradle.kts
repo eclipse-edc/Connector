@@ -19,6 +19,7 @@ plugins {
 }
 
 val h2Version: String by project
+val assertj: String by project
 
 dependencies {
     api(project(":spi"))
@@ -34,6 +35,7 @@ dependencies {
     testImplementation(project(":extensions:sql:pool:apache-commons-pool"))
     testImplementation(project(":extensions:transaction:transaction-local"))
     testImplementation("com.h2database:h2:${h2Version}")
+    testImplementation("org.assertj:assertj-core:${assertj}")
 }
 
 publishing {
