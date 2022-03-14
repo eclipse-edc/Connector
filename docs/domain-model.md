@@ -29,8 +29,9 @@ passes several stages which are explained below:
   for a specific consumer and serves as protocol DTO for a particular contract negotiation. These contract offers are
   not persisted and will be regenerated on every request. The provider connector will only generate contract offers for
   those contract definitions where the inquiring organizations satisfy the policies established in the contract
-  definitions access policy. A contract offer is always related to a single asset of the contract definition (e. g. a
-  for `ContractDefinition` containing three `Asset`s the provider will generate three `ContractOffer`s ).
+  definitions access policy. A contract offer is always related to a single asset of the contract definition object (e.g
+  for a `ContractDefinition` containing three `Asset` objects the provider will generate three `ContractOffer` objects )
+  .
 
 * ### Contract negotiation
 
