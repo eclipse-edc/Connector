@@ -136,7 +136,7 @@ public class JettyService {
      * @param portMapping the port mapping.
      */
     public void addPortMapping(PortMapping portMapping) {
-        if (server.isStarted() || server.isStarting()) {
+        if (server != null && (server.isStarted() || server.isStarting())) {
             return;
         }
         configuration.getPortMappings().add(portMapping);
