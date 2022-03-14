@@ -16,12 +16,10 @@ package org.eclipse.dataspaceconnector.ids.api.configuration;
 
 import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
 import org.eclipse.dataspaceconnector.extension.jetty.PortMapping;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
 
 import static java.lang.String.format;
 
@@ -31,11 +29,11 @@ import static java.lang.String.format;
 @Provides(IdsApiConfiguration.class)
 public class IdsApiConfigurationExtension implements ServiceExtension {
     
-    private static final String IDS_API_CONFIG = "web.http.ids";
+    public static final String IDS_API_CONFIG = "web.http.ids";
     private static final String IDS_API_CONTEXT_ALIAS = "ids";
     
-    private static final int DEFAULT_IDS_PORT = 8282;
-    private static final String DEFAULT_IDS_API_PATH = "/api/v1/ids";
+    public static final int DEFAULT_IDS_PORT = 8282;
+    public static final String DEFAULT_IDS_API_PATH = "/api/v1/ids";
     
     @Inject
     private JettyService jettyService;
@@ -47,15 +45,15 @@ public class IdsApiConfigurationExtension implements ServiceExtension {
     
     @Override
     public void initialize(ServiceExtensionContext context) {
-        Monitor monitor = context.getMonitor();
+        var monitor = context.getMonitor();
     
-        String contextAlias = IDS_API_CONTEXT_ALIAS;
-        String path = DEFAULT_IDS_API_PATH;
-        int port = DEFAULT_IDS_PORT;
+        var contextAlias = IDS_API_CONTEXT_ALIAS;
+        var path = DEFAULT_IDS_API_PATH;
+        var port = DEFAULT_IDS_PORT;
         
-        Config config = context.getConfig(IDS_API_CONFIG);
+        var config = context.getConfig(IDS_API_CONFIG);
         if (config.getEntries().isEmpty()) {
-            monitor.warning(format("Setting for [%s] and/or [%s] were not provided. Using default" +
+            monitor.warning(format("Settings for [%s] and/or [%s] were not provided. Using default" +
                     " value(s) instead.", IDS_API_CONFIG + ".path", IDS_API_CONFIG + ".path"));
             jettyService.addPortMapping(new PortMapping(contextAlias, port, path));
         } else {
@@ -63,7 +61,7 @@ public class IdsApiConfigurationExtension implements ServiceExtension {
             port = config.getInteger("port", port);
         }
         
-        monitor.info(format("IDS API will be available under [path=%s], [port=%s].", path, port));
+        monitor.info(format("IDS API will be available at [path=%s], [port=%s].", path, port));
         
         context.registerService(IdsApiConfiguration.class, new IdsApiConfiguration(contextAlias, path));
     }
