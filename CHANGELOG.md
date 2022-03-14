@@ -29,6 +29,7 @@ the detailed section referring to by linking pull requests or issues.
 * Refactor ids token validation as extension (#625)
 * All `CosmosDocument` subclasses now use a configurable partition key (#780)
 * Add `findAll` method to `TransferProcessStore` (#859)
+* Enabled pluggable transfer service in DPF (#844)
 
 #### Removed
 

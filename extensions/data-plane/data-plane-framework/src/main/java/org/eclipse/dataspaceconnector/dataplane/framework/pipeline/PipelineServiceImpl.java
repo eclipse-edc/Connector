@@ -40,6 +40,12 @@ public class PipelineServiceImpl implements PipelineService {
     private final List<DataSinkFactory> sinkFactories = new ArrayList<>();
 
     @Override
+    public boolean canHandle(DataFlowRequest request) {
+        return getSourceFactory(request) != null &&
+                getSinkFactory(request) != null;
+    }
+
+    @Override
     public Result<Boolean> validate(DataFlowRequest request) {
         var sourceFactory = getSourceFactory(request);
         if (sourceFactory == null) {
