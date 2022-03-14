@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 
@@ -63,8 +64,8 @@ public class S3DataPlaneIntegrationTest extends AbstractS3Test {
 
         var s3ClientProvider = new TestS3ClientProvider(getCredentials(), S3_ENDPOINT);
 
-        var sinkFactory = new S3DataSinkFactory(s3ClientProvider, Executors.newSingleThreadExecutor(), mock(Monitor.class));
-        var sourceFactory = new S3DataSourceFactory(s3ClientProvider);
+        var sinkFactory = new S3DataSinkFactory(s3ClientProvider, Executors.newSingleThreadExecutor(), mock(Monitor.class), mock(AwsCredentialsProvider.class));
+        var sourceFactory = new S3DataSourceFactory(s3ClientProvider, mock(AwsCredentialsProvider.class));
         var sourceAddress = DataAddress.Builder.newInstance()
                 .type(S3BucketSchema.TYPE)
                 .keyName("key")

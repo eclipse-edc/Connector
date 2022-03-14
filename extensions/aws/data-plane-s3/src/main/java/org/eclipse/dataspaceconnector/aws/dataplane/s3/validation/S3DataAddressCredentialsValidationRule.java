@@ -5,17 +5,17 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 
 import java.util.List;
 
-import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.BUCKET_NAME;
-import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.REGION;
+import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.ACCESS_KEY_ID;
+import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.SECRET_ACCESS_KEY;
 
-public class S3DataAddressValidationRule implements ValidationRule<DataAddress> {
+public class S3DataAddressCredentialsValidationRule implements ValidationRule<DataAddress> {
 
     @Override
     public Result<Void> apply(DataAddress dataAddress) {
         var composite = new CompositeValidationRule<>(
                 List.of(
-                        new EmptyValueValidationRule(BUCKET_NAME),
-                        new EmptyValueValidationRule(REGION)
+                        new EmptyValueValidationRule(ACCESS_KEY_ID),
+                        new EmptyValueValidationRule(SECRET_ACCESS_KEY)
                 )
         );
 

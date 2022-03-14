@@ -22,6 +22,15 @@ public class TestS3ClientProvider implements S3ClientProvider {
 
     @Override
     public S3Client provide(String region, SecretToken secretToken) {
+        return testClient();
+    }
+
+    @Override
+    public S3Client provide(String region, AwsCredentials credentials) {
+        return testClient();
+    }
+
+    private S3Client testClient() {
         return S3Client.builder()
                 .serviceConfiguration(S3Configuration.builder()
                         .pathStyleAccessEnabled(true)

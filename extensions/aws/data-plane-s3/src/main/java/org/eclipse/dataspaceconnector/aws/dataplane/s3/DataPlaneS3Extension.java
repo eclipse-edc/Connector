@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
 import java.util.concurrent.Executors;
 
@@ -39,11 +40,12 @@ public class DataPlaneS3Extension implements ServiceExtension {
         var executorService = Executors.newFixedThreadPool(10); // TODO make configurable
 
         var monitor = context.getMonitor();
+        var credentialsProvider = DefaultCredentialsProvider.create();
 
-        var sourceFactory = new S3DataSourceFactory(s3ClientProvider);
+        var sourceFactory = new S3DataSourceFactory(s3ClientProvider, credentialsProvider);
         pipelineService.registerFactory(sourceFactory);
 
-        var sinkFactory = new S3DataSinkFactory(s3ClientProvider, executorService, monitor);
+        var sinkFactory = new S3DataSinkFactory(s3ClientProvider, executorService, monitor, credentialsProvider);
         pipelineService.registerFactory(sinkFactory);
     }
 }

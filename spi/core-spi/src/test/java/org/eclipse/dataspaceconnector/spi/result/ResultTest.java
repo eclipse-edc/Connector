@@ -21,4 +21,5 @@ class ResultTest {
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).containsExactly("error");
     }
+
 }

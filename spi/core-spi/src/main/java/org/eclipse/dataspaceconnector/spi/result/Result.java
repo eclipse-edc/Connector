@@ -48,5 +48,6 @@ public class Result<T> extends AbstractResult<T, Failure> {
             return Result.failure(this.getFailureMessages());
         }
     }
+
 }
 

@@ -16,13 +16,14 @@ package org.eclipse.dataspaceconnector.aws.dataplane.s3;
 import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
 import org.eclipse.dataspaceconnector.aws.s3.core.S3ClientProvider;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -34,11 +35,16 @@ import static org.eclipse.dataspaceconnector.aws.dataplane.s3.TestFunctions.VALI
 import static org.eclipse.dataspaceconnector.aws.dataplane.s3.TestFunctions.VALID_REGION;
 import static org.eclipse.dataspaceconnector.aws.dataplane.s3.TestFunctions.VALID_SECRET_ACCESS_KEY;
 import static org.eclipse.dataspaceconnector.aws.dataplane.s3.TestFunctions.validS3DataAddress;
+import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.REGION;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class S3DataSourceFactoryTest {
 
-    private final S3DataSourceFactory factory = new S3DataSourceFactory(mock(S3ClientProvider.class));
+    private final AwsCredentialsProvider credentialsProvider = mock(AwsCredentialsProvider.class);
+    private final S3ClientProvider clientProvider = mock(S3ClientProvider.class);
+    private final S3DataSourceFactory factory = new S3DataSourceFactory(clientProvider, credentialsProvider);
 
     @Test
     void canHandle_returnsTrueWhenExpectedType() {
@@ -64,6 +70,22 @@ class S3DataSourceFactoryTest {
         var request = createRequest(source);
 
         var result = factory.validate(request);
+
+        assertThat(result.succeeded()).isTrue();
+    }
+
+    @Test
+    void validate_shouldGetCredentialsByExternalProviderFirst() {
+        when(credentialsProvider.resolveCredentials()).thenReturn(AwsBasicCredentials.create(VALID_ACCESS_KEY_ID, VALID_SECRET_ACCESS_KEY));
+        var destination = DataAddress.Builder.newInstance()
+                .type(S3BucketSchema.TYPE)
+                .property(S3BucketSchema.BUCKET_NAME, VALID_BUCKET_NAME)
+                .property(REGION, VALID_REGION)
+                .property(S3BucketSchema.ACCESS_KEY_ID, null)
+                .property(S3BucketSchema.SECRET_ACCESS_KEY, null)
+                .build();
+
+        var result = factory.validate(createRequest(destination));
 
         assertThat(result.succeeded()).isTrue();
     }
@@ -94,6 +116,19 @@ class S3DataSourceFactoryTest {
         var dataSource = factory.createSource(request);
 
         assertThat(dataSource).isNotNull().isInstanceOf(S3DataSource.class);
+    }
+
+    @Test
+    void createSink_shouldUseExternalProviderCredentialsFirst() {
+        var providedCredentials = AwsBasicCredentials.create("providedAccessKeyId", "providedSecretAccessKey");
+        when(credentialsProvider.resolveCredentials()).thenReturn(providedCredentials);
+        var destination = validS3DataAddress();
+        var request = createRequest(destination);
+
+        var sink = factory.createSource(request);
+
+        assertThat(sink).isNotNull().isInstanceOf(S3DataSource.class);
+        verify(clientProvider).provide(VALID_REGION, providedCredentials);
     }
 
     @Test
