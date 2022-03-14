@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.sql.contractdefinition.schema;
+package org.eclipse.dataspaceconnector.sql.contractdefinition.spi;
 
 public interface SqlContractDefinitionTables {
     String CONTRACT_DEFINITION_TABLE = "edc_contract_definitions";

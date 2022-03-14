@@ -18,9 +18,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
+import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
-import org.eclipse.dataspaceconnector.sql.contractdefinition.schema.SqlContractDefinitionTables;
+import org.eclipse.dataspaceconnector.sql.contractdefinition.spi.SqlContractDefinitionTables;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Objects;
 import javax.sql.DataSource;
 
@@ -35,11 +38,13 @@ public class SqlContractDefinitionLoader implements ContractDefinitionLoader {
             SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_CONTRACT_POLICY,
             SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_SELECTOR);
     private final ObjectMapper objectMapper;
-    private final DataSource dataSource;
+    private final DataSourceRegistry dataSourceRegistry;
+    private final String dataSourceName;
     private final TransactionContext transactionContext;
 
-    public SqlContractDefinitionLoader(DataSource dataSource, TransactionContext transactionContext, ObjectMapper objectMapper) {
-        this.dataSource = Objects.requireNonNull(dataSource);
+    public SqlContractDefinitionLoader(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, ObjectMapper objectMapper) {
+        this.dataSourceRegistry = Objects.requireNonNull(dataSourceRegistry);
+        this.dataSourceName = Objects.requireNonNull(dataSourceName);
         this.transactionContext = Objects.requireNonNull(transactionContext);
         this.objectMapper = Objects.requireNonNull(objectMapper);
     }
@@ -49,7 +54,7 @@ public class SqlContractDefinitionLoader implements ContractDefinitionLoader {
         Objects.requireNonNull(definition);
 
         transactionContext.execute(() -> {
-            try (var connection = dataSource.getConnection()) {
+            try (var connection = getConnection()) {
                 executeQuery(connection, SQL_ACCEPT_CLAUSE_TEMPLATE,
                         definition.getId(),
                         objectMapper.writeValueAsString(definition.getAccessPolicy()),
@@ -60,5 +65,12 @@ public class SqlContractDefinitionLoader implements ContractDefinitionLoader {
             }
         });
 
+    }
+
+    private DataSource getDataSource() {
+        return Objects.requireNonNull(dataSourceRegistry.resolve(dataSourceName), String.format("DataSource %s could not be resolved", dataSourceName));
+    }
+    private Connection getConnection() throws SQLException {
+        return getDataSource().getConnection();
     }
 }

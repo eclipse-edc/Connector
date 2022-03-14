@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.contractdefinition.schema;
+package org.eclipse.dataspaceconnector.sql.contractdefinition.spi;
 
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 

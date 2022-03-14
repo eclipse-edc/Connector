@@ -20,10 +20,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
-import org.eclipse.dataspaceconnector.sql.contractdefinition.schema.ConfigurationKeys;
-import org.eclipse.dataspaceconnector.sql.contractdefinition.schema.LazyDataSource;
-
-import java.util.Objects;
+import org.eclipse.dataspaceconnector.sql.contractdefinition.spi.ConfigurationKeys;
 
 public class SqlContractDefinitionLoaderServiceExtension implements ServiceExtension {
 
@@ -37,9 +34,7 @@ public class SqlContractDefinitionLoaderServiceExtension implements ServiceExten
     public void initialize(ServiceExtensionContext context) {
         var dataSourceName = context.getConfig().getString(ConfigurationKeys.DATASOURCE_SETTING_NAME);
 
-        var dataSource = new LazyDataSource(() -> Objects.requireNonNull(dataSourceRegistry.resolve(dataSourceName), String.format("DataSource %s could not be resolved", dataSourceName)));
-
-        var sqlContractDefinitionLoader = new SqlContractDefinitionLoader(dataSource, transactionContext, context.getTypeManager().getMapper());
+        var sqlContractDefinitionLoader = new SqlContractDefinitionLoader(dataSourceRegistry, dataSourceName, transactionContext, context.getTypeManager().getMapper());
 
         context.registerService(ContractDefinitionLoader.class, sqlContractDefinitionLoader);
     }

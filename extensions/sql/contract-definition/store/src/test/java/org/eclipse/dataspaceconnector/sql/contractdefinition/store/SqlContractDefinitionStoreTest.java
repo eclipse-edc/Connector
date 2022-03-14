@@ -26,20 +26,22 @@ import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
-import org.eclipse.dataspaceconnector.sql.contractdefinition.schema.ConfigurationKeys;
-import org.eclipse.dataspaceconnector.sql.contractdefinition.schema.SqlContractDefinitionTables;
+import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
+import org.eclipse.dataspaceconnector.sql.contractdefinition.spi.ConfigurationKeys;
+import org.eclipse.dataspaceconnector.sql.contractdefinition.spi.SqlContractDefinitionTables;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.sql.ResultSet;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,29 +56,46 @@ public class SqlContractDefinitionStoreTest {
             put(ConfigurationKeys.DATASOURCE_SETTING_NAME, ConfigurationKeys.DATASOURCE_NAME);
         }
     };
-
-    private final AtomicReference<ServiceExtensionContext> contextRef = new AtomicReference<>();
+    private volatile DataSourceRegistry dataSourceRegistry;
+    private volatile TransactionContext transactionContext;
+    private volatile ContractDefinitionStore contractDefinitionStore;
 
     @BeforeEach
     void setUp(EdcExtension extension) {
         extension.registerSystemExtension(ConfigurationExtension.class, (ConfigurationExtension) () -> ConfigFactory.fromMap(systemProperties));
         extension.registerSystemExtension(ServiceExtension.class, new ServiceExtension() {
+            private ServiceExtensionContext context;
+
             public void initialize(ServiceExtensionContext context) {
-                contextRef.set(context);
+                this.context = context;
+            }
+
+            public void start() {
+                SqlContractDefinitionStoreTest.this.transactionContext = context.getService(TransactionContext.class);
+                SqlContractDefinitionStoreTest.this.dataSourceRegistry = context.getService(DataSourceRegistry.class);
+                SqlContractDefinitionStoreTest.this.contractDefinitionStore = context.getService(ContractDefinitionStore.class);
+
+                try (var inputStream = this.getClass().getClassLoader().getResourceAsStream("schema.sql")) {
+                    var schema = new String(Objects.requireNonNull(inputStream).readAllBytes(), StandardCharsets.UTF_8);
+                    try (var connection = dataSourceRegistry.resolve(ConfigurationKeys.DATASOURCE_NAME).getConnection()) {
+                        transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
+                    }
+                } catch (IOException | SQLException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
     }
 
     @AfterEach
     void tearDown() {
-        getTransactionContext().execute(() -> {
-            try (var connection = getDataSourceRegistry().resolve(ConfigurationKeys.DATASOURCE_NAME).getConnection()) {
+        transactionContext.execute(() -> {
+            try (var connection = dataSourceRegistry.resolve(ConfigurationKeys.DATASOURCE_NAME).getConnection()) {
                 executeQuery(connection, String.format("DELETE FROM %s", SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE));
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
         });
-        contextRef.set(null);
     }
 
     private ContractDefinition getContractDefinition(String id, String contractId, String policyId) {
@@ -111,16 +130,16 @@ public class SqlContractDefinitionStoreTest {
     @DisplayName("Context Loads, tables exist")
     void contextLoads() throws SQLException {
         var query = String.format("SELECT 1 FROM %s", SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE);
-        executeQuery(getDataSourceRegistry().resolve(ConfigurationKeys.DATASOURCE_NAME).getConnection(), query);
+        executeQuery(dataSourceRegistry.resolve(ConfigurationKeys.DATASOURCE_NAME).getConnection(), query);
     }
 
     @Test
     @DisplayName("Save a single Contract Definition")
     void saveOne() {
         var definition = getContractDefinition("id", "contract", "policy");
-        getContractDefinitionStore().save(definition);
+        contractDefinitionStore.save(definition);
 
-        var definitions = getContractDefinitionStore().findAll();
+        var definitions = contractDefinitionStore.findAll();
 
         assertThat(definitions).isNotNull();
         assertThat(definitions.size()).isEqualTo(1);
@@ -130,9 +149,9 @@ public class SqlContractDefinitionStoreTest {
     @DisplayName("Save multiple Contract Definitions")
     void saveMany() {
         var definitionsCreated = getContractDefinitions(10);
-        getContractDefinitionStore().save(definitionsCreated);
+        contractDefinitionStore.save(definitionsCreated);
 
-        var definitionsRetrieved = getContractDefinitionStore().findAll();
+        var definitionsRetrieved = contractDefinitionStore.findAll();
 
         assertThat(definitionsRetrieved).isNotNull();
         assertThat(definitionsRetrieved.size()).isEqualTo(definitionsCreated.size());
@@ -144,15 +163,15 @@ public class SqlContractDefinitionStoreTest {
         var definition1 = getContractDefinition("id", "contract1", "policy1");
         var definition2 = getContractDefinition("id", "contract2", "policy2");
 
-        getContractDefinitionStore().save(definition1);
-        getContractDefinitionStore().update(definition2);
+        contractDefinitionStore.save(definition1);
+        contractDefinitionStore.update(definition2);
 
         var query = String.format("SELECT * FROM %s WHERE %s=?",
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE,
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID);
 
-        var definitions = executeQuery(getDataSourceRegistry().resolve(ConfigurationKeys.DATASOURCE_NAME).getConnection(),
-                ((SqlContractDefinitionStore) getContractDefinitionStore())::mapResultSet,
+        var definitions = executeQuery(dataSourceRegistry.resolve(ConfigurationKeys.DATASOURCE_NAME).getConnection(),
+                ((SqlContractDefinitionStore) contractDefinitionStore)::mapResultSet,
                 query,
                 definition1.getId());
 
@@ -166,9 +185,9 @@ public class SqlContractDefinitionStoreTest {
     @DisplayName("Find all contract definitions")
     void findAll() {
         var definitionsExpected = getContractDefinitions(10);
-        getContractDefinitionStore().save(definitionsExpected);
+        contractDefinitionStore.save(definitionsExpected);
 
-        var definitionsRetrieved = getContractDefinitionStore().findAll();
+        var definitionsRetrieved = contractDefinitionStore.findAll();
 
         assertThat(definitionsRetrieved).isNotNull();
         assertThat(definitionsRetrieved.size()).isEqualTo(definitionsExpected.size());
@@ -180,28 +199,16 @@ public class SqlContractDefinitionStoreTest {
         var limit = 20;
 
         var definitionsExpected = getContractDefinitions(50);
-        getContractDefinitionStore().save(definitionsExpected);
+        contractDefinitionStore.save(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
                 .limit(limit)
                 .offset(20)
                 .build();
 
-        var definitionsRetrieved = getContractDefinitionStore().findAll(spec).collect(Collectors.toList());
+        var definitionsRetrieved = contractDefinitionStore.findAll(spec).collect(Collectors.toList());
 
         assertThat(definitionsRetrieved).isNotNull();
         assertThat(definitionsRetrieved.size()).isEqualTo(limit);
-    }
-
-    private DataSourceRegistry getDataSourceRegistry() {
-        return contextRef.get().getService(DataSourceRegistry.class);
-    }
-
-    private TransactionContext getTransactionContext() {
-        return contextRef.get().getService(TransactionContext.class);
-    }
-
-    private ContractDefinitionStore getContractDefinitionStore() {
-        return contextRef.get().getService(ContractDefinitionStore.class);
     }
 }

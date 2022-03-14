@@ -27,7 +27,7 @@ dependencies {
     api(project(":extensions:transaction:transaction-spi"))
     api(project(":extensions:transaction:transaction-datasource-spi"))
 
-    implementation(project(":extensions:sql:contract-definition:schema"))
+    implementation(project(":extensions:sql:contract-definition:spi"))
     implementation(project(":extensions:sql:common"))
 
     testImplementation(testFixtures(project(":launchers:junit")))

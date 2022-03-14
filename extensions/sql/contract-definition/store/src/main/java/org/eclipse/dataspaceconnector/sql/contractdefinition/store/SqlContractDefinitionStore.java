@@ -23,12 +23,15 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitio
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
+import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
-import org.eclipse.dataspaceconnector.sql.contractdefinition.schema.SqlContractDefinitionTables;
+import org.eclipse.dataspaceconnector.sql.contractdefinition.spi.SqlContractDefinitionTables;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -56,11 +59,13 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
     private static final String SQL_FIND_CLAUSE_TEMPLATE = String.format("SELECT * from %s",
             SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE);
     private final ObjectMapper objectMapper;
-    private final DataSource dataSource;
+    private final DataSourceRegistry dataSourceRegistry;
+    private final String dataSourceName;
     private final TransactionContext transactionContext;
 
-    public SqlContractDefinitionStore(DataSource dataSource, TransactionContext transactionContext, ObjectMapper objectMapper) {
-        this.dataSource = Objects.requireNonNull(dataSource);
+    public SqlContractDefinitionStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, ObjectMapper objectMapper) {
+        this.dataSourceRegistry = Objects.requireNonNull(dataSourceRegistry);
+        this.dataSourceName = Objects.requireNonNull(dataSourceName);
         this.transactionContext = Objects.requireNonNull(transactionContext);
         this.objectMapper = Objects.requireNonNull(objectMapper);
     }
@@ -76,7 +81,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
 
     @Override
     public @NotNull Collection<ContractDefinition> findAll() {
-        try (var connection = dataSource.getConnection()) {
+        try (var connection = getConnection()) {
             return SqlQueryExecutor.executeQuery(
                     connection,
                     this::mapResultSet,
@@ -97,7 +102,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
 
         var query = SQL_FIND_CLAUSE_TEMPLATE + " " + limit.getStatement();
 
-        try (var connection = dataSource.getConnection()) {
+        try (var connection = getConnection()) {
             var definitions = SqlQueryExecutor.executeQuery(
                     connection,
                     this::mapResultSet,
@@ -113,7 +118,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
         Objects.requireNonNull(definitions);
 
         transactionContext.execute(() -> {
-            try (var connection = dataSource.getConnection()) {
+            try (var connection = getConnection()) {
                 for (var definition : definitions) {
                     executeQuery(connection, SQL_SAVE_CLAUSE_TEMPLATE,
                             definition.getId(),
@@ -137,7 +142,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
         Objects.requireNonNull(definition);
 
         transactionContext.execute(() -> {
-            try (var connection = dataSource.getConnection()) {
+            try (var connection = getConnection()) {
                 executeQuery(connection, SQL_UPDATE_CLAUSE_TEMPLATE,
                         definition.getId(),
                         objectMapper.writeValueAsString(definition.getAccessPolicy()),
@@ -155,12 +160,19 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
         Objects.requireNonNull(id);
 
         transactionContext.execute(() -> {
-            try (var connection = dataSource.getConnection()) {
+            try (var connection = getConnection()) {
                 executeQuery(connection, SQL_DELETE_CLAUSE_TEMPLATE,
                         id);
             } catch (Exception e) {
                 throw new EdcException(e.getMessage(), e);
             }
         });
+    }
+
+    private DataSource getDataSource() {
+        return Objects.requireNonNull(dataSourceRegistry.resolve(dataSourceName), String.format("DataSource %s could not be resolved", dataSourceName));
+    }
+    private Connection getConnection() throws SQLException {
+        return getDataSource().getConnection();
     }
 }
