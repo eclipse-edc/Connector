@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering
+ *       ZF Friedrichshafen AG - add dependency & reorder entries
  *
  */
 
@@ -44,11 +45,11 @@ include(":data-protocols:ids:ids-token-validation")
 // modules for technology- or cloud-provider extensions
 include(":extensions:aws")
 include(":extensions:api:control")
-include(":extensions:api:data-management:api-configuration")
-include(":extensions:api:data-management:asset")
 include(":extensions:api:api-core")
 include(":extensions:api:auth-spi")
 include(":extensions:api:auth-tokenbased")
+include(":extensions:api:data-management:api-configuration")
+include(":extensions:api:data-management:asset")
 include(":extensions:api:data-management:contractdefinition")
 include(":extensions:api:data-management:contractnegotiation")
 include(":extensions:api:data-management:contractagreement")

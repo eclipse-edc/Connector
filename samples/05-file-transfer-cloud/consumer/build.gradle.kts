@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - added dependencies
+ *       ZF Friedrichshafen AG - add dependency
  *
  */
 
@@ -39,6 +40,7 @@ dependencies {
     implementation(project(":extensions:azure:vault"))
 
     implementation(project(":extensions:api:control"))
+    implementation(project(":extensions:api:data-management"))
 
     implementation(project(":data-protocols:ids"))
 
