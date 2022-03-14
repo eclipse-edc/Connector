@@ -22,8 +22,9 @@ for target in consumer provider; do
 done
 
 # Resolve service address for Consumer
-
-export CONSUMER_URL=$(minikube service --url consumer-dataspace-connector)
+ip=$(minikube ip)
+port=$(kubectl get svc consumer-dataspace-connector  -o jsonpath='{.spec.ports[?(@.name=="http")].nodePort}')
+export CONSUMER_URL=http://$ip:$port
 
 # Perform negotiation and file transfer. See sample root directory README.md file for more details.
 
