@@ -260,8 +260,9 @@ class CosmosAssetIndexTest {
 
     @Test
     void deleteById_whenMissing_returnsNull() {
-        when(api.deleteItem(TEST_ID)).thenThrow(new NotFoundException());
-        assertThat(assetIndex.deleteById(TEST_ID)).isNull();
+        var id = "not-exists";
+        when(api.deleteItem(id)).thenThrow(new NotFoundException());
+        assertThat(assetIndex.deleteById(id)).isNull();
     }
 
     @NotNull

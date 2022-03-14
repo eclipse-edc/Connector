@@ -372,7 +372,7 @@ class CosmosAssetIndexIntegrationTest {
 
     @Test
     void deleteById_whenMissing_returnsNull() {
-        assertThat(assetIndex.deleteById(UUID.randomUUID().toString())).isNull();
+        assertThat(assetIndex.deleteById("not-exists")).isNull();
     }
 
     private Asset createAsset(String id, String somePropertyKey, String somePropertyValue) {

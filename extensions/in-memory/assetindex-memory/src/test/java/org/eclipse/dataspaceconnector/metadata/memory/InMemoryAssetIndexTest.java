@@ -267,7 +267,7 @@ class InMemoryAssetIndexTest {
 
     @Test
     void deleteById_whenMissing_returnsNull() {
-        assertThat(index.deleteById(UUID.randomUUID().toString())).isNull();
+        assertThat(index.deleteById("not-exists")).isNull();
     }
 
     @NotNull
