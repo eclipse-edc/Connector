@@ -36,9 +36,8 @@ indicator on overview pages. More information can be found in the [documentation
 
 For example, a story to add an API endpoint to the codebase could be split into the following sub-tasks:
 - add endpoint + swagger doc to controller
-- add service implementation + unit tests
-- add method to backing store + unit tests + integration tests
-- add integration tests to controller
+- add service implementation + tests
+- add method to backing store + tests
 - add documentation
 
 Generally speaking there should be one PR per sub-issue.
