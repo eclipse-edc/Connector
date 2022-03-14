@@ -6,6 +6,6 @@ service:
   port: 8181
 edc:
   env:
-    IDS_WEBHOOK_ADDRESS: http://consumer-dataspace-connector:8181
+    IDS_WEBHOOK_ADDRESS: http://consumer-dataspace-connector:8282
   envSecrets:
     EDC_API_CONTROL_AUTH_APIKEY_VALUE: password
