@@ -14,9 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.api.configuration;
 
-import java.lang.reflect.Field;
-import java.util.HashMap;
-
 import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
 import org.eclipse.dataspaceconnector.extension.jetty.PortMapping;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
@@ -25,6 +22,9 @@ import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+
+import java.lang.reflect.Field;
+import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -80,10 +80,9 @@ public class IdsApiConfigurationExtensionTest {
     @Test
     void initializeWithCustomSettings() {
         var path = "/api/ids/custom";
-        var apiConfig = new HashMap<String, String>() {{
-            put("port", String.valueOf(8765));
-            put("path", path);
-        }};
+        var apiConfig = new HashMap<String, String>();
+        apiConfig.put("port", String.valueOf(8765));
+        apiConfig.put("path", path);
         
         when(config.getEntries()).thenReturn(apiConfig);
         when(config.getString(eq("path"), any())).thenReturn(path);
