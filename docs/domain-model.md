@@ -34,9 +34,9 @@ passes several stages which are explained below:
 
 * ### Contract negotiation
 
-  A contract negotiation captures the current state of the negotiation of a contract (ContractOffer ->
-  ContractAgreement) between two parties. This process is inherently asynchronous, so the ContractNegotiation objects
-  are stored in a backing data store (ContractNegotiationStore).
+  A `ContractNegotiation` captures the current state of the negotiation of a contract (`ContractOffer` ->
+  `ContractAgreement`) between two parties. This process is inherently asynchronous, so the `ContractNegotiation`
+  objects are stored in a backing data store (`ContractNegotiationStore`).
 
 * ### Contract agreement
 
@@ -56,5 +56,5 @@ the [data destination](#data-address).
 
 ## Transfer process
 
-Analogous to the ContractNegotiation this object captures the current state of a data transfer. This process is
-inherently asynchronous, so the TransferProcess objects are stored in a backing data store (TransferProcessStore).
+Analogous to the `ContractNegotiation` this object captures the current state of a data transfer. This process is
+inherently asynchronous, so the `TransferProcess` objects are stored in a backing data store (`TransferProcessStore`).
