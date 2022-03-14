@@ -17,5 +17,9 @@ spec:
       protocol: TCP
       name: http-mgmt
     {{ end }}
+    - port: {{ .Values.service.idsPort }}
+      targetPort: {{ .Values.edc.idsPort }}
+      protocol: TCP
+      name: ids
   selector:
     {{- include "dataspace-connector.selectorLabels" . | nindent 4 }}
