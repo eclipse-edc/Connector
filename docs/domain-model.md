@@ -6,7 +6,7 @@
 ## Asset
 
 An asset is represented by the data (databases, files, cache information, etc.) to be published and shared between
-organizations. For each asset a [Data address](#data-address) needs to be resolvable.
+organizations. For each asset a [`DataAddress`](#data-address) needs to be resolvable.
 
 ## Data address
 
@@ -14,8 +14,8 @@ Pointer into the physical storage location where an asset will be stored
 
 ## Contract
 
-A contract always contains one or more [Assets](#asset) and a single [Policy](#policy). The contract construct is used
-to define the arrangement between two parties ("consumer" and "provider"). Regarding this arrangement, the contract
+A contract always contains one or more [`Assets`](#asset) and a single [`Policy`](#policy). The contract construct is
+used to define the arrangement between two parties ("consumer" and "provider"). Regarding this arrangement, the contract
 passes several stages which are explained below:
 
 * ### Contract definition
@@ -25,7 +25,7 @@ passes several stages which are explained below:
 
 * ### Contract offer
 
-  The contract offer is a dynamic representation of the [contract definition](#contract-definition)
+  The contract offer is a dynamic representation of the [`ContractDefinition`](#contract-definition)
   for a specific consumer and serves as protocol DTO for a particular contract negotiation. These contract offers are
   not persisted and will be regenerated on every request. The provider connector will only generate contract offers for
   those contract definitions where the inquiring organizations satisfy the policies established in the contract
@@ -51,7 +51,7 @@ provided in a separate [section](Policies.md).
 ## Data request
 
 A `DataRequest` is sent from the consumer to the provider after a successful contract negotiation to initiate the data
-transfer. It references the [asset](#asset) and [contract](#contract-agreement) as well as information about
+transfer. It references the [`Asset`](#asset) and [`Contract`](#contract-agreement) as well as information about
 the [data destination](#data-address).
 
 ## Transfer process
