@@ -29,6 +29,6 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
-        webService.registerResource(config.getContextAlias(), new ContractNegotiationController(monitor));
+        webService.registerResource(config.getContextAlias(), new ContractNegotiationApiController(monitor));
     }
 }

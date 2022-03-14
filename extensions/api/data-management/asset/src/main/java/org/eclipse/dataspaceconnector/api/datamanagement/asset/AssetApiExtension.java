@@ -32,6 +32,6 @@ public class AssetApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext serviceExtensionContext) {
         Monitor monitor = serviceExtensionContext.getMonitor();
-        webService.registerResource(config.getContextAlias(), new AssetController(monitor));
+        webService.registerResource(config.getContextAlias(), new AssetApiController(monitor));
     }
 }

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Daimler TSS GmbH
+ *  Copyright (c) 2021 - 2022 Daimler TSS GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -10,9 +10,9 @@
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Fraunhofer Institute for Software and Systems Engineering - add negotiation endpoint
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
-
 
 package org.eclipse.dataspaceconnector.api.control;
 
@@ -39,7 +39,7 @@ import java.util.Objects;
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
 @Path("/control")
-public class ClientController {
+public class ClientController implements ClientApi {
 
     private final TransferProcessManager transferProcessManager;
     private final ConsumerContractNegotiationManager consumerNegotiationManager;
@@ -56,6 +56,7 @@ public class ClientController {
 
     @POST
     @Path("transfer")
+    @Override
     public Response addTransfer(DataRequest dataRequest) {
 
         if (dataRequest == null) {
@@ -68,6 +69,7 @@ public class ClientController {
 
     @POST
     @Path("negotiation")
+    @Override
     public Response initiateNegotiation(ContractOfferRequest contractOffer) { // TODO allow to the idsWebhookAddress via parameter
         if (contractOffer == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -83,6 +85,7 @@ public class ClientController {
 
     @GET
     @Path("negotiation/{id}")
+    @Override
     public Response getNegotiationById(@PathParam("id") String id) {
         var negotiation = contractNegotiationStore.find(id);
 
@@ -95,6 +98,7 @@ public class ClientController {
 
     @GET
     @Path("negotiation/{id}/state")
+    @Override
     public Response getNegotiationStateById(@PathParam("id") String id) {
         var negotiation = contractNegotiationStore.find(id);
 
@@ -107,6 +111,7 @@ public class ClientController {
 
     @GET
     @Path("agreement/{id}")
+    @Override
     public Response getAgreementById(@PathParam("id") String id) {
         var agreement = contractNegotiationStore.findContractAgreement(id);
 

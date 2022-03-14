@@ -20,7 +20,7 @@ import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
-public class TransferProcessExtension implements ServiceExtension {
+public class TransferProcessApiExtension implements ServiceExtension {
     @Inject
     private WebService webService;
 
