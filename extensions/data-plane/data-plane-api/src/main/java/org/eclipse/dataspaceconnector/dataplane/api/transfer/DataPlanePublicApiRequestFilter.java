@@ -119,6 +119,13 @@ public class DataPlanePublicApiRequestFilter implements ContainerRequestFilter {
      */
     private DataFlowRequest createDataFlowRequest(ClaimToken claims, ContainerRequestContext requestContext) throws IOException {
         var dataAddress = typeManager.readValue(claims.getClaims().get(DATA_ADDRESS_CLAIM), DataAddress.class);
+        String baseUri = requestContext.getUriInfo().getBaseUri().toString();
+        String requestUri = requestContext.getUriInfo().getRequestUri().toString();
+        String diffUri = requestUri.substring(baseUri.length());
+        if (diffUri.indexOf("?") >= 0) {
+            diffUri = diffUri.substring(0, diffUri.indexOf("?"));
+        }
+        dataAddress.getProperties().put("name", diffUri);
         var requestProperties = createDataFlowRequestProperties(requestContext);
         return DataFlowRequest.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())
