@@ -14,12 +14,10 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.exceptions;
 
-import org.eclipse.dataspaceconnector.spi.EdcException;
-
 /**
  * The {@link  InvalidCorrelationMessageException} is thrown when a correlation {@link de.fraunhofer.iais.eis.Message} is missing mandatory information.
  */
-public class InvalidCorrelationMessageException extends EdcException {
+public class InvalidCorrelationMessageException extends RuntimeException {
 
     /**
      * {@link  InvalidCorrelationMessageException} indicating that the id of a {@link de.fraunhofer.iais.eis.Message} is null.

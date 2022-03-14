@@ -17,6 +17,9 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.message.ids;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.RejectionMessage;
+import de.fraunhofer.iais.eis.RejectionMessageBuilder;
+import de.fraunhofer.iais.eis.RejectionReason;
 import de.fraunhofer.iais.eis.RequestInProcessMessage;
 import de.fraunhofer.iais.eis.RequestInProcessMessageBuilder;
 import de.fraunhofer.iais.eis.TokenFormat;
@@ -44,6 +47,42 @@ import java.util.UUID;
 @SuppressWarnings("DuplicatedCode")
 public class IdsResponseMessageFactory {
 
+    /**
+     * It may be necessary to reject messages with a missing message ID.
+     * In this case this constant can be used as correlation message instead.
+     */
+    public static final URI NULL_CORRELATION_MESSAGE_ID = URI.create(String.join(
+            IdsIdParser.DELIMITER,
+            IdsIdParser.SCHEME,
+            IdsType.MESSAGE.getValue(),
+            "null"));
+
+    /**
+     * It may be necessary to reject messages with a missing sender agent.
+     * In this case this constant can be used as recipient agent instead.
+     */
+    public static final URI NULL_RECIPIENT_AGENT = URI.create(String.join(
+            IdsIdParser.DELIMITER,
+            IdsIdParser.SCHEME,
+            IdsType.CONNECTOR.getValue(),
+            "null"));
+
+    /**
+     * It may be necessary to reject messages with a missing issuer connector.
+     * In this case this constant can be used as recipient connector instead.
+     */
+    public static final URI NULL_RECIPIENT_CONNECTOR = URI.create(String.join(
+            IdsIdParser.DELIMITER,
+            IdsIdParser.SCHEME,
+            IdsType.CONNECTOR.getValue(),
+            "null"));
+
+    /**
+     * It may be necessary to reject messages, even when the EDC is not able to provide client credentials for itself.
+     * In this case this constant can be used as security token value instead.
+     */
+    public static final String NULL_TOKEN = "null.null.null";
+
     private final URI connectorId;
     private final IdentityService identityService;
 
@@ -65,6 +104,72 @@ public class IdsResponseMessageFactory {
             uri = URI.create(urn);
         }
         this.connectorId = uri;
+    }
+
+    /**
+     * In general using IDS it should always be tried to answer with an IDS message. Therefore, in case an exception occurs
+     * while creating an IDS response message, this method should be called.
+     * In comparison to the other message creating methods, this one will not throw an exception in case
+     * there are issues with the correlation message.
+     *
+     * @param correlationMessage message the rejection is referring to
+     * @param reason             exception that was thrown when creating a response message
+     * @return RejectionMessage
+     */
+    public RejectionMessage createRejectionMessage(@NotNull Message correlationMessage, @NotNull Exception reason) {
+        Objects.requireNonNull(correlationMessage);
+        Objects.requireNonNull(reason);
+
+        String randomMessageId = String.join(
+                IdsIdParser.DELIMITER,
+                IdsIdParser.SCHEME,
+                IdsType.MESSAGE.getValue(),
+                UUID.randomUUID().toString());
+
+        RejectionMessageBuilder builder = new RejectionMessageBuilder(URI.create(randomMessageId));
+
+        builder._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
+        // builder._issued_(CalendarUtil.gregorianNow()); // TODO enable with IDS-Serializer from issue 236
+        builder._issuerConnector_(connectorId);
+        builder._senderAgent_(connectorId);
+
+        URI correlationMessageId = correlationMessage.getId();
+        if (correlationMessageId == null) {
+            correlationMessageId = NULL_CORRELATION_MESSAGE_ID;
+        }
+        builder._correlationMessage_(correlationMessageId);
+
+        URI recipientAgent = correlationMessage.getSenderAgent();
+        if (recipientAgent == null) {
+            recipientAgent = NULL_RECIPIENT_AGENT;
+        }
+        builder._recipientAgent_(new ArrayList<>(Collections.singletonList(recipientAgent)));
+
+        URI recipientConnector = correlationMessage.getIssuerConnector();
+        if (recipientConnector == null) {
+            recipientConnector = NULL_RECIPIENT_CONNECTOR;
+        }
+        builder._recipientConnector_(new ArrayList<>(Collections.singletonList(recipientConnector)));
+
+        Result<TokenRepresentation> tokenResult = identityService.obtainClientCredentials(IdsClientCredentialsScope.ALL);
+        if (tokenResult.failed()) {
+            tokenResult = Result.success(TokenRepresentation.Builder.newInstance().token(NULL_TOKEN).build());
+        }
+        DynamicAttributeToken token = new DynamicAttributeTokenBuilder()
+                ._tokenFormat_(TokenFormat.JWT)
+                ._tokenValue_(tokenResult.getContent().getToken())
+                .build();
+        builder._securityToken_(token);
+
+        if (reason instanceof InvalidCorrelationMessageException) {
+            builder._rejectionReason_(RejectionReason.BAD_PARAMETERS);
+        } else if (reason instanceof MissingClientCredentialsException) {
+            builder._rejectionReason_(RejectionReason.INTERNAL_RECIPIENT_ERROR);
+        } else {
+            builder._rejectionReason_(RejectionReason.INTERNAL_RECIPIENT_ERROR);
+        }
+
+        return builder.build();
     }
 
     /**
@@ -95,17 +200,17 @@ public class IdsResponseMessageFactory {
         }
         builder._correlationMessage_(correlationMessageId);
 
-        URI senderAgent = correlationMessage.getSenderAgent();
-        if (senderAgent == null) {
+        URI recipientAgent = correlationMessage.getSenderAgent();
+        if (recipientAgent == null) {
             throw InvalidCorrelationMessageException.createExceptionForSenderAgentMissing();
         }
-        builder._recipientAgent_(new ArrayList<>(Collections.singletonList(senderAgent)));
+        builder._recipientAgent_(new ArrayList<>(Collections.singletonList(recipientAgent)));
 
-        URI issuerConnector = correlationMessage.getIssuerConnector();
-        if (issuerConnector == null) {
+        URI recipientConnector = correlationMessage.getIssuerConnector();
+        if (recipientConnector == null) {
             throw InvalidCorrelationMessageException.createExceptionForIssuerConnectorMissing();
         }
-        builder._recipientConnector_(new ArrayList<>(Collections.singletonList(issuerConnector)));
+        builder._recipientConnector_(new ArrayList<>(Collections.singletonList(recipientConnector)));
 
         Result<TokenRepresentation> tokenResult = identityService.obtainClientCredentials(IdsClientCredentialsScope.ALL);
         if (tokenResult.failed()) {

@@ -19,9 +19,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractRequest;
 import de.fraunhofer.iais.eis.ContractRequestMessage;
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.RequestInProcessMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
+import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.exceptions.InvalidCorrelationMessageException;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
@@ -146,11 +148,27 @@ public class ContractRequestHandler implements Handler {
                 .contractOffer(contractOffer)
                 .build();
 
-        // Start negotiation process
-        negotiationManager.requested(verificationResult.getContent(), requestObj);
+        Message response;
+
+        try {
+            response = responseMessageFactory.createRequestInProcessMessage(message);
+        } catch (Exception e) {
+            if (e instanceof InvalidCorrelationMessageException) {
+                monitor.debug(String.format("Rejecting invalid IDS contract request message [Msg-ID: %s]", message.getId()), e);
+            } else {
+                monitor.severe(String.format("Exception while creating IDS RequestInProcessMessage to answer contract request [Msg-ID: %s]", message.getId()), e);
+            }
+
+            response = responseMessageFactory.createRejectionMessage(message, e);
+        }
+
+        if (response instanceof RequestInProcessMessage) {
+            // Start negotiation process
+            negotiationManager.requested(verificationResult.getContent(), requestObj);
+        }
 
         return MultipartResponse.Builder.newInstance()
-                .header(responseMessageFactory.createRequestInProcessMessage(message))
+                .header(response)
                 .build();
     }
 

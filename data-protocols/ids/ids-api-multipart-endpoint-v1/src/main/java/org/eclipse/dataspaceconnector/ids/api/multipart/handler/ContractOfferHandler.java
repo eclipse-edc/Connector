@@ -19,9 +19,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractOffer;
 import de.fraunhofer.iais.eis.ContractOfferMessage;
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.RequestInProcessMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
+import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.exceptions.InvalidCorrelationMessageException;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -84,10 +86,26 @@ public class ContractOfferHandler implements Handler {
             return createBadParametersErrorMultipartResponse(message);
         }
 
-        // TODO similar implementation to ContractRequestHandler (only required if counter offers supported, not needed for M1)
+        Message response;
+
+        try {
+            response = responseMessageFactory.createRequestInProcessMessage(message);
+        } catch (Exception e) {
+            if (e instanceof InvalidCorrelationMessageException) {
+                monitor.debug(String.format("Rejecting invalid IDS contract offer message [Msg-ID: %s]", message.getId()), e);
+            } else {
+                monitor.severe(String.format("Exception while creating IDS RequestInProcessMessage to answer contract offer [Msg-ID: %s]", message.getId()), e);
+            }
+
+            response = responseMessageFactory.createRejectionMessage(message, e);
+        }
+
+        if (response instanceof RequestInProcessMessage) {
+            // TODO similar implementation to ContractRequestHandler (only required if counter offers supported, not needed for M1)
+        }
 
         return MultipartResponse.Builder.newInstance()
-                .header(responseMessageFactory.createRequestInProcessMessage(message))
+                .header(response)
                 .build();
     }
 
