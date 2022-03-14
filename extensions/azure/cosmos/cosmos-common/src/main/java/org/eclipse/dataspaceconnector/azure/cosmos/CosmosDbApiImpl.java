@@ -129,7 +129,7 @@ public class CosmosDbApiImpl implements CosmosDbApi {
             throw new NotFoundException("An object with the ID " + id + " could not be found!");
         }
         try {
-            container.deleteItem(item, itemRequestOptions).getItem();
+            container.deleteItem(item, itemRequestOptions);
         } catch (CosmosException e) {
             throw new EdcPersistenceException(e);
         }
