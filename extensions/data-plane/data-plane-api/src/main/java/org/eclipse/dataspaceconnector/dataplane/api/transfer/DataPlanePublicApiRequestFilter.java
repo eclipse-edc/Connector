@@ -119,13 +119,23 @@ public class DataPlanePublicApiRequestFilter implements ContainerRequestFilter {
      */
     private DataFlowRequest createDataFlowRequest(ClaimToken claims, ContainerRequestContext requestContext) throws IOException {
         var dataAddress = typeManager.readValue(claims.getClaims().get(DATA_ADDRESS_CLAIM), DataAddress.class);
-        String baseUri = requestContext.getUriInfo().getBaseUri().toString();
-        String requestUri = requestContext.getUriInfo().getRequestUri().toString();
-        String diffUri = requestUri.substring(baseUri.length());
-        if (diffUri.indexOf("?") >= 0) {
-            diffUri = diffUri.substring(0, diffUri.indexOf("?"));
+        // extract the "name" property for the data address from the UriInfo
+        var uriInfo = requestContext.getUriInfo();
+        if(uriInfo != null) {
+            var requestUri = uriInfo.getRequestUri();
+            var baseUri = uriInfo.getBaseUri();
+            // we only take relative uris, so a baseuri must be set
+            if (requestUri != null && baseUri != null) {
+                String name = requestUri.toString();
+                name = name.substring(baseUri.toString().length());
+                // cut off the query params - they will be part of the request Properties
+                int queryIndex = name.indexOf("?");
+                if (queryIndex >= 0) {
+                    name = name.substring(0, queryIndex);
+                }
+                dataAddress.getProperties().put("name", name);
+            }
         }
-        dataAddress.getProperties().put("name", diffUri);
         var requestProperties = createDataFlowRequestProperties(requestContext);
         return DataFlowRequest.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())
