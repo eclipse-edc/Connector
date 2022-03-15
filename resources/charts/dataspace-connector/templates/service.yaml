@@ -17,8 +17,8 @@ spec:
       protocol: TCP
       name: http-mgmt
     {{ end }}
-    - port: {{ .Values.service.idsPort }}
-      targetPort: {{ .Values.edc.idsPort }}
+    - port: {{ .Values.service.idsApi.port }}
+      targetPort: {{ .Values.edc.idsApi.port }}
       protocol: TCP
       name: http-ids
   selector:
