@@ -121,7 +121,7 @@ public class DataPlanePublicApiRequestFilter implements ContainerRequestFilter {
         var dataAddress = typeManager.readValue(claims.getClaims().get(DATA_ADDRESS_CLAIM), DataAddress.class);
         // extract the "name" property for the data address from the UriInfo
         var uriInfo = requestContext.getUriInfo();
-        if(uriInfo != null) {
+        if (uriInfo != null) {
             var requestUri = uriInfo.getRequestUri();
             var baseUri = uriInfo.getBaseUri();
             // we only take relative uris, so a baseuri must be set
