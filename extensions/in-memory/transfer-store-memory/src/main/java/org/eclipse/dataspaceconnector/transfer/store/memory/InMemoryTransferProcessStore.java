@@ -63,11 +63,19 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     public @NotNull List<TransferProcess> nextForState(int state, int max) {
         return lockManager.readLock(() -> {
             var set = stateCache.get(state);
-            return set == null ? Collections.emptyList() : set.stream()
+            List<TransferProcess> toBeLeased = set == null ? Collections.emptyList() : set.stream()
                     .sorted(Comparator.comparingLong(TransferProcess::getStateTimestamp)) //order by state timestamp, oldest first
                     .limit(max)
-                    .map(TransferProcess::copy)
                     .collect(toList());
+
+            stateCache.compute(state, (key, value) -> {
+                if (value != null) {
+                    value.removeAll(toBeLeased);
+                }
+                return value;
+            });
+
+            return toBeLeased.stream().map(TransferProcess::copy).collect(toList());
         });
     }
 

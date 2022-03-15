@@ -48,7 +48,7 @@ class DeprovisionCommandHandlerTest {
         when(storeMock.find(anyString())).thenReturn(tp);
         handler.handle(cmd);
 
-        assertThat(tp.getState()).isEqualTo(TransferProcessStates.DEPROVISIONING_REQ.code());
+        assertThat(tp.getState()).isEqualTo(TransferProcessStates.DEPROVISIONING.code());
         assertThat(tp.getErrorDetail()).isNull();
     }
 
@@ -67,7 +67,7 @@ class DeprovisionCommandHandlerTest {
                 .type(TransferProcess.Type.CONSUMER).build();
 
         when(storeMock.find(anyString())).thenReturn(tp);
-        assertThatThrownBy(() -> handler.handle(cmd)).isInstanceOf(IllegalStateException.class).hasMessage("Cannot transition from state IN_PROGRESS to DEPROVISIONING_REQ");
+        assertThatThrownBy(() -> handler.handle(cmd)).isInstanceOf(IllegalStateException.class).hasMessage("Cannot transition from state IN_PROGRESS to DEPROVISIONING");
     }
 
     @Test
