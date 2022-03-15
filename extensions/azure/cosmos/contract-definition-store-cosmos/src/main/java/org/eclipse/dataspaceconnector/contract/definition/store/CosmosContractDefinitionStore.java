@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.contract.definition.store;
 
 import net.jodah.failsafe.RetryPolicy;
@@ -38,13 +52,14 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
     private final TypeManager typeManager;
     private final RetryPolicy<Object> retryPolicy;
     private final LockManager lockManager;
+    private final String partitionKey;
     private AtomicReference<Map<String, ContractDefinition>> objectCache;
 
-    public CosmosContractDefinitionStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy) {
+    public CosmosContractDefinitionStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy, String partitionKey) {
         this.cosmosDbApi = cosmosDbApi;
         this.typeManager = typeManager;
         this.retryPolicy = retryPolicy;
-
+        this.partitionKey = partitionKey;
         lockManager = new LockManager(new ReentrantReadWriteLock(true));
     }
 
@@ -139,7 +154,7 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
 
     @NotNull
     private ContractDefinitionDocument convertToDocument(ContractDefinition def) {
-        return new ContractDefinitionDocument(def);
+        return new ContractDefinitionDocument(def, partitionKey);
     }
 
     private Map<String, ContractDefinition> getCache() {

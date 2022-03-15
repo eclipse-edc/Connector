@@ -15,9 +15,9 @@
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.api.rules;
 
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.dataspaceconnector.common.token.TokenValidationRule;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.token.JwtValidationRule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,7 +29,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataRe
 /**
  * Assert that contract still allows access to the data. As of current implementation it only validates the contract end date.
  */
-public class ContractValidationRule implements JwtValidationRule {
+public class ContractValidationRule implements TokenValidationRule {
 
     private final ContractNegotiationStore contractNegotiationStore;
 

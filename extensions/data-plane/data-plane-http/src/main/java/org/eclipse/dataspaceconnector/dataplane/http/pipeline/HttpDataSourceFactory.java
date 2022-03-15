@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 import net.jodah.failsafe.RetryPolicy;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
-import okhttp3.RequestBody;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSourceFactory;
@@ -85,6 +84,16 @@ public class HttpDataSourceFactory implements DataSourceFactory {
         }
 
         var name = dataAddress.getProperty(NAME);
+
+        var mediaTypeStr = request.getProperties().get(MEDIA_TYPE);
+        MediaType mediaType = null;
+        if (mediaTypeStr != null) {
+            mediaType = MediaType.parse(mediaTypeStr);
+            if (mediaType == null) {
+                return Result.failure("Unhandled media type: " + mediaTypeStr);
+            }
+        }
+
         var builder = HttpDataSource.Builder.newInstance()
                 .httpClient(httpClient)
                 .requestId(request.getId())
@@ -93,8 +102,7 @@ public class HttpDataSourceFactory implements DataSourceFactory {
                 .method(method)
                 .retryPolicy(retryPolicy)
                 .monitor(monitor);
-        Optional.ofNullable(request.getProperties().get(MEDIA_TYPE))
-                .ifPresent(mediaType -> builder.requestBody(RequestBody.create(request.getProperties().get(BODY), MediaType.parse(mediaType))));
+        Optional.ofNullable(mediaType).ifPresent(mt -> builder.requestBody(mt, request.getProperties().get(BODY)));
         Optional.ofNullable(dataAddress.getProperty(AUTHENTICATION_KEY))
                 .ifPresent(s -> builder.header(s, dataAddress.getProperty(AUTHENTICATION_CODE)));
         Optional.ofNullable(request.getProperties().get(QUERY_PARAMS))

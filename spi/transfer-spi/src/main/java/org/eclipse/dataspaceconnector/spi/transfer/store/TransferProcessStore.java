@@ -14,13 +14,14 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer.store;
 
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Manages persistent storage of {@link TransferProcess} state.
@@ -52,7 +53,7 @@ public interface TransferProcessStore {
      * Some database frameworks such as Spring have automatic lastChanged columns.
      *
      * @param state The state that the processes of interest should be in.
-     * @param max The maximum amount of result items.
+     * @param max   The maximum amount of result items.
      * @return A list of TransferProcesses (at most _max_) that are in the desired state.
      */
     @NotNull
@@ -73,14 +74,11 @@ public interface TransferProcessStore {
      */
     void delete(String processId);
 
-    void createData(String processId, String key, Object data);
-
-    void updateData(String processId, String key, Object data);
-
-    void deleteData(String processId, String key);
-
-    void deleteData(String processId, Set<String> keys);
-
-    <T> T findData(Class<T> type, String processId, String resourceDefinitionId);
-
+    /**
+     * Returns all the transfer processes in the store that are covered by a given {@link QuerySpec}.
+     * <p>
+     * Note: supplying a sort field that does not exist on the {@link TransferProcess} may cause some implementations
+     * to return an empty Stream, others will return an unsorted Stream, depending on the backing storage implementation.
+     */
+    Stream<TransferProcess> findAll(QuerySpec querySpec);
 }

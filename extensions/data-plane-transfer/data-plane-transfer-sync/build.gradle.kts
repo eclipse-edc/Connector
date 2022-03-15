@@ -27,7 +27,8 @@ dependencies {
     api(project(":spi:transfer-spi"))
     api(project(":spi:web-spi"))
     api(project(":extensions:data-plane-transfer:data-plane-transfer-core"))
-    api(project(":extensions:token:token-validation"))
+    api(project(":common:token-generation-lib"))
+    api(project(":common:token-validation-lib"))
     api("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     api("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
     // Note: nimbus requires bouncycastle as mentioned in documentation:

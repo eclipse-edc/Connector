@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Daimler TSS GmbH - fixed contract dates to epoch seconds
  *
  */
 
@@ -53,13 +54,13 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.LocalDate;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
@@ -89,9 +90,9 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
                         .consumerAgentId("consumer")
                         .asset(Asset.Builder.newInstance().build())
                         .policy(Policy.Builder.newInstance().build())
-                        .contractSigningDate(LocalDate.MIN.toEpochDay())
-                        .contractStartDate(LocalDate.MIN.toEpochDay())
-                        .contractEndDate(LocalDate.MAX.toEpochDay())
+                        .contractSigningDate(Instant.now().getEpochSecond())
+                        .contractStartDate(Instant.now().getEpochSecond())
+                        .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                         .id("1:2").build())
                 .state(ContractNegotiationStates.CONFIRMED.code())
                 .build();
@@ -195,23 +196,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         }
 
         @Override
-        public void createData(String processId, String key, Object data) {
-        }
-
-        @Override
-        public void updateData(String processId, String key, Object data) {
-        }
-
-        @Override
-        public void deleteData(String processId, String key) {
-        }
-
-        @Override
-        public void deleteData(String processId, Set<String> keys) {
-        }
-
-        @Override
-        public <T> T findData(Class<T> type, String processId, String resourceDefinitionId) {
+        public Stream<TransferProcess> findAll(QuerySpec querySpec) {
             return null;
         }
     }

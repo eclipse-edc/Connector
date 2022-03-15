@@ -27,13 +27,13 @@ jobs:
           cache: 'gradle'
 
       - name: Data Plane Azure Storage Test
-        run: ./gradlew extensions:azure:data-plane-azure-storage:check
+        run: ./gradlew extensions:azure:data-plane:storage:check
 
       - name: Object Storage StatusChecker Test
         run: ./gradlew extensions:azure:blobstorage:blob-provision:check
 
   Azure-CosmosDB-Integration-Test:
-    runs-on: windows-2019
+    runs-on: windows-latest
 
     env:
       RUN_INTEGRATION_TEST: true
@@ -79,8 +79,8 @@ jobs:
         ports:
           - 9000:9000
         env:
-          MINIO_ACCESS_KEY: root
-          MINIO_SECRET_KEY: password
+          MINIO_ROOT_USER: root
+          MINIO_ROOT_PASSWORD: password
 
     steps:
       - uses: actions/checkout@v2
@@ -95,6 +95,13 @@ jobs:
           S3_ACCESS_KEY_ID: root
           S3_SECRET_ACCESS_KEY: password
         run: ./gradlew extensions:aws:s3:s3-provision:check
+
+      - name: AWS S3 StatusChecker Test
+        env:
+          RUN_INTEGRATION_TEST: true
+          S3_ACCESS_KEY_ID: root
+          S3_SECRET_ACCESS_KEY: password
+        run: ./gradlew extensions:aws:s3:s3-data-operator:check
 
   Daps-Integration-Test:
     runs-on: ubuntu-latest

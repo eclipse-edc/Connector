@@ -14,7 +14,8 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.transformer;
 
-import org.eclipse.dataspaceconnector.spi.iam.TokenGenerationService;
+import com.nimbusds.jwt.JWTClaimsSet;
+import org.eclipse.dataspaceconnector.common.token.TokenGenerationService;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformer;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -25,11 +26,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.util.Date;
-import java.util.Map;
 
 import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.CONTRACT_ID_CLAIM;
 import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.DATA_ADDRESS_CLAIM;
-import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.EXPIRATION_DATE_CLAIM;
 
 public class ProxyEndpointDataReferenceTransformer implements EndpointDataReferenceTransformer {
 
@@ -61,11 +60,13 @@ public class ProxyEndpointDataReferenceTransformer implements EndpointDataRefere
                 .build());
     }
 
-    private Map<String, Object> createClaims(EndpointDataReference edr) {
+    private JWTClaimsSet createClaims(EndpointDataReference edr) {
         var dataAddressStr = dataEncrypter.encrypt(typeManager.writeValueAsString(createDataAddress(edr)));
-        return Map.of(EXPIRATION_DATE_CLAIM, Date.from(Instant.ofEpochSecond(edr.getExpirationEpochSeconds())),
-                CONTRACT_ID_CLAIM, edr.getContractId(),
-                DATA_ADDRESS_CLAIM, dataAddressStr);
+        return new JWTClaimsSet.Builder()
+                .expirationTime(Date.from(Instant.ofEpochSecond(edr.getExpirationEpochSeconds())))
+                .claim(CONTRACT_ID_CLAIM, edr.getContractId())
+                .claim(DATA_ADDRESS_CLAIM, dataAddressStr)
+                .build();
     }
 
     private static DataAddress createDataAddress(EndpointDataReference edr) {

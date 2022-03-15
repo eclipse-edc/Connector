@@ -5,6 +5,7 @@ import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.aws.s3.core.AwsTemporarySecretToken;
 import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
+import org.eclipse.dataspaceconnector.aws.s3.core.S3ClientProvider;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.transfer.inline.DataWriter;
@@ -16,6 +17,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.io.InputStream;
@@ -25,22 +27,13 @@ public class S3BucketWriter implements DataWriter {
     private final RetryPolicy<Object> retryPolicy;
     private final Monitor monitor;
     private final TypeManager typeManager;
+    private final S3ClientProvider clientProvider;
 
-    public S3BucketWriter(Monitor monitor, TypeManager typeManager, RetryPolicy<Object> retryPolicy) {
+    public S3BucketWriter(Monitor monitor, TypeManager typeManager, RetryPolicy<Object> retryPolicy, S3ClientProvider clientProvider) {
         this.monitor = monitor;
         this.typeManager = typeManager;
         this.retryPolicy = retryPolicy;
-    }
-
-    private static StaticCredentialsProvider buildCredentialsProvider(AwsTemporarySecretToken awsSecretToken) {
-        return StaticCredentialsProvider.create(AwsSessionCredentials.create(awsSecretToken.getAccessKeyId(), awsSecretToken.getSecretAccessKey(), awsSecretToken.getSessionToken()));
-    }
-
-    private static PutObjectRequest createRequest(String bucketName, String objectKey) {
-        return PutObjectRequest.builder()
-                .bucket(bucketName)
-                .key(objectKey)
-                .build();
+        this.clientProvider = clientProvider;
     }
 
     @Override
@@ -54,21 +47,25 @@ public class S3BucketWriter implements DataWriter {
         var region = destination.getProperty(S3BucketSchema.REGION);
         var awsSecretToken = typeManager.readValue(secretToken, AwsTemporarySecretToken.class);
 
-        try (S3Client s3 = S3Client.builder()
-                .credentialsProvider(buildCredentialsProvider(awsSecretToken))
-                .region(Region.of(region))
-                .build()) {
-            PutObjectRequest request = createRequest(bucketName, name);
-            PutObjectRequest completionMarker = createRequest(bucketName, name + ".complete");
+        try (var s3 = clientProvider.provide(region, awsSecretToken)) {
+            var request = createRequest(bucketName, name);
+            var completionMarker = createRequest(bucketName, name + ".complete");
             monitor.debug("Data request: begin transfer...");
             Failsafe.with(retryPolicy).get(() -> s3.putObject(request, RequestBody.fromBytes(data.readAllBytes())));
             Failsafe.with(retryPolicy).get(() -> s3.putObject(completionMarker, RequestBody.empty()));
             monitor.debug("Data request done.");
             return Result.success();
         } catch (S3Exception ex) {
-            monitor.severe("Data request: transfer failed!");
+            monitor.severe("Data request: transfer failed!", ex);
             return Result.failure("Data transfer failed");
         }
+    }
+
+    private static PutObjectRequest createRequest(String bucketName, String objectKey) {
+        return PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(objectKey)
+                .build();
     }
 }
 

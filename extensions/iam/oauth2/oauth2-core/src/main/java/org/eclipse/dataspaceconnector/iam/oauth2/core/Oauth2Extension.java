@@ -20,12 +20,14 @@ import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.common.token.TokenValidationServiceImpl;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.identity.IdentityProviderKeyResolver;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.identity.Oauth2ServiceImpl;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.jwt.DefaultJwtDecorator;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.jwt.JwtDecoratorRegistryImpl;
+import org.eclipse.dataspaceconnector.iam.oauth2.core.rule.Oauth2ValidationRulesRegistryImpl;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.JwtDecoratorRegistry;
-import org.eclipse.dataspaceconnector.iam.oauth2.spi.Oauth2Service;
+import org.eclipse.dataspaceconnector.iam.oauth2.spi.Oauth2ValidationRulesRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -49,7 +51,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * Provides OAuth2 client credentials flow support.
  */
-@Provides({IdentityService.class, JwtDecoratorRegistry.class, Oauth2Service.class})
+@Provides({IdentityService.class, JwtDecoratorRegistry.class, Oauth2ValidationRulesRegistry.class})
 public class Oauth2Extension implements ServiceExtension {
 
     private static final long TOKEN_EXPIRATION = TimeUnit.MINUTES.toSeconds(5);
@@ -105,11 +107,14 @@ public class Oauth2Extension implements ServiceExtension {
         jwtDecoratorRegistry.register(defaultDecorator);
         context.registerService(JwtDecoratorRegistry.class, jwtDecoratorRegistry);
 
+        var validationRulesRegistry = new Oauth2ValidationRulesRegistryImpl(configuration);
+        context.registerService(Oauth2ValidationRulesRegistry.class, validationRulesRegistry);
+
+        var tokenValidationService = new TokenValidationServiceImpl(configuration.getIdentityProviderKeyResolver(), validationRulesRegistry);
         var tokenSigner = createTokenSigner(configuration);
-        var oauth2Service = new Oauth2ServiceImpl(configuration, tokenSigner, okHttpClient, jwtDecoratorRegistry, context.getTypeManager());
+        var oauth2Service = new Oauth2ServiceImpl(configuration, tokenSigner, okHttpClient, jwtDecoratorRegistry, context.getTypeManager(), tokenValidationService);
 
         context.registerService(IdentityService.class, oauth2Service);
-        context.registerService(Oauth2Service.class, oauth2Service);
     }
 
     @Override

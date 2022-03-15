@@ -14,9 +14,10 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.provision;
 
+import com.nimbusds.jwt.JWTClaimsSet;
+import org.eclipse.dataspaceconnector.common.token.TokenGenerationService;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
-import org.eclipse.dataspaceconnector.spi.iam.TokenGenerationService;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionResponse;
@@ -28,13 +29,11 @@ import org.eclipse.dataspaceconnector.transfer.dataplane.sync.schema.HttpProxySc
 
 import java.time.Instant;
 import java.util.Date;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.CONTRACT_ID_CLAIM;
 import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.DATA_ADDRESS_CLAIM;
-import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.EXPIRATION_DATE_CLAIM;
 
 public class HttpProviderProxyProvisioner implements Provisioner<HttpProviderProxyResourceDefinition, HttpProviderProxyProvisionedResource> {
 
@@ -96,8 +95,12 @@ public class HttpProviderProxyProvisioner implements Provisioner<HttpProviderPro
                 .build());
     }
 
-    private static Map<String, Object> createClaims(Date expiration, String contractId, String encryptedDataAddress) {
-        return Map.of(EXPIRATION_DATE_CLAIM, expiration, CONTRACT_ID_CLAIM, contractId, DATA_ADDRESS_CLAIM, encryptedDataAddress);
+    private static JWTClaimsSet createClaims(Date expiration, String contractId, String encryptedDataAddress) {
+        return new JWTClaimsSet.Builder()
+                .expirationTime(expiration)
+                .claim(CONTRACT_ID_CLAIM, contractId)
+                .claim(DATA_ADDRESS_CLAIM, encryptedDataAddress)
+                .build();
     }
 
     @Override

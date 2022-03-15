@@ -11,5 +11,11 @@ spec:
       targetPort: {{ .Values.edc.port }}
       protocol: TCP
       name: http
+    {{ if .Values.edc.managementApi.enabled }}
+    - port: {{ .Values.service.managementApi.port }}
+      targetPort: {{ .Values.edc.managementApi.port }}
+      protocol: TCP
+      name: http-mgmt
+    {{ end }}
   selector:
     {{- include "dataspace-connector.selectorLabels" . | nindent 4 }}

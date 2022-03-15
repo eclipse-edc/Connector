@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       ZF Friedrichshafen AG - add dependency
  *
  */
 
@@ -35,6 +36,7 @@ dependencies {
     implementation(project(":extensions:iam:iam-mock"))
 
     implementation(project(":extensions:api:control"))
+    implementation(project(":extensions:api:data-management"))
 
     implementation(project(":data-protocols:ids"))
     runtimeOnly(project(":extensions:http:jersey-micrometer"))
