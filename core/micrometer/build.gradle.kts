@@ -27,6 +27,13 @@ dependencies {
     api(project(":core:base"))
     api("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     api("io.micrometer:micrometer-core:${micrometerVersion}")
+
+    testImplementation(testFixtures(project(":launchers:junit")))
+}
+
+tasks.withType<Test> {
+    jvmArgs("-javaagent:../../samples/04.3-open-telemetry/opentelemetry-javaagent.jar",
+    "-Dotel.metrics.exporter=prometheus");
 }
 
 publishing {
