@@ -1,6 +1,7 @@
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 
+@IntegrationTest
 @ExtendWith(EdcExtension.class)
 public class MicrometerExtensionIntegrationTest {
     private static final int CONNECTOR_PORT = getFreePort();

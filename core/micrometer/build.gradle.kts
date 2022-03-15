@@ -39,7 +39,7 @@ dependencies {
 }
 
 tasks.withType<Test> {
-    jvmArgs("-javaagent:../../samples/04.3-open-telemetry/opentelemetry-javaagent.jar",
+    jvmArgs("-javaagent:../../opentelemetry-javaagent.jar",
     "-Dotel.metrics.exporter=prometheus");
 }
 
