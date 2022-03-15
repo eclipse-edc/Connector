@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 public class DefaultEndpointDataReferenceTransformer implements EndpointDataReferenceTransformer {
 
     @Override
-    public Result<EndpointDataReference> execute(@NotNull EndpointDataReference edr) {
+    public Result<EndpointDataReference> transform(@NotNull EndpointDataReference edr) {
         return Result.success(edr);
     }
 }

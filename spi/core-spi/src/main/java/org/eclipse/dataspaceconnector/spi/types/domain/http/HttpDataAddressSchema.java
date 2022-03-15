@@ -11,12 +11,13 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.dataplane.spi.schema;
+
+package org.eclipse.dataspaceconnector.spi.types.domain.http;
 
 /**
- * Defines the data address attributes used by the HTTP data plane extension.
+ * Defines the schema of a {@link org.eclipse.dataspaceconnector.spi.types.domain.DataAddress} representing a Http endpoint.
  */
-public interface HttpDataSchema {
+public interface HttpDataAddressSchema {
 
     /**
      * The HTTP transfer type.
@@ -24,23 +25,28 @@ public interface HttpDataSchema {
     String TYPE = "HttpData";
 
     /**
-     * The source or destination endpoint.
+     * The http endpoint.
      */
     String ENDPOINT = "endpoint";
 
     /**
-     * The name associated with the HTTP data, typically a filename.
+     * The name associated with the HTTP data, typically a filename (optional).
      */
     String NAME = "name";
 
     /**
-     * The destination authentication key property name (optional).
+     * The authentication key property name (optional).
      */
     String AUTHENTICATION_KEY = "authKey";
 
     /**
-     * The destination authentication code property name (optional).
+     * The authentication code property name (optional).
      */
     String AUTHENTICATION_CODE = "authCode";
-    
+
+    /**
+     * The name of the vault secret that is containing the authorization code (optional).
+     */
+    String SECRET_NAME = "secretName";
+
 }

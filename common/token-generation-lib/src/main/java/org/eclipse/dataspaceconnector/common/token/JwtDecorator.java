@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.iam.oauth2.spi;
+package org.eclipse.dataspaceconnector.common.token;
 
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jwt.JWTClaimsSet;
