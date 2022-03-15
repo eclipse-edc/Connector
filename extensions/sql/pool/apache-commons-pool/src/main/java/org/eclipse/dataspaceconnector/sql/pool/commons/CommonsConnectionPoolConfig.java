@@ -22,7 +22,7 @@ import java.util.Objects;
  * A CommonsConnectionPoolConfig is a container object containing a set of pool configuration
  * parameters that can be used by the {@code CommonsConnectionPool} for connection management.
  */
-class CommonsConnectionPoolConfig {
+public class CommonsConnectionPoolConfig {
 
     private final int maxIdleConnections;
     private final int maxTotalConnections;

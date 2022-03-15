@@ -14,86 +14,77 @@
 
 package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 
-import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
+import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
-import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
-import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
+import org.eclipse.dataspaceconnector.sql.datasource.ConnectionFactoryDataSource;
+import org.eclipse.dataspaceconnector.sql.datasource.ConnectionPoolDataSource;
+import org.eclipse.dataspaceconnector.sql.pool.ConnectionPool;
+import org.eclipse.dataspaceconnector.sql.pool.commons.CommonsConnectionPool;
+import org.eclipse.dataspaceconnector.sql.pool.commons.CommonsConnectionPoolConfig;
+import org.eclipse.dataspaceconnector.transaction.local.DataSourceResource;
+import org.eclipse.dataspaceconnector.transaction.local.LocalDataSourceRegistry;
+import org.eclipse.dataspaceconnector.transaction.local.LocalTransactionContext;
+import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
-@ExtendWith(EdcExtension.class)
 public class SqlContractDefinitionStoreTest {
-    private final Map<String, String> systemProperties = new HashMap<>() {
-        {
-            put(ConfigurationKeys.DATASOURCE_SETTING_URL, "jdbc:h2:mem:test");
-            put(ConfigurationKeys.DATASOURCE_SETTING_DRIVER_CLASS, org.h2.Driver.class.getName());
-            put(ConfigurationKeys.DATASOURCE_SETTING_NAME, ConfigurationKeys.DATASOURCE_NAME);
-        }
-    };
-    private volatile DataSourceRegistry dataSourceRegistry;
-    private volatile TransactionContext transactionContext;
-    private volatile ContractDefinitionStore contractDefinitionStore;
+
+    private DataSourceRegistry dataSourceRegistry;
+    private ContractDefinitionStore contractDefinitionStore;
+    private ConnectionPool connectionPool;
 
     @BeforeEach
-    void setUp(EdcExtension extension) {
-        extension.registerSystemExtension(ConfigurationExtension.class, (ConfigurationExtension) () -> ConfigFactory.fromMap(systemProperties));
-        extension.registerSystemExtension(ServiceExtension.class, new ServiceExtension() {
-            private ServiceExtensionContext context;
+    void setUp() throws SQLException {
+        var monitor = new ConsoleMonitor();
+        var txManager = new LocalTransactionContext(monitor);
+        dataSourceRegistry = new LocalDataSourceRegistry(txManager);
+        var transactionContext = (TransactionContext) txManager;
+        var jdbcDataSource = new JdbcDataSource();
+        jdbcDataSource.setURL("jdbc:h2:mem:");
 
-            public void initialize(ServiceExtensionContext context) {
-                this.context = context;
-            }
+        var connection = jdbcDataSource.getConnection();
+        var dataSource = new ConnectionFactoryDataSource(() -> connection);
+        connectionPool = new CommonsConnectionPool(dataSource, CommonsConnectionPoolConfig.Builder.newInstance().build());
+        var poolDataSource = new ConnectionPoolDataSource(connectionPool);
+        dataSourceRegistry.register(ConfigurationKeys.DATASOURCE_NAME, poolDataSource);
+        txManager.registerResource(new DataSourceResource(poolDataSource));
+        contractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, ConfigurationKeys.DATASOURCE_NAME, transactionContext, new ObjectMapper());
 
-            public void start() {
-                SqlContractDefinitionStoreTest.this.transactionContext = context.getService(TransactionContext.class);
-                SqlContractDefinitionStoreTest.this.dataSourceRegistry = context.getService(DataSourceRegistry.class);
-                SqlContractDefinitionStoreTest.this.contractDefinitionStore = context.getService(ContractDefinitionStore.class);
+        try (var inputStream = this.getClass().getClassLoader().getResourceAsStream("schema.sql")) {
+            var schema = new String(Objects.requireNonNull(inputStream).readAllBytes(), StandardCharsets.UTF_8);
+            transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
 
-                try (var inputStream = this.getClass().getClassLoader().getResourceAsStream("schema.sql")) {
-                    var schema = new String(Objects.requireNonNull(inputStream).readAllBytes(), StandardCharsets.UTF_8);
-                    try (var connection = dataSourceRegistry.resolve(ConfigurationKeys.DATASOURCE_NAME).getConnection()) {
-                        transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
-                    }
-                } catch (IOException | SQLException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @AfterEach
-    void tearDown() {
-        transactionContext.execute(() -> {
-            try (var connection = dataSourceRegistry.resolve(ConfigurationKeys.DATASOURCE_NAME).getConnection()) {
-                executeQuery(connection, String.format("DELETE FROM %s", SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE));
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        });
+    void tearDown() throws Exception {
+        connectionPool.close();
     }
 
     private ContractDefinition getContractDefinition(String id, String contractId, String policyId) {
@@ -128,12 +119,14 @@ public class SqlContractDefinitionStoreTest {
     @DisplayName("Context Loads, tables exist")
     void contextLoads() throws SQLException {
         var query = String.format("SELECT 1 FROM %s", SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE);
-        executeQuery(dataSourceRegistry.resolve(ConfigurationKeys.DATASOURCE_NAME).getConnection(), query);
+        var result = executeQuery(dataSourceRegistry.resolve(ConfigurationKeys.DATASOURCE_NAME).getConnection(), query);
+
+        assertThat(result).isNotNull();
     }
 
     @Test
-    @DisplayName("Save a single Contract Definition")
-    void saveOne() {
+    @DisplayName("Save a single Contract Definition that doesn't already exist")
+    void saveOne_doesntExist() {
         var definition = getContractDefinition("id", "contract", "policy");
         contractDefinitionStore.save(definition);
 
@@ -144,8 +137,31 @@ public class SqlContractDefinitionStoreTest {
     }
 
     @Test
-    @DisplayName("Save multiple Contract Definitions")
-    void saveMany() {
+    @DisplayName("Save a single Contract Definition that already exists")
+    void saveOne_alreadyExist() {
+        var definition = getContractDefinition("id", "contract", "policy");
+        contractDefinitionStore.save(definition);
+
+        assertThatThrownBy(() -> contractDefinitionStore.save(definition)).isInstanceOf(EdcPersistenceException.class);
+    }
+
+    @Test
+    @DisplayName("Save a single Contract Definition that is identical to an existing contract definition except for the id")
+    void saveOne_sameIdDifferentParameters() {
+        var definition1 = getContractDefinition("id1", "contract", "policy");
+        var definition2 = getContractDefinition("id2", "contract", "policy");
+        contractDefinitionStore.save(definition1);
+        contractDefinitionStore.save(definition2);
+
+        var definitions = contractDefinitionStore.findAll();
+
+        assertThat(definitions).isNotNull();
+        assertThat(definitions.size()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("Save multiple Contract Definitions with no preexisting Definitions")
+    void saveMany_noneExist() {
         var definitionsCreated = getContractDefinitions(10);
         contractDefinitionStore.save(definitionsCreated);
 
@@ -156,8 +172,46 @@ public class SqlContractDefinitionStoreTest {
     }
 
     @Test
-    @DisplayName("Update a Contract Definition")
-    void updateOne() throws SQLException {
+    @DisplayName("Save multiple Contract Definitions with some preexisting Definitions")
+    void saveMany_someExist() {
+        var definitionsCreated = getContractDefinitions(10);
+        contractDefinitionStore.save(definitionsCreated.subList(0, 4));
+
+        assertThatThrownBy(() -> contractDefinitionStore.save(definitionsCreated)).isInstanceOf(EdcPersistenceException.class);
+
+        var definitionsRetrieved = contractDefinitionStore.findAll();
+
+        assertThat(definitionsRetrieved).isNotNull();
+        assertThat(definitionsRetrieved.size()).isEqualTo(4);
+    }
+
+    @Test
+    @DisplayName("Save multiple Contract Definitions with all preexisting Definitions")
+    void saveMany_allExist() {
+        var definitionsCreated = getContractDefinitions(10);
+        contractDefinitionStore.save(definitionsCreated);
+
+        assertThatThrownBy(() -> contractDefinitionStore.save(definitionsCreated)).isInstanceOf(EdcPersistenceException.class);
+
+        var definitionsRetrieved = contractDefinitionStore.findAll();
+
+        assertThat(definitionsRetrieved).isNotNull();
+        assertThat(definitionsRetrieved.size()).isEqualTo(definitionsCreated.size());
+    }
+
+    @Test
+    @DisplayName("Update a non-existing Contract Definition")
+    void updateOne_doesNotExist() {
+        var definition = getContractDefinition("id", "contract1", "policy1");
+
+        assertThatThrownBy(() -> contractDefinitionStore.update(definition))
+                .isInstanceOf(EdcPersistenceException.class)
+                .hasMessageContaining(String.format("Cannot update. Contract Definition with ID '%s' does not exist.", definition.getId()));
+    }
+
+    @Test
+    @DisplayName("Update an existing Contract Definition")
+    void updateOne_exists() throws SQLException {
         var definition1 = getContractDefinition("id", "contract1", "policy1");
         var definition2 = getContractDefinition("id", "contract2", "policy2");
 

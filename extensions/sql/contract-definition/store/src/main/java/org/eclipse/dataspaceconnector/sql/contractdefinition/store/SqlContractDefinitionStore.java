@@ -15,9 +15,9 @@
 package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
@@ -45,12 +45,17 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
             SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ACCESS_POLICY,
             SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_CONTRACT_POLICY,
             SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_SELECTOR);
-    private static final String SQL_UPDATE_CLAUSE_TEMPLATE = String.format("UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = ? WHERE contract_definition_id = ?",
+    private static final String SQL_COUNT_CLAUSE_TEMPLATE = String.format("SELECT COUNT (%s) FROM %s WHERE %s = ?",
+            SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID,
+            SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE,
+            SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID);
+    private static final String SQL_UPDATE_CLAUSE_TEMPLATE = String.format("UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = ? WHERE %s = ?",
             SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE,
             SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID,
             SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ACCESS_POLICY,
             SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_CONTRACT_POLICY,
-            SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_SELECTOR);
+            SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_SELECTOR,
+            SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID);
     private static final String SQL_DELETE_CLAUSE_TEMPLATE = String.format("DELETE FROM %s WHERE %s = ?",
             SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE,
             SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID);
@@ -125,7 +130,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
                             objectMapper.writeValueAsString(definition.getSelectorExpression()));
                 }
             } catch (Exception e) {
-                throw new EdcException(e.getMessage(), e);
+                throw new EdcPersistenceException(e.getMessage(), e);
             }
         });
     }
@@ -139,18 +144,28 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
     public void update(ContractDefinition definition) {
         Objects.requireNonNull(definition);
 
-        transactionContext.execute(() -> {
-            try (var connection = getConnection()) {
-                executeQuery(connection, SQL_UPDATE_CLAUSE_TEMPLATE,
-                        definition.getId(),
-                        objectMapper.writeValueAsString(definition.getAccessPolicy()),
-                        objectMapper.writeValueAsString(definition.getContractPolicy()),
-                        objectMapper.writeValueAsString(definition.getSelectorExpression()),
-                        definition.getId());
-            } catch (Exception e) {
-                throw new EdcException(e.getMessage(), e);
+        try (var connection = getConnection()) {
+            if (executeQuery(connection, (resultSet) -> resultSet.getLong(1), SQL_COUNT_CLAUSE_TEMPLATE, definition.getId()).iterator().next() <= 0) {
+                throw new EdcPersistenceException(String.format("Cannot update. Contract Definition with ID '%s' does not exist.", definition.getId()));
             }
-        });
+            transactionContext.execute(() -> {
+                try {
+                    executeQuery(connection, SQL_UPDATE_CLAUSE_TEMPLATE,
+                            definition.getId(),
+                            objectMapper.writeValueAsString(definition.getAccessPolicy()),
+                            objectMapper.writeValueAsString(definition.getContractPolicy()),
+                            objectMapper.writeValueAsString(definition.getSelectorExpression()),
+                            definition.getId());
+                } catch (JsonProcessingException e) {
+                    throw new EdcPersistenceException(e);
+                }
+            });
+        } catch (Exception e) {
+            if (e instanceof EdcPersistenceException) {
+                throw (EdcPersistenceException) e;
+            }
+            throw new EdcPersistenceException(e.getMessage(), e);
+        }
     }
 
     @Override
@@ -162,7 +177,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
                 executeQuery(connection, SQL_DELETE_CLAUSE_TEMPLATE,
                         id);
             } catch (Exception e) {
-                throw new EdcException(e.getMessage(), e);
+                throw new EdcPersistenceException(e.getMessage(), e);
             }
         });
     }
