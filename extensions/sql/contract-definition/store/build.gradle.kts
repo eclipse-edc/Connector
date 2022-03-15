@@ -14,7 +14,6 @@
 
 plugins {
     `java-library`
-    `java-test-fixtures`
     `maven-publish`
 }
 
@@ -22,12 +21,11 @@ val h2Version: String by project
 val assertj: String by project
 
 dependencies {
-    api(project(":spi:core-spi"))
-    api(project(":spi:contract-spi"))
-    api(project(":extensions:dataloading"))
-    api(project(":extensions:transaction:transaction-spi"))
-    api(project(":extensions:transaction:transaction-datasource-spi"))
-
+    implementation(project(":spi:core-spi"))
+    implementation(project(":spi:contract-spi"))
+    implementation(project(":extensions:dataloading"))
+    implementation(project(":extensions:transaction:transaction-spi"))
+    implementation(project(":extensions:transaction:transaction-datasource-spi"))
     implementation(project(":extensions:sql:common"))
 
     testImplementation(testFixtures(project(":launchers:junit")))
