@@ -18,6 +18,7 @@ import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.FailsafeExecutor;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
+import org.eclipse.dataspaceconnector.spi.persistence.LeaseContext;
 
 import java.util.List;
 import java.util.Objects;
@@ -28,59 +29,50 @@ import java.util.Objects;
  *
  * <em>This happens on the database in an ACID way.</em>
  */
-public class LeaseContext {
+public class CosmosLeaseContext implements LeaseContext {
     private static final String LEASE_SPROC_NAME = "lease";
     private final String partitionKey;
     private final CosmosDbApi cosmosDbApi;
     private final String leaseHolder;
     private FailsafeExecutor<Object> retryPolicy;
 
-    private LeaseContext(CosmosDbApi cosmosDbApi, String partitionKey, String leaseHolder) {
+    private CosmosLeaseContext(CosmosDbApi cosmosDbApi, String partitionKey, String leaseHolder) {
         this.cosmosDbApi = cosmosDbApi;
         this.partitionKey = partitionKey;
         this.leaseHolder = leaseHolder;
     }
 
     /**
-     * Creates a new instance of the {@link LeaseContext} class
+     * Creates a new instance of the {@link CosmosLeaseContext} class
      *
      * @param api          An instance of the {@link CosmosDbApi}
      * @param leaseHolder  A string identifying the holder of the lease, e.g. a connector runtime name
      * @param partitionKey The partition key
      */
-    public static LeaseContext with(CosmosDbApi api, String partitionKey, String leaseHolder) {
+    public static CosmosLeaseContext with(CosmosDbApi api, String partitionKey, String leaseHolder) {
         Objects.requireNonNull(api, "CosmosDbApi");
         Objects.requireNonNull(partitionKey, "partitionKey");
         Objects.requireNonNull(leaseHolder, "leaseHolder");
-        return new LeaseContext(api, partitionKey, leaseHolder);
+        return new CosmosLeaseContext(api, partitionKey, leaseHolder);
     }
 
     /**
      * Optionally provide a {@link RetryPolicy} to guard agains transient errors.
      */
-    public LeaseContext usingRetry(List<RetryPolicy<Object>> retryPolicies) {
+    public CosmosLeaseContext usingRetry(List<RetryPolicy<Object>> retryPolicies) {
         retryPolicy = Failsafe.with(retryPolicies);
         return this;
     }
 
-    /**
-     * Breaks the exclusive Lock on a document
-     *
-     * @param documentId The database ID of the document
-     * @throws com.azure.cosmos.implementation.BadRequestException if the lease could not be broken, e.g. because another holder holds it.
-     */
-    public void breakLease(String documentId) {
-        writeLease(documentId, false);
+    @Override
+    public void breakLease(String entityId) {
+        writeLease(entityId, false);
     }
 
-    /**
-     * Acquires the exclusive Lock on a document
-     *
-     * @param documentId The database ID of the document
-     * @throws com.azure.cosmos.implementation.BadRequestException if the lease could not be acquired, e.g. because another holder holds it.
-     */
-    public void acquireLease(String documentId) {
-        writeLease(documentId, true);
+
+    @Override
+    public void acquireLease(String entityId) {
+        writeLease(entityId, true);
     }
 
     private void writeLease(String documentId, boolean writeLease) {

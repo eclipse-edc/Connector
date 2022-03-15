@@ -17,8 +17,8 @@ package org.eclipse.dataspaceconnector.transfer.store.cosmos.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import org.eclipse.dataspaceconnector.azure.cosmos.Lease;
 import org.eclipse.dataspaceconnector.azure.cosmos.LeaseableCosmosDocument;
+import org.eclipse.dataspaceconnector.spi.persistence.Lease;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 
 /**

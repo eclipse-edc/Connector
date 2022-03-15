@@ -1,6 +1,7 @@
 -- Statements are designed for and tested with Postgres only!
 
-CREATE TABLE IF NOT EXISTS edc_lease
+DROP TABLE IF EXISTS edc_lease;
+CREATE TABLE edc_lease
 (
     leased_by      VARCHAR NOT NULL,
     leased_at      BIGINT,
@@ -14,15 +15,16 @@ COMMENT ON COLUMN edc_lease.leased_at IS 'posix timestamp of lease';
 
 COMMENT ON COLUMN edc_lease.lease_duration IS 'duration of lease in milliseconds';
 
+DROP TABLE IF EXISTS edc_transfer_process;
 CREATE TABLE IF NOT EXISTS edc_transfer_process
 (
     id                       VARCHAR           NOT NULL
         CONSTRAINT transfer_process_pk
             PRIMARY KEY,
-    type                     INTEGER DEFAULT 0 NOT NULL,
+    type                     VARCHAR           NOT NULL,
     state                    INTEGER           NOT NULL,
     state_count              INTEGER DEFAULT 0 NOT NULL,
-    state_time_stamp         TIMESTAMP,
+    state_time_stamp         BIGINT,
     trace_context            VARCHAR,
     error_detail             VARCHAR,
     resource_manifest        VARCHAR,
@@ -42,6 +44,7 @@ COMMENT ON COLUMN edc_transfer_process.provisioned_resource_set IS 'ProvisionedR
 CREATE UNIQUE INDEX transfer_process_id_uindex
     ON edc_transfer_process (id);
 
+DROP TABLE IF EXISTS edc_data_request;
 CREATE TABLE IF NOT EXISTS edc_data_request
 (
     id                  VARCHAR NOT NULL
@@ -69,8 +72,6 @@ COMMENT ON COLUMN edc_data_request.properties IS 'java Map serialized as JSON';
 
 COMMENT ON COLUMN edc_data_request.transfer_type IS 'TransferType serialized as JSON';
 
-ALTER TABLE edc_data_request
-    OWNER TO "user";
 
 CREATE UNIQUE INDEX data_request_id_uindex
     ON edc_data_request (id);

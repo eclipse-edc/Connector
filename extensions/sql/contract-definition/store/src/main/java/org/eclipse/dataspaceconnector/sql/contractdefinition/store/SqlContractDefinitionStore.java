@@ -193,6 +193,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
                 throw new EdcPersistenceException(e.getMessage(), e);
             }
         });
+
     }
 
     private boolean existsById(String definitionId, Connection connection) {

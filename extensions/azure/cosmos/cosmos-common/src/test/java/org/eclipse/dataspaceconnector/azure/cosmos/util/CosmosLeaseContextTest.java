@@ -27,16 +27,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class LeaseContextTest {
+class CosmosLeaseContextTest {
 
     public static final String TEST_PARTITION_KEY = "test-partition-key";
-    private LeaseContext context;
+    private CosmosLeaseContext context;
     private CosmosDbApi cosmosDbApiMock;
 
     @BeforeEach
     void setUp() {
         cosmosDbApiMock = mock(CosmosDbApi.class);
-        context = LeaseContext.with(cosmosDbApiMock, TEST_PARTITION_KEY, "me");
+        context = CosmosLeaseContext.with(cosmosDbApiMock, TEST_PARTITION_KEY, "me");
     }
 
     @Test
