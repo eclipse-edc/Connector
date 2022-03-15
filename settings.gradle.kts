@@ -42,8 +42,6 @@ include(":data-protocols:ids:ids-spi")
 include(":data-protocols:ids:ids-transform-v1")
 include(":data-protocols:ids:ids-token-validation")
 
-include("extensions:sql:contract-definition:spi")
-include("extensions:sql:contract-definition:loader")
 include("extensions:sql:contract-definition:store")
 
 // modules for technology- or cloud-provider extensions

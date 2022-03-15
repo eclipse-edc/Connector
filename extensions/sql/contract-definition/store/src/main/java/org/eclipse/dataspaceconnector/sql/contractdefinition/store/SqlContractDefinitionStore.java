@@ -25,8 +25,6 @@ import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
-import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
-import org.eclipse.dataspaceconnector.sql.contractdefinition.spi.SqlContractDefinitionTables;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
@@ -82,7 +80,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
     @Override
     public @NotNull Collection<ContractDefinition> findAll() {
         try (var connection = getConnection()) {
-            return SqlQueryExecutor.executeQuery(
+            return executeQuery(
                     connection,
                     this::mapResultSet,
                     String.format(SQL_FIND_CLAUSE_TEMPLATE, SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE));
@@ -103,7 +101,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
         var query = SQL_FIND_CLAUSE_TEMPLATE + " " + limit.getStatement();
 
         try (var connection = getConnection()) {
-            var definitions = SqlQueryExecutor.executeQuery(
+            var definitions = executeQuery(
                     connection,
                     this::mapResultSet,
                     String.format(query, SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE));
@@ -172,6 +170,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
     private DataSource getDataSource() {
         return Objects.requireNonNull(dataSourceRegistry.resolve(dataSourceName), String.format("DataSource %s could not be resolved", dataSourceName));
     }
+
     private Connection getConnection() throws SQLException {
         return getDataSource().getConnection();
     }

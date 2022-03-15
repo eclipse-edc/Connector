@@ -15,13 +15,13 @@
 package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 
 
+import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
-import org.eclipse.dataspaceconnector.sql.contractdefinition.spi.ConfigurationKeys;
 
 public class SqlContractDefinitionStoreServiceExtension implements ServiceExtension {
 
@@ -37,6 +37,7 @@ public class SqlContractDefinitionStoreServiceExtension implements ServiceExtens
 
         var sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, dataSourceName, transactionContext, context.getTypeManager().getMapper());
 
+        context.registerService(ContractDefinitionLoader.class, sqlContractDefinitionStore::save);
         context.registerService(ContractDefinitionStore.class, sqlContractDefinitionStore);
     }
 }
