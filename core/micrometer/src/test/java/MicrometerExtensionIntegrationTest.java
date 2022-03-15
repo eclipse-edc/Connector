@@ -12,12 +12,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class MicrometerExtensionIntegrationTest {
 
     private final OkHttpClient httpClient = new OkHttpClient();
+    private final static String METRICS_ENDPOINT = "http://localhost:9464/metrics";
 
     @Test
     public void testMicrometerMetrics() {
 
         var request =  new Request.Builder()
-                .url("http://localhost:9464/metrics")
+                .url(METRICS_ENDPOINT)
                 .get()
                 .build();
 
@@ -30,9 +31,5 @@ public class MicrometerExtensionIntegrationTest {
                 .anyMatch(s -> s.startsWith("jvm_gc"))
                 .anyMatch(s -> s.startsWith("system_cpu_"))
                 .anyMatch(s -> s.startsWith("jvm_threads_"));
-
-        for (String metric: metrics) {
-            System.out.println(metric);
-        }
     }
 }
