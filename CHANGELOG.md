@@ -38,6 +38,7 @@ the detailed section referring to by linking pull requests or issues.
 * Remove ION extension (#664)
 * Remove module `:samples:other:commandline` (#820)
 * Remove unneeded/unimplemented methods from `TransferProcessStore` (#859)
+* Remove module `:samples:other:streaming` (#889)
 
 #### Fixed
 * Flaky S3 StatusChecker Test (#794)
