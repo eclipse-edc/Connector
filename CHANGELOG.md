@@ -92,6 +92,7 @@ the detailed section referring to by linking pull requests or issues.
 * Add public Api to DPF and make `HttpDataSource` more generic (#699)
 * Add an in-memory data plane store (#705)
 * Introduce extensions for synchronous data transfer using data plane (#711)
+* Add a deleteById method to the AssetLoader interface (#?)
 
 #### Changed
 

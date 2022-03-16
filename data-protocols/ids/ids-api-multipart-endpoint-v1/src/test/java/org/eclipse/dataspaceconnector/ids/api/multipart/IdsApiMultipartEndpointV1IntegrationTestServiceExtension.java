@@ -262,7 +262,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         }
 
         @Override
-        public void delete(String id) {
+        public ContractDefinition deleteById(String id) {
             throw new NotImplementedError();
         }
 
