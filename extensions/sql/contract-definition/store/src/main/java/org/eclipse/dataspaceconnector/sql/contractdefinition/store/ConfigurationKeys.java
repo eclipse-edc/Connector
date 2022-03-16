@@ -17,19 +17,14 @@ package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 
 /**
- * Defines configuration keys used by the SqlContractDefinitionSchemaServiceExtension.
+ * Defines configuration keys used by the SqlContractDefinitionStoreServiceExtension.
  */
 public interface ConfigurationKeys {
-
-    String DATASOURCE_NAME = "contractdefinition";
 
     /**
      * Name of the datasource to use for accessing contract definitions.
      */
     @EdcSetting(required = true)
-    String DATASOURCE_SETTING_NAME = String.format("edc.datasource.%s.name", DATASOURCE_NAME);
-
-    String DATASOURCE_SETTING_URL = String.format("edc.datasource.%s.url", DATASOURCE_NAME);
-    String DATASOURCE_SETTING_DRIVER_CLASS = String.format("edc.datasource.%s.driverClassName", DATASOURCE_NAME);
+    String DATASOURCE_SETTING_NAME = "edc.datasource.contractdefinition.name";
 
 }

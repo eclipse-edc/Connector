@@ -52,6 +52,8 @@ import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
 public class SqlContractDefinitionStoreTest {
 
+    private static final String DATASOURCE_NAME = "contractdefinition";
+
     private DataSourceRegistry dataSourceRegistry;
     private ContractDefinitionStore contractDefinitionStore;
     private ConnectionPool connectionPool;
@@ -69,9 +71,9 @@ public class SqlContractDefinitionStoreTest {
         var dataSource = new ConnectionFactoryDataSource(() -> connection);
         connectionPool = new CommonsConnectionPool(dataSource, CommonsConnectionPoolConfig.Builder.newInstance().build());
         var poolDataSource = new ConnectionPoolDataSource(connectionPool);
-        dataSourceRegistry.register(ConfigurationKeys.DATASOURCE_NAME, poolDataSource);
+        dataSourceRegistry.register(DATASOURCE_NAME, poolDataSource);
         txManager.registerResource(new DataSourceResource(poolDataSource));
-        contractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, ConfigurationKeys.DATASOURCE_NAME, transactionContext, new ObjectMapper());
+        contractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper());
 
         try (var inputStream = this.getClass().getClassLoader().getResourceAsStream("schema.sql")) {
             var schema = new String(Objects.requireNonNull(inputStream).readAllBytes(), StandardCharsets.UTF_8);
@@ -119,7 +121,7 @@ public class SqlContractDefinitionStoreTest {
     @DisplayName("Context Loads, tables exist")
     void contextLoads() throws SQLException {
         var query = String.format("SELECT 1 FROM %s", SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE);
-        var result = executeQuery(dataSourceRegistry.resolve(ConfigurationKeys.DATASOURCE_NAME).getConnection(), query);
+        var result = executeQuery(dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection(), query);
 
         assertThat(result).isNotNull();
     }
@@ -222,7 +224,7 @@ public class SqlContractDefinitionStoreTest {
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE,
                 SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID);
 
-        var definitions = executeQuery(dataSourceRegistry.resolve(ConfigurationKeys.DATASOURCE_NAME).getConnection(),
+        var definitions = executeQuery(dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection(),
                 ((SqlContractDefinitionStore) contractDefinitionStore)::mapResultSet,
                 query,
                 definition1.getId());
