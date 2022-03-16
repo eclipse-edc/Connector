@@ -104,6 +104,10 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
         super.initializeContext(context);
     }
 
+    public DefaultServiceExtensionContext getContext() {
+        return context;
+    }
+
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         var type = parameterContext.getParameter().getParameterizedType();
