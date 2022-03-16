@@ -46,6 +46,7 @@ the detailed section referring to by linking pull requests or issues.
 * Update build system to Java 17 (#934)
 * Refactor (=generify) transformer subsystem (#779)
 * Extract interfaces for every api controller class to improve swagger documentation (#891)
+* Instrument executors with metrics (#912)
 
 #### Removed
 

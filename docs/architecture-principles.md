@@ -54,3 +54,6 @@
 ### XI. Class Naming
 1. A single implementor of an interface should be named `<interface name>Impl`.
 2. An implementor who are meant to be the default implementation for an interface but other are/can be defined used instead.
+
+### XII. Observability
+1. Services are [instrumented for collecting essential metrics](metrics.md), in particular instances of `ExecutorService`.

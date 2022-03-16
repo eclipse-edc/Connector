@@ -64,7 +64,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     private ConsumerContractNegotiationManagerImpl() { }
 
     public void start() {
-        stateMachine = StateMachine.Builder.newInstance("consumer-contract-negotiation", monitor, waitStrategy)
+        stateMachine = StateMachine.Builder.newInstance("consumer-contract-negotiation", monitor, executorInstrumentation, waitStrategy)
                 .processor(processNegotiationsInState(INITIAL, this::processInitial))
                 .processor(processNegotiationsInState(REQUESTING, this::processRequesting))
                 .processor(processNegotiationsInState(CONSUMER_OFFERING, this::processConsumerOffering))
