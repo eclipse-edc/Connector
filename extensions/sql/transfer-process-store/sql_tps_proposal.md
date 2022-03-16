@@ -1,33 +1,7 @@
 ## Table schema
 
 ```sql
-create table edc.data_request
-(
-    id                varchar                                            not null
-        constraint data_request_pk
-            primary key,
-    process_id        varchar                                            not null,
-    connector_address varchar                                            not null,
-    protocol          varchar default 'ids-multipart'::character varying not null,
-    connector_id      varchar,
-    asset_id          varchar                                            not null,
-    contract_id       varchar                                            not null,
-    data_destination  varchar                                            not null,
-    managed_resources boolean default true,
-    properties        varchar,
-    transfer_type     varchar
-);
-
-comment on column edc.data_request.data_destination is 'DataAddress serialized as JSON';
-
-comment on column edc.data_request.properties is 'java Map serialized as JSON';
-
-comment on column edc.data_request.transfer_type is 'TransferType serialized as JSON';
-
-alter table edc.data_request
-    owner to "user";
-
-create table edc.transfer_process
+create table transfer_process
 (
     id                       varchar           not null
         constraint transfer_process_pk
@@ -39,27 +13,53 @@ create table edc.transfer_process
     trace_context            varchar,
     error_detail             varchar,
     resource_manifest        varchar,
-    provisioned_resource_set varchar,
-    data_request_id          varchar           not null
-        constraint data_request___fk
-            references edc.data_request
-            on update restrict on delete restrict
+    provisioned_resource_set varchar
 );
 
-comment on column edc.transfer_process.trace_context is 'Java Map serialized as JSON';
+comment on column transfer_process.trace_context is 'Java Map serialized as JSON';
 
-comment on column edc.transfer_process.resource_manifest is 'java ResourceManifest serialized as JSON';
+comment on column transfer_process.resource_manifest is 'java ResourceManifest serialized as JSON';
 
-comment on column edc.transfer_process.provisioned_resource_set is 'ProvisionedResourceSet serialized as JSON';
+comment on column transfer_process.provisioned_resource_set is 'ProvisionedResourceSet serialized as JSON';
 
-alter table edc.transfer_process
+alter table transfer_process
     owner to "user";
 
-create unique index transfer_process_id_uindex
-    on edc.transfer_process (id);
+create table data_request
+(
+    id                  varchar                                            not null
+        constraint data_request_pk
+            primary key,
+    process_id          varchar                                            not null,
+    connector_address   varchar                                            not null,
+    protocol            varchar default 'ids-multipart'::character varying not null,
+    connector_id        varchar,
+    asset_id            varchar                                            not null,
+    contract_id         varchar                                            not null,
+    data_destination    varchar                                            not null,
+    managed_resources   boolean default true,
+    properties          varchar,
+    transfer_type       varchar,
+    transfer_process_id varchar                                            not null
+        constraint data_request_transfer_process_id_fk
+            references transfer_process
+            on update restrict on delete cascade
+);
+
+comment on column data_request.data_destination is 'DataAddress serialized as JSON';
+
+comment on column data_request.properties is 'java Map serialized as JSON';
+
+comment on column data_request.transfer_type is 'TransferType serialized as JSON';
+
+alter table data_request
+    owner to "user";
 
 create unique index data_request_id_uindex
-    on edc.data_request (id);
+    on data_request (id);
+
+create unique index transfer_process_id_uindex
+    on transfer_process (id);
 
 ```
 
@@ -68,10 +68,10 @@ create unique index data_request_id_uindex
 selects a TransferProcess based on the DataRequest ID
 ```sql
 select t.* from edc.transfer_process t
-where t.data_request_id=
-      (select d.id
+where t.id=
+      (select d.transfer_process_id
         from edc.data_request d
-        where d.process_id = 'test-pid');
+        where d.process_id = 'test-pid2');
 ```
 
 #### `find`
@@ -97,20 +97,20 @@ _Nota bene: this locks a row until the transaction is completed, see [below](#op
 #### `create`
 inserts a new TP into the database by first inserting the `DataRequest`, obtaining it's ID and then creating the `TransferProcess` entry.
 ```sql
-with drq_id as
-    (insert into edc.data_request (id, process_id, connector_address, connector_id, asset_id, contract_id, data_destination, properties, transfer_type)
-    values ('test-drq-2', 'test-pid2', 'http://anotherconnector.com', 'anotherconnector', 'asset2', 'contract2', '{}', null, default) returning id)
+--must be done in the same transaction:
 
- insert into edc.transfer_process (id, state, state_time_stamp, trace_context, error_detail, resource_manifest, provisioned_resource_set, data_request_id)
-    select 'test-id2', 400, now(), null, null, null, null, drq_id.id
-    from drq_id;
+insert into edc.transfer_process (id, state, state_time_stamp, trace_context, error_detail, resource_manifest, provisioned_resource_set)
+values('test-id2', 400, now(), null, null, null, null)
+
+insert into edc.data_request (id, process_id, connector_address, connector_id, asset_id, contract_id, data_destination, properties, transfer_type, transfer_process_id)
+values ('test-drq-2', 'test-pid2', 'http://anotherconnector.com', 'anotherconnector', 'asset2', 'contract2', '{}', null, default, 'test-id2')
 ```
 
 #### `delete`
 removes a TP from the database by first deleting the TP, then the DR:
 ```sql
-with tid as (delete from edc.transfer_process where id='test-id2' returning transfer_process.data_request_id)
-    delete from edc.data_request d where d.id = (select id from tid);
+-- fk delete cascade will remove the data_request row
+delete from edc.transfer_process where id='test-id2';
 ```
 
 #### `update`
