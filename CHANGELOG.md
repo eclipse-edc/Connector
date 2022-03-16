@@ -23,6 +23,7 @@ the detailed section referring to by linking pull requests or issues.
 * Unit test framework for Dependency Injection (#843)
 * Implemented S3BucketReader (#675)
 * Add a deleteById method to the AssetLoader interface (#880)
+* Apply 2-state transition pattern to `ContractNegotiationManager`s (#870)
 
 #### Changed
 

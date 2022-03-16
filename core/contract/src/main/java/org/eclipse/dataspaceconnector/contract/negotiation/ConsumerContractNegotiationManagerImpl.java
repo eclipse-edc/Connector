@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
  *       Daimler TSS GmbH - fixed contract dates to epoch seconds
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
@@ -61,6 +62,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONSUMER_OFFERING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.DECLINING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.INITIAL;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTING;
 
 /**
  * Implementation of the {@link ConsumerContractNegotiationManager}.
@@ -87,6 +89,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     public void start() {
         stateMachine = StateMachine.Builder.newInstance("consumer-contract-negotiation", monitor, waitStrategy)
                 .processor(processNegotiationsInState(INITIAL, this::processInitial))
+                .processor(processNegotiationsInState(REQUESTING, this::processRequesting))
                 .processor(processNegotiationsInState(CONSUMER_OFFERING, this::processConsumerOffering))
                 .processor(processNegotiationsInState(CONSUMER_APPROVING, this::processConsumerApproving))
                 .processor(processNegotiationsInState(DECLINING, this::processDeclining))
@@ -301,19 +304,28 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     }
 
     /**
-     * Processes {@link ContractNegotiation} in state INITIAL. Tries to send the current
-     * offer to the respective provider and transition ContractNegotiation to REQUESTING.
-     * If this succeeds, the ContractNegotiation is transitioned to state REQUESTED.
-     * Else, it is transitioned to INITIAL for a retry.
+     * Processes {@link ContractNegotiation} in state INITIAL. Transition ContractNegotiation to REQUESTING.
      *
-     * @return true if processed, false elsewhere
+     * @return true if processed, false otherwise
      */
     @WithSpan
     private boolean processInitial(ContractNegotiation negotiation) {
-        var offer = negotiation.getLastContractOffer();
         negotiation.transitionRequesting();
         negotiationStore.save(negotiation);
+        return true;
+    }
 
+    /**
+     * Processes {@link ContractNegotiation} in state REQUESTING. Tries to send the current
+     * offer to the respective provider.
+     * If this succeeds, the ContractNegotiation is transitioned to state REQUESTED.
+     * Else, it is transitioned to INITIAL for a retry.
+     *
+     * @return true if processed, false otherwise
+     */
+    @WithSpan
+    private boolean processRequesting(ContractNegotiation negotiation) {
+        var offer = negotiation.getLastContractOffer();
         sendOffer(offer, negotiation, ContractOfferRequest.Type.INITIAL)
                 .whenComplete(onInitialOfferSent(negotiation.getId(), offer.getId()));
 
@@ -325,7 +337,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      * offer to the respective provider. If this succeeds, the ContractNegotiation is transitioned
      * to state CONSUMER_OFFERED. Else, it is transitioned to CONSUMER_OFFERING for a retry.
      *
-     * @return true if processed, false elsewhere
+     * @return true if processed, false otherwise
      */
     @WithSpan
     private boolean processConsumerOffering(ContractNegotiation negotiation) {
@@ -333,7 +345,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         sendOffer(offer, negotiation, ContractOfferRequest.Type.COUNTER_OFFER)
                 .whenComplete(onCounterOfferSent(negotiation.getId(), offer.getId()));
 
-        return false;
+        return true;
     }
 
     @NotNull
@@ -394,7 +406,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      * provider. If this succeeds, the ContractNegotiation is transitioned to state
      * CONSUMER_APPROVED. Else, it is transitioned to CONSUMER_APPROVING for a retry.
      *
-     * @return true if processed, false elsewhere
+     * @return true if processed, false otherwise
      */
     @WithSpan
     private boolean processConsumerApproving(ContractNegotiation negotiation) {
@@ -465,7 +477,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      * to the respective provider. If this succeeds, the ContractNegotiation is transitioned
      * to state DECLINED. Else, it is transitioned to DECLINING for a retry.
      *
-     * @return true if processed, false elsewhere
+     * @return true if processed, false otherwise
      */
     @WithSpan
     private boolean processDeclining(ContractNegotiation negotiation) {

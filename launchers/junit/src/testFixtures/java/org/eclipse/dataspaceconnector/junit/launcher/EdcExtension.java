@@ -54,7 +54,6 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
     private final LinkedHashMap<Class<? extends SystemExtension>, List<SystemExtension>> systemExtensions = new LinkedHashMap<>();
     private List<ServiceExtension> runningServiceExtensions;
     private DefaultServiceExtensionContext context;
-    private Monitor monitor;
 
     /**
      * Registers a mock service with the runtime.
@@ -79,8 +78,9 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
 
     @Override
     public void afterTestExecution(ExtensionContext context) throws Exception {
+        // TODO: this shutdown is duplicated but it's necessary to DataPlaneHttpIntegrationTests, needs to be fixed
         if (runningServiceExtensions != null) {
-            shutdown(runningServiceExtensions, monitor);
+            shutdown(runningServiceExtensions, getMonitor());
         }
 
         // clear the systemExtensions map to prevent it from piling up between subsequent runs
@@ -102,7 +102,6 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
     @Override
     protected void initializeContext(ServiceExtensionContext context) {
         serviceMocks.forEach((key, value) -> context.registerService(cast(key), value));
-        this.monitor = context.getMonitor();
         super.initializeContext(context);
     }
 

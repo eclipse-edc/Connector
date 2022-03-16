@@ -96,8 +96,8 @@ public class EndToEndTransferTest {
                     put("web.http.path", "/api");
                     put("web.http.public.port", String.valueOf(CONSUMER_DATA_PLANE_PUBLIC.getPort()));
                     put("web.http.public.path", "/public");
-                    put("web.http.control.port", String.valueOf(getFreePort())); // TODO it's needed?
-                    put("web.http.control.path", "/control"); // TODO it's needed?
+                    put("web.http.control.port", String.valueOf(getFreePort()));
+                    put("web.http.control.path", "/control");
                     put("edc.controlplane.validation-endpoint", CONSUMER_CONTROL_PLANE_VALIDATION + "/validation");
                 }
             }
@@ -124,8 +124,8 @@ public class EndToEndTransferTest {
                     put("web.http.path", "/api");
                     put("web.http.public.port", String.valueOf(PROVIDER_DATA_PLANE_PUBLIC.getPort()));
                     put("web.http.public.path", "/public");
-                    put("web.http.control.port", String.valueOf(getFreePort())); // TODO it's needed?
-                    put("web.http.control.path", "/control"); // TODO it's needed?
+                    put("web.http.control.port", String.valueOf(getFreePort()));
+                    put("web.http.control.path", "/control");
                     put("edc.controlplane.validation-endpoint", PROVIDER_CONTROL_PLANE_VALIDATION + "/validation");
                 }
             }

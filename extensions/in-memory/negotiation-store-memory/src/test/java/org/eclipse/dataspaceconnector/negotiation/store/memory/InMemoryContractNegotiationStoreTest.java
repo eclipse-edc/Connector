@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.Contra
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,9 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.negotiation.store.memory.TestFunctions.createNegotiation;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.INITIAL;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -65,7 +69,7 @@ class InMemoryContractNegotiationStoreTest {
 
         assertNotNull(store.findContractAgreement("agreementId"));
 
-        assertEquals(ContractNegotiationStates.INITIAL.code(), found.getState());
+        assertEquals(INITIAL.code(), found.getState());
 
         negotiation.transitionRequesting();
 
@@ -73,7 +77,7 @@ class InMemoryContractNegotiationStoreTest {
 
         found = store.find(id);
         assertNotNull(found);
-        assertEquals(ContractNegotiationStates.REQUESTING.code(), found.getState());
+        assertEquals(REQUESTING.code(), found.getState());
 
         store.delete(id);
         Assertions.assertNull(store.find(id));
@@ -83,16 +87,9 @@ class InMemoryContractNegotiationStoreTest {
 
     @Test
     void verifyNext() throws InterruptedException {
-        String id1 = UUID.randomUUID().toString();
-        ContractNegotiation negotiation1 = createNegotiation(id1);
-        negotiation1.transitionInitial();
-        negotiation1.transitionRequesting();
-        String id2 = UUID.randomUUID().toString();
-        ContractNegotiation negotiation2 = createNegotiation(id2);
-        negotiation2.transitionInitial();
-        negotiation2.transitionRequesting();
-
+        var negotiation1 = requestingNegotiation();
         store.save(negotiation1);
+        var negotiation2 = requestingNegotiation();
         store.save(negotiation2);
 
         negotiation2.transitionRequested();
@@ -101,16 +98,35 @@ class InMemoryContractNegotiationStoreTest {
         negotiation1.transitionRequested();
         store.save(negotiation1);
 
-        assertTrue(store.nextForState(ContractNegotiationStates.REQUESTING.code(), 1).isEmpty());
+        var requestingNegotiations = store.nextForState(REQUESTING.code(), 1);
+        assertThat(requestingNegotiations).isEmpty();
 
-        List<ContractNegotiation> found = store.nextForState(ContractNegotiationStates.REQUESTED.code(), 1);
+        var found = store.nextForState(REQUESTED.code(), 1);
         assertEquals(1, found.size());
         assertEquals(negotiation2, found.get(0));
 
-        found = store.nextForState(ContractNegotiationStates.REQUESTED.code(), 3);
-        assertEquals(2, found.size());
-        assertEquals(negotiation2, found.get(0));
-        assertEquals(negotiation1, found.get(1));
+        found = store.nextForState(REQUESTED.code(), 3);
+        assertEquals(1, found.size());
+        assertEquals(negotiation1, found.get(0));
+    }
+
+    @Test
+    void nextForState_shouldLeaseEntityUntilSave() {
+        var negotiation = createNegotiation("any");
+        negotiation.transitionInitial();
+        store.save(negotiation);
+
+        var firstQueryResult = store.nextForState(INITIAL.code(), 1);
+        assertThat(firstQueryResult).hasSize(1);
+
+        var secondQueryResult = store.nextForState(INITIAL.code(), 1);
+        assertThat(secondQueryResult).hasSize(0);
+
+        var retrieved = firstQueryResult.get(0);
+        store.save(retrieved);
+
+        var thirdQueryResult = store.nextForState(INITIAL.code(), 1);
+        assertThat(thirdQueryResult).hasSize(1);
     }
 
     @Test
@@ -132,7 +148,7 @@ class InMemoryContractNegotiationStoreTest {
         ContractNegotiation found2 = store.find(id2);
         assertNotNull(found2);
 
-        var found = store.nextForState(ContractNegotiationStates.INITIAL.code(), 3);
+        var found = store.nextForState(INITIAL.code(), 3);
         assertEquals(2, found.size());
 
     }
@@ -145,7 +161,7 @@ class InMemoryContractNegotiationStoreTest {
             store.save(negotiation);
         }
 
-        List<ContractNegotiation> processes = store.nextForState(ContractNegotiationStates.INITIAL.code(), 50);
+        List<ContractNegotiation> processes = store.nextForState(INITIAL.code(), 50);
 
         assertThat(processes).hasSize(50);
         assertThat(processes).allMatch(p -> p.getStateTimestamp() > 0);
@@ -159,10 +175,10 @@ class InMemoryContractNegotiationStoreTest {
             store.save(negotiation);
         }
 
-        var list1 = store.nextForState(ContractNegotiationStates.INITIAL.code(), 5);
+        var list1 = store.nextForState(INITIAL.code(), 5);
         Thread.sleep(50); //simulate a short delay to generate different timestamps
         list1.forEach(tp -> store.save(tp));
-        var list2 = store.nextForState(ContractNegotiationStates.INITIAL.code(), 5);
+        var list2 = store.nextForState(INITIAL.code(), 5);
         assertThat(list1).isNotEqualTo(list2).doesNotContainAnyElementsOf(list2);
     }
 
@@ -214,6 +230,14 @@ class InMemoryContractNegotiationStoreTest {
 
         // must actually collect, otherwise the stream is not materialized
         assertThat(store.queryNegotiations(query).collect(Collectors.toList())).hasSize(10);
+    }
+
+    @NotNull
+    private ContractNegotiation requestingNegotiation() {
+        var negotiation = createNegotiation(UUID.randomUUID().toString());
+        negotiation.transitionInitial();
+        negotiation.transitionRequesting();
+        return negotiation;
     }
 
 

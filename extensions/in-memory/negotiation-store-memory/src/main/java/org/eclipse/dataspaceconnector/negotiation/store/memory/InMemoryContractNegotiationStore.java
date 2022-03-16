@@ -110,9 +110,20 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
     public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
         return lockManager.readLock(() -> {
             var set = stateCache.get(state);
-            return set == null ? Collections.emptyList() : set.stream()
+
+            List<ContractNegotiation> toBeLeased = set == null ? Collections.emptyList() : set.stream()
                     .sorted(Comparator.comparingLong(ContractNegotiation::getStateTimestamp)) //order by state timestamp, oldest first
                     .limit(max)
+                    .collect(toList());
+
+            stateCache.compute(state, (key, value) -> {
+                if (value != null) {
+                    value.removeAll(toBeLeased);
+                }
+                return value;
+            });
+
+            return toBeLeased.stream()
                     .map(ContractNegotiation::copy)
                     .collect(toList());
         });

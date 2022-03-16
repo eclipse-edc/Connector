@@ -31,7 +31,7 @@ jobs:
           INTEGRATION_TEST: false
           JACOCO: true
         # checkstyle would also run as part of the `check` task
-        run: ./gradlew clean check jacocoTestReport -x checkstyleMain -x checkstyleTest
+        run: ./gradlew clean check jacocoTestReport -x checkstyleMain -x checkstyleTest -quiet
 
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
