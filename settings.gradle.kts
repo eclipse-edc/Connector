@@ -144,7 +144,6 @@ include(":samples:other:dataseed:dataseed-aws")
 include(":samples:other:dataseed:dataseed-azure")
 include(":samples:other:dataseed:dataseed-policy")
 include(":samples:other:run-from-junit")
-include(":samples:other:streaming")
 include(":samples:other:custom-runtime")
 
 
