@@ -18,11 +18,13 @@ package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 
+@Provides({ContractDefinitionStore.class, ContractDefinitionLoader.class})
 public class SqlContractDefinitionStoreServiceExtension implements ServiceExtension {
 
     @Inject
