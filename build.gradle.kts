@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -151,11 +151,28 @@ allprojects {
         }
     }
 
-
-
     tasks.withType<Test> {
-        useJUnitPlatform()
+        // Target all type of test e.g. -DrunAllTests="true"
+        val runAllTests: String = System.getProperty("runAllTests", "false");
+        if (runAllTests == "true") {
+            useJUnitPlatform()
+        } else {
+            // Target specific set of tests by specifying junit tags on command-line e.g. -DincludeTags="tag-name1,tag-name2"
+            val includeTagProperty = System.getProperty("includeTags");
+            val includeTags: Array<String> = includeTagProperty?.split(",")?.toTypedArray() ?: emptyArray();
+
+            if (includeTags.isNotEmpty()) {
+                useJUnitPlatform {
+                    includeTags(*includeTags)
+                }
+            } else {
+                useJUnitPlatform {
+                    excludeTags("IntegrationTest")
+                }
+            }
+        }
     }
+
     tasks.withType<Test> {
         testLogging {
             events("failed")

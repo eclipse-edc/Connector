@@ -7,9 +7,6 @@ jobs:
   Azure-Storage-Integration-Test:
     runs-on: ubuntu-latest
 
-    env:
-      RUN_INTEGRATION_TEST: true
-
     services:
       azurite:
         image: mcr.microsoft.com/azure-storage/azurite
@@ -20,23 +17,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
       - uses: actions/setup-java@v2
         with:
           distribution: 'temurin'
           java-version: '11'
           cache: 'gradle'
 
-      - name: Data Plane Azure Storage Test
-        run: ./gradlew extensions:azure:data-plane:storage:check
-
-      - name: Object Storage StatusChecker Test
-        run: ./gradlew extensions:azure:blobstorage:blob-provision:check
+      - name: Azure Storage Tests
+        run: ./gradlew -p extensions/azure test -DincludeTags="AzureStorageIntegrationTest"
 
   Azure-CosmosDB-Integration-Test:
     runs-on: windows-latest
-
-    env:
-      RUN_INTEGRATION_TEST: true
 
     steps:
       - uses: actions/checkout@v2
@@ -45,9 +37,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '11'
-
-      - name: Setup Gradle cache
-        uses: gradle/gradle-build-action@v2
+          cache: 'gradle'
 
       # Cosmos DB Emulator is preinstalled on GitHub Actions workers
       - name: Launch Cosmos DB Emulator
@@ -55,20 +45,8 @@ jobs:
           Import-Module "$env:ProgramFiles\Azure Cosmos DB Emulator\PSModules\Microsoft.Azure.CosmosDB.Emulator"
           Start-CosmosDbEmulator -Timeout 1200
 
-      - name: CosmosDB Transfer Process Store Test
-        run: ./gradlew extensions:azure:cosmos:transfer-process-store-cosmos:test
-
-      - name: Cosmos-based Asset Index test
-        run: ./gradlew extensions:azure:cosmos:assetindex-cosmos:test
-
-      - name: Cosmos-based FCN Directory test
-        run: ./gradlew extensions:azure:cosmos:transfer-process-store-cosmos:test
-
-      - name: Cosmos-based ContractDefinitionStore Test
-        run: ./gradlew extensions:azure:cosmos:contract-definition-store-cosmos:test
-
-      - name: Cosmos-based ContractNegotiationStore Test
-        run: ./gradlew extensions:azure:cosmos:contract-negotiation-store-cosmos:test
+      - name: Azure CosmosDB Tests
+        run: ./gradlew -p extensions/azure/cosmos test -DincludeTags="AzureCosmosDbIntegrationTest"
 
   Aws-Integration-Test:
     runs-on: ubuntu-latest
@@ -84,21 +62,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 11
-        uses: actions/setup-java@v1
-        with:
-          java-version: '11'
 
-      - name: AWS S3 StatusChecker Test
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'gradle'
+
+      - name: AWS S3 Tests
         env:
-          RUN_INTEGRATION_TEST: true
           S3_ACCESS_KEY_ID: root
           S3_SECRET_ACCESS_KEY: password
-        run: ./gradlew extensions:aws:s3:s3-provision:check
+        run: ./gradlew -p extensions/aws/s3 test -DincludeTags="AwsS3IntegrationTest"
 
       - name: AWS S3 StatusChecker Test
         env:
-          RUN_INTEGRATION_TEST: true
           S3_ACCESS_KEY_ID: root
           S3_SECRET_ACCESS_KEY: password
         run: ./gradlew extensions:aws:s3:s3-data-operator:check
@@ -114,12 +92,11 @@ jobs:
 
       - run: docker run -d --rm -p 4567:4567 -v ${{ github.workspace }}/extensions/iam/daps/src/test/resources/config:/opt/config -v ${{ github.workspace }}/extensions/iam/daps/src/test/resources/keys:/opt/keys ghcr.io/fraunhofer-aisec/omejdn-server:1.3.1
 
-      - name: Set up JDK 11
-        uses: actions/setup-java@v1
+      - uses: actions/setup-java@v2
         with:
+          distribution: 'temurin'
           java-version: '11'
+          cache: 'gradle'
 
-      - name: Daps Integration Test
-        env:
-          RUN_INTEGRATION_TEST: true
-        run: ./gradlew clean extensions:iam:daps:check
+      - name: Daps Integration Tests
+        run: ./gradlew -p extensions/iam/daps test -DincludeTags="DapsIntegrationTest"
