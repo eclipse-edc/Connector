@@ -22,6 +22,7 @@ the detailed section referring to by linking pull requests or issues.
 * Add okhttp client timeouts (#735)
 * Unit test framework for Dependency Injection (#843)
 * Implemented S3BucketReader (#675)
+* Add a deleteById method to the AssetLoader interface (#880)
 
 #### Changed
 
