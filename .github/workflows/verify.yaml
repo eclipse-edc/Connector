@@ -387,6 +387,50 @@ jobs:
             ./gradlew -p core/micrometer test -DincludeTags="OpenTelemetryIntegrationTest"
             ./gradlew -p system-tests/tests test -DincludeTags="OpenTelemetryIntegrationTest"
 
+  Check-Cloud-Environments:
+    environment: Azure-dev
+    runs-on: ubuntu-latest
+    steps:
+      - id: has-azure
+        env:
+          HAS_AZURE: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        if: "${{ env.HAS_AZURE != '' }}"
+        run: echo "::set-output name=defined::true"
+    outputs:
+      has-azure: ${{ steps.has-azure.outputs.defined }}
+
+  Azure-Cloud-Integration-Test:
+    needs: [ Check-Cloud-Environments ]
+    if: needs.Check-Cloud-Environments.outputs.has-azure == 'true'
+    environment: Azure-dev
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: 'Az CLI login'
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: "Fetch Terraform outputs"
+        run: printf "$RUNTIME_SETTINGS" > resources/azure/testing/runtime_settings.properties
+        env:
+          RUNTIME_SETTINGS: ${{ secrets.RUNTIME_SETTINGS }}
+
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'gradle'
+
+      - name: Data Plane Azure Data Factory Test
+        uses: ./.github/actions/run-tests
+        with:
+          command: ./gradlew -p extensions/azure/data-plane/data-factory test -DincludeTags="AzureDataFactoryIntegrationTest"
+
   Upload-Test-Report:
     needs:
       - Unit-Tests
@@ -398,6 +442,7 @@ jobs:
       - Postgresql-Integration-Tests
       - Component-Tests
       - OpenTelemetry-Integration-Tests
+      - Azure-Cloud-Integration-Test
     runs-on: ubuntu-latest
     if: always()
     steps:
