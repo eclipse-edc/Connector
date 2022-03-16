@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static org.eclipse.dataspaceconnector.transfer.store.memory.TestFunctions.createProcess;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -61,7 +63,7 @@ class InMemoryTransferProcessStoreTest {
 
         assertNotNull(store.processIdForTransferId("clientid"));
 
-        assertEquals(TransferProcessStates.INITIAL.code(), found.getState());
+        assertEquals(INITIAL.code(), found.getState());
 
         transferProcess.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
 
@@ -79,14 +81,9 @@ class InMemoryTransferProcessStoreTest {
 
     @Test
     void verifyNext() throws InterruptedException {
-        String id1 = UUID.randomUUID().toString();
-        TransferProcess transferProcess1 = TransferProcess.Builder.newInstance().id(id1).dataRequest(DataRequest.Builder.newInstance().id("clientid").destinationType("test").build()).build();
-        String id2 = UUID.randomUUID().toString();
-        TransferProcess transferProcess2 = TransferProcess.Builder.newInstance().id(id2).dataRequest(DataRequest.Builder.newInstance().id("clientid").destinationType("test").build()).build();
-
-        transferProcess1.transitionInitial();
-        transferProcess2.transitionInitial();
+        var transferProcess1 = initialTransferProcess();
         store.create(transferProcess1);
+        var transferProcess2 = initialTransferProcess();
         store.create(transferProcess2);
 
         transferProcess2.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
@@ -95,16 +92,31 @@ class InMemoryTransferProcessStoreTest {
         transferProcess1.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
         store.update(transferProcess1);
 
-        assertTrue(store.nextForState(TransferProcessStates.INITIAL.code(), 1).isEmpty());
+        assertThat(store.nextForState(INITIAL.code(), 1)).isEmpty();
 
-        List<TransferProcess> found = store.nextForState(TransferProcessStates.PROVISIONING.code(), 1);
-        assertEquals(1, found.size());
-        assertEquals(transferProcess2, found.get(0));
+        var found = store.nextForState(TransferProcessStates.PROVISIONING.code(), 1);
+        assertThat(found).hasSize(1).first().matches(it -> it.equals(transferProcess2));
 
         found = store.nextForState(TransferProcessStates.PROVISIONING.code(), 3);
-        assertEquals(2, found.size());
-        assertEquals(transferProcess2, found.get(0));
-        assertEquals(transferProcess1, found.get(1));
+        assertThat(found).hasSize(1).first().matches(it -> it.equals(transferProcess1));
+    }
+
+    @Test
+    void nextForState_shouldLeaseEntityUntilUpdate() {
+        var initialTransferProcess = initialTransferProcess();
+        store.create(initialTransferProcess);
+
+        var firstQueryResult = store.nextForState(INITIAL.code(), 1);
+        assertThat(firstQueryResult).hasSize(1);
+
+        var secondQueryResult = store.nextForState(INITIAL.code(), 1);
+        assertThat(secondQueryResult).hasSize(0);
+
+        var retrieved = firstQueryResult.get(0);
+        store.update(retrieved);
+
+        var thirdQueryResult = store.nextForState(INITIAL.code(), 1);
+        assertThat(thirdQueryResult).hasSize(1);
     }
 
     @Test
@@ -126,7 +138,7 @@ class InMemoryTransferProcessStoreTest {
         TransferProcess found2 = store.find(id2);
         assertNotNull(found2);
 
-        var found = store.nextForState(TransferProcessStates.INITIAL.code(), 3);
+        var found = store.nextForState(INITIAL.code(), 3);
         assertEquals(2, found.size());
     }
 
@@ -138,7 +150,7 @@ class InMemoryTransferProcessStoreTest {
             store.create(process);
         }
 
-        List<TransferProcess> processes = store.nextForState(TransferProcessStates.INITIAL.code(), 50);
+        List<TransferProcess> processes = store.nextForState(INITIAL.code(), 50);
 
         assertThat(processes).hasSize(50);
         assertThat(processes).allMatch(p -> p.getStateTimestamp() > 0);
@@ -152,10 +164,10 @@ class InMemoryTransferProcessStoreTest {
             store.create(process);
         }
 
-        var list1 = store.nextForState(TransferProcessStates.INITIAL.code(), 5);
+        var list1 = store.nextForState(INITIAL.code(), 5);
         Thread.sleep(50); //simulate a short delay to generate different timestamps
         list1.forEach(tp -> store.update(tp));
-        var list2 = store.nextForState(TransferProcessStates.INITIAL.code(), 5);
+        var list2 = store.nextForState(INITIAL.code(), 5);
         assertThat(list1).isNotEqualTo(list2).doesNotContainAnyElementsOf(list2);
     }
 
@@ -207,5 +219,13 @@ class InMemoryTransferProcessStoreTest {
 
         // must actually collect, otherwise the stream is not materialized
         assertThat(store.findAll(query).collect(Collectors.toList())).hasSize(10);
+    }
+
+    @NotNull
+    private TransferProcess initialTransferProcess() {
+        var process = TransferProcess.Builder.newInstance()
+                .id(UUID.randomUUID().toString()).dataRequest(DataRequest.Builder.newInstance().id("clientid").destinationType("test").build()).build();
+        process.transitionInitial();
+        return process;
     }
 }

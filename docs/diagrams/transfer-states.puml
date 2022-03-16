@@ -26,8 +26,8 @@ skinparam shadowing false
 --> PROVISIONING
 --> PROVISIONED
 if "" then
-    --> [consumer] REQUESTED
-    --> REQUESTED ACK
+    --> [consumer] REQUESTING
+    --> REQUESTED
     --> IN PROGRESS | STREAMING
 else
     --> [provider] IN PROGRESS | STREAMING
