@@ -1,18 +1,19 @@
-# Writing Integration Tests
+# Writing Tests
 
 ## Definition and distinction
 
-While _unit tests_ test one single class by stubbing or mocking dependencies, and an end-2-end test relies on the _
-entire_
-system to be present, the _integration test_ tests one particular aspect of a software, which may involve external
-systems.
+* _unit tests_ test one single class by stubbing or mocking dependencies.
+* [_integration test_](#integration-tests) tests one particular aspect of a software, which may involve external systems.
+* [_system tests_](#system-tests) are end-2-end tests that rely on the _entire_ system to be present.
 
-## TL;DR
+## Integration Tests
+
+### TL;DR
 
 Use integration tests only when necessary, keep them concise, implement them in a defensive manner using timeouts and
 randomized names, setup external systems during the workflow.
 
-## When to use them
+### When to use them
 
 Generally we should aim at writing unit tests rather than integration tests, because they are simpler, more stable and
 typically run faster. Sometimes that's not (easily) possible, especially when an implementation relies on an external
@@ -23,7 +24,7 @@ to test our implementation of a CosmosDB-backed queue. We would have to mock the
 while certainly possible - can get complicated pretty quickly. Now we still might do that for simpler scenarios, but
 eventually we might want to write an integration test that uses a CosmosDB test instance.
 
-## Coding Guidelines
+### Coding Guidelines
 
 EDC codebase has few annotations and these annotation focuses on two important aspects:
 
@@ -80,7 +81,7 @@ instance running continuously, e.g. a CosmosDB test instance in Azure. In the la
 conflicts (e.g. database names) when multiple test runners access that system simultaneously and to properly clean-up
 any residue before and after the test.
 
-## Running them locally
+### Running them locally
 
 As mentioned above the JUnit runner won't pick up integration tests unless a tag is provided. For example to run
 `Azure CosmosDB` integration tests pass `includeTags` parameter with tag value to the `gradlew` command:
@@ -111,7 +112,7 @@ tests from all sub-modules so we need to use `-p` to specify the module project 
 
 Cosmos DB integration tests are run by default against a locally running [Cosmos DB Emulator](https://docs.microsoft.com/azure/cosmos-db/local-emulator). You can also use an instance of Cosmos DB running in Azure, in which case you should set the `COSMOS_KEY` environment variable.
 
-## Running them in the CI pipeline
+### Running them in the CI pipeline
 
 All integration tests should go into the [integration test workflow](../.github/workflows/integrationtests.yaml), every
 "technology" should have its own job, and technology specific tests can be targeted using Junit tags with
@@ -165,7 +166,7 @@ It is important to note that the secrets (here: `POSTGRES_USERNAME` and `POSTGRE
 repository's settings and that can only be done by a committer with temporary admin access, so be sure to contact them
 before submitting your PR.
 
-## Do's and Don'ts
+### Do's and Don'ts
 
 DO:
 
@@ -184,3 +185,17 @@ DO NOT:
 - slip into a habit of testing the external system rather than your usage of it
 - store secrets directly in the code. Github will warn about that.
 - perform complex external system setup in `@BeforeEach` or `@BeforeAll`
+
+## System tests
+
+System tests are needed when an entire feature should be tested, end to end.
+
+To write a system test two parts are needed:
+- _runner_: a module that contains the test logic
+- _runtimes_: one or more modules that define a standalone runtime (e.g. a complete EDC definition)
+
+The runner can load an EDC runtime by using the `@RegisterExtension` annotation (example in [`FileTransferIntegrationTest`](../system-tests/tests/src/test/java/org/eclipse/dataspaceconnector/system/tests/local/FileTransferIntegrationTest.java)).
+
+To make sure that the runtime extensions are correctly built and available, they need to be set as dependency of the runner module as `testCompileOnly`. (example in [`build.gradle.kts`](../system-tests/tests/build.gradle.kts)).
+
+This would permit the dependency isolation between runtimes (very important the test need to run two different components like a control plane and a data plane).
