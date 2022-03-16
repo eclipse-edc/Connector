@@ -186,6 +186,7 @@ the detailed section referring to by linking pull requests or issues.
 * Add endpoint to the control api to initiate a contract negotiation (#318)
 * Add `IN` operator to all `AssetIndex` implementations (#322)
 * Support IDS logical constraint transformations (#342)
+* Add SQL persistence for contract definitions (#460) (#461)
 
 #### Changed
 

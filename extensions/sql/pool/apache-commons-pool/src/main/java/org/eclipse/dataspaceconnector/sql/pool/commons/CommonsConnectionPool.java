@@ -30,7 +30,7 @@ import java.sql.SQLException;
 import java.util.Objects;
 import javax.sql.DataSource;
 
-final class CommonsConnectionPool implements ConnectionPool, AutoCloseable {
+public final class CommonsConnectionPool implements ConnectionPool, AutoCloseable {
     private final GenericObjectPool<Connection> connectionObjectPool;
 
     public CommonsConnectionPool(DataSource dataSource, CommonsConnectionPoolConfig commonsConnectionPoolConfig) {
