@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  *  Copyright (c) 2021-2022 Fraunhofer Institute for Software and Systems Engineering
+=======
+ *  Copyright (c) 2021 - 2022 Fraunhofer Institute for Software and Systems Engineering
+>>>>>>> 9d998cb09 (core: add configuration setting to set state machine batch sizes)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -32,18 +36,14 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
-import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -79,12 +79,17 @@ class ConsumerContractNegotiationManagerImplTest {
 
     @BeforeEach
     void setUp() {
+        CommandQueue<ContractNegotiationCommand> queue = mock(CommandQueue.class);
+        when(queue.dequeue(anyInt())).thenReturn(new ArrayList<>());
+
+        CommandRunner<ContractNegotiationCommand> commandRunner = mock(CommandRunner.class);
+
         negotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .validationService(validationService)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(mock(Monitor.class))
-                .commandQueue(mock(CommandQueue.class))
-                .commandRunner(mock(CommandRunner.class))
+                .commandQueue(queue)
+                .commandRunner(commandRunner)
                 .observable(mock(ContractNegotiationObservable.class))
                 .store(store)
                 .build();

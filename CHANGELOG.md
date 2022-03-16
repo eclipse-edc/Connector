@@ -21,9 +21,10 @@ the detailed section referring to by linking pull requests or issues.
 * `ContractDefinitionStore` supports paging (#717)
 * Add okhttp client timeouts (#735)
 * Unit test framework for Dependency Injection (#843)
-* Implemented S3BucketReader (#675)
 * Add a deleteById method to the AssetLoader interface (#880)
 * Apply 2-state transition pattern to `ContractNegotiationManager`s (#870)
+* Implement S3BucketReader (#675)
+* Add configuration setting for state machine batch size (#872)
 
 #### Changed
 
