@@ -9,13 +9,13 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
 package org.eclipse.dataspaceconnector.api.transformer;
 
 import org.eclipse.dataspaceconnector.spi.transformer.TypeTransformer;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Marker interface to group transformers which are intended for use in API controllers, i.e. converting business objects
@@ -25,12 +25,4 @@ import org.jetbrains.annotations.NotNull;
  * @param <OUTPUT> the type that the input gets converted into. Usually this is a DTO.
  */
 public interface DtoTransformer<INPUT, OUTPUT> extends TypeTransformer<INPUT, OUTPUT> {
-    /**
-     * Determines whether a transformer can handle a particular pair.
-     *
-     * @param object     Source object
-     * @param outputType desired target type.
-     * @return true if can handle, false otherwise.
-     */
-    boolean canHandle(@NotNull Object object, @NotNull Class<?> outputType);
 }

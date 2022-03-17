@@ -36,8 +36,8 @@ class EdcApiExceptionMapperTest {
     public static Stream<Arguments> getArgs() {
         return Stream.of(Arguments.of(new ObjectNotModifiableException("1234", "test-type"), 423),
                 Arguments.of(new AuthenticationFailedException(), 401),
-                Arguments.of(new ObjectExistsException("test-id", "test-object-type"), 409),
-                Arguments.of(new ObjectNotFoundException("test-object-id", "test-object-type"), 404),
+                Arguments.of(new ObjectExistsException(Object.class, "test-object-id"), 409),
+                Arguments.of(new ObjectNotFoundException(Object.class, "test-object-id"), 404),
                 Arguments.of(new IllegalStateException("foo"), 503),
                 Arguments.of(new IllegalArgumentException("foo"), 400),
                 Arguments.of(new UnsupportedOperationException("foo"), 501),

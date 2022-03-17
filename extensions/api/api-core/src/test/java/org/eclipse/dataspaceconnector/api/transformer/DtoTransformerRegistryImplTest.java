@@ -86,10 +86,6 @@ class DtoTransformerRegistryImplTest {
     }
 
     private static class TestTransformer implements DtoTransformer<String, String> {
-        @Override
-        public boolean canHandle(@NotNull Object object, @NotNull Class<?> outputType) {
-            return object instanceof String && outputType == String.class;
-        }
 
         @Override
         public Class<String> getInputType() {

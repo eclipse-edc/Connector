@@ -9,95 +9,191 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import org.eclipse.dataspaceconnector.common.testfixtures.TestUtils;
-import org.eclipse.dataspaceconnector.extension.jersey.CorsFilterConfiguration;
-import org.eclipse.dataspaceconnector.extension.jersey.JerseyRestService;
-import org.eclipse.dataspaceconnector.extension.jetty.JettyConfiguration;
-import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
-import org.eclipse.dataspaceconnector.extension.jetty.PortMapping;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeAll;
+import io.restassured.specification.RequestSpecification;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionDto;
+import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
+import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
+import java.util.Map;
+import java.util.UUID;
 
+import static io.restassured.RestAssured.given;
+import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
-import static org.mockito.Mockito.mock;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
+import static org.hamcrest.Matchers.is;
 
+@ExtendWith(EdcExtension.class)
 public class ContractDefinitionsApiControllerIntegrationTest {
 
-    private static int port;
-    private OkHttpClient client;
-
-    @BeforeAll
-    static void prepareWebserver() {
-        port = TestUtils.getFreePort();
-        var monitor = mock(Monitor.class);
-        var config = new JettyConfiguration(null, null);
-        config.portMapping(new PortMapping("data", port, "/api/v1/data"));
-        var jetty = new JettyService(config, monitor);
-
-        var ctrl = new ContractDefinitionApiController(monitor);
-        var jerseyService = new JerseyRestService(jetty, new TypeManager(), mock(CorsFilterConfiguration.class), monitor);
-        jetty.start();
-        jerseyService.registerResource("data", ctrl);
-        jerseyService.start();
-    }
+    private final int port = getFreePort();
+    private final String authKey = "123456";
 
     @BeforeEach
-    void setup() {
-        client = testOkHttpClient();
+    void setUp(EdcExtension extension) {
+        extension.setConfiguration(Map.of(
+                "web.http.data.port", String.valueOf(port),
+                "web.http.data.path", "/api/v1/data",
+                "edc.api.auth.key", authKey
+        ));
     }
 
     @Test
-    void getAllContractDefs() throws IOException {
-        var response = get(basePath());
-        assertThat(response.code()).isEqualTo(200);
+    void getAllContractDefs(ContractDefinitionLoader loader) {
+        loader.accept(createContractDefinition("definitionId"));
+
+        baseRequest()
+                .get("/contractdefinitions")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(1));
     }
 
     @Test
-    void getAllContractDefs_withPaging() throws IOException {
-        try (var response = get(basePath() + "?offset=10&limit=15&sort=ASC")) {
-            assertThat(response.code()).isEqualTo(200);
-        }
+    void getAllContractDefs_withPaging(ContractDefinitionLoader loader) {
+        loader.accept(createContractDefinition("definitionId"));
+
+        baseRequest()
+                .get("/contractdefinitions?offset=0&limit=15&sort=ASC")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(1));
     }
 
     @Test
-    void getSingleContractDef() throws IOException {
-        var id = "test-id";
-        try (var response = get(basePath() + "/" + id)) {
-            //assertThat(response.code()).isEqualTo(200);
-        }
+    void getSingleContractDef(ContractDefinitionLoader loader) {
+        loader.accept(createContractDefinition("definitionId"));
 
+        baseRequest()
+                .get("/contractdefinitions/definitionId")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("id", is("definitionId"));
     }
 
     @Test
-    void getSingleContractDef_notFound() throws IOException {
-        try (var response = get(basePath() + "/not-exist")) {
-            // assertThat(response.code()).isEqualTo(404);
-        }
+    void getSingleContractDef_notFound() {
+        baseRequest()
+                .get("/contractdefinitions/nonExistingId")
+                .then()
+                .statusCode(404);
     }
 
+    @Test
+    void postContractDefinition(ContractDefinitionStore store) {
+        var dto = ContractDefinitionDto.Builder.newInstance().id("definitionId").build();
 
-    @NotNull
-    private String basePath() {
-        return "http://localhost:" + port + "/api/v1/data/contractdefinitions";
+        baseRequest()
+                .body(dto)
+                .contentType(JSON)
+                .post("/contractdefinitions")
+                .then()
+                .statusCode(204);
+        assertThat(store.findAll()).isNotEmpty();
     }
 
-    @NotNull
-    private Response get(String url) throws IOException {
-        return client.newCall(new Request.Builder().get().url(url).build()).execute();
+    @Test
+    void postContractDefinition_alreadyExists(ContractDefinitionLoader loader, ContractDefinitionStore store) {
+        loader.accept(createContractDefinition("definitionId"));
+        var dto = ContractDefinitionDto.Builder.newInstance().id("definitionId").build();
+
+        baseRequest()
+                .body(dto)
+                .contentType(JSON)
+                .post("/contractdefinitions")
+                .then()
+                .statusCode(409);
+        assertThat(store.findAll()).hasSize(1);
+    }
+
+    @Test
+    void deleteContractDefinition(ContractDefinitionLoader loader, ContractDefinitionStore store) {
+        loader.accept(createContractDefinition("definitionId"));
+
+        baseRequest()
+                .contentType(JSON)
+                .delete("/contractdefinitions/definitionId")
+                .then()
+                .statusCode(204);
+        assertThat(store.findAll()).isEmpty();
+    }
+
+    @Test
+    void deleteContractDefinition_notExists() {
+        baseRequest()
+                .contentType(JSON)
+                .delete("/contractdefinitions/nonExistingId")
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    void deleteAsset_alreadyReferencedInAgreement(ContractNegotiationStore negotiationStore, ContractDefinitionLoader loader) {
+        var contractDefinition = createContractDefinition("definitionId");
+        loader.accept(contractDefinition);
+        negotiationStore.save(createContractNegotiation(contractDefinition));
+
+        baseRequest()
+                .contentType(JSON)
+                .delete("/contractdefinitions/definitionId")
+                .then()
+                .statusCode(409);
+    }
+
+    private ContractDefinition createContractDefinition(String id) {
+        return ContractDefinition.Builder.newInstance()
+                .id(id)
+                .accessPolicy(Policy.Builder.newInstance().build())
+                .contractPolicy(Policy.Builder.newInstance().build())
+                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
+                .build();
+    }
+
+    private RequestSpecification baseRequest() {
+        return given()
+                .baseUri("http://localhost:" + port)
+                .basePath("/api/v1/data")
+                .header("x-api-key", authKey)
+                .when();
+    }
+
+    private ContractNegotiation createContractNegotiation(ContractDefinition contractDefinition) {
+        return ContractNegotiation.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .counterPartyId(UUID.randomUUID().toString())
+                .counterPartyAddress("address")
+                .protocol("protocol")
+                .contractAgreement(createContractAgreement(contractDefinition))
+                .build();
+    }
+
+    private ContractAgreement createContractAgreement(ContractDefinition contractDefinition) {
+        return ContractAgreement.Builder.newInstance()
+                .id(contractDefinition.getId() + ":" + UUID.randomUUID())
+                .providerAgentId(UUID.randomUUID().toString())
+                .consumerAgentId(UUID.randomUUID().toString())
+                .asset(Asset.Builder.newInstance().build())
+                .policy(Policy.Builder.newInstance().build())
+                .build();
     }
 }

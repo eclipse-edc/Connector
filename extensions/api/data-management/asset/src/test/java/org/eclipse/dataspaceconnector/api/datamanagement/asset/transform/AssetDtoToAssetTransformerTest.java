@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.api.datamanagement.asset.transform;
 
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -32,13 +31,6 @@ class AssetDtoToAssetTransformerTest {
     void inputOutputType() {
         assertThat(transformer.getInputType()).isNotNull();
         assertThat(transformer.getOutputType()).isNotNull();
-    }
-
-    @Test
-    void canHandle() {
-        assertThat(transformer.canHandle(AssetDto.Builder.newInstance().build(), Asset.class)).isTrue();
-        assertThat(transformer.canHandle("any other", Asset.class)).isFalse();
-        assertThat(transformer.canHandle(AssetDto.Builder.newInstance().build(), Object.class)).isFalse();
     }
 
     @Test

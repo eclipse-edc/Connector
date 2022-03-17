@@ -1,6 +1,5 @@
-package org.eclipse.dataspaceconnector.api.datamanagement.asset;
+package org.eclipse.dataspaceconnector.api.datamanagement.asset.service;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetServiceImpl;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
