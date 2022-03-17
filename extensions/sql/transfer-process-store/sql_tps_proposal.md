@@ -4,7 +4,7 @@ please refer to [ddl.sql](./ddl.sql):
 
 ## Translating the `TransferProcessStore` interface into SQL statements
 
-all snippets taken from [dml.sql](dml.sql)
+all SQL snippets taken from [dml.sql](dml.sql)
 
 #### `processIdForTransferId`
 
@@ -53,16 +53,21 @@ set lease_id='lease-1'
 where id in ('test-id2');
 ```
 
+_Note: `NOW` is not a variable, it should be passed to the statement as parameter._
+
 in Java (pseudo-)code this could look something like this:
 
 ```java
 import java.time.Instant;
 
 public class SqlTransferProcessStore {
+    
+    //...
+    
     public List<TransferProcess> nextForState(int state, int batchSize) {
         txMgr.executeTransaction(() -> {
 
-            var transferProcessList = selectByState(state, batchSize);
+            var transferProcessList = selectByState(state, batchSize); // must skip currently leased ones
 
             transferProcessList.forEach(this::acquireLease);
         });
