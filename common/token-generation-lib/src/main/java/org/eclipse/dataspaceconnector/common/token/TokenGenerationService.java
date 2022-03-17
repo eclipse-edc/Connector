@@ -14,15 +14,17 @@
 
 package org.eclipse.dataspaceconnector.common.token;
 
-import com.nimbusds.jwt.JWTClaimsSet;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Interface for generating token based on a set of claims.
+ * Interface for generating token based on a set of claims and header.
  */
-@FunctionalInterface
 public interface TokenGenerationService {
-    Result<TokenRepresentation> generate(@NotNull JWTClaimsSet claims);
+
+    /**
+     * Generate a signed token based on the request.
+     */
+    Result<TokenRepresentation> generate(@NotNull JwtDecorator... decorators);
 }

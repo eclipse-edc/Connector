@@ -50,7 +50,7 @@ import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowReques
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.MEDIA_TYPE;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
-import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.DATA_ADDRESS_CLAIM;
+import static org.eclipse.dataspaceconnector.spi.types.domain.dataplane.DataPlaneConstants.DATA_ADDRESS;
 
 /**
  * Filter that intercepts call to public API of the data plane. Note that a request filter is preferred over a Controller here
@@ -118,7 +118,7 @@ public class DataPlanePublicApiRequestFilter implements ContainerRequestFilter {
      * Create a {@link DataFlowRequest} based on the decoded claim token and the request content.
      */
     private DataFlowRequest createDataFlowRequest(ClaimToken claims, ContainerRequestContext requestContext) throws IOException {
-        var dataAddress = typeManager.readValue(claims.getClaims().get(DATA_ADDRESS_CLAIM), DataAddress.class);
+        var dataAddress = typeManager.readValue(claims.getClaims().get(DATA_ADDRESS), DataAddress.class);
         var requestProperties = createDataFlowRequestProperties(requestContext);
         return DataFlowRequest.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())

@@ -23,9 +23,6 @@ interface DataPlaneTransferSyncConfiguration {
     String API_CONTEXT_ALIAS = "validation";
 
     @EdcSetting
-    String TOKEN_SIGNER_PRIVATE_KEY_ALIAS = "edc.transfer.dataplane.token.signer.privatekey.alias";
-
-    @EdcSetting
     String DATA_PLANE_PUBLIC_API_ENDPOINT = "edc.transfer.dataplane.sync.endpoint";
 
     @EdcSetting

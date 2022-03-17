@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static java.lang.String.format;
 
-@Consumes({ MediaType.APPLICATION_JSON})
+@Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
 @Path("/service")
 public class BackendServiceController {
@@ -48,7 +48,7 @@ public class BackendServiceController {
     @Path("/pull")
     @POST
     public void pullData(EndpointDataReference dataReference) {
-        String url = dataReference.getAddress();
+        String url = dataReference.getEndpoint();
         monitor.debug("Endpoint Data Reference received, will call data plane at " + url);
         var request = new Request.Builder()
                 .url(url)

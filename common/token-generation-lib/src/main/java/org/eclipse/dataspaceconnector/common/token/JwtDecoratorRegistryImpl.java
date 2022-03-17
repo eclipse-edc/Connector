@@ -12,10 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.iam.oauth2.core.jwt;
-
-import org.eclipse.dataspaceconnector.iam.oauth2.spi.JwtDecorator;
-import org.eclipse.dataspaceconnector.iam.oauth2.spi.JwtDecoratorRegistry;
+package org.eclipse.dataspaceconnector.common.token;
 
 import java.util.ArrayList;
 import java.util.Collection;

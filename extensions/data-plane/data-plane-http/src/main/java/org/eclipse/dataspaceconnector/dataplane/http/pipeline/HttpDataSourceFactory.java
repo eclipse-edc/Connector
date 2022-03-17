@@ -19,37 +19,43 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSourceFactory;
-import org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
+import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.BODY;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.MEDIA_TYPE;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema.AUTHENTICATION_CODE;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema.AUTHENTICATION_KEY;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema.ENDPOINT;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema.NAME;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema.TYPE;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.NAME;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.SECRET_NAME;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
 
 /**
- * Instantiates {@link HttpDataSource}s for requests whose source data type is {@link HttpDataSchema#TYPE}.
+ * Instantiates {@link HttpDataSource}s for requests whose source data type is {@link HttpDataAddressSchema#TYPE}.
  */
 public class HttpDataSourceFactory implements DataSourceFactory {
     private final OkHttpClient httpClient;
     private final RetryPolicy<Object> retryPolicy;
     private final Monitor monitor;
+    private final Vault vault;
 
-    public HttpDataSourceFactory(OkHttpClient httpClient, RetryPolicy<Object> retryPolicy, Monitor monitor) {
+    public HttpDataSourceFactory(OkHttpClient httpClient, RetryPolicy<Object> retryPolicy, Monitor monitor, Vault vault) {
         this.httpClient = httpClient;
         this.retryPolicy = retryPolicy;
         this.monitor = monitor;
+        this.vault = vault;
     }
 
     @Override
@@ -76,23 +82,14 @@ public class HttpDataSourceFactory implements DataSourceFactory {
         var dataAddress = request.getSourceDataAddress();
         var endpoint = dataAddress.getProperty(ENDPOINT);
         if (StringUtils.isNullOrBlank(endpoint)) {
-            return Result.failure("HTTP data source endpoint not provided for request: " + request.getId());
+            return Result.failure("Missing endpoint for request: " + request.getId());
         }
         var method = request.getProperties().get(METHOD);
         if (StringUtils.isNullOrBlank(method)) {
-            return Result.failure("Method not provided for request: " + request.getId());
+            return Result.failure("Missing http method for request: " + request.getId());
         }
 
         var name = dataAddress.getProperty(NAME);
-
-        var mediaTypeStr = request.getProperties().get(MEDIA_TYPE);
-        MediaType mediaType = null;
-        if (mediaTypeStr != null) {
-            mediaType = MediaType.parse(mediaTypeStr);
-            if (mediaType == null) {
-                return Result.failure("Unhandled media type: " + mediaTypeStr);
-            }
-        }
 
         var builder = HttpDataSource.Builder.newInstance()
                 .httpClient(httpClient)
@@ -102,9 +99,26 @@ public class HttpDataSourceFactory implements DataSourceFactory {
                 .method(method)
                 .retryPolicy(retryPolicy)
                 .monitor(monitor);
-        Optional.ofNullable(mediaType).ifPresent(mt -> builder.requestBody(mt, request.getProperties().get(BODY)));
-        Optional.ofNullable(dataAddress.getProperty(AUTHENTICATION_KEY))
-                .ifPresent(s -> builder.header(s, dataAddress.getProperty(AUTHENTICATION_CODE)));
+        // map body
+        var mediaType = request.getProperties().get(MEDIA_TYPE);
+        if (mediaType != null) {
+            var parsed = MediaType.parse(mediaType);
+            if (parsed == null) {
+                return Result.failure(format("Unhandled media type %s for request: %s", mediaType, request.getId()));
+            }
+            builder.requestBody(parsed, request.getProperties().get(BODY));
+        }
+
+        // map auth header
+        var authKey = dataAddress.getProperty(AUTHENTICATION_KEY);
+        if (authKey != null) {
+            var secretResult = extractAuthCode(request.getId(), dataAddress);
+            if (secretResult.failed()) {
+                return Result.failure("Failed to retrieve secret: " + String.join(", ", secretResult.getFailureMessages()));
+            }
+            builder.header(authKey, secretResult.getContent());
+        }
+
         Optional.ofNullable(request.getProperties().get(QUERY_PARAMS))
                 .ifPresent(builder::queryParams);
 
@@ -113,5 +127,31 @@ public class HttpDataSourceFactory implements DataSourceFactory {
         } catch (Exception e) {
             return Result.failure("Failed to build HttpDataSource: " + e.getMessage());
         }
+    }
+
+    /**
+     * Extract auth token for accessing data source API.
+     * <p>
+     * First check the token is directly hardcoded within the data source.
+     * If not then use the secret to resolve it from the vault.
+     *
+     * @param requestId request identifier
+     * @param address   address of the data source
+     * @return Successful result containing the auth code if process succeeded, failed result otherwise.
+     */
+    private Result<String> extractAuthCode(String requestId, DataAddress address) {
+        var secret = address.getProperty(AUTHENTICATION_CODE);
+        if (secret != null) {
+            return Result.success(secret);
+        }
+
+        var secretName = address.getProperty(SECRET_NAME);
+        if (secretName == null) {
+            return Result.failure(format("Missing mandatory secret name for request: %s", requestId));
+        }
+
+        return Optional.ofNullable(vault.resolveSecret(secretName))
+                .map(Result::success)
+                .orElse(Result.failure(format("No secret found in vault with name %s for request: %s", secretName, requestId)));
     }
 }

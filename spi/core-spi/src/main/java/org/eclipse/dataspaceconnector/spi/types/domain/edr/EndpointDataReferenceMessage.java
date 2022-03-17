@@ -22,15 +22,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-@JsonDeserialize(builder = EndpointDataReferenceRequest.Builder.class)
-public class EndpointDataReferenceRequest implements RemoteMessage {
+@JsonDeserialize(builder = EndpointDataReferenceMessage.Builder.class)
+public class EndpointDataReferenceMessage implements RemoteMessage {
 
     private final String connectorId;
     private final String connectorAddress;
     private final String protocol;
     private final EndpointDataReference endpointDataReference;
 
-    private EndpointDataReferenceRequest(@NotNull String connectorId, @NotNull String connectorAddress, @NotNull String protocol, @NotNull EndpointDataReference endpointDataReference) {
+    private EndpointDataReferenceMessage(String connectorId, String connectorAddress, String protocol, EndpointDataReference endpointDataReference) {
         this.connectorId = connectorId;
         this.connectorAddress = connectorAddress;
         this.protocol = protocol;
@@ -67,37 +67,37 @@ public class EndpointDataReferenceRequest implements RemoteMessage {
         }
 
         @JsonCreator
-        public static EndpointDataReferenceRequest.Builder newInstance() {
-            return new EndpointDataReferenceRequest.Builder();
+        public static EndpointDataReferenceMessage.Builder newInstance() {
+            return new EndpointDataReferenceMessage.Builder();
         }
 
-        public EndpointDataReferenceRequest.Builder protocol(String protocol) {
+        public EndpointDataReferenceMessage.Builder protocol(String protocol) {
             this.protocol = protocol;
             return this;
         }
 
-        public EndpointDataReferenceRequest.Builder connectorAddress(String connectorAddress) {
+        public EndpointDataReferenceMessage.Builder connectorAddress(String connectorAddress) {
             this.connectorAddress = connectorAddress;
             return this;
         }
 
-        public EndpointDataReferenceRequest.Builder connectorId(String connectorId) {
+        public EndpointDataReferenceMessage.Builder connectorId(String connectorId) {
             this.connectorId = connectorId;
             return this;
         }
 
-        public EndpointDataReferenceRequest.Builder endpointDataReference(EndpointDataReference endpointDataReference) {
+        public EndpointDataReferenceMessage.Builder endpointDataReference(EndpointDataReference endpointDataReference) {
             this.endpointDataReference = endpointDataReference;
             return this;
         }
 
-        public EndpointDataReferenceRequest build() {
+        public EndpointDataReferenceMessage build() {
             Objects.requireNonNull(protocol, "protocol");
             Objects.requireNonNull(connectorId, "connectorId");
             Objects.requireNonNull(connectorAddress, "connectorAddress");
             Objects.requireNonNull(endpointDataReference, "endpointDataReference");
 
-            return new EndpointDataReferenceRequest(connectorId, connectorAddress, protocol, endpointDataReference);
+            return new EndpointDataReferenceMessage(connectorId, connectorAddress, protocol, endpointDataReference);
         }
     }
 }

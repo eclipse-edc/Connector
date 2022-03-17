@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.DATA_ADDRESS_CLAIM;
+import static org.eclipse.dataspaceconnector.spi.types.domain.dataplane.DataPlaneConstants.DATA_ADDRESS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -44,7 +44,7 @@ class DataPlaneTransferSyncApiControllerTest {
         assertThat(claimsResult.getClaims())
                 .containsEntry("foo", "bar")
                 .containsEntry("hello", "world")
-                .containsEntry(DATA_ADDRESS_CLAIM, "decrypted-data-address");
+                .containsEntry(DATA_ADDRESS, "decrypted-data-address");
     }
 
     @Test
@@ -59,7 +59,7 @@ class DataPlaneTransferSyncApiControllerTest {
 
     private static ClaimToken createClaims() {
         return ClaimToken.Builder.newInstance()
-                .claims(Map.of("foo", "bar", "hello", "world", DATA_ADDRESS_CLAIM, "encrypted-data-address"))
+                .claims(Map.of("foo", "bar", "hello", "world", DATA_ADDRESS, "encrypted-data-address"))
                 .build();
     }
 }

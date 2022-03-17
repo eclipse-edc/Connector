@@ -16,23 +16,23 @@ package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
-import org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ExecutorService;
 
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema.AUTHENTICATION_CODE;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema.AUTHENTICATION_KEY;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema.ENDPOINT;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema.TYPE;
 import static org.eclipse.dataspaceconnector.spi.result.Result.failure;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
 
 /**
- * Instantiates {@link HttpDataSink}s for requests whose source data type is {@link HttpDataSchema#TYPE}.
+ * Instantiates {@link HttpDataSink}s for requests whose source data type is {@link HttpDataAddressSchema#TYPE}.
  */
 public class HttpDataSinkFactory implements DataSinkFactory {
     private final OkHttpClient httpClient;

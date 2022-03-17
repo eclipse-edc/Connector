@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.iam.daps;
 
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jwt.JWTClaimsSet;
-import org.eclipse.dataspaceconnector.iam.oauth2.spi.JwtDecorator;
+import org.eclipse.dataspaceconnector.common.token.JwtDecorator;
 
 public class DapsJwtDecorator implements JwtDecorator {
     @Override

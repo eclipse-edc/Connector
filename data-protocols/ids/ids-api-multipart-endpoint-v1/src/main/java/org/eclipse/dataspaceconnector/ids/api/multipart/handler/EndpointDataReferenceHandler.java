@@ -25,6 +25,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceRece
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformer;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
+import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceMessage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,8 +33,8 @@ import static org.eclipse.dataspaceconnector.common.async.AsyncUtils.asyncAllOf;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.internalRecipientError;
 
 /**
- * Implementation of the {@link Handler} class for handling of {@link org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceRequest}.
- * Note that we use the {@link ParticipantUpdateMessage} IDS message to convey the {@link org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceRequest}.
+ * Implementation of the {@link Handler} class for handling of {@link EndpointDataReferenceMessage}.
+ * Note that we use the {@link ParticipantUpdateMessage} IDS message to convey the {@link EndpointDataReferenceMessage}.
  */
 public class EndpointDataReferenceHandler implements Handler {
 
@@ -69,7 +70,7 @@ public class EndpointDataReferenceHandler implements Handler {
     @Override
     public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull Result<ClaimToken> verificationResult) {
         var edr = typeManager.readValue(multipartRequest.getPayload(), EndpointDataReference.class);
-        var transformationResult = transformer.execute(edr);
+        var transformationResult = transformer.transform(edr);
         if (transformationResult.failed()) {
             monitor.severe("EDR transformation failed: " + String.join(", ", transformationResult.getFailureMessages()));
             return createErrorMultipartResponse(multipartRequest);
