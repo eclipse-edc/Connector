@@ -13,12 +13,12 @@
  */
 package org.eclipse.dataspaceconnector.ids.spi.transform;
 
-import org.eclipse.dataspaceconnector.spi.transformer.TypeTransformer;
+import org.eclipse.dataspaceconnector.spi.transformer.TypeTransformerRegistry;
 
 /**
- * Implementations transform between an IDS and EDC type.
+ * Dispatches to {@link IdsTypeTransformer}s to bidirectionally convert between IDS and EDC types.
  */
-public interface IdsTypeTransformer<INPUT, OUTPUT> extends TypeTransformer<INPUT, OUTPUT> {
+public interface IdsTransformerRegistry extends TypeTransformerRegistry<IdsTypeTransformer<?, ?>> {
 
-    // marker interface for IDS transformers
+    // marker interface to restrict transformer types
 }

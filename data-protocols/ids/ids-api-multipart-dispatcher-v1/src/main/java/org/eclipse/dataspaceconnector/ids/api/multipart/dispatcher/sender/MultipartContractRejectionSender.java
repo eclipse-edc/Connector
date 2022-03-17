@@ -21,7 +21,7 @@ import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.util.TypedLiteral;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -42,7 +42,7 @@ public class MultipartContractRejectionSender extends IdsMultipartSender<Contrac
                                             @NotNull ObjectMapper objectMapper,
                                             @NotNull Monitor monitor,
                                             @NotNull IdentityService identityService,
-                                            @NotNull TransformerRegistry transformerRegistry) {
+                                            @NotNull IdsTransformerRegistry transformerRegistry) {
         super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
     }
 

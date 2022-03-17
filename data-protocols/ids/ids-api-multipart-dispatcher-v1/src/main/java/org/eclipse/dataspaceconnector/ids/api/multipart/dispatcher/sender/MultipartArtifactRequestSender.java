@@ -24,7 +24,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.Multi
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -56,7 +56,7 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
                                           @NotNull Monitor monitor,
                                           @NotNull Vault vault,
                                           @NotNull IdentityService identityService,
-                                          @NotNull TransformerRegistry transformerRegistry,
+                                          @NotNull IdsTransformerRegistry transformerRegistry,
                                           @NotNull String idsWebhookAddress,
                                           @NotNull String idsApiPath) {
         super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
@@ -109,10 +109,10 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
                 ._requestedArtifact_(artifactId)
                 ._transferContract_(contractId)
                 .build();
-        
+
         var path = idsApiPath + (idsApiPath.endsWith("/") ? "data" : "/data");
         message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + path);
-        
+
         request.getProperties().forEach(message::setProperty);
         return message;
     }

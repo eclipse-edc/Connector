@@ -37,7 +37,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.Multip
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -70,14 +70,14 @@ import static org.mockito.Mockito.when;
 
 class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherIntegrationTest {
     private static final String CONNECTOR_ID = UUID.randomUUID().toString();
-    private TransformerRegistry transformerRegistry;
+    private IdsTransformerRegistry transformerRegistry;
     private IdsMultipartRemoteMessageDispatcher multipartDispatcher;
 
     @BeforeEach
     void init() {
         Monitor monitor = mock(Monitor.class);
 
-        transformerRegistry = mock(TransformerRegistry.class);
+        transformerRegistry = mock(IdsTransformerRegistry.class);
 
         Vault vault = mock(Vault.class);
         var httpClient = testOkHttpClient();

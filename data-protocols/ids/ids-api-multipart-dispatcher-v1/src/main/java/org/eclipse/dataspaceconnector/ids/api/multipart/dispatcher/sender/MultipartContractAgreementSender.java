@@ -23,7 +23,7 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -44,14 +44,14 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
 
     private final String idsWebhookAddress;
     private final String idsApiPath;
-    private final TransformerRegistry transformerRegistry;
+    private final IdsTransformerRegistry transformerRegistry;
 
     public MultipartContractAgreementSender(@NotNull String connectorId,
                                             @NotNull OkHttpClient httpClient,
                                             @NotNull ObjectMapper objectMapper,
                                             @NotNull Monitor monitor,
                                             @NotNull IdentityService identityService,
-                                            @NotNull TransformerRegistry transformerRegistry,
+                                            @NotNull IdsTransformerRegistry transformerRegistry,
                                             @NotNull String idsWebhookAddress,
                                             @NotNull String idsApiPath) {
         super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);

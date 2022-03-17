@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformKeys;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
+import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +35,24 @@ import java.util.Objects;
  * there may be some kind of information loss.
  */
 public class IdsResourceToAssetTransformer implements IdsTypeTransformer<Resource, Asset> {
+
+    private static @Nullable Representation getRepresentationFromResource(Resource resource) {
+        if (resource.getRepresentation() == null) {
+            return null;
+        }
+        return resource.getRepresentation().stream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    private static @Nullable RepresentationInstance getInstanceFromRepresentation(Representation representation) {
+        if (representation.getInstance() == null) {
+            return null;
+        }
+        return representation.getInstance().stream()
+                .findFirst()
+                .orElse(null);
+    }
 
     @Override
     public Class<Resource> getInputType() {
@@ -85,23 +103,5 @@ public class IdsResourceToAssetTransformer implements IdsTypeTransformer<Resourc
         }
 
         return assetBuilder.build();
-    }
-
-    private static @Nullable Representation getRepresentationFromResource(Resource resource) {
-        if (resource.getRepresentation() == null) {
-            return null;
-        }
-        return resource.getRepresentation().stream()
-                .findFirst()
-                .orElse(null);
-    }
-
-    private static @Nullable RepresentationInstance getInstanceFromRepresentation(Representation representation) {
-        if (representation.getInstance() == null) {
-            return null;
-        }
-        return representation.getInstance().stream()
-                .findFirst()
-                .orElse(null);
     }
 }
