@@ -467,8 +467,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     }
 
     private void sendConsumerRequest(TransferProcess process, DataRequest dataRequest) {
-        process.transitionRequested();
-        updateTransferProcess(process, l -> l.requested(process)); // update before sending to accommodate synchronous transports; reliability will be managed by retry and idempotency
         dispatcherRegistry.send(Object.class, dataRequest, process::getId)
                 .thenApply(result -> {
                     var transferProcess = transferProcessStore.find(process.getId());
