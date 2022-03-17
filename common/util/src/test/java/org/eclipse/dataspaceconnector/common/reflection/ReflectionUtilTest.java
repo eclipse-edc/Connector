@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.util.Comparator;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -59,6 +60,13 @@ class ReflectionUtilTest {
 
         assertThatThrownBy(() -> ReflectionUtil.getFieldValue("description", null))
                 .isInstanceOf(NullPointerException.class).hasMessage("object");
+    }
+
+    @Test
+    void getFieldValue_fromMap() {
+        var value = ReflectionUtil.getFieldValue("key", Map.of("key", "value"));
+
+        assertThat(value).isEqualTo("value");
     }
 
     @Test

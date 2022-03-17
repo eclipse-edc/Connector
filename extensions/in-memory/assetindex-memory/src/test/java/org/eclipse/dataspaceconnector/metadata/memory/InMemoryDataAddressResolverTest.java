@@ -17,7 +17,7 @@ class InMemoryDataAddressResolverTest {
 
     @BeforeEach
     void setUp() {
-        resolver = new InMemoryAssetIndex(new AssetPredicateConverter());
+        resolver = new InMemoryAssetIndex();
     }
 
     @Test
