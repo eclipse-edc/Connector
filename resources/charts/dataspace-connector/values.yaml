@@ -29,11 +29,23 @@ securityContext: {}
 
 edc:
   port: 8181
+  path: /api
+  managementApi:
+    enabled: true
+    port: 9191
+    path: /api/v1/data
+  idsApi:
+    port: 8282
+    path: /api/v1/ids
   env: {}
   envSecrets: {}
 service:
   type: ClusterIP
   port: 80
+  managementApi:
+    port: 91
+  idsApi:
+    port: 8282
 
 ingress:
   enabled: false

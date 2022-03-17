@@ -5,7 +5,7 @@ import org.eclipse.dataspaceconnector.aws.s3.core.AwsTemporarySecretToken;
 import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
 import org.eclipse.dataspaceconnector.aws.s3.core.S3ClientProvider;
 import org.eclipse.dataspaceconnector.aws.testfixtures.AbstractS3Test;
-import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
+import org.eclipse.dataspaceconnector.aws.testfixtures.annotations.AwsS3IntegrationTest;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -27,7 +27,7 @@ import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.TYPE;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@IntegrationTest
+@AwsS3IntegrationTest
 public class S3DataOperatorIntegrationTest extends AbstractS3Test {
 
     private final TypeManager typeManager = new TypeManager();

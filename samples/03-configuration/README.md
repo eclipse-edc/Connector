@@ -21,9 +21,9 @@ dependencies {
 
 We compile and run the application with:
 
-```
+```bash
 ./gradlew clean samples:03-configuration:build
-`java -jar samples/03-configuration/build/libs/filsystem-config-connector.jar`
+java -jar samples/03-configuration/build/libs/filsystem-config-connector.jar
 ```
 
 you will notice an additional log line stating that the "configuration file does not exist":

@@ -48,7 +48,7 @@ public class ControlPlaneTestController {
         this.transferProcessStore = transferProcessStore;
     }
 
-    // TODO: most of these api will be replaced by data management api
+    // TODO: all of these api will be replaced by data management api
 
     @Path("/assets")
     @POST

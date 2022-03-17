@@ -56,6 +56,24 @@ public interface TransferProcessListener {
 
     /**
      * Called after a {@link TransferProcess} has moved to state
+     * {@link TransferProcessStates#REQUESTING REQUESTING}.
+     *
+     * @param process the transfer process whose state has changed.
+     */
+    default void requesting(TransferProcess process) {
+    }
+
+    /**
+     * Called after a {@link TransferProcess} has moved to state
+     * {@link TransferProcessStates#REQUESTED REQUESTED}.
+     *
+     * @param process the transfer process whose state has changed.
+     */
+    default void requested(TransferProcess process) {
+    }
+
+    /**
+     * Called after a {@link TransferProcess} has moved to state
      * {@link TransferProcessStates#IN_PROGRESS IN_PROGRESS}.
      *
      * @param process the transfer process whose state has changed.
@@ -108,12 +126,4 @@ public interface TransferProcessListener {
     default void error(TransferProcess process) {
     }
 
-    /**
-     * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#REQUESTED REQUESTED}.
-     *
-     * @param process the transfer process whose state has changed.
-     */
-    default void requested(TransferProcess process) {
-    }
 }

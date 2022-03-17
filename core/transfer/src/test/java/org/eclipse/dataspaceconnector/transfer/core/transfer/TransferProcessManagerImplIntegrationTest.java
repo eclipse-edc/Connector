@@ -12,13 +12,12 @@ import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGen
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResourceSet;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
 import org.eclipse.dataspaceconnector.transfer.core.TestProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.transfer.core.TestResourceDefinition;
 import org.eclipse.dataspaceconnector.transfer.store.memory.InMemoryTransferProcessStore;
@@ -32,11 +31,13 @@ import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.UNSAVED;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -63,41 +64,42 @@ class TransferProcessManagerImplIntegrationTest {
                 .dispatcherRegistry(mock(RemoteMessageDispatcherRegistry.class))
                 .manifestGenerator(manifestGenerator)
                 .monitor(mock(Monitor.class))
-                .commandQueue((CommandQueue<TransferProcessCommand>) mock(CommandQueue.class))
-                .commandRunner((CommandRunner<TransferProcessCommand>) mock(CommandRunner.class))
+                .commandQueue(mock(CommandQueue.class))
+                .commandRunner(mock(CommandRunner.class))
                 .typeManager(new TypeManager())
                 .statusCheckerRegistry(mock(StatusCheckerRegistry.class))
                 .observable(mock(TransferProcessObservable.class))
                 .store(store)
                 .build();
-
-        transferProcessManager.start();
     }
 
     @Test
     @DisplayName("Verify that no process 'starves' during two consecutive runs, when the batch size > number of processes")
     void verifyProvision_shouldNotStarve() throws InterruptedException {
         var numProcesses = TRANSFER_MANAGER_BATCHSIZE * 2;
-        var processesToProvision = new CountDownLatch(numProcesses); //all processes should be provisioned
-        doAnswer(i -> {
+        var processesToProvision = new CountDownLatch(numProcesses);
+        when(provisionManager.provision(any(TransferProcess.class))).thenAnswer(i -> {
             processesToProvision.countDown();
-            return null;
-        }).when(provisionManager).provision(any(TransferProcess.class));
+            return completedFuture(List.of(ProvisionResponse.Builder.newInstance().resource(new TestProvisionedDataDestinationResource("any")).build()));
+        });
 
+        var manifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
         var processes = IntStream.range(0, numProcesses)
                 .mapToObj(i -> provisionedResourceSet())
-                .map(resourceSet -> createUnsavedTransferProcess().provisionedResourceSet(resourceSet).build())
+                .map(resourceSet -> createUnsavedTransferProcess().resourceManifest(manifest).provisionedResourceSet(resourceSet).build())
                 .peek(TransferProcess::transitionInitial)
                 .peek(store::create)
                 .collect(Collectors.toList());
 
-        assertThat(processesToProvision.await(5, SECONDS)).isTrue();
-        assertThat(processes).describedAs("All transfer processes should be in PROVISIONING state")
+        transferProcessManager.start();
+
+        assertThat(processesToProvision.await(10, SECONDS)).isTrue();
+        assertThat(processes).describedAs("All transfer processes state should be greater than INITIAL")
                 .allSatisfy(process -> {
                     var id = process.getId();
                     var storedProcess = store.find(id);
                     assertThat(storedProcess).describedAs("Should exist in the TransferProcessStore").isNotNull();
-                    assertThat(storedProcess.getState()).isEqualTo(TransferProcessStates.PROVISIONING.code());
+                    assertThat(storedProcess.getState()).isGreaterThan(INITIAL.code());
                 });
         verify(provisionManager, times(numProcesses)).provision(any());
     }
@@ -124,7 +126,5 @@ class TransferProcessManagerImplIntegrationTest {
                 .state(UNSAVED.code())
                 .dataRequest(dataRequest);
     }
-
-
 }
 

@@ -12,7 +12,7 @@ web.http.port=8181
 web.http.path=/api
 ```
 
-Please note that since a specific context is registered (here: `data`), then the default one must be registered
+Please note that since a specific context is registered (here: `data`), then the default one **must** be registered
 explicitly!
 
 _Caution: failing to provide a `web.http.data.port` and `web.http.data.path` configuration will cause

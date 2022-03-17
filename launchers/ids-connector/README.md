@@ -51,9 +51,12 @@ values in a `.properties` file. You can find an example [config.properties](./co
 this launcher's directory. Please adjust this for your setup as follows:
 
 * `web.http.port`: The EDC's port defaults to 8181. Adjust this property to run it on a different port.
+* `web.http.path`: The default path prefix under which endpoints are available.
+* `web.http.ids.port`: The port on which IDS endpoints (currently only the Multipart endpoint) are available.
+* `web.http.ids.path`: The path prefix under which IDS endpoints (currently only the Multipart endpoint) are available.
 * `ids.webhook.address`: Set this to the address at which another connector can reach your connector, 
   as it is used as a callback address during the contract negotiation, where messages are exchanged 
-  asynchronously. If you change the port, make sure to adjust the webhook address accordingly.
+  asynchronously. If you change the IDS API port, make sure to adjust the webhook address accordingly.
 * `edc.api.control.auth.apikey.key`: Name of the header used for authentication when calling 
   endpoints of the control API.
 * `edc.api.control.auth.apikey.value`: Value of the header used for authentication when calling 

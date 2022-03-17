@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
  *       Daimler TSS GmbH - fixed contract dates to epoch seconds
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
@@ -19,20 +20,10 @@ import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.common.statemachine.StateMachine;
 import org.eclipse.dataspaceconnector.common.statemachine.StateProcessorImpl;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
-import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
-import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
-import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
-import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
-import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -45,7 +36,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -62,20 +52,8 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
 /**
  * Implementation of the {@link ProviderContractNegotiationManager}.
  */
-public class ProviderContractNegotiationManagerImpl implements ProviderContractNegotiationManager {
+public class ProviderContractNegotiationManagerImpl extends AbstractContractNegotiationManager implements ProviderContractNegotiationManager {
 
-    private int batchSize = 5;
-    private WaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
-
-    private ContractNegotiationStore negotiationStore;
-    private ContractValidationService validationService;
-    private RemoteMessageDispatcherRegistry dispatcherRegistry;
-    private ContractNegotiationObservable observable;
-    private CommandQueue<ContractNegotiationCommand> commandQueue;
-    private CommandRunner<ContractNegotiationCommand> commandRunner;
-    private CommandProcessor<ContractNegotiationCommand> commandProcessor;
-    private Monitor monitor;
-    private Telemetry telemetry;
     private StateMachine stateMachine;
 
     private ProviderContractNegotiationManagerImpl() {
@@ -432,8 +410,6 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 .build();
 
         //TODO protocol-independent response type?
-        negotiation.transitionConfirmingSent();
-        negotiationStore.save(negotiation);
         dispatcherRegistry.send(Object.class, request, () -> null)
                 .whenComplete(onAgreementSent(negotiation.getId(), agreement));
         return true;
@@ -469,81 +445,14 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     /**
      * Builder for ProviderContractNegotiationManagerImpl.
      */
-    public static class Builder {
-        private final ProviderContractNegotiationManagerImpl manager;
+    public static class Builder extends AbstractContractNegotiationManager.Builder<ProviderContractNegotiationManagerImpl> {
 
         private Builder() {
-            manager = new ProviderContractNegotiationManagerImpl();
-            manager.telemetry = new Telemetry(); // default noop implementation
+            super(new ProviderContractNegotiationManagerImpl());
         }
 
         public static Builder newInstance() {
             return new Builder();
         }
-
-        public Builder validationService(ContractValidationService validationService) {
-            manager.validationService = validationService;
-            return this;
-        }
-
-        public Builder monitor(Monitor monitor) {
-            manager.monitor = monitor;
-            return this;
-        }
-
-        public Builder batchSize(int batchSize) {
-            manager.batchSize = batchSize;
-            return this;
-        }
-
-        public Builder waitStrategy(WaitStrategy waitStrategy) {
-            manager.waitStrategy = waitStrategy;
-            return this;
-        }
-
-        public Builder dispatcherRegistry(RemoteMessageDispatcherRegistry dispatcherRegistry) {
-            manager.dispatcherRegistry = dispatcherRegistry;
-            return this;
-        }
-
-        public Builder commandQueue(CommandQueue<ContractNegotiationCommand> commandQueue) {
-            manager.commandQueue = commandQueue;
-            return this;
-        }
-
-        public Builder commandRunner(CommandRunner<ContractNegotiationCommand> commandRunner) {
-            manager.commandRunner = commandRunner;
-            return this;
-        }
-
-        public Builder telemetry(Telemetry telemetry) {
-            manager.telemetry = telemetry;
-            return this;
-        }
-
-        public Builder observable(ContractNegotiationObservable observable) {
-            manager.observable = observable;
-            return this;
-        }
-
-        public Builder store(ContractNegotiationStore store) {
-            manager.negotiationStore = store;
-            return this;
-        }
-
-        public ProviderContractNegotiationManagerImpl build() {
-            Objects.requireNonNull(manager.validationService, "contractValidationService");
-            Objects.requireNonNull(manager.monitor, "monitor");
-            Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
-            Objects.requireNonNull(manager.commandQueue, "commandQueue");
-            Objects.requireNonNull(manager.commandRunner, "commandRunner");
-            Objects.requireNonNull(manager.observable, "observable");
-            Objects.requireNonNull(manager.telemetry, "telemetry");
-            Objects.requireNonNull(manager.negotiationStore, "store");
-            manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
-
-            return manager;
-        }
-
     }
 }

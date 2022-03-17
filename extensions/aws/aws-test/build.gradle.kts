@@ -27,7 +27,7 @@ val awaitility: String by project
 dependencies {
     api(project(":spi"))
 
-    testFixturesImplementation(project(":common:util"))
+    testFixturesImplementation(testFixtures(project(":common:util")))
 
     testFixturesApi("software.amazon.awssdk:s3:${awsVersion}")
 

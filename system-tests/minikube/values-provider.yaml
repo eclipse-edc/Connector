@@ -3,6 +3,6 @@ image:
   tag: latest
 edc:
   env:
-    IDS_WEBHOOK_ADDRESS: http://provider-dataspace-connector
+    IDS_WEBHOOK_ADDRESS: http://provider-dataspace-connector:8282
     # Use /etc/hosts as a copy source as it is a well-known file
     EDC_TEST_ASSET_PATH: /etc/hosts

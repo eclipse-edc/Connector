@@ -1,0 +1,9 @@
+@startuml
+entity edc_contract_definitions {
+  * contract_definition_id: string <<PK>>
+  --
+  * access_policy: string <<json>>
+  * contract_policy: string <<json>>
+  * selector_expression: string <<json>>
+}
+@enduml

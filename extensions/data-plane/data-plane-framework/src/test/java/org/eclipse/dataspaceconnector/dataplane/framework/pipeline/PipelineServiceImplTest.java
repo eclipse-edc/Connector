@@ -4,54 +4,75 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSourceFactory;
-import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class PipelineServiceImplTest {
-    private PipelineService service;
+    PipelineServiceImpl service = new PipelineServiceImpl();
+    DataFlowRequest request = DataFlowRequest.Builder.newInstance()
+            .id("1")
+            .processId("1")
+            .sourceDataAddress(DataAddress.Builder.newInstance().type("test").build())
+            .destinationDataAddress(DataAddress.Builder.newInstance().type("test").build())
+            .build();
+    DataSourceFactory sourceFactory = mock(DataSourceFactory.class);
+    DataSinkFactory sinkFactory = mock(DataSinkFactory.class);
+    DataSource source = mock(DataSource.class);
+    DataSink sink = mock(DataSink.class);
 
-    @Test
-    void verifyTransfer() {
-        var sourceFactory = mock(DataSourceFactory.class);
-        var sinkFactory = mock(DataSinkFactory.class);
-
-        var source = mock(DataSource.class);
-        var sink = mock(DataSink.class);
-
-        when(sourceFactory.canHandle(isA(DataFlowRequest.class))).thenReturn(true);
-        when(sourceFactory.createSource(isA(DataFlowRequest.class))).thenReturn(source);
-        when(sinkFactory.canHandle(isA(DataFlowRequest.class))).thenReturn(true);
-        when(sinkFactory.createSink(isA(DataFlowRequest.class))).thenReturn(sink);
-        when(sink.transfer(eq(source))).thenReturn(completedFuture(TransferResult.success()));
-
-        var request = DataFlowRequest.Builder.newInstance()
-                .id("1")
-                .processId("1")
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("test").build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("test").build())
-                .build();
-
+    {
         service.registerFactory(sourceFactory);
         service.registerFactory(sinkFactory);
+    }
+
+    @Test
+    void transfer_invokesSink() {
+        when(sourceFactory.canHandle(request)).thenReturn(true);
+        when(sourceFactory.createSource(request)).thenReturn(source);
+        when(sinkFactory.canHandle(request)).thenReturn(true);
+        when(sinkFactory.createSink(request)).thenReturn(sink);
+        when(sink.transfer(source)).thenReturn(completedFuture(TransferResult.success()));
 
         service.transfer(request);
 
         verify(sink).transfer(eq(source));
     }
 
-    @BeforeEach
-    void setUp() {
-        service = new PipelineServiceImpl();
+    @ParameterizedTest
+    @MethodSource("canHandleArguments")
+    void canHandle_returnsTrue_onlyIfSourceAndSinkCanHandle(
+            boolean sourceFactoryResponse,
+            boolean sinkFactoryResponse,
+            boolean expectedResult
+    ) {
+        when(sourceFactory.canHandle(request)).thenReturn(sourceFactoryResponse);
+        when(sinkFactory.canHandle(request)).thenReturn(sinkFactoryResponse);
+
+        assertThat(service.canHandle(request))
+                .isEqualTo(expectedResult);
+    }
+
+    private static Stream<Arguments> canHandleArguments() {
+        return Stream.of(
+                arguments(true, true, true),
+                arguments(true, false, false),
+                arguments(false, true, false),
+                arguments(false, false, false)
+        );
     }
 }

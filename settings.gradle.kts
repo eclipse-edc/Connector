@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering
+ *       ZF Friedrichshafen AG - add dependency & reorder entries
  *
  */
 
@@ -40,15 +41,18 @@ include(":data-protocols:ids:ids-core")
 include(":data-protocols:ids:ids-spi")
 include(":data-protocols:ids:ids-transform-v1")
 include(":data-protocols:ids:ids-token-validation")
+include(":data-protocols:ids:ids-api-configuration")
+
+include("extensions:sql:contract-definition:store")
 
 // modules for technology- or cloud-provider extensions
 include(":extensions:aws")
 include(":extensions:api:control")
-include(":extensions:api:data-management:api-configuration")
-include(":extensions:api:data-management:asset")
 include(":extensions:api:api-core")
 include(":extensions:api:auth-spi")
 include(":extensions:api:auth-tokenbased")
+include(":extensions:api:data-management:api-configuration")
+include(":extensions:api:data-management:asset")
 include(":extensions:api:data-management:contractdefinition")
 include(":extensions:api:data-management:contractnegotiation")
 include(":extensions:api:data-management:contractagreement")
@@ -120,7 +124,8 @@ include(":extensions:data-plane-transfer:data-plane-transfer-sync")
 include(":extensions:data-plane:data-plane-spi")
 include(":extensions:data-plane:data-plane-framework")
 include(":extensions:data-plane:data-plane-http")
-include(":extensions:azure:data-plane-azure-storage")
+include(":extensions:azure:data-plane:common")
+include(":extensions:azure:data-plane:storage")
 include(":extensions:data-plane:data-plane-api")
 include(":extensions:data-plane:integration-tests")
 include(":extensions:sql:common")
@@ -142,7 +147,6 @@ include(":samples:other:dataseed:dataseed-aws")
 include(":samples:other:dataseed:dataseed-azure")
 include(":samples:other:dataseed:dataseed-policy")
 include(":samples:other:run-from-junit")
-include(":samples:other:streaming")
 include(":samples:other:custom-runtime")
 
 

@@ -30,7 +30,7 @@ The project requires JDK 11+. To get started:
 ``` shell 
 git clone git@github.com:eclipse-dataspaceconnector/DataSpaceConnector.git
 
-cd DataSpaceConnector ```
+cd DataSpaceConnector
 
 ./gradlew clean build
 ```
@@ -42,7 +42,7 @@ That will build the connector and run unit tests.
 If you wish to configure your IDE/editor to automatically apply the EDC code style, please
 follow [this guide](styleguide.md).
 
-_Note: the style guide will be checked/enforced in Github Actions._
+_Note: the style guide will be checked/enforced in GitHub Actions._
 
 ## Run your first connector
 
@@ -102,8 +102,8 @@ example take a look at
 
 ### `resources/charts`
 
-Contains a Helm chart for the EDC runtime. You can use the `launchers/generic/Dockerfile` to build a runtime image
-for your connector runtime, and deploy the resulting image to Kubernetes.
+Contains a Helm chart for the EDC runtime. You can use the `launchers/generic/Dockerfile` to build a runtime image for
+your connector runtime, and deploy the resulting image to Kubernetes.
 
 ### `data-protocols`
 
@@ -125,7 +125,8 @@ Contains several scripts to deploy a connector in an AKS cluster on Microsoft Az
 
 ## Code style & Patterns
 
-Please refer to the dedicated [style guide](styleguide.md) and the patterns we documented in [architecture principles](docs/architecture-principles.md).
+Please refer to the dedicated [style guide](styleguide.md) and the patterns we documented
+in [architecture principles](docs/architecture-principles.md).
 
 ## Roadmap
 

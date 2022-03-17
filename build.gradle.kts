@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -30,8 +30,10 @@ val jacksonVersion: String by project
 val javaVersion: String by project
 val jupiterVersion: String by project
 val mockitoVersion: String by project
+val assertj: String by project
 val rsApi: String by project
 val swaggerJaxrs2Version: String by project
+val faker: String by project
 
 val groupId: String = "org.eclipse.dataspaceconnector"
 var edcVersion: String = "0.0.1-SNAPSHOT"
@@ -106,8 +108,8 @@ allprojects {
             testImplementation("org.junit.jupiter:junit-jupiter-params:${jupiterVersion}")
             testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
             testImplementation("org.mockito:mockito-core:${mockitoVersion}")
-            testImplementation("org.assertj:assertj-core:3.19.0")
-            testImplementation("com.github.javafaker:javafaker:1.0.2")
+            testImplementation("org.assertj:assertj-core:${assertj}")
+            testImplementation("com.github.javafaker:javafaker:${faker}")
         }
 
         publishing {
@@ -149,11 +151,28 @@ allprojects {
         }
     }
 
-
-
     tasks.withType<Test> {
-        useJUnitPlatform()
+        // Target all type of test e.g. -DrunAllTests="true"
+        val runAllTests: String = System.getProperty("runAllTests", "false");
+        if (runAllTests == "true") {
+            useJUnitPlatform()
+        } else {
+            // Target specific set of tests by specifying junit tags on command-line e.g. -DincludeTags="tag-name1,tag-name2"
+            val includeTagProperty = System.getProperty("includeTags");
+            val includeTags: Array<String> = includeTagProperty?.split(",")?.toTypedArray() ?: emptyArray();
+
+            if (includeTags.isNotEmpty()) {
+                useJUnitPlatform {
+                    includeTags(*includeTags)
+                }
+            } else {
+                useJUnitPlatform {
+                    excludeTags("IntegrationTest")
+                }
+            }
+        }
     }
+
     tasks.withType<Test> {
         testLogging {
             events("failed")

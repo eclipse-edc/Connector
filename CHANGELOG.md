@@ -21,18 +21,28 @@ the detailed section referring to by linking pull requests or issues.
 * `ContractDefinitionStore` supports paging (#717)
 * Add okhttp client timeouts (#735)
 * Unit test framework for Dependency Injection (#843)
-* Implemented S3BucketReader (#675)
+* Add a deleteById method to the AssetLoader interface (#880)
+* Apply 2-state transition pattern to `ContractNegotiationManager`s (#870)
+* Implement S3BucketReader (#675)
+* Add configuration setting for state machine batch size (#872)
+* Add Jetty context alias for IDS API (#815)
 
 #### Changed
 
 * Change scope used for obtaining a token for ids multipart (#731)
 * Refactor ids token validation as extension (#625)
 * All `CosmosDocument` subclasses now use a configurable partition key (#780)
+* Add `findAll` method to `TransferProcessStore` (#859)
+* Add data-management api to the samples (#733)
+* Enable pluggable transfer service in DPF (#844)
+* Apply 2-state transition pattern to `TransferProcessManager` (#831)
 
 #### Removed
 
 * Remove ION extension (#664)
 * Remove module `:samples:other:commandline` (#820)
+* Remove unneeded/unimplemented methods from `TransferProcessStore` (#859)
+* Remove module `:samples:other:streaming` (#889)
 
 #### Fixed
 * Flaky S3 StatusChecker Test (#794)
@@ -177,6 +187,7 @@ the detailed section referring to by linking pull requests or issues.
 * Add endpoint to the control api to initiate a contract negotiation (#318)
 * Add `IN` operator to all `AssetIndex` implementations (#322)
 * Support IDS logical constraint transformations (#342)
+* Add SQL persistence for contract definitions (#460) (#461)
 
 #### Changed
 

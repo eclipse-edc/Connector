@@ -23,7 +23,7 @@ import static io.gatling.javaapi.http.HttpDsl.http;
 import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.API_KEY_CONTROL_AUTH;
 import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.CONSUMER_ASSET_PATH;
 import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.CONSUMER_CONNECTOR_HOST;
-import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.PROVIDER_CONNECTOR_HOST;
+import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.PROVIDER_IDS_API;
 import static org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils.DESCRIPTION;
 import static org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils.contractNegotiationAndFileTransfer;
 
@@ -38,7 +38,7 @@ public class FileTransferLocalSimulation extends Simulation {
         setUp(scenario(DESCRIPTION)
                 .repeat(1)
                 .on(
-                        contractNegotiationAndFileTransfer(PROVIDER_CONNECTOR_HOST, CONSUMER_ASSET_PATH, API_KEY_CONTROL_AUTH)
+                        contractNegotiationAndFileTransfer(PROVIDER_IDS_API, CONSUMER_ASSET_PATH, API_KEY_CONTROL_AUTH)
                 )
                 .injectOpen(atOnceUsers(1)))
                 .protocols(http

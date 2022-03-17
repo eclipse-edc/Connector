@@ -135,8 +135,9 @@ implementation(project(":samples:04.0-file-transfer:transfer-file"))
 
 We also need to adjust the provider's `config.properties`. The property `edc.samples.04.asset.path`
 should point to an existing file in our local environment, as this is the file that will be transferred. We also add the
-property `ids.webhook.address`, which should point to our provider connector's address, e.g. `http://localhost:8181`.
-This is used as the callback address during the contract negotiation.
+property `ids.webhook.address`, which should point to our provider connector's address. This is used as the callback
+address during the contract negotiation. Since the IDS API is running on a different port (default is `8282`), we set
+the webhook address to `http://localhost:8282` accordingly.
 
 ### Consumer connector
 
@@ -153,7 +154,9 @@ implementation(project(":samples:04.0-file-transfer:api"))
 It is good practice to explicitly configure the consumer's API port in `consumer/config.properties` like we learned in
 previous chapters. In the config file, we also need to configure the API key authentication, as we're going to use an
 endpoint from the EDC's control API in this sample. Therefore, we add the property `edc.api.control.auth.apikey.value`
-and set it to e.g. `password`. And last, we also need to configure the consumer's `ids.webhook.address`.
+and set it to e.g. `password`. And last, we also need to configure the consumer's API contexts and webhook address.
+We expose the IDS API endpoints on a different port and path than other endpoints. The property `ids.webhook.address`
+is adjusted to match the IDS API port.
 
 ## Run the sample
 
@@ -199,7 +202,7 @@ and can be used as is. In a real scenario, a potential consumer would first need
 provider's offers in order to get the provider's contract offer.
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://localhost:8181/api/v1/ids/data"
+curl -X POST -H "Content-Type: application/json" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://localhost:8282/api/v1/ids/data"
 ```
 
 In the response we'll get a UUID that we can use to get the contract agreement negotiated between provider and consumer.
@@ -249,7 +252,7 @@ provide the address of the provider connector, the path where we want the file c
 query parameters:
 
 ```bash
-curl -X POST "http://localhost:9191/api/file/test-document?connectorAddress=http://localhost:8181/api/v1/ids/data&destination=/path/on/yourmachine&contractId={agreement ID}"
+curl -X POST "http://localhost:9191/api/file/test-document?connectorAddress=http://localhost:8282/api/v1/ids/data&destination=/path/on/yourmachine&contractId={agreement ID}"
 ```
 
 Again, we will get a UUID in the response. This time, this is the ID of the `TransferProcess`
