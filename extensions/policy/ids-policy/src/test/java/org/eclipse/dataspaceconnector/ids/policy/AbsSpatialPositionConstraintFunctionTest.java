@@ -1,7 +1,7 @@
 package org.eclipse.dataspaceconnector.ids.policy;
 
 import org.eclipse.dataspaceconnector.policy.model.Permission;
-import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

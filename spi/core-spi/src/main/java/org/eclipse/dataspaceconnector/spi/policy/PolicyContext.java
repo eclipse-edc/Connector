@@ -11,9 +11,9 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.spi.contract.policy;
+package org.eclipse.dataspaceconnector.spi.policy;
 
-import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

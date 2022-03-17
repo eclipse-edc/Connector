@@ -11,26 +11,24 @@
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Fraunhofer Institute for Software and Systems Engineering - add contract negotiation functionality
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
- *
+ *       Microsoft Corporation
  */
 
 package org.eclipse.dataspaceconnector.contract;
 
-import org.eclipse.dataspaceconnector.contract.agent.ParticipantAgentServiceImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.ConsumerContractNegotiationManagerImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.ProviderContractNegotiationManagerImpl;
 import org.eclipse.dataspaceconnector.contract.observe.ContractNegotiationObservableImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractDefinitionServiceImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractOfferServiceImpl;
-import org.eclipse.dataspaceconnector.contract.policy.PolicyEngineImpl;
 import org.eclipse.dataspaceconnector.contract.validation.ContractValidationServiceImpl;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.command.BoundedCommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
-import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
@@ -39,10 +37,10 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNeg
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.system.CoreExtension;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
@@ -52,8 +50,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 
-@Provides({ContractOfferService.class, PolicyEngine.class, ParticipantAgentService.class, ContractValidationService.class,
-        ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class})
+@Provides({ContractOfferService.class, ContractValidationService.class, ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class})
 @CoreExtension
 public class ContractServiceExtension implements ServiceExtension {
 
@@ -70,14 +67,24 @@ public class ContractServiceExtension implements ServiceExtension {
 
     @Inject
     private AssetIndex assetIndex;
+
     @Inject
     private ContractDefinitionStore contractDefinitionStore;
+
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
+
     @Inject
     private CommandHandlerRegistry commandHandlerRegistry;
+
     @Inject
     private ContractNegotiationStore store;
+
+    @Inject
+    private ParticipantAgentService agentService;
+
+    @Inject
+    private PolicyEngine policyEngine;
 
     @Override
     public String name() {
@@ -115,11 +122,6 @@ public class ContractServiceExtension implements ServiceExtension {
             assetIndex = new NullAssetIndex();
         }
 
-        var agentService = new ParticipantAgentServiceImpl();
-        context.registerService(ParticipantAgentService.class, agentService);
-
-        var policyEngine = new PolicyEngineImpl();
-        context.registerService(PolicyEngine.class, policyEngine);
 
         var definitionService = new ContractDefinitionServiceImpl(monitor, contractDefinitionStore, policyEngine);
         var contractOfferService = new ContractOfferServiceImpl(agentService, definitionService, assetIndex);

@@ -11,7 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.contract.policy;
+package org.eclipse.dataspaceconnector.core.base.policy;
 
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
@@ -19,7 +19,7 @@ import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
-import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
