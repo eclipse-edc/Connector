@@ -18,7 +18,7 @@ import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
 import org.eclipse.dataspaceconnector.extension.jetty.PortMapping;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
+import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -27,19 +27,18 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class IdsApiConfigurationExtensionTest {
     
     private JettyService jettyService;
     private ServiceExtensionContext context;
-    private Config config;
     private IdsApiConfigurationExtension extension;
     
     private ArgumentCaptor<PortMapping> portMappingCaptor;
@@ -50,9 +49,7 @@ public class IdsApiConfigurationExtensionTest {
         var monitor = new ConsoleMonitor();
         jettyService = mock(JettyService.class);
         context = mock(ServiceExtensionContext.class);
-        config = mock(Config.class);
         when(context.getMonitor()).thenReturn(monitor);
-        when(context.getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG)).thenReturn(config);
         
         extension = new IdsApiConfigurationExtension();
         portMappingCaptor = ArgumentCaptor.forClass(PortMapping.class);
@@ -62,7 +59,8 @@ public class IdsApiConfigurationExtensionTest {
     
     @Test
     void initializeWithDefault() {
-        when(config.getEntries()).thenReturn(new HashMap<>());
+        var config = ConfigFactory.fromMap(new HashMap<>());
+        when(context.getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG)).thenReturn(config);
         
         extension.initialize(context);
         
@@ -70,8 +68,12 @@ public class IdsApiConfigurationExtensionTest {
         var portMapping = portMappingCaptor.getValue();
         assertThat(portMapping.getPort()).isEqualTo(IdsApiConfigurationExtension.DEFAULT_IDS_PORT);
         assertThat(portMapping.getPath()).isEqualTo(IdsApiConfigurationExtension.DEFAULT_IDS_API_PATH);
-        
+    
+        verify(context, times(1)).getMonitor();
+        verify(context, times(1)).getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG);
         verify(context, times(1)).registerService(eq(IdsApiConfiguration.class), apiConfigCaptor.capture());
+        verifyNoMoreInteractions(context);
+        
         var idsApiConfig = apiConfigCaptor.getValue();
         assertThat(idsApiConfig.getContextAlias()).isEqualTo("ids");
         assertThat(idsApiConfig.getPath()).isEqualTo(IdsApiConfigurationExtension.DEFAULT_IDS_API_PATH);
@@ -83,15 +85,64 @@ public class IdsApiConfigurationExtensionTest {
         var apiConfig = new HashMap<String, String>();
         apiConfig.put("port", String.valueOf(8765));
         apiConfig.put("path", path);
-        
-        when(config.getEntries()).thenReturn(apiConfig);
-        when(config.getString(eq("path"), any())).thenReturn(path);
+    
+        var config = ConfigFactory.fromMap(apiConfig);
+        when(context.getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG)).thenReturn(config);
         
         extension.initialize(context);
         
         verifyNoInteractions(jettyService);
     
+        verify(context, times(1)).getMonitor();
+        verify(context, times(1)).getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG);
         verify(context, times(1)).registerService(eq(IdsApiConfiguration.class), apiConfigCaptor.capture());
+        verifyNoMoreInteractions(context);
+        
+        var idsApiConfig = apiConfigCaptor.getValue();
+        assertThat(idsApiConfig.getContextAlias()).isEqualTo("ids");
+        assertThat(idsApiConfig.getPath()).isEqualTo(path);
+    }
+    
+    @Test
+    void initializeWithOnlyPortSet() {
+        var apiConfig = new HashMap<String, String>();
+        apiConfig.put("port", String.valueOf(8765));
+    
+        var config = ConfigFactory.fromMap(apiConfig);
+        when(context.getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG)).thenReturn(config);
+    
+        extension.initialize(context);
+    
+        verifyNoInteractions(jettyService);
+    
+        verify(context, times(1)).getMonitor();
+        verify(context, times(1)).getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG);
+        verify(context, times(1)).registerService(eq(IdsApiConfiguration.class), apiConfigCaptor.capture());
+        verifyNoMoreInteractions(context);
+    
+        var idsApiConfig = apiConfigCaptor.getValue();
+        assertThat(idsApiConfig.getContextAlias()).isEqualTo("ids");
+        assertThat(idsApiConfig.getPath()).isEqualTo(IdsApiConfigurationExtension.DEFAULT_IDS_API_PATH);
+    }
+    
+    @Test
+    void initializeWithOnlyPathSet() {
+        var path = "/api/ids/custom";
+        var apiConfig = new HashMap<String, String>();
+        apiConfig.put("path", path);
+    
+        var config = ConfigFactory.fromMap(apiConfig);
+        when(context.getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG)).thenReturn(config);
+    
+        extension.initialize(context);
+    
+        verifyNoInteractions(jettyService);
+    
+        verify(context, times(1)).getMonitor();
+        verify(context, times(1)).getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG);
+        verify(context, times(1)).registerService(eq(IdsApiConfiguration.class), apiConfigCaptor.capture());
+        verifyNoMoreInteractions(context);
+    
         var idsApiConfig = apiConfigCaptor.getValue();
         assertThat(idsApiConfig.getContextAlias()).isEqualTo("ids");
         assertThat(idsApiConfig.getPath()).isEqualTo(path);
