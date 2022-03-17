@@ -22,8 +22,8 @@ import org.eclipse.dataspaceconnector.contract.observe.ContractNegotiationObserv
 import org.eclipse.dataspaceconnector.contract.offer.ContractDefinitionServiceImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractOfferServiceImpl;
 import org.eclipse.dataspaceconnector.contract.validation.ContractValidationServiceImpl;
-import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.command.BoundedCommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
