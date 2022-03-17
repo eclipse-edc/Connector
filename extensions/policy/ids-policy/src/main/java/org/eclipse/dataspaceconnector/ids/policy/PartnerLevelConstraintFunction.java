@@ -16,8 +16,8 @@ package org.eclipse.dataspaceconnector.ids.policy;
 
 import org.eclipse.dataspaceconnector.policy.model.Operator;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
-import org.eclipse.dataspaceconnector.spi.contract.policy.AtomicConstraintFunction;
-import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyContext;
+import org.eclipse.dataspaceconnector.spi.policy.AtomicConstraintFunction;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyContext;
 
 import java.util.Collection;
 import java.util.Objects;

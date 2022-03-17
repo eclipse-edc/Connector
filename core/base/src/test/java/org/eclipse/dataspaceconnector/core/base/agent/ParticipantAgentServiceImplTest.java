@@ -11,9 +11,9 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.contract.agent;
+package org.eclipse.dataspaceconnector.core.base.agent;
 
-import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentServiceExtension;
+import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentServiceExtension;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.junit.jupiter.api.Test;
 

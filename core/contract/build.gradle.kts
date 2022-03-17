@@ -21,7 +21,6 @@ plugins {
 
 dependencies {
     api(project(":spi:contract-spi"))
-    api(project(":core:policy:policy-engine"))
     api(project(":common:state-machine-lib"))
     api(project(":common:util"))
 

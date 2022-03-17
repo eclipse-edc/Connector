@@ -11,7 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.spi.contract.policy;
+package org.eclipse.dataspaceconnector.spi.policy;
 
 import org.eclipse.dataspaceconnector.policy.model.Rule;
 
