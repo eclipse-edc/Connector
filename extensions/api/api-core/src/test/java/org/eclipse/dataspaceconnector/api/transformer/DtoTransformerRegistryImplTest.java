@@ -25,13 +25,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 
-class ApiTransformerRegistryImplTest {
+class DtoTransformerRegistryImplTest {
 
-    private ApiTransformerRegistryImpl registry;
+    private DtoTransformerRegistryImpl registry;
 
     @BeforeEach
     void setUp() {
-        registry = new ApiTransformerRegistryImpl();
+        registry = new DtoTransformerRegistryImpl();
     }
 
     @Test
@@ -87,7 +87,7 @@ class ApiTransformerRegistryImplTest {
 
     }
 
-    private static class TestTransformer implements ApiTransformer<String, String> {
+    private static class TestTransformer implements DtoTransformer<String, String> {
         @Override
         public boolean canHandle(@NotNull Object object, @NotNull Class<?> outputType) {
             return object instanceof String && outputType == String.class;

@@ -30,8 +30,8 @@ import java.util.Set;
 import static java.lang.String.format;
 
 /**
- * Default in-mem implementation of the {@link ApiTransformerRegistry} interface.
- * Every REST API extension should check whether an {@link ApiTransformerRegistry} is already available in the {@link org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext}
+ * Default in-mem implementation of the {@link DtoTransformerRegistry} interface.
+ * Every REST API extension should check whether an {@link DtoTransformerRegistry} is already available in the {@link org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext}
  * and register one otherwise:
  * <pre>
  * \@Inject(required=false)
@@ -47,27 +47,27 @@ import static java.lang.String.format;
  * }
  * </pre>
  */
-public class ApiTransformerRegistryImpl implements ApiTransformerRegistry {
+public class DtoTransformerRegistryImpl implements DtoTransformerRegistry {
 
-    private final Set<ApiTransformer<?, ?>> transformers;
+    private final Set<DtoTransformer<?, ?>> transformers;
 
-    public ApiTransformerRegistryImpl() {
+    public DtoTransformerRegistryImpl() {
         transformers = new HashSet<>();
     }
 
-    public Set<ApiTransformer<?, ?>> getTransformers() {
+    public Set<DtoTransformer<?, ?>> getTransformers() {
         return Collections.unmodifiableSet(transformers);
     }
 
     @Override
-    public void register(ApiTransformer<?, ?> transformer) {
+    public void register(DtoTransformer<?, ?> transformer) {
         transformers.add(transformer);
     }
 
     @Override
     public <INPUT, OUTPUT> Result<OUTPUT> transform(@NotNull INPUT object, @NotNull Class<OUTPUT> outputType) {
 
-        var ctx = new ApiTransformerContext(this);
+        var ctx = new DtoTransformerContext(this);
 
         var output = transform(object, outputType, ctx);
 
@@ -85,14 +85,14 @@ public class ApiTransformerRegistryImpl implements ApiTransformerRegistry {
         if (t == null) {
             throw new EdcException(format("No ApiTransformer registered that can handle %s -> %s", object, outputType));
         }
-        return outputType.cast(((ApiTransformer<INPUT, OUTPUT>) t).transform(object, context));
+        return outputType.cast(((DtoTransformer<INPUT, OUTPUT>) t).transform(object, context));
     }
 
-    private static class ApiTransformerContext implements TransformerContext {
-        private final ApiTransformerRegistry registry;
+    private static class DtoTransformerContext implements TransformerContext {
+        private final DtoTransformerRegistry registry;
         private final List<String> problems;
 
-        private ApiTransformerContext(ApiTransformerRegistry registry) {
+        private DtoTransformerContext(DtoTransformerRegistry registry) {
             this.registry = registry;
             problems = new ArrayList<>();
         }

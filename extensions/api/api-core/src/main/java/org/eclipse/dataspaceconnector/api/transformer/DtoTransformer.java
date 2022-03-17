@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  * @param <INPUT>  the type of input object. Usually this is a business object.
  * @param <OUTPUT> the type that the input gets converted into. Usually this is a DTO.
  */
-public interface ApiTransformer<INPUT, OUTPUT> extends TypeTransformer<INPUT, OUTPUT> {
+public interface DtoTransformer<INPUT, OUTPUT> extends TypeTransformer<INPUT, OUTPUT> {
     /**
      * Determines whether a transformer can handle a particular pair.
      *
