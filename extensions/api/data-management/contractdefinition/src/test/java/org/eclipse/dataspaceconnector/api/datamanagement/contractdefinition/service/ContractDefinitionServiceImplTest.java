@@ -61,7 +61,7 @@ class ContractDefinitionServiceImplTest {
     void findById_returnsNullIfNotFound() {
         when(store.findAll(isA(QuerySpec.class))).thenReturn(Stream.empty());
 
-        var result = service.findbyId("any");
+        var result = service.findById("any");
 
         assertThat(result).isNull();
     }

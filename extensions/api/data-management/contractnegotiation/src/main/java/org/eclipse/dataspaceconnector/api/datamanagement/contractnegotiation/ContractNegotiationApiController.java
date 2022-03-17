@@ -27,12 +27,23 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractAgreementDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractNegotiationDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.service.ContractNegotiationService;
+import org.eclipse.dataspaceconnector.api.exception.ObjectExistsException;
+import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
+import org.eclipse.dataspaceconnector.api.result.ServiceResult;
+import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
+import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -41,9 +52,13 @@ import static java.lang.String.format;
 @Path("/contractnegotiations")
 public class ContractNegotiationApiController implements ContractNegotiationApi {
     private final Monitor monitor;
+    private final ContractNegotiationService service;
+    private final DtoTransformerRegistry transformerRegistry;
 
-    public ContractNegotiationApiController(Monitor monitor) {
+    public ContractNegotiationApiController(Monitor monitor, ContractNegotiationService service, DtoTransformerRegistry transformerRegistry) {
         this.monitor = monitor;
+        this.service = service;
+        this.transformerRegistry = transformerRegistry;
     }
 
     @GET
@@ -63,7 +78,11 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
 
         monitor.debug(format("Get all contract definitions %s", spec));
 
-        return Collections.emptyList();
+        return service.query(spec).stream()
+                .map(it -> transformerRegistry.transform(it, ContractNegotiationDto.class))
+                .filter(Result::succeeded)
+                .map(Result::getContent)
+                .collect(Collectors.toList());
     }
 
     @GET
@@ -71,7 +90,13 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     @Override
     public ContractNegotiationDto getNegotiation(@PathParam("id") String id) {
         monitor.debug(format("Get contract negotiation with id %s", id));
-        return null;
+
+        return Optional.of(id)
+                .map(service::findbyId)
+                .map(it -> transformerRegistry.transform(it, ContractNegotiationDto.class))
+                .filter(Result::succeeded)
+                .map(Result::getContent)
+                .orElseThrow(() -> new ObjectNotFoundException(ContractDefinition.class, id));
     }
 
     @GET
@@ -79,47 +104,78 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     @Override
     public String getNegotiationState(@PathParam("id") String id) {
         monitor.debug(format("Get contract negotiation state with id %s", id));
-        return "some state";
-    }
-
-    @POST
-    @Path("/{id}/cancel")
-    @Override
-    public void cancelNegotiation(@PathParam("id") String id) {
-        // TODO move Negotiation to the CANCELLING/CANCELLED state
-        // TODO Throw IllegalStateException if not possible
-        monitor.debug(format("Attempting to cancel contract negotiation with id %s", id));
-    }
-
-    @POST
-    @Path("/{id}/decline")
-    @Override
-    public void declineNegotiation(@PathParam("id") String id) {
-        // TODO move Negotiation to the DECLINING/DECLINED state
-        // TODO Throw IllegalStateException if not possible
-        monitor.debug(format("Attempting to decline contract negotiation with id %s", id));
+        return Optional.of(id)
+                .map(service::getState)
+                .orElseThrow(() -> new ObjectNotFoundException(ContractDefinition.class, id));
     }
 
     @GET
     @Path("/{id}/agreement")
     @Override
     public ContractAgreementDto getAgreementForNegotiation(@PathParam("id") String negotiationId) {
-        //TODO: fetch agreement for negotiation-id
-        return ContractAgreementDto.Builder.newInstance().negotiationId(negotiationId).build();
+        monitor.debug(format("Get contract agreement of negotiation with id %s", negotiationId));
+
+        return Optional.of(negotiationId)
+                .map(service::getForNegotiation)
+                .map(it -> transformerRegistry.transform(it, ContractAgreementDto.class))
+                .filter(Result::succeeded)
+                .map(Result::getContent)
+                .orElseThrow(() -> new ObjectNotFoundException(ContractDefinition.class, negotiationId));
     }
 
     @POST
     @Override
     public String initiateContractNegotiation(NegotiationInitiateRequestDto initiateDto) {
-
         if (!isValid(initiateDto)) {
             throw new IllegalArgumentException("Negotiation request is invalid");
         }
 
-        return "not-implemente"; //will be the negotiation-id
+        var transformResult = transformerRegistry.transform(initiateDto, ContractOfferRequest.class);
+        if (transformResult.failed()) {
+            throw new IllegalArgumentException("Negotiation request is invalid");
+        }
+
+        var request = transformResult.getContent();
+
+        ContractNegotiation contractNegotiation = service.initiateNegotiation(request);
+        return contractNegotiation.getId();
+    }
+
+    @POST
+    @Path("/{id}/cancel")
+    @Override
+    public void cancelNegotiation(@PathParam("id") String id) {
+        monitor.debug(format("Attempting to cancel contract definition with id %s", id));
+        var result = service.cancel(id);
+        if (result.succeeded()) {
+            monitor.debug(format("Contract negotiation canceled %s", result.getContent().getId()));
+        } else {
+            handleFailedResult(result, id);
+        }
+    }
+
+    @POST
+    @Path("/{id}/decline")
+    @Override
+    public void declineNegotiation(@PathParam("id") String id) {
+        monitor.debug(format("Attempting to decline contract definition with id %s", id));
+        var result = service.decline(id);
+        if (result.succeeded()) {
+            monitor.debug(format("Contract negotiation declined %s", result.getContent().getId()));
+        } else {
+            handleFailedResult(result, id);
+        }
     }
 
     private boolean isValid(NegotiationInitiateRequestDto initiateDto) {
         return StringUtils.isNoneBlank(initiateDto.getConnectorId(), initiateDto.getConnectorAddress(), initiateDto.getProtocol(), initiateDto.getOfferId());
+    }
+
+    private void handleFailedResult(ServiceResult<ContractNegotiation> result, String id) {
+        switch (result.reason()) {
+            case NOT_FOUND: throw new ObjectNotFoundException(ContractNegotiation.class, id);
+            case CONFLICT: throw new ObjectExistsException(ContractNegotiation.class, id);
+            default: throw new EdcException("unexpected error");
+        }
     }
 }

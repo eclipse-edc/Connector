@@ -38,7 +38,7 @@ public interface ContractDefinitionService {
      * Query contract definitions
      *
      * @param query request
-     * @return the collection of contract definitions that matches the query
+     * @return the collection of contract definitions that match the query
      */
     Collection<ContractDefinition> query(QuerySpec query);
 
