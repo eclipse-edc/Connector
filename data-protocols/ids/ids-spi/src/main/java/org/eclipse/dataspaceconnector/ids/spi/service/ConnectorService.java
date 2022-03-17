@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
@@ -31,5 +32,5 @@ public interface ConnectorService {
      * @return connector description
      */
     @NotNull
-    Connector getConnector(@NotNull Result<ClaimToken> verificationResult);
+    Connector getConnector(@NotNull ClaimToken claimToken);
 }

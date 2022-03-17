@@ -80,14 +80,14 @@ class ArtifactRequestHandlerTest {
         var multipartRequest = createMultipartRequest(destination, artifactRequestId, artifactId, contractId);
         var header = (ArtifactRequestMessage) multipartRequest.getHeader();
         var agreement = createContractAgreement();
-        var verificationResult = ClaimToken.Builder.newInstance().build();
+        var claimToken = ClaimToken.Builder.newInstance().build();
 
         var drCapture = ArgumentCaptor.forClass(DataRequest.class);
         when(transferProcessManager.initiateProviderRequest(drCapture.capture())).thenReturn(TransferInitiateResult.success("Transfer success"));
         when(contractNegotiationStore.findContractAgreement(contractId)).thenReturn(agreement);
-        when(contractValidationService.validate(verificationResult, agreement)).thenReturn(true);
+        when(contractValidationService.validate(claimToken, agreement)).thenReturn(true);
 
-        handler.handleRequest(multipartRequest, Result.success(verificationResult));
+        handler.handleRequest(multipartRequest, claimToken);
 
         verify(transferProcessManager).initiateProviderRequest(drCapture.capture());
 

@@ -46,7 +46,7 @@ public class ArtifactDescriptionRequestHandler extends AbstractDescriptionReques
     }
 
     @Override
-    protected Asset retrieveObject(@NotNull IdsId idsId, @NotNull Result<ClaimToken> verificationResult) {
+    protected Asset retrieveObject(@NotNull IdsId idsId, @NotNull ClaimToken claimToken) {
         return assetIndex.findById(idsId.getValue());
     }
 }

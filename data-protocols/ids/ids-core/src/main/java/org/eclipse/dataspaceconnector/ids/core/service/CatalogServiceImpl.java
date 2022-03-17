@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Daimler TSS GmbH
+ *  Copyright (c) 2021 - 2022 Daimler TSS GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
@@ -21,8 +22,10 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Objects;
 
 import static java.util.stream.Collectors.toList;
@@ -48,10 +51,11 @@ public class CatalogServiceImpl implements CatalogService {
      */
     @Override
     @NotNull
-    public Catalog getDataCatalog(Result<ClaimToken> verificationResult) {
-        var query = ContractOfferQuery.Builder.newInstance().claimToken(verificationResult.getContent()).build();
-        var offerStream = contractOfferService.queryContractOffers(query);
+    public Catalog getDataCatalog(ClaimToken claimToken) {
+        var query = ContractOfferQuery.Builder.newInstance().claimToken(claimToken).build();
 
-        return Catalog.Builder.newInstance().id(dataCatalogId).contractOffers(offerStream.collect(toList())).build();
+        var offers = contractOfferService.queryContractOffers(query).collect(toList());
+
+        return Catalog.Builder.newInstance().id(dataCatalogId).contractOffers(offers).build();
     }
 }
