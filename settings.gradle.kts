@@ -41,6 +41,7 @@ include(":data-protocols:ids:ids-core")
 include(":data-protocols:ids:ids-spi")
 include(":data-protocols:ids:ids-transform-v1")
 include(":data-protocols:ids:ids-token-validation")
+include(":data-protocols:ids:ids-api-configuration")
 
 include("extensions:sql:contract-definition:store")
 

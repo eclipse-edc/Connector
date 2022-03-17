@@ -57,11 +57,13 @@ public class EndToEndTransferTest {
     private static final URI CONSUMER_DATA_PLANE = URI.create("http://localhost:" + getFreePort());
     private static final URI CONSUMER_DATA_PLANE_PUBLIC = URI.create("http://localhost:" + getFreePort() + "/public");
     private static final URI CONSUMER_BACKEND_SERVICE = URI.create("http://localhost:" + getFreePort());
+    private static final URI CONSUMER_IDS_API = URI.create("http://localhost:" + getFreePort());
     private static final URI PROVIDER_CONTROL_PLANE = URI.create("http://localhost:" + getFreePort());
     private static final URI PROVIDER_CONTROL_PLANE_VALIDATION = URI.create("http://localhost:" + getFreePort() + "/validation");
     private static final URI PROVIDER_DATA_PLANE = URI.create("http://localhost:" + getFreePort());
     private static final URI PROVIDER_DATA_PLANE_PUBLIC = URI.create("http://localhost:" + getFreePort() + "/public");
     private static final URI PROVIDER_BACKEND_SERVICE = URI.create("http://localhost:" + getFreePort());
+    private static final URI PROVIDER_IDS_API = URI.create("http://localhost:" + getFreePort());
 
     @RegisterExtension
     static EdcRuntimeExtension consumerControlPlane = new EdcRuntimeExtension(
@@ -71,13 +73,15 @@ public class EndToEndTransferTest {
                 {
                     put("web.http.port", String.valueOf(CONSUMER_CONTROL_PLANE.getPort()));
                     put("web.http.path", "/api");
+                    put("web.http.ids.port", String.valueOf(CONSUMER_IDS_API.getPort()));
+                    put("web.http.ids.path", "/api/v1/ids");
                     put("web.http.validation.port", String.valueOf(CONSUMER_CONTROL_PLANE_VALIDATION.getPort()));
                     put("web.http.validation.path", "/validation");
                     put("edc.vault", resourceAbsolutePath("consumer-vault.properties"));
                     put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                     put("edc.keystore.password", "123456");
                     put("edc.api.control.auth.apikey.value", API_KEY_CONTROL_AUTH);
-                    put("ids.webhook.address", CONSUMER_CONTROL_PLANE.toString());
+                    put("ids.webhook.address", CONSUMER_IDS_API.toString());
                     put("edc.receiver.http.endpoint", CONSUMER_BACKEND_SERVICE + "/api/service/pull");
                     put("edc.transfer.dataplane.token.signer.privatekey.alias", "1");
                     put("edc.public.key.alias", "public-key");
@@ -139,13 +143,15 @@ public class EndToEndTransferTest {
                 {
                     put("web.http.port", String.valueOf(PROVIDER_CONTROL_PLANE.getPort()));
                     put("web.http.path", "/api");
+                    put("web.http.ids.port", String.valueOf(PROVIDER_IDS_API.getPort()));
+                    put("web.http.ids.path", "/api/v1/ids");
                     put("web.http.validation.port", String.valueOf(PROVIDER_CONTROL_PLANE_VALIDATION.getPort()));
                     put("web.http.validation.path", "/validation");
                     put("edc.vault", resourceAbsolutePath("provider-vault.properties"));
                     put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                     put("edc.keystore.password", "123456");
                     put("edc.api.control.auth.apikey.value", API_KEY_CONTROL_AUTH);
-                    put("ids.webhook.address", PROVIDER_CONTROL_PLANE.toString());
+                    put("ids.webhook.address", PROVIDER_IDS_API.toString());
                     put("edc.receiver.http.endpoint", PROVIDER_BACKEND_SERVICE + "/api/service/pull");
                     put("edc.transfer.dataplane.token.signer.privatekey.alias", "1");
                     put("edc.public.key.alias", "public-key");
@@ -170,13 +176,13 @@ public class EndToEndTransferTest {
         var assetId = createAsset(PROVIDER_CONTROL_PLANE);
         createContractDefinition(assetId, PROVIDER_CONTROL_PLANE);
 
-        var negotiationId = negotiateContractFor(assetId, CONSUMER_CONTROL_PLANE, PROVIDER_CONTROL_PLANE);
+        var negotiationId = negotiateContractFor(assetId, CONSUMER_CONTROL_PLANE, PROVIDER_IDS_API);
 
         var contractAgreementId = getContractAgreementId(negotiationId, CONSUMER_CONTROL_PLANE);
 
         assertThat(contractAgreementId).isNotEmpty();
 
-        var transferProcessId = dataRequest(contractAgreementId, assetId, CONSUMER_CONTROL_PLANE, PROVIDER_CONTROL_PLANE);
+        var transferProcessId = dataRequest(contractAgreementId, assetId, CONSUMER_CONTROL_PLANE, PROVIDER_IDS_API);
 
         await().atMost(timeout).untilAsserted(() -> {
             var transferProcess = getTransferProcess(transferProcessId, CONSUMER_CONTROL_PLANE);

@@ -48,6 +48,7 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
 
     private final Vault vault;
     private final String idsWebhookAddress;
+    private final String idsApiPath;
 
     public MultipartArtifactRequestSender(@NotNull String connectorId,
                                           @NotNull OkHttpClient httpClient,
@@ -56,10 +57,12 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
                                           @NotNull Vault vault,
                                           @NotNull IdentityService identityService,
                                           @NotNull TransformerRegistry transformerRegistry,
-                                          @NotNull String idsWebhookAddress) {
+                                          @NotNull String idsWebhookAddress,
+                                          @NotNull String idsApiPath) {
         super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
         this.vault = Objects.requireNonNull(vault);
         this.idsWebhookAddress = idsWebhookAddress;
+        this.idsApiPath = idsApiPath;
     }
 
     @Override
@@ -106,7 +109,10 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
                 ._requestedArtifact_(artifactId)
                 ._transferContract_(contractId)
                 .build();
-        message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + "/api/v1/ids/data");
+        
+        var path = idsApiPath + (idsApiPath.endsWith("/") ? "data" : "/data");
+        message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + path);
+        
         request.getProperties().forEach(message::setProperty);
         return message;
     }

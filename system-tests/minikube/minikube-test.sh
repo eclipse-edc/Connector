@@ -28,7 +28,7 @@ export CONSUMER_URL=http://$ip:$port
 
 # Perform negotiation and file transfer. See sample root directory README.md file for more details.
 
-export PROVIDER_URL="http://provider-dataspace-connector"
+export PROVIDER_URL="http://provider-dataspace-connector:8282"
 export DESTINATION_PATH="/tmp/destination-file-$RANDOM"
 export API_KEY="password"
 

@@ -83,12 +83,13 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         var httpClient = testOkHttpClient();
 
         var idsWebhookAddress = "http://webhook";
+        var idsApiPath = "/api";
 
         multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
         multipartDispatcher.register(new MultipartDescriptionRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
-        multipartDispatcher.register(new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, vault, identityService, transformerRegistry, idsWebhookAddress));
-        multipartDispatcher.register(new MultipartContractOfferSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry, idsWebhookAddress));
-        multipartDispatcher.register(new MultipartContractAgreementSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry, idsWebhookAddress));
+        multipartDispatcher.register(new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, vault, identityService, transformerRegistry, idsWebhookAddress, idsApiPath));
+        multipartDispatcher.register(new MultipartContractOfferSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry, idsWebhookAddress, idsApiPath));
+        multipartDispatcher.register(new MultipartContractAgreementSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry, idsWebhookAddress, idsApiPath));
         multipartDispatcher.register(new MultipartContractRejectionSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartCatalogDescriptionRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
     }
@@ -245,6 +246,9 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         return new HashMap<>() {
             {
                 put("web.http.port", String.valueOf(getPort()));
+                put("web.http.path", "/api");
+                put("web.http.ids.port", String.valueOf(getIdsPort()));
+                put("web.http.ids.path", "/api/v1/ids");
                 put("edc.ids.id", "urn:connector:" + CONNECTOR_ID);
                 put("ids.webhook.address", "http://webhook");
             }
