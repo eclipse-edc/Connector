@@ -17,8 +17,8 @@ import org.eclipse.dataspaceconnector.spi.transformer.TypeTransformerRegistry;
 
 /**
  * Dispatches to {@link IdsTypeTransformer}s to bidirectionally convert between IDS and EDC types.
+ * This is a marker interface to restrict to ids transformer types
  */
 public interface IdsTransformerRegistry extends TypeTransformerRegistry<IdsTypeTransformer<?, ?>> {
 
-    // marker interface to restrict transformer types
 }
