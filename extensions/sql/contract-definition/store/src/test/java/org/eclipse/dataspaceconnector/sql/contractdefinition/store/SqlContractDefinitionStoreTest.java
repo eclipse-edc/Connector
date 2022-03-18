@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial Tests
+ *       Microsoft Corporation - Method signature change
  *
  */
 
@@ -74,7 +75,7 @@ public class SqlContractDefinitionStoreTest {
         txManager.registerResource(new DataSourceResource(poolDataSource));
         sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper());
 
-        try (var inputStream = this.getClass().getClassLoader().getResourceAsStream("schema.sql")) {
+        try (var inputStream = getClass().getClassLoader().getResourceAsStream("schema.sql")) {
             var schema = new String(Objects.requireNonNull(inputStream).readAllBytes(), StandardCharsets.UTF_8);
             transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
 
@@ -235,6 +236,23 @@ public class SqlContractDefinitionStoreTest {
 
         assertThat(definitionsRetrieved).isNotNull();
         assertThat(definitionsRetrieved.size()).isEqualTo(limit);
+    }
+
+    @Test
+    void delete() {
+        var definitionExpected = getContractDefinition("test-id1", "contract1", "policy1");
+        sqlContractDefinitionStore.save(definitionExpected);
+        assertThat(sqlContractDefinitionStore.findAll()).hasSize(1);
+
+        var deleted = sqlContractDefinitionStore.deleteById("test-id1");
+        assertThat(deleted).isNotNull().usingRecursiveComparison().isEqualTo(definitionExpected);
+        assertThat(sqlContractDefinitionStore.findAll()).isEmpty();
+    }
+
+    @Test
+    void delete_whenNotExist() {
+        var deleted = sqlContractDefinitionStore.deleteById("test-id1");
+        assertThat(deleted).isNull();
     }
 
     private ContractDefinition getContractDefinition(String id, String contractId, String policyId) {
