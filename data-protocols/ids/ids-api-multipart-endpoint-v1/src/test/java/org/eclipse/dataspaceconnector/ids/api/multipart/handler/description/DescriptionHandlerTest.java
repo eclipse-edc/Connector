@@ -19,7 +19,7 @@ import de.fraunhofer.iais.eis.Message;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -39,7 +39,7 @@ class DescriptionHandlerTest {
     private DescriptionHandler descriptionHandler;
 
     private Monitor monitor;
-    private TransformerRegistry transformerRegistry;
+    private IdsTransformerRegistry transformerRegistry;
     private ArtifactDescriptionRequestHandler artifactDescriptionRequestHandler;
     private DataCatalogDescriptionRequestHandler dataCatalogDescriptionRequestHandler;
     private RepresentationDescriptionRequestHandler representationDescriptionRequestHandler;
@@ -49,7 +49,7 @@ class DescriptionHandlerTest {
     @BeforeEach
     void setUp() {
         monitor = mock(Monitor.class);
-        transformerRegistry = mock(TransformerRegistry.class);
+        transformerRegistry = mock(IdsTransformerRegistry.class);
         artifactDescriptionRequestHandler = mock(ArtifactDescriptionRequestHandler.class);
         dataCatalogDescriptionRequestHandler = mock(DataCatalogDescriptionRequestHandler.class);
         representationDescriptionRequestHandler = mock(RepresentationDescriptionRequestHandler.class);

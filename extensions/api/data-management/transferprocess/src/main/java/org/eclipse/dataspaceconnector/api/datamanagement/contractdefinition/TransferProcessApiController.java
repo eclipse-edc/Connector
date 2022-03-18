@@ -70,23 +70,21 @@ public class TransferProcessApiController {
 
     @GET
     @Path("{id}/state")
-    public TransferProcessDto getTransferProcessState(@PathParam("id") String id) {
-        monitor.debug(format("get TransferProcess with ID %s", id));
+    public String getTransferProcessState(@PathParam("id") String id) {
+        monitor.debug(format("get TransferProcess State with ID %s", id));
 
-        return null;
+        return "";
     }
 
     @POST
     @Path("{id}/cancel")
-    public void createContractDefinition(@PathParam("id") String id) {
+    public void cancelTransferProcess(@PathParam("id") String id) {
         monitor.debug("Cancelling TransferProcess with ID " + id);
     }
 
     @POST
     @Path("{id}/deprovision")
-    public void deleteContractDefinition(@PathParam("id") String id) {
+    public void deprovisionTransferProcess(@PathParam("id") String id) {
         monitor.debug(format("Attempting to deprovision TransferProcess with id %s", id));
     }
-
-
 }

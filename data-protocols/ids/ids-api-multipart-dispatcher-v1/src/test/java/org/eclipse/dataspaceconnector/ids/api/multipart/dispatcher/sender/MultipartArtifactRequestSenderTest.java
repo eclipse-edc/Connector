@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2022 Amadeus
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Amadeus - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -5,7 +19,7 @@ import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -31,7 +45,8 @@ class MultipartArtifactRequestSenderTest {
 
     private MultipartArtifactRequestSender sender;
     private String idsWebhookAddress;
-    private TransformerRegistry transformerRegistry;
+    private String idsApiPath;
+    private IdsTransformerRegistry transformerRegistry;
 
     @BeforeEach
     public void setUp() {
@@ -41,9 +56,10 @@ class MultipartArtifactRequestSenderTest {
         var vault = mock(Vault.class);
         var identityService = mock(IdentityService.class);
         String connectorId = UUID.randomUUID().toString();
-        transformerRegistry = mock(TransformerRegistry.class);
+        transformerRegistry = mock(IdsTransformerRegistry.class);
         idsWebhookAddress = UUID.randomUUID().toString();
-        sender = new MultipartArtifactRequestSender(connectorId, httpClient, mapper, monitor, vault, identityService, transformerRegistry, idsWebhookAddress);
+        idsApiPath = "/api/v1/ids";
+        sender = new MultipartArtifactRequestSender(connectorId, httpClient, mapper, monitor, vault, identityService, transformerRegistry, idsWebhookAddress, idsApiPath);
     }
 
     @Test
@@ -60,6 +76,7 @@ class MultipartArtifactRequestSenderTest {
         assertThat(message).isInstanceOf(ArtifactRequestMessage.class);
         assertThat((ArtifactRequestMessage) message)
                 .satisfies(msg -> {
+                    assertThat(msg.getId()).hasToString(request.getId());
                     assertThat(msg.getModelVersion()).isEqualTo(IdsProtocol.INFORMATION_MODEL_VERSION);
                     assertThat(msg.getSecurityToken()).isEqualTo(token);
                     assertThat(msg.getIssuerConnector()).isEqualTo(sender.getConnectorId());
@@ -70,7 +87,7 @@ class MultipartArtifactRequestSenderTest {
                     assertThat(msg.getProperties())
                             .hasSize(request.getProperties().size() + 1)
                             .containsAllEntriesOf(request.getProperties())
-                            .containsEntry(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + "/api/ids/multipart");
+                            .containsEntry(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + "/api/v1/ids/data");
                 });
     }
 

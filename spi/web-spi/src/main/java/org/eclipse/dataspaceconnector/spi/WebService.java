@@ -23,14 +23,6 @@ import org.eclipse.dataspaceconnector.spi.system.Feature;
 public interface WebService {
 
     /**
-     * Registers a JAX-RS resource instance, or controller. Extensions may contribute bespoke APIs to the runtime.
-     *
-     * @deprecated Use {@link WebService#registerResource(Object)} instead, as it is actually a resource we're registering.
-     */
-    @Deprecated
-    void registerController(Object controller);
-
-    /**
      * Registers a resource (e.g. a controller or a filter) with the webservice, making it available for the default port mapping.
      *
      * @param resource a resource

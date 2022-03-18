@@ -28,6 +28,7 @@ dependencies {
     api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+    testImplementation(testFixtures(project(":launchers:junit")))
 
 }
 

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering
  *
  */
 package org.eclipse.dataspaceconnector.spi.system.configuration;
@@ -74,7 +75,7 @@ public class ConfigImpl implements Config {
 
     @Override
     public Integer getInteger(String key, Integer defaultValue) {
-        return getNumber(key, defaultValue, "integer", Integer::parseInt);
+        return getParsed(key, defaultValue, "integer", Integer::parseInt);
     }
 
     @Override
@@ -84,7 +85,17 @@ public class ConfigImpl implements Config {
 
     @Override
     public Long getLong(String key, Long defaultValue) {
-        return getNumber(key, defaultValue, "long", Long::parseLong);
+        return getParsed(key, defaultValue, "long", Long::parseLong);
+    }
+
+    @Override
+    public Boolean getBoolean(String key) {
+        return getNotNullValue(key, this::getBoolean);
+    }
+
+    @Override
+    public Boolean getBoolean(String key, Boolean defaultValue) {
+        return getParsed(key, defaultValue, "boolean", this::parseBoolean);
     }
 
     @Override
@@ -108,7 +119,7 @@ public class ConfigImpl implements Config {
 
     @Override
     public Stream<Config> partition() {
-        return getRelativeEntries().keySet().stream().map(it -> it.split("\\.")[0]).distinct().map(group -> getConfig(group));
+        return getRelativeEntries().keySet().stream().map(it -> it.split("\\.")[0]).distinct().map(this::getConfig);
     }
 
     @Override
@@ -143,6 +154,16 @@ public class ConfigImpl implements Config {
         return getEntries().containsKey(key);
     }
 
+    private boolean parseBoolean(String value) {
+        if (value.equalsIgnoreCase("true")) {
+            return true;
+        } else if (value.equalsIgnoreCase("false")) {
+            return false;
+        }
+
+        throw new EdcException(format("Cannot parse %s to boolean", value));
+    }
+
     private String removePrefix(String path, String rootPath) {
         if (!rootPath.isEmpty() && path.startsWith(rootPath)) {
             return path.substring(rootPath.length() + 1);
@@ -152,7 +173,7 @@ public class ConfigImpl implements Config {
     }
 
     @Nullable
-    private <T> T getNumber(String key, T defaultValue, String typeDescription, Function<String, T> parse) {
+    private <T> T getParsed(String key, T defaultValue, String typeDescription, Function<String, T> parse) {
         var value = getString(key, Objects.toString(defaultValue, null));
         if (value == null) {
             return null;
@@ -180,5 +201,4 @@ public class ConfigImpl implements Config {
         String rootPath = Optional.of(this.rootPath).filter(it -> !it.isEmpty()).map(it -> it + ".").orElse("");
         return rootPath + key;
     }
-
 }

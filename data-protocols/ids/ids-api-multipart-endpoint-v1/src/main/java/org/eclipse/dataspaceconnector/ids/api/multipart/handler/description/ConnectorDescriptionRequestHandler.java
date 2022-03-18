@@ -21,7 +21,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRespons
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -39,13 +39,13 @@ public class ConnectorDescriptionRequestHandler implements DescriptionRequestHan
     private final String connectorId;
     private final Monitor monitor;
     private final ConnectorService connectorService;
-    private final TransformerRegistry transformerRegistry;
+    private final IdsTransformerRegistry transformerRegistry;
 
     public ConnectorDescriptionRequestHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
             @NotNull ConnectorService connectorService,
-            @NotNull TransformerRegistry transformerRegistry) {
+            @NotNull IdsTransformerRegistry transformerRegistry) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorService = Objects.requireNonNull(connectorService);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);

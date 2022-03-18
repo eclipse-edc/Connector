@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.catalog.cache;
 
+import org.eclipse.dataspaceconnector.catalog.spi.CachedAsset;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
 import org.eclipse.dataspaceconnector.catalog.spi.Loader;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
@@ -18,7 +19,10 @@ public class LoaderImpl implements Loader {
 
         for (var response : responses) {
             var catalog = response.getCatalog();
-            catalog.getContractOffers().forEach(store::save);
+            catalog.getContractOffers().forEach(offer -> {
+                offer.getAsset().getProperties().put(CachedAsset.PROPERTY_ORIGINATOR, response.getSource());
+                store.save(offer);
+            });
         }
     }
 }

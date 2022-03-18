@@ -13,6 +13,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 
+import org.eclipse.dataspaceconnector.api.datamanagement.configuration.DataManagementApiConfiguration;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -22,17 +23,12 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
     @Inject
     private WebService webService;
 
+    @Inject
+    private DataManagementApiConfiguration config;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
-
-        //avoid jetty throwing exceptions down the road
-        if (!context.getConfig().hasKey("web.http.data.port")) {
-            monitor.severe("No port mapping entry for context 'data' ('web.http.data.port=...') found in configuration. The Data Management API will not be available!");
-        } else {
-            // todo: also register the Authorization filter, once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/pull/598 is finished:
-            // webService.registerResource("data", new AuthorizationRequestFilter());
-            webService.registerResource("data", new ContractNegotiationController(monitor));
-        }
+        webService.registerResource(config.getContextAlias(), new ContractNegotiationController(monitor));
     }
 }

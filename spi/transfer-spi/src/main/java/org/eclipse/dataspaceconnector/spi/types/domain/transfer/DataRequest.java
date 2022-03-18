@@ -31,7 +31,6 @@ import java.util.Map;
 @JsonTypeName("dataspaceconnector:datarequest")
 @JsonDeserialize(builder = DataRequest.Builder.class)
 public class DataRequest implements RemoteMessage, Polymorphic {
-    public static final String PROP_IS_SYNC = "isSync";
     private String id;
 
     private String processId;
@@ -162,10 +161,6 @@ public class DataRequest implements RemoteMessage, Polymorphic {
         return transferType;
     }
 
-    public boolean isSync() {
-        return Boolean.parseBoolean(getProperties().get(PROP_IS_SYNC));
-    }
-
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private final DataRequest request;
@@ -211,11 +206,6 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
         public Builder contractId(String contractId) {
             request.contractId = contractId;
-            return this;
-        }
-
-        public Builder isSync(boolean isSync) {
-            request.properties.put(PROP_IS_SYNC, Boolean.toString(isSync));
             return this;
         }
 

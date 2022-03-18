@@ -1,0 +1,210 @@
+'
+'  Copyright (c) 2021 Daimler TSS GmbH
+'
+'  This program and the accompanying materials are made available under the
+'  terms of the Apache License, Version 2.0 which is available at
+'  https://www.apache.org/licenses/LICENSE-2.0
+'
+'  SPDX-License-Identifier: Apache-2.0
+'
+'  Contributors:
+'      Daimler TSS GmbH - Initial Version
+'
+
+@startuml
+
+
+skinParam NoteBackgroundColor WhiteSmoke
+skinParam NoteFontColor Black
+skinParam ParticipantBackgroundColor WhiteSmoke
+skinParam ActorBackgroundColor WhiteSmoke
+skinParam AgentBackgroundColor White
+skinParam AgentBorderColor SkyBlue
+skinparam shadowing false
+
+!define ConsumerColor f8f2ff
+!define ProviderColor d9edff
+!define WarningColor Business
+!define LeadColor Technology
+
+autonumber
+
+box "Consumer\n controlled zone" #ConsumerColor
+    participant CBE as "Backend Service"
+end box
+
+box Consumer EDC #ConsumerColor
+    participant CCP as "Control Plane" #Business
+    participant CDP as "Data Plane" #Business
+end box
+
+box Provider EDC #ProviderColor
+    participant PDP as "Data Plane" #Business
+    participant PCP as "Control Plane" #Business
+end box
+
+box "Provider\n controlled zone" #ProviderColor
+    participant PBE as "Backend Service"
+end box
+/'
+title
+ **Access to REST API**
+ <sub>Control Plane and Date Plane are part of the EDC.</sub>
+ <sub>Precondition: contract 'access to api' including constraints (e.g. how often, for which purpose etc.) is already signed</sub>
+
+ Case 1a: Each API call matches one TransferProcess (http push)
+ <sub>Provider is pushing data to the Consumer</sub>
+end title
+
+CBE ->> CCP : getAsset(query params, int. destination)
+activate CCP
+CCP ->> CDP : provision ext. endpoint
+CCP ->> PCP : start data transfer(asset, contractAggreement, query params, ext. endpoint)
+activate PCP
+PCP ->> PBE : provision data\n(if needed)
+PCP ->> PDP : start data transfer
+activate PDP
+PDP -> PBE : pull data
+activate PBE
+return data
+PDP -> CDP : push data to ext. endpoint
+activate CDP
+CDP -> CBE : push data to int. destination
+note left of CDP : Dataplane\nacts as proxy.
+PDP ->> PCP : notify: data pushed
+deactivate PDP
+CDP ->> CCP : notify: data received
+deactivate CDP
+CCP ->> CDP : deprovision
+PCP ->> PBE : deprovision\n(if needed)
+deactivate CCP
+deactivate PCP
+
+
+
+newpage Case 1b: Each API call matches one TransferProcess (http pull)\n<sub>Consumer is pulling data from Provider</sub>
+
+autonumber 1
+
+CBE ->> CCP : getAsset(query params, int. destination)
+activate CCP
+CCP ->> PCP : start data transfer(asset, contract, query params)
+activate PCP
+PCP ->> PBE : provision data\n(if needed)
+PCP ->> PDP : provision ext. endpoint
+PCP ->> CCP : ready to transfer (ext. endpoint)
+CCP -> CDP : start data transfer
+
+activate CDP
+CDP -> PDP : pull data from ext. endpoint
+activate PDP
+PDP -> PBE : pull data
+note right of PDP : Dataplane\nacts as proxy.
+activate PBE
+return data
+return data
+CDP -> CBE : push data to int. destination
+PDP ->> PCP : notify: data pulled
+
+CDP ->> CCP : notify: data received
+deactivate PDP
+
+deactivate CDP
+CCP ->> CDP : deprovision
+PCP ->> PBE : deprovision\n(if needed)
+deactivate CCP
+deactivate PCP'/
+
+
+title
+ **Access to REST API**
+ <sub>Control Plane and Date Plane are part of the EDC.</sub>
+ <sub>Precondition: contract 'access to api' including constraints (e.g. how often, for which purpose etc.) is already signed</sub>
+end title
+autonumber 1
+== Initialization ==
+
+CBE ->> CCP : getAsset(callback)
+activate CCP
+CCP ->> CDP : provision
+CCP ->> PCP : start data transfer(asset, contract)
+activate PCP
+PCP ->> PBE : provision
+PCP ->> PDP : provision
+PCP ->> CCP : ready
+CCP ->> CBE : ready(API access)
+
+== Working ==
+note right of CCP : stays in state\nSTREAMING
+note left of PCP : stays in state\nSTREAMING
+CBE -> CDP : API Call (GET/PUT/POST/DELETE/...)
+note left of CDP : Dataplane\nacts as proxy.\nCould adjust calls
+activate CDP
+CDP -> PDP : API Call
+note right of PDP : acts as proxy\nsee Consumer
+activate PDP
+PDP -> PBE : API Call
+activate PBE
+return data
+return data
+PDP ->> PCP : notify: data sent
+return data
+CDP ->> CCP : notify data received
+
+== Finalization ==
+CBE ->> CCP : stopAssetTransfer(callback)\ncancelContract(...) etc.
+CCP ->> CDP : deprovision
+CCP ->> PCP : stop data transfer(asset, contract)
+PCP ->> PDP : deprovision
+PCP ->> PBE : deprovision
+deactivate CCP
+deactivate PCP
+
+newpage Access to API (current impl)
+autonumber 1
+== Initialization ==
+
+CBE -> CCP++ : POST /control/transfer (DataRequest)\ntype HttpProxy, finite = false
+note right of CBE #FFAAAA: TODO\nmove to /api\nclarify finite = false/true\nmap passed request to existing contract
+note over CCP: see TransferProcessManagerImpl
+note over CCP: INITIAL
+CBE <-- CCP: 200 OK (processId)
+note over CCP: PROVISIONING
+CCP ->> CCP : provisioning calls
+note over CCP: PROVISIONED
+CCP -> PCP++ : IDS ArtifactRequestMessage (type HttpProxy)
+note over CCP: REQUESTED
+note over PCP: see TransferProcessManagerImpl
+note over PCP: INITIAL
+CCP <-- PCP: 200 OK (processId)
+note over CCP: STREAMING
+note over CCP #FFAAAA: TODO\nstate STREAMING or COMPLETED
+note over PCP: PROVISIONING
+PCP ->> PCP : provisioning calls
+note over PCP: PROVISIONED
+PCP -> CCP: IDS ParticipantUpdateMessage (EndpointDataReferenceRequest)\nsent by HttpProviderProxyDataFlowController
+note left of PCP #FFAAAA: TODO\nis 'ParticipantUpdateMessage' a good match?
+CCP -> CCP: transform to Consumer data plane address\nsee ProxyEndpointDataReferenceTransformer
+CCP -> CBE: EndpointDataReference\nsee HttpEndpointDataReferenceReceiver
+note left of CCP #FFAAAA: TODO\njust one callback endpoint defined via config
+CCP --> PCP: 200 OK
+note over PCP: STREAMING
+
+
+
+== Working ==
+CBE -> CDP++: API Call (GET/PUT/POST/DELETE/...)
+CDP -> CCP: validate token
+CCP --> CDP: validation result
+note over CDP #FFAAAA: TODO\nlog call
+CDP -> PDP++: API Call (GET/PUT/POST/DELETE/...)\ntoken, endpoint etc. according to EndpointDataReference
+note over PDP : acts as proxy\nsee DataPlanePublicApiRequestFilter
+PDP -> PCP: validate token
+PCP --> PDP: validation result
+note over PDP #FFAAAA: TODO\nlog call
+PDP -> PBE++ : API Call
+return data
+return data
+return data
+
+@enduml

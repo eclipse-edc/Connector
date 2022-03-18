@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "dataspace-connector.fullname" . }}
+  labels:
+    {{- include "dataspace-connector.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.edc.port }}
+      protocol: TCP
+      name: http
+    {{ if .Values.edc.managementApi.enabled }}
+    - port: {{ .Values.service.managementApi.port }}
+      targetPort: {{ .Values.edc.managementApi.port }}
+      protocol: TCP
+      name: http-mgmt
+    {{ end }}
+    - port: {{ .Values.service.idsApi.port }}
+      targetPort: {{ .Values.edc.idsApi.port }}
+      protocol: TCP
+      name: http-ids
+  selector:
+    {{- include "dataspace-connector.selectorLabels" . | nindent 4 }}

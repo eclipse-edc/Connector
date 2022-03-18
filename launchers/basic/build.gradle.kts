@@ -25,6 +25,7 @@ dependencies {
     implementation(project(":data-protocols:ids"))
     implementation(project(":extensions:api:control"))
     implementation(project(":extensions:api:observability"))
+    implementation(project(":extensions:api:data-management"))
 
     implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))

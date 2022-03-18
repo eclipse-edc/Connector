@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added dependency
  *
  */
 val infoModelVersion: String by project
@@ -26,6 +27,8 @@ dependencies {
     api(project(":data-protocols:ids:ids-core"))
     api(project(":data-protocols:ids:ids-transform-v1"))
     api(project(":extensions:http"))
+
+    implementation(project(":data-protocols:ids:ids-api-configuration"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")

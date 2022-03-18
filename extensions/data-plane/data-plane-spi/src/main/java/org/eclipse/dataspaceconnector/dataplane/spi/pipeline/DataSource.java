@@ -32,15 +32,19 @@ public interface DataSource {
      */
     interface Part extends AutoCloseable {
 
+        long SIZE_UNKNOWN = -1;
+
         /**
          * The part name.
          */
         String name();
 
         /**
-         * The size of the part, or -1 if the size cannot be determined.
+         * The size of the part, or {@link #SIZE_UNKNOWN} if the size cannot be determined.
          */
-        long size();
+        default long size() {
+            return SIZE_UNKNOWN;
+        }
 
         /**
          * Opens stream to sequentially read the underlying part content.

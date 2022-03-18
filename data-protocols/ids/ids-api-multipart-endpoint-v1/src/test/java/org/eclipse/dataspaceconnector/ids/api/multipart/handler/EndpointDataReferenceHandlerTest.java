@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2022 Amadeus
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -29,18 +29,19 @@ import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceRece
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformer;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
-import org.eclipse.dataspaceconnector.transfer.core.edr.EndpointDataReferenceReceiverRegistryImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -56,7 +57,7 @@ class EndpointDataReferenceHandlerTest {
     public void setUp() {
         var monitor = mock(Monitor.class);
         var connectorId = UUID.randomUUID().toString();
-        receiverRegistry = new EndpointDataReferenceReceiverRegistryImpl();
+        receiverRegistry = mock(EndpointDataReferenceReceiverRegistry.class);
         transformer = mock(EndpointDataReferenceTransformer.class);
         var typeManager = new TypeManager();
         handler = new EndpointDataReferenceHandler(monitor, connectorId, receiverRegistry, transformer, typeManager);
@@ -82,20 +83,23 @@ class EndpointDataReferenceHandlerTest {
         var request = createMultipartRequest(edr);
 
         var edrCapture = ArgumentCaptor.forClass(EndpointDataReference.class);
-        when(transformer.execute(edrCapture.capture())).thenReturn(Result.success(edr));
+        when(transformer.transform(any())).thenReturn(Result.success(edr));
         var receiver = mock(EndpointDataReferenceReceiver.class);
         when(receiver.send(edr)).thenReturn(CompletableFuture.completedFuture(Result.success()));
-        receiverRegistry.addReceiver(receiver);
+        when(receiverRegistry.getAll()).thenReturn(List.of(receiver));
 
         var response = handler.handleRequest(request, createSuccessClaimToken());
 
-        verify(transformer).execute(edrCapture.capture());
+        verify(transformer, times(1)).transform(edrCapture.capture());
+
         assertThat(edrCapture.getValue()).satisfies(t -> {
-            assertThat(t.getAddress()).isEqualTo(edr.getAddress());
+            assertThat(t.getEndpoint()).isEqualTo(edr.getEndpoint());
+            assertThat(t.getAuthKey()).isEqualTo(edr.getAuthKey());
             assertThat(t.getAuthCode()).isEqualTo(edr.getAuthCode());
-            assertThat(t.getCorrelationId()).isEqualTo(edr.getCorrelationId());
-            assertThat(t.getExpirationEpochSeconds()).isEqualTo(edr.getExpirationEpochSeconds());
+            assertThat(t.getId()).isEqualTo(edr.getId());
+            assertThat(t.getProperties()).isEqualTo(edr.getProperties());
         });
+
         assertThat(response)
                 .isNotNull()
                 .satisfies(r -> assertThat(r.getHeader()).isInstanceOf(MessageProcessedNotificationMessage.class));
@@ -106,7 +110,7 @@ class EndpointDataReferenceHandlerTest {
         var edr = createEndpointDataReference();
         var request = createMultipartRequest(edr);
 
-        when(transformer.execute(any())).thenReturn(Result.failure("error"));
+        when(transformer.transform(any())).thenReturn(Result.failure("error"));
 
         var response = handler.handleRequest(request, createSuccessClaimToken());
 
@@ -120,10 +124,10 @@ class EndpointDataReferenceHandlerTest {
         var edr = createEndpointDataReference();
         var request = createMultipartRequest(edr);
 
-        when(transformer.execute(any())).thenReturn(Result.success(edr));
+        when(transformer.transform(any())).thenReturn(Result.success(edr));
         var receiver = mock(EndpointDataReferenceReceiver.class);
         when(receiver.send(edr)).thenReturn(CompletableFuture.completedFuture(Result.failure("error")));
-        receiverRegistry.addReceiver(receiver);
+        when(receiverRegistry.getAll()).thenReturn(List.of(receiver));
 
         var response = handler.handleRequest(request, createSuccessClaimToken());
 
@@ -137,10 +141,10 @@ class EndpointDataReferenceHandlerTest {
         var edr = createEndpointDataReference();
         var request = createMultipartRequest(edr);
 
-        when(transformer.execute(any())).thenReturn(Result.success(edr));
+        when(transformer.transform(any())).thenReturn(Result.success(edr));
         var receiver = mock(EndpointDataReferenceReceiver.class);
         when(receiver.send(edr)).thenReturn(CompletableFuture.failedFuture(new RuntimeException("error")));
-        receiverRegistry.addReceiver(receiver);
+        when(receiverRegistry.getAll()).thenReturn(List.of(receiver));
 
         var response = handler.handleRequest(request, createSuccessClaimToken());
 
@@ -151,12 +155,11 @@ class EndpointDataReferenceHandlerTest {
 
     private static EndpointDataReference createEndpointDataReference() {
         return EndpointDataReference.Builder.newInstance()
-                .address("http://example.com")
+                .endpoint("http://example.com")
                 .authKey("Api-Key")
-                .authCode(UUID.randomUUID().toString())
-                .correlationId("correlation-test")
-                .expirationEpochSeconds(Instant.now().plusSeconds(100).getEpochSecond())
-                .contractId(UUID.randomUUID().toString())
+                .authCode("token-test")
+                .id("correlation-test")
+                .properties(Map.of("foo", "bar"))
                 .build();
     }
 

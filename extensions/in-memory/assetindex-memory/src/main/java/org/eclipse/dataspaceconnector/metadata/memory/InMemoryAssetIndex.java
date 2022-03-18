@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -49,7 +50,7 @@ public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, Asse
 
     public InMemoryAssetIndex(AssetPredicateConverter predicateFactory) {
         this.predicateFactory = predicateFactory;
-        //fair locks guarantee strong consistency since all waiting threads are processed in order of waiting time
+        // fair locks guarantee strong consistency since all waiting threads are processed in order of waiting time
         lock = new ReentrantReadWriteLock(true);
     }
 
@@ -152,9 +153,23 @@ public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, Asse
         accept(new AssetEntry(asset, dataAddress));
     }
 
+    @Override
+    public Asset deleteById(String assetId) {
+        lock.writeLock().lock();
+        try {
+            return delete(assetId);
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
 
     private @Nullable Comparable asComparable(Object property) {
         return property instanceof Comparable ? (Comparable) property : null;
+    }
+
+    private Asset delete(String assetId) {
+        dataAddresses.remove(assetId);
+        return cache.remove(assetId);
     }
 
     /**

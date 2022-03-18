@@ -29,7 +29,7 @@ import java.util.Objects;
  */
 @JsonDeserialize(builder = DataAddress.Builder.class)
 public class DataAddress {
-    private static final String TYPE = "type";
+    public static final String TYPE = "type";
     private static final String KEYNAME = "keyName";
     private final Map<String, String> properties = new HashMap<>();
 

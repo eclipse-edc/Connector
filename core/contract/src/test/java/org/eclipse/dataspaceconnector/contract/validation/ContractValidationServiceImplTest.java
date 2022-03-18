@@ -1,10 +1,25 @@
+/*
+ *  Copyright (c) 2021-2022 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *       Daimler TSS GmbH - fixed contract dates to epoch seconds
+ *
+ */
+
 package org.eclipse.dataspaceconnector.contract.validation;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
-import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
-import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -17,7 +32,7 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.time.Instant;
-import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.stream.Stream;
 
 import static java.time.Instant.MAX;
@@ -90,9 +105,9 @@ class ContractValidationServiceImplTest {
                 .consumerAgentId("consumer")
                 .policy(originalPolicy)
                 .asset(Asset.Builder.newInstance().build())
-                .contractSigningDate(LocalDate.MIN.toEpochDay())
-                .contractStartDate(LocalDate.MIN.toEpochDay())
-                .contractEndDate(LocalDate.MAX.toEpochDay())
+                .contractStartDate(Instant.now().getEpochSecond())
+                .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
+                .contractSigningDate(Instant.now().getEpochSecond())
                 .id("1:2").build();
 
         assertThat(validationService.validate(claimToken, agreement)).isTrue();

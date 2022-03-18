@@ -13,6 +13,6 @@ public class HealthEndpointExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var logPrefix = context.getSetting(LOG_PREFIX_SETTING, "health");
         var webService = context.getService(WebService.class);
-        webService.registerController(new HealthApiController(context.getMonitor(), logPrefix));
+        webService.registerResource(new HealthApiController(context.getMonitor(), logPrefix));
     }
 }

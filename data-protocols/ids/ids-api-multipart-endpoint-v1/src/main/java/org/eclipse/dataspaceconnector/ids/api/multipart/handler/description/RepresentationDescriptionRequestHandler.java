@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 import de.fraunhofer.iais.eis.Representation;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -34,7 +34,7 @@ public class RepresentationDescriptionRequestHandler extends AbstractDescription
             @NotNull Monitor monitor,
             @NotNull String connectorId,
             @NotNull AssetIndex assetIndex,
-            @NotNull TransformerRegistry transformerRegistry) {
+            @NotNull IdsTransformerRegistry transformerRegistry) {
         super(
                 connectorId,
                 monitor,

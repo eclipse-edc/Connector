@@ -49,14 +49,6 @@ public class IdentityDidCoreExtension implements ServiceExtension {
     @Inject
     private WebService webService;
 
-    public IdentityDidCoreExtension() {
-    }
-
-    public IdentityDidCoreExtension(IdentityHubStore hubStore, WebService webService) {
-        this.hubStore = hubStore;
-        this.webService = webService;
-    }
-
     @Override
     public String name() {
         return "Identity Did Core";
@@ -82,7 +74,7 @@ public class IdentityDidCoreExtension implements ServiceExtension {
         context.registerService(IdentityHub.class, hub);
 
         var controller = new IdentityHubController(hub);
-        webService.registerController(controller);
+        webService.registerResource(controller);
 
         // contribute to the liveness probe
         var hcs = context.getService(HealthCheckService.class, true);

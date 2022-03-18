@@ -13,14 +13,13 @@
  */
 package org.eclipse.dataspaceconnector.spi.contract.negotiation.store;
 
+import org.eclipse.dataspaceconnector.spi.persistence.StateEntityStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -28,7 +27,7 @@ import java.util.stream.Stream;
  * <p>
  */
 @Feature(ContractNegotiationStore.FEATURE)
-public interface ContractNegotiationStore {
+public interface ContractNegotiationStore extends StateEntityStore<ContractNegotiation> {
 
     String FEATURE = "edc:core:contract:contractnegotiation:store";
 
@@ -59,12 +58,6 @@ public interface ContractNegotiationStore {
      * Removes a contract negotiation for the given id.
      */
     void delete(String negotiationId);
-
-    /**
-     * Returns the next batch of contract negotiations for the given state.
-     */
-    @NotNull
-    List<ContractNegotiation> nextForState(int state, int max);
 
     /**
      * Finds all contract negotiations that are covered by a specific {@link QuerySpec}. If no {@link QuerySpec#getSortField()}

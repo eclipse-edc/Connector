@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
@@ -24,12 +25,11 @@ public enum TransferProcessStates {
     INITIAL(100),
     PROVISIONING(200),
     PROVISIONED(300),
-    REQUESTED(400),
-    REQUESTED_ACK(500),
+    REQUESTING(400),
+    REQUESTED(500),
     IN_PROGRESS(600),
     STREAMING(700),
     COMPLETED(800),
-    DEPROVISIONING_REQ(850),
     DEPROVISIONING(900),
     DEPROVISIONED(1000),
     ENDED(1100),

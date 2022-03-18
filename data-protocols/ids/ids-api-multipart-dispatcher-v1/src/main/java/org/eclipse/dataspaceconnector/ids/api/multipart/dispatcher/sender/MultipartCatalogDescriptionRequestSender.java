@@ -24,7 +24,7 @@ import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.ResourceCatalogBuilder;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -55,18 +55,13 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
                                                     @NotNull ObjectMapper objectMapper,
                                                     @NotNull Monitor monitor,
                                                     @NotNull IdentityService identityService,
-                                                    @NotNull TransformerRegistry transformerRegistry) {
+                                                    @NotNull IdsTransformerRegistry transformerRegistry) {
         super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
     }
 
     @Override
     public Class<CatalogRequest> messageType() {
         return CatalogRequest.class;
-    }
-
-    @Override
-    protected String retrieveRemoteConnectorId(CatalogRequest request) {
-        return request.getConnectorId();
     }
 
     @Override
@@ -115,7 +110,16 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
         return transformResult.getContent();
     }
 
-    private static void createOfferResourcesFromProperties(ResourceCatalog catalog, ObjectMapper mapper) {
+    private BaseConnector getBaseConnector(ObjectMapper mapper, IdsMultipartParts parts) {
+        try {
+            InputStream payload = Objects.requireNonNull(parts.getPayload());
+            return mapper.readValue(payload.readAllBytes(), BaseConnector.class);
+        } catch (IOException exception) {
+            throw new EdcException(String.format("Could not deserialize connector self-description: %s", exception.getMessage()));
+        }
+    }
+
+    private void createOfferResourcesFromProperties(ResourceCatalog catalog, ObjectMapper mapper) {
         if (catalog.getProperties() != null) {
             for (Map.Entry<String, Object> entry : catalog.getProperties().entrySet()) {
                 if ("ids:offeredResource".equals(entry.getKey())) {
@@ -133,16 +137,7 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
         }
     }
 
-    private static boolean catalogDoesNotContainAnyOfferResource(ResourceCatalog catalog) {
+    private boolean catalogDoesNotContainAnyOfferResource(ResourceCatalog catalog) {
         return catalog.getOfferedResource() == null || catalog.getOfferedResource().isEmpty();
-    }
-
-    private static BaseConnector getBaseConnector(ObjectMapper mapper, IdsMultipartParts parts) {
-        try {
-            InputStream payload = Objects.requireNonNull(parts.getPayload());
-            return mapper.readValue(payload.readAllBytes(), BaseConnector.class);
-        } catch (IOException exception) {
-            throw new EdcException(String.format("Could not deserialize connector self-description: %s", exception.getMessage()));
-        }
     }
 }

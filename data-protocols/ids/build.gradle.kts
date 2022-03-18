@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added module
  *
  */
 
@@ -24,6 +25,8 @@ dependencies {
     api(project(":data-protocols:ids:ids-transform-v1"))
     api(project(":data-protocols:ids:ids-api-multipart-endpoint-v1"))
     api(project(":data-protocols:ids:ids-api-multipart-dispatcher-v1"))
+    api(project(":data-protocols:ids:ids-token-validation"))
+    api(project(":data-protocols:ids:ids-api-configuration"))
 }
 
 publishing {

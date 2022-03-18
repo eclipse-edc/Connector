@@ -35,6 +35,7 @@ dependencies {
 
     // required for integration test
     testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(testFixtures(project(":common:util")))
     testImplementation(project(":extensions:http"))
     testImplementation(project(":data-protocols:ids:ids-spi"))
     testImplementation(project(":extensions:in-memory:fcc-node-directory-memory"))

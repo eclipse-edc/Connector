@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Microsoft Corporation
+ *  Copyright (c) 2021-2022 Microsoft Corporation and others
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,15 +9,17 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *
+ *       Daimler TSS GmbH - verify exceptions are re-thrown
  */
 package org.eclipse.dataspaceconnector.transaction.local;
 
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transaction.local.LocalTransactionResource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -52,9 +54,9 @@ class LocalTransactionContextTest {
     @Test
     void verifyRollbackTransaction() {
         // executed a transaction block
-        transactionContext.execute(() -> {
+        assertThrows(EdcException.class, () -> transactionContext.execute(() -> {
             throw new RuntimeException();
-        });
+        }));
 
         // start and rollback should only be called once
         verify(dsResource, times(1)).start();
@@ -64,9 +66,9 @@ class LocalTransactionContextTest {
     @Test
     void verifyRollbackNestedTransaction() {
         // executed a nested transaction block
-        transactionContext.execute(() -> transactionContext.execute(() -> {
+        assertThrows(EdcException.class, () -> transactionContext.execute(() -> transactionContext.execute(() -> {
             throw new RuntimeException();
-        }));
+        })));
 
         // start and rollback should only be called once since the nexted trx joins the parent context
         verify(dsResource, times(1)).start();
@@ -92,9 +94,9 @@ class LocalTransactionContextTest {
         var dsResource2 = mock(LocalTransactionResource.class);
         transactionContext.registerResource(dsResource2);
 
-        transactionContext.execute(() -> {
+        assertThrows(EdcException.class, () -> transactionContext.execute(() -> {
             throw new RuntimeException();
-        });
+        }));
 
         verify(dsResource, times(1)).start();
         verify(dsResource2, times(1)).start();
@@ -125,9 +127,9 @@ class LocalTransactionContextTest {
 
         doThrow(new RuntimeException()).when(dsResource).rollback();
 
-        transactionContext.execute(() -> {
+        assertThrows(EdcException.class, () -> transactionContext.execute(() -> {
             throw new RuntimeException();
-        });
+        }));
 
         verify(dsResource, times(1)).start();
         verify(dsResource2, times(1)).start();

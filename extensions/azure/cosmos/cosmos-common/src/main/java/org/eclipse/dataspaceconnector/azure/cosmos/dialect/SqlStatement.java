@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.azure.cosmos.dialect;
 
 import com.azure.cosmos.models.SqlParameter;
 import com.azure.cosmos.models.SqlQuerySpec;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDocument;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.jetbrains.annotations.Nullable;
 

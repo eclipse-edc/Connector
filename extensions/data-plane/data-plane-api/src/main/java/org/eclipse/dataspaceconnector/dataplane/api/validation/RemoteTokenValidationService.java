@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Fraunhofer Institute for Software and Systems Engineering
+ *  Copyright (c) 2022 Amadeus
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -17,10 +17,10 @@ package org.eclipse.dataspaceconnector.dataplane.api.validation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.iam.TokenValidationService;
+import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
@@ -42,17 +42,24 @@ public class RemoteTokenValidationService implements TokenValidationService {
     }
 
     @Override
-    public Result<ClaimToken> validate(@NotNull String token) {
+    public Result<ClaimToken> validate(TokenRepresentation tokenRepresentation) {
+        var token = tokenRepresentation.getToken();
         var request = new Request.Builder().url(remoteValidationEndpoint).header(AUTHORIZATION_HEADER, token).get().build();
         try (var response = httpClient.newCall(request).execute()) {
+            String stringBody = null;
+            var body = response.body();
+            if (body != null) {
+                stringBody = body.string();
+            }
+
             if (response.isSuccessful()) {
-                var body = response.body();
-                if (body == null) {
+                if (stringBody == null) {
                     return Result.failure("Received null body from validation server");
                 }
-                return Result.success(mapper.readValue(body.string(), ClaimToken.class));
+                return Result.success(mapper.readValue(stringBody, ClaimToken.class));
+            } else {
+                return Result.failure(String.format("Call to validation facade was not successful: %s - %s. %s", response.code(), response.message(), stringBody));
             }
-            return Result.failure(String.format("Call to validation facade was not successful: %s - %s", response.code(), response.message()));
         } catch (IOException e) {
             return Result.failure("Unhandled exception occurred when calling validation server: " + e.getMessage());
         }

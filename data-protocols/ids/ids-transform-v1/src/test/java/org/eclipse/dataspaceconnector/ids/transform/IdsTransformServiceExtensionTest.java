@@ -22,11 +22,12 @@ import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.util.RdfResource;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.Connector;
 import org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
+import org.eclipse.dataspaceconnector.junit.launcher.DependencyInjectionExtension;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Constraint;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
@@ -36,12 +37,14 @@ import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.injection.ObjectFactory;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -57,8 +60,9 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
+
+@ExtendWith(DependencyInjectionExtension.class)
 class IdsTransformServiceExtensionTest {
 
     private Map<Class<?>, List<Class<?>>> knownConvertibles;
@@ -67,13 +71,13 @@ class IdsTransformServiceExtensionTest {
     private ServiceExtensionContext serviceExtensionContext;
 
     @BeforeEach
-    void setUp() {
+    void setUp(ServiceExtensionContext context, ObjectFactory factory) {
         knownConvertibles = new HashMap<>();
 
         var transformerRegistry = new TestTransformerRegistry(knownConvertibles);
-        idsTransformServiceExtension = new IdsTransformServiceExtension(transformerRegistry);
-        serviceExtensionContext = mock(ServiceExtensionContext.class);
-
+        context.registerService(IdsTransformerRegistry.class, transformerRegistry);
+        idsTransformServiceExtension = factory.constructInstance(IdsTransformServiceExtension.class);
+        serviceExtensionContext = context;
     }
 
     @ParameterizedTest(name = "[{index}] can transform {0} to {1}")
@@ -124,7 +128,7 @@ class IdsTransformServiceExtensionTest {
         }
     }
 
-    private static class TestTransformerRegistry implements TransformerRegistry {
+    private static class TestTransformerRegistry implements IdsTransformerRegistry {
         private final Map<Class<?>, List<Class<?>>> knownConvertibles;
 
         public TestTransformerRegistry(Map<Class<?>, List<Class<?>>> knownConvertibles) {

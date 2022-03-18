@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.policy;
 
+import org.eclipse.dataspaceconnector.api.datamanagement.configuration.DataManagementApiConfiguration;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -23,15 +24,11 @@ public class PolicyApiExtension implements ServiceExtension {
     @Inject
     private WebService webService;
 
+    @Inject
+    private DataManagementApiConfiguration configuration;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
-        //avoid jetty throwing exceptions down the road
-        if (!context.getConfig().hasKey("web.http.data.port")) {
-            context.getMonitor().severe("No port mapping entry for context 'data' ('web.http.data.port=...') found in configuration. The Data Management API will not be available!");
-        } else {
-            // todo: also register the Authorization filter, once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/pull/598 is finished:
-            // webService.registerResource("data", new AuthorizationRequestFilter());
-            webService.registerResource("data", new PolicyApiController(context.getMonitor()));
-        }
+        webService.registerResource(configuration.getContextAlias(), new PolicyApiController(context.getMonitor()));
     }
 }

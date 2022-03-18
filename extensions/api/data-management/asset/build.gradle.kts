@@ -18,11 +18,13 @@ val okHttpVersion: String by project
 
 plugins {
     `java-library`
+    id("io.swagger.core.v3.swagger-gradle-plugin")
 }
 
 dependencies {
     implementation(project(":extensions:api:api-core"))
     implementation(project(":extensions:api:auth-spi"))
+    implementation(project(":extensions:api:data-management:api-configuration"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     testImplementation(testFixtures(project(":common:util")))

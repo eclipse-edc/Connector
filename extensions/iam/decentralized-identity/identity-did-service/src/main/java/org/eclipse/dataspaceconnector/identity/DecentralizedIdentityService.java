@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering
  *
  */
 package org.eclipse.dataspaceconnector.identity;
@@ -61,9 +62,9 @@ public class DecentralizedIdentityService implements IdentityService {
     }
 
     @Override
-    public Result<ClaimToken> verifyJwtToken(String token) {
+    public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation) {
         try {
-            var jwt = SignedJWT.parse(token);
+            var jwt = SignedJWT.parse(tokenRepresentation.getToken());
             monitor.debug("Starting verification...");
 
             monitor.debug("Resolving other party's DID Document");

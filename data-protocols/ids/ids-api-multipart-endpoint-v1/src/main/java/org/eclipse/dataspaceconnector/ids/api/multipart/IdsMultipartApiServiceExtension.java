@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
- *       Fraunhofer Institute for Software and Systems Engineering - add contract and notification message handlers
+ *       Fraunhofer Institute for Software and Systems Engineering
  *
  */
 
@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessage;
+import org.eclipse.dataspaceconnector.ids.api.configuration.IdsApiConfiguration;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ArtifactRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractAgreementHandler;
@@ -42,7 +43,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.WebService;
@@ -88,7 +89,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     @Inject
     private AssetIndex assetIndex;
     @Inject
-    private TransformerRegistry transformerRegistry;
+    private IdsTransformerRegistry transformerRegistry;
     @Inject
     private ContractOfferService contractOfferService;
     @Inject
@@ -105,6 +106,8 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     private EndpointDataReferenceReceiverRegistry endpointDataReferenceReceiverRegistry;
     @Inject
     private EndpointDataReferenceTransformer endpointDataReferenceTransformer;
+    @Inject
+    private IdsApiConfiguration idsApiConfiguration;
 
     @Override
     public String name() {
@@ -172,8 +175,8 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         handlers.add(new NotificationMessageHandler(connectorId, notificationHandlersRegistry));
 
         // create & register controller
-        var multipartController = new MultipartController(connectorId, objectMapper, identityService, handlers);
-        webService.registerController(multipartController);
+        var multipartController = new MultipartController(monitor, connectorId, objectMapper, identityService, handlers);
+        webService.registerResource(idsApiConfiguration.getContextAlias(), multipartController);
     }
 
     private String resolveConnectorId(@NotNull ServiceExtensionContext context) {

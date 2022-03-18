@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - added dependencies
+ *       ZF Friedrichshafen AG - add dependency
  *
  */
 
@@ -24,6 +25,8 @@ val rsApi: String by project
 dependencies {
     api(project(":core"))
     api(project(":extensions:http"))
+
+    implementation(project(":extensions:api:data-management"))
 
     implementation(project(":extensions:filesystem:configuration-fs"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))

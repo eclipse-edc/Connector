@@ -18,13 +18,13 @@ import de.fraunhofer.iais.eis.ConstraintBuilder;
 import de.fraunhofer.iais.eis.LeftOperand;
 import de.fraunhofer.iais.eis.LogicalConstraintBuilder;
 import de.fraunhofer.iais.eis.util.RdfResource;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.AndConstraint;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Constraint;
 import org.eclipse.dataspaceconnector.policy.model.MultiplicityConstraint;
 import org.eclipse.dataspaceconnector.policy.model.OrConstraint;
 import org.eclipse.dataspaceconnector.policy.model.XoneConstraint;
+import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
