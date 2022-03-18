@@ -79,7 +79,6 @@ class DtoTransformerRegistryImplTest {
         var tr = new FailingTransformer();
         registry.register(tr);
 
-
         var r = registry.transform("foo", String.class);
         assertThat(r.succeeded()).isFalse();
         assertThat(r.getFailureMessages()).containsExactly("some problem");
