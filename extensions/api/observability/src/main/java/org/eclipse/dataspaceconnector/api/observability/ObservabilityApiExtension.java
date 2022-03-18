@@ -14,14 +14,6 @@ public class ObservabilityApiExtension implements ServiceExtension {
     @Inject
     private HealthCheckService healthCheckService;
 
-    public ObservabilityApiExtension(WebService webServiceMock, HealthCheckService healthCheckService) {
-        webService = webServiceMock;
-        this.healthCheckService = healthCheckService;
-    }
-
-    public ObservabilityApiExtension() {
-    }
-
     @Override
     public String name() {
         return "Observability API";
@@ -31,7 +23,7 @@ public class ObservabilityApiExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext serviceExtensionContext) {
 
 
-        webService.registerController(new ObservabilityApiController(healthCheckService));
+        webService.registerResource(new ObservabilityApiController(healthCheckService));
 
         // contribute to the liveness probe
         healthCheckService.addReadinessProvider(() -> HealthCheckResult.Builder.newInstance().component("Observability API").build());

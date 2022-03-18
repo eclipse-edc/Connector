@@ -36,8 +36,14 @@ import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_E
  * Default pipeline service implementation.
  */
 public class PipelineServiceImpl implements PipelineService {
-    private List<DataSourceFactory> sourceFactories = new ArrayList<>();
-    private List<DataSinkFactory> sinkFactories = new ArrayList<>();
+    private final List<DataSourceFactory> sourceFactories = new ArrayList<>();
+    private final List<DataSinkFactory> sinkFactories = new ArrayList<>();
+
+    @Override
+    public boolean canHandle(DataFlowRequest request) {
+        return getSourceFactory(request) != null &&
+                getSinkFactory(request) != null;
+    }
 
     @Override
     public Result<Boolean> validate(DataFlowRequest request) {
@@ -55,7 +61,7 @@ public class PipelineServiceImpl implements PipelineService {
         var sinkFactory = getSinkFactory(request);
         if (sinkFactory == null) {
             // NB: do not include the target type as that can possibly leak internal information
-            return Result.failure("Data target not supported for: " + request.getId());
+            return Result.failure("Data sink not supported for: " + request.getId());
         }
 
         var sinkValidation = sinkFactory.validate(request);

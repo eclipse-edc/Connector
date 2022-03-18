@@ -25,6 +25,7 @@ dependencies {
     testImplementation(project(":core:transfer"))
     testImplementation(project(":extensions:in-memory:transfer-store-memory"))
     testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(testFixtures(project(":common:util")))
 }
 
 publishing {

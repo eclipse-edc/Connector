@@ -24,13 +24,18 @@ import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.invocation.InvocationOnMock;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -52,7 +57,7 @@ class DataSourceToDataSinkTests {
         when(interceptor.intercept(isA(Interceptor.Chain.class)))
                 .thenAnswer(invocation -> createResponse(200, getRequest(invocation)));
 
-        var sourceClient = new OkHttpClient.Builder()
+        var sourceClient = testOkHttpClient().newBuilder()
                 .addInterceptor(interceptor)
                 .build();
 
@@ -66,7 +71,7 @@ class DataSourceToDataSinkTests {
                 .method("GET")
                 .build();
 
-        var sinkClient = new OkHttpClient.Builder()
+        var sinkClient = testOkHttpClient().newBuilder()
                 .addInterceptor(interceptor)
                 .build();
 
@@ -87,15 +92,16 @@ class DataSourceToDataSinkTests {
     /**
      * Verifies an exception thrown by the source endpoint is handled correctly.
      */
-    @Test
-    void verifyFailedTransferBecauseOfClient() throws Exception {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("provideCommonErrorCodes")
+    void verifyFailedTransferBecauseOfClient(String name, int errorCode) throws Exception {
 
         // simulate source error
         var sourceInterceptor = mock(Interceptor.class);
         when(sourceInterceptor.intercept(isA(Interceptor.Chain.class)))
-                .thenAnswer(invocation -> createResponse(500, getRequest(invocation)));
+                .thenAnswer(invocation -> createResponse(errorCode, getRequest(invocation)));
 
-        var sourceClient = new OkHttpClient.Builder()
+        var sourceClient = testOkHttpClient().newBuilder()
                 .addInterceptor(sourceInterceptor)
                 .build();
 
@@ -128,15 +134,16 @@ class DataSourceToDataSinkTests {
     /**
      * Verifies an exception thrown by the sink endpoint is handled correctly.
      */
-    @Test
-    void verifyFailedTransferBecauseOfProvider() throws Exception {
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("provideCommonErrorCodes")
+    void verifyFailedTransferBecauseOfProvider(String name, int errorCode) throws Exception {
 
         // source completes normally
         var sourceInterceptor = mock(Interceptor.class);
         when(sourceInterceptor.intercept(isA(Interceptor.Chain.class)))
                 .thenAnswer(invocation -> createResponse(200, getRequest(invocation)));
 
-        var sourceClient = new OkHttpClient.Builder()
+        var sourceClient = testOkHttpClient().newBuilder()
                 .addInterceptor(sourceInterceptor)
                 .build();
 
@@ -153,9 +160,10 @@ class DataSourceToDataSinkTests {
         // sink endpoint raises an exception
         var sinkInterceptor = mock(Interceptor.class);
         when(sinkInterceptor.intercept(isA(Interceptor.Chain.class)))
-                .thenAnswer(invocation -> createResponse(500, getRequest(invocation)));
+                .thenAnswer(invocation -> createResponse(errorCode, getRequest(invocation)));
 
-        var sinkClient = new OkHttpClient.Builder()
+
+        var sinkClient = testOkHttpClient().newBuilder()
                 .addInterceptor(sinkInterceptor)
                 .build();
 
@@ -191,5 +199,22 @@ class DataSourceToDataSinkTests {
 
     private Request getRequest(InvocationOnMock invocation) {
         return invocation.getArgument(0, Interceptor.Chain.class).request();
+    }
+
+    /**
+     * Provides most common http error status codes.
+     *
+     * @return Http Error codes as {@link Stream} of {@link Arguments}.
+     */
+    private static Stream<Arguments> provideCommonErrorCodes() {
+        return Stream.of(
+                Arguments.of("MOVED_PERMANENTLY_301", 301),
+                Arguments.of("FOUND_302", 302),
+                Arguments.of("BAD_REQUEST_400", 400),
+                Arguments.of("UNAUTHORIZED_401", 401),
+                Arguments.of("NOT_FOUND_404", 404),
+                Arguments.of("INTERNAL_SERVER_ERROR_500", 500),
+                Arguments.of("BAD_GATEWAY_502", 502)
+        );
     }
 }

@@ -15,10 +15,9 @@
 package org.eclipse.dataspaceconnector.catalog.node.directory.azure;
 
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.catalog.node.directory.azure.model.FederatedCacheNodeDocument;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -41,7 +40,7 @@ public class CosmosFederatedCacheNodeDirectoryExtension implements ServiceExtens
         var configuration = new FederatedCacheNodeDirectoryCosmosConfig(context);
         Vault vault = context.getService(Vault.class);
 
-        CosmosDbApi cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
+        var cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
         FederatedCacheNodeDirectory directory = new CosmosFederatedCacheNodeDirectory(cosmosDbApi, configuration.getPartitionKey(), context.getTypeManager(), context.getService(RetryPolicy.class));
         context.registerService(FederatedCacheNodeDirectory.class, directory);
 

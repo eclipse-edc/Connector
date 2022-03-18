@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Fraunhofer Institute for Software and Systems Engineering
+ *  Copyright (c) 2021 - 2022 Fraunhofer Institute for Software and Systems Engineering
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -48,6 +48,7 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
     //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final AtomicReference<Integer> PORT = new AtomicReference<>();
+    private static final AtomicReference<Integer> IDS_PORT = new AtomicReference<>();
     private static final List<Asset> ASSETS = new LinkedList<>();
 
     static {
@@ -71,11 +72,13 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
         }
 
         PORT.set(null);
+        IDS_PORT.set(null);
     }
 
     @BeforeEach
     protected void before(EdcExtension extension) {
         PORT.set(getFreePort());
+        IDS_PORT.set(getFreePort());
 
         for (Map.Entry<String, String> entry : getSystemProperties().entrySet()) {
             System.setProperty(entry.getKey(), entry.getValue());
@@ -85,7 +88,7 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
         var claimToken = ClaimToken.Builder.newInstance().claim("key", "value").build();
         identityService = mock(IdentityService.class);
         when(identityService.obtainClientCredentials(any())).thenReturn(Result.success(tokenResult));
-        when(identityService.verifyJwtToken(any())).thenReturn(Result.success(claimToken));
+        when(identityService.verifyJwtToken(any(TokenRepresentation.class))).thenReturn(Result.success(claimToken));
 
         extension.registerSystemExtension(ServiceExtension.class,
                 new IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(ASSETS, identityService));
@@ -98,9 +101,13 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
     protected int getPort() {
         return PORT.get();
     }
+    
+    protected int getIdsPort() {
+        return IDS_PORT.get();
+    }
 
     protected String getUrl() {
-        return String.format("http://localhost:%s/api%s", getPort(), MultipartController.PATH);
+        return String.format("http://localhost:%s/api/v1/ids%s", getIdsPort(), MultipartController.PATH);
     }
 
     protected abstract Map<String, String> getSystemProperties();

@@ -93,7 +93,7 @@ public class ConsumerRunner {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    process.transitionDeprovisionRequested();
+                    process.transitionDeprovisioning();
                     store.update(process);
                 }
 
@@ -149,7 +149,7 @@ public class ConsumerRunner {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    process.transitionDeprovisionRequested();
+                    process.transitionDeprovisioning();
                     store.update(process);
                 }
 
@@ -202,7 +202,7 @@ public class ConsumerRunner {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    process.transitionDeprovisionRequested();
+                    process.transitionDeprovisioning();
                     store.update(process);
                 }
 

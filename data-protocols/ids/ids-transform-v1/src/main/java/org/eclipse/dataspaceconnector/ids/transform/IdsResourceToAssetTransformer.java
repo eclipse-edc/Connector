@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformKeys;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
+import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -87,7 +87,7 @@ public class IdsResourceToAssetTransformer implements IdsTypeTransformer<Resourc
         return assetBuilder.build();
     }
 
-    private static @Nullable Representation getRepresentationFromResource(Resource resource) {
+    private @Nullable Representation getRepresentationFromResource(Resource resource) {
         if (resource.getRepresentation() == null) {
             return null;
         }
@@ -96,7 +96,7 @@ public class IdsResourceToAssetTransformer implements IdsTypeTransformer<Resourc
                 .orElse(null);
     }
 
-    private static @Nullable RepresentationInstance getInstanceFromRepresentation(Representation representation) {
+    private @Nullable RepresentationInstance getInstanceFromRepresentation(Representation representation) {
         if (representation.getInstance() == null) {
             return null;
         }

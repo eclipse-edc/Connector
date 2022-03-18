@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2022 Amadeus
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -74,9 +74,10 @@ class ArtifactRequestHandlerTest {
     @Test
     void handleRequestOkTest() throws JsonProcessingException {
         var artifactId = UUID.randomUUID().toString();
+        var artifactRequestId = UUID.randomUUID().toString();
         var contractId = UUID.randomUUID().toString();
         var destination = DataAddress.Builder.newInstance().keyName(UUID.randomUUID().toString()).type("test").build();
-        var multipartRequest = createMultipartRequest(destination, artifactId, contractId);
+        var multipartRequest = createMultipartRequest(destination, artifactRequestId, artifactId, contractId);
         var header = (ArtifactRequestMessage) multipartRequest.getHeader();
         var agreement = createContractAgreement();
         var verificationResult = ClaimToken.Builder.newInstance().build();
@@ -90,6 +91,7 @@ class ArtifactRequestHandlerTest {
 
         verify(transferProcessManager).initiateProviderRequest(drCapture.capture());
 
+        assertThat(drCapture.getValue().getId()).hasToString(artifactRequestId);
         assertThat(drCapture.getValue().getDataDestination().getKeyName()).isEqualTo(destination.getKeyName());
         assertThat(drCapture.getValue().getConnectorId()).isEqualTo(connectorId);
         assertThat(drCapture.getValue().getAssetId()).isEqualTo(artifactId);
@@ -98,14 +100,14 @@ class ArtifactRequestHandlerTest {
         assertThat(drCapture.getValue().getProperties()).containsExactlyEntriesOf(Map.of("foo", "bar"));
     }
 
-    private MultipartRequest createMultipartRequest(DataAddress dataDestination, String artifactId, String contractId) throws JsonProcessingException {
-        var message = new ArtifactRequestMessageBuilder()
+    private MultipartRequest createMultipartRequest(DataAddress dataDestination, String artifactRequestId, String artifactId, String contractId) throws JsonProcessingException {
+        var message = new ArtifactRequestMessageBuilder(URI.create(artifactRequestId))
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                 ._securityToken_(new DynamicAttributeTokenBuilder()._tokenValue_(UUID.randomUUID().toString()).build())
                 ._requestedArtifact_(createUri(IdsType.ARTIFACT, artifactId))
                 ._transferContract_(createUri(IdsType.CONTRACT, contractId))
                 .build();
-        message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, "http://example.com/api/ids/multipart");
+        message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, "http://example.com/api/v1/ids/data");
         message.setProperty("foo", "bar");
 
         var payload = ArtifactRequestMessagePayload.Builder.newInstance()

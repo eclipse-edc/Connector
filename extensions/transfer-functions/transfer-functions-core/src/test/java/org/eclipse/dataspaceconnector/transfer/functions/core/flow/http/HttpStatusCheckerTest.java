@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 
 import static okhttp3.Protocol.HTTP_1_1;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -59,7 +60,7 @@ class HttpStatusCheckerTest {
                 .body(ResponseBody.create(typeManager.writeValueAsString(true), MediaType.get("application/json"))).message("ok")
                 .build();
 
-        httpClient = new OkHttpClient.Builder().addInterceptor(delegate).build();
+        httpClient = testOkHttpClient().newBuilder().addInterceptor(delegate).build();
 
         assertTrue(checker.isComplete(TransferProcess.Builder.newInstance().id("123").build(), Collections.emptyList()));
     }
@@ -72,7 +73,7 @@ class HttpStatusCheckerTest {
                 .body(ResponseBody.create(typeManager.writeValueAsString(false), MediaType.get("application/json"))).message("ok")
                 .build();
 
-        httpClient = new OkHttpClient.Builder().addInterceptor(delegate).build();
+        httpClient = testOkHttpClient().newBuilder().addInterceptor(delegate).build();
 
         assertFalse(checker.isComplete(TransferProcess.Builder.newInstance().id("123").build(), Collections.emptyList()));
     }
@@ -86,7 +87,7 @@ class HttpStatusCheckerTest {
                 .body(ResponseBody.create(typeManager.writeValueAsString(false), MediaType.get("txt/html"))).message("ok")
                 .build();
 
-        httpClient = new OkHttpClient.Builder().addInterceptor(delegate).build();
+        httpClient = testOkHttpClient().newBuilder().addInterceptor(delegate).build();
 
         assertFalse(checker.isComplete(TransferProcess.Builder.newInstance().id("123").build(), Collections.emptyList()));
     }

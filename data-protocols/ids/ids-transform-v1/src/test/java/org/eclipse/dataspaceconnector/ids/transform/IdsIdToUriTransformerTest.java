@@ -16,13 +16,12 @@ package org.eclipse.dataspaceconnector.ids.transform;
 
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
+import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class IdsIdToUriTransformerTest {
 

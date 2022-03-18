@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
 import static org.mockito.Mockito.mock;
 
 public class PolicyApiControllerIntegrationTest {
@@ -57,7 +58,7 @@ public class PolicyApiControllerIntegrationTest {
 
     @BeforeEach
     void setup() {
-        client = new OkHttpClient();
+        client = testOkHttpClient();
     }
 
     @Test

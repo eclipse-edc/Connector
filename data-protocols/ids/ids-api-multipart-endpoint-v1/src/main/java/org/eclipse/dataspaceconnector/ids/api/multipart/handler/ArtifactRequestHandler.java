@@ -40,7 +40,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
 import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
@@ -137,7 +136,7 @@ public class ArtifactRequestHandler implements Handler {
         }
 
         var dataRequest = DataRequest.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
+                .id(artifactRequestMessage.getId().toString())
                 .protocol(Protocols.IDS_MULTIPART)
                 .dataDestination(dataAddress)
                 .connectorId(connectorId)

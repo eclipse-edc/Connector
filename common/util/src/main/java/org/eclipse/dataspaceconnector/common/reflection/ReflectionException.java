@@ -18,4 +18,8 @@ public class ReflectionException extends RuntimeException {
     public ReflectionException(Throwable root) {
         super(root);
     }
+
+    public ReflectionException(String propertyName) {
+        super("Error during reflective access: " + propertyName);
+    }
 }

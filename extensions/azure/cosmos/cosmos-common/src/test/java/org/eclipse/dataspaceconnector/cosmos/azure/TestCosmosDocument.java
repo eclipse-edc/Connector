@@ -1,5 +1,7 @@
 package org.eclipse.dataspaceconnector.cosmos.azure;
 
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument;
+
 import java.util.UUID;
 
 public class TestCosmosDocument extends CosmosDocument<String> {

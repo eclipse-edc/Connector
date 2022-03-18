@@ -28,6 +28,22 @@ paths:
           description: default response
           content:
             application/json: {}
+  /contractnegotiations/{id}/agreement:
+    get:
+      operationId: getAgreementForNegotiation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractAgreementDto'
   /contractnegotiations/{id}:
     get:
       operationId: getNegotiation
@@ -98,8 +114,46 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ContractNegotiationDto'
+    post:
+      operationId: initiateContractNegotiation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NegotiationInitiateRequestDto'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: string
 components:
   schemas:
+    ContractAgreementDto:
+      type: object
+      properties:
+        id:
+          type: string
+        providerAgentId:
+          type: string
+        consumerAgentId:
+          type: string
+        contractSigningDate:
+          type: integer
+          format: int64
+        contractStartDate:
+          type: integer
+          format: int64
+        contractEndDate:
+          type: integer
+          format: int64
+        assetId:
+          type: string
+        policyId:
+          type: string
+        negotiationId:
+          type: string
     ContractNegotiationDto:
       type: object
       properties:
@@ -120,3 +174,14 @@ components:
           enum:
           - CONSUMER
           - PROVIDER
+    NegotiationInitiateRequestDto:
+      type: object
+      properties:
+        connectorAddress:
+          type: string
+        protocol:
+          type: string
+        connectorId:
+          type: string
+        offerId:
+          type: string

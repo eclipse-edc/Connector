@@ -9,17 +9,18 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial implementation
+ *       Daimler TSS GmbH - fixed contract dates to epoch seconds
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
+import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.junit.jupiter.api.Assertions;
@@ -28,6 +29,7 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -113,8 +115,8 @@ public class ContractAgreementToIdsContractAgreementTransformerTest {
                 .providerAgentId(PROVIDER_ID)
                 .asset(Asset.Builder.newInstance().build())
                 .consumerAgentId("id")
-                .contractStartDate(Instant.MIN.getEpochSecond())
-                .contractEndDate(Instant.MAX.getEpochSecond())
+                .contractStartDate(Instant.now().getEpochSecond())
+                .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(Instant.now().getEpochSecond())
                 .policy(policy)
                 .build();

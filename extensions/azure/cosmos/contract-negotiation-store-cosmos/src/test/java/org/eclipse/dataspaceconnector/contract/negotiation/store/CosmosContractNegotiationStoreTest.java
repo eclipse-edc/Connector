@@ -2,9 +2,9 @@ package org.eclipse.dataspaceconnector.contract.negotiation.store;
 
 import com.azure.cosmos.models.SqlQuerySpec;
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.common.matchers.PredicateMatcher;
 import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractNegotiationDocument;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -25,11 +25,13 @@ import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunc
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 class CosmosContractNegotiationStoreTest {
     private static final String PARTITION_KEY = "test-connector";
@@ -91,6 +93,7 @@ class CosmosContractNegotiationStoreTest {
         store.save(negotiation);
 
         verify(cosmosDbApi).saveItem(any(ContractNegotiationDocument.class));
+        verify(cosmosDbApi, times(2)).invokeStoredProcedure(eq("lease"), eq(PARTITION_KEY), any());
         verifyNoMoreInteractions(cosmosDbApi);
     }
 
@@ -99,6 +102,7 @@ class CosmosContractNegotiationStoreTest {
         store.delete("test-id");
 
         verify(cosmosDbApi).deleteItem("test-id");
+        verify(cosmosDbApi, times(2)).invokeStoredProcedure(eq("lease"), eq(PARTITION_KEY), any());
         verifyNoMoreInteractions(cosmosDbApi);
     }
 

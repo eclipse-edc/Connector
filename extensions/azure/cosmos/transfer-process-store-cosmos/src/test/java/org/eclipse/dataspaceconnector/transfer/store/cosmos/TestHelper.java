@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
+import org.eclipse.dataspaceconnector.transfer.store.cosmos.model.TransferProcessDocument;
 
 public class TestHelper {
 
@@ -56,6 +57,10 @@ public class TestHelper {
 
     public static TransferProcess createTransferProcess(String processId) {
         return createTransferProcess(processId, TransferProcessStates.UNSAVED);
+    }
+
+    public static TransferProcessDocument createTransferProcessDocument(String id, String partitionKey) {
+        return new TransferProcessDocument(createTransferProcess(id), partitionKey);
     }
 
 }

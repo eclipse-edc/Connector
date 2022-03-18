@@ -26,6 +26,7 @@ dependencies {
     api(project(":data-protocols:ids:ids-spi"))
     api(project(":data-protocols:ids:ids-core"))
     api(project(":data-protocols:ids:ids-transform-v1"))
+    implementation(project(":data-protocols:ids:ids-api-configuration"))
     implementation(project(":extensions:http"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")

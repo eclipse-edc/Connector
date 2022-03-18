@@ -25,12 +25,17 @@ import java.util.concurrent.CompletableFuture;
 public interface PipelineService {
 
     /**
-     * Determines if the request is valid.
+     * Returns true if this service can transfer the request.
+     */
+    boolean canHandle(DataFlowRequest request);
+
+    /**
+     * Returns true if the request is valid.
      */
     Result<Boolean> validate(DataFlowRequest request);
 
     /**
-     * Transfers data associated with the request.
+     * Transfers data from source to destination.
      */
     CompletableFuture<TransferResult> transfer(DataFlowRequest request);
 

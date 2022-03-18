@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -15,9 +15,8 @@
 package org.eclipse.dataspaceconnector.contract.negotiation.store;
 
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractNegotiationDocument;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
-import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
@@ -39,8 +38,8 @@ public class CosmosContractNegotiationStoreExtension implements ServiceExtension
         var configuration = new CosmosContractNegotiationStoreConfig(context);
         Vault vault = context.getService(Vault.class);
 
-        CosmosDbApi cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
-        var store = new CosmosContractNegotiationStore(cosmosDbApi, context.getTypeManager(), (RetryPolicy<Object>) context.getService(RetryPolicy.class), context.getConnectorId());
+        var cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
+        var store = new CosmosContractNegotiationStore(cosmosDbApi, context.getTypeManager(), (RetryPolicy<Object>) context.getService(RetryPolicy.class), configuration.getPartitionKey());
         context.registerService(ContractNegotiationStore.class, store);
 
         context.getTypeManager().registerTypes(ContractNegotiationDocument.class);

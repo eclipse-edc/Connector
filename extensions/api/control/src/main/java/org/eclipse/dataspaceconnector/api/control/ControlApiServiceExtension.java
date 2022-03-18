@@ -59,8 +59,8 @@ public class ControlApiServiceExtension implements ServiceExtension {
         monitor = serviceExtensionContext.getMonitor();
 
 
-        webService.registerController(new ClientController(transferProcessManager, consumerNegotiationManager, contractNegotiationStore));
-        webService.registerController(new ClientControlCatalogApiController(remoteMessageDispatcherRegistry));
+        webService.registerResource(new ClientController(transferProcessManager, consumerNegotiationManager, contractNegotiationStore));
+        webService.registerResource(new ClientControlCatalogApiController(remoteMessageDispatcherRegistry));
 
         /*
          * Registers a API-Key authentication filter
@@ -68,7 +68,7 @@ public class ControlApiServiceExtension implements ServiceExtension {
         HttpApiKeyAuthContainerRequestFilter httpApiKeyAuthContainerRequestFilter = new HttpApiKeyAuthContainerRequestFilter(resolveApiKeyHeaderName(serviceExtensionContext), resolveApiKeyHeaderValue(serviceExtensionContext),
                 AuthenticationContainerRequestContextPredicate.INSTANCE);
 
-        webService.registerController(httpApiKeyAuthContainerRequestFilter);
+        webService.registerResource(httpApiKeyAuthContainerRequestFilter);
 
         // contribute to the liveness probe
         var hcs = serviceExtensionContext.getService(HealthCheckService.class, true);

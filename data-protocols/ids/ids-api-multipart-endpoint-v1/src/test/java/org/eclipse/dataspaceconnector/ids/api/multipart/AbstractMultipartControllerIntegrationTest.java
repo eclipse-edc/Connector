@@ -74,6 +74,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
     //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final AtomicReference<Integer> PORT = new AtomicReference<>();
+    private static final AtomicReference<Integer> IDS_PORT = new AtomicReference<>();
     private static final List<Asset> ASSETS = new LinkedList<>();
 
     static {
@@ -94,11 +95,13 @@ abstract class AbstractMultipartControllerIntegrationTest {
         }
 
         PORT.set(null);
+        IDS_PORT.set(null);
     }
 
     @BeforeEach
     protected void before(EdcExtension extension) {
         PORT.set(getFreePort());
+        IDS_PORT.set(getFreePort());
 
         for (Map.Entry<String, String> entry : getSystemProperties().entrySet()) {
             System.setProperty(entry.getKey(), entry.getValue());
@@ -114,9 +117,13 @@ abstract class AbstractMultipartControllerIntegrationTest {
     protected int getPort() {
         return PORT.get();
     }
+    
+    protected int getIdsPort() {
+        return IDS_PORT.get();
+    }
 
     protected String getUrl() {
-        return String.format("http://localhost:%s/api%s", getPort(), MultipartController.PATH);
+        return String.format("http://localhost:%s/api/v1/ids%s", getIdsPort(), MultipartController.PATH);
     }
 
     protected abstract Map<String, String> getSystemProperties();
@@ -139,7 +146,8 @@ abstract class AbstractMultipartControllerIntegrationTest {
 
     protected DescriptionRequestMessage getDescriptionRequestMessage(IdsId idsId) {
         DescriptionRequestMessageBuilder builder = new DescriptionRequestMessageBuilder()
-                ._securityToken_(getDynamicAttributeToken());
+                ._securityToken_(getDynamicAttributeToken())
+                ._issuerConnector_(URI.create("issuerConnector"));
 
         if (idsId != null) {
             builder._requestedElement_(
@@ -152,6 +160,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
         var message = new ContractRequestMessageBuilder()
                 ._correlationMessage_(URI.create("correlationId"))
                 ._securityToken_(getDynamicAttributeToken())
+                ._issuerConnector_(URI.create("issuerConnector"))
                 .build();
         message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, "http://someUrl");
         return message;
@@ -161,6 +170,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
         return new ContractAgreementMessageBuilder()
                 ._correlationMessage_(URI.create("correlationId"))
                 ._securityToken_(getDynamicAttributeToken())
+                ._issuerConnector_(URI.create("issuerConnector"))
                 .build();
     }
 
@@ -169,6 +179,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 ._correlationMessage_(URI.create("correlationId"))
                 ._transferContract_(URI.create("contractId"))
                 ._securityToken_(getDynamicAttributeToken())
+                ._issuerConnector_(URI.create("issuerConnector"))
                 .build();
     }
 
@@ -176,6 +187,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
         return new ContractOfferMessageBuilder()
                 ._correlationMessage_(URI.create("correlationId"))
                 ._securityToken_(getDynamicAttributeToken())
+                ._issuerConnector_(URI.create("issuerConnector"))
                 .build();
     }
 

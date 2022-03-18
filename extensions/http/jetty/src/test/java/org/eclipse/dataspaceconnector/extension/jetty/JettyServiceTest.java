@@ -18,13 +18,13 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
+import org.eclipse.jetty.io.Connection;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
@@ -37,10 +37,11 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
 
 class JettyServiceTest {
     private JettyService jettyService;
@@ -49,7 +50,8 @@ class JettyServiceTest {
 
     @BeforeEach
     void setUp() {
-        monitor = new ConsoleMonitor();
+        monitor = new Monitor() {
+        };
         testController = new TestController();
     }
 
@@ -106,6 +108,24 @@ class JettyServiceTest {
     }
 
     @Test
+    void verifyConnectorConfigurationCallback() {
+        var listener = new JettyListener();
+
+        var config = ConfigFactory.fromMap(Map.of("web.http.port", "7171")); //default port mapping
+        jettyService = new JettyService(JettyConfiguration.createFromConfig(null, null, config), monitor);
+        jettyService.addConnectorConfigurationCallback((c) -> c.addBean(listener));
+
+        var servletContainer = new ServletContainer(createTestResource());
+        jettyService.registerServlet("default", servletContainer);
+
+        jettyService.start();
+
+        assertThat(listener.getConnectionsOpened()).isEqualTo(0);
+        executeRequest("http://localhost:7171/api/test/resource");
+        assertThat(listener.getConnectionsOpened()).isEqualTo(1);
+    }
+
+    @Test
     @DisplayName("Verifies that an invalid path spec causes 404")
     void verifyInvalidPathSpecCauses404() {
         var config = ConfigFactory.fromMap(Map.of(
@@ -154,11 +174,7 @@ class JettyServiceTest {
     private Response executeRequest(String url) {
 
         try {
-            var client = new OkHttpClient.Builder()
-                    .connectTimeout(1, TimeUnit.MINUTES)
-                    .writeTimeout(1, TimeUnit.MINUTES)
-                    .readTimeout(1, TimeUnit.MINUTES)
-                    .build();
+            var client = testOkHttpClient();
             var rq = new Request.Builder().url(url).build();
             return client.newCall(rq).execute();
         } catch (IOException e) {
@@ -185,6 +201,24 @@ class JettyServiceTest {
         @Override
         protected void configure() {
             bind(testController).to(TestController.class);
+        }
+    }
+
+    private static class JettyListener extends AbstractLifeCycle implements Connection.Listener {
+
+        private final AtomicInteger connectionsOpened = new AtomicInteger();
+
+        @Override
+        public void onOpened(Connection connection) {
+            connectionsOpened.incrementAndGet();
+        }
+
+        @Override
+        public void onClosed(Connection connection) {
+        }
+
+        public int getConnectionsOpened() {
+            return connectionsOpened.intValue();
         }
     }
 }

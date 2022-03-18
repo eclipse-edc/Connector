@@ -23,7 +23,6 @@ public class CommitHeader {
     private String iss;
 
     public CommitHeader(@JsonProperty("iss") String iss) {
-        rev = rev;
         this.iss = iss;
     }
 
