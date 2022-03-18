@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2021 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -14,22 +14,17 @@
 
 plugins {
     `java-library`
+    `maven-publish`
 }
-
 
 dependencies {
     api(project(":spi:core-spi"))
-    api(project(":spi:transfer-spi"))
-    api(project(":spi:contract-spi"))
-    api(project(":spi:catalog-spi"))
-    api(project(":spi:web-spi"))
-    api(project(":spi:transport-spi"))
 }
 
 publishing {
     publications {
-        create<MavenPublication>("spi") {
-            artifactId = "spi"
+        create<MavenPublication>("web-spi") {
+            artifactId = "web-spi"
             from(components["java"])
         }
     }
