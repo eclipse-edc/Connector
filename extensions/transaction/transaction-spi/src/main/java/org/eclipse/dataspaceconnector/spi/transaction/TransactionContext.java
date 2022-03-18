@@ -13,6 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.spi.transaction;
 
+
 /**
  * Implementations execute code within a transactional boundary. A {@code TransactionContext} provides a consistent programming model for local and global (e.g. JTA) transaction
  * infrastructure. Specifically, client code executes transactional code in the same way whether the context is backed by a local resource such as a single JDBC connection pool

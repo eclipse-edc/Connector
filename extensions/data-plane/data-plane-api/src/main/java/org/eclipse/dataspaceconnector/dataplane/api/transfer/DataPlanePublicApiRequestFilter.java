@@ -19,12 +19,12 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.iam.TokenValidationService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -50,7 +50,7 @@ import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowReques
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.MEDIA_TYPE;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
-import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.DATA_ADDRESS_CLAIM;
+import static org.eclipse.dataspaceconnector.spi.types.domain.dataplane.DataPlaneConstants.DATA_ADDRESS;
 
 /**
  * Filter that intercepts call to public API of the data plane. Note that a request filter is preferred over a Controller here
@@ -118,14 +118,18 @@ public class DataPlanePublicApiRequestFilter implements ContainerRequestFilter {
      * Create a {@link DataFlowRequest} based on the decoded claim token and the request content.
      */
     private DataFlowRequest createDataFlowRequest(ClaimToken claims, ContainerRequestContext requestContext) throws IOException {
-        var dataAddress = typeManager.readValue(claims.getClaims().get(DATA_ADDRESS_CLAIM), DataAddress.class);
+        var dataAddress = typeManager.readValue(claims.getClaims().get(DATA_ADDRESS), DataAddress.class);
+
+        // extract the difference between base and request uri as dataaddress name -> httpdatasource
         String baseUri = requestContext.getUriInfo().getBaseUri().toString();
         String requestUri = requestContext.getUriInfo().getRequestUri().toString();
+        // TODO what about arbitrary deployment paths under the base path -> now become part of the name
         String diffUri = requestUri.substring(baseUri.length());
         if (diffUri.indexOf("?") >= 0) {
             diffUri = diffUri.substring(0, diffUri.indexOf("?"));
         }
         dataAddress.getProperties().put("name", diffUri);
+
         var requestProperties = createDataFlowRequestProperties(requestContext);
         return DataFlowRequest.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())

@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.azure.cosmos;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.util.ArrayList;
@@ -30,11 +29,9 @@ public abstract class AbstractCosmosConfig {
 
     public static final String DEFAULT_REGION = "westeurope";
     @EdcSetting
-    private static final String DEFAULT_PARTITION_KEY_SETTING = "edc.cosmos.partition-key";
+    private static final String PARTITION_KEY_SETTING = "edc.cosmos.partition-key";
     @EdcSetting
-    private static final String DEFAULT_QUERY_METRICS_ENABLED_SETTING = "edc.cosmos.query-metrics-enabled";
-    private static final String DEFAULT_PARTITION_KEY = "dataspaceconnector";
-    private static Monitor monitor;
+    private static final String QUERY_METRICS_ENABLED_SETTING = "edc.cosmos.query-metrics-enabled";
 
 
     private final String containerName;
@@ -51,11 +48,10 @@ public abstract class AbstractCosmosConfig {
      */
     protected AbstractCosmosConfig(ServiceExtensionContext context) {
         Objects.requireNonNull(context);
-        monitor = context.getMonitor();
 
         accountName = context.getSetting(getAccountNameSetting(), null);
         dbName = context.getSetting(getDbNameSetting(), null);
-        partitionKey = context.getSetting(getPartitionKeySetting(), DEFAULT_PARTITION_KEY);
+        partitionKey = context.getSetting(getPartitionKeySetting(), "0");
         preferredRegion = context.getSetting(getCosmosPreferredRegionSetting(), DEFAULT_REGION);
         containerName = context.getSetting(getContainerNameSetting(), null);
         queryMetricsEnabled = Boolean.parseBoolean(context.getSetting(getQueryMetricsEnabledSetting(), "true"));
@@ -115,11 +111,11 @@ public abstract class AbstractCosmosConfig {
     protected abstract String getContainerNameSetting();
 
     protected String getPartitionKeySetting() {
-        return DEFAULT_PARTITION_KEY_SETTING;
+        return PARTITION_KEY_SETTING;
     }
 
     protected String getQueryMetricsEnabledSetting() {
-        return DEFAULT_QUERY_METRICS_ENABLED_SETTING;
+        return QUERY_METRICS_ENABLED_SETTING;
     }
 
 }

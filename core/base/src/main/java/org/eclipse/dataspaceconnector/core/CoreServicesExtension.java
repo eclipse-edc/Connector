@@ -19,13 +19,17 @@ import okhttp3.EventListener;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.core.base.CommandHandlerRegistryImpl;
 import org.eclipse.dataspaceconnector.core.base.RemoteMessageDispatcherRegistryImpl;
+import org.eclipse.dataspaceconnector.core.base.agent.ParticipantAgentServiceImpl;
+import org.eclipse.dataspaceconnector.core.base.policy.PolicyEngineImpl;
 import org.eclipse.dataspaceconnector.core.executor.NoopExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceConfiguration;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceImpl;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.BaseExtension;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
@@ -49,7 +53,7 @@ import java.util.concurrent.TimeUnit;
 import static java.util.Optional.ofNullable;
 
 @BaseExtension
-@Provides({RetryPolicy.class, HealthCheckService.class, OkHttpClient.class, RemoteMessageDispatcherRegistry.class})
+@Provides({RetryPolicy.class, HealthCheckService.class, OkHttpClient.class, RemoteMessageDispatcherRegistry.class, ParticipantAgentService.class, PolicyEngine.class})
 public class CoreServicesExtension implements ServiceExtension {
 
     @EdcSetting
@@ -106,6 +110,12 @@ public class CoreServicesExtension implements ServiceExtension {
         context.registerService(RemoteMessageDispatcherRegistry.class, dispatcherRegistry);
 
         context.registerService(CommandHandlerRegistry.class, new CommandHandlerRegistryImpl());
+
+        var agentService = new ParticipantAgentServiceImpl();
+        context.registerService(ParticipantAgentService.class, agentService);
+
+        var policyEngine = new PolicyEngineImpl();
+        context.registerService(PolicyEngine.class, policyEngine);
     }
 
     @Override

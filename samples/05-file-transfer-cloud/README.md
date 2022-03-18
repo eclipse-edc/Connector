@@ -138,7 +138,7 @@ The requesting of data offers and data transfer can also be initiated using IDS 
 To request data offers from the provider run
 
 ```bash
-curl -X GET -H 'X-Api-Key: password' http://localhost:9191/api/control/catalog?provider=http://localhost:8181/api/v1/ids/data
+curl -X GET -H 'X-Api-Key: password' http://localhost:9191/api/control/catalog?provider=http://localhost:8282/api/v1/ids/data
 ```
 
 #### 2. Negotiate Contract
@@ -154,7 +154,7 @@ curl --location --request POST 'http://localhost:9191/api/control/negotiation' \
   "type": "INITIAL",
   "protocol": "ids-multipart",
   "connectorId": "1",
-  "connectorAddress": "http://localhost:8181/api/v1/ids/data",
+  "connectorAddress": "http://localhost:8282/api/v1/ids/data",
   "correlationId": null,
   "contractOffer": { <Copy one of the contract offer from Step 2> },
   "asset": "1",
@@ -194,7 +194,7 @@ curl --location --request POST 'http://localhost:9191/api/control/transfer' \
   "edctype": "dataspaceconnector:datarequest",
   "id": null,
   "processId": null,
-  "connectorAddress": "http://localhost:8181/api/v1/ids/data",
+  "connectorAddress": "http://localhost:8282/api/v1/ids/data",
   "protocol": "ids-multipart",
   "connectorId": "consumer",
   "assetId": "1",

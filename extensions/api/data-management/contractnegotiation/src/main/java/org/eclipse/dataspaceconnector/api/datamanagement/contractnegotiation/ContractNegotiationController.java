@@ -8,7 +8,8 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  * Contributors:
- *   ZF Friedrichshafen AG - Initial API and Implementation
+ *    ZF Friedrichshafen AG - Initial API and Implementation
+ *    Microsoft Corporation - Added initiate-negotiation endpoint
  */
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
@@ -21,7 +22,10 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractAgreementDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractNegotiationDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
@@ -88,5 +92,26 @@ public class ContractNegotiationController {
         // TODO move Negotiation to the DECLINING/DECLINED state
         // TODO Throw IllegalStateException if not possible
         monitor.debug(format("Attempting to decline contract negotiation with id %s", id));
+    }
+
+    @GET
+    @Path("/{id}/agreement")
+    public ContractAgreementDto getAgreementForNegotiation(@PathParam("id") String negotiationId) {
+        //TODO: fetch agreement for negotiation-id
+        return ContractAgreementDto.Builder.newInstance().negotiationId(negotiationId).build();
+    }
+
+    @POST
+    public String initiateContractNegotiation(NegotiationInitiateRequestDto initiateDto) {
+
+        if (!isValid(initiateDto)) {
+            throw new IllegalArgumentException("Negotiation request is invalid");
+        }
+
+        return "not-implemente"; //will be the negotiation-id
+    }
+
+    private boolean isValid(NegotiationInitiateRequestDto initiateDto) {
+        return StringUtils.isNoneBlank(initiateDto.getConnectorId(), initiateDto.getConnectorAddress(), initiateDto.getProtocol(), initiateDto.getOfferId());
     }
 }

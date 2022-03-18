@@ -8,9 +8,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v2
         with:
           java-version: '11'
+          distribution: 'temurin'
+          cache: 'gradle'
 
       # lets run Checkstyle explicitly (as opposed to within gradle) due to better reporting capabilities
       - name: Run Checkstyle
@@ -24,16 +26,27 @@ jobs:
           reporter: 'github-check'
           filter_mode: 'nofilter'
 
-
       - name: Gradle Test Core
         env:
           INTEGRATION_TEST: false
           JACOCO: true
         # checkstyle would also run as part of the `check` task
-        run: ./gradlew clean check jacocoTestReport -x checkstyleMain -x checkstyleTest
+        run: ./gradlew clean check jacocoTestReport -x checkstyleMain -x checkstyleTest -quiet
+
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: "**/test-results/**/*.xml"
 
       - name: CodeCov
         uses: codecov/codecov-action@v2
+
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: Gatling reports
+          path: '**/build/reports/gatling/**'
 
   Sanity-Check:
     runs-on: ubuntu-latest
@@ -140,12 +153,13 @@ jobs:
           ./minikube start --wait all
 
       - name: Build JARs
-        run: ./gradlew samples:04.0-file-transfer:consumer:shadowJar samples:04.0-file-transfer:provider:shadowJar --no-daemon
+        run: ./gradlew system-tests:runtimes:file-transfer-consumer:shadowJar system-tests:runtimes:file-transfer-provider:shadowJar --no-daemon
 
       - name: Test
         run: |
           eval $(minikube -p minikube docker-env)
-          samples/04.0-file-transfer/integration-tests/minikube/minikube-test.sh
+          chmod +x system-tests/minikube/minikube-test.sh
+          system-tests/minikube/minikube-test.sh
 
       - name: Kubernetes logs
         if: always()

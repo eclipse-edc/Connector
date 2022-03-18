@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering
+ *       ZF Friedrichshafen AG - add dependency & reorder entries
  *
  */
 
@@ -19,6 +20,9 @@ rootProject.name = "dataspaceconnector"
 
 include(":common:util")
 include(":common:state-machine-lib")
+include(":common:token-generation-lib")
+include(":common:token-validation-lib")
+
 
 // EDC core modules
 include(":core")
@@ -37,17 +41,21 @@ include(":data-protocols:ids:ids-core")
 include(":data-protocols:ids:ids-spi")
 include(":data-protocols:ids:ids-transform-v1")
 include(":data-protocols:ids:ids-token-validation")
+include(":data-protocols:ids:ids-api-configuration")
+
+include("extensions:sql:contract-definition:store")
 
 // modules for technology- or cloud-provider extensions
 include(":extensions:aws")
 include(":extensions:api:control")
-include(":extensions:api:data-management:api-configuration")
-include(":extensions:api:data-management:asset")
 include(":extensions:api:api-core")
 include(":extensions:api:auth-spi")
 include(":extensions:api:auth-tokenbased")
+include(":extensions:api:data-management:api-configuration")
+include(":extensions:api:data-management:asset")
 include(":extensions:api:data-management:contractdefinition")
 include(":extensions:api:data-management:contractnegotiation")
+include(":extensions:api:data-management:contractagreement")
 include(":extensions:api:data-management:policydefinition")
 include(":extensions:api:data-management:transferprocess")
 include(":extensions:api:observability")
@@ -116,11 +124,10 @@ include(":extensions:data-plane-transfer:data-plane-transfer-sync")
 include(":extensions:data-plane:data-plane-spi")
 include(":extensions:data-plane:data-plane-framework")
 include(":extensions:data-plane:data-plane-http")
-include(":extensions:azure:data-plane-azure-storage")
+include(":extensions:azure:data-plane:common")
+include(":extensions:azure:data-plane:storage")
 include(":extensions:data-plane:data-plane-api")
 include(":extensions:data-plane:integration-tests")
-include(":extensions:token:token-generation")
-include(":extensions:token:token-validation")
 include(":extensions:sql:common")
 include(":extensions:sql:pool:apache-commons-pool")
 include(":extensions:http-receiver")
@@ -135,14 +142,11 @@ include(":launchers:data-loader-cli")
 include(":launchers:data-plane-server")
 
 // modules for code samples
-include(":samples:other:commandline:consumer")
-include(":samples:other:commandline:consumer-runtime")
 include(":samples:other:copy-file-to-s3bucket")
 include(":samples:other:dataseed:dataseed-aws")
 include(":samples:other:dataseed:dataseed-azure")
 include(":samples:other:dataseed:dataseed-policy")
 include(":samples:other:run-from-junit")
-include(":samples:other:streaming")
 include(":samples:other:custom-runtime")
 
 
@@ -165,7 +169,6 @@ include(":samples:04.0-file-transfer:consumer")
 include(":samples:04.0-file-transfer:provider")
 include(":samples:04.0-file-transfer:api")
 include(":samples:04.0-file-transfer:transfer-file")
-include(":samples:04.0-file-transfer:integration-tests")
 
 include(":samples:04.1-file-transfer-listener:consumer")
 include(":samples:04.1-file-transfer-listener:listener")
@@ -189,4 +192,6 @@ include(":system-tests:e2e-transfer-test:runner")
 include(":system-tests:e2e-transfer-test:backend-service")
 include(":system-tests:e2e-transfer-test:control-plane")
 include(":system-tests:e2e-transfer-test:data-plane")
-
+include(":system-tests:runtimes:file-transfer-provider")
+include(":system-tests:runtimes:file-transfer-consumer")
+include(":system-tests:tests")

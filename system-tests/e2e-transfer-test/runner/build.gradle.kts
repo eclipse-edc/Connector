@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
@@ -29,6 +30,10 @@ dependencies {
     testImplementation("org.assertj:assertj-core:${assertj}")
     testImplementation("org.awaitility:awaitility:${awaitility}")
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
+
+    testCompileOnly(project(":system-tests:e2e-transfer-test:backend-service"))
+    testCompileOnly(project(":system-tests:e2e-transfer-test:control-plane"))
+    testCompileOnly(project(":system-tests:e2e-transfer-test:data-plane"))
 }
 
 tasks.getByName<Test>("test") {

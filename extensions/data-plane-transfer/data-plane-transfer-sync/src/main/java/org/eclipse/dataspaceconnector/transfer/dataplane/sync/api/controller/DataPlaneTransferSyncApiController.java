@@ -21,11 +21,11 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.dataspaceconnector.spi.iam.TokenValidationService;
+import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.security.DataEncrypter;
 
-import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.DATA_ADDRESS_CLAIM;
+import static org.eclipse.dataspaceconnector.spi.types.domain.dataplane.DataPlaneConstants.DATA_ADDRESS;
 
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
@@ -55,7 +55,7 @@ public class DataPlaneTransferSyncApiController {
         var validToken = validationResult.getContent();
 
         // decrypt data address
-        validToken.getClaims().computeIfPresent(DATA_ADDRESS_CLAIM, (s, s2) -> dataEncrypter.decrypt(s2));
+        validToken.getClaims().computeIfPresent(DATA_ADDRESS, (s, s2) -> dataEncrypter.decrypt(s2));
 
         return Response.ok(validToken).build();
     }

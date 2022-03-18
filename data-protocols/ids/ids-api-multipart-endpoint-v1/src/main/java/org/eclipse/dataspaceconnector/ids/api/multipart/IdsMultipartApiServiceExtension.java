@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessage;
+import org.eclipse.dataspaceconnector.ids.api.configuration.IdsApiConfiguration;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ArtifactRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractAgreementHandler;
@@ -105,6 +106,8 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     private EndpointDataReferenceReceiverRegistry endpointDataReferenceReceiverRegistry;
     @Inject
     private EndpointDataReferenceTransformer endpointDataReferenceTransformer;
+    @Inject
+    private IdsApiConfiguration idsApiConfiguration;
 
     @Override
     public String name() {
@@ -173,7 +176,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
         // create & register controller
         var multipartController = new MultipartController(monitor, connectorId, objectMapper, identityService, handlers);
-        webService.registerResource(multipartController);
+        webService.registerResource(idsApiConfiguration.getContextAlias(), multipartController);
     }
 
     private String resolveConnectorId(@NotNull ServiceExtensionContext context) {

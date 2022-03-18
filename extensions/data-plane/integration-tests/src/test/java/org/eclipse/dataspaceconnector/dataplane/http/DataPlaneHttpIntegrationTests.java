@@ -23,7 +23,6 @@ import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import org.apache.http.HttpStatus;
 import org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema;
-import org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore.State;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcRuntimeExtension;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
@@ -56,6 +55,11 @@ import static org.awaitility.Awaitility.await;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures.createDataAddress;
 import static org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures.createRequest;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.NAME;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.exactly;
@@ -363,20 +367,20 @@ public class DataPlaneHttpIntegrationTests {
         }
 
         var sourceDataAddress = createDataAddress(
-                HttpDataSchema.TYPE,
+                TYPE,
                 Map.of(
-                        HttpDataSchema.ENDPOINT, DPF_HTTP_SOURCE_API_HOST,
-                        HttpDataSchema.NAME, DPF_HTTP_API_PART_NAME,
-                        HttpDataSchema.AUTHENTICATION_KEY, AUTH_HEADER_KEY,
-                        HttpDataSchema.AUTHENTICATION_CODE, SOURCE_AUTH_VALUE
+                        ENDPOINT, DPF_HTTP_SOURCE_API_HOST,
+                        NAME, DPF_HTTP_API_PART_NAME,
+                        AUTHENTICATION_KEY, AUTH_HEADER_KEY,
+                        AUTHENTICATION_CODE, SOURCE_AUTH_VALUE
                 )).build();
 
         var destinationDataAddress = createDataAddress(
-                HttpDataSchema.TYPE,
+                TYPE,
                 Map.of(
-                        HttpDataSchema.ENDPOINT, DPF_HTTP_SINK_API_HOST,
-                        HttpDataSchema.AUTHENTICATION_KEY, AUTH_HEADER_KEY,
-                        HttpDataSchema.AUTHENTICATION_CODE, SINK_AUTH_VALUE
+                        ENDPOINT, DPF_HTTP_SINK_API_HOST,
+                        AUTHENTICATION_KEY, AUTH_HEADER_KEY,
+                        AUTHENTICATION_CODE, SINK_AUTH_VALUE
                 )).build();
 
         // Create valid dataflow request instance.

@@ -8,22 +8,47 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  * Contributors:
- *   ZF Friedrichshafen AG - Initial API and Implementation
+ *    ZF Friedrichshafen AG - Initial API and Implementation
+ *    Microsoft Corporation - Added initiate-negotiation endpoint tests
  */
+
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 
+import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractAgreementDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.stream.Stream;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 class ContractNegotiationApiControllerTest {
     private ContractNegotiationController controller;
+
+    public static Stream<Arguments> getInvalidNegotiationParameters() {
+        return Stream.of(Arguments.of(null, "consumer", "ids-multipart", "test-offer"),
+                Arguments.of("", "consumer", "ids-multipart", "test-offer"),
+                Arguments.of("  ", "consumer", "ids-multipart", "test-offer"),
+                Arguments.of("http://some-connector", null, "ids-multipart", "test-offer"),
+                Arguments.of("http://some-connector", "", "ids-multipart", "test-offer"),
+                Arguments.of("http://some-connector", "  ", "ids-multipart", "test-offer"),
+                Arguments.of("http://some-connector", "consumer", null, "test-offer"),
+                Arguments.of("http://some-connector", "consumer", "", "test-offer"),
+                Arguments.of("http://some-connector", "consumer", "   ", "test-offer"),
+                Arguments.of("http://some-connector", "consumer", "ids-multipart", null),
+                Arguments.of("http://some-connector", "consumer", "ids-multipart", ""),
+                Arguments.of("http://some-connector", "consumer", "ids-multipart", "  ")
+        );
+    }
 
     @BeforeEach
     void setup() {
@@ -122,5 +147,37 @@ class ContractNegotiationApiControllerTest {
     @Test
     void decline_notPossible() {
         //todo: implement
+    }
+
+    @Test
+    void getAgreementForNegotiation() {
+        var agreement = controller.getAgreementForNegotiation("test-negotiation");
+        assertThat(agreement)
+                .isNotNull()
+                .extracting(ContractAgreementDto::getNegotiationId)
+                .isEqualTo("test-negotiation");
+    }
+
+    @Test
+    void getAgreementForNegotiation_negotiationNotExist() {
+        //todo: implement
+    }
+
+    @Test
+    void initiateNegotiation() {
+        //todo implement
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("getInvalidNegotiationParameters")
+    void initiateNegotiation_invalidRequestBody(String connectorAddress, String connectorId, String protocol, String offerId) {
+        var rq = NegotiationInitiateRequestDto.Builder.newInstance()
+                .connectorAddress(connectorAddress)
+                .connectorId(connectorId)
+                .protocol(protocol)
+                .offerId(offerId)
+                .build();
+        assertThatThrownBy(() -> controller.initiateContractNegotiation(rq)).isInstanceOf(IllegalArgumentException.class);
     }
 }

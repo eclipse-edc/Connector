@@ -33,14 +33,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.time.Instant;
-import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -82,20 +83,23 @@ class EndpointDataReferenceHandlerTest {
         var request = createMultipartRequest(edr);
 
         var edrCapture = ArgumentCaptor.forClass(EndpointDataReference.class);
-        when(transformer.execute(edrCapture.capture())).thenReturn(Result.success(edr));
+        when(transformer.transform(any())).thenReturn(Result.success(edr));
         var receiver = mock(EndpointDataReferenceReceiver.class);
         when(receiver.send(edr)).thenReturn(CompletableFuture.completedFuture(Result.success()));
-        when(receiverRegistry.getAll()).thenReturn(Arrays.asList(receiver));
+        when(receiverRegistry.getAll()).thenReturn(List.of(receiver));
 
         var response = handler.handleRequest(request, createSuccessClaimToken());
 
-        verify(transformer).execute(edrCapture.capture());
+        verify(transformer, times(1)).transform(edrCapture.capture());
+
         assertThat(edrCapture.getValue()).satisfies(t -> {
-            assertThat(t.getAddress()).isEqualTo(edr.getAddress());
+            assertThat(t.getEndpoint()).isEqualTo(edr.getEndpoint());
+            assertThat(t.getAuthKey()).isEqualTo(edr.getAuthKey());
             assertThat(t.getAuthCode()).isEqualTo(edr.getAuthCode());
-            assertThat(t.getCorrelationId()).isEqualTo(edr.getCorrelationId());
-            assertThat(t.getExpirationEpochSeconds()).isEqualTo(edr.getExpirationEpochSeconds());
+            assertThat(t.getId()).isEqualTo(edr.getId());
+            assertThat(t.getProperties()).isEqualTo(edr.getProperties());
         });
+
         assertThat(response)
                 .isNotNull()
                 .satisfies(r -> assertThat(r.getHeader()).isInstanceOf(MessageProcessedNotificationMessage.class));
@@ -106,7 +110,7 @@ class EndpointDataReferenceHandlerTest {
         var edr = createEndpointDataReference();
         var request = createMultipartRequest(edr);
 
-        when(transformer.execute(any())).thenReturn(Result.failure("error"));
+        when(transformer.transform(any())).thenReturn(Result.failure("error"));
 
         var response = handler.handleRequest(request, createSuccessClaimToken());
 
@@ -120,10 +124,10 @@ class EndpointDataReferenceHandlerTest {
         var edr = createEndpointDataReference();
         var request = createMultipartRequest(edr);
 
-        when(transformer.execute(any())).thenReturn(Result.success(edr));
+        when(transformer.transform(any())).thenReturn(Result.success(edr));
         var receiver = mock(EndpointDataReferenceReceiver.class);
         when(receiver.send(edr)).thenReturn(CompletableFuture.completedFuture(Result.failure("error")));
-        when(receiverRegistry.getAll()).thenReturn(Arrays.asList(receiver));
+        when(receiverRegistry.getAll()).thenReturn(List.of(receiver));
 
         var response = handler.handleRequest(request, createSuccessClaimToken());
 
@@ -137,10 +141,10 @@ class EndpointDataReferenceHandlerTest {
         var edr = createEndpointDataReference();
         var request = createMultipartRequest(edr);
 
-        when(transformer.execute(any())).thenReturn(Result.success(edr));
+        when(transformer.transform(any())).thenReturn(Result.success(edr));
         var receiver = mock(EndpointDataReferenceReceiver.class);
         when(receiver.send(edr)).thenReturn(CompletableFuture.failedFuture(new RuntimeException("error")));
-        when(receiverRegistry.getAll()).thenReturn(Arrays.asList(receiver));
+        when(receiverRegistry.getAll()).thenReturn(List.of(receiver));
 
         var response = handler.handleRequest(request, createSuccessClaimToken());
 
@@ -151,12 +155,11 @@ class EndpointDataReferenceHandlerTest {
 
     private static EndpointDataReference createEndpointDataReference() {
         return EndpointDataReference.Builder.newInstance()
-                .address("http://example.com")
+                .endpoint("http://example.com")
                 .authKey("Api-Key")
-                .authCode(UUID.randomUUID().toString())
-                .correlationId("correlation-test")
-                .expirationEpochSeconds(Instant.now().plusSeconds(100).getEpochSecond())
-                .contractId(UUID.randomUUID().toString())
+                .authCode("token-test")
+                .id("correlation-test")
+                .properties(Map.of("foo", "bar"))
                 .build();
     }
 

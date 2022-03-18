@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - Initial Implementation
+ *       Daimler TSS GmbH - fixed contract dates to epoch seconds
  *
  */
 
@@ -107,15 +108,15 @@ public class IdsContractAgreementToContractAgreementTransformer implements IdsTy
         }
 
         if (contractAgreement.getContractEnd() != null) {
-            builder.contractEndDate(contractAgreement.getContractEnd().toGregorianCalendar().getTimeInMillis());
+            builder.contractEndDate(contractAgreement.getContractEnd().toGregorianCalendar().toZonedDateTime().toEpochSecond());
         }
 
         if (contractAgreement.getContractStart() != null) {
-            builder.contractStartDate(contractAgreement.getContractStart().toGregorianCalendar().getTimeInMillis());
+            builder.contractStartDate(contractAgreement.getContractStart().toGregorianCalendar().toZonedDateTime().toEpochSecond());
         }
 
         if (contractAgreement.getContractDate() != null) {
-            builder.contractSigningDate(contractAgreement.getContractDate().toGregorianCalendar().getTimeInMillis());
+            builder.contractSigningDate(contractAgreement.getContractDate().toGregorianCalendar().toZonedDateTime().toEpochSecond());
         }
 
         return builder.build();

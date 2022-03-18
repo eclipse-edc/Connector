@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Microsoft Corporation
+ *  Copyright (c) 2021-2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -10,28 +10,20 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
- *
+ *       Daimler TSS GmbH - fixed contract dates to epoch seconds
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  */
+
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.common.statemachine.StateMachine;
 import org.eclipse.dataspaceconnector.common.statemachine.StateProcessorImpl;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
-import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
-import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
-import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
-import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
-import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -42,7 +34,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.comm
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.LocalDate;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -59,25 +52,13 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONSUMER_OFFERING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.DECLINING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.INITIAL;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTING;
 
 /**
  * Implementation of the {@link ConsumerContractNegotiationManager}.
  */
-public class ConsumerContractNegotiationManagerImpl implements ConsumerContractNegotiationManager {
-    private ContractNegotiationStore negotiationStore;
-    private ContractValidationService validationService;
+public class ConsumerContractNegotiationManagerImpl extends AbstractContractNegotiationManager implements ConsumerContractNegotiationManager {
 
-    private int batchSize = 5;
-    private WaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
-
-    private RemoteMessageDispatcherRegistry dispatcherRegistry;
-
-    private ContractNegotiationObservable observable;
-    private CommandQueue<ContractNegotiationCommand> commandQueue;
-    private CommandRunner<ContractNegotiationCommand> commandRunner;
-    private CommandProcessor<ContractNegotiationCommand> commandProcessor;
-    private Telemetry telemetry;
-    private Monitor monitor;
     private StateMachine stateMachine;
 
     private ConsumerContractNegotiationManagerImpl() { }
@@ -85,6 +66,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     public void start() {
         stateMachine = StateMachine.Builder.newInstance("consumer-contract-negotiation", monitor, waitStrategy)
                 .processor(processNegotiationsInState(INITIAL, this::processInitial))
+                .processor(processNegotiationsInState(REQUESTING, this::processRequesting))
                 .processor(processNegotiationsInState(CONSUMER_OFFERING, this::processConsumerOffering))
                 .processor(processNegotiationsInState(CONSUMER_APPROVING, this::processConsumerApproving))
                 .processor(processNegotiationsInState(DECLINING, this::processDeclining))
@@ -299,19 +281,28 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     }
 
     /**
-     * Processes {@link ContractNegotiation} in state INITIAL. Tries to send the current
-     * offer to the respective provider and transition ContractNegotiation to REQUESTING.
-     * If this succeeds, the ContractNegotiation is transitioned to state REQUESTED.
-     * Else, it is transitioned to INITIAL for a retry.
+     * Processes {@link ContractNegotiation} in state INITIAL. Transition ContractNegotiation to REQUESTING.
      *
-     * @return true if processed, false elsewhere
+     * @return true if processed, false otherwise
      */
     @WithSpan
     private boolean processInitial(ContractNegotiation negotiation) {
-        var offer = negotiation.getLastContractOffer();
         negotiation.transitionRequesting();
         negotiationStore.save(negotiation);
+        return true;
+    }
 
+    /**
+     * Processes {@link ContractNegotiation} in state REQUESTING. Tries to send the current
+     * offer to the respective provider.
+     * If this succeeds, the ContractNegotiation is transitioned to state REQUESTED.
+     * Else, it is transitioned to INITIAL for a retry.
+     *
+     * @return true if processed, false otherwise
+     */
+    @WithSpan
+    private boolean processRequesting(ContractNegotiation negotiation) {
+        var offer = negotiation.getLastContractOffer();
         sendOffer(offer, negotiation, ContractOfferRequest.Type.INITIAL)
                 .whenComplete(onInitialOfferSent(negotiation.getId(), offer.getId()));
 
@@ -323,7 +314,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      * offer to the respective provider. If this succeeds, the ContractNegotiation is transitioned
      * to state CONSUMER_OFFERED. Else, it is transitioned to CONSUMER_OFFERING for a retry.
      *
-     * @return true if processed, false elsewhere
+     * @return true if processed, false otherwise
      */
     @WithSpan
     private boolean processConsumerOffering(ContractNegotiation negotiation) {
@@ -331,7 +322,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         sendOffer(offer, negotiation, ContractOfferRequest.Type.COUNTER_OFFER)
                 .whenComplete(onCounterOfferSent(negotiation.getId(), offer.getId()));
 
-        return false;
+        return true;
     }
 
     @NotNull
@@ -392,7 +383,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      * provider. If this succeeds, the ContractNegotiation is transitioned to state
      * CONSUMER_APPROVED. Else, it is transitioned to CONSUMER_APPROVING for a retry.
      *
-     * @return true if processed, false elsewhere
+     * @return true if processed, false otherwise
      */
     @WithSpan
     private boolean processConsumerApproving(ContractNegotiation negotiation) {
@@ -408,9 +399,9 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
 
         var agreement = ContractAgreement.Builder.newInstance()
                 .id(ContractId.createContractId(definitionId))
-                .contractSigningDate(LocalDate.MIN.toEpochDay())
-                .contractStartDate(LocalDate.MIN.toEpochDay())
-                .contractEndDate(LocalDate.MAX.toEpochDay())
+                .contractStartDate(Instant.now().getEpochSecond())
+                .contractEndDate(Instant.now().plus(365, ChronoUnit.DAYS).getEpochSecond()) // TODO Make configurable (issue #722)
+                .contractSigningDate(Instant.now().getEpochSecond())
                 .providerAgentId(String.valueOf(lastOffer.getProvider()))
                 .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
                 .policy(lastOffer.getPolicy())
@@ -463,7 +454,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      * to the respective provider. If this succeeds, the ContractNegotiation is transitioned
      * to state DECLINED. Else, it is transitioned to DECLINING for a retry.
      *
-     * @return true if processed, false elsewhere
+     * @return true if processed, false otherwise
      */
     @WithSpan
     private boolean processDeclining(ContractNegotiation negotiation) {
@@ -522,80 +513,14 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     /**
      * Builder for ConsumerContractNegotiationManagerImpl.
      */
-    public static class Builder {
-        private final ConsumerContractNegotiationManagerImpl manager;
+    public static class Builder extends AbstractContractNegotiationManager.Builder<ConsumerContractNegotiationManagerImpl> {
 
         private Builder() {
-            manager = new ConsumerContractNegotiationManagerImpl();
-            manager.telemetry = new Telemetry(); // default noop implementation
+            super(new ConsumerContractNegotiationManagerImpl());
         }
 
-        public static Builder newInstance() {
+        public static ConsumerContractNegotiationManagerImpl.Builder newInstance() {
             return new Builder();
-        }
-
-        public Builder validationService(ContractValidationService validationService) {
-            manager.validationService = validationService;
-            return this;
-        }
-
-        public Builder monitor(Monitor monitor) {
-            manager.monitor = monitor;
-            return this;
-        }
-
-        public Builder batchSize(int batchSize) {
-            manager.batchSize = batchSize;
-            return this;
-        }
-
-        public Builder waitStrategy(WaitStrategy waitStrategy) {
-            manager.waitStrategy = waitStrategy;
-            return this;
-        }
-
-        public Builder dispatcherRegistry(RemoteMessageDispatcherRegistry dispatcherRegistry) {
-            manager.dispatcherRegistry = dispatcherRegistry;
-            return this;
-        }
-
-        public Builder commandQueue(CommandQueue<ContractNegotiationCommand> commandQueue) {
-            manager.commandQueue = commandQueue;
-            return this;
-        }
-
-        public Builder commandRunner(CommandRunner<ContractNegotiationCommand> commandRunner) {
-            manager.commandRunner = commandRunner;
-            return this;
-        }
-
-        public Builder telemetry(Telemetry telemetry) {
-            manager.telemetry = telemetry;
-            return this;
-        }
-
-        public Builder observable(ContractNegotiationObservable observable) {
-            manager.observable = observable;
-            return this;
-        }
-
-        public Builder store(ContractNegotiationStore store) {
-            manager.negotiationStore = store;
-            return this;
-        }
-
-        public ConsumerContractNegotiationManagerImpl build() {
-            Objects.requireNonNull(manager.validationService, "contractValidationService");
-            Objects.requireNonNull(manager.monitor, "monitor");
-            Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
-            Objects.requireNonNull(manager.commandQueue, "commandQueue");
-            Objects.requireNonNull(manager.commandRunner, "commandRunner");
-            Objects.requireNonNull(manager.observable, "observable");
-            Objects.requireNonNull(manager.telemetry, "telemetry");
-            Objects.requireNonNull(manager.negotiationStore, "store");
-            manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
-
-            return manager;
         }
     }
 }

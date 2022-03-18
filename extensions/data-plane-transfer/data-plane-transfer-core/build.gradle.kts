@@ -16,10 +16,15 @@ plugins {
     `java-library`
 }
 
+val nimbusVersion: String by project
 
 dependencies {
     api(project(":spi:core-spi"))
+    api(project(":spi:transfer-spi"))
     api(project(":extensions:data-plane-transfer:data-plane-transfer-spi"))
+    api(project(":common:token-generation-lib"))
+
+    api("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
 }
 
 publishing {

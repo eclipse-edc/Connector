@@ -9,11 +9,13 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 package org.eclipse.dataspaceconnector.junit.launcher;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
@@ -63,35 +65,6 @@ public class EdcRuntimeExtension extends EdcExtension {
         this.properties = Map.copyOf(properties);
     }
 
-    /**
-     * Replace Gradle subproject JAR entries with subproject build directories in classpath.
-     * This ensures modified classes are picked up without needing to rebuild dependent JARs.
-     *
-     * @param root           project root directory.
-     * @param classPathEntry class path entry to resolve.
-     * @return resolved class path entries for the input argument.
-     */
-    private static Stream<URL> resolveClassPathEntry(File root, String classPathEntry) {
-        try {
-            File f = new File(classPathEntry).getCanonicalFile();
-
-            // If class path entry is not a JAR under the root (i.e. a sub-project), do not transform it
-            boolean isUnderRoot = f.getCanonicalPath().startsWith(root.getCanonicalPath() + File.separator);
-            if (!classPathEntry.toLowerCase(Locale.ROOT).endsWith(".jar") || !isUnderRoot) {
-                return Stream.of(new File(classPathEntry).toURI().toURL());
-            }
-
-            // Replace JAR entry with the resolved classes and resources folder
-            var buildDir = f.getParentFile().getParentFile();
-            return Stream.of(
-                    new File(buildDir, "/classes/java/main").toURI().toURL(),
-                    new File(buildDir, "/resources/main").toURI().toURL()
-            );
-        } catch (IOException e) {
-            throw new EdcException(e);
-        }
-    }
-
     @Override
     public void beforeTestExecution(ExtensionContext extensionContext) throws Exception {
         // Find the project root directory, moving up the directory tree
@@ -123,8 +96,7 @@ public class EdcRuntimeExtension extends EdcExtension {
 
         // Create a ClassLoader that only has the target module class path, and is not
         // parented with the current ClassLoader.
-        var classLoader = URLClassLoader.newInstance(classPathEntries,
-                ClassLoader.getSystemClassLoader());
+        var classLoader = URLClassLoader.newInstance(classPathEntries, ClassLoader.getSystemClassLoader());
 
         // Temporarily inject system properties.
         var savedProperties = (Properties) System.getProperties().clone();
@@ -161,7 +133,6 @@ public class EdcRuntimeExtension extends EdcExtension {
         System.setProperties(savedProperties);
     }
 
-
     @Override
     public void afterTestExecution(ExtensionContext context) throws Exception {
         if (runtimeThread != null) {
@@ -172,8 +143,43 @@ public class EdcRuntimeExtension extends EdcExtension {
 
     @Override
     protected @NotNull Monitor createMonitor() {
-        return new Monitor() {
-        };
+        // disable logs when "quiet" log level is set
+        if (System.getProperty("org.gradle.logging.level") != null) {
+            return new Monitor() {
+            };
+        } else {
+            return new ConsoleMonitor(logPrefix, ConsoleMonitor.Level.DEBUG);
+        }
+    }
+
+    /**
+     * Replace Gradle subproject JAR entries with subproject build directories in classpath.
+     * This ensures modified classes are picked up without needing to rebuild dependent JARs.
+     *
+     * @param root           project root directory.
+     * @param classPathEntry class path entry to resolve.
+     * @return resolved class path entries for the input argument.
+     */
+    private Stream<URL> resolveClassPathEntry(File root, String classPathEntry) {
+        try {
+            File f = new File(classPathEntry).getCanonicalFile();
+
+            // If class path entry is not a JAR under the root (i.e. a sub-project), do not transform it
+            boolean isUnderRoot = f.getCanonicalPath().startsWith(root.getCanonicalPath() + File.separator);
+            if (!classPathEntry.toLowerCase(Locale.ROOT).endsWith(".jar") || !isUnderRoot) {
+                var sanitizedClassPathEntry = classPathEntry.replace("build/resources/main", "src/main/resources");
+                return Stream.of(new File(sanitizedClassPathEntry).toURI().toURL());
+            }
+
+            // Replace JAR entry with the resolved classes and resources folder
+            var buildDir = f.getParentFile().getParentFile();
+            return Stream.of(
+                    new File(buildDir, "/classes/java/main").toURI().toURL(),
+                    new File(buildDir, "/resources/main").toURI().toURL()
+            );
+        } catch (IOException e) {
+            throw new EdcException(e);
+        }
     }
 
     /**

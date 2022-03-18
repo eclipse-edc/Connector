@@ -1,12 +1,12 @@
 ---
-blank_issues_enabled: true
+blank_issues_enabled: false
 contact_links:
+  - name: Open up a blank issue
+    url: https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/new
+    about: Don’t see your issue here? Open up a blank one
   - name: Ask a question or get support
     url: https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/discussions/categories/q-a
-    about: Ask a question or request support for using the Eclipse Dataspace Connector.
-  - name: Add a feature request
-    url: https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/discussions/categories/ideas
-    about: You have an idea or want to suggest an improvement for this project? Let's discuss it first.
+    about: Ask a question or request support for using the Eclipse Dataspace Connector
   - name: Take a look at the documentation
     url: https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/tree/main/docs
-    about: Browse the documentation for finding more information.
+    about: Browse the documentation for more information
