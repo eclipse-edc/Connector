@@ -44,10 +44,6 @@ class MultipartEndpointDataReferenceRequestSenderTest {
     private String connectorId;
     private ObjectMapper mapper;
 
-    private static DynamicAttributeToken createDatToken() {
-        return new DynamicAttributeTokenBuilder()._tokenValue_(UUID.randomUUID().toString()).build();
-    }
-
     @BeforeEach
     public void setUp() {
         connectorId = UUID.randomUUID().toString();
@@ -112,6 +108,10 @@ class MultipartEndpointDataReferenceRequestSenderTest {
         assertThat(response.getPayload())
                 .isNotNull()
                 .isEqualTo(payload);
+    }
+
+    private DynamicAttributeToken createDatToken() {
+        return new DynamicAttributeTokenBuilder()._tokenValue_(UUID.randomUUID().toString()).build();
     }
 
     private EndpointDataReferenceRequest createEdrRequest() {

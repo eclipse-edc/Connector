@@ -36,24 +36,6 @@ import java.util.Objects;
  */
 public class IdsResourceToAssetTransformer implements IdsTypeTransformer<Resource, Asset> {
 
-    private static @Nullable Representation getRepresentationFromResource(Resource resource) {
-        if (resource.getRepresentation() == null) {
-            return null;
-        }
-        return resource.getRepresentation().stream()
-                .findFirst()
-                .orElse(null);
-    }
-
-    private static @Nullable RepresentationInstance getInstanceFromRepresentation(Representation representation) {
-        if (representation.getInstance() == null) {
-            return null;
-        }
-        return representation.getInstance().stream()
-                .findFirst()
-                .orElse(null);
-    }
-
     @Override
     public Class<Resource> getInputType() {
         return Resource.class;
@@ -103,5 +85,23 @@ public class IdsResourceToAssetTransformer implements IdsTypeTransformer<Resourc
         }
 
         return assetBuilder.build();
+    }
+
+    private @Nullable Representation getRepresentationFromResource(Resource resource) {
+        if (resource.getRepresentation() == null) {
+            return null;
+        }
+        return resource.getRepresentation().stream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    private @Nullable RepresentationInstance getInstanceFromRepresentation(Representation representation) {
+        if (representation.getInstance() == null) {
+            return null;
+        }
+        return representation.getInstance().stream()
+                .findFirst()
+                .orElse(null);
     }
 }
