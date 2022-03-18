@@ -72,7 +72,6 @@ public class DtoTransformerRegistryImpl implements DtoTransformerRegistry {
         var output = transform(object, outputType, ctx);
 
         return ctx.hasProblems() ? Result.failure(ctx.problems) : Result.success(output);
-
     }
 
     private <INPUT, OUTPUT> OUTPUT transform(INPUT object, Class<OUTPUT> outputType, TransformerContext context) {
