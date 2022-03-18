@@ -60,7 +60,6 @@ class DtoTransformerRegistryImplTest {
     void transform_canHandle_success() {
         registry.register(new TestTransformer());
 
-
         var r = registry.transform("foo", String.class);
         assertThat(r.succeeded()).isTrue();
         assertThat(r.getContent()).isEqualTo("foo");
