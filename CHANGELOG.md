@@ -13,6 +13,7 @@ the detailed section referring to by linking pull requests or issues.
 
 * Removed deprecated code
 * Improved CosmosDB interaction
+* Updated Data Management API
 
 ### Detailed Changes
 
@@ -36,6 +37,7 @@ the detailed section referring to by linking pull requests or issues.
 * Add data-management api to the samples (#733)
 * Enable pluggable transfer service in DPF (#844)
 * Apply 2-state transition pattern to `TransferProcessManager` (#831)
+* Refactor (=generify) transformer subsystem (#779)
 
 #### Removed
 

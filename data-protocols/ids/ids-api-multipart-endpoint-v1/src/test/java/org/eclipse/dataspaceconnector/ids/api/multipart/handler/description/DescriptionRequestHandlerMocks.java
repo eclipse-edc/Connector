@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -39,8 +39,8 @@ final class DescriptionRequestHandlerMocks {
         return assetIndex;
     }
 
-    public static TransformerRegistry mockTransformerRegistry(IdsType type) throws URISyntaxException {
-        TransformerRegistry transformerRegistry = mock(TransformerRegistry.class);
+    public static IdsTransformerRegistry mockTransformerRegistry(IdsType type) throws URISyntaxException {
+        IdsTransformerRegistry transformerRegistry = mock(IdsTransformerRegistry.class);
         when(transformerRegistry.transform(isA(IdsId.class), eq(URI.class)))
                 .thenReturn(Result.success(new URI("https://example.com")));
         when(transformerRegistry.transform(isA(URI.class), eq(IdsId.class)))

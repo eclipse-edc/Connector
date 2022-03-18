@@ -28,7 +28,7 @@ import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.ResponseMessage;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartDescriptionResponse;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -50,7 +50,7 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
                                              @NotNull ObjectMapper objectMapper,
                                              @NotNull Monitor monitor,
                                              @NotNull IdentityService identityService,
-                                             @NotNull TransformerRegistry transformerRegistry) {
+                                             @NotNull IdsTransformerRegistry transformerRegistry) {
         super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
     }
 

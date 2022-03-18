@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -11,20 +11,20 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.ids.spi.transform;
+
+package org.eclipse.dataspaceconnector.spi.transformer;
 
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Dispatches to {@link IdsTypeTransformer}s to bidirectionally convert between IDS and EDC types.
+ * Generic registry to hold {@link TypeTransformer} objects
  */
-public interface TransformerRegistry {
-
+public interface TypeTransformerRegistry<T extends TypeTransformer<?, ?>> {
     /**
      * Registers a transformer.
      */
-    void register(IdsTypeTransformer<?, ?> transformer);
+    void register(T transformer);
 
     /**
      * Transforms the object and any contained types, returning its transformed representation or null if the operation cannot be completed.
@@ -36,5 +36,4 @@ public interface TransformerRegistry {
      * @return the transform result
      */
     <INPUT, OUTPUT> Result<OUTPUT> transform(@NotNull INPUT object, @NotNull Class<OUTPUT> outputType);
-
 }

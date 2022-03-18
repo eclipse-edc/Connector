@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -24,7 +24,7 @@ import java.util.Arrays;
 public class IdsTransformServiceExtension implements ServiceExtension {
 
     @Inject
-    private TransformerRegistry registry;
+    private IdsTransformerRegistry registry;
 
     @Override
     public String name() {

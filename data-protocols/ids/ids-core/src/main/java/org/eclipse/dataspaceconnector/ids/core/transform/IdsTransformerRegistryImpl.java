@@ -13,11 +13,11 @@
  */
 package org.eclipse.dataspaceconnector.ids.core.transform;
 
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,9 +28,9 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Implements a {@link TransformerRegistry} that recursively dispatches to transformers for type conversion.
+ * Implements a {@link IdsTransformerRegistry} that recursively dispatches to transformers for type conversion.
  */
-public class TransformerRegistryImpl implements TransformerRegistry {
+public class IdsTransformerRegistryImpl implements IdsTransformerRegistry {
     private final Map<TransformKey, IdsTypeTransformer<?, ?>> transformers = new HashMap<>();
 
     @Override
@@ -92,8 +92,12 @@ public class TransformerRegistryImpl implements TransformerRegistry {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
             TransformKey transformKey = (TransformKey) o;
             return input.equals(transformKey.input) && output.equals(transformKey.output);
         }
@@ -114,9 +118,9 @@ public class TransformerRegistryImpl implements TransformerRegistry {
 
     private static class TransformerContextImpl implements TransformerContext {
         private final List<String> problems = new ArrayList<>();
-        private final TransformerRegistryImpl registry;
+        private final IdsTransformerRegistryImpl registry;
 
-        public TransformerContextImpl(TransformerRegistryImpl registry) {
+        public TransformerContextImpl(IdsTransformerRegistryImpl registry) {
             this.registry = registry;
         }
 

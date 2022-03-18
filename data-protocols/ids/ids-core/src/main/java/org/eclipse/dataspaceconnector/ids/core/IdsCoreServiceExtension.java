@@ -19,7 +19,7 @@ import org.eclipse.dataspaceconnector.ids.core.descriptor.IdsDescriptorServiceIm
 import org.eclipse.dataspaceconnector.ids.core.service.CatalogServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.ConnectorServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.ConnectorServiceSettings;
-import org.eclipse.dataspaceconnector.ids.core.transform.TransformerRegistryImpl;
+import org.eclipse.dataspaceconnector.ids.core.transform.IdsTransformerRegistryImpl;
 import org.eclipse.dataspaceconnector.ids.core.version.ConnectorVersionProviderImpl;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
@@ -27,7 +27,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.descriptor.IdsDescriptorService;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.version.ConnectorVersionProvider;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
@@ -46,7 +46,7 @@ import java.util.List;
  * Implements the IDS Controller REST API.
  */
 @Provides({ ConnectorVersionProvider.class, CatalogService.class, ConnectorService.class, IdsDescriptorService.class,
-        CatalogService.class, ConnectorService.class, TransformerRegistry.class })
+        CatalogService.class, ConnectorService.class, IdsTransformerRegistry.class })
 public class IdsCoreServiceExtension implements ServiceExtension {
 
     @EdcSetting
@@ -94,8 +94,8 @@ public class IdsCoreServiceExtension implements ServiceExtension {
             throw new EdcException(String.join(", ", settingErrors));
         }
 
-        TransformerRegistry transformerRegistry = createTransformerRegistry();
-        serviceExtensionContext.registerService(TransformerRegistry.class, transformerRegistry);
+        IdsTransformerRegistry transformerRegistry = createTransformerRegistry();
+        serviceExtensionContext.registerService(IdsTransformerRegistry.class, transformerRegistry);
 
         ConnectorVersionProvider connectorVersionProvider = createConnectorVersionProvider();
         serviceExtensionContext.registerService(ConnectorVersionProvider.class, connectorVersionProvider);
@@ -115,8 +115,8 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         context.registerService(IdsDescriptorService.class, descriptorService);
     }
 
-    private TransformerRegistry createTransformerRegistry() {
-        return new TransformerRegistryImpl();
+    private IdsTransformerRegistry createTransformerRegistry() {
+        return new IdsTransformerRegistryImpl();
     }
 
     private CatalogService createDataCatalogService(

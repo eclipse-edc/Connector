@@ -11,7 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.ids.spi.transform;
+package org.eclipse.dataspaceconnector.spi.transformer;
 
 import org.jetbrains.annotations.Nullable;
 

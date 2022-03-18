@@ -14,12 +14,11 @@
 package org.eclipse.dataspaceconnector.ids.core.transform;
 
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
+import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -29,8 +28,8 @@ import static org.mockito.Mockito.when;
 /**
  * Verifies registry dispatching and problem reporting.
  */
-class TransformerRegistryImplTest {
-    private TransformerRegistryImpl registry;
+class IdsTransformerRegistryImplTest {
+    private IdsTransformerRegistryImpl registry;
 
     @Test
     void verifyDispatch() {
@@ -65,7 +64,7 @@ class TransformerRegistryImplTest {
 
     @BeforeEach
     void setUp() {
-        registry = new TransformerRegistryImpl();
+        registry = new IdsTransformerRegistryImpl();
     }
 
     private <INPUT, OUTPUT> IdsTypeTransformer<INPUT, OUTPUT> createMock(Class<INPUT> input, Class<OUTPUT> output) {

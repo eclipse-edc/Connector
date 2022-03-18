@@ -21,7 +21,7 @@ import de.fraunhofer.iais.eis.NotificationMessage;
 import de.fraunhofer.iais.eis.NotificationMessageBuilder;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessage;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -47,7 +47,7 @@ class MultipartEndpointDataReferenceRequestSenderTest {
         var connectorId = UUID.randomUUID().toString();
         var httpClient = mock(OkHttpClient.class);
         var monitor = mock(Monitor.class);
-        var transformerRegistry = mock(TransformerRegistry.class);
+        var transformerRegistry = mock(IdsTransformerRegistry.class);
         var identityService = mock(IdentityService.class);
         mapper = new ObjectMapper();
         sender = new MultipartEndpointDataReferenceRequestSender(connectorId, httpClient, mapper, monitor, identityService, transformerRegistry);
@@ -105,7 +105,7 @@ class MultipartEndpointDataReferenceRequestSenderTest {
                 .isEqualTo(payload);
     }
 
-    private static DynamicAttributeToken createDatToken() {
+    private DynamicAttributeToken createDatToken() {
         return new DynamicAttributeTokenBuilder()._tokenValue_(UUID.randomUUID().toString()).build();
     }
 
