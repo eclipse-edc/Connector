@@ -7,7 +7,7 @@ we'll name "story issues". Every story issues has several sub-issues a.k.a sub-t
 
 ## Rationale
 
-There is no clear limit or rule the specifies the size at which issues need to be broken into sub-issues, rather, 
+There is no clear limit or rule that specifies the size at which issues need to be broken into sub-issues, rather, 
 this should be done by intuition. Developers are expected to have an intrinsic understanding of the natural boundaries
 of features. In case of doubt it is better to create several small issues and list them in an overarching
 story issue. 
