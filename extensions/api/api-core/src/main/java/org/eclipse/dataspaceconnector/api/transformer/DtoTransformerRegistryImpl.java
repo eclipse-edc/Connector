@@ -73,7 +73,6 @@ public class DtoTransformerRegistryImpl implements DtoTransformerRegistry {
 
         return ctx.hasProblems() ? Result.failure(ctx.problems) : Result.success(output);
 
-
     }
 
     private <INPUT, OUTPUT> OUTPUT transform(INPUT object, Class<OUTPUT> outputType, TransformerContext context) {
