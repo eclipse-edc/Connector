@@ -14,22 +14,17 @@
 package org.eclipse.dataspaceconnector.policy.store.memory;
 
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
-import org.eclipse.dataspaceconnector.common.reflection.ReflectionUtil;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.contract.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
-import org.eclipse.dataspaceconnector.spi.query.BaseCriterionToPredicateConverter;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.query.QueryResolver;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.query.SortOrder;
+import org.eclipse.dataspaceconnector.spi.query.ReflectionBasedQueryResolver;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
-
-import static org.eclipse.dataspaceconnector.common.reflection.ReflectionUtil.propertyComparator;
 
 /**
  * An in-memory, threadsafe policy store.
@@ -39,6 +34,7 @@ public class InMemoryPolicyStore implements PolicyStore {
 
     private final LockManager lockManager;
     private final Map<String, Policy> policiesById =  new HashMap<>();
+    private final QueryResolver<Policy> queryResolver = new ReflectionBasedQueryResolver<>(Policy.class);
 
     public InMemoryPolicyStore(LockManager lockManager) {
         this.lockManager = lockManager;
@@ -56,10 +52,7 @@ public class InMemoryPolicyStore implements PolicyStore {
     @Override
     public Stream<Policy> findAll(QuerySpec spec) {
         try {
-            return lockManager.readLock(() -> {
-                var stream = policiesById.values().stream();
-                return applyQuery(spec, stream);
-            });
+            return lockManager.readLock(() -> queryResolver.query(policiesById.values().stream(), spec));
         } catch (Exception e) {
             throw new EdcPersistenceException(String.format("Finding policy stream by query spec %s failed", spec), e);
         }
@@ -81,38 +74,6 @@ public class InMemoryPolicyStore implements PolicyStore {
         } catch (Exception e) {
             throw new EdcPersistenceException("Deleting policy failed", e);
         }
-    }
-
-    private Stream<Policy> applyQuery(QuerySpec spec, Stream<Policy> streamOfAll) {
-
-        //filter
-        var andPredicate = spec.getFilterExpression().stream().map(this::toPredicate).reduce(x -> true, Predicate::and);
-        Stream<Policy> stream  = streamOfAll.filter(andPredicate);
-
-        //sort
-        var sortField = spec.getSortField();
-
-        if (sortField != null) {
-            // if the sort field doesn't exist on the object -> return empty
-            if (ReflectionUtil.getFieldRecursive(Policy.class, sortField) == null) {
-                return Stream.empty();
-            }
-            var comparator = propertyComparator(spec.getSortOrder() == SortOrder.ASC, sortField);
-            stream = stream.sorted(comparator);
-        }
-
-        // limit
-        return stream.skip(spec.getOffset()).limit(spec.getLimit());
-    }
-
-    private <T> Predicate<T> toPredicate(Criterion criterion) {
-        BaseCriterionToPredicateConverter<T> predicateConverter = new BaseCriterionToPredicateConverter<>() {
-            @Override
-            protected <R> R property(String key, Object object) {
-                return ReflectionUtil.getFieldValueSilent(key, object);
-            }
-        };
-        return predicateConverter.convert(criterion);
     }
 
 }

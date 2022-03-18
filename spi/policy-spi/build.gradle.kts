@@ -19,18 +19,12 @@ plugins {
 
 dependencies {
     api(project(":spi:core-spi"))
-    api(project(":spi:transfer-spi"))
-    api(project(":spi:contract-spi"))
-    api(project(":spi:catalog-spi"))
-    api(project(":spi:web-spi"))
-    api(project(":spi:transport-spi"))
-    api(project(":spi:policy-spi"))
 }
 
 publishing {
     publications {
-        create<MavenPublication>("spi") {
-            artifactId = "spi"
+        create<MavenPublication>("policy-spi") {
+            artifactId = "policy-spi"
             from(components["java"])
         }
     }

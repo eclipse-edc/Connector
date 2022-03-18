@@ -16,9 +16,9 @@ package org.eclipse.dataspaceconnector.negotiation.store.memory;
 
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.spi.query.QueryResolver;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.query.SortOrder;
+import org.eclipse.dataspaceconnector.spi.query.ReflectionBasedQueryResolver;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.jetbrains.annotations.NotNull;
@@ -31,12 +31,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
-import static org.eclipse.dataspaceconnector.common.reflection.ReflectionUtil.propertyComparator;
 
 /**
  * An in-memory, threadsafe process store.
@@ -48,6 +46,7 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
     private final Map<String, ContractNegotiation> processesByCorrelationId = new HashMap<>();
     private final Map<String, ContractNegotiation> contractAgreements = new HashMap<>();
     private final Map<Integer, List<ContractNegotiation>> stateCache = new HashMap<>();
+    private final QueryResolver<ContractNegotiation> queryResolver = new ReflectionBasedQueryResolver<>(ContractNegotiation.class);
 
     @Override
     public ContractNegotiation find(String id) {
@@ -131,30 +130,7 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
 
     @Override
     public Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
-        return lockManager.readLock(() -> {
-            Stream<ContractNegotiation> negotiationStream = processesById.values().stream();
-            // filter
-            var andPredicate = querySpec.getFilterExpression().stream().map(this::toPredicate).reduce(x -> true, Predicate::and);
-            negotiationStream = negotiationStream.filter(andPredicate);
-
-            // sort
-            var sortField = querySpec.getSortField();
-
-            if (sortField != null) {
-                var comparator = propertyComparator(querySpec.getSortOrder() == SortOrder.ASC, sortField);
-                negotiationStream = negotiationStream.sorted(comparator);
-            }
-
-            //limit
-            negotiationStream = negotiationStream.skip(querySpec.getOffset()).limit(querySpec.getLimit());
-
-            return negotiationStream;
-        });
+        return lockManager.readLock(() -> queryResolver.query(processesById.values().stream(), querySpec));
     }
-
-    private Predicate<ContractNegotiation> toPredicate(Criterion criterion) {
-        return new ContractNegotiationPredicateConverter().convert(criterion);
-    }
-
 
 }

@@ -169,6 +169,7 @@ include(":spi:contract-spi")
 include(":spi:catalog-spi")
 include(":spi:web-spi")
 include(":spi:transport-spi")
+include(":spi:policy-spi")
 
 //include(":openapi")
 

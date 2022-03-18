@@ -15,8 +15,8 @@ package org.eclipse.dataspaceconnector.policy.store.memory;
 
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.contract.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.junit.jupiter.api.BeforeEach;
