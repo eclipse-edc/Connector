@@ -11,7 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.dataplane.api.common;
+package org.eclipse.dataspaceconnector.dataplane.api.response;
 
 import jakarta.ws.rs.core.Response;
 
@@ -28,25 +28,27 @@ import static jakarta.ws.rs.core.Response.status;
  */
 public final class ResponseFunctions {
 
+    private static final String ERRORS = "errors";
+
     /**
      * Returns a response for a collection of authentication errors.
      */
     public static Response notAuthorizedErrors(List<String> errors) {
-        return status(UNAUTHORIZED).entity(Map.of("errors", errors)).build();
+        return status(UNAUTHORIZED).entity(Map.of(ERRORS, errors)).build();
     }
 
     /**
      * Returns a response for a collection of validation errors.
      */
     public static Response validationErrors(List<String> errors) {
-        return status(BAD_REQUEST).entity(Map.of("errors", errors)).build();
+        return status(BAD_REQUEST).entity(Map.of(ERRORS, errors)).build();
     }
 
     /**
      * Returns a response for a collection of internal errors.
      */
     public static Response internalErrors(List<String> errors) {
-        return status(INTERNAL_SERVER_ERROR).entity(Map.of("errors", errors)).build();
+        return status(INTERNAL_SERVER_ERROR).entity(Map.of(ERRORS, errors)).build();
     }
 
     /**
@@ -54,6 +56,13 @@ public final class ResponseFunctions {
      */
     public static Response validationError(String error) {
         return validationErrors(List.of(error));
+    }
+
+    /**
+     * Returns a successful response containing the requested data.
+     */
+    public static Response success(String data) {
+        return Response.ok().entity(data).build();
     }
 
     private ResponseFunctions() {
