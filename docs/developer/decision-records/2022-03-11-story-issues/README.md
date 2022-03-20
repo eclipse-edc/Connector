@@ -31,6 +31,8 @@ The overarching story issues should contain a bulleted list with references to a
 ...
 ```
 
+Please add the `"story"` label to the overarching story issue.
+
 This will cause GitHub to automatically track the sub-issues in the overarching story issue, and it will display a progress
 indicator on overview pages. More information can be found in the [documentation](https://docs.github.com/en/issues/tracking-your-work-with-issues/about-task-lists).
 
