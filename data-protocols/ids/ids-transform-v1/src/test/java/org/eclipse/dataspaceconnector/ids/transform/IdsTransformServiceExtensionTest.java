@@ -22,8 +22,8 @@ import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.util.RdfResource;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.Connector;
 import org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
@@ -75,7 +75,7 @@ class IdsTransformServiceExtensionTest {
         knownConvertibles = new HashMap<>();
 
         var transformerRegistry = new TestTransformerRegistry(knownConvertibles);
-        context.registerService(TransformerRegistry.class, transformerRegistry);
+        context.registerService(IdsTransformerRegistry.class, transformerRegistry);
         idsTransformServiceExtension = factory.constructInstance(IdsTransformServiceExtension.class);
         serviceExtensionContext = context;
     }
@@ -128,7 +128,7 @@ class IdsTransformServiceExtensionTest {
         }
     }
 
-    private static class TestTransformerRegistry implements TransformerRegistry {
+    private static class TestTransformerRegistry implements IdsTransformerRegistry {
         private final Map<Class<?>, List<Class<?>>> knownConvertibles;
 
         public TestTransformerRegistry(Map<Class<?>, List<Class<?>>> knownConvertibles) {

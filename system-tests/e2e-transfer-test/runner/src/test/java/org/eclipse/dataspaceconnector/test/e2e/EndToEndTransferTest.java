@@ -47,7 +47,7 @@ import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFr
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
-public class EndToEndTransferTest {
+class EndToEndTransferTest {
 
     private final Duration timeout = Duration.ofSeconds(30);
     private static final String API_KEY_CONTROL_AUTH = "password";

@@ -43,8 +43,14 @@ class InMemoryContractDefinitionStoreTest {
         store.save(List.of(definition2));
         assertThat(store.findAll()).contains(definition1);
 
-        store.delete(definition1.getId());
+        var deletedDefinition = store.deleteById(definition1.getId());
+        assertThat(deletedDefinition).isEqualTo(definition1);
         assertThat(store.findAll()).doesNotContain(definition1);
+    }
+
+    @Test
+    void deleteById_whenContractDefinitionMissing_returnsNull() {
+        assertThat(store.deleteById("not-exists")).isNull();
     }
 
     @Test

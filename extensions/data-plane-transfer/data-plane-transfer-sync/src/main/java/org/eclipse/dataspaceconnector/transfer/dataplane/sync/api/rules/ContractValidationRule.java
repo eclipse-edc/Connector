@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.text.ParseException;
 import java.util.Map;
 
-import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.CONTRACT_ID_CLAIM;
+import static org.eclipse.dataspaceconnector.spi.types.domain.dataplane.DataPlaneConstants.CONTRACT_ID;
 
 /**
  * Assert that contract still allows access to the data. As of current implementation it only validates the contract end date.
@@ -41,13 +41,13 @@ public class ContractValidationRule implements TokenValidationRule {
     public Result<SignedJWT> checkRule(@NotNull SignedJWT toVerify, @Nullable Map<String, Object> additional) {
         String contractId;
         try {
-            contractId = toVerify.getJWTClaimsSet().getStringClaim(CONTRACT_ID_CLAIM);
+            contractId = toVerify.getJWTClaimsSet().getStringClaim(CONTRACT_ID);
         } catch (ParseException e) {
             return Result.failure("Failed to parse claims");
         }
 
         if (contractId == null) {
-            return Result.failure(String.format("Missing contract id claim `%s`", CONTRACT_ID_CLAIM));
+            return Result.failure(String.format("Missing contract id claim `%s`", CONTRACT_ID));
         }
 
         var contractAgreement = contractNegotiationStore.findContractAgreement(contractId);

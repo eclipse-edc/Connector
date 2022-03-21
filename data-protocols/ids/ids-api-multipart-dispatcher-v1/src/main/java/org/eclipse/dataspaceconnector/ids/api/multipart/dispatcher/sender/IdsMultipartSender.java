@@ -32,7 +32,7 @@ import org.eclipse.dataspaceconnector.ids.core.message.FutureCallback;
 import org.eclipse.dataspaceconnector.ids.core.message.IdsMessageSender;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
@@ -58,21 +58,20 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
  * @param <R> the response type returned by the sub class.
  */
 abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMessageSender<M, R> {
+    private static final String TOKEN_SCOPE = "idsc:IDS_CONNECTOR_ATTRIBUTES_ALL";
     private final URI connectorId;
     private final OkHttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final Monitor monitor;
     private final IdentityService identityService;
-    private final TransformerRegistry transformerRegistry;
-    
-    private static final String TOKEN_SCOPE = "idsc:IDS_CONNECTOR_ATTRIBUTES_ALL";
+    private final IdsTransformerRegistry transformerRegistry;
 
     protected IdsMultipartSender(@NotNull String connectorId,
                                  @NotNull OkHttpClient httpClient,
                                  @NotNull ObjectMapper objectMapper,
                                  @NotNull Monitor monitor,
                                  @NotNull IdentityService identityService,
-                                 @NotNull TransformerRegistry transformerRegistry) {
+                                 @NotNull IdsTransformerRegistry transformerRegistry) {
         this.connectorId = createConnectorIdUri(Objects.requireNonNull(connectorId, "connectorId"));
         this.httpClient = Objects.requireNonNull(httpClient, "httpClient");
         this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
@@ -216,7 +215,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
     }
 
     @NotNull
-    protected TransformerRegistry getTransformerRegistry() {
+    protected IdsTransformerRegistry getTransformerRegistry() {
         return transformerRegistry;
     }
 

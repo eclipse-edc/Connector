@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.iam.oauth2.core.jwt;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
-import org.eclipse.dataspaceconnector.iam.oauth2.spi.JwtDecorator;
+import org.eclipse.dataspaceconnector.common.token.JwtDecorator;
 
 import java.time.Instant;
 import java.util.Date;

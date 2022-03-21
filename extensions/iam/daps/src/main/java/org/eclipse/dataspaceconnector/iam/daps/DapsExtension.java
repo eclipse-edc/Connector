@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.iam.daps;
 
-import org.eclipse.dataspaceconnector.iam.oauth2.spi.JwtDecoratorRegistry;
+import org.eclipse.dataspaceconnector.iam.oauth2.spi.Oauth2JwtDecoratorRegistry;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -25,7 +25,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 public class DapsExtension implements ServiceExtension {
 
     @Inject
-    private JwtDecoratorRegistry jwtDecoratorRegistry;
+    private Oauth2JwtDecoratorRegistry jwtDecoratorRegistry;
 
     @Override
     public String name() {

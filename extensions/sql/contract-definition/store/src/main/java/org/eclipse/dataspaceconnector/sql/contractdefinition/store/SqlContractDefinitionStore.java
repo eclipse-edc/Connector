@@ -33,34 +33,41 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
+import static org.eclipse.dataspaceconnector.sql.contractdefinition.store.SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ACCESS_POLICY;
+import static org.eclipse.dataspaceconnector.sql.contractdefinition.store.SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_CONTRACT_POLICY;
+import static org.eclipse.dataspaceconnector.sql.contractdefinition.store.SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID;
+import static org.eclipse.dataspaceconnector.sql.contractdefinition.store.SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_SELECTOR;
+import static org.eclipse.dataspaceconnector.sql.contractdefinition.store.SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE;
 
 public class SqlContractDefinitionStore implements ContractDefinitionStore {
     private static final String SQL_SAVE_CLAUSE_TEMPLATE = String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)",
-            SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE,
-            SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID,
-            SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ACCESS_POLICY,
-            SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_CONTRACT_POLICY,
-            SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_SELECTOR);
+            CONTRACT_DEFINITION_TABLE,
+            CONTRACT_DEFINITION_COLUMN_ID,
+            CONTRACT_DEFINITION_COLUMN_ACCESS_POLICY,
+            CONTRACT_DEFINITION_COLUMN_CONTRACT_POLICY,
+            CONTRACT_DEFINITION_COLUMN_SELECTOR);
     private static final String SQL_COUNT_CLAUSE_TEMPLATE = String.format("SELECT COUNT (%s) FROM %s WHERE %s = ?",
-            SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID,
-            SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE,
-            SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID);
+            CONTRACT_DEFINITION_COLUMN_ID,
+            CONTRACT_DEFINITION_TABLE,
+            CONTRACT_DEFINITION_COLUMN_ID);
     private static final String SQL_UPDATE_CLAUSE_TEMPLATE = String.format("UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = ? WHERE %s = ?",
-            SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE,
-            SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID,
-            SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ACCESS_POLICY,
-            SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_CONTRACT_POLICY,
-            SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_SELECTOR,
-            SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID);
+            CONTRACT_DEFINITION_TABLE,
+            CONTRACT_DEFINITION_COLUMN_ID,
+            CONTRACT_DEFINITION_COLUMN_ACCESS_POLICY,
+            CONTRACT_DEFINITION_COLUMN_CONTRACT_POLICY,
+            CONTRACT_DEFINITION_COLUMN_SELECTOR,
+            CONTRACT_DEFINITION_COLUMN_ID);
     private static final String SQL_DELETE_CLAUSE_TEMPLATE = String.format("DELETE FROM %s WHERE %s = ?",
-            SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE,
-            SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID);
+            CONTRACT_DEFINITION_TABLE,
+            CONTRACT_DEFINITION_COLUMN_ID);
     private static final String SQL_FIND_CLAUSE_TEMPLATE = String.format("SELECT * from %s",
-            SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE);
+            CONTRACT_DEFINITION_TABLE);
+    private static final String SQL_FIND_BY_CLAUSE_TEMPLATE = String.format("SELECT * FROM %s WHERE %s = ?", CONTRACT_DEFINITION_TABLE, CONTRACT_DEFINITION_COLUMN_ID);
     private final ObjectMapper objectMapper;
     private final DataSourceRegistry dataSourceRegistry;
     private final String dataSourceName;
@@ -75,10 +82,10 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
 
     ContractDefinition mapResultSet(ResultSet resultSet) throws Exception {
         return ContractDefinition.Builder.newInstance()
-                .id(resultSet.getString(SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID))
-                .accessPolicy(objectMapper.readValue(resultSet.getString(SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ACCESS_POLICY), Policy.class))
-                .contractPolicy(objectMapper.readValue(resultSet.getString(SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_CONTRACT_POLICY), Policy.class))
-                .selectorExpression(objectMapper.readValue(resultSet.getString(SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_SELECTOR), AssetSelectorExpression.class))
+                .id(resultSet.getString(CONTRACT_DEFINITION_COLUMN_ID))
+                .accessPolicy(objectMapper.readValue(resultSet.getString(CONTRACT_DEFINITION_COLUMN_ACCESS_POLICY), Policy.class))
+                .contractPolicy(objectMapper.readValue(resultSet.getString(CONTRACT_DEFINITION_COLUMN_CONTRACT_POLICY), Policy.class))
+                .selectorExpression(objectMapper.readValue(resultSet.getString(CONTRACT_DEFINITION_COLUMN_SELECTOR), AssetSelectorExpression.class))
                 .build();
     }
 
@@ -88,7 +95,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
             return executeQuery(
                     connection,
                     this::mapResultSet,
-                    String.format(SQL_FIND_CLAUSE_TEMPLATE, SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE));
+                    String.format(SQL_FIND_CLAUSE_TEMPLATE, CONTRACT_DEFINITION_TABLE));
         } catch (Exception exception) {
             throw new EdcPersistenceException(exception);
         }
@@ -109,7 +116,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
             var definitions = executeQuery(
                     connection,
                     this::mapResultSet,
-                    String.format(query, SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE));
+                    String.format(query, CONTRACT_DEFINITION_TABLE));
             return definitions.stream();
         } catch (Exception exception) {
             throw new EdcPersistenceException(exception);
@@ -145,7 +152,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
         Objects.requireNonNull(definition);
 
         try (var connection = getConnection()) {
-            if (executeQuery(connection, (resultSet) -> resultSet.getLong(1), SQL_COUNT_CLAUSE_TEMPLATE, definition.getId()).iterator().next() <= 0) {
+            if (existsById(definition.getId(), connection)) {
                 throw new EdcPersistenceException(String.format("Cannot update. Contract Definition with ID '%s' does not exist.", definition.getId()));
             }
             transactionContext.execute(() -> {
@@ -169,17 +176,39 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
     }
 
     @Override
-    public void delete(String id) {
+    public ContractDefinition deleteById(String id) {
         Objects.requireNonNull(id);
+
+        AtomicReference<ContractDefinition> atomicRef = new AtomicReference<>();
 
         transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                executeQuery(connection, SQL_DELETE_CLAUSE_TEMPLATE,
-                        id);
+                var entity = findById(connection, id);
+                if (entity != null) {
+                    atomicRef.set(entity);
+                    executeQuery(connection, SQL_DELETE_CLAUSE_TEMPLATE, id);
+                }
             } catch (Exception e) {
                 throw new EdcPersistenceException(e.getMessage(), e);
             }
         });
+
+        return atomicRef.get();
+    }
+
+    private boolean existsById(String definitionId, Connection connection) {
+        return executeQuery(connection, (resultSet) -> resultSet.getLong(1), SQL_COUNT_CLAUSE_TEMPLATE, definitionId).iterator().next() <= 0;
+    }
+
+    private ContractDefinition findById(Connection connection, String id) {
+        var contractDefinitions = executeQuery(connection, this::mapResultSet, SQL_FIND_BY_CLAUSE_TEMPLATE, id);
+        if (contractDefinitions.isEmpty()) {
+            return null;
+        }
+        if (contractDefinitions.size() == 1) {
+            return contractDefinitions.get(0);
+        }
+        throw new IllegalStateException("Expected result set size of 1 but got " + contractDefinitions.size());
     }
 
     private DataSource getDataSource() {

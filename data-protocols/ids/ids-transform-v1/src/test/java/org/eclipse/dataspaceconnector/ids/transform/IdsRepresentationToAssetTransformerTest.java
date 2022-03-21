@@ -20,7 +20,7 @@ import de.fraunhofer.iais.eis.CustomMediaTypeBuilder;
 import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.RepresentationBuilder;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformKeys;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
+import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

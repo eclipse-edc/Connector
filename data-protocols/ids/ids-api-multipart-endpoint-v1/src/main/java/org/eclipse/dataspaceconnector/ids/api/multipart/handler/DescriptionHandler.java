@@ -25,7 +25,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -40,7 +40,7 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMes
 public class DescriptionHandler implements Handler {
     private final Monitor monitor;
     private final String connectorId;
-    private final TransformerRegistry transformerRegistry;
+    private final IdsTransformerRegistry transformerRegistry;
     private final ArtifactDescriptionRequestHandler artifactDescriptionRequestHandler;
     private final DataCatalogDescriptionRequestHandler dataCatalogDescriptionRequestHandler;
     private final RepresentationDescriptionRequestHandler representationDescriptionRequestHandler;
@@ -50,7 +50,7 @@ public class DescriptionHandler implements Handler {
     public DescriptionHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
-            @NotNull TransformerRegistry transformerRegistry,
+            @NotNull IdsTransformerRegistry transformerRegistry,
             @NotNull ArtifactDescriptionRequestHandler artifactDescriptionRequestHandler,
             @NotNull DataCatalogDescriptionRequestHandler dataCatalogDescriptionRequestHandler,
             @NotNull RepresentationDescriptionRequestHandler representationDescriptionRequestHandler,

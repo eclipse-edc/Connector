@@ -203,19 +203,21 @@ public class CosmosContractDefinitionStoreIntegrationTest {
 
     @Test
     void delete() {
-        var doc1 = generateDocument(TEST_PARTITION_KEY);
-        container.createItem(doc1);
+        var document = generateDocument(TEST_PARTITION_KEY);
+        container.createItem(document);
 
-        store.delete(doc1.getId());
+        var contractDefinition = convert(document);
+        var deletedContractDefinition = store.deleteById(document.getId());
+        assertThat(deletedContractDefinition).isEqualTo(contractDefinition);
 
-        assertThat(container.readAllItems(new PartitionKey(doc1.getPartitionKey()), Object.class)).isEmpty();
+        assertThat(container.readAllItems(new PartitionKey(document.getPartitionKey()), Object.class)).isEmpty();
     }
 
     @Test
     void delete_notExist() {
-        assertThatThrownBy(() -> store.delete("not-exist-id"))
+        assertThatThrownBy(() -> store.deleteById("not-exists"))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessageContaining("An object with the ID not-exist-id could not be found!");
+                .hasMessageContaining("An object with the ID not-exists could not be found!");
     }
 
     @Test

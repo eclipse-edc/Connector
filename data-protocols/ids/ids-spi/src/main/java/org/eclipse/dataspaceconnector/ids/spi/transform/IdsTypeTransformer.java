@@ -13,27 +13,12 @@
  */
 package org.eclipse.dataspaceconnector.ids.spi.transform;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.eclipse.dataspaceconnector.spi.transformer.TypeTransformer;
 
 /**
  * Implementations transform between an IDS and EDC type.
  */
-public interface IdsTypeTransformer<INPUT, OUTPUT> {
+public interface IdsTypeTransformer<INPUT, OUTPUT> extends TypeTransformer<INPUT, OUTPUT> {
 
-    /**
-     * Returns the input object type.
-     */
-    Class<INPUT> getInputType();
-
-    /**
-     * Returns the type the object will be transformed to.
-     */
-    Class<OUTPUT> getOutputType();
-
-    /**
-     * Transforms the object.
-     */
-    @Nullable
-    OUTPUT transform(@Nullable INPUT object, @NotNull TransformerContext context);
+    // marker interface for IDS transformers
 }

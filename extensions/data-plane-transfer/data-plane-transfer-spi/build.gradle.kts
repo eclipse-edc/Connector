@@ -18,6 +18,8 @@ plugins {
 
 
 dependencies {
+    api(project(":spi:core-spi"))
+    api(project(":spi:transfer-spi"))
 }
 
 publishing {

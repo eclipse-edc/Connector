@@ -18,11 +18,11 @@ import de.fraunhofer.iais.eis.BinaryOperator;
 import de.fraunhofer.iais.eis.LeftOperand;
 import de.fraunhofer.iais.eis.util.RdfResource;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Constraint;
 import org.eclipse.dataspaceconnector.policy.model.Expression;
 import org.eclipse.dataspaceconnector.policy.model.Operator;
+import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

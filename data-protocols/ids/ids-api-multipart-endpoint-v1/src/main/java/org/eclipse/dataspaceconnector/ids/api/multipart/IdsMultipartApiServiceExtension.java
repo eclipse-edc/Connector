@@ -43,7 +43,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.WebService;
@@ -89,7 +89,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     @Inject
     private AssetIndex assetIndex;
     @Inject
-    private TransformerRegistry transformerRegistry;
+    private IdsTransformerRegistry transformerRegistry;
     @Inject
     private ContractOfferService contractOfferService;
     @Inject

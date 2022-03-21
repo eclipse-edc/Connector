@@ -20,11 +20,11 @@ import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessageBuilder;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceMessage;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
@@ -34,29 +34,29 @@ import java.util.Collections;
  * IdsMultipartSender implementation for transferring Endpoint Data Reference (EDR). Sends IDS NotificationMessage and
  * expects an IDS DescriptionResponseMessage as the response.
  */
-public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSender<EndpointDataReferenceRequest, MultipartMessageProcessedResponse> {
+public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSender<EndpointDataReferenceMessage, MultipartMessageProcessedResponse> {
 
     public MultipartEndpointDataReferenceRequestSender(@NotNull String connectorId,
                                                        @NotNull OkHttpClient httpClient,
                                                        @NotNull ObjectMapper objectMapper,
                                                        @NotNull Monitor monitor,
                                                        @NotNull IdentityService identityService,
-                                                       @NotNull TransformerRegistry transformerRegistry) {
+                                                       @NotNull IdsTransformerRegistry transformerRegistry) {
         super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
     }
 
     @Override
-    public Class<EndpointDataReferenceRequest> messageType() {
-        return EndpointDataReferenceRequest.class;
+    public Class<EndpointDataReferenceMessage> messageType() {
+        return EndpointDataReferenceMessage.class;
     }
 
     @Override
-    protected String retrieveRemoteConnectorAddress(EndpointDataReferenceRequest request) {
+    protected String retrieveRemoteConnectorAddress(EndpointDataReferenceMessage request) {
         return request.getConnectorAddress();
     }
 
     @Override
-    protected Message buildMessageHeader(EndpointDataReferenceRequest request, DynamicAttributeToken token) {
+    protected Message buildMessageHeader(EndpointDataReferenceMessage request, DynamicAttributeToken token) {
         return new ParticipantUpdateMessageBuilder()
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                 ._securityToken_(token)
@@ -67,7 +67,7 @@ public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSen
     }
 
     @Override
-    protected String buildMessagePayload(EndpointDataReferenceRequest request) throws Exception {
+    protected String buildMessagePayload(EndpointDataReferenceMessage request) throws Exception {
         return getObjectMapper().writeValueAsString(request.getEndpointDataReference());
     }
 
