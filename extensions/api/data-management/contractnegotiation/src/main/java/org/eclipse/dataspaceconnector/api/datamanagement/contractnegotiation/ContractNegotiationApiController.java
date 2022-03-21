@@ -10,6 +10,7 @@
  * Contributors:
  *    ZF Friedrichshafen AG - Initial API and Implementation
  *    Microsoft Corporation - Added initiate-negotiation endpoint
+ *    Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  */
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
@@ -38,14 +39,15 @@ import static java.lang.String.format;
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/contractnegotiations")
-public class ContractNegotiationController {
+public class ContractNegotiationApiController implements ContractNegotiationApi {
     private final Monitor monitor;
 
-    public ContractNegotiationController(Monitor monitor) {
+    public ContractNegotiationApiController(Monitor monitor) {
         this.monitor = monitor;
     }
 
     @GET
+    @Override
     public List<ContractNegotiationDto> getNegotiations(@QueryParam("offset") Integer offset,
                                                         @QueryParam("limit") Integer limit,
                                                         @QueryParam("filter") String filterExpression,
@@ -66,6 +68,7 @@ public class ContractNegotiationController {
 
     @GET
     @Path("/{id}")
+    @Override
     public ContractNegotiationDto getNegotiation(@PathParam("id") String id) {
         monitor.debug(format("Get contract negotiation with id %s", id));
         return null;
@@ -73,6 +76,7 @@ public class ContractNegotiationController {
 
     @GET
     @Path("/{id}/state")
+    @Override
     public String getNegotiationState(@PathParam("id") String id) {
         monitor.debug(format("Get contract negotiation state with id %s", id));
         return "some state";
@@ -80,6 +84,7 @@ public class ContractNegotiationController {
 
     @POST
     @Path("/{id}/cancel")
+    @Override
     public void cancelNegotiation(@PathParam("id") String id) {
         // TODO move Negotiation to the CANCELLING/CANCELLED state
         // TODO Throw IllegalStateException if not possible
@@ -88,6 +93,7 @@ public class ContractNegotiationController {
 
     @POST
     @Path("/{id}/decline")
+    @Override
     public void declineNegotiation(@PathParam("id") String id) {
         // TODO move Negotiation to the DECLINING/DECLINED state
         // TODO Throw IllegalStateException if not possible
@@ -96,12 +102,14 @@ public class ContractNegotiationController {
 
     @GET
     @Path("/{id}/agreement")
+    @Override
     public ContractAgreementDto getAgreementForNegotiation(@PathParam("id") String negotiationId) {
         //TODO: fetch agreement for negotiation-id
         return ContractAgreementDto.Builder.newInstance().negotiationId(negotiationId).build();
     }
 
     @POST
+    @Override
     public String initiateContractNegotiation(NegotiationInitiateRequestDto initiateDto) {
 
         if (!isValid(initiateDto)) {

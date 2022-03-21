@@ -783,7 +783,7 @@ paths:
             application/json: {}
   /transferprocess:
     get:
-      operationId: getAllContractDefinitions
+      operationId: getAllTransferProcesses
       parameters:
       - name: offset
         in: query
@@ -898,7 +898,7 @@ components:
     AssetEntryDto:
       type: object
       properties:
-        assetDto:
+        asset:
           $ref: '#/components/schemas/AssetDto'
         dataAddress:
           $ref: '#/components/schemas/DataAddressDto'

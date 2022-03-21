@@ -19,18 +19,18 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 @JsonDeserialize(builder = AssetEntryDto.Builder.class)
 public class AssetEntryDto {
-    private AssetDto assetDto;
-    private DataAddressDto dataAddressDto;
+    private AssetDto asset;
+    private DataAddressDto dataAddress;
 
     private AssetEntryDto() {
     }
 
-    public AssetDto getAssetDto() {
-        return assetDto;
+    public AssetDto getAsset() {
+        return asset;
     }
 
     public DataAddressDto getDataAddress() {
-        return dataAddressDto;
+        return dataAddress;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -47,13 +47,13 @@ public class AssetEntryDto {
             return new Builder();
         }
 
-        public Builder assetDto(AssetDto assetDto) {
-            assetEntryDto.assetDto = assetDto;
+        public Builder asset(AssetDto asset) {
+            assetEntryDto.asset = asset;
             return this;
         }
 
-        public Builder dataAddress(DataAddressDto dataAddressDto) {
-            assetEntryDto.dataAddressDto = dataAddressDto;
+        public Builder dataAddress(DataAddressDto dataAddress) {
+            assetEntryDto.dataAddress = dataAddress;
             return this;
         }
 

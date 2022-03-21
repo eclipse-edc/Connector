@@ -12,9 +12,9 @@
  */
 
 val infoModelVersion: String by project
-val rsApi: String by project
 val jerseyVersion: String by project
 val okHttpVersion: String by project
+val rsApi: String by project
 
 plugins {
     `java-library`
@@ -27,9 +27,10 @@ dependencies {
     implementation(project(":extensions:api:data-management:api-configuration"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    testImplementation(testFixtures(project(":common:util")))
+
     testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     testImplementation(project(":extensions:http"))
+    testImplementation(testFixtures(project(":common:util")))
 }
 
 publishing {
