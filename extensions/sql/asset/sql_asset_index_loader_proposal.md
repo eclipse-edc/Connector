@@ -13,8 +13,6 @@ CREATE TABLE IF NOT EXISTS edc_asset (
     PRIMARY KEY (asset_id)
 );
 
-COMMENT ON COLUMN edc_asset.deleted is 'soft-deletion flag for an Asset';
-
 
 -- table: edc_asset_dataaddress
 CREATE TABLE IF NOT EXISTS edc_asset_dataaddress (
@@ -110,12 +108,12 @@ would translate into following DML:
 ```sql
 BEGIN;
 
-INSERT INTO edc_asset (asset_id, deleted) VALUES ("784cdfde-a50c-11ec-b909-0242ac120002", FALSE);
+INSERT INTO edc_asset (asset_id) VALUES ("784cdfde-a50c-11ec-b909-0242ac120002");
 INSERT INTO edc_asset_property (asset_id, property_name, property_string_value) VALUES ("784cdfde-a50c-11ec-b909-0242ac120002", "asset:prop:name", "Max Power");
 INSERT INTO edc_asset_property (asset_id, property_name, property_string_value) VALUES ("784cdfde-a50c-11ec-b909-0242ac120002", "asset:prop:description", "Homer to the Max");
 INSERT INTO edc_asset_dataaddress (asset_id, properties) VALUES ("784cdfde-a50c-11ec-b909-0242ac120002", "{ \"uri\": \"https://projects.eclipse.org/proposals/eclipse-dataspace-connector\" }")
 
-INSERT INTO edc_asset (asset_id, deleted) VALUES ("80b69de0-a50c-11ec-b909-0242ac120002", FALSE);
+INSERT INTO edc_asset (asset_id) VALUES ("80b69de0-a50c-11ec-b909-0242ac120002");
 INSERT INTO edc_asset_property (asset_id, property_name, property_string_value) VALUES ("80b69de0-a50c-11ec-b909-0242ac120002", "asset:prop:name", "Seneca");
 INSERT INTO edc_asset_property (asset_id, property_name, property_string_value) VALUES ("80b69de0-a50c-11ec-b909-0242ac120002", "asset:prop:description", "Seneca the Younger");
 INSERT INTO edc_asset_property (asset_id, property_name, property_string_value) VALUES ("80b69de0-a50c-11ec-b909-0242ac120002", "asset:prop:version", "v2");
@@ -127,11 +125,10 @@ COMMIT;
 ```
 
 #### AssetLoader: `Asset deleteById(String assetId)`
-
-Deletion of an Asset by ID would issue a soft-deletion by flagging the concerning row within the asset table
+Soft deletion has been postponed. For noe, deletion will work as follows.
 
 ```sql
-UPDATE edc_asset AS a SET a.deleted = TRUE where a.asset_id = "784cdfde-a50c-11ec-b909-0242ac120002";
+DELETE FROM edc_asset WHERE asset_id = "784cdfde-a50c-11ec-b909-0242ac120002";
 ```
 
 
@@ -170,14 +167,12 @@ Given an example Asset data set
   </tbody>
 </table>
 
-to be queried for the first 50 entries by an **un-deleted** asset having property **asset:prop:name** to be exactly `Max Power` and **asset:prop:description** to be exactly `Homer to the Max`
+to be queried for the first 50 entries by an asset having property **asset:prop:name** to be exactly `Max Power` and **asset:prop:description** to be exactly `Homer to the Max`
 would be expressed via SQL like
 
 ```sql
 SELECT DISTINCT (a.asset_id) FROM edc_asset AS a
-WHERE
-      (a.deleted IS NULL OR a.deleted = TRUE) 
-  AND EXISTS (
+WHERE EXISTS (
     SELECT 1 FROM edc_asset_property AS eap 
       WHERE eap.asset_id = a.asset_id AND eap.property_name = 'asset:prop:name' AND eap.property_string_value = 'Max Power')
   AND EXISTS (
