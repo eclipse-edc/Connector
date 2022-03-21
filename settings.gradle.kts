@@ -44,6 +44,7 @@ include(":data-protocols:ids:ids-token-validation")
 include(":data-protocols:ids:ids-api-configuration")
 
 include("extensions:sql:contract-definition:store")
+include("extensions:sql:contract-negotiation-store")
 
 
 // modules for technology- or cloud-provider extensions

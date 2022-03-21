@@ -38,6 +38,7 @@ the detailed section referring to by linking pull requests or issues.
 * Add interface `WebServer` to `web-spi` (#921)
 * Implement Asset service for Data Management API (#931)
 * Implement ContractDefinition service for Data Management API (#940)
+* SQL-based ContractNegotiationStore (#864)
 * Implement ContractNegotiation service for Data Management API (#957)
 
 #### Changed
