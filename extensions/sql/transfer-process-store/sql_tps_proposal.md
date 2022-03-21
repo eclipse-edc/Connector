@@ -36,7 +36,7 @@ scheme selecting the candidates, creating lease entries and updating the candida
 that **must** run in the same transaction:
 
 ```sql
--- next for state: select and write lease
+-- next for state: 3 statements to select and write lease
 -- select TPs with no or expired lease
 select *
 from transfer_process
@@ -47,7 +47,7 @@ where lease_id is null
 insert into lease (lease_id, leased_by, leased_at, lease_duration)
 values ('lease-1', 'yomama', NOW), default);
 
--- update previously selected TPs, insert lease
+-- lease selected TPs, provide list of IDs
 update transfer_process t
 set lease_id='lease-1'
 where id in ('test-id2');
@@ -61,9 +61,9 @@ in Java (pseudo-)code this could look something like this:
 import java.time.Instant;
 
 public class SqlTransferProcessStore {
-    
+
     //...
-    
+
     public List<TransferProcess> nextForState(int state, int batchSize) {
         txMgr.executeTransaction(() -> {
 
@@ -80,15 +80,13 @@ public class SqlTransferProcessStore {
 }
 ```
 
-The `skip locked` statement will prevent any subsequent processes from blocking. It will most closely mimic the
-behaviour of the `lease`.
-
-_Nota bene: this locks a row until the transaction is completed, see [below](#open-questions) for details._
+Ideally, the implementation of the `Lease` mechanism is kept generic, so that it can be re-used in other situations,
+such as the SQL-`ContractNegotiationStore`.
 
 #### `create`
 
-inserts a new TP into the database by first inserting the `DataRequest`, obtaining it's ID and then creating
-the `TransferProcess` entry.
+inserts a new TP into the database by first creating the `TransferProcess`, and using its ID to create the `DataRequest`
+entry with the FK referencing `transfer_process` to enable `ON DELETE CASCADE`.
 
 ```sql
 --must be done in the same transaction:
@@ -106,7 +104,7 @@ values ('test-drq-2', 'test-pid2', 'http://anotherconnector.com', 'anotherconnec
 
 #### `delete`
 
-removes a TP from the database by first deleting the TP, then the DR:
+removes a TP from the database by deleting the TP cascading to the DR:
 
 ```sql
 -- fk delete cascade will remove the data_request row
@@ -117,12 +115,19 @@ where id = 'test-id2';
 
 #### `update`
 
-updates an existing TP
+updates an existing TP and "breaks" the lease
 
 ```sql
+-- first break lease, automatically nulls transfer_process.lease_id
+delete
+from lease l
+where l.lease_id = (select lease_id from transfer_process where id = 'test-id2');
+
+-- then update the transfer_process
 update transfer_process t
-set state = 800
-where id = 'test-id2'
+set state   = 800,
+    lease_id=null
+where id = 'test-id2';
 ```
 
 ## Create a flexible query API to accommodate `QuerySpec`

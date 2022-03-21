@@ -1,14 +1,29 @@
+/*
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 -- find by id
 select t.*
 from transfer_process t
-where t.id='test-id1';
+where t.id = 'test-id1';
 
 -- find by drq id
-select t.* from transfer_process t
-where t.id=
+select t.*
+from transfer_process t
+where t.id =
       (select d.transfer_process_id
-        from data_request d
-        where d.process_id = 'test-pid2');
+       from data_request d
+       where d.process_id = 'test-pid2');
 
 -- create
 insert into transfer_process (id, state, state_time_stamp, trace_context, error_detail, resource_manifest,
@@ -35,12 +50,17 @@ where id = 'test-id2';
 
 -- next for state: select and write lease
 -- select TPs with no or expired lease
-select * from transfer_process where lease_id is null or lease_id in (select lease_id from lease where (NOW > (leased_at + lease.lease_duration));
+select *
+from transfer_process
+where lease_id is null
+   or lease_id in (select lease_id from lease where (NOW > (leased_at + lease.lease_duration));
 
 -- create lease
-insert into lease (lease_id, leased_by, leased_at, lease_duration) values ('lease-1', 'yomama', NOW), default);
+insert into lease (lease_id, leased_by, leased_at, lease_duration)
+values ('lease-1', 'yomama', NOW), default);
 
--- update previously selected TPs
+-- update previously selected TPs and break lease
 update transfer_process t
-set lease_id='lease-1'
-where id in ('test-id2');
+set state   = 800,
+    lease_id=null
+where id = 'test-id2';
