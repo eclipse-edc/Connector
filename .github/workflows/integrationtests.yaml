@@ -100,3 +100,19 @@ jobs:
 
       - name: Daps Integration Tests
         run: ./gradlew -p extensions/iam/daps test -DincludeTags="DapsIntegrationTest"
+
+  Micrometer-Integration-Tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'gradle'
+
+      - name: Download opentelemetry javaagent.
+        run: wget -q https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v1.12.0/opentelemetry-javaagent.jar
+      - name: Micrometer Integration Tests.
+        run: ./gradlew -p core/micrometer test -DincludeTags="OpenTelemetryIntegrationTest"
