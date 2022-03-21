@@ -28,9 +28,9 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
-public class AssetControllerTest {
+public class AssetApiControllerTest {
 
-    private AssetController assetController;
+    private AssetApiController assetController;
 
     // provides invalid values for a TransferRequestDto
     public static Stream<Arguments> getInvalidRequestParams() {
@@ -54,7 +54,7 @@ public class AssetControllerTest {
     @BeforeEach
     void setUp() {
         var monitor = mock(Monitor.class);
-        assetController = new AssetController(monitor);
+        assetController = new AssetApiController(monitor);
     }
 
     @Test

@@ -40,7 +40,7 @@ import static org.eclipse.dataspaceconnector.api.datamanagement.asset.TestFuncti
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
 import static org.mockito.Mockito.mock;
 
-public class AssetControllerIntegrationTest {
+public class AssetApiControllerIntegrationTest {
 
     private static int port;
     private ObjectMapper objectMapper;
@@ -54,7 +54,7 @@ public class AssetControllerIntegrationTest {
         config.portMapping(new PortMapping("data", port, "/api/v1/data"));
         var jetty = new JettyService(config, monitor);
 
-        var ctrl = new AssetController(monitor);
+        var ctrl = new AssetApiController(monitor);
         var jerseyService = new JerseyRestService(jetty, new TypeManager(), mock(CorsFilterConfiguration.class), monitor);
         jetty.start();
         jerseyService.registerResource("data", ctrl);

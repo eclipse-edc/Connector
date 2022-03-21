@@ -39,20 +39,22 @@ import static java.lang.String.format;
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/assets")
-public class AssetController {
+public class AssetApiController implements AssetApi {
 
     private final Monitor monitor;
 
-    public AssetController(Monitor monitor) {
+    public AssetApiController(Monitor monitor) {
         this.monitor = monitor;
     }
 
     @POST
-    public void createAsset(AssetEntryDto assetEntryDto) {
-        monitor.debug(format("Asset created %s", assetEntryDto.getAssetDto()));
+    @Override
+    public void createAsset(AssetEntryDto assetEntry) {
+        monitor.debug(format("Asset created %s", assetEntry.getAsset()));
     }
 
     @GET
+    @Override
     public List<AssetDto> getAllAssets(@QueryParam("offset") Integer offset,
                                        @QueryParam("limit") Integer limit,
                                        @QueryParam("filter") String filterExpression,
@@ -73,6 +75,7 @@ public class AssetController {
 
     @GET
     @Path("{id}")
+    @Override
     public AssetDto getAsset(@PathParam("id") String id) {
         monitor.debug(format("Attempting to return Asset with id %s", id));
         return null;
@@ -80,12 +83,14 @@ public class AssetController {
 
     @DELETE
     @Path("{id}")
+    @Override
     public void removeAsset(@PathParam("id") String id) {
         monitor.debug(format("Attempting to delete Asset with id %s", id));
     }
 
     @POST
     @Path("{id}/transfer")
+    @Override
     public String initiateTransfer(@PathParam("id") String assetId, TransferRequestDto transferRequest) {
 
         if (StringUtils.isNullOrBlank(assetId)) {

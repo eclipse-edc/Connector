@@ -1,3 +1,16 @@
+/*
+ *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ */
 package org.eclipse.dataspaceconnector.api.control;
 
 import jakarta.ws.rs.Consumes;
@@ -20,7 +33,7 @@ import java.util.function.BiConsumer;
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/control")
-public class ClientControlCatalogApiController {
+public class ClientControlCatalogApiController implements ClientControlCatalogApi {
 
     private final RemoteMessageDispatcherRegistry remoteMessageDispatcherRegistry;
 
@@ -30,6 +43,7 @@ public class ClientControlCatalogApiController {
 
     @GET
     @Path("/catalog")
+    @Override
     public void getDescription(@QueryParam("provider") String provider, @Suspended AsyncResponse asyncResponse) {
         if (provider == null) {
             asyncResponse.resume(badRequest("provider required"));

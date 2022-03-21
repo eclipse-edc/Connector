@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Microsoft Corporation
+ *  Copyright (c) 2021 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 package org.eclipse.dataspaceconnector.iam.did.hub;
@@ -31,15 +32,16 @@ import java.util.UUID;
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/identity-hub")
-public class IdentityHubController {
+public class IdentityHubApiController implements IdentityHubApi {
     private final IdentityHub hub;
 
-    public IdentityHubController(IdentityHub hub) {
+    public IdentityHubApiController(IdentityHub hub) {
         this.hub = hub;
     }
 
     @POST
     @Path("collections-commit")
+    @Override
     public Response writeCommit(Map<String, String> credential) {
         var objectId = UUID.randomUUID().toString();
         var commit = Commit.Builder.newInstance().type("RegistrationCredentials").context("GAIA-X").iss("test").sub("test").objectId(objectId).payload(credential).build();
@@ -49,18 +51,21 @@ public class IdentityHubController {
 
     @POST
     @Path("collections")
+    @Override
     public String write(String jwe) {
         return hub.write(jwe);
     }
 
     @POST
     @Path("query-commits")
+    @Override
     public String queryCommits(String jwe) {
         return hub.queryCommits(jwe);
     }
 
     @POST
     @Path("query-objects")
+    @Override
     public String queryObjects(String jwe) {
         return hub.queryObjects(jwe);
     }
