@@ -127,6 +127,8 @@ where id = 'test-id2'
 
 ## Create a flexible query API to accommodate `QuerySpec`
 
+_For the first version, it is sufficient to use the `limit` and `offset` arguments from the `QuerySpec`._
+
 I recommend re-using the `Clause` interface and its implementors, that were originally implemented for CosmosDB, and
 create an equivalent set of clauses for SQL. Thus, there would be a `Limit-`, `Offset-`, `Order-` and `WhereClause` for
 SQL.
