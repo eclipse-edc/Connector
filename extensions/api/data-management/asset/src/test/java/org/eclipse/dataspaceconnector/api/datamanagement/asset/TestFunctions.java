@@ -24,12 +24,12 @@ public class TestFunctions {
     static AssetEntryDto createAssetEntryDto() {
         var assetDto = AssetDto.Builder.newInstance().properties(Collections.singletonMap("Asset-1", "An Asset")).build();
         var dataAddress = DataAddressDto.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
-        return AssetEntryDto.Builder.newInstance().assetDto(assetDto).dataAddress(dataAddress).build();
+        return AssetEntryDto.Builder.newInstance().asset(assetDto).dataAddress(dataAddress).build();
     }
 
     static AssetEntryDto createAssetEntryDto_emptyAttributes() {
         var assetDto = AssetDto.Builder.newInstance().properties(Collections.singletonMap("", "")).build();
         var dataAddress = DataAddressDto.Builder.newInstance().properties(Collections.singletonMap("", "")).build();
-        return AssetEntryDto.Builder.newInstance().assetDto(assetDto).dataAddress(dataAddress).build();
+        return AssetEntryDto.Builder.newInstance().asset(assetDto).dataAddress(dataAddress).build();
     }
 }

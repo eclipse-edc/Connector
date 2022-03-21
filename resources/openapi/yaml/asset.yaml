@@ -112,7 +112,7 @@ components:
     AssetEntryDto:
       type: object
       properties:
-        assetDto:
+        asset:
           $ref: '#/components/schemas/AssetDto'
         dataAddress:
           $ref: '#/components/schemas/DataAddressDto'

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
@@ -36,7 +37,7 @@ import static java.lang.String.format;
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/policies")
-public class PolicyApiController {
+public class PolicyApiController implements PolicyApi {
     private final Monitor monitor;
 
     public PolicyApiController(Monitor monitor) {
@@ -44,6 +45,7 @@ public class PolicyApiController {
     }
 
     @GET
+    @Override
     public List<PolicyDefinitionDto> getAllPolicies(@QueryParam("offset") Integer offset,
                                                     @QueryParam("limit") Integer limit,
                                                     @QueryParam("filter") String filterExpression,
@@ -63,6 +65,7 @@ public class PolicyApiController {
 
     @GET
     @Path("{id}")
+    @Override
     public PolicyDefinitionDto getPolicy(@PathParam("id") String id) {
         monitor.debug(format("get policy with ID %s", id));
 
@@ -70,15 +73,16 @@ public class PolicyApiController {
     }
 
     @POST
+    @Override
     public void createPolicy(PolicyDefinitionDto dto) {
         monitor.debug("create new policy");
     }
 
     @DELETE
     @Path("{id}")
+    @Override
     public void deletePolicy(@PathParam("id") String id) {
         monitor.debug(format("Attempting to delete policy with id %s", id));
     }
-
 
 }

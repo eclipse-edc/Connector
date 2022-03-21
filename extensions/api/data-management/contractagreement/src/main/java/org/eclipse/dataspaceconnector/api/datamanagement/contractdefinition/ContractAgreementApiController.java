@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
@@ -34,7 +35,7 @@ import static java.lang.String.format;
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/contractagreements")
-public class ContractAgreementApiController {
+public class ContractAgreementApiController implements ContractAgreementApi {
     private final Monitor monitor;
 
     public ContractAgreementApiController(Monitor monitor) {
@@ -42,6 +43,7 @@ public class ContractAgreementApiController {
     }
 
     @GET
+    @Override
     public List<ContractAgreementDto> getAllAgreements(@QueryParam("offset") Integer offset,
                                                        @QueryParam("limit") Integer limit,
                                                        @QueryParam("filter") String filterExpression,
@@ -61,6 +63,7 @@ public class ContractAgreementApiController {
 
     @GET
     @Path("{id}")
+    @Override
     public ContractAgreementDto getContractAgreement(@PathParam("id") String id) {
         monitor.debug(format("get contract definition with ID %s", id));
 

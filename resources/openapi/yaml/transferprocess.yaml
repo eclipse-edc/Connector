@@ -30,7 +30,7 @@ paths:
             application/json: {}
   /transferprocess:
     get:
-      operationId: getAllContractDefinitions
+      operationId: getAllTransferProcesses
       parameters:
       - name: offset
         in: query

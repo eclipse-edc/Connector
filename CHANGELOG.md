@@ -36,8 +36,10 @@ the detailed section referring to by linking pull requests or issues.
 * Add `findAll` method to `TransferProcessStore` (#859)
 * Add data-management api to the samples (#733)
 * Enable pluggable transfer service in DPF (#844)
+* Apply 2-state transition pattern to `ContractNegotiationManager`s (#870)
 * Apply 2-state transition pattern to `TransferProcessManager` (#831)
 * Refactor (=generify) transformer subsystem (#779)
+* Extract interfaces for every api controller class to improve swagger documentation (#891)
 
 #### Removed
 

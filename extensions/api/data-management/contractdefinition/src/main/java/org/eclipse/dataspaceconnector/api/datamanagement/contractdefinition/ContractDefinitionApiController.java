@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
@@ -36,7 +37,7 @@ import static java.lang.String.format;
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/contractdefinitions")
-public class ContractDefinitionApiController {
+public class ContractDefinitionApiController implements ContractDefinitionApi {
     private final Monitor monitor;
 
     public ContractDefinitionApiController(Monitor monitor) {
@@ -44,6 +45,7 @@ public class ContractDefinitionApiController {
     }
 
     @GET
+    @Override
     public List<ContractDefinitionDto> getAllContractDefinitions(@QueryParam("offset") Integer offset,
                                                                  @QueryParam("limit") Integer limit,
                                                                  @QueryParam("filter") String filterExpression,
@@ -63,6 +65,7 @@ public class ContractDefinitionApiController {
 
     @GET
     @Path("{id}")
+    @Override
     public ContractDefinitionDto getContractDefinition(@PathParam("id") String id) {
         monitor.debug(format("get contract definition with ID %s", id));
 
@@ -70,15 +73,17 @@ public class ContractDefinitionApiController {
     }
 
     @POST
+    @Override
     public void createContractDefinition(ContractDefinitionDto dto) {
         monitor.debug("create new contract definition");
     }
 
+
     @DELETE
     @Path("{id}")
+    @Override
     public void deleteContractDefinition(@PathParam("id") String id) {
         monitor.debug(format("Attempting to delete contract definition with id %s", id));
     }
-
 
 }
