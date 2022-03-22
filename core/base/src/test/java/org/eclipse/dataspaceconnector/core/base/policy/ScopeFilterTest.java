@@ -82,7 +82,7 @@ class ScopeFilterTest {
         assertThat(filteredPolicy.getPermissions()).isNotEmpty();
         assertThat(filteredPolicy.getObligations()).isNotEmpty();
         assertThat(filteredPolicy.getProhibitions()).isNotEmpty();
-        assertThat(filteredPolicy.getExtensibleProperties() ).isNotEmpty();
+        assertThat(filteredPolicy.getExtensibleProperties()).isNotEmpty();
 
     }
 
