@@ -9,7 +9,6 @@
 -- table: edc_asset
 CREATE TABLE IF NOT EXISTS edc_asset (
     asset_id VARCHAR(255) NOT NULL,
-    deleted BOOLEAN DEFAULT FALSE,
     PRIMARY KEY (asset_id)
 );
 
