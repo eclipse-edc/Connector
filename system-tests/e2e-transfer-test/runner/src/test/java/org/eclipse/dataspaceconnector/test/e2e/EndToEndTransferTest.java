@@ -45,6 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
 class EndToEndTransferTest {
@@ -196,7 +197,7 @@ class EndToEndTransferTest {
                     .get("/api/service/providerData")
                     .then()
                     .statusCode(200)
-                    .body(notNullValue());
+                    .body("message", equalTo("some information"));
         });
     }
 

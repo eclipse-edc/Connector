@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2022 Amadeus
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Amadeus - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
 import net.jodah.failsafe.RetryPolicy;
@@ -31,6 +45,10 @@ import static org.mockito.Mockito.mock;
 class HttpDataSourceTest {
 
     private static final String TEST_ENDPOINT = "http://example.com";
+    private static final String GET = "GET";
+    private static final String POST = "POST";
+    private static final String FILE_NAME = "testfile.txt";
+    private static final String TEST_QUERY_PARAMS = "foo=bar&hello=world";
 
     private CustomInterceptor interceptor;
 
@@ -41,56 +59,56 @@ class HttpDataSourceTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    void verifyRequest_nameBlankOrNull(String name) {
-        var source = defaultBuilder().method("GET").name(name).build();
+    void sourceWithNameBlankOrNull_shouldIgnore(String name) {
+        var source = defaultBuilder().method(GET).name(name).build();
 
         source.openPartStream();
 
         var request = interceptor.getInterceptedRequest();
         assertThat(request.url()).hasToString(TEST_ENDPOINT + "/");
-        assertThat(request.method()).isEqualTo("GET");
+        assertThat(request.method()).isEqualTo(GET);
     }
 
 
     @ParameterizedTest
     @NullAndEmptySource
-    void verifyRequest_queryParamsBlankOrNull(String queryParams) {
-        var source = defaultBuilder().method("GET").name("testfile").queryParams(queryParams).build();
+    void sourceWithQueryParamsBlankOrNull_shouldIgnore(String queryParams) {
+        var source = defaultBuilder().method(GET).name(FILE_NAME).queryParams(queryParams).build();
 
         source.openPartStream();
 
         var request = interceptor.getInterceptedRequest();
-        assertThat(request.url()).hasToString(TEST_ENDPOINT + "/testfile");
-        assertThat(request.method()).isEqualTo("GET");
+        assertThat(request.url()).hasToString(TEST_ENDPOINT + "/" + FILE_NAME);
+        assertThat(request.method()).isEqualTo(GET);
     }
 
     @Test
-    void verifyRequest_withNameAndQueryParams() {
-        var source = defaultBuilder().method("GET").name("testfile").queryParams("foo=bar&hello=world").build();
+    void sourceWithNameAndQueryParams() {
+        var source = defaultBuilder().method(GET).name(FILE_NAME).queryParams(TEST_QUERY_PARAMS).build();
 
         source.openPartStream();
 
         var request = interceptor.getInterceptedRequest();
-        assertThat(request.url()).hasToString(TEST_ENDPOINT + "/testfile?foo=bar&hello=world");
-        assertThat(request.method()).isEqualTo("GET");
+        assertThat(request.url()).hasToString(String.format("%s/%s?%s", TEST_ENDPOINT, FILE_NAME, TEST_QUERY_PARAMS));
+        assertThat(request.method()).isEqualTo(GET);
     }
 
     @Test
-    void verifyRequest_body() {
+    void sourceWithBody() {
         var json = "{ \"foo\" : \"bar\" }";
-        var source = defaultBuilder().method("POST").requestBody(MediaType.get("application/json"), json).build();
+        var source = defaultBuilder().method(POST).requestBody(MediaType.get("application/json"), json).build();
 
         source.openPartStream();
 
         var request = interceptor.getInterceptedRequest();
         assertThat(request.url()).hasToString(TEST_ENDPOINT + "/");
-        assertThat(request.method()).isEqualTo("POST");
+        assertThat(request.method()).isEqualTo(POST);
         assertThat(extractRequestBody(request)).isEqualTo(json);
     }
 
     @Test
     void verifyOpenPartStream() {
-        var source = defaultBuilder().method("GET").build();
+        var source = defaultBuilder().method(GET).build();
 
         var parts = source.openPartStream().collect(Collectors.toList());
 

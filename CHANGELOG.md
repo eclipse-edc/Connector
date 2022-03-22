@@ -28,6 +28,7 @@ the detailed section referring to by linking pull requests or issues.
 * Add configuration setting for state machine batch size (#872)
 * Add Jetty context alias for IDS API (#815)
 * Implement Asset service for Data Management API (#931)
+* Pass path information into http data source through DPF public API (#929)
 
 #### Changed
 
@@ -50,8 +51,9 @@ the detailed section referring to by linking pull requests or issues.
 * Remove module `:samples:other:streaming` (#889)
 
 #### Fixed
+
 * Flaky S3 StatusChecker Test (#794)
-* Added missing Data Management Asset controller openapi (#853) 
+* Added missing Data Management Asset controller openapi (#853)
 
 ---
 
