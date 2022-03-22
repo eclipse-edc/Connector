@@ -9,18 +9,23 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Amadeus - adds tests for success response
  *
  */
-package org.eclipse.dataspaceconnector.dataplane.api.common;
+
+package org.eclipse.dataspaceconnector.dataplane.api.response;
 
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
-import static org.eclipse.dataspaceconnector.dataplane.api.common.ResponseFunctions.validationErrors;
+import static org.assertj.core.api.InstanceOfAssertFactories.STRING;
+import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunctions.success;
+import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunctions.validationErrors;
 
 class ResponseFunctionsTest {
 
@@ -29,5 +34,13 @@ class ResponseFunctionsTest {
         var response = validationErrors(List.of("error1", "error2"));
         assertThat(response.getStatusInfo()).isEqualTo(BAD_REQUEST);
         assertThat(response.getEntity()).asInstanceOf(MAP).containsKey("errors");
+    }
+
+    @Test
+    void verifySuccess() {
+        var data = "hello world!";
+        var response = success(data);
+        assertThat(response.getStatusInfo()).isEqualTo(OK);
+        assertThat(response.getEntity()).asInstanceOf(STRING).isEqualTo(data);
     }
 }

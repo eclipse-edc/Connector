@@ -16,11 +16,13 @@ import java.util.Map;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.policy.model.Operator.IN;
+import static org.eclipse.dataspaceconnector.spi.policy.PolicyEngine.ALL_SCOPES;
 
 /**
  * Tests key policy enforcement scenarios. Also serves as a blueprint for custom policy functions.
  */
 public class PolicyEngineImplScenariosTest {
+    private static final String TEST_SCOPE = "test";
     private static final String ABS_SPATIAL_CONSTRAINT = "absoluteSpatialPosition";
     private static final String CONNECTOR_CONSTRAINT = "connector";
     private static final Action USE_ACTION = Action.Builder.newInstance().type("USE").build();
@@ -36,8 +38,9 @@ public class PolicyEngineImplScenariosTest {
 
         var policy = Policy.Builder.newInstance().permission(usePermission).build();
 
+
         var agent = new ParticipantAgent(emptyMap(), emptyMap());
-        assertThat(policyEngine.evaluate(policy, agent).succeeded()).isTrue();
+        assertThat(policyEngine.evaluate(TEST_SCOPE, policy, agent).succeeded()).isTrue();
     }
 
     /**
@@ -51,8 +54,8 @@ public class PolicyEngineImplScenariosTest {
 
         var agent = new ParticipantAgent(emptyMap(), emptyMap());
 
-        policyEngine.registerFunction(Prohibition.class, (rule, context) -> rule.getAction().getType().equals(USE_ACTION.getType()));
-        assertThat(policyEngine.evaluate(policy, agent).succeeded()).isFalse();
+        policyEngine.registerFunction(ALL_SCOPES, Prohibition.class, (rule, context) -> rule.getAction().getType().equals(USE_ACTION.getType()));
+        assertThat(policyEngine.evaluate(TEST_SCOPE, policy, agent).succeeded()).isFalse();
     }
 
     /**
@@ -61,7 +64,7 @@ public class PolicyEngineImplScenariosTest {
     @Test
     void verifySpatialLocation() {
         // function that verifies the EU region
-        policyEngine.registerFunction(Permission.class, ABS_SPATIAL_CONSTRAINT, (operator, value, permission, context) -> {
+        policyEngine.registerFunction(ALL_SCOPES, Permission.class, ABS_SPATIAL_CONSTRAINT, (operator, value, permission, context) -> {
             var claims = context.getParticipantAgent().getClaims();
             return claims.containsKey("region") && claims.get("region").equals(value);
         });
@@ -75,10 +78,10 @@ public class PolicyEngineImplScenariosTest {
         var policy = Policy.Builder.newInstance().permission(usePermission).build();
 
         var euAgent = new ParticipantAgent(Map.of("region", "eu"), emptyMap());
-        assertThat(policyEngine.evaluate(policy, euAgent).succeeded()).isTrue();
+        assertThat(policyEngine.evaluate(TEST_SCOPE, policy, euAgent).succeeded()).isTrue();
 
         var noRegionAgent = new ParticipantAgent(emptyMap(), emptyMap());
-        assertThat(policyEngine.evaluate(policy, noRegionAgent).succeeded()).isFalse();
+        assertThat(policyEngine.evaluate(TEST_SCOPE, policy, noRegionAgent).succeeded()).isFalse();
     }
 
     /**
@@ -86,7 +89,7 @@ public class PolicyEngineImplScenariosTest {
      */
     @Test
     void verifyConnectorUse() {
-        policyEngine.registerFunction(Permission.class, CONNECTOR_CONSTRAINT, (operator, value, permission, context) -> {
+        policyEngine.registerFunction(ALL_SCOPES, Permission.class, CONNECTOR_CONSTRAINT, (operator, value, permission, context) -> {
             if (!(value instanceof List)) {
                 context.reportProblem("Unsupported right operand type: " + value.getClass().getName());
                 return false;
@@ -103,7 +106,7 @@ public class PolicyEngineImplScenariosTest {
         var policy = Policy.Builder.newInstance().permission(usePermission).build();
 
         var agent = new ParticipantAgent(emptyMap(), emptyMap());
-        assertThat(policyEngine.evaluate(policy, agent).succeeded()).isTrue();
+        assertThat(policyEngine.evaluate(TEST_SCOPE, policy, agent).succeeded()).isTrue();
     }
 
     @BeforeEach
