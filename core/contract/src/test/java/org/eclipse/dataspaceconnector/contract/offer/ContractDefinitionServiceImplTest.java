@@ -15,7 +15,9 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression.SELECT_ALL;
+import static org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService.NEGOTIATION_SCOPE;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
@@ -39,13 +41,13 @@ class ContractDefinitionServiceImplTest {
         var agent = new ParticipantAgent(Map.of(), Map.of());
         var policy = Policy.Builder.newInstance().build();
 
-        when(policyEngine.evaluate(policy, agent)).thenReturn(Result.success(policy));
+        when(policyEngine.evaluate(NEGOTIATION_SCOPE, policy, agent)).thenReturn(Result.success(policy));
         when(definitionStore.findAll()).thenReturn(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build()));
 
         var definitions = definitionService.definitionsFor(agent);
 
         assertThat(definitions).hasSize(1);
-        verify(policyEngine, atLeastOnce()).evaluate(policy, agent);
+        verify(policyEngine, atLeastOnce()).evaluate(NEGOTIATION_SCOPE, policy, agent);
         verify(definitionStore).findAll();
     }
 
@@ -56,12 +58,11 @@ class ContractDefinitionServiceImplTest {
         var policy = Policy.Builder.newInstance().id("access").build();
         var contractDefinition = ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build();
 
-        when(policyEngine.evaluate(any(), any()))
-                .thenReturn(Result.failure("invalid"));
+        when(policyEngine.evaluate(any(), any(), any())).thenReturn(Result.failure("invalid"));
         when(definitionStore.findAll()).thenReturn(List.of(contractDefinition));
 
         assertThat(definitionService.definitionsFor(agent)).isEmpty();
-        verify(policyEngine, atLeastOnce()).evaluate(policy, agent);
+        verify(policyEngine, atLeastOnce()).evaluate(NEGOTIATION_SCOPE, policy, agent);
         verify(definitionStore).findAll();
     }
 
@@ -72,13 +73,13 @@ class ContractDefinitionServiceImplTest {
         var policy = Policy.Builder.newInstance().id("access").build();
         var contractDefinition = ContractDefinition.Builder.newInstance().id("1")
                 .accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build();
-        when(policyEngine.evaluate(any(), any()))
+        when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), any(), any()))
                 .thenReturn(Result.success(policy))
                 .thenReturn(Result.failure("invalid"));
         when(definitionStore.findAll()).thenReturn(List.of(contractDefinition));
 
         assertThat(definitionService.definitionsFor(agent)).isEmpty();
-        verify(policyEngine, atLeastOnce()).evaluate(policy, agent);
+        verify(policyEngine, atLeastOnce()).evaluate(NEGOTIATION_SCOPE, policy, agent);
         verify(definitionStore).findAll();
     }
 
@@ -88,12 +89,12 @@ class ContractDefinitionServiceImplTest {
         var policy = Policy.Builder.newInstance().build();
         var contractDefinition = ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy)
                 .contractPolicy(policy).selectorExpression(SELECT_ALL).build();
-        when(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).thenReturn(Result.success(policy));
+        when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), isA(Policy.class), isA(ParticipantAgent.class))).thenReturn(Result.success(policy));
         when(definitionStore.findAll()).thenReturn(List.of(contractDefinition));
 
         assertThat(definitionService.definitionFor(agent, "1")).isNotNull();
         assertThat(definitionService.definitionFor(agent, "nodefinition")).isNull();
-        verify(policyEngine, atLeastOnce()).evaluate(policy, agent);
+        verify(policyEngine, atLeastOnce()).evaluate(NEGOTIATION_SCOPE, policy, agent);
         verify(definitionStore, times(2)).findAll();
     }
 }
