@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.dataplane.api.transfer;
+package org.eclipse.dataspaceconnector.dataplane.api.controller;
 
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -26,8 +26,8 @@ import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.dataplane.api.common.ResponseFunctions.validationError;
-import static org.eclipse.dataspaceconnector.dataplane.api.common.ResponseFunctions.validationErrors;
+import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunctions.validationError;
+import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunctions.validationErrors;
 
 /**
  * Handles incoming control requests for the data plane.
