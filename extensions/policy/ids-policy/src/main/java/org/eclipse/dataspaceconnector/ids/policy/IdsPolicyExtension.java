@@ -15,10 +15,12 @@
 package org.eclipse.dataspaceconnector.ids.policy;
 
 import org.eclipse.dataspaceconnector.policy.model.Permission;
-import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+
+import static org.eclipse.dataspaceconnector.spi.policy.PolicyEngine.ALL_SCOPES;
 
 /**
  * Registers test policy functions.
@@ -38,8 +40,8 @@ public class IdsPolicyExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
 
-        policyEngine.registerFunction(Permission.class, ABS_SPATIAL_POSITION, new AbsSpatialPositionConstraintFunction());
-        policyEngine.registerFunction(Permission.class, PARTNER_LEVEL, new PartnerLevelConstraintFunction());
+        policyEngine.registerFunction(ALL_SCOPES, Permission.class, ABS_SPATIAL_POSITION, new AbsSpatialPositionConstraintFunction());
+        policyEngine.registerFunction(ALL_SCOPES, Permission.class, PARTNER_LEVEL, new PartnerLevelConstraintFunction());
     }
 
 }

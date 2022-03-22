@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -18,7 +18,6 @@ import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
 import com.azure.cosmos.CosmosScripts;
 import com.azure.cosmos.implementation.BadRequestException;
-import com.azure.cosmos.models.CosmosItemRequestOptions;
 import com.azure.cosmos.models.CosmosItemResponse;
 import com.azure.cosmos.models.CosmosStoredProcedureProperties;
 import com.azure.cosmos.models.CosmosStoredProcedureRequestOptions;
@@ -28,8 +27,10 @@ import com.azure.cosmos.util.CosmosPagedIterable;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.azure.testfixtures.CosmosTestClient;
-import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
+import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureCosmosDbIntegrationTest;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
@@ -45,17 +46,19 @@ import org.junit.jupiter.api.Test;
 
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.createTransferProcess;
+import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.createTransferProcessDocument;
 
-@IntegrationTest
+@AzureCosmosDbIntegrationTest
 class CosmosTransferProcessStoreIntegrationTest {
 
     private static final String TEST_ID = UUID.randomUUID().toString();
@@ -71,14 +74,10 @@ class CosmosTransferProcessStoreIntegrationTest {
     @BeforeAll
     static void prepareCosmosClient() {
         var client = CosmosTestClient.createClient();
-        var containerName = CONTAINER_PREFIX + UUID.randomUUID();
 
         var response = client.createDatabaseIfNotExists(DATABASE_NAME);
         database = client.getDatabase(response.getProperties().getId());
-        var containerIfNotExists = database.createContainerIfNotExists(containerName, "/partitionKey");
-        container = database.getContainer(containerIfNotExists.getProperties().getId());
-        uploadStoredProcedure(container, "nextForState");
-        uploadStoredProcedure(container, "lease");
+
     }
 
     @AfterAll
@@ -89,12 +88,34 @@ class CosmosTransferProcessStoreIntegrationTest {
         }
     }
 
+    private static void uploadStoredProcedure(CosmosContainer container, String name) {
+        var is = Thread.currentThread().getContextClassLoader().getResourceAsStream(name + ".js");
+        if (is == null) {
+            throw new AssertionError("The input stream referring to the " + name + " file cannot be null!");
+        }
+
+        Scanner s = new Scanner(is).useDelimiter("\\A");
+        String body = s.hasNext() ? s.next() : "";
+        CosmosStoredProcedureProperties props = new CosmosStoredProcedureProperties(name, body);
+
+        CosmosScripts scripts = container.getScripts();
+        if (scripts.readAllStoredProcedures().stream().noneMatch(sp -> sp.getId().equals(name))) {
+            CosmosStoredProcedureResponse storedProcedure = scripts.createStoredProcedure(props);
+        }
+    }
+
     @BeforeEach
     void setUp() {
         assertThat(database).describedAs("CosmosDB database is null - did something go wrong during initialization?").isNotNull();
 
         typeManager = new TypeManager();
         typeManager.registerTypes(DataRequest.class);
+
+        var containerName = CONTAINER_PREFIX + UUID.randomUUID();
+        var containerIfNotExists = database.createContainerIfNotExists(containerName, "/partitionKey");
+        container = database.getContainer(containerIfNotExists.getProperties().getId());
+        uploadStoredProcedure(container, "nextForState");
+        uploadStoredProcedure(container, "lease");
         var retryPolicy = new RetryPolicy<>().withMaxRetries(5).withBackoff(1, 3, ChronoUnit.SECONDS);
         var cosmosDbApi = new CosmosDbApiImpl(container, false);
         store = new CosmosTransferProcessStore(cosmosDbApi, typeManager, partitionKey, connectorId, retryPolicy);
@@ -102,7 +123,7 @@ class CosmosTransferProcessStoreIntegrationTest {
 
     @AfterEach
     void tearDown() {
-        container.deleteAllItemsByPartitionKey(new PartitionKey(partitionKey), new CosmosItemRequestOptions());
+        container.delete();
     }
 
     @Test
@@ -321,7 +342,6 @@ class CosmosTransferProcessStoreIntegrationTest {
         assertThat(container.readAllItems(new PartitionKey(partitionKey), Object.class)).isEmpty();
     }
 
-
     @Test
     void find() {
         var tp = createTransferProcess("tp-id");
@@ -460,15 +480,6 @@ class CosmosTransferProcessStoreIntegrationTest {
     }
 
     @Test
-    void verifyAllNotImplemented() {
-        assertThatThrownBy(() -> store.createData("pid", "key", new Object())).isInstanceOf(UnsupportedOperationException.class);
-        assertThatThrownBy(() -> store.updateData("pid", "key", new Object())).isInstanceOf(UnsupportedOperationException.class);
-        assertThatThrownBy(() -> store.deleteData("pid", "key")).isInstanceOf(UnsupportedOperationException.class);
-        assertThatThrownBy(() -> store.deleteData("pid", Set.of("k1", "k2"))).isInstanceOf(UnsupportedOperationException.class);
-        assertThatThrownBy(() -> store.findData(String.class, "pid", "key")).isInstanceOf(UnsupportedOperationException.class);
-    }
-
-    @Test
     void invokeStoreProcedure() {
         //create one item
         var tp = createTransferProcess("proc1");
@@ -492,20 +503,83 @@ class CosmosTransferProcessStoreIntegrationTest {
 
     }
 
-    private static void uploadStoredProcedure(CosmosContainer container, String name) {
-        var is = Thread.currentThread().getContextClassLoader().getResourceAsStream(name + ".js");
-        if (is == null) {
-            throw new AssertionError("The input stream referring to the " + name + " file cannot be null!");
-        }
+    @Test
+    void findAll_noQuerySpec() {
+        var doc1 = createTransferProcessDocument("tp1", partitionKey);
+        var doc2 = createTransferProcessDocument("tp2", partitionKey);
 
-        Scanner s = new Scanner(is).useDelimiter("\\A");
-        String body = s.hasNext() ? s.next() : "";
-        CosmosStoredProcedureProperties props = new CosmosStoredProcedureProperties(name, body);
+        container.createItem(doc1);
+        container.createItem(doc2);
 
-        CosmosScripts scripts = container.getScripts();
-        if (scripts.readAllStoredProcedures().stream().noneMatch(sp -> sp.getId().equals(name))) {
-            CosmosStoredProcedureResponse storedProcedure = scripts.createStoredProcedure(props);
-        }
+        assertThat(store.findAll(QuerySpec.none())).hasSize(2).extracting(TransferProcess::getId).containsExactlyInAnyOrder(doc1.getId(), doc2.getId());
+    }
+
+    @Test
+    void findAll_verifyPaging() {
+
+        var all = IntStream.range(0, 10)
+                .mapToObj(i -> createTransferProcessDocument("tp" + i, partitionKey))
+                .peek(d -> container.createItem(d))
+                .map(TransferProcessDocument::getId)
+                .collect(Collectors.toList());
+
+        // page size fits
+        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4).extracting(TransferProcess::getId).isSubsetOf(all);
+
+    }
+
+    @Test
+    void findAll_verifyPaging_pageSizeLargerThanCollection() {
+
+        var all = IntStream.range(0, 10)
+                .mapToObj(i -> createTransferProcessDocument("tp" + i, partitionKey))
+                .peek(d -> container.createItem(d)).map(TransferProcessDocument::getId)
+                .collect(Collectors.toList());
+
+        // page size fits
+        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(40).build())).hasSize(7).extracting(TransferProcess::getId).isSubsetOf(all);
+    }
+
+    @Test
+    void findAll_verifyFiltering() {
+        var documents = IntStream.range(0, 10)
+                .mapToObj(i -> createTransferProcessDocument("tp" + i, partitionKey))
+                .peek(d -> container.createItem(d))
+                .collect(Collectors.toList());
+
+        var expectedId = documents.get(3).getId();
+
+        var query = QuerySpec.Builder.newInstance().filter("id=" + expectedId).build();
+        assertThat(store.findAll(query)).extracting(TransferProcess::getId).containsOnly(expectedId);
+    }
+
+    @Test
+    void findAll_verifyFiltering_invalidFilterExpression() {
+        IntStream.range(0, 10).mapToObj(i -> createTransferProcessDocument("tp" + i, partitionKey)).forEach(d -> container.createItem(d));
+
+        var query = QuerySpec.Builder.newInstance().filter("something contains other").build();
+
+        assertThatThrownBy(() -> store.findAll(query)).isInstanceOfAny(IllegalArgumentException.class).hasMessage("Cannot build SqlParameter for operator: contains");
+    }
+
+    @Test
+    void findAll_verifyFiltering_unsuccessfulFilterExpression() {
+        IntStream.range(0, 10).mapToObj(i -> createTransferProcessDocument("tp" + i, partitionKey)).forEach(d -> container.createItem(d));
+
+        var query = QuerySpec.Builder.newInstance().filter("something = other").build();
+
+        assertThat(store.findAll(query)).isEmpty();
+    }
+
+    @Test
+    void findAll_verifySorting() {
+
+        IntStream.range(0, 10).mapToObj(i -> createTransferProcessDocument("tp" + i, partitionKey)).forEach(d -> container.createItem(d));
+
+        var ascendingQuery = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build();
+        assertThat(store.findAll(ascendingQuery)).hasSize(10).isSortedAccordingTo(Comparator.comparing(TransferProcess::getId));
+        var descendingQuery = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build();
+        assertThat(store.findAll(descendingQuery)).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
     }
 
     private TransferProcessDocument convert(Object obj) {

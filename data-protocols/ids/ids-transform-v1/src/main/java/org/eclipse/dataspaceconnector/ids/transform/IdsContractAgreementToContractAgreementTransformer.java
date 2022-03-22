@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - Initial Implementation
+ *       Daimler TSS GmbH - fixed contract dates to epoch seconds
  *
  */
 
@@ -18,11 +19,11 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
+import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -107,15 +108,15 @@ public class IdsContractAgreementToContractAgreementTransformer implements IdsTy
         }
 
         if (contractAgreement.getContractEnd() != null) {
-            builder.contractEndDate(contractAgreement.getContractEnd().toGregorianCalendar().getTimeInMillis());
+            builder.contractEndDate(contractAgreement.getContractEnd().toGregorianCalendar().toZonedDateTime().toEpochSecond());
         }
 
         if (contractAgreement.getContractStart() != null) {
-            builder.contractStartDate(contractAgreement.getContractStart().toGregorianCalendar().getTimeInMillis());
+            builder.contractStartDate(contractAgreement.getContractStart().toGregorianCalendar().toZonedDateTime().toEpochSecond());
         }
 
         if (contractAgreement.getContractDate() != null) {
-            builder.contractSigningDate(contractAgreement.getContractDate().toGregorianCalendar().getTimeInMillis());
+            builder.contractSigningDate(contractAgreement.getContractDate().toGregorianCalendar().toZonedDateTime().toEpochSecond());
         }
 
         return builder.build();

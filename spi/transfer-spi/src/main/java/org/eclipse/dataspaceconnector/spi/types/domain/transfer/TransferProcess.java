@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
@@ -33,6 +34,20 @@ import java.util.Set;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toSet;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.CANCELLED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.ENDED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.ERROR;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.IN_PROGRESS;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.STREAMING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.UNSAVED;
 
 /**
  * Represents a data transfer process.
@@ -47,8 +62,8 @@ import static java.util.stream.Collectors.toSet;
  * {@link TransferProcessStates#INITIAL} ->
  * {@link TransferProcessStates#PROVISIONING} ->
  * {@link TransferProcessStates#PROVISIONED} ->
+ * {@link TransferProcessStates#REQUESTING} ->
  * {@link TransferProcessStates#REQUESTED} ->
- * {@link TransferProcessStates#REQUESTED_ACK} ->
  * {@link TransferProcessStates#IN_PROGRESS} | {@link TransferProcessStates#STREAMING} ->
  * {@link TransferProcessStates#COMPLETED} ->
  * {@link TransferProcessStates#DEPROVISIONING} ->
@@ -80,7 +95,7 @@ public class TransferProcess implements TraceCarrier {
     private String id;
     private Type type = Type.CONSUMER;
     private int state;
-    private int stateCount = TransferProcessStates.UNSAVED.code();
+    private int stateCount = UNSAVED.code();
     private long stateTimestamp;
     private Map<String, String> traceContext = new HashMap<>();
     private String errorDetail;
@@ -132,11 +147,11 @@ public class TransferProcess implements TraceCarrier {
     }
 
     public void transitionInitial() {
-        transition(TransferProcessStates.INITIAL, TransferProcessStates.UNSAVED);
+        transition(INITIAL, UNSAVED);
     }
 
     public void transitionProvisioning(ResourceManifest manifest) {
-        transition(TransferProcessStates.PROVISIONING, TransferProcessStates.INITIAL, TransferProcessStates.PROVISIONING);
+        transition(PROVISIONING, INITIAL, PROVISIONING);
         resourceManifest = manifest;
         resourceManifest.setTransferProcessId(id);
     }
@@ -167,22 +182,22 @@ public class TransferProcess implements TraceCarrier {
 
     public void transitionProvisioned() {
         // requested is allowed to support retries
-        transition(TransferProcessStates.PROVISIONED, TransferProcessStates.PROVISIONING, TransferProcessStates.PROVISIONED, TransferProcessStates.REQUESTED);
+        transition(PROVISIONED, PROVISIONING, PROVISIONED, REQUESTED);
+    }
+
+    public void transitionRequesting() {
+        if (Type.PROVIDER == type) {
+            throw new IllegalStateException("Provider processes have no REQUESTING state");
+        }
+        transition(REQUESTING, PROVISIONED, REQUESTING);
     }
 
     public void transitionRequested() {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no REQUESTED state");
         }
-        transition(TransferProcessStates.REQUESTED, TransferProcessStates.PROVISIONED, TransferProcessStates.REQUESTED);
+        transition(REQUESTED, PROVISIONED, REQUESTING, REQUESTED);
 
-    }
-
-    public void transitionRequestAck() {
-        if (Type.PROVIDER == type) {
-            throw new IllegalStateException("Provider processes have no REQUESTED state");
-        }
-        transition(TransferProcessStates.REQUESTED_ACK, TransferProcessStates.REQUESTED);
     }
 
     public void transitionInProgressOrStreaming() {
@@ -197,65 +212,57 @@ public class TransferProcess implements TraceCarrier {
     public void transitionInProgress() {
         if (type == Type.CONSUMER) {
             // the consumer must first transition to the request/ack states before in progress
-            transition(TransferProcessStates.IN_PROGRESS, TransferProcessStates.REQUESTED, TransferProcessStates.REQUESTED_ACK);
+            transition(IN_PROGRESS, REQUESTED, IN_PROGRESS);
         } else {
             // the provider transitions from provisioned to in progress directly
-            transition(TransferProcessStates.IN_PROGRESS, TransferProcessStates.REQUESTED, TransferProcessStates.PROVISIONED);
+            transition(IN_PROGRESS, REQUESTED, PROVISIONED, IN_PROGRESS);
         }
     }
 
     public void transitionStreaming() {
         if (type == Type.CONSUMER) {
             // the consumer must first transition to the request/ack states before in progress
-            transition(TransferProcessStates.STREAMING, TransferProcessStates.REQUESTED_ACK);
+            transition(STREAMING, REQUESTED, STREAMING);
         } else {
             // the provider transitions from provisioned to in progress directly
-            transition(TransferProcessStates.STREAMING, TransferProcessStates.PROVISIONED);
+            transition(STREAMING, PROVISIONED, STREAMING);
         }
     }
 
     public void transitionCompleted() {
-        // consumers are in REQUESTED_ACK state after sending a request to the provider, they can directly transition to COMPLETED when the transfer is complete
-        transition(TransferProcessStates.COMPLETED, TransferProcessStates.COMPLETED, TransferProcessStates.IN_PROGRESS, TransferProcessStates.REQUESTED_ACK, TransferProcessStates.STREAMING);
+        // consumers are in REQUESTED state after sending a request to the provider, they can directly transition to COMPLETED when the transfer is complete
+        transition(COMPLETED, COMPLETED, IN_PROGRESS, REQUESTED, STREAMING);
     }
 
     public void transitionDeprovisioning() {
-        transition(TransferProcessStates.DEPROVISIONING, TransferProcessStates.COMPLETED, TransferProcessStates.DEPROVISIONING, TransferProcessStates.DEPROVISIONING_REQ);
+        transition(DEPROVISIONING, COMPLETED, DEPROVISIONING);
     }
 
     public void transitionDeprovisioned() {
-        transition(TransferProcessStates.DEPROVISIONED, TransferProcessStates.DEPROVISIONING, TransferProcessStates.DEPROVISIONING_REQ, TransferProcessStates.DEPROVISIONED);
+        transition(DEPROVISIONED, DEPROVISIONING, DEPROVISIONED);
     }
 
     public void transitionCancelled() {
         // alternatively we could take the ".values()" array, and remove disallowed once, but this
         // seems more explicit
         var allowedStates = new TransferProcessStates[]{
-                TransferProcessStates.UNSAVED, TransferProcessStates.INITIAL,
-                TransferProcessStates.PROVISIONING, TransferProcessStates.PROVISIONED,
-                TransferProcessStates.REQUESTED, TransferProcessStates.REQUESTED_ACK,
-                TransferProcessStates.IN_PROGRESS, TransferProcessStates.STREAMING,
-                TransferProcessStates.DEPROVISIONED, TransferProcessStates.DEPROVISIONING_REQ,
-                TransferProcessStates.DEPROVISIONING, TransferProcessStates.CANCELLED
+                UNSAVED, INITIAL,
+                PROVISIONING, PROVISIONED,
+                REQUESTED, REQUESTING,
+                IN_PROGRESS, STREAMING,
+                DEPROVISIONED, DEPROVISIONING,
+                CANCELLED
         };
-        transition(TransferProcessStates.CANCELLED, allowedStates);
+        transition(CANCELLED, allowedStates);
     }
-
-    /**
-     * Indicates that the transfer process is completed and that it should be deprovisioned
-     */
-    public void transitionDeprovisionRequested() {
-        transition(TransferProcessStates.DEPROVISIONING_REQ, TransferProcessStates.COMPLETED, TransferProcessStates.DEPROVISIONING_REQ);
-    }
-
 
     public void transitionEnded() {
-        transition(TransferProcessStates.ENDED, TransferProcessStates.DEPROVISIONED);
+        transition(ENDED, DEPROVISIONED);
     }
 
     public void transitionError(@Nullable String errorDetail) {
-        state = TransferProcessStates.ERROR.code();
         this.errorDetail = errorDetail;
+        state = ERROR.code();
         stateCount = 1;
         updateStateTimestamp();
     }
@@ -389,7 +396,7 @@ public class TransferProcess implements TraceCarrier {
 
         public TransferProcess build() {
             Objects.requireNonNull(process.id, "id");
-            if (process.state == TransferProcessStates.UNSAVED.code() && process.stateTimestamp == 0) {
+            if (process.state == UNSAVED.code() && process.stateTimestamp == 0) {
                 process.stateTimestamp = Instant.now().toEpochMilli();
             }
             if (process.resourceManifest != null) {

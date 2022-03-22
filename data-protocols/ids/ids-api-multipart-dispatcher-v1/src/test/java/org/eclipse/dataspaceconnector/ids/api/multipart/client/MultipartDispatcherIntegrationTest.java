@@ -37,7 +37,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.Multip
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -70,25 +70,26 @@ import static org.mockito.Mockito.when;
 
 class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherIntegrationTest {
     private static final String CONNECTOR_ID = UUID.randomUUID().toString();
-    private TransformerRegistry transformerRegistry;
+    private IdsTransformerRegistry transformerRegistry;
     private IdsMultipartRemoteMessageDispatcher multipartDispatcher;
 
     @BeforeEach
     void init() {
         Monitor monitor = mock(Monitor.class);
 
-        transformerRegistry = mock(TransformerRegistry.class);
+        transformerRegistry = mock(IdsTransformerRegistry.class);
 
         Vault vault = mock(Vault.class);
         var httpClient = testOkHttpClient();
 
         var idsWebhookAddress = "http://webhook";
+        var idsApiPath = "/api";
 
         multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
         multipartDispatcher.register(new MultipartDescriptionRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
-        multipartDispatcher.register(new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, vault, identityService, transformerRegistry, idsWebhookAddress));
-        multipartDispatcher.register(new MultipartContractOfferSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry, idsWebhookAddress));
-        multipartDispatcher.register(new MultipartContractAgreementSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry, idsWebhookAddress));
+        multipartDispatcher.register(new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, vault, identityService, transformerRegistry, idsWebhookAddress, idsApiPath));
+        multipartDispatcher.register(new MultipartContractOfferSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry, idsWebhookAddress, idsApiPath));
+        multipartDispatcher.register(new MultipartContractAgreementSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry, idsWebhookAddress, idsApiPath));
         multipartDispatcher.register(new MultipartContractRejectionSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartCatalogDescriptionRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
     }
@@ -245,6 +246,9 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         return new HashMap<>() {
             {
                 put("web.http.port", String.valueOf(getPort()));
+                put("web.http.path", "/api");
+                put("web.http.ids.port", String.valueOf(getIdsPort()));
+                put("web.http.ids.path", "/api/v1/ids");
                 put("edc.ids.id", "urn:connector:" + CONNECTOR_ID);
                 put("ids.webhook.address", "http://webhook");
             }

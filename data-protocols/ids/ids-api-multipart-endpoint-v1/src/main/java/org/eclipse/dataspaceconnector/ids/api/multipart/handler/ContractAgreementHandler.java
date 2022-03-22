@@ -21,7 +21,7 @@ import de.fraunhofer.iais.eis.Message;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
@@ -48,7 +48,7 @@ public class ContractAgreementHandler implements Handler {
     private final ObjectMapper objectMapper;
     private final String connectorId;
     private final ConsumerContractNegotiationManager negotiationManager;
-    private final TransformerRegistry transformerRegistry;
+    private final IdsTransformerRegistry transformerRegistry;
     private final AssetIndex assetIndex;
 
     public ContractAgreementHandler(
@@ -56,7 +56,7 @@ public class ContractAgreementHandler implements Handler {
             @NotNull String connectorId,
             @NotNull ObjectMapper objectMapper,
             @NotNull ConsumerContractNegotiationManager negotiationManager,
-            @NotNull TransformerRegistry transformerRegistry,
+            @NotNull IdsTransformerRegistry transformerRegistry,
             @NotNull AssetIndex assetIndex) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
@@ -82,7 +82,8 @@ public class ContractAgreementHandler implements Handler {
 
         de.fraunhofer.iais.eis.ContractAgreement contractAgreement;
         try {
-            var map = objectMapper.readValue(multipartRequest.getPayload(), new TypeReference<Map<String, Object>>() {});
+            var map = objectMapper.readValue(multipartRequest.getPayload(), new TypeReference<Map<String, Object>>() {
+            });
             map.remove("ids:contractEnd");
             map.remove("ids:contractStart");
             map.remove("ids:contractDate");

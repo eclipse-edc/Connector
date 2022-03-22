@@ -34,8 +34,16 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.edc.port }} 
+              containerPort: {{ .Values.edc.port }}
               protocol: TCP
+            - name: http-ids
+              containerPort: {{ .Values.edc.idsApi.port }}
+              protocol: TCP
+            {{ if .Values.edc.managementApi.enabled }}
+            - name: http-mgmt
+              containerPort: {{ .Values.edc.managementApi.port }}
+              protocol: TCP
+            {{ end }}
           envFrom:
             - configMapRef:
                 name: {{ include "dataspace-connector.fullname" . }}-envvars

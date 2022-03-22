@@ -25,8 +25,11 @@ import net.jodah.failsafe.Fallback;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument;
+import org.eclipse.dataspaceconnector.azure.cosmos.dialect.SqlStatement;
 import org.eclipse.dataspaceconnector.azure.cosmos.util.LeaseContext;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
@@ -38,8 +41,8 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static net.jodah.failsafe.Failsafe.with;
 
@@ -165,28 +168,16 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
-    public void createData(String processId, String key, Object data) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
+    public Stream<TransferProcess> findAll(QuerySpec querySpec) {
+        var statement = new SqlStatement<>(TransferProcessDocument.class);
+        var query = statement.where(querySpec.getFilterExpression())
+                .offset(querySpec.getOffset())
+                .limit(querySpec.getLimit())
+                .orderBy(querySpec.getSortField(), querySpec.getSortOrder() == SortOrder.ASC)
+                .getQueryAsSqlQuerySpec();
 
-    @Override
-    public void updateData(String processId, String key, Object data) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public void deleteData(String processId, String key) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public void deleteData(String processId, Set<String> keys) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public <T> T findData(Class<T> type, String processId, String resourceDefinitionId) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        var objects = failsafeExecutor.get(() -> cosmosDbApi.queryItems(query));
+        return objects.map(this::convertToDocument).map(TransferProcessDocument::getWrappedInstance);
     }
 
     private TransferProcessDocument convertToDocument(Object databaseDocument) {

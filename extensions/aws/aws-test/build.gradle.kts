@@ -20,14 +20,20 @@ plugins {
 
 val awsVersion: String by project
 val jupiterVersion: String by project
+val okHttpVersion: String by project
+val awaitility: String by project
+
 
 dependencies {
     api(project(":spi"))
 
-    testFixturesImplementation(project(":common:util"))
+    testFixturesImplementation(testFixtures(project(":common:util")))
 
     testFixturesApi("software.amazon.awssdk:s3:${awsVersion}")
 
+    // needed for MinIO health probe
+    testFixturesImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    testFixturesImplementation("org.awaitility:awaitility:${awaitility}")
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
 

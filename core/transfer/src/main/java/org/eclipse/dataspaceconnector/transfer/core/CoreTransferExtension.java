@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,11 +9,13 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
 package org.eclipse.dataspaceconnector.transfer.core;
 
+import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.command.BoundedCommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
@@ -53,10 +55,14 @@ import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessMana
  * Provides core data transfer services to the system.
  */
 @CoreExtension
-@Provides({StatusCheckerRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class, TransferProcessObservable.class,
-        DataOperatorRegistry.class, DataFlowManager.class, EndpointDataReferenceReceiverRegistry.class, EndpointDataReferenceTransformer.class})
+@Provides({StatusCheckerRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class,
+        TransferProcessObservable.class, DataOperatorRegistry.class, DataFlowManager.class, ProvisionManager.class,
+        EndpointDataReferenceReceiverRegistry.class, EndpointDataReferenceTransformer.class})
 public class CoreTransferExtension implements ServiceExtension {
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
+
+    @EdcSetting
+    private static final String TRANSFER_STATE_MACHINE_BATCH_SIZE = "edc.transfer.state-machine.batch-size";
 
     @Inject
     private TransferProcessStore transferProcessStore;
@@ -127,6 +133,7 @@ public class CoreTransferExtension implements ServiceExtension {
                 .commandRunner(new CommandRunner<>(registry, monitor))
                 .observable(observable)
                 .store(transferProcessStore)
+                .batchSize(context.getSetting(TRANSFER_STATE_MACHINE_BATCH_SIZE, 5))
                 .build();
 
         context.registerService(TransferProcessManager.class, processManager);

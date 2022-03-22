@@ -27,7 +27,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.exceptions.I
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -53,7 +53,7 @@ public class ContractRequestHandler implements Handler {
     private final ObjectMapper objectMapper;
     private final String connectorId;
     private final ProviderContractNegotiationManager negotiationManager;
-    private final TransformerRegistry transformerRegistry;
+    private final IdsTransformerRegistry transformerRegistry;
     private final AssetIndex assetIndex;
     private final IdsResponseMessageFactory responseMessageFactory;
 
@@ -62,9 +62,9 @@ public class ContractRequestHandler implements Handler {
             @NotNull String connectorId,
             @NotNull ObjectMapper objectMapper,
             @NotNull ProviderContractNegotiationManager negotiationManager,
-            @NotNull TransformerRegistry transformerRegistry,
-            @NotNull AssetIndex assetIndex,
-            @NotNull IdsResponseMessageFactory responseMessageFactory) {
+            @NotNull IdsResponseMessageFactory responseMessageFactory,
+            @NotNull IdsTransformerRegistry transformerRegistry,
+            @NotNull AssetIndex assetIndex) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
         this.objectMapper = Objects.requireNonNull(objectMapper);

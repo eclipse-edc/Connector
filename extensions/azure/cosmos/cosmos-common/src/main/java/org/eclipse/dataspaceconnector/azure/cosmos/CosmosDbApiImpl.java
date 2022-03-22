@@ -32,6 +32,7 @@ import com.azure.cosmos.models.SqlParameter;
 import com.azure.cosmos.models.SqlQuerySpec;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
 import org.jetbrains.annotations.NotNull;
@@ -120,7 +121,7 @@ public class CosmosDbApiImpl implements CosmosDbApi {
     }
 
     @Override
-    public void deleteItem(String id) {
+    public Object deleteItem(String id) {
 
         // we need to query the item first, because delete-by-id requires a partition key, which we might not have available here
         var item = queryItemById(id);
@@ -128,10 +129,11 @@ public class CosmosDbApiImpl implements CosmosDbApi {
             throw new NotFoundException("An object with the ID " + id + " could not be found!");
         }
         try {
-            container.deleteItem(item, itemRequestOptions).getItem();
+            container.deleteItem(item, itemRequestOptions);
         } catch (CosmosException e) {
-            throw new EdcException(e);
+            throw new EdcPersistenceException(e);
         }
+        return item;
     }
 
     @Override

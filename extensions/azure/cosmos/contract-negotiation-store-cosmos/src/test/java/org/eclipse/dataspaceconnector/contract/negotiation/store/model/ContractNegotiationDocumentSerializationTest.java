@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -23,9 +23,8 @@ import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunc
 
 class ContractNegotiationDocumentSerializationTest {
 
-    private TypeManager typeManager;
     private final String partitionKey = "test-connector-partition";
-
+    private TypeManager typeManager;
 
     @BeforeEach
     void setup() {

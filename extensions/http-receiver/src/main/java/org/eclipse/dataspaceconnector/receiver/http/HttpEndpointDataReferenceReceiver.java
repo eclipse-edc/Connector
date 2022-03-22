@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import static java.lang.String.format;
 import static net.jodah.failsafe.Failsafe.with;
 import static org.eclipse.dataspaceconnector.common.string.StringUtils.isNullOrBlank;
 
@@ -63,11 +64,11 @@ public class HttpEndpointDataReferenceReceiver implements EndpointDataReferenceR
             if (response.isSuccessful()) {
                 var body = response.body();
                 if (body == null) {
-                    throw new EdcException(String.format("Received empty response body when receiving endpoint data reference with id: %s", edr.getCorrelationId()));
+                    throw new EdcException(format("Received empty response body when receiving endpoint data reference at uri: %s", endpoint));
                 }
                 return CompletableFuture.completedFuture(Result.success());
             } else {
-                throw new EdcException(String.format("Received error code %s when transferring endpoint data reference with id: %s", response.code(), edr.getCorrelationId()));
+                throw new EdcException(format("Received error code %s when transferring endpoint data reference at uri: %s", response.code(), endpoint));
             }
         }
     }

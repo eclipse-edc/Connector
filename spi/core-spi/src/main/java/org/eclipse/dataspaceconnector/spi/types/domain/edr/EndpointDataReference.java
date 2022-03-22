@@ -16,76 +16,70 @@
 package org.eclipse.dataspaceconnector.spi.types.domain.edr;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
- * Describes an endpoint to target in order to access a specific data.
+ * Describes an endpoint serving data.
  */
 @JsonDeserialize(builder = EndpointDataReference.Builder.class)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class EndpointDataReference {
 
-    private final String correlationId;
-    private final String contractId;
-    private final String address;
+    private final String id;
+    private final String endpoint;
     private final String authKey;
     private final String authCode;
-    private final Long expirationEpochSeconds;
+    private final Map<String, String> properties;
 
-    private EndpointDataReference(@NotNull String correlationId,
-                                  @NotNull String contractId,
-                                  @NotNull String address,
-                                  @NotNull String authKey,
-                                  @NotNull String authCode,
-                                  Long expirationEpochSeconds) {
-        this.correlationId = correlationId;
-        this.contractId = contractId;
-        this.address = address;
+    private EndpointDataReference(String id, String endpoint, String authKey, String authCode, Map<String, String> properties) {
+        this.id = id;
+        this.endpoint = endpoint;
         this.authKey = authKey;
         this.authCode = authCode;
-        this.expirationEpochSeconds = expirationEpochSeconds;
+        this.properties = properties;
     }
 
     @NotNull
-    public String getCorrelationId() {
-        return correlationId;
+    public String getId() {
+        return id;
     }
 
     @NotNull
-    public String getContractId() {
-        return contractId;
+    public String getEndpoint() {
+        return endpoint;
     }
 
-    @NotNull
-    public String getAddress() {
-        return address;
-    }
-
-    @NotNull
+    @Nullable
     public String getAuthKey() {
         return authKey;
     }
 
-    @NotNull
+    @Nullable
     public String getAuthCode() {
         return authCode;
     }
 
-    public Long getExpirationEpochSeconds() {
-        return expirationEpochSeconds;
+    @NotNull
+    public Map<String, String> getProperties() {
+        return properties;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private String correlationId;
-        private String contractId;
-        private String address;
+        private String id = UUID.randomUUID().toString();
+        private String endpoint;
         private String authKey;
         private String authCode;
-        private Long expirationEpochSeconds;
+        private final Map<String, String> properties = new HashMap<>();
 
         private Builder() {
         }
@@ -95,44 +89,40 @@ public class EndpointDataReference {
             return new EndpointDataReference.Builder();
         }
 
-        public EndpointDataReference.Builder correlationId(String correlationId) {
-            this.correlationId = correlationId;
+        public EndpointDataReference.Builder id(String id) {
+            this.id = id;
             return this;
         }
 
-        public EndpointDataReference.Builder contractId(String contractId) {
-            this.contractId = contractId;
+        public EndpointDataReference.Builder endpoint(String address) {
+            this.endpoint = address;
             return this;
         }
 
-        public EndpointDataReference.Builder address(String address) {
-            this.address = address;
+        public EndpointDataReference.Builder authKey(String authKey) {
+            this.authKey = authKey;
             return this;
         }
 
-        public EndpointDataReference.Builder authKey(String apiKey) {
-            this.authKey = apiKey;
+        public EndpointDataReference.Builder authCode(String authCode) {
+            this.authCode = authCode;
             return this;
         }
 
-        public EndpointDataReference.Builder authCode(String apiCode) {
-            this.authCode = apiCode;
-            return this;
-        }
-
-        public EndpointDataReference.Builder expirationEpochSeconds(Long expirationEpochSeconds) {
-            this.expirationEpochSeconds = expirationEpochSeconds;
+        public EndpointDataReference.Builder properties(Map<String, String> properties) {
+            this.properties.putAll(properties);
             return this;
         }
 
         public EndpointDataReference build() {
-            Objects.requireNonNull(correlationId, "correlationId");
-            Objects.requireNonNull(contractId, "contractId");
-            Objects.requireNonNull(address, "address");
-            Objects.requireNonNull(authKey, "authKey");
-            Objects.requireNonNull(authCode, "authCode");
-
-            return new EndpointDataReference(correlationId, contractId, address, authKey, authCode, expirationEpochSeconds);
+            Objects.requireNonNull(endpoint, "endpoint");
+            if (authKey != null) {
+                Objects.requireNonNull(authCode, "authCode");
+            }
+            if (authCode != null) {
+                Objects.requireNonNull(authKey, "authKey");
+            }
+            return new EndpointDataReference(id, endpoint, authKey, authCode, properties);
         }
     }
 }

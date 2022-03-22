@@ -19,6 +19,7 @@ plugins {
 dependencies {
     api(project(":extensions:api:api-core"))
     api(project(":extensions:api:data-management:contractdefinition"))
+    api(project(":extensions:api:data-management:contractagreement"))
     api(project(":extensions:api:data-management:transferprocess"))
     api(project(":extensions:api:data-management:contractnegotiation"))
     api(project(":extensions:api:data-management:policydefinition"))

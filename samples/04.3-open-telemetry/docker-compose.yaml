@@ -15,7 +15,11 @@ services:
       - ../:/samples
     ports:
       - 9191:8181
-    entrypoint: java -javaagent:/samples/04.3-open-telemetry/opentelemetry-javaagent.jar -jar /samples/04.3-open-telemetry/consumer/build/libs/consumer.jar
+      - 9192:8182
+    entrypoint: java
+      -javaagent:/samples/04.3-open-telemetry/opentelemetry-javaagent.jar
+      -Dedc.fs.config=/samples/04.3-open-telemetry/consumer/config.properties
+      -jar /samples/04.3-open-telemetry/consumer/build/libs/consumer.jar
 
   provider:
     image: openjdk:11-jre-slim-buster
@@ -28,7 +32,11 @@ services:
       - ../:/samples
     ports:
       - 8181:8181
-    entrypoint: java -javaagent:/samples/04.3-open-telemetry/opentelemetry-javaagent.jar -jar /samples/04.0-file-transfer/provider/build/libs/provider.jar
+      - 8182:8182
+    entrypoint: java
+      -javaagent:/samples/04.3-open-telemetry/opentelemetry-javaagent.jar
+      -Dedc.fs.config=/samples/04.0-file-transfer/provider/config.properties
+      -jar /samples/04.0-file-transfer/provider/build/libs/provider.jar
 
   jaeger:
     image: jaegertracing/all-in-one

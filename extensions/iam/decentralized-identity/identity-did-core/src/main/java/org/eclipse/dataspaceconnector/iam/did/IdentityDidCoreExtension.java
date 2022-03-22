@@ -17,8 +17,8 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.ECKey;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.EcPrivateKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubApiController;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubClientImpl;
-import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubController;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubImpl;
 import org.eclipse.dataspaceconnector.iam.did.resolution.DidPublicKeyResolverImpl;
 import org.eclipse.dataspaceconnector.iam.did.resolution.DidResolverRegistryImpl;
@@ -49,14 +49,6 @@ public class IdentityDidCoreExtension implements ServiceExtension {
     @Inject
     private WebService webService;
 
-    public IdentityDidCoreExtension() {
-    }
-
-    public IdentityDidCoreExtension(IdentityHubStore hubStore, WebService webService) {
-        this.hubStore = hubStore;
-        this.webService = webService;
-    }
-
     @Override
     public String name() {
         return "Identity Did Core";
@@ -81,7 +73,7 @@ public class IdentityDidCoreExtension implements ServiceExtension {
         var hub = new IdentityHubImpl(hubStore, supplier, publicKeyResolver, objectMapper);
         context.registerService(IdentityHub.class, hub);
 
-        var controller = new IdentityHubController(hub);
+        var controller = new IdentityHubApiController(hub);
         webService.registerResource(controller);
 
         // contribute to the liveness probe

@@ -23,7 +23,7 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -43,19 +43,22 @@ import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_AD
 public class MultipartContractAgreementSender extends IdsMultipartSender<ContractAgreementRequest, MultipartMessageProcessedResponse> {
 
     private final String idsWebhookAddress;
-    private final TransformerRegistry transformerRegistry;
+    private final String idsApiPath;
+    private final IdsTransformerRegistry transformerRegistry;
 
     public MultipartContractAgreementSender(@NotNull String connectorId,
                                             @NotNull OkHttpClient httpClient,
                                             @NotNull ObjectMapper objectMapper,
                                             @NotNull Monitor monitor,
                                             @NotNull IdentityService identityService,
-                                            @NotNull TransformerRegistry transformerRegistry,
-                                            @NotNull String idsWebhookAddress) {
+                                            @NotNull IdsTransformerRegistry transformerRegistry,
+                                            @NotNull String idsWebhookAddress,
+                                            @NotNull String idsApiPath) {
         super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
 
         this.transformerRegistry = transformerRegistry;
         this.idsWebhookAddress = idsWebhookAddress;
+        this.idsApiPath = idsApiPath;
     }
 
     @Override
@@ -86,7 +89,8 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 ._transferContract_(URI.create(request.getCorrelationId()))
                 .build();
-        message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + "/api/ids/multipart");
+        var path = idsApiPath + (idsApiPath.endsWith("/") ? "data" : "/data");
+        message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + path);
 
         return message;
     }

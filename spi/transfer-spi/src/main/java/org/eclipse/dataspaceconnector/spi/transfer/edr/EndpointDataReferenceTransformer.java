@@ -6,5 +6,5 @@ import org.jetbrains.annotations.NotNull;
 
 @FunctionalInterface
 public interface EndpointDataReferenceTransformer {
-    Result<EndpointDataReference> execute(@NotNull EndpointDataReference edr);
+    Result<EndpointDataReference> transform(@NotNull EndpointDataReference edr);
 }

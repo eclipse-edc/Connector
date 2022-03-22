@@ -15,10 +15,9 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.LeftOperand;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Expression;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
-import org.junit.jupiter.api.AfterEach;
+import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,11 +34,9 @@ import static org.mockito.Mockito.mock;
 
 class IdsLeftOperandToExpressionTransformerTest {
 
+    private final LeftOperand leftOperand = LeftOperand.PURPOSE;
     // subject
     private IdsLeftOperandToExpressionTransformer transformer;
-
-    private final LeftOperand leftOperand = LeftOperand.PURPOSE;
-
     // mocks
     private TransformerContext context;
 

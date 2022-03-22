@@ -247,7 +247,7 @@ ClassLoaderWithGradleClasspathTest > transferFile_success() STANDARD_OUT
     DEBUG 2022-02-03T17:19:53.744268 [Consumer] ContractNegotiation aa9a36be-af41-4da4-b198-711389690558 is now in state CONFIRMED.
     DEBUG 2022-02-03T17:19:53.748143 Response received from connector. Status 200
     DEBUG 2022-02-03T17:19:53.754331 [Provider] ContractNegotiation f8b7bb63-cdb3-4c17-8969-aaa0b868d5b3 is now in state CONFIRMED.
-    INFO 2022-02-03T17:19:53.831271 Received request for file test-document against provider http://localhost:8181/api/ids/multipart
+    INFO 2022-02-03T17:19:53.831271 Received request for file test-document against provider http://localhost:8181/api/v1/ids/data
     DEBUG 2022-02-03T17:19:57.647989 Response received from connector. Status 200
     INFO 2022-02-03T17:19:57.650468 Object received: org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse@4eeb3196
     INFO 2022-02-03T17:19:58.687893 Copying data from File to File

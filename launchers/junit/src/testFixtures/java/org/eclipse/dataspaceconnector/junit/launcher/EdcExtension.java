@@ -45,14 +45,15 @@ import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
 
 /**
  * A JUnit extension for running an embedded EDC runtime as part of a test fixture.
- * This extension attaches a EDC runtime to the {@link BeforeTestExecutionCallback} and {@link AfterTestExecutionCallback} lifecycle hooks. Parameter injection of runtime services is supported.
+ * This extension attaches an EDC runtime to the {@link BeforeTestExecutionCallback} and {@link AfterTestExecutionCallback} lifecycle hooks. Parameter injection of runtime services is supported.
+ * <p>
+ * If only basic dependency injection is needed, use {@link DependencyInjectionExtension} instead.
  */
 public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver {
     private final LinkedHashMap<Class<?>, Object> serviceMocks = new LinkedHashMap<>();
     private final LinkedHashMap<Class<? extends SystemExtension>, List<SystemExtension>> systemExtensions = new LinkedHashMap<>();
     private List<ServiceExtension> runningServiceExtensions;
     private DefaultServiceExtensionContext context;
-    private Monitor monitor;
 
     /**
      * Registers a mock service with the runtime.
@@ -77,8 +78,9 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
 
     @Override
     public void afterTestExecution(ExtensionContext context) throws Exception {
+        // TODO: this shutdown is duplicated but it's necessary to DataPlaneHttpIntegrationTests, needs to be fixed
         if (runningServiceExtensions != null) {
-            shutdown(runningServiceExtensions, monitor);
+            shutdown(runningServiceExtensions, getMonitor());
         }
 
         // clear the systemExtensions map to prevent it from piling up between subsequent runs
@@ -100,7 +102,6 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
     @Override
     protected void initializeContext(ServiceExtensionContext context) {
         serviceMocks.forEach((key, value) -> context.registerService(cast(key), value));
-        this.monitor = context.getMonitor();
         super.initializeContext(context);
     }
 

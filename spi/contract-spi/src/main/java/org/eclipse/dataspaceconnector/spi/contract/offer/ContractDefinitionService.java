@@ -14,7 +14,8 @@
 
 package org.eclipse.dataspaceconnector.spi.contract.offer;
 
-import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyScope;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,6 +28,9 @@ import java.util.stream.Stream;
  * A runtime extension may implement custom logic to determine which contract definitions are returned.
  */
 public interface ContractDefinitionService {
+
+    @PolicyScope
+    String NEGOTIATION_SCOPE = "contract.negotiation";
 
     /**
      * Returns the definitions for the given participant agent.

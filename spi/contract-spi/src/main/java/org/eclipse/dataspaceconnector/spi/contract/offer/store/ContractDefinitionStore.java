@@ -62,11 +62,11 @@ public interface ContractDefinitionStore {
     /**
      * Deletes the definition with the given id.
      */
-    void delete(String id);
+    ContractDefinition deleteById(String id);
 
     /**
-     * Signals the store should reload its internal cache if updates were may. If the implementation does not implement caching, this method will do nothing.
+     * Signals the store should reload its internal cache if updates were made. If the implementation does not implement caching, this method will do nothing.
      */
-    void reload();
+    default void reload() {}
 
 }

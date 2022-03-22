@@ -27,8 +27,6 @@ import java.util.UUID;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING_REQ;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -78,12 +76,12 @@ class TransferProcessTest {
         process.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
         process.transitionProvisioned();
 
+        process.transitionRequesting();
         process.transitionRequested();
 
         // test illegal transition
         assertThrows(IllegalStateException.class, process::transitionEnded);
 
-        process.transitionRequestAck();
         process.transitionInProgress();
         process.transitionCompleted();
 
@@ -162,16 +160,6 @@ class TransferProcessTest {
         builder.state(state.code());
         var tp = builder.build();
         assertThatThrownBy(tp::transitionCancelled).isInstanceOf(IllegalStateException.class);
-    }
-
-    @Test
-    @DisplayName("Should pass from deprovisioning request to deprovisioning")
-    void deprovisioningChangeState() {
-        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(DEPROVISIONING_REQ.code()).build();
-
-        process.transitionDeprovisioning();
-
-        assertThat(process.getState()).isEqualTo(DEPROVISIONING.code());
     }
 
     @Test

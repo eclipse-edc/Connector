@@ -23,7 +23,6 @@ import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import org.apache.http.HttpStatus;
 import org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema;
-import org.eclipse.dataspaceconnector.dataplane.spi.schema.HttpDataSchema;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore.State;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcRuntimeExtension;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
@@ -56,6 +55,11 @@ import static org.awaitility.Awaitility.await;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures.createDataAddress;
 import static org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures.createRequest;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.NAME;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.exactly;
@@ -135,29 +139,16 @@ public class DataPlaneHttpIntegrationTests {
     }
 
     @Test
-    public void transfer_success() {
+    void transfer_success() {
         // Arrange
-        // HTTP Source Request & Response
         var body = FAKER.internet().uuid();
         var processId = FAKER.internet().uuid();
-        httpSourceClientAndServer
-                .when(
-                        getRequest(),
-                        once()
-                )
-                .respond(
-                        withResponse(HttpStatusCode.OK_200, body)
-                );
+        httpSourceClientAndServer.when(getRequest(), once())
+                .respond(withResponse(HttpStatusCode.OK_200, body));
 
         // HTTP Sink Request & Response
-        httpSinkClientAndServer
-                .when(
-                        postRequest(body),
-                        once()
-                )
-                .respond(
-                        withResponse()
-                );
+        httpSinkClientAndServer.when(postRequest(body), once())
+                .respond(withResponse());
 
         // Act & Assert
         // Initiate transfer
@@ -181,7 +172,7 @@ public class DataPlaneHttpIntegrationTests {
     }
 
     @Test
-    public void transfer_WithSourceQueryParams_Success() {
+    void transfer_WithSourceQueryParams_Success() {
         // Arrange
         // HTTP Source Request & Response
         var body = FAKER.internet().uuid();
@@ -191,24 +182,12 @@ public class DataPlaneHttpIntegrationTests {
                 FAKER.lorem().word(), FAKER.lorem().word()
         );
 
-        httpSourceClientAndServer
-                .when(
-                        getRequest(queryParams),
-                        once()
-                )
-                .respond(
-                        withResponse(HttpStatusCode.OK_200, body)
-                );
+        httpSourceClientAndServer.when(getRequest(queryParams), once())
+                .respond(withResponse(HttpStatusCode.OK_200, body));
 
         // HTTP Sink Request & Response
-        httpSinkClientAndServer
-                .when(
-                        postRequest(body),
-                        once()
-                )
-                .respond(
-                        withResponse()
-                );
+        httpSinkClientAndServer.when(postRequest(body), once())
+                .respond(withResponse());
 
         // Act & Assert
         // Initiate transfer
@@ -235,7 +214,7 @@ public class DataPlaneHttpIntegrationTests {
      * Verify DPF transfer api layer validation is working as expected.
      */
     @Test
-    public void transfer_invalidInput_failure() {
+    void transfer_invalidInput_failure() {
         // Arrange
         // Request without processId to initiate transfer.
         var processId = FAKER.internet().uuid();
@@ -253,17 +232,12 @@ public class DataPlaneHttpIntegrationTests {
     }
 
     @Test
-    public void transfer_sourceNotAvailable_noInteractionWithSink() {
+    void transfer_sourceNotAvailable_noInteractionWithSink() {
         // Arrange
         var processId = FAKER.internet().uuid();
         // HTTP Source Request & Error Response
-        httpSourceClientAndServer
-                .when(
-                        getRequest()
-                )
-                .error(
-                        withDropConnection()
-                );
+        httpSourceClientAndServer.when(getRequest())
+                .error(withDropConnection());
 
         // Initiate transfer
         initiateTransfer(transferRequestPayload(processId));
@@ -285,39 +259,21 @@ public class DataPlaneHttpIntegrationTests {
      * Validate if intermittently source is dropping connection than DPF server retries to fetch data.
      */
     @Test
-    public void transfer_sourceTemporaryDropConnection_success() {
+    void transfer_sourceTemporaryDropConnection_success() {
         // Arrange
         var processId = FAKER.internet().uuid();
         // First two calls to HTTP Source returns a failure response.
-        httpSourceClientAndServer
-                .when(
-                        getRequest(),
-                        exactly(2)
-                )
-                .error(
-                        withDropConnection()
-                );
+        httpSourceClientAndServer.when(getRequest(), exactly(2))
+                .error(withDropConnection());
 
         // Next call to HTTP Source returns a valid response.
         var body = FAKER.internet().uuid();
-        httpSourceClientAndServer
-                .when(
-                        getRequest(),
-                        once()
-                )
-                .respond(
-                        withResponse(HttpStatusCode.OK_200, body)
-                );
+        httpSourceClientAndServer.when(getRequest(), once())
+                .respond(withResponse(HttpStatusCode.OK_200, body));
 
         // HTTP Sink Request & Response
-        httpSinkClientAndServer
-                .when(
-                        postRequest(body),
-                        once()
-                )
-                .respond(
-                        withResponse()
-                );
+        httpSinkClientAndServer.when(postRequest(body), once())
+                .respond(withResponse());
 
         // Act & Assert
         // Initiate transfer
@@ -343,38 +299,20 @@ public class DataPlaneHttpIntegrationTests {
      * Validate if intermittently sink is dropping connection than DPF server doesn't retry to deliver data.
      */
     @Test
-    public void transfer_sinkTemporaryDropsConnection_noRetry() {
+    void transfer_sinkTemporaryDropsConnection_noRetry() {
         // Arrange
         // HTTP Source Request & Response
         var body = FAKER.internet().uuid();
         var processId = FAKER.internet().uuid();
-        httpSourceClientAndServer
-                .when(
-                        getRequest(),
-                        once()
-                )
-                .respond(
-                        withResponse(HttpStatusCode.OK_200, body)
-                );
+        httpSourceClientAndServer.when(getRequest(), once())
+                .respond(withResponse(HttpStatusCode.OK_200, body));
 
         // First two calls to HTTP sink drops the connection.
-        httpSinkClientAndServer
-                .when(
-                        postRequest(body),
-                        exactly(2)
-                )
-                .error(
-                        withDropConnection()
-                );
+        httpSinkClientAndServer.when(postRequest(body), exactly(2))
+                .error(withDropConnection());
         // Next call to HTTP sink returns a valid response.
-        httpSinkClientAndServer
-                .when(
-                        postRequest(body),
-                        once()
-                )
-                .respond(
-                        withResponse()
-                );
+        httpSinkClientAndServer.when(postRequest(body), once())
+                .respond(withResponse());
 
         // Act & Assert
         // Initiate transfer
@@ -420,8 +358,6 @@ public class DataPlaneHttpIntegrationTests {
 
         var requestProperties = new HashMap<String, String>();
         requestProperties.put(DataFlowRequestSchema.METHOD, HttpMethod.GET.name());
-        requestProperties.put(HttpDataSchema.AUTHENTICATION_KEY, AUTH_HEADER_KEY);
-        requestProperties.put(HttpDataSchema.AUTHENTICATION_CODE, SOURCE_AUTH_VALUE);
 
         if (!queryParams.isEmpty()) {
             requestProperties.put(DataFlowRequestSchema.QUERY_PARAMS, queryParams.entrySet()
@@ -431,18 +367,20 @@ public class DataPlaneHttpIntegrationTests {
         }
 
         var sourceDataAddress = createDataAddress(
-                HttpDataSchema.TYPE,
+                TYPE,
                 Map.of(
-                        HttpDataSchema.ENDPOINT, DPF_HTTP_SOURCE_API_HOST,
-                        HttpDataSchema.NAME, DPF_HTTP_API_PART_NAME
+                        ENDPOINT, DPF_HTTP_SOURCE_API_HOST,
+                        NAME, DPF_HTTP_API_PART_NAME,
+                        AUTHENTICATION_KEY, AUTH_HEADER_KEY,
+                        AUTHENTICATION_CODE, SOURCE_AUTH_VALUE
                 )).build();
 
         var destinationDataAddress = createDataAddress(
-                HttpDataSchema.TYPE,
+                TYPE,
                 Map.of(
-                        HttpDataSchema.ENDPOINT, DPF_HTTP_SINK_API_HOST,
-                        HttpDataSchema.AUTHENTICATION_KEY, AUTH_HEADER_KEY,
-                        HttpDataSchema.AUTHENTICATION_CODE, SINK_AUTH_VALUE
+                        ENDPOINT, DPF_HTTP_SINK_API_HOST,
+                        AUTHENTICATION_KEY, AUTH_HEADER_KEY,
+                        AUTHENTICATION_CODE, SINK_AUTH_VALUE
                 )).build();
 
         // Create valid dataflow request instance.
@@ -524,7 +462,7 @@ public class DataPlaneHttpIntegrationTests {
 
         return request
                 .withMethod(HttpMethod.GET.name())
-                .withHeader(new Header(AUTH_HEADER_KEY, SOURCE_AUTH_VALUE))
+                .withHeader(AUTH_HEADER_KEY, SOURCE_AUTH_VALUE)
                 .withPath("/" + DPF_HTTP_API_PART_NAME);
     }
 

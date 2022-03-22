@@ -87,7 +87,7 @@ public class ConsumerApiController {
         } catch (IllegalStateException ex) {
             monitor.severe(ex.getMessage());
             return Response.status(400).entity("The process must be in one of these states: " +
-                    String.join(", ", TransferProcessStates.IN_PROGRESS.name(), TransferProcessStates.REQUESTED_ACK.name(), TransferProcessStates.COMPLETED.name(), TransferProcessStates.STREAMING.name())).build();
+                    String.join(", ", TransferProcessStates.IN_PROGRESS.name(), TransferProcessStates.REQUESTED.name(), TransferProcessStates.COMPLETED.name(), TransferProcessStates.STREAMING.name())).build();
         }
     }
 

@@ -17,9 +17,9 @@ package org.eclipse.dataspaceconnector.dataplane.api.validation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
-import org.eclipse.dataspaceconnector.spi.iam.TokenValidationService;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.io.IOException;
@@ -46,14 +46,20 @@ public class RemoteTokenValidationService implements TokenValidationService {
         var token = tokenRepresentation.getToken();
         var request = new Request.Builder().url(remoteValidationEndpoint).header(AUTHORIZATION_HEADER, token).get().build();
         try (var response = httpClient.newCall(request).execute()) {
+            String stringBody = null;
+            var body = response.body();
+            if (body != null) {
+                stringBody = body.string();
+            }
+
             if (response.isSuccessful()) {
-                var body = response.body();
-                if (body == null) {
+                if (stringBody == null) {
                     return Result.failure("Received null body from validation server");
                 }
-                return Result.success(mapper.readValue(body.string(), ClaimToken.class));
+                return Result.success(mapper.readValue(stringBody, ClaimToken.class));
+            } else {
+                return Result.failure(String.format("Call to validation facade was not successful: %s - %s. %s", response.code(), response.message(), stringBody));
             }
-            return Result.failure(String.format("Call to validation facade was not successful: %s - %s", response.code(), response.message()));
         } catch (IOException e) {
             return Result.failure("Unhandled exception occurred when calling validation server: " + e.getMessage());
         }

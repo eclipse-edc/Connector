@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessage;
+import org.eclipse.dataspaceconnector.ids.api.configuration.IdsApiConfiguration;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ArtifactRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractAgreementHandler;
@@ -44,7 +45,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.WebService;
@@ -90,7 +91,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     @Inject
     private AssetIndex assetIndex;
     @Inject
-    private TransformerRegistry transformerRegistry;
+    private IdsTransformerRegistry transformerRegistry;
     @Inject
     private ContractOfferService contractOfferService;
     @Inject
@@ -107,6 +108,8 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     private EndpointDataReferenceReceiverRegistry endpointDataReferenceReceiverRegistry;
     @Inject
     private EndpointDataReferenceTransformer endpointDataReferenceTransformer;
+    @Inject
+    private IdsApiConfiguration idsApiConfiguration;
 
     @Override
     public String name() {
@@ -163,7 +166,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
         // create contract message handlers
         var responseMessageFactory = new IdsResponseMessageFactory(connectorId, identityService);
-        handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager, transformerRegistry, assetIndex, responseMessageFactory));
+        handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager, responseMessageFactory, transformerRegistry, assetIndex));
         handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager, transformerRegistry, assetIndex));
         handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper, providerNegotiationManager, consumerNegotiationManager, responseMessageFactory));
         handlers.add(new ContractRejectionHandler(monitor, connectorId, providerNegotiationManager, consumerNegotiationManager));
@@ -176,7 +179,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
         // create & register controller
         var multipartController = new MultipartController(monitor, connectorId, objectMapper, identityService, handlers);
-        webService.registerResource(multipartController);
+        webService.registerResource(idsApiConfiguration.getContextAlias(), multipartController);
     }
 
     private String resolveConnectorId(@NotNull ServiceExtensionContext context) {

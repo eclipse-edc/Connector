@@ -28,7 +28,7 @@ Create a `request.json` file and add the content below.
   "edctype": "dataspaceconnector:datarequest",
   "id": null,
   "processId": null,
-  "connectorAddress": "http://localhost:8181/api/ids/multipart",
+  "connectorAddress": "http://localhost:8181/api/v1/ids/data",
   "protocol": "ids-multipart",
   "connectorId": "consumer",
   "assetId": "1",

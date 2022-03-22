@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Microsoft Corporation
+ *  Copyright (c) 2021 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 package org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation;
@@ -37,11 +38,15 @@ import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMING;
-import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMING_SENT;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONSUMER_APPROVED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONSUMER_APPROVING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONSUMER_OFFERED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONSUMER_OFFERING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.DECLINED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.DECLINING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.INITIAL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.PROVIDER_OFFERED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.PROVIDER_OFFERING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.UNSAVED;
@@ -216,7 +221,7 @@ public class ContractNegotiation implements TraceCarrier {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no REQUESTING state");
         }
-        transition(ContractNegotiationStates.REQUESTING, ContractNegotiationStates.REQUESTING, INITIAL);
+        transition(REQUESTING, REQUESTING, INITIAL);
     }
 
     /**
@@ -226,7 +231,7 @@ public class ContractNegotiation implements TraceCarrier {
         if (Type.PROVIDER == type) {
             transition(REQUESTED, UNSAVED);
         } else {
-            transition(REQUESTED, REQUESTED, ContractNegotiationStates.REQUESTING);
+            transition(REQUESTED, REQUESTED, REQUESTING);
         }
     }
 
@@ -235,9 +240,9 @@ public class ContractNegotiation implements TraceCarrier {
      */
     public void transitionOffering() {
         if (Type.CONSUMER == type) {
-            transition(ContractNegotiationStates.CONSUMER_OFFERING, REQUESTED);
+            transition(CONSUMER_OFFERING, CONSUMER_OFFERING, REQUESTED);
         } else {
-            transition(ContractNegotiationStates.PROVIDER_OFFERING, ContractNegotiationStates.PROVIDER_OFFERING, PROVIDER_OFFERED, REQUESTED);
+            transition(PROVIDER_OFFERING, PROVIDER_OFFERING, PROVIDER_OFFERED, REQUESTED);
         }
     }
 
@@ -247,9 +252,9 @@ public class ContractNegotiation implements TraceCarrier {
      */
     public void transitionOffered() {
         if (Type.CONSUMER == type) {
-            transition(CONSUMER_OFFERED, PROVIDER_OFFERED, ContractNegotiationStates.CONSUMER_OFFERING);
+            transition(CONSUMER_OFFERED, PROVIDER_OFFERED, CONSUMER_OFFERING);
         } else {
-            transition(PROVIDER_OFFERED, PROVIDER_OFFERED, ContractNegotiationStates.PROVIDER_OFFERING);
+            transition(PROVIDER_OFFERED, PROVIDER_OFFERED, PROVIDER_OFFERING);
         }
     }
 
@@ -260,7 +265,7 @@ public class ContractNegotiation implements TraceCarrier {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no CONSUMER_APPROVING state");
         }
-        transition(ContractNegotiationStates.CONSUMER_APPROVING, ContractNegotiationStates.CONSUMER_APPROVING, CONSUMER_OFFERED, REQUESTED);
+        transition(CONSUMER_APPROVING, CONSUMER_APPROVING, CONSUMER_OFFERED, REQUESTED);
     }
 
     /**
@@ -270,7 +275,7 @@ public class ContractNegotiation implements TraceCarrier {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no CONSUMER_APPROVED state");
         }
-        transition(CONSUMER_APPROVED, CONSUMER_APPROVED, ContractNegotiationStates.CONSUMER_APPROVING, PROVIDER_OFFERED);
+        transition(CONSUMER_APPROVED, CONSUMER_APPROVED, CONSUMER_APPROVING, PROVIDER_OFFERED);
     }
 
     /**
@@ -278,9 +283,9 @@ public class ContractNegotiation implements TraceCarrier {
      */
     public void transitionDeclining() {
         if (Type.CONSUMER == type) {
-            transition(ContractNegotiationStates.DECLINING, ContractNegotiationStates.DECLINING, REQUESTED, CONSUMER_OFFERED, CONSUMER_APPROVED);
+            transition(DECLINING, DECLINING, REQUESTED, CONSUMER_OFFERED, CONSUMER_APPROVED);
         } else {
-            transition(ContractNegotiationStates.DECLINING, ContractNegotiationStates.DECLINING, REQUESTED, PROVIDER_OFFERED, CONSUMER_APPROVED);
+            transition(DECLINING, DECLINING, REQUESTED, PROVIDER_OFFERED, CONSUMER_APPROVED);
         }
     }
 
@@ -289,9 +294,9 @@ public class ContractNegotiation implements TraceCarrier {
      */
     public void transitionDeclined() {
         if (Type.CONSUMER == type) {
-            transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.DECLINING, CONSUMER_OFFERED, REQUESTED);
+            transition(DECLINED, DECLINING, CONSUMER_OFFERED, REQUESTED);
         } else {
-            transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.DECLINING, PROVIDER_OFFERED, ContractNegotiationStates.CONFIRMED, REQUESTED);
+            transition(DECLINED, DECLINING, PROVIDER_OFFERED, CONFIRMED, REQUESTED);
         }
 
     }
@@ -303,11 +308,7 @@ public class ContractNegotiation implements TraceCarrier {
         if (Type.CONSUMER == type) {
             throw new IllegalStateException("Consumer processes have no CONFIRMING state");
         }
-        transition(CONFIRMING, CONFIRMING, REQUESTED, PROVIDER_OFFERED, CONFIRMING_SENT);
-    }
-
-    public void transitionConfirmingSent() {
-        transition(CONFIRMING_SENT, CONFIRMING);
+        transition(CONFIRMING, CONFIRMING, REQUESTED, PROVIDER_OFFERED);
     }
 
     /**
@@ -315,9 +316,9 @@ public class ContractNegotiation implements TraceCarrier {
      */
     public void transitionConfirmed() {
         if (Type.CONSUMER == type) {
-            transition(ContractNegotiationStates.CONFIRMED, CONSUMER_APPROVED, REQUESTED, CONSUMER_OFFERED, CONFIRMED);
+            transition(CONFIRMED, CONSUMER_APPROVED, REQUESTED, CONSUMER_OFFERED, CONFIRMED);
         } else {
-            transition(ContractNegotiationStates.CONFIRMED, CONFIRMING, CONFIRMING_SENT);
+            transition(CONFIRMED, CONFIRMING);
         }
 
     }
@@ -478,6 +479,11 @@ public class ContractNegotiation implements TraceCarrier {
         //used mainly for JSON deserialization
         public Builder contractOffers(List<ContractOffer> contractOffers) {
             negotiation.contractOffers = contractOffers;
+            return this;
+        }
+
+        public Builder contractOffer(ContractOffer contractOffer) {
+            negotiation.contractOffers.add(contractOffer);
             return this;
         }
 
