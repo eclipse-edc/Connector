@@ -39,6 +39,7 @@ the detailed section referring to by linking pull requests or issues.
 * Enable pluggable transfer service in DPF (#844)
 * Apply 2-state transition pattern to `ContractNegotiationManager`s (#870)
 * Apply 2-state transition pattern to `TransferProcessManager` (#831)
+* Update build system to Java 17 (#934)
 * Refactor (=generify) transformer subsystem (#779)
 * Extract interfaces for every api controller class to improve swagger documentation (#891)
 
