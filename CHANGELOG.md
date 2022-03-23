@@ -30,6 +30,7 @@ the detailed section referring to by linking pull requests or issues.
 * Add configuration setting for state machine batch size (#872)
 * Add Jetty context alias for IDS API (#815)
 * Implement Asset service for Data Management API (#931)
+* Add `Hostname` service (#948)
 * Added embedded and remote DPF Selector (#832)
 * Pass path information into http data source through DPF public API (#929)
 
