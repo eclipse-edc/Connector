@@ -85,8 +85,9 @@ public class RepresentationDescriptionRequestHandlerTest {
 
     @Test
     public void testSimpleSuccessPath() {
-        var verificationResult = Result.success(ClaimToken.Builder.newInstance().build());
-        var result = representationDescriptionRequestHandler.handle(descriptionRequestMessage, verificationResult, null);
+        var claimToken = ClaimToken.Builder.newInstance().build();
+
+        var result = representationDescriptionRequestHandler.handle(descriptionRequestMessage, claimToken, null);
 
         assertNotNull(result);
         assertNotNull(result.getHeader());

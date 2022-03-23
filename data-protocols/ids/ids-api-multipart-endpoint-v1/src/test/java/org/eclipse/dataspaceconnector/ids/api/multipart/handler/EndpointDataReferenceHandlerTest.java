@@ -88,7 +88,7 @@ class EndpointDataReferenceHandlerTest {
         when(receiver.send(edr)).thenReturn(CompletableFuture.completedFuture(Result.success()));
         when(receiverRegistry.getAll()).thenReturn(List.of(receiver));
 
-        var response = handler.handleRequest(request, createSuccessClaimToken());
+        var response = handler.handleRequest(request, createClaimToken());
 
         verify(transformer, times(1)).transform(edrCapture.capture());
 
@@ -112,7 +112,7 @@ class EndpointDataReferenceHandlerTest {
 
         when(transformer.transform(any())).thenReturn(Result.failure("error"));
 
-        var response = handler.handleRequest(request, createSuccessClaimToken());
+        var response = handler.handleRequest(request, createClaimToken());
 
         assertThat(response)
                 .isNotNull()
@@ -129,7 +129,7 @@ class EndpointDataReferenceHandlerTest {
         when(receiver.send(edr)).thenReturn(CompletableFuture.completedFuture(Result.failure("error")));
         when(receiverRegistry.getAll()).thenReturn(List.of(receiver));
 
-        var response = handler.handleRequest(request, createSuccessClaimToken());
+        var response = handler.handleRequest(request, createClaimToken());
 
         assertThat(response)
                 .isNotNull()
@@ -146,7 +146,7 @@ class EndpointDataReferenceHandlerTest {
         when(receiver.send(edr)).thenReturn(CompletableFuture.failedFuture(new RuntimeException("error")));
         when(receiverRegistry.getAll()).thenReturn(List.of(receiver));
 
-        var response = handler.handleRequest(request, createSuccessClaimToken());
+        var response = handler.handleRequest(request, createClaimToken());
 
         assertThat(response)
                 .isNotNull()
@@ -170,7 +170,7 @@ class EndpointDataReferenceHandlerTest {
                 .build();
     }
 
-    private static Result<ClaimToken> createSuccessClaimToken() {
-        return Result.success(ClaimToken.Builder.newInstance().build());
+    private static ClaimToken createClaimToken() {
+        return ClaimToken.Builder.newInstance().build();
     }
 }

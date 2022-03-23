@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Daimler TSS GmbH
+ *  Copyright (c) 2021 - 2022 Daimler TSS GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
@@ -44,7 +45,7 @@ public class DataCatalogDescriptionRequestHandler extends AbstractDescriptionReq
     }
 
     @Override
-    protected Catalog retrieveObject(@NotNull IdsId idsId, @NotNull Result<ClaimToken> verificationResult) {
-        return dataCatalogService.getDataCatalog(verificationResult);
+    protected Catalog retrieveObject(@NotNull IdsId idsId, @NotNull ClaimToken claimToken) {
+        return dataCatalogService.getDataCatalog(claimToken);
     }
 }

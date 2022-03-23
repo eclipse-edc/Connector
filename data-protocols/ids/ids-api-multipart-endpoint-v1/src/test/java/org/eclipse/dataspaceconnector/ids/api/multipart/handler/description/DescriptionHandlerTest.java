@@ -101,16 +101,16 @@ class DescriptionHandlerTest {
         MultipartRequest multipartRequest = MultipartRequest.Builder.newInstance()
                 .header(requestHeader)
                 .build();
-        var verificationResult = Result.success(ClaimToken.Builder.newInstance().build());
+        var claimToken = ClaimToken.Builder.newInstance().build();
 
-        when(connectorDescriptionRequestHandler.handle(requestHeader, verificationResult, multipartRequest.getPayload())).thenReturn(response);
+        when(connectorDescriptionRequestHandler.handle(requestHeader, claimToken, multipartRequest.getPayload())).thenReturn(response);
 
 
-        var result = descriptionHandler.handleRequest(multipartRequest, verificationResult);
+        var result = descriptionHandler.handleRequest(multipartRequest, claimToken);
 
         assertThat(result).isNotNull();
         assertThat(result).extracting(MultipartResponse::getHeader).isEqualTo(responseHeader);
-        verify(connectorDescriptionRequestHandler).handle(requestHeader, verificationResult, multipartRequest.getPayload());
+        verify(connectorDescriptionRequestHandler).handle(requestHeader, claimToken, multipartRequest.getPayload());
     }
 
 }

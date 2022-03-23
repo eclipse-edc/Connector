@@ -28,7 +28,6 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNeg
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -79,9 +78,9 @@ public class ArtifactRequestHandler implements Handler {
     }
 
     @Override
-    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull Result<ClaimToken> verificationResult) {
+    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull ClaimToken claimToken) {
         Objects.requireNonNull(multipartRequest);
-        Objects.requireNonNull(verificationResult);
+        Objects.requireNonNull(claimToken);
 
         var artifactRequestMessage = (ArtifactRequestMessage) multipartRequest.getHeader();
 
@@ -105,7 +104,7 @@ public class ArtifactRequestHandler implements Handler {
             return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
         }
 
-        var isContractValid = contractValidationService.validate(verificationResult.getContent(), contractAgreement);
+        var isContractValid = contractValidationService.validate(claimToken, contractAgreement);
         if (!isContractValid) {
             monitor.info("ArtifactRequestHandler: Contract Validation Invalid");
             return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());

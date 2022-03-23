@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Daimler TSS GmbH
+ *  Copyright (c) 2021 - 2022 Daimler TSS GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
@@ -41,21 +42,15 @@ class ConnectorServiceImplTest {
     private static final URI CONNECTOR_MAINTAINER = URI.create("https://example.com/connector/maintainer");
     private static final URI CONNECTOR_CURATOR = URI.create("https://example.com/connector/curator");
     private static final String CONNECTOR_VERSION = "connectorVersion";
+    private final ConnectorServiceSettings connectorServiceSettings = mock(ConnectorServiceSettings.class);
+    private final ConnectorVersionProvider connectorVersionProvider = mock(ConnectorVersionProvider.class);
+    private final CatalogService dataCatalogService = mock(CatalogService.class);
 
     private ConnectorServiceImpl connectorService;
 
-    private ConnectorServiceSettings connectorServiceSettings;
-    private ConnectorVersionProvider connectorVersionProvider;
-    private CatalogService dataCatalogService;
-
     @BeforeEach
     void setUp() {
-        Monitor monitor = mock(Monitor.class);
-        connectorServiceSettings = mock(ConnectorServiceSettings.class);
-        connectorVersionProvider = mock(ConnectorVersionProvider.class);
-        dataCatalogService = mock(CatalogService.class);
-
-        connectorService = new ConnectorServiceImpl(monitor, connectorServiceSettings, connectorVersionProvider, dataCatalogService);
+        connectorService = new ConnectorServiceImpl(mock(Monitor.class), connectorServiceSettings, connectorVersionProvider, dataCatalogService);
     }
 
     @Test
@@ -69,8 +64,9 @@ class ConnectorServiceImplTest {
         when(connectorServiceSettings.getMaintainer()).thenReturn(CONNECTOR_MAINTAINER);
         when(connectorServiceSettings.getCurator()).thenReturn(CONNECTOR_CURATOR);
         when(connectorVersionProvider.getVersion()).thenReturn(CONNECTOR_VERSION);
+        var claimToken = ClaimToken.Builder.newInstance().build();
 
-        var result = connectorService.getConnector(Result.success(ClaimToken.Builder.newInstance().build()));
+        var result = connectorService.getConnector(claimToken);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(CONNECTOR_ID);
