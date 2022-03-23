@@ -26,7 +26,7 @@ import org.eclipse.dataspaceconnector.core.base.policy.ScopeFilter;
 import org.eclipse.dataspaceconnector.core.executor.NoopExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceConfiguration;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceImpl;
-import org.eclipse.dataspaceconnector.policy.model.RegistrationTypes;
+import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
@@ -132,7 +132,7 @@ public class CoreServicesExtension implements ServiceExtension {
         var scopeFilter = new ScopeFilter(bindingRegistry);
 
         var typeManager = context.getTypeManager();
-        RegistrationTypes.getRegistrationTypes().forEach(typeManager::registerTypes);
+        PolicyRegistrationTypes.TYPES.forEach(typeManager::registerTypes);
 
         var policyEngine = new PolicyEngineImpl(scopeFilter);
         context.registerService(PolicyEngine.class, policyEngine);

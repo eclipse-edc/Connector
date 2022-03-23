@@ -18,17 +18,24 @@ import java.util.List;
 /**
  * Returns types that can be registered with an ObjectMapper for deserialization.
  */
-public final class RegistrationTypes {
-    private static final List<Class<?>> TYPES = List.of(Action.class, AndConstraint.class, AtomicConstraint.class, Duty.class, LiteralExpression.class, OrConstraint.class,
-            Permission.class, Policy.class, PolicyType.class, Prohibition.class, XoneConstraint.class);
+public final class PolicyRegistrationTypes {
 
     /**
-     * Returns types that can be registered with an ObjectMapper.
+     * The types that can be registered with an ObjectMapper.
      */
-    public static List<Class<?>> getRegistrationTypes() {
-        return TYPES;
-    }
+    public static final List<Class<?>> TYPES = List.of(
+            Action.class,
+            AndConstraint.class,
+            AtomicConstraint.class,
+            Duty.class,
+            LiteralExpression.class,
+            OrConstraint.class,
+            Permission.class,
+            Policy.class,
+            PolicyType.class,
+            Prohibition.class,
+            XoneConstraint.class);
 
-    private RegistrationTypes() {
+    private PolicyRegistrationTypes() {
     }
 }
