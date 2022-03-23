@@ -49,6 +49,7 @@ import org.eclipse.dataspaceconnector.transfer.core.inline.DataOperatorRegistryI
 import org.eclipse.dataspaceconnector.transfer.core.observe.TransferProcessObservableImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ProvisionManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ResourceManifestGeneratorImpl;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.AddProvisionedResourceCommandHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.StatusCheckerRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessManagerImpl;
 
@@ -139,6 +140,8 @@ public class CoreTransferExtension implements ServiceExtension {
                 .build();
 
         context.registerService(TransferProcessManager.class, processManager);
+
+        registry.register(new AddProvisionedResourceCommandHandler(processManager));
     }
 
     @Override
