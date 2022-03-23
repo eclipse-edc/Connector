@@ -13,7 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.core;
 
-import org.eclipse.dataspaceconnector.policy.model.RegistrationTypes;
+import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -35,7 +35,7 @@ class CoreServicesExtensionTest {
     @Test
     void verifyPolicyTypesAreRegistered() {
         extension.initialize(context);
-        RegistrationTypes.getRegistrationTypes().forEach(t -> verify(typeManager).registerTypes(t));
+        PolicyRegistrationTypes.TYPES.forEach(t -> verify(typeManager).registerTypes(t));
     }
 
     @BeforeEach
