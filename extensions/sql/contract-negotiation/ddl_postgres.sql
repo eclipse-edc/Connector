@@ -12,7 +12,9 @@
  *
  */
 
-CREATE TABLE IF NOT EXISTS lease
+-- Statements are designed for and tested with Postgres only!
+
+CREATE TABLE IF NOT EXISTS edc_lease
 (
     leased_by      VARCHAR               NOT NULL,
     leased_at      BIGINT,
@@ -22,15 +24,15 @@ CREATE TABLE IF NOT EXISTS lease
             PRIMARY KEY
 );
 
-COMMENT ON COLUMN lease.leased_at IS 'posix timestamp of lease';
+COMMENT ON COLUMN edc_lease.leased_at IS 'posix timestamp of lease';
 
-COMMENT ON COLUMN lease.lease_duration IS 'duration of lease in milliseconds';
+COMMENT ON COLUMN edc_lease.lease_duration IS 'duration of lease in milliseconds';
 
 CREATE UNIQUE INDEX lease_lease_id_uindex
-    ON lease (lease_id);
+    ON edc_lease (lease_id);
 
 
-CREATE TABLE IF NOT EXISTS contract_agreement
+CREATE TABLE IF NOT EXISTS edc_contract_agreement
 (
     id                VARCHAR NOT NULL
         CONSTRAINT contract_agreement_pk
@@ -45,7 +47,7 @@ CREATE TABLE IF NOT EXISTS contract_agreement
 );
 
 
-CREATE TABLE IF NOT EXISTS contract_negotiation
+CREATE TABLE IF NOT EXISTS edc_contract_negotiation
 (
     id                    VARCHAR                                            NOT NULL
         CONSTRAINT contract_negotiation_pk
@@ -61,27 +63,27 @@ CREATE TABLE IF NOT EXISTS contract_negotiation
     error_detail          VARCHAR,
     contract_agreement_id VARCHAR
         CONSTRAINT contract_negotiation_contract_agreement_id_fk
-            REFERENCES contract_agreement,
+            REFERENCES edc_contract_agreement,
     contract_offers       VARCHAR,
     trace_context         VARCHAR,
     lease_id              VARCHAR
         CONSTRAINT contract_negotiation_lease_lease_id_fk
-            REFERENCES lease
+            REFERENCES edc_lease
             ON DELETE SET NULL
 );
 
-COMMENT ON COLUMN contract_negotiation.contract_agreement_id IS 'ContractAgreement serialized as JSON';
+COMMENT ON COLUMN edc_contract_negotiation.contract_agreement_id IS 'ContractAgreement serialized as JSON';
 
-COMMENT ON COLUMN contract_negotiation.contract_offers IS 'List<ContractOffer> serialized as JSON';
+COMMENT ON COLUMN edc_contract_negotiation.contract_offers IS 'List<ContractOffer> serialized as JSON';
 
-COMMENT ON COLUMN contract_negotiation.trace_context IS 'Map<String,String> serialized as JSON';
+COMMENT ON COLUMN edc_contract_negotiation.trace_context IS 'Map<String,String> serialized as JSON';
 
 CREATE INDEX IF NOT EXISTS contract_negotiation_correlationid_index
-    ON contract_negotiation (correlation_id);
+    ON edc_contract_negotiation (correlation_id);
 
 CREATE UNIQUE INDEX IF NOT EXISTS contract_negotiation_id_uindex
-    ON contract_negotiation (id);
+    ON edc_contract_negotiation (id);
 
 CREATE UNIQUE INDEX IF NOT EXISTS contract_agreement_id_uindex
-    ON contract_agreement (id);
+    ON edc_contract_agreement (id);
 
