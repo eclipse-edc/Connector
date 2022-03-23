@@ -1,60 +1,101 @@
-create table if not exists contract_agreement
+/*
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
+/*
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
+CREATE TABLE IF NOT EXISTS lease
 (
-    id                varchar not null
-        constraint contract_agreement_pk
-            primary key,
-    provider_agent_id varchar,
-    consumer_agent_id varchar,
-    signing_date      bigint,
-    start_date        bigint,
-    end_date          integer,
-    asset_id          varchar not null,
-    policy_id         varchar
+    leased_by      VARCHAR               NOT NULL,
+    leased_at      BIGINT,
+    lease_duration INTEGER DEFAULT 60000 NOT NULL,
+    lease_id       VARCHAR               NOT NULL
+        CONSTRAINT lease_pk
+            PRIMARY KEY
 );
 
-alter table contract_agreement
-    owner to "user";
+COMMENT ON COLUMN lease.leased_at IS 'posix timestamp of lease';
 
-create table if not exists contract_negotiation
+COMMENT ON COLUMN lease.lease_duration IS 'duration of lease in milliseconds';
+
+CREATE UNIQUE INDEX lease_lease_id_uindex
+    ON lease (lease_id);
+
+
+CREATE TABLE IF NOT EXISTS contract_agreement
 (
-    id                    varchar                                            not null
-        constraint contract_negotiation_pk
-            primary key,
-    correlation_id        varchar                                            not null,
-    counterparty_id       varchar                                            not null,
-    counterparty_address  varchar                                            not null,
-    protocol              varchar default 'ids-multipart'::character varying not null,
-    type                  integer default 0                                  not null,
-    state                 integer default 0                                  not null,
-    state_count           integer default 0,
-    state_timestamp       bigint,
-    error_detail          varchar,
-    contract_agreement_id varchar
-        constraint contract_negotiation_contract_agreement_id_fk
-            references contract_agreement,
-    contract_offers       varchar,
-    trace_context         varchar,
-    lease_id              varchar
-        constraint contract_negotiation_lease_lease_id_fk
-            references lease
-            on delete set null
+    id                VARCHAR NOT NULL
+        CONSTRAINT contract_agreement_pk
+            PRIMARY KEY,
+    provider_agent_id VARCHAR,
+    consumer_agent_id VARCHAR,
+    signing_date      BIGINT,
+    start_date        BIGINT,
+    end_date          INTEGER,
+    asset_id          VARCHAR NOT NULL,
+    policy_id         VARCHAR
 );
 
-comment on column contract_negotiation.contract_agreement_id is 'ContractAgreement serialized as JSON';
 
-comment on column contract_negotiation.contract_offers is 'List<ContractOffer> serialized as JSON';
+CREATE TABLE IF NOT EXISTS contract_negotiation
+(
+    id                    VARCHAR                                            NOT NULL
+        CONSTRAINT contract_negotiation_pk
+            PRIMARY KEY,
+    correlation_id        VARCHAR                                            NOT NULL,
+    counterparty_id       VARCHAR                                            NOT NULL,
+    counterparty_address  VARCHAR                                            NOT NULL,
+    protocol              VARCHAR DEFAULT 'ids-multipart'::CHARACTER VARYING NOT NULL,
+    type                  INTEGER DEFAULT 0                                  NOT NULL,
+    state                 INTEGER DEFAULT 0                                  NOT NULL,
+    state_count           INTEGER DEFAULT 0,
+    state_timestamp       BIGINT,
+    error_detail          VARCHAR,
+    contract_agreement_id VARCHAR
+        CONSTRAINT contract_negotiation_contract_agreement_id_fk
+            REFERENCES contract_agreement,
+    contract_offers       VARCHAR,
+    trace_context         VARCHAR,
+    lease_id              VARCHAR
+        CONSTRAINT contract_negotiation_lease_lease_id_fk
+            REFERENCES lease
+            ON DELETE SET NULL
+);
 
-comment on column contract_negotiation.trace_context is 'Map<String,String> serialized as JSON';
+COMMENT ON COLUMN contract_negotiation.contract_agreement_id IS 'ContractAgreement serialized as JSON';
 
-alter table contract_negotiation
-    owner to "user";
+COMMENT ON COLUMN contract_negotiation.contract_offers IS 'List<ContractOffer> serialized as JSON';
 
-create index if not exists contract_negotiation_correlationid_index
-    on contract_negotiation (correlation_id);
+COMMENT ON COLUMN contract_negotiation.trace_context IS 'Map<String,String> serialized as JSON';
 
-create unique index if not exists contract_negotiation_id_uindex
-    on contract_negotiation (id);
+CREATE INDEX IF NOT EXISTS contract_negotiation_correlationid_index
+    ON contract_negotiation (correlation_id);
 
-create unique index if not exists contract_agreement_id_uindex
-    on contract_agreement (id);
+CREATE UNIQUE INDEX IF NOT EXISTS contract_negotiation_id_uindex
+    ON contract_negotiation (id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS contract_agreement_id_uindex
+    ON contract_agreement (id);
 
