@@ -22,9 +22,11 @@ import org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.SystemExtension;
+import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
 import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -39,6 +41,7 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
@@ -132,6 +135,10 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
             return context.getService(cast(type));
         }
         return null;
+    }
+
+    public void setConfiguration(Map<String, String> configuration) {
+        registerSystemExtension(ConfigurationExtension.class, (ConfigurationExtension) () -> ConfigFactory.fromMap(configuration));
     }
 
     /**
