@@ -1,10 +1,15 @@
+# SQL-based `TransferProcessStore` - technical proposal
+
+**_Note that the SQL statements (DDL and DML) are specific to and only tested with PostgreSQL. Using it with other RDBMS
+may work but might have unexpected side effects!_**
+
 ## Table schema DDL
 
-please refer to [ddl.sql](./ddl.sql):
+please refer to [ddl_postgres.sql](./ddl_postgres.sql):
 
 ## Translating the `TransferProcessStore` interface into SQL statements
 
-all SQL snippets taken from [dml.sql](dml.sql)
+all SQL snippets taken from [dml_postgres.sql](dml_postgres.sql)
 
 #### `processIdForTransferId`
 
@@ -25,7 +30,7 @@ selects a TP based on its ID
 
 ```sql
 select t.*
-from edc.edc_transfer_process t
+from edc_transfer_process t
 where t.id = 'test-id1';
 ```
 
@@ -44,7 +49,7 @@ where lease_id is null
    or lease_id in (select lease_id from edc_lease where (NOW > (leased_at + edc_lease.lease_duration));
 
 -- create lease
-insert into lease (lease_id, leased_by, leased_at, lease_duration)
+insert into edc_lease (lease_id, leased_by, leased_at, lease_duration)
 values ('lease-1', 'yomama', NOW), default);
 
 -- lease selected TPs, provide list of IDs
