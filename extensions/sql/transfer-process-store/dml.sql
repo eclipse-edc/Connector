@@ -13,54 +13,54 @@
  */
 
 -- find by id
-select t.*
-from transfer_process t
-where t.id = 'test-id1';
+SELECT t.*
+FROM transfer_process t
+WHERE t.id = 'test-id1';
 
 -- find by drq id
-select t.*
-from transfer_process t
-where t.id =
-      (select d.transfer_process_id
-       from data_request d
-       where d.process_id = 'test-pid2');
+SELECT t.*
+FROM transfer_process t
+WHERE t.id =
+      (SELECT d.transfer_process_id
+       FROM data_request d
+       WHERE d.process_id = 'test-pid2');
 
 -- create
-insert into transfer_process (id, state, state_time_stamp, trace_context, error_detail, resource_manifest,
+INSERT INTO transfer_process (id, state, state_time_stamp, trace_context, error_detail, resource_manifest,
                               provisioned_resource_set)
-values ('test-id2', 400, now(), null, null, null, null);
+VALUES ('test-id2', 400, NOW(), NULL, NULL, NULL, NULL);
 
 
-insert into data_request (id, process_id, connector_address, connector_id, asset_id, contract_id, data_destination,
+INSERT INTO data_request (id, process_id, connector_address, connector_id, asset_id, contract_id, data_destination,
                           properties, transfer_type, transfer_process_id)
-values ('test-drq-2', 'test-pid2', 'http://anotherconnector.com', 'anotherconnector', 'asset2', 'contract2', '{}', null,
+VALUES ('test-drq-2', 'test-pid2', 'http://anotherconnector.com', 'anotherconnector', 'asset2', 'contract2', '{}', NULL,
         default, 'test-id2');
 
 -- delete by id
-delete
-from transfer_process
-where id = 'test-id2';
+DELETE
+FROM transfer_process
+WHERE id = 'test-id2';
 
 
 -- update
-update transfer_process t
-set state = 800
-where id = 'test-id2';
+UPDATE transfer_process t
+SET state = 800
+WHERE id = 'test-id2';
 
 
 -- next for state: select and write lease
 -- select TPs with no or expired lease
-select *
-from transfer_process
-where lease_id is null
-   or lease_id in (select lease_id from lease where (NOW > (leased_at + lease.lease_duration));
+SELECT *
+FROM transfer_process
+WHERE lease_id IS NULL
+   OR lease_id IN (SELECT lease_id FROM lease WHERE (NOW > (leased_at + lease.lease_duration));
 
 -- create lease
-insert into lease (lease_id, leased_by, leased_at, lease_duration)
-values ('lease-1', 'yomama', NOW), default);
+INSERT INTO lease (lease_id, leased_by, leased_at, lease_duration)
+VALUES ('lease-1', 'yomama', NOW), DEFAULT);
 
 -- update previously selected TPs and break lease
-update transfer_process t
-set state   = 800,
-    lease_id=null
-where id = 'test-id2';
+UPDATE transfer_process t
+SET state   = 800,
+    lease_id=NULL
+WHERE id = 'test-id2';

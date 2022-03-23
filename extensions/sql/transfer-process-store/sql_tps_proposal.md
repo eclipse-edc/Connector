@@ -12,10 +12,10 @@ selects a TransferProcess based on the DataRequest ID
 
 ```sql
 select t.*
-from transfer_process t
+from edc_transfer_process t
 where t.id =
-      (select d.transfer_process_id
-       from data_request d
+      (select d.edc_transfer_process_id
+       from edc_data_request d
        where d.process_id = 'test-pid2');
 ```
 
@@ -25,7 +25,7 @@ selects a TP based on its ID
 
 ```sql
 select t.*
-from edc.transfer_process t
+from edc.edc_transfer_process t
 where t.id = 'test-id1';
 ```
 
@@ -39,16 +39,16 @@ that **must** run in the same transaction:
 -- next for state: 3 statements to select and write lease
 -- select TPs with no or expired lease
 select *
-from transfer_process
+from edc_transfer_process
 where lease_id is null
-   or lease_id in (select lease_id from lease where (NOW > (leased_at + lease.lease_duration));
+   or lease_id in (select lease_id from edc_lease where (NOW > (leased_at + edc_lease.lease_duration));
 
 -- create lease
 insert into lease (lease_id, leased_by, leased_at, lease_duration)
 values ('lease-1', 'yomama', NOW), default);
 
 -- lease selected TPs, provide list of IDs
-update transfer_process t
+update edc_transfer_process t
 set lease_id='lease-1'
 where id in ('test-id2');
 ```
@@ -75,7 +75,7 @@ public class SqlTransferProcessStore {
 
     private void acquireLease(TransferProcess process) {
         var lease = createLease(Instant.now().toEpochMilli(), connectorId); //create lease in DB, returns object
-        writeLease(process.getId(), lease.getId()); //UPDATE transfer_process SET lease_id=ID where id=TPID
+        writeLease(process.getId(), lease.getId()); //UPDATE edc_transfer_process SET lease_id=ID where id=TPID
     }
 }
 ```
@@ -86,18 +86,18 @@ such as the SQL-`ContractNegotiationStore`.
 #### `create`
 
 inserts a new TP into the database by first creating the `TransferProcess`, and using its ID to create the `DataRequest`
-entry with the FK referencing `transfer_process` to enable `ON DELETE CASCADE`.
+entry with the FK referencing `edc_transfer_process` to enable `ON DELETE CASCADE`.
 
 ```sql
 --must be done in the same transaction:
 
-insert into transfer_process (id, state, state_time_stamp, trace_context, error_detail, resource_manifest,
+insert into edc_transfer_process (id, state, state_time_stamp, trace_context, error_detail, resource_manifest,
                               provisioned_resource_set)
 values ('test-id2', 400, now(), null, null, null, null);
 
 
-insert into data_request (id, process_id, connector_address, connector_id, asset_id, contract_id, data_destination,
-                          properties, transfer_type, transfer_process_id)
+insert into edc_data_request (id, process_id, connector_address, connector_id, asset_id, contract_id, data_destination,
+                          properties, transfer_type, edc_transfer_process_id)
 values ('test-drq-2', 'test-pid2', 'http://anotherconnector.com', 'anotherconnector', 'asset2', 'contract2', '{}', null,
         default, 'test-id2');
 ```
@@ -107,9 +107,9 @@ values ('test-drq-2', 'test-pid2', 'http://anotherconnector.com', 'anotherconnec
 removes a TP from the database by deleting the TP cascading to the DR:
 
 ```sql
--- fk delete cascade will remove the data_request row
+-- fk delete cascade will remove the edc_data_request row
 delete
-from transfer_process
+from edc_transfer_process
 where id = 'test-id2';
 ```
 
@@ -118,13 +118,13 @@ where id = 'test-id2';
 updates an existing TP and "breaks" the lease
 
 ```sql
--- first break lease, automatically nulls transfer_process.lease_id
+-- first break lease, automatically nulls edc_transfer_process.lease_id
 delete
-from lease l
-where l.lease_id = (select lease_id from transfer_process where id = 'test-id2');
+from edc_lease l
+where l.lease_id = (select lease_id from edc_transfer_process where id = 'test-id2');
 
--- then update the transfer_process
-update transfer_process t
+-- then update the edc_transfer_process
+update edc_transfer_process t
 set state   = 800,
     lease_id=null
 where id = 'test-id2';
