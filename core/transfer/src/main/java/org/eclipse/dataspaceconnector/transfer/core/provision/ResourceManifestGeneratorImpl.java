@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.provision;
 
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceDefinitionGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
@@ -47,32 +48,32 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
     }
 
     @Override
-    public ResourceManifest generateResourceManifest(TransferProcess process) {
-        var definitions = generateDefinitions(process);
+    public ResourceManifest generateResourceManifest(TransferProcess process, Policy policy) {
+        var definitions = generateDefinitions(process, policy);
         return ResourceManifest.Builder.newInstance().definitions(definitions).build();
     }
 
     @NotNull
-    private List<ResourceDefinition> generateDefinitions(TransferProcess process) {
+    private List<ResourceDefinition> generateDefinitions(TransferProcess process, Policy policy) {
         var dataRequest = process.getDataRequest();
         if (process.getType() == CONSUMER) {
-            return dataRequest.isManagedResources() ? generateConsumerDefinitions(process) : emptyList();
+            return dataRequest.isManagedResources() ? generateConsumerDefinitions(process, policy) : emptyList();
         } else {
-            return generateProviderDefinitions(process);
+            return generateProviderDefinitions(process, policy);
         }
     }
 
     @NotNull
-    private List<ResourceDefinition> generateConsumerDefinitions(TransferProcess process) {
+    private List<ResourceDefinition> generateConsumerDefinitions(TransferProcess process, Policy policy) {
         return consumerGenerators.stream()
-                .map(generator -> generator.generate(process))
+                .map(generator -> generator.generate(process, policy))
                 .filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     @NotNull
-    private List<ResourceDefinition> generateProviderDefinitions(TransferProcess process) {
+    private List<ResourceDefinition> generateProviderDefinitions(TransferProcess process, Policy policy) {
         return providerGenerators.stream()
-                .map(generator -> generator.generate(process))
+                .map(generator -> generator.generate(process, policy))
                 .filter(Objects::nonNull).collect(Collectors.toList());
     }
 }

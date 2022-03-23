@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.flow;
 
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -52,6 +53,7 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
     @Test
     void verifyInitiateFlowSuccess() {
         var request = createDataRequest("HttpProxy");
+        var policy = Policy.Builder.newInstance().build();
         var dataAddress = testDataAddress();
         var edr = createEndpointDataReference();
 
@@ -62,7 +64,7 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
         when(proxyManagerMock.createProxy(any())).thenReturn(Result.success(edr));
         when(dataAddressResolverMock.resolveForAsset(request.getAssetId())).thenReturn(dataAddress);
 
-        var result = controller.initiateFlow(request);
+        var result = controller.initiateFlow(request, policy);
 
         verify(proxyManagerMock, times(1)).createProxy(proxyCreationRequestCaptor.capture());
         verify(dataAddressResolverMock, times(1)).resolveForAsset(request.getAssetId());
@@ -86,13 +88,14 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
     @Test
     void proxyCreationFails_shouldReturnFailedResult() {
         var request = createDataRequest("HttpProxy");
+        var policy = Policy.Builder.newInstance().build();
         var dataAddress = testDataAddress();
         var edr = createEndpointDataReference();
 
         when(dataAddressResolverMock.resolveForAsset(request.getAssetId())).thenReturn(dataAddress);
         when(proxyManagerMock.createProxy(any())).thenReturn(Result.failure("error"));
 
-        var result = controller.initiateFlow(request);
+        var result = controller.initiateFlow(request, policy);
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).containsExactly("Failed to generate proxy: error");

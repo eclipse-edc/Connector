@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer.flow;
 
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
@@ -30,12 +31,14 @@ public interface DataFlowController {
 
     /**
      * Initiate a data flow.
-     * <p>Implementations should not throw exceptions. If an unexpected exception occurs and the flow should be re-attempted,
-     * set {@link ResponseStatus#ERROR_RETRY} in the response.
-     * If an exception occurs and re-tries should not be re-attempted, set
-     * {@link ResponseStatus#FATAL_ERROR} in the response. </p>
+     *
+     * <p>Implementations should not throw exceptions. If an unexpected exception occurs and the flow should be re-attempted, set {@link ResponseStatus#ERROR_RETRY} in the
+     * response. If an exception occurs and re-tries should not be re-attempted, set {@link ResponseStatus#FATAL_ERROR} in the response. </p>
+     *
+     * @param dataRequest the request
+     * @param policy the contract agreement usage policy for the asset being transferred
      */
     @NotNull
-    DataFlowInitiateResult initiateFlow(DataRequest dataRequest);
+    DataFlowInitiateResult initiateFlow(DataRequest dataRequest, Policy policy);
 
 }

@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.transfer.core.flow;
 
 import io.opentelemetry.extension.annotations.WithSpan;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
@@ -41,12 +42,12 @@ public class DataFlowManagerImpl implements DataFlowManager {
 
     @WithSpan
     @Override
-    public @NotNull DataFlowInitiateResult initiate(DataRequest dataRequest) {
+    public @NotNull DataFlowInitiateResult initiate(DataRequest dataRequest, Policy policy) {
         try {
             return controllers.stream()
                     .filter(controller -> controller.canHandle(dataRequest))
                     .findFirst()
-                    .map(controller -> controller.initiateFlow(dataRequest))
+                    .map(controller -> controller.initiateFlow(dataRequest, policy))
                     .orElseGet(() -> failure(FATAL_ERROR, controllerNotFound(dataRequest.getId())));
         } catch (Exception e) {
             return failure(FATAL_ERROR, runtimeException(dataRequest.getId(), e.getLocalizedMessage()));

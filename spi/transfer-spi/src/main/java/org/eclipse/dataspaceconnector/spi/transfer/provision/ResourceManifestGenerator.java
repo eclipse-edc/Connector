@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer.provision;
 
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
@@ -30,6 +31,9 @@ public interface ResourceManifestGenerator {
 
     /**
      * Generates a resource manifest for a data request on a connector. Operations should be idempotent.
+     *
+     * @param process the transfer process to generate the definition for
+     * @param policy the contract agreement usage policy for the asset being transferred
      */
-    ResourceManifest generateResourceManifest(TransferProcess process);
+    ResourceManifest generateResourceManifest(TransferProcess process, Policy policy);
 }
