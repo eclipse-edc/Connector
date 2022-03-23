@@ -7,6 +7,7 @@ import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.policy.RuleBindingRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -28,12 +29,15 @@ public class PolicyEngineImplScenariosTest {
     private static final Action USE_ACTION = Action.Builder.newInstance().type("USE").build();
 
     private PolicyEngineImpl policyEngine;
+    private RuleBindingRegistry bindingRegistry;
 
     /**
      * Demonstrates how to evaluate a simple policy.
      */
     @Test
     void verifyUnrestrictedUse() {
+        bindingRegistry.bind(USE_ACTION.getType(), ALL_SCOPES);
+
         var usePermission = Permission.Builder.newInstance().action(USE_ACTION).build();
 
         var policy = Policy.Builder.newInstance().permission(usePermission).build();
@@ -48,6 +52,8 @@ public class PolicyEngineImplScenariosTest {
      */
     @Test
     void verifyNoUse() {
+        bindingRegistry.bind(USE_ACTION.getType(), ALL_SCOPES);
+
         var prohibition = Prohibition.Builder.newInstance().action(USE_ACTION).build();
 
         var policy = Policy.Builder.newInstance().prohibition(prohibition).build();
@@ -63,6 +69,9 @@ public class PolicyEngineImplScenariosTest {
      */
     @Test
     void verifySpatialLocation() {
+        bindingRegistry.bind(USE_ACTION.getType(), ALL_SCOPES);
+        bindingRegistry.bind(ABS_SPATIAL_CONSTRAINT, ALL_SCOPES);
+
         // function that verifies the EU region
         policyEngine.registerFunction(ALL_SCOPES, Permission.class, ABS_SPATIAL_CONSTRAINT, (operator, value, permission, context) -> {
             var claims = context.getParticipantAgent().getClaims();
@@ -111,7 +120,8 @@ public class PolicyEngineImplScenariosTest {
 
     @BeforeEach
     void setUp() {
-        policyEngine = new PolicyEngineImpl();
+        bindingRegistry = new RuleBindingRegistryImpl();
+        policyEngine = new PolicyEngineImpl(new ScopeFilter(bindingRegistry));
     }
 
 }

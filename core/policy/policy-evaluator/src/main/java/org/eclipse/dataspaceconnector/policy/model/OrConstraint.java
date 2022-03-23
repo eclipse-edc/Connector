@@ -19,6 +19,8 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+import java.util.List;
+
 import static java.util.stream.Collectors.joining;
 
 /**
@@ -34,6 +36,11 @@ public class OrConstraint extends MultiplicityConstraint {
     @Override
     public <R> R accept(Visitor<R> visitor) {
         return visitor.visitOrConstraint(this);
+    }
+
+    @Override
+    public MultiplicityConstraint create(List<Constraint> constraints) {
+        return OrConstraint.Builder.newInstance().constraints(constraints).build();
     }
 
     @Override
