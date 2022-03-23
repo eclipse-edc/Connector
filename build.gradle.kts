@@ -18,6 +18,7 @@ plugins {
     checkstyle
     jacoco
     id("com.rameshkp.openapi-merger-gradle-plugin") version "1.0.4"
+    id("com.autonomousapps.dependency-analysis") version "1.0.0-rc03" apply (false)
 }
 
 repositories {
@@ -34,6 +35,7 @@ val assertj: String by project
 val rsApi: String by project
 val swagger: String by project
 val faker: String by project
+val dependencyAnalysis: String? = System.getenv("DEPENDENCY_ANALYSIS")
 
 val groupId: String = "org.eclipse.dataspaceconnector"
 var edcVersion: String = "0.0.1-SNAPSHOT"
@@ -56,6 +58,87 @@ subprojects {
     }
 
     tasks.register<DependencyReportTask>("allDependencies") {}
+
+    tasks.register("applyDependencyRules") {
+        doLast {
+
+            fun dependencyError(error: String) {
+                val message = "DEPENDENCY RULE VIOLATION: $error"
+                if (dependencyAnalysis == "fail") {
+                    throw GradleException(message)
+                } else {
+                    println(message)
+                }
+            }
+
+            fun dependencyRules(artifact: ResolvedArtifact) {
+                val dependency = artifact.moduleVersion.id
+                if (dependency.group == project.group) {
+                    val pathFromRoot = artifact.file.relativeTo(project.rootDir).path
+                    val pathFromThisModule = artifact.file.relativeTo(project.projectDir).path
+
+                    if (!dependency.name.endsWith("-spi") // modules may only depend on `-spi` modules (exceptions follow)
+                            && dependency.name != "spi" // exception: modules may depend on spi module
+                            && !dependency.name.endsWith("-core") // exception: modules may depend on technology libs such as "blob-core"
+                            && !pathFromRoot.startsWith("common/") // exception: modules may depend on common module
+                            && !pathFromRoot.startsWith("extensions/http/jetty/") // exception: modules might depend on `jetty` (this exception should be removed once there is an SPI for jetty)
+                            && !project.path.startsWith(":launchers:") // exception: launchers may depend on other modules
+                            && !project.path.startsWith(":samples:") // exception: samples may depend on other modules
+                            && !project.path.startsWith(":system-tests:") // exception: system-tests may depend on other modules
+                    ) {
+                        dependencyError("modules may only depend on '*-spi' modules. Invalid dependency: $dependency")
+                    }
+
+                    if (pathFromRoot.startsWith("launchers/") // no module may depend on launchers
+                    ) {
+                        dependencyError("modules may not depend on launcher modules. Invalid dependency: $dependency")
+                    }
+
+                    if (pathFromRoot.startsWith("samples/") // no module may depend on samples (exceptions follow)
+                            && !project.path.startsWith(":samples:") // exception: other samples might depend on samples
+                    ) {
+                        dependencyError("modules may not depend on samples modules. Invalid dependency: $dependency")
+                    }
+
+                    if (pathFromRoot.startsWith("system-tests/") // no module may depend on system-tests
+                    ) {
+                        dependencyError("modules may not depend on system-tests modules. Invalid dependency: $dependency")
+                    }
+
+                    if (pathFromThisModule.matches(Regex("\\.\\./[^.].*")) // there should not be "cross-module" dependencies at the same level
+                            && !dependency.name.endsWith("-core") // exception: technology libs such as "blob-core"
+                    ) {
+                        dependencyError("there should not be \"cross-module\" dependencies at the same level. Invalid dependency: $dependency")
+                    }
+
+                    if (project.name == "core-spi") { // `core:spi` cannot depend on any other module
+                        dependencyError("`core:spi` cannot depend on any other module. Invalid dependency: $dependency")
+                    }
+
+                    if (project.name == dependency.name) { // two modules cannot have the same name (TBC)
+                        dependencyError("two modules cannot have the same name. Invalid dependency: $dependency")
+                    }
+                }
+            }
+
+            fun directDependencyRules(dependency: ResolvedDependency) {
+                if (dependency.moduleGroup == project.group) {
+                    dependency.moduleArtifacts.forEach { artifact ->
+                        val pathFromRoot = artifact.file.relativeTo(project.rootDir).path
+                        if (pathFromRoot.startsWith("core/") // no module may depend directly on any core module
+                                && !dependency.name.endsWith("-core") // exception: other core modules
+                        ) {
+                            dependencyError("modules may not depend directly on core modules. Invalid dependency: ${dependency.name}")
+                        }
+                    }
+                }
+            }
+
+            val compileConfiguration = configurations["compileClasspath"].resolvedConfiguration
+            compileConfiguration.resolvedArtifacts.forEach { artifact -> dependencyRules(artifact) }
+            compileConfiguration.firstLevelModuleDependencies.forEach { dependency -> directDependencyRules(dependency) }
+        }
+    }
 }
 
 buildscript {
@@ -95,7 +178,7 @@ allprojects {
     // EdcRuntimeExtension uses this to determine the runtime classpath of the module to run.
     tasks.register("printClasspath") {
         doLast {
-            println(sourceSets["main"].runtimeClasspath.asPath);
+            println(sourceSets["main"].runtimeClasspath.asPath)
         }
     }
 
@@ -229,6 +312,50 @@ openApiMerger {
             license {
                 name.set("Apache License v2.0")
                 url.set("http://apache.org/v2")
+            }
+        }
+    }
+}
+
+
+if (dependencyAnalysis != null) {
+    apply(plugin = "com.autonomousapps.dependency-analysis")
+    configure<com.autonomousapps.DependencyAnalysisExtension> {
+        // See https://github.com/autonomousapps/dependency-analysis-android-gradle-plugin
+        issues {
+            all { // all projects
+                onAny {
+                    severity(dependencyAnalysis)
+                    exclude(
+                        "org.jetbrains:annotations",
+                        "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
+                        "com.fasterxml.jackson.core:jackson-core",
+                        "com.fasterxml.jackson.core:jackson-annotations",
+                        "com.fasterxml.jackson.core:jackson-databind",
+                        "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
+                    )
+                }
+                onUnusedDependencies {
+                    exclude(
+                        "com.github.javafaker:javafaker",
+                        "org.assertj:assertj-core",
+                        "org.junit.jupiter:junit-jupiter-api",
+                        "org.junit.jupiter:junit-jupiter-params",
+                        "org.mockito:mockito-core",
+                    )
+                }
+                onIncorrectConfiguration {
+                    exclude(
+                        // some common dependencies are intentionally exported by core:base for simplicity
+                        "com.squareup.okhttp3:okhttp",
+                        "net.jodah:failsafe",
+                        // public methods annotated with @WithSpan
+                        "io.opentelemetry:opentelemetry-extension-annotations",
+                    )
+                }
+                onUsedTransitiveDependencies {
+                    severity("ignore")
+                }
             }
         }
     }

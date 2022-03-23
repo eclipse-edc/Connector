@@ -21,9 +21,9 @@ val jodahFailsafeVersion: String by project
 
 dependencies {
     api(project(":spi:contract-spi"))
-    api(project(":common:util"))
     api(project(":extensions:azure:cosmos:cosmos-common"))
     api(project(":extensions:dataloading"))
+    implementation(project(":common:util"))
 
     implementation("com.azure:azure-cosmos:${cosmosSdkVersion}")
     implementation("net.jodah:failsafe:${jodahFailsafeVersion}")

@@ -24,10 +24,9 @@ dependencies {
     api(project(":core:base"))
     api(project(":common:util"))
     api(project(":data-protocols:ids:ids-spi"))
-    api(project(":extensions:iam:oauth2:oauth2-spi"))
+    implementation(project(":extensions:iam:oauth2:oauth2-spi"))
 
     api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
-
     implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
 }
 

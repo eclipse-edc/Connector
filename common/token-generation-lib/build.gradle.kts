@@ -24,7 +24,7 @@ val nimbusVersion: String by project
 dependencies {
     api(project(":spi:core-spi"))
 
-    implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
+    api("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
     testImplementation("org.mockito:mockito-core:${mockitoVersion}")
 }
 
