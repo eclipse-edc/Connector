@@ -18,6 +18,7 @@ package org.eclipse.dataspaceconnector.transfer.core.transfer;
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.common.statemachine.StateMachine;
 import org.eclipse.dataspaceconnector.common.statemachine.StateProcessorImpl;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
@@ -177,7 +178,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
      */
     @WithSpan
     private boolean processInitial(TransferProcess process) {
-        var manifest = manifestGenerator.generateResourceManifest(process);
+        // TODO resolve contract agreement policy from the PolicyStore
+        var policy = Policy.Builder.newInstance().build();
+
+        var manifest = manifestGenerator.generateResourceManifest(process, policy);
         process.transitionProvisioning(manifest);
         transferProcessStore.update(process);
         observable.invokeForEach(l -> l.provisioning(process));
@@ -196,7 +200,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
      */
     @WithSpan
     private boolean processProvisioning(TransferProcess process) {
-        provisionManager.provision(process)
+        // TODO resolve contract agreement policy from the PolicyStore
+        var policy = Policy.Builder.newInstance().build();
+        provisionManager.provision(process, policy)
                 .whenComplete((responses, throwable) -> {
                     if (throwable == null) {
                         onProvisionComplete(process.getId(), responses);
@@ -312,8 +318,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
      */
     @WithSpan
     private boolean processDeprovisioning(TransferProcess process) {
+        // TODO resolve contract agreement policy from the PolicyStore
+        var policy = Policy.Builder.newInstance().build();
         observable.invokeForEach(l -> l.deprovisioning(process)); // TODO: this is called here since it's not callable from the command handler
-        provisionManager.deprovision(process)
+        provisionManager.deprovision(process, policy)
                 .whenComplete((responses, throwable) -> {
                     if (throwable == null) {
                         onDeprovisionComplete(process.getId());
@@ -438,7 +446,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     }
 
     private void processProviderRequest(TransferProcess process, DataRequest dataRequest) {
-        var response = dataFlowManager.initiate(dataRequest);
+        // TODO resolve contract agreement policy from the PolicyStore
+        var policy = Policy.Builder.newInstance().build();
+
+        var response = dataFlowManager.initiate(dataRequest, policy);
         if (response.succeeded()) {
             process.transitionInProgressOrStreaming();
             transferProcessStore.update(process);

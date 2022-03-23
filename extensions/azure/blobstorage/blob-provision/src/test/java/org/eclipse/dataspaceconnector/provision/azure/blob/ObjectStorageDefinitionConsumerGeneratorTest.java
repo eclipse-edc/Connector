@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.provision.azure.blob;
 
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -47,9 +48,9 @@ class ObjectStorageDefinitionConsumerGeneratorTest {
         var asset = Asset.Builder.newInstance().build();
         var dr = DataRequest.Builder.newInstance().dataDestination(destination).assetId(asset.getId()).build();
         var tp = TransferProcess.Builder.newInstance().dataRequest(dr).id(randomUUID().toString()).build();
+        var policy = Policy.Builder.newInstance().build();
 
-
-        ResourceDefinition def = generator.generate(tp);
+        ResourceDefinition def = generator.generate(tp, policy);
 
         assertThat(def).isInstanceOf(ObjectStorageResourceDefinition.class);
         var objectDef = (ObjectStorageResourceDefinition) def;
@@ -66,8 +67,9 @@ class ObjectStorageDefinitionConsumerGeneratorTest {
         var asset = Asset.Builder.newInstance().build();
         var dataRequest = DataRequest.Builder.newInstance().dataDestination(destination).assetId(asset.getId()).build();
         var tp = TransferProcess.Builder.newInstance().dataRequest(dataRequest).id(randomUUID().toString()).build();
+        var policy = Policy.Builder.newInstance().build();
 
-        ResourceDefinition def = generator.generate(tp);
+        ResourceDefinition def = generator.generate(tp, policy);
         assertThat(def).isNotNull();
         assertThat(((ObjectStorageResourceDefinition) def).getContainerName()).matches(
                 regexPattern);

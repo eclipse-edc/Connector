@@ -1,3 +1,4 @@
+
 # Changelog
 
 All notable changes to this project will be documented in this file - formatted and maintained according to the rules
@@ -57,6 +58,7 @@ the detailed section referring to by linking pull requests or issues.
 
 * Flaky S3 StatusChecker Test (#794)
 * Added missing Data Management Asset controller openapi (#853)
+* Policy deserialization (#898)
 
 ---
 

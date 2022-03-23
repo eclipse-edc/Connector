@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.transfer.core.provision;
 
 import io.opentelemetry.extension.annotations.WithSpan;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
@@ -50,43 +51,43 @@ public class ProvisionManagerImpl implements ProvisionManager {
 
     @WithSpan
     @Override
-    public CompletableFuture<List<ProvisionResponse>> provision(TransferProcess process) {
+    public CompletableFuture<List<ProvisionResponse>> provision(TransferProcess process, Policy policy) {
         return process.getResourceManifest().getDefinitions().stream()
-                .map(definition -> provision(definition).whenComplete(logOnError(definition)))
+                .map(definition -> provision(definition, policy).whenComplete(logOnError(definition)))
                 .collect(asyncAllOf());
     }
 
     @WithSpan
     @Override
-    public CompletableFuture<List<DeprovisionResponse>> deprovision(TransferProcess process) {
+    public CompletableFuture<List<DeprovisionResponse>> deprovision(TransferProcess process, Policy policy) {
         return process.getProvisionedResourceSet().getResources().stream()
-                .map(definition -> deprovision(definition).whenComplete(logOnError(definition)))
+                .map(definition -> deprovision(definition, policy).whenComplete(logOnError(definition)))
                 .collect(asyncAllOf());
     }
 
     @NotNull
-    private CompletableFuture<ProvisionResponse> provision(ResourceDefinition definition) {
+    private CompletableFuture<ProvisionResponse> provision(ResourceDefinition definition, Policy policy) {
         try {
             return provisioners.stream()
                     .filter(it -> it.canProvision(definition))
                     .findFirst()
                     .map(it -> (Provisioner<ResourceDefinition, ?>) it)
                     .orElseThrow(() -> new EdcException("Unknown provision type" + definition.getClass().getName()))
-                    .provision(definition);
+                    .provision(definition, policy);
         } catch (Exception e) {
             return failedFuture(e);
         }
     }
 
     @NotNull
-    private CompletableFuture<DeprovisionResponse> deprovision(ProvisionedResource definition) {
+    private CompletableFuture<DeprovisionResponse> deprovision(ProvisionedResource definition, Policy policy) {
         try {
             return provisioners.stream()
                     .filter(it -> it.canDeprovision(definition))
                     .findFirst()
                     .map(it -> (Provisioner<?, ProvisionedResource>) it)
                     .orElseThrow(() -> new EdcException("Unknown provision type" + definition.getClass().getName()))
-                    .deprovision(definition);
+                    .deprovision(definition, policy);
         } catch (Exception e) {
             return failedFuture(e);
         }

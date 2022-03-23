@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.junit;
 
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
@@ -91,7 +92,7 @@ public class EndToEndTest {
         DataFlowController controllerMock = mock(DataFlowController.class);
 
         when(controllerMock.canHandle(isA(DataRequest.class))).thenReturn(true);
-        when(controllerMock.initiateFlow(isA(DataRequest.class))).thenAnswer(i -> {
+        when(controllerMock.initiateFlow(isA(DataRequest.class), isA(Policy.class))).thenAnswer(i -> {
             latch.countDown();
             return DataFlowInitiateResult.success("");
         });
@@ -109,7 +110,7 @@ public class EndToEndTest {
 
         assertThat(latch.await(1, TimeUnit.MINUTES)).isTrue();
         verify(controllerMock).canHandle(isA(DataRequest.class));
-        verify(controllerMock).initiateFlow(isA(DataRequest.class));
+        verify(controllerMock).initiateFlow(isA(DataRequest.class), isA(Policy.class));
     }
 
     @BeforeEach
