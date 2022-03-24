@@ -24,6 +24,8 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.TransferProcessDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.TransferRequestDto;
+import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
@@ -81,6 +83,21 @@ public class TransferProcessApiController implements TransferProcessApi {
     }
 
     @POST
+    @Override
+    public String initiateTransfer(@PathParam("id") String assetId, TransferRequestDto transferRequest) {
+
+        if (StringUtils.isNullOrBlank(assetId)) {
+            throw new IllegalArgumentException("Asset ID not valid");
+        }
+
+        if (!isValid(transferRequest)) {
+            throw new IllegalArgumentException("Transfer request body not valid");
+        }
+        monitor.debug("Starting transfer for asset " + assetId + "to " + transferRequest.getDataDestination());
+        return "not-implemented"; //will be the transfer process id
+    }
+
+    @POST
     @Path("{id}/cancel")
     @Override
     public void cancelTransferProcess(@PathParam("id") String id) {
@@ -92,5 +109,12 @@ public class TransferProcessApiController implements TransferProcessApi {
     @Override
     public void deprovisionTransferProcess(@PathParam("id") String id) {
         monitor.debug(format("Attempting to deprovision TransferProcess with id %s", id));
+    }
+
+    private boolean isValid(TransferRequestDto transferRequest) {
+        return !StringUtils.isNullOrBlank(transferRequest.getConnectorAddress()) &&
+                !StringUtils.isNullOrBlank(transferRequest.getContractId()) &&
+                !StringUtils.isNullOrBlank(transferRequest.getProtocol()) &&
+                transferRequest.getDataDestination() != null;
     }
 }

@@ -1,4 +1,4 @@
-FROM openjdk:11-jre-slim
+FROM openjdk:17-slim
 
 WORKDIR /app
 COPY ./build/libs/reg-svc.jar /app

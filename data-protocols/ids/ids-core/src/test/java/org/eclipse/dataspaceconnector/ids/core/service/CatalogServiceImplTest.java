@@ -35,19 +35,17 @@ import static org.mockito.Mockito.when;
 class CatalogServiceImplTest {
     private static final String CATALOG_ID = "catalogId";
 
+    private final ContractOfferService contractOfferService = mock(ContractOfferService.class);
     private CatalogServiceImpl dataCatalogService;
-    private ContractOfferService contractOfferService;
 
     @BeforeEach
     void setUp() {
-        Monitor monitor = mock(Monitor.class);
-        contractOfferService = mock(ContractOfferService.class);
-        dataCatalogService = new CatalogServiceImpl(monitor, CATALOG_ID, contractOfferService);
+        dataCatalogService = new CatalogServiceImpl(mock(Monitor.class), CATALOG_ID, contractOfferService);
     }
 
     @Test
     void getDataCatalog() {
-        var verificationResult = Result.success(ClaimToken.Builder.newInstance().build());
+        var claimToken = ClaimToken.Builder.newInstance().build();
 
         var offers = Arrays.asList(
                 ContractOffer.Builder.newInstance()
@@ -60,7 +58,7 @@ class CatalogServiceImplTest {
                         .build());
         when(contractOfferService.queryContractOffers(any(ContractOfferQuery.class))).thenReturn(offers.stream());
 
-        var result = dataCatalogService.getDataCatalog(verificationResult);
+        var result = dataCatalogService.getDataCatalog(claimToken);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(CATALOG_ID);

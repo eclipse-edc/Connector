@@ -36,6 +36,7 @@ import org.mockito.ArgumentCaptor;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
@@ -61,7 +62,7 @@ class DataPlanePublicApiControllerTest {
         dataPlaneManagerMock = mock(DataPlaneManager.class);
         tokenValidationServiceMock = mock(TokenValidationService.class);
         requestContextWrapperMock = mock(ContainerRequestContextApi.class);
-        controller = new DataPlanePublicApiController(dataPlaneManagerMock, tokenValidationServiceMock, mock(Monitor.class), requestContextWrapperMock, TYPE_MANAGER);
+        controller = new DataPlanePublicApiController(dataPlaneManagerMock, tokenValidationServiceMock, mock(Monitor.class), requestContextWrapperMock, TYPE_MANAGER, Executors.newSingleThreadExecutor());
     }
 
     /**

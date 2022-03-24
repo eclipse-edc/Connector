@@ -41,11 +41,17 @@ import static java.util.stream.Collectors.toList;
 public class PolicyEngineImpl implements PolicyEngine {
     private static final String ALL_SCOPES_DELIMITED = ALL_SCOPES + ".";
 
+    private ScopeFilter scopeFilter;
+
     private Map<String, List<ConstraintFunctionEntry<Rule>>> constraintFunctions = new TreeMap<>();
     private Map<String, List<RuleFunctionEntry<Rule>>> ruleFunctions = new TreeMap<>();
 
     private List<BiFunction<Policy, PolicyContext, Boolean>> preValidators = new ArrayList<>();
     private List<BiFunction<Policy, PolicyContext, Boolean>> postValidators = new ArrayList<>();
+
+    public PolicyEngineImpl(ScopeFilter scopeFilter) {
+        this.scopeFilter = scopeFilter;
+    }
 
     @Override
     public Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent) {
@@ -82,7 +88,11 @@ public class PolicyEngineImpl implements PolicyEngine {
         });
 
         var evaluator = evalBuilder.build();
-        var result = evaluator.evaluate(policy);
+
+        var filteredPolicy = scopeFilter.applyScope(policy, scope);
+
+        var result = evaluator.evaluate(filteredPolicy);
+
         if (result.valid()) {
             for (BiFunction<Policy, PolicyContext, Boolean> validator : postValidators) {
                 if (!validator.apply(policy, context)) {

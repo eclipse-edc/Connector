@@ -49,7 +49,7 @@ Other monitoring backends can be plugged in easily with OpenTelemetry. For insta
 
 ```yaml
   consumer:
-    image: openjdk:11-jre-slim-buster
+    image: openjdk:17-jdk-slim-buster
     environment:
       APPLICATIONINSIGHTS_CONNECTION_STRING: <your-connection-string>
       APPLICATIONINSIGHTS_ROLE_NAME: consumer

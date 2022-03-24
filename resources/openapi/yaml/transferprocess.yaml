@@ -66,6 +66,26 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/TransferProcessDto'
+    post:
+      operationId: initiateTransfer
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequestDto'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: string
   /transferprocess/{id}:
     get:
       operationId: getTransferProcess
@@ -122,3 +142,38 @@ components:
           type: string
         dataRequest:
           $ref: '#/components/schemas/DataRequestDto'
+    DataAddress:
+      type: object
+      properties:
+        properties:
+          type: object
+          additionalProperties:
+            type: string
+    TransferRequestDto:
+      type: object
+      properties:
+        connectorAddress:
+          type: string
+        contractId:
+          type: string
+        dataDestination:
+          $ref: '#/components/schemas/DataAddress'
+        managedResources:
+          type: boolean
+        properties:
+          type: object
+          additionalProperties:
+            type: string
+        transferType:
+          $ref: '#/components/schemas/TransferType'
+        protocol:
+          type: string
+        connectorId:
+          type: string
+    TransferType:
+      type: object
+      properties:
+        contentType:
+          type: string
+        isFinite:
+          type: boolean

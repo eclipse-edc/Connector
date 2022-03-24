@@ -18,6 +18,7 @@ package org.eclipse.dataspaceconnector.transfer.core.transfer;
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.common.statemachine.StateMachine;
 import org.eclipse.dataspaceconnector.common.statemachine.StateProcessorImpl;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
@@ -27,6 +28,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
@@ -101,13 +103,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private CommandProcessor<TransferProcessCommand> commandProcessor;
     private Monitor monitor;
     private Telemetry telemetry;
+    private ExecutorInstrumentation executorInstrumentation;
     private StateMachine stateMachine;
 
     private TransferProcessManagerImpl() {
     }
 
     public void start() {
-        stateMachine = StateMachine.Builder.newInstance("transfer-process", monitor, waitStrategy)
+        stateMachine = StateMachine.Builder.newInstance("transfer-process", monitor, executorInstrumentation, waitStrategy)
                 .processor(processTransfersInState(INITIAL, this::processInitial))
                 .processor(processTransfersInState(PROVISIONING, this::processProvisioning))
                 .processor(processTransfersInState(PROVISIONED, this::processProvisioned))
@@ -177,7 +180,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
      */
     @WithSpan
     private boolean processInitial(TransferProcess process) {
-        var manifest = manifestGenerator.generateResourceManifest(process);
+        // TODO resolve contract agreement policy from the PolicyStore
+        var policy = Policy.Builder.newInstance().build();
+
+        var manifest = manifestGenerator.generateResourceManifest(process, policy);
         process.transitionProvisioning(manifest);
         transferProcessStore.update(process);
         observable.invokeForEach(l -> l.provisioning(process));
@@ -196,7 +202,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
      */
     @WithSpan
     private boolean processProvisioning(TransferProcess process) {
-        provisionManager.provision(process)
+        // TODO resolve contract agreement policy from the PolicyStore
+        var policy = Policy.Builder.newInstance().build();
+        provisionManager.provision(process, policy)
                 .whenComplete((responses, throwable) -> {
                     if (throwable == null) {
                         onProvisionComplete(process.getId(), responses);
@@ -312,8 +320,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
      */
     @WithSpan
     private boolean processDeprovisioning(TransferProcess process) {
+        // TODO resolve contract agreement policy from the PolicyStore
+        var policy = Policy.Builder.newInstance().build();
         observable.invokeForEach(l -> l.deprovisioning(process)); // TODO: this is called here since it's not callable from the command handler
-        provisionManager.deprovision(process)
+        provisionManager.deprovision(process, policy)
                 .whenComplete((responses, throwable) -> {
                     if (throwable == null) {
                         onDeprovisionComplete(process.getId());
@@ -438,7 +448,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     }
 
     private void processProviderRequest(TransferProcess process, DataRequest dataRequest) {
-        var response = dataFlowManager.initiate(dataRequest);
+        // TODO resolve contract agreement policy from the PolicyStore
+        var policy = Policy.Builder.newInstance().build();
+
+        var response = dataFlowManager.initiate(dataRequest, policy);
         if (response.succeeded()) {
             process.transitionInProgressOrStreaming();
             transferProcessStore.update(process);
@@ -496,6 +509,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         private Builder() {
             manager = new TransferProcessManagerImpl();
             manager.telemetry = new Telemetry(); // default noop implementation
+            manager.executorInstrumentation = ExecutorInstrumentation.noop(); // default noop implementation
         }
 
         public static Builder newInstance() {
@@ -547,6 +561,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             return this;
         }
 
+        public Builder executorInstrumentation(ExecutorInstrumentation executorInstrumentation) {
+            manager.executorInstrumentation = executorInstrumentation;
+            return this;
+        }
+
         public Builder vault(Vault vault) {
             manager.vault = vault;
             return this;
@@ -583,6 +602,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             Objects.requireNonNull(manager.dataFlowManager, "dataFlowManager");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
             Objects.requireNonNull(manager.monitor, "monitor");
+            Objects.requireNonNull(manager.executorInstrumentation, "executorInstrumentation");
             Objects.requireNonNull(manager.commandQueue, "commandQueue cannot be null");
             Objects.requireNonNull(manager.commandRunner, "commandRunner cannot be null");
             Objects.requireNonNull(manager.statusCheckerRegistry, "StatusCheckerRegistry cannot be null!");

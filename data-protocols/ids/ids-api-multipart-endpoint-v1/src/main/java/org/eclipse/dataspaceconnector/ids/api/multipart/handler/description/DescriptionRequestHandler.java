@@ -27,6 +27,6 @@ public interface DescriptionRequestHandler {
     @Nullable
     MultipartResponse handle(
             @NotNull DescriptionRequestMessage descriptionRequestMessage,
-            @NotNull Result<ClaimToken> verificationResult,
+            @NotNull ClaimToken claimToken,
             @Nullable String payload);
 }

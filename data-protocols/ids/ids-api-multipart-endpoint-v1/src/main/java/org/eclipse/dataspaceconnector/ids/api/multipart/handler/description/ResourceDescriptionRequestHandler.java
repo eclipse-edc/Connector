@@ -57,7 +57,7 @@ public class ResourceDescriptionRequestHandler extends AbstractDescriptionReques
     }
 
     @Override
-    protected OfferedAsset retrieveObject(@NotNull IdsId idsId, @NotNull Result<ClaimToken> verificationResult) {
+    protected OfferedAsset retrieveObject(@NotNull IdsId idsId, @NotNull ClaimToken claimToken) {
         String assetId = idsId.getValue();
         Asset asset = assetIndex.findById(assetId);
         if (asset == null) {
@@ -65,7 +65,7 @@ public class ResourceDescriptionRequestHandler extends AbstractDescriptionReques
         }
 
         ContractOfferQuery contractOfferQuery = ContractOfferQuery.Builder.newInstance()
-                .claimToken(verificationResult.getContent())
+                .claimToken(claimToken)
                 .criterion(new Criterion(Asset.PROPERTY_ID, "=", assetId))
                 .build();
 
