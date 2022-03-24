@@ -189,6 +189,7 @@ include(":samples:04.2-modify-transferprocess:simulator")
 
 include(":samples:04.3-open-telemetry:micrometer")
 include(":samples:04.3-open-telemetry:consumer")
+include(":samples:04.3-open-telemetry:provider")
 
 include(":samples:05-file-transfer-cloud:consumer")
 include(":samples:05-file-transfer-cloud:provider")
