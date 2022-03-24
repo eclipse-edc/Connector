@@ -48,6 +48,7 @@ the detailed section referring to by linking pull requests or issues.
 * Refactor (=generify) transformer subsystem (#779)
 * Extract interfaces for every api controller class to improve swagger documentation (#891)
 * Instrument executors with metrics (#912)
+* Call the listeners before the state transition is persisted. (#876)
 
 #### Removed
 

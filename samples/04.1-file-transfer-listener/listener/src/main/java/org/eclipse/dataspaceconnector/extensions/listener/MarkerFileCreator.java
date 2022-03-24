@@ -19,12 +19,12 @@ public class MarkerFileCreator implements TransferProcessListener {
     }
 
     /**
-     * Callback invoked by the EDC framework when a transfer has completed.
+     * Callback invoked by the EDC framework when a transfer is about to be completed.
      *
-     * @param process the transfer process that has completed.
+     * @param process the transfer process that is about to be completed.
      */
     @Override
-    public void completed(final TransferProcess process) {
+    public void preCompleted(final TransferProcess process) {
         Path path = Path.of(process.getDataRequest().getDataDestination().getProperty("path"));
         if (!Files.isDirectory(path)) {
             path = path.getParent();
