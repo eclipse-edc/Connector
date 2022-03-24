@@ -13,13 +13,13 @@
 #
 #
 
-FROM gradle:7.2.0-jdk11-hotspot AS build
+FROM gradle:7.4.1-jdk17 AS build
 
 COPY --chown=gradle:gradle . /home/gradle/project/
 WORKDIR /home/gradle/project/
 RUN gradle :launchers:ids-connector:build --no-daemon
 
-FROM openjdk:11-jre-slim
+FROM openjdk:17-slim
 
 WORKDIR /app
 COPY --from=build /home/gradle/project/launchers/ids-connector/build/libs/dataspace-connector.jar /app

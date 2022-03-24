@@ -31,7 +31,7 @@ public class Prohibition extends Rule {
         return "Prohibition constraints: [" + getConstraints().stream().map(Object::toString).collect(joining(",")) + "]";
     }
 
-    public static class Builder extends Rule.Builder<Prohibition, Builder> {
+    public static class Builder extends Rule.Builder<Prohibition, Prohibition.Builder> {
 
         private Builder() {
             rule = new Prohibition();
@@ -39,6 +39,11 @@ public class Prohibition extends Rule {
 
         public static Builder newInstance() {
             return new Builder();
+        }
+
+        public Builder uid(String uid) {
+            rule.uid = uid;
+            return this;
         }
 
         public Prohibition build() {

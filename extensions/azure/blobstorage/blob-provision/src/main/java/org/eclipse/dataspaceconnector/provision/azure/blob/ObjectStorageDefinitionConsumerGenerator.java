@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.provision.azure.blob;
 
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceDefinitionGenerator;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
@@ -24,8 +25,9 @@ import org.jetbrains.annotations.Nullable;
 import static java.util.UUID.randomUUID;
 
 public class ObjectStorageDefinitionConsumerGenerator implements ResourceDefinitionGenerator {
+
     @Override
-    public @Nullable ResourceDefinition generate(TransferProcess process) {
+    public @Nullable ResourceDefinition generate(TransferProcess process, Policy policy) {
         var request = process.getDataRequest();
         if (request.getDataDestination() == null || request.getDestinationType() == null || !AzureBlobStoreSchema.TYPE.equals(request.getDestinationType())) {
             return null;

@@ -9,151 +9,190 @@
  *
  * Contributors:
  *    ZF Friedrichshafen AG - Initial API and Implementation
+ *    Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  */
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import org.eclipse.dataspaceconnector.common.testfixtures.TestUtils;
-import org.eclipse.dataspaceconnector.extension.jersey.CorsFilterConfiguration;
-import org.eclipse.dataspaceconnector.extension.jersey.JerseyRestService;
-import org.eclipse.dataspaceconnector.extension.jetty.JettyConfiguration;
-import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
-import org.eclipse.dataspaceconnector.extension.jetty.PortMapping;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeAll;
+import io.restassured.specification.RequestSpecification;
+import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
+import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
+import java.util.Map;
+import java.util.UUID;
 
+import static io.restassured.RestAssured.given;
+import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.api.datamanagement.asset.TestFunctions.createAssetEntryDto;
 import static org.eclipse.dataspaceconnector.api.datamanagement.asset.TestFunctions.createAssetEntryDto_emptyAttributes;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
-import static org.mockito.Mockito.mock;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
 
+@ExtendWith(EdcExtension.class)
 public class AssetApiControllerIntegrationTest {
 
-    private static int port;
-    private ObjectMapper objectMapper;
-    private OkHttpClient client;
-
-    @BeforeAll
-    static void prepareWebserver() {
-        port = TestUtils.getFreePort();
-        var monitor = mock(Monitor.class);
-        var config = new JettyConfiguration(null, null);
-        config.portMapping(new PortMapping("data", port, "/api/v1/data"));
-        var jetty = new JettyService(config, monitor);
-
-        var ctrl = new AssetApiController(monitor);
-        var jerseyService = new JerseyRestService(jetty, new TypeManager(), mock(CorsFilterConfiguration.class), monitor);
-        jetty.start();
-        jerseyService.registerResource("data", ctrl);
-        jerseyService.start();
-    }
+    private final int port = getFreePort();
+    private final String authKey = "123456";
 
     @BeforeEach
-    void setup() {
-        objectMapper = new ObjectMapper();
-        client = testOkHttpClient();
+    void setUp(EdcExtension extension) {
+        extension.setConfiguration(Map.of(
+                "web.http.data.port", String.valueOf(port),
+                "web.http.data.path", "/api/v1/data",
+                "edc.api.auth.key", authKey
+        ));
     }
 
     @Test
-    void getAllAssets() throws IOException {
-        var response = get(basePath());
-        assertThat(response.code()).isEqualTo(200);
+    void getAllAssets(AssetLoader assetLoader) {
+        var asset = Asset.Builder.newInstance().id("id").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+        assetLoader.accept(asset, dataAddress);
+
+        baseRequest()
+                .get("/assets")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(1));
     }
 
     @Test
-    void getSingleAsset() throws IOException {
-        var id = "test-id";
-        try (var response = get(basePath() + "/" + id)) {
-            //assertThat(response.code()).isEqualTo(200);
-        }
+    void getSingleAsset(AssetLoader assetLoader) {
+        var asset = Asset.Builder.newInstance().id("id").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+        assetLoader.accept(asset, dataAddress);
+
+        baseRequest()
+                .get("/assets/id")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("properties.size()", greaterThan(0));
     }
 
     @Test
-    void getSingleAsset_notFound() throws IOException {
-        var id = "test-id";
-        try (var response = get(basePath() + "/" + id)) {
-            //assertThat(response.code()).isEqualTo(400);
-        }
+    void getSingleAsset_notFound() {
+        baseRequest()
+                .get("/assets/not-existent-id")
+                .then()
+                .statusCode(404);
     }
 
     @Test
-    void postAsset() throws IOException {
-        var str = objectMapper.writeValueAsString(createAssetEntryDto());
-        RequestBody requestBody = RequestBody.create(str, MediaType.parse("application/json"));
+    void postAsset(AssetIndex assetIndex) {
+        var assetEntryDto = createAssetEntryDto("assetId");
 
-        try (var response = post(basePath(), requestBody)) {
-            //assertThat(response.code()).isEqualTo(200);
-        }
+        baseRequest()
+                .body(assetEntryDto)
+                .contentType(JSON)
+                .post("/assets")
+                .then()
+                .statusCode(204);
+        assertThat(assetIndex.findById("assetId")).isNotNull();
     }
 
     @Test
-    void postAssetId_alreadyExists() throws IOException {
-        var str = objectMapper.writeValueAsString(createAssetEntryDto());
+    void postAssetId_alreadyExists(AssetLoader assetLoader) {
+        var asset = Asset.Builder.newInstance().id("assetId").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+        assetLoader.accept(asset, dataAddress);
+        var assetEntryDto = createAssetEntryDto("assetId");
 
-        RequestBody requestBody = RequestBody.create(str, MediaType.parse("application/json"));
-
-        try (var response = post(basePath(), requestBody)) {
-            //assertThat(response.code()).isEqualTo(400);
-        }
+        baseRequest()
+                .body(assetEntryDto)
+                .contentType(JSON)
+                .post("/assets")
+                .then()
+                .statusCode(409);
     }
 
     @Test
-    void postAsset_emptyAttributes() throws IOException {
-        var str = objectMapper.writeValueAsString(createAssetEntryDto_emptyAttributes());
+    void postAsset_emptyAttributes() {
+        var assetEntryDto = createAssetEntryDto_emptyAttributes();
 
-        RequestBody requestBody = RequestBody.create(str, MediaType.parse("application/json"));
-
-        try (var response = post(basePath(), requestBody)) {
-            //assertThat(response.code()).isEqualTo(400);
-        }
+        baseRequest()
+                .body(assetEntryDto)
+                .contentType(JSON)
+                .post("/assets")
+                .then()
+                .statusCode(400);
     }
 
     @Test
-    void deleteAsset() throws IOException {
-        var id = "test-id";
-        try (var response = delete(basePath() + "/" + id)) {
-            //assertThat(response.code()).isEqualTo(200);
-        }
+    void deleteAsset(AssetLoader assetLoader, AssetIndex assetIndex) {
+        var asset = Asset.Builder.newInstance().id("assetId").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+        assetLoader.accept(asset, dataAddress);
+
+        baseRequest()
+                .contentType(JSON)
+                .delete("/assets/assetId")
+                .then()
+                .statusCode(204);
+        assertThat(assetIndex.findById("assetId")).isNull();
     }
 
     @Test
-    void deleteAssetId_notExists() throws IOException {
-        var id = "test-id";
-        try (var response = delete(basePath() + "/" + id)) {
-            //assertThat(response.code()).isEqualTo(400);
-        }
+    void deleteAsset_notExists() {
+        baseRequest()
+                .contentType(JSON)
+                .delete("/assets/not-existent-id")
+                .then()
+                .statusCode(404);
     }
 
-    @NotNull
-    private String basePath() {
-        return "http://localhost:" + port + "/api/v1/data/assets";
+    @Test
+    void deleteAsset_alreadyReferencedInAgreement(ContractNegotiationStore negotiationStore, AssetLoader assetLoader) {
+        var asset = Asset.Builder.newInstance().id("assetId").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+        assetLoader.accept(asset, dataAddress);
+        negotiationStore.save(createContractNegotiation(asset));
+
+        baseRequest()
+                .contentType(JSON)
+                .delete("/assets/assetId")
+                .then()
+                .statusCode(409);
     }
 
-    @NotNull
-    private Response get(String url) throws IOException {
-        return client.newCall(new Request.Builder().get().url(url).build()).execute();
+    private ContractNegotiation createContractNegotiation(Asset asset) {
+        return ContractNegotiation.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .counterPartyId(UUID.randomUUID().toString())
+                .counterPartyAddress("address")
+                .protocol("protocol")
+                .contractAgreement(createContractAgreement(asset))
+                .build();
     }
 
-    @NotNull
-    private Response post(String url, RequestBody requestBody) throws IOException {
-        return client.newCall(new Request.Builder().post(requestBody).url(url).build()).execute();
+    private ContractAgreement createContractAgreement(Asset asset) {
+        return ContractAgreement.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .providerAgentId(UUID.randomUUID().toString())
+                .consumerAgentId(UUID.randomUUID().toString())
+                .asset(asset)
+                .policy(Policy.Builder.newInstance().build())
+                .build();
     }
 
-    @NotNull
-    private Response delete(String url) throws IOException {
-        return client.newCall(new Request.Builder().delete().url(url).build()).execute();
+    private RequestSpecification baseRequest() {
+        return given()
+                .baseUri("http://localhost:" + port)
+                .basePath("/api/v1/data")
+                .header("x-api-key", authKey)
+                .when();
     }
 }

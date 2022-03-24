@@ -66,7 +66,7 @@ class NotificationMessageHandlerTest {
     void delegateToSubHandler_subHandlerNotFound_shouldReturnRejectionMessage() {
         var request = createMultipartRequest(new ParticipantCertificateGrantedMessageBuilder().build());
 
-        var response = handler.handleRequest(request, createSuccessClaimToken());
+        var response = handler.handleRequest(request, createClaimToken());
 
         assertThat(response)
                 .isNotNull()
@@ -78,7 +78,7 @@ class NotificationMessageHandlerTest {
     @Test
     void delegateToSubHandler_shouldReturnResultFromSubHandler() {
         var request = createMultipartRequest(new ParticipantUpdateMessageBuilder().build());
-        var verificationResult = createSuccessClaimToken();
+        var verificationResult = createClaimToken();
         var subHandlerResponse = MultipartResponse.Builder.newInstance().header(new MessageProcessedNotificationMessageBuilder().build()).build();
         when(subHandler.handleRequest(request, verificationResult)).thenReturn(subHandlerResponse);
 
@@ -94,7 +94,7 @@ class NotificationMessageHandlerTest {
         return MultipartRequest.Builder.newInstance().header(message).build();
     }
 
-    private static Result<ClaimToken> createSuccessClaimToken() {
-        return Result.success(ClaimToken.Builder.newInstance().build());
+    private static ClaimToken createClaimToken() {
+        return ClaimToken.Builder.newInstance().build();
     }
 }

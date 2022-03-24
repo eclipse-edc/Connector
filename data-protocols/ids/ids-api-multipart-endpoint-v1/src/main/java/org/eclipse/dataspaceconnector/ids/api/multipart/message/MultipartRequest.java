@@ -26,12 +26,12 @@ public class MultipartRequest {
 
     private final Message header;
     private final String payload;
-    private final Result<ClaimToken> verificationResult;
+    private final ClaimToken claimToken;
 
-    private MultipartRequest(@NotNull Message header, @Nullable String payload, @Nullable Result<ClaimToken> verificationResult) {
+    private MultipartRequest(@NotNull Message header, @Nullable String payload, ClaimToken claimToken) {
         this.header = Objects.requireNonNull(header);
         this.payload = payload;
-        this.verificationResult = verificationResult;
+        this.claimToken = claimToken;
     }
 
     @NotNull
@@ -45,15 +45,15 @@ public class MultipartRequest {
     }
 
     @Nullable
-    public Result<ClaimToken> getVerificationResult() {
-        return verificationResult;
+    public ClaimToken getClaimToken() {
+        return claimToken;
     }
 
     public static class Builder {
 
         private Message header;
         private String payload;
-        private Result<ClaimToken> verificationResult;
+        private ClaimToken claimToken;
 
         private Builder() {
         }
@@ -72,13 +72,13 @@ public class MultipartRequest {
             return this;
         }
 
-        public Builder verificationResult(@Nullable Result<ClaimToken> verificationResult) {
-            this.verificationResult = verificationResult;
+        public Builder claimToken(ClaimToken claimToken) {
+            this.claimToken = claimToken;
             return this;
         }
 
         public MultipartRequest build() {
-            return new MultipartRequest(header, payload, verificationResult);
+            return new MultipartRequest(header, payload, claimToken);
         }
     }
 }

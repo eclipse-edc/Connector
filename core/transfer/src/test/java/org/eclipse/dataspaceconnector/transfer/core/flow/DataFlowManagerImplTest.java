@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.transfer.core.flow;
 
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
@@ -19,11 +20,13 @@ class DataFlowManagerImplTest {
         var manager = new DataFlowManagerImpl();
         var controller = mock(DataFlowController.class);
         var dataRequest = DataRequest.Builder.newInstance().destinationType("type").build();
+        var policy = Policy.Builder.newInstance().build();
+
         when(controller.canHandle(any())).thenReturn(true);
-        when(controller.initiateFlow(any())).thenReturn(DataFlowInitiateResult.success("success"));
+        when(controller.initiateFlow(any(), any())).thenReturn(DataFlowInitiateResult.success("success"));
         manager.register(controller);
 
-        var response = manager.initiate(dataRequest);
+        var response = manager.initiate(dataRequest, policy);
 
         assertThat(response.succeeded()).isTrue();
     }
@@ -33,10 +36,12 @@ class DataFlowManagerImplTest {
         var manager = new DataFlowManagerImpl();
         var controller = mock(DataFlowController.class);
         var dataRequest = DataRequest.Builder.newInstance().destinationType("type").build();
+        var policy = Policy.Builder.newInstance().build();
+
         when(controller.canHandle(any())).thenReturn(false);
         manager.register(controller);
 
-        var response = manager.initiate(dataRequest);
+        var response = manager.initiate(dataRequest, policy);
 
         assertThat(response.succeeded()).isFalse();
         assertThat(response.getFailure().status()).isEqualTo(FATAL_ERROR);
@@ -47,11 +52,13 @@ class DataFlowManagerImplTest {
         var manager = new DataFlowManagerImpl();
         var controller = mock(DataFlowController.class);
         var dataRequest = DataRequest.Builder.newInstance().destinationType("type").build();
+        var policy = Policy.Builder.newInstance().build();
+
         when(controller.canHandle(any())).thenReturn(true);
-        when(controller.initiateFlow(any())).thenThrow(new EdcException("error"));
+        when(controller.initiateFlow(any(), any())).thenThrow(new EdcException("error"));
         manager.register(controller);
 
-        var response = manager.initiate(dataRequest);
+        var response = manager.initiate(dataRequest, policy);
 
         assertThat(response.succeeded()).isFalse();
         assertThat(response.getFailure().status()).isEqualTo(FATAL_ERROR);

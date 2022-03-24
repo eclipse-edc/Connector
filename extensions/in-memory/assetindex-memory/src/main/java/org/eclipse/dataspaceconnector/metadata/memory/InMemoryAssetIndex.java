@@ -48,8 +48,8 @@ public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, Asse
     private final AssetPredicateConverter predicateFactory;
     private final ReentrantReadWriteLock lock;
 
-    public InMemoryAssetIndex(AssetPredicateConverter predicateFactory) {
-        this.predicateFactory = predicateFactory;
+    public InMemoryAssetIndex() {
+        this.predicateFactory = new AssetPredicateConverter();
         // fair locks guarantee strong consistency since all waiting threads are processed in order of waiting time
         lock = new ReentrantReadWriteLock(true);
     }

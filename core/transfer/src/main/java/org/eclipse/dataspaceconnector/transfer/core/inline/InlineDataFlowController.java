@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.inline;
 
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -50,7 +51,7 @@ public class InlineDataFlowController implements DataFlowController {
     }
 
     @Override
-    public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest) {
+    public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest, Policy policy) {
         var source = dataAddressResolver.resolveForAsset(dataRequest.getAssetId());
         var destinationType = dataRequest.getDestinationType();
         monitor.info(format("Copying data from %s to %s", source.getType(), destinationType));

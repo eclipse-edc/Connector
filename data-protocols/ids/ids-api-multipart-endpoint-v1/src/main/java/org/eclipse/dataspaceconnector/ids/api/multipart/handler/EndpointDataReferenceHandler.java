@@ -68,7 +68,7 @@ public class EndpointDataReferenceHandler implements Handler {
      * - finally apply {@link EndpointDataReferenceReceiver} to the resulting EDR to dispatch it into the consumer environment.
      */
     @Override
-    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull Result<ClaimToken> verificationResult) {
+    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull ClaimToken claimToken) {
         var edr = typeManager.readValue(multipartRequest.getPayload(), EndpointDataReference.class);
         var transformationResult = transformer.transform(edr);
         if (transformationResult.failed()) {

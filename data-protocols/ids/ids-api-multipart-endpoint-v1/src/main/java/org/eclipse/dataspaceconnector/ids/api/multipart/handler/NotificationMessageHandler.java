@@ -51,13 +51,13 @@ public class NotificationMessageHandler implements Handler {
      * Delegate the processing of the request to the first {@link Handler} in the registry that accepts this kind of request, if any.
      */
     @Override
-    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull Result<ClaimToken> verificationResult) {
+    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull ClaimToken claimToken) {
         var notification = (NotificationMessage) multipartRequest.getHeader();
         var subhandler = subhandlers.getHandler(notification.getClass());
         if (subhandler == null) {
             return createErrorMultipartResponse(multipartRequest.getHeader());
         }
-        return subhandler.handleRequest(multipartRequest, verificationResult);
+        return subhandler.handleRequest(multipartRequest, claimToken);
     }
 
     private MultipartResponse createErrorMultipartResponse(Message message) {

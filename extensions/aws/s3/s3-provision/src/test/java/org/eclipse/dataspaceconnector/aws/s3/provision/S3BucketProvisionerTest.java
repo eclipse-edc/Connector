@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.aws.s3.provision;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.aws.s3.core.AwsTemporarySecretToken;
 import org.eclipse.dataspaceconnector.aws.s3.core.ClientProvider;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -90,8 +91,9 @@ class S3BucketProvisionerTest {
         when(s3Client.createBucket(isA(CreateBucketRequest.class))).thenReturn(completedFuture(createBucketResponse));
 
         S3BucketResourceDefinition definition = S3BucketResourceDefinition.Builder.newInstance().id("test").regionId(Region.US_EAST_1.id()).bucketName("test").transferProcessId("test").build();
+        var policy = Policy.Builder.newInstance().build();
 
-        var response = provisioner.provision(definition).join();
+        var response = provisioner.provision(definition, policy).join();
 
         assertThat(response.getResource()).isInstanceOfSatisfying(S3BucketProvisionedResource.class, resource -> {
             assertThat(resource.getRole()).isEqualTo("roleName");
@@ -109,7 +111,9 @@ class S3BucketProvisionerTest {
         when(s3Client.createBucket(isA(CreateBucketRequest.class))).thenReturn(failedFuture(new RuntimeException("any")));
         S3BucketResourceDefinition definition = S3BucketResourceDefinition.Builder.newInstance().id("test").regionId(Region.US_EAST_1.id()).bucketName("test").transferProcessId("test").build();
 
-        var response = provisioner.provision(definition);
+        var policy = Policy.Builder.newInstance().build();
+
+        var response = provisioner.provision(definition, policy);
 
         assertThat(response).failsWithin(1, SECONDS);
     }

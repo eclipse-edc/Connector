@@ -1,0 +1,58 @@
+/*
+ *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *
+ */
+
+package org.eclipse.dataspaceconnector.api.datamanagement.asset.service;
+
+import org.eclipse.dataspaceconnector.api.result.ServiceResult;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+
+import java.util.Collection;
+
+public interface AssetService {
+
+    /**
+     * Returns an asset by its id
+     *
+     * @param assetId id of the asset
+     * @return the asset, null if it's not found
+     */
+    Asset findbyId(String assetId);
+
+    /**
+     * Query assets
+     *
+     * @param query request
+     * @return the collection of assets that match the query
+     */
+    Collection<Asset> query(QuerySpec query);
+
+    /**
+     * Create an asset with its related data address
+     *
+     * @param asset the asset
+     * @param dataAddress the address of the asset
+     * @return successful result if the asset is created correctly, failure otherwise
+     */
+    ServiceResult<Asset> create(Asset asset, DataAddress dataAddress);
+
+    /**
+     * Delete an asset
+     *
+     * @param assetId the id of the asset to be deleted
+     * @return successful result if the asset is deleted correctly, failure otherwise
+     */
+    ServiceResult<Asset> delete(String assetId);
+}

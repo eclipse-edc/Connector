@@ -18,6 +18,7 @@ import com.azure.storage.blob.models.BlobStorageException;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureSasToken;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
@@ -39,11 +40,13 @@ class ObjectStorageProvisionerTest {
 
     private final BlobStoreApi blobStoreApiMock = mock(BlobStoreApi.class);
     private ObjectStorageProvisioner provisioner;
+    private Policy policy;
 
     @BeforeEach
     void setup() {
         RetryPolicy<Object> retryPolicy = new RetryPolicy<>().withMaxRetries(0);
         provisioner = new ObjectStorageProvisioner(retryPolicy, mock(Monitor.class), blobStoreApiMock);
+        policy = Policy.Builder.newInstance().build();
     }
 
     @Test
@@ -62,7 +65,8 @@ class ObjectStorageProvisionerTest {
 
     @Test
     void deprovision_should_not_do_anything() {
-        var result = provisioner.deprovision(new ObjectContainerProvisionedResource());
+        var resource = new ObjectContainerProvisionedResource();
+        var result = provisioner.deprovision(resource, policy);
 
         assertThat(result).succeedsWithin(1, SECONDS);
     }
@@ -75,7 +79,7 @@ class ObjectStorageProvisionerTest {
         when(blobStoreApiMock.exists(anyString(), anyString())).thenReturn(false);
         when(blobStoreApiMock.createContainerSasToken(eq(accountName), eq(containerName), eq("w"), any())).thenReturn("some-sas");
 
-        var response = provisioner.provision(resourceDef).join();
+        var response = provisioner.provision(resourceDef, policy).join();
 
         assertThat(response.getResource()).isInstanceOfSatisfying(ObjectContainerProvisionedResource.class, resource -> {
             assertThat(resource.getTransferProcessId()).isEqualTo("tpId");
@@ -95,7 +99,7 @@ class ObjectStorageProvisionerTest {
         when(blobStoreApiMock.exists(accountName, containerName)).thenReturn(true);
         when(blobStoreApiMock.createContainerSasToken(eq(accountName), eq(containerName), eq("w"), any())).thenReturn("some-sas");
 
-        var response = provisioner.provision(resourceDef).join();
+        var response = provisioner.provision(resourceDef, policy).join();
 
         assertThat(response.getResource()).isInstanceOfSatisfying(ObjectContainerProvisionedResource.class, resource -> {
             assertThat(resource.getTransferProcessId()).isEqualTo("tpId");
@@ -113,7 +117,7 @@ class ObjectStorageProvisionerTest {
         when(blobStoreApiMock.exists(any(), anyString()))
                 .thenThrow(new IllegalArgumentException("No Object Storage credential found in vault"));
 
-        assertThatThrownBy(() -> provisioner.provision(resourceDefinition).join()).hasCauseInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> provisioner.provision(resourceDefinition, policy).join()).hasCauseInstanceOf(IllegalArgumentException.class);
         verify(blobStoreApiMock).exists(any(), any());
     }
 
@@ -124,7 +128,7 @@ class ObjectStorageProvisionerTest {
         doThrow(new BlobStorageException("not authorized", null, null))
                 .when(blobStoreApiMock).createContainer(resourceDef.getAccountName(), resourceDef.getContainerName());
 
-        assertThatThrownBy(() -> provisioner.provision(resourceDef).join()).hasCauseInstanceOf(BlobStorageException.class);
+        assertThatThrownBy(() -> provisioner.provision(resourceDef, policy).join()).hasCauseInstanceOf(BlobStorageException.class);
         verify(blobStoreApiMock).exists(anyString(), anyString());
     }
 

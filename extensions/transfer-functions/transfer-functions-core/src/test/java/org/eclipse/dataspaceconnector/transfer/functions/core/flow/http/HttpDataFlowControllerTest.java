@@ -18,6 +18,7 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -68,8 +69,9 @@ class HttpDataFlowControllerTest {
         httpClient = testOkHttpClient().newBuilder().addInterceptor(delegate).build();
 
         var dataRequest = createDataRequest();
+        var policy = Policy.Builder.newInstance().build();
 
-        assertThat(flowController.initiateFlow(dataRequest).succeeded()).isTrue();
+        assertThat(flowController.initiateFlow(dataRequest, policy).succeeded()).isTrue();
     }
 
     @Test
@@ -83,8 +85,9 @@ class HttpDataFlowControllerTest {
         httpClient = testOkHttpClient().newBuilder().addInterceptor(delegate).build();
 
         var dataRequest = createDataRequest();
+        var policy = Policy.Builder.newInstance().build();
 
-        assertEquals(ERROR_RETRY, flowController.initiateFlow(dataRequest).getFailure().status());
+        assertEquals(ERROR_RETRY, flowController.initiateFlow(dataRequest, policy).getFailure().status());
     }
 
     @Test
@@ -98,8 +101,9 @@ class HttpDataFlowControllerTest {
         httpClient = testOkHttpClient().newBuilder().addInterceptor(delegate).build();
 
         var dataRequest = createDataRequest();
+        var policy = Policy.Builder.newInstance().build();
 
-        assertEquals(FATAL_ERROR, flowController.initiateFlow(dataRequest).getFailure().status());
+        assertEquals(FATAL_ERROR, flowController.initiateFlow(dataRequest, policy).getFailure().status());
     }
 
     private DataRequest createDataRequest() {
