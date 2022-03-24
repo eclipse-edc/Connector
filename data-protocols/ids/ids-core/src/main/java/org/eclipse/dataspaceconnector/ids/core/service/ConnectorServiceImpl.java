@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Daimler TSS GmbH
+ *  Copyright (c) 2021 - 2022 Daimler TSS GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
@@ -45,10 +46,11 @@ public class ConnectorServiceImpl implements ConnectorService {
     }
 
     @NotNull
-    public Connector getConnector(@NotNull Result<ClaimToken> verificationResult) {
-        Objects.requireNonNull(verificationResult);
+    @Override
+    public Connector getConnector(@NotNull ClaimToken claimToken) {
+        Objects.requireNonNull(claimToken);
 
-        Catalog catalog = dataCatalogService.getDataCatalog(verificationResult);
+        Catalog catalog = dataCatalogService.getDataCatalog(claimToken);
 
         return Connector.Builder
                 .newInstance()

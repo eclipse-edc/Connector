@@ -22,12 +22,12 @@ import java.util.Map;
 @JsonDeserialize(builder = DataAddressDto.Builder.class)
 public class DataAddressDto {
 
-    private Map<String, Object> properties;
+    private Map<String, String> properties;
 
     private DataAddressDto() {
     }
 
-    public Map<String, Object> getProperties() {
+    public Map<String, String> getProperties() {
         return properties;
     }
 
@@ -45,7 +45,7 @@ public class DataAddressDto {
             return new Builder();
         }
 
-        public Builder properties(Map<String, Object> properties) {
+        public Builder properties(Map<String, String> properties) {
             dataAddressDto.properties = properties;
             return this;
         }

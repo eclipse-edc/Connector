@@ -82,7 +82,7 @@ public class InMemoryAssetLoaderIndexTest {
 
     @BeforeEach
     void setup() {
-        assetLoader = new InMemoryAssetIndex(new AssetPredicateConverter());
+        assetLoader = new InMemoryAssetIndex();
     }
 
     private Asset createAsset(String name, String id) {

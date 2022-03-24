@@ -37,5 +37,5 @@ public interface Handler {
      * @param multipartRequest from another connector
      * @return {@link MultipartResponse} or null, if the request cannot be handled (e.g. when content missing)
      */
-    @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull Result<ClaimToken> verificationResult);
+    @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull ClaimToken claimToken);
 }

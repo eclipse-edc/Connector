@@ -59,7 +59,7 @@ class DapsIntegrationTest {
     @BeforeEach
     protected void before(EdcExtension extension) {
         KeyStore clientKeystore = readKeystoreFromResources("keystore.p12", "PKCS12", CLIENT_KEYSTORE_PASSWORD);
-        extension.registerSystemExtension(ConfigurationExtension.class, (ConfigurationExtension) () -> ConfigFactory.fromMap(configuration));
+        extension.setConfiguration(configuration);
         extension.registerServiceMock(Vault.class, new MockVault());
         extension.registerServiceMock(PrivateKeyResolver.class, new FsPrivateKeyResolver(CLIENT_KEYSTORE_PASSWORD, clientKeystore));
         extension.registerServiceMock(CertificateResolver.class, new FsCertificateResolver(clientKeystore));

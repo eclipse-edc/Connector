@@ -34,6 +34,7 @@ import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.BODY;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.MEDIA_TYPE;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
+import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.PATH;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
@@ -118,6 +119,9 @@ public class HttpDataSourceFactory implements DataSourceFactory {
             }
             builder.header(authKey, secretResult.getContent());
         }
+
+        Optional.ofNullable(request.getProperties().get(PATH))
+                .ifPresent(builder::name);
 
         Optional.ofNullable(request.getProperties().get(QUERY_PARAMS))
                 .ifPresent(builder::queryParams);

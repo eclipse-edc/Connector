@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.aws.s3.provision;
 
 import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceDefinitionGenerator;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
@@ -29,7 +30,7 @@ import static java.util.UUID.randomUUID;
 public class S3ResourceDefinitionConsumerGenerator implements ResourceDefinitionGenerator {
 
     @Override
-    public ResourceDefinition generate(TransferProcess process) {
+    public ResourceDefinition generate(TransferProcess process, Policy policy) {
         var request = process.getDataRequest();
         if (request.getDestinationType() != null) {
             if (!S3BucketSchema.TYPE.equals(request.getDestinationType())) {

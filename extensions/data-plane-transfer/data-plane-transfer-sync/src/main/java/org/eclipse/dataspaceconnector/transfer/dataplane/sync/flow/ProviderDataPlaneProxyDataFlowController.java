@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.flow;
 
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
@@ -50,7 +51,7 @@ public class ProviderDataPlaneProxyDataFlowController implements DataFlowControl
     }
 
     @Override
-    public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest) {
+    public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest, Policy policy) {
         var address = resolver.resolveForAsset(dataRequest.getAssetId());
         var proxyCreationRequest = DataPlaneProxyCreationRequest.Builder.newInstance()
                 .id(dataRequest.getId())
