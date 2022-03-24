@@ -33,6 +33,7 @@ the detailed section referring to by linking pull requests or issues.
 * Added embedded and remote DPF Selector (#832)
 * Pass path information into http data source through DPF public API (#929)
 * Add instructions for observability sample with Azure Application Insights (#928)
+* Add interface `WebServer` to `web-spi` (#921)
 
 #### Changed
 
