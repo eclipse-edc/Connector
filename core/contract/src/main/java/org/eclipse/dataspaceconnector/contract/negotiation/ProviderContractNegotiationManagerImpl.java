@@ -64,7 +64,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     //TODO validate previous offers against hash?
 
     public void start() {
-        stateMachine = StateMachine.Builder.newInstance("provider-contract-negotiation", monitor, waitStrategy)
+        stateMachine = StateMachine.Builder.newInstance("provider-contract-negotiation", monitor, executorInstrumentation, waitStrategy)
                 .processor(processNegotiationsInState(PROVIDER_OFFERING, this::processProviderOffering))
                 .processor(processNegotiationsInState(DECLINING, this::processDeclining))
                 .processor(processNegotiationsInState(CONFIRMING, this::processConfirming))

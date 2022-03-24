@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidation
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
+import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 
@@ -39,6 +40,7 @@ public abstract class AbstractContractNegotiationManager {
     protected CommandProcessor<ContractNegotiationCommand> commandProcessor;
     protected Monitor monitor;
     protected Telemetry telemetry;
+    protected ExecutorInstrumentation executorInstrumentation;
     protected int batchSize = 5;
     protected WaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
 
@@ -49,6 +51,7 @@ public abstract class AbstractContractNegotiationManager {
         protected Builder(T manager) {
             this.manager = manager;
             this.manager.telemetry = new Telemetry(); // default noop implementation
+            this.manager.executorInstrumentation = ExecutorInstrumentation.noop(); // default noop implementation
         }
 
         public Builder<T> validationService(ContractValidationService validationService) {
@@ -91,6 +94,11 @@ public abstract class AbstractContractNegotiationManager {
             return this;
         }
 
+        public Builder<T> executorInstrumentation(ExecutorInstrumentation executorInstrumentation) {
+            manager.executorInstrumentation = executorInstrumentation;
+            return this;
+        }
+
         public Builder<T> observable(ContractNegotiationObservable observable) {
             manager.observable = observable;
             return this;
@@ -109,6 +117,7 @@ public abstract class AbstractContractNegotiationManager {
             Objects.requireNonNull(manager.commandRunner, "commandRunner");
             Objects.requireNonNull(manager.observable, "observable");
             Objects.requireNonNull(manager.telemetry, "telemetry");
+            Objects.requireNonNull(manager.executorInstrumentation, "executorInstrumentation");
             Objects.requireNonNull(manager.negotiationStore, "store");
             manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
 

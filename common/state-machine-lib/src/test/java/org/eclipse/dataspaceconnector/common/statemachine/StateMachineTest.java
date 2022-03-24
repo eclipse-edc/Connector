@@ -3,6 +3,7 @@ package org.eclipse.dataspaceconnector.common.statemachine;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
+import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -22,6 +23,7 @@ class StateMachineTest {
 
     private final WaitStrategy waitStrategy = mock(WaitStrategy.class);
     private final Monitor monitor = mock(Monitor.class);
+    private final ExecutorInstrumentation instrumentation = ExecutorInstrumentation.noop();
 
     @BeforeEach
     void setUp() {
@@ -37,7 +39,7 @@ class StateMachineTest {
             Thread.sleep(100L);
             return 1L;
         });
-        var stateMachine = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
+        var stateMachine = StateMachine.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
                 .processor(processor)
                 .shutdownTimeout(1)
                 .build();
@@ -59,7 +61,7 @@ class StateMachineTest {
             latch.countDown();
             return 1L;
         }).when(waitStrategy).success();
-        var stateMachine = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
+        var stateMachine = StateMachine.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
                 .processor(processor)
                 .build();
 
@@ -80,7 +82,7 @@ class StateMachineTest {
             latch.countDown();
             return 0L;
         }).when(waitStrategy).success();
-        var stateMachine = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
+        var stateMachine = StateMachine.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
                 .processor(processor)
                 .build();
 
@@ -95,7 +97,7 @@ class StateMachineTest {
     void shouldExitWithAnExceptionIfProcessorExitsWithAnUnrecoverableError() {
         var processor = mock(StateProcessor.class);
         when(processor.process()).thenThrow(new Error("unrecoverable"));
-        var stateMachine = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
+        var stateMachine = StateMachine.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
                 .processor(processor)
                 .build();
 
@@ -112,7 +114,7 @@ class StateMachineTest {
             latch.countDown();
             return 1L;
         });
-        var stateMachine = StateMachine.Builder.newInstance("test", monitor, waitStrategy)
+        var stateMachine = StateMachine.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
                 .processor(processor)
                 .build();
 
