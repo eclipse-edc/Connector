@@ -27,6 +27,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
@@ -56,8 +57,8 @@ public class MicrometerExtensionIntegrationTest {
     }
 
     @BeforeEach
-    void before() {
-        System.setProperty("web.http.port", Integer.toString(CONNECTOR_PORT));
+    void before(EdcExtension extension) {
+        extension.setConfiguration(Map.of("web.http.data.port", String.valueOf(CONNECTOR_PORT)));
     }
 
     @Test
