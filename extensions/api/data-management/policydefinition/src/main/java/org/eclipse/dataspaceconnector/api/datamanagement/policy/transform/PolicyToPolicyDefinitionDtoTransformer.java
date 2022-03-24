@@ -20,23 +20,23 @@ import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class PolicyDefinitionDtoToPolicyTransformer implements DtoTransformer<PolicyDefinitionDto, Policy> {
+public class PolicyToPolicyDefinitionDtoTransformer implements DtoTransformer<Policy, PolicyDefinitionDto> {
 
     @Override
-    public Class<PolicyDefinitionDto> getInputType() {
-        return PolicyDefinitionDto.class;
-    }
-
-    @Override
-    public Class<Policy> getOutputType() {
+    public Class<Policy> getInputType() {
         return Policy.class;
     }
 
     @Override
-    public @Nullable Policy transform(@Nullable PolicyDefinitionDto object, @NotNull TransformerContext context) {
+    public Class<PolicyDefinitionDto> getOutputType() {
+        return PolicyDefinitionDto.class;
+    }
+
+    @Override
+    public @Nullable PolicyDefinitionDto transform(@Nullable Policy object, @NotNull TransformerContext context) {
         assert object != null;
-        return Policy.Builder.newInstance().permissions(object.getPermissions())
-                .prohibitions(object.getProhibitions()).duties(object.getObligations())
+        return PolicyDefinitionDto.Builder.newInstance().permissions(object.getPermissions())
+                .prohibitions(object.getProhibitions()).obligations(object.getObligations())
                 .extensibleProperties(object.getExtensibleProperties())
                 .inheritsFrom(object.getInheritsFrom())
                 .assigner(object.getAssigner())
@@ -50,4 +50,6 @@ public class PolicyDefinitionDtoToPolicyTransformer implements DtoTransformer<Po
     public boolean canHandle(@NotNull Object object, @NotNull Class<?> outputType) {
         return getInputType().isInstance(object) && outputType.equals(getOutputType());
     }
+
+
 }
