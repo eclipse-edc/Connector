@@ -36,14 +36,12 @@ public class PolicyDefinitionDto {
     private List<Duty> obligations = new ArrayList<>();
     private Map<String, Object> extensibleProperties = new HashMap<>();
     private String inheritsFrom;
+    private String assigner;
+    private String assignee;
+    private String target;
     private PolicyType type = PolicyType.SET;
-    private Map<String, Object> properties;
 
     private PolicyDefinitionDto() {
-    }
-
-    public Map<String, Object> getProperties() {
-        return properties;
     }
 
     public List<Permission> getPermissions() {
@@ -66,11 +64,22 @@ public class PolicyDefinitionDto {
         return inheritsFrom;
     }
 
+    public String getAssigner() {
+        return assigner;
+    }
+
+    public String getAssignee() {
+        return assignee;
+    }
+
+    public String getTarget() {
+        return target;
+    }
+
     @JsonProperty("@type")
     public PolicyType getType() {
         return type;
     }
-
 
     public String getUid() {
         return uid;
@@ -120,8 +129,18 @@ public class PolicyDefinitionDto {
             return this;
         }
 
-        public Builder properties(Map<String, Object> properties) {
-            dto.properties = properties;
+        public Builder assigner(String assigner) {
+            dto.assigner = assigner;
+            return this;
+        }
+
+        public Builder assignee(String assignee) {
+            dto.assigner = assignee;
+            return this;
+        }
+
+        public Builder target(String target) {
+            dto.assigner = target;
             return this;
         }
 
