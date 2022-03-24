@@ -46,4 +46,15 @@ public interface ExecutorInstrumentation {
     default ExecutorService instrument(ExecutorService target, String name) {
         return target;
     }
+
+    /**
+     * Default implementation that does not provide any instrumentation. Extension
+     * modules can provide implementations, such as for collecting metrics.
+     *
+     * @return a default {@link ExecutorInstrumentation} implementation.
+     */
+    static ExecutorInstrumentation noop() {
+        return new ExecutorInstrumentation() {
+        };
+    }
 }

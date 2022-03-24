@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunctions.internalErrors;
 import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunctions.notAuthorizedErrors;
@@ -59,23 +58,25 @@ import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunc
 public class DataPlanePublicApiController {
 
 
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final DataPlaneManager dataPlaneManager;
     private final TokenValidationService tokenValidationService;
     private final Monitor monitor;
     private final ContainerRequestContextApi requestContextApi;
     private final TypeManager typeManager;
+    private final ExecutorService executorService;
 
     public DataPlanePublicApiController(DataPlaneManager dataPlaneManager,
                                         TokenValidationService tokenValidationService,
                                         Monitor monitor,
                                         ContainerRequestContextApi wrapper,
-                                        TypeManager typeManager) {
+                                        TypeManager typeManager,
+                                        ExecutorService executorService) {
         this.dataPlaneManager = dataPlaneManager;
         this.tokenValidationService = tokenValidationService;
         this.monitor = monitor;
         this.requestContextApi = wrapper;
         this.typeManager = typeManager;
+        this.executorService = executorService;
     }
 
     /**

@@ -23,7 +23,6 @@ import org.eclipse.dataspaceconnector.core.base.agent.ParticipantAgentServiceImp
 import org.eclipse.dataspaceconnector.core.base.policy.PolicyEngineImpl;
 import org.eclipse.dataspaceconnector.core.base.policy.RuleBindingRegistryImpl;
 import org.eclipse.dataspaceconnector.core.base.policy.ScopeFilter;
-import org.eclipse.dataspaceconnector.core.executor.NoopExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceConfiguration;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceImpl;
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
@@ -199,7 +198,7 @@ public class CoreServicesExtension implements ServiceExtension {
     }
 
     private ExecutorInstrumentation registerExecutorInstrumentation(ServiceExtensionContext context) {
-        var executorInstrumentationImpl = ofNullable(this.executorInstrumentation).orElse(new NoopExecutorInstrumentation());
+        var executorInstrumentationImpl = ofNullable(this.executorInstrumentation).orElse(ExecutorInstrumentation.noop());
         // Register ExecutorImplementation with default noop implementation if none available
         context.registerService(ExecutorInstrumentation.class, executorInstrumentationImpl);
         return executorInstrumentationImpl;

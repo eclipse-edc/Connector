@@ -32,6 +32,7 @@ the detailed section referring to by linking pull requests or issues.
 * Implement Asset service for Data Management API (#931)
 * Added embedded and remote DPF Selector (#832)
 * Pass path information into http data source through DPF public API (#929)
+* Add instructions for observability sample with Azure Application Insights (#928)
 
 #### Changed
 
@@ -46,6 +47,7 @@ the detailed section referring to by linking pull requests or issues.
 * Update build system to Java 17 (#934)
 * Refactor (=generify) transformer subsystem (#779)
 * Extract interfaces for every api controller class to improve swagger documentation (#891)
+* Instrument executors with metrics (#912)
 
 #### Removed
 
