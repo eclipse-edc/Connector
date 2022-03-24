@@ -14,8 +14,7 @@
 
 package org.eclipse.dataspaceconnector.ids.api.configuration;
 
-import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
-import org.eclipse.dataspaceconnector.extension.jetty.PortMapping;
+import org.eclipse.dataspaceconnector.spi.WebServer;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
@@ -37,22 +36,26 @@ import static org.mockito.Mockito.when;
 
 public class IdsApiConfigurationExtensionTest {
     
-    private JettyService jettyService;
+    private WebServer webServer;
     private ServiceExtensionContext context;
     private IdsApiConfigurationExtension extension;
     
-    private ArgumentCaptor<PortMapping> portMappingCaptor;
+    private ArgumentCaptor<String> contextNameCaptor;
+    private ArgumentCaptor<Integer> portCaptor;
+    private ArgumentCaptor<String> pathCaptor;
     private ArgumentCaptor<IdsApiConfiguration> apiConfigCaptor;
     
     @BeforeEach
     void setUp() {
         var monitor = new ConsoleMonitor();
-        jettyService = mock(JettyService.class);
+        webServer = mock(WebServer.class);
         context = mock(ServiceExtensionContext.class);
         when(context.getMonitor()).thenReturn(monitor);
         
         extension = new IdsApiConfigurationExtension();
-        portMappingCaptor = ArgumentCaptor.forClass(PortMapping.class);
+        contextNameCaptor = ArgumentCaptor.forClass(String.class);
+        portCaptor = ArgumentCaptor.forClass(Integer.class);
+        pathCaptor = ArgumentCaptor.forClass(String.class);
         apiConfigCaptor = ArgumentCaptor.forClass(IdsApiConfiguration.class);
         setJettyService();
     }
@@ -64,10 +67,11 @@ public class IdsApiConfigurationExtensionTest {
         
         extension.initialize(context);
         
-        verify(jettyService, times(1)).addPortMapping(portMappingCaptor.capture());
-        var portMapping = portMappingCaptor.getValue();
-        assertThat(portMapping.getPort()).isEqualTo(IdsApiConfigurationExtension.DEFAULT_IDS_PORT);
-        assertThat(portMapping.getPath()).isEqualTo(IdsApiConfigurationExtension.DEFAULT_IDS_API_PATH);
+        verify(webServer, times(1))
+                .addPortMapping(contextNameCaptor.capture(), portCaptor.capture(), pathCaptor.capture());
+        assertThat(contextNameCaptor.getValue()).isEqualTo(IdsApiConfigurationExtension.IDS_API_CONTEXT_ALIAS);
+        assertThat(portCaptor.getValue()).isEqualTo(IdsApiConfigurationExtension.DEFAULT_IDS_PORT);
+        assertThat(pathCaptor.getValue()).isEqualTo(IdsApiConfigurationExtension.DEFAULT_IDS_API_PATH);
     
         verify(context, times(1)).getMonitor();
         verify(context, times(1)).getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG);
@@ -91,7 +95,7 @@ public class IdsApiConfigurationExtensionTest {
         
         extension.initialize(context);
         
-        verifyNoInteractions(jettyService);
+        verifyNoInteractions(webServer);
     
         verify(context, times(1)).getMonitor();
         verify(context, times(1)).getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG);
@@ -113,7 +117,7 @@ public class IdsApiConfigurationExtensionTest {
     
         extension.initialize(context);
     
-        verifyNoInteractions(jettyService);
+        verifyNoInteractions(webServer);
     
         verify(context, times(1)).getMonitor();
         verify(context, times(1)).getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG);
@@ -136,7 +140,7 @@ public class IdsApiConfigurationExtensionTest {
     
         extension.initialize(context);
     
-        verifyNoInteractions(jettyService);
+        verifyNoInteractions(webServer);
     
         verify(context, times(1)).getMonitor();
         verify(context, times(1)).getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG);
@@ -150,9 +154,9 @@ public class IdsApiConfigurationExtensionTest {
     
     private void setJettyService() {
         try {
-            Field jettyServiceField = IdsApiConfigurationExtension.class.getDeclaredField("jettyService");
-            jettyServiceField.setAccessible(true);
-            jettyServiceField.set(extension, jettyService);
+            Field webServerField = IdsApiConfigurationExtension.class.getDeclaredField("webServer");
+            webServerField.setAccessible(true);
+            webServerField.set(extension, webServer);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             //
         }
