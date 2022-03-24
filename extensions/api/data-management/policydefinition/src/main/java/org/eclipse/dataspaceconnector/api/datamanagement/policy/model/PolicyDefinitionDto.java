@@ -37,8 +37,13 @@ public class PolicyDefinitionDto {
     private Map<String, Object> extensibleProperties = new HashMap<>();
     private String inheritsFrom;
     private PolicyType type = PolicyType.SET;
+    private Map<String, Object> properties;
 
     private PolicyDefinitionDto() {
+    }
+
+    public Map<String, Object> getProperties() {
+        return properties;
     }
 
     public List<Permission> getPermissions() {
@@ -112,6 +117,11 @@ public class PolicyDefinitionDto {
 
         public Builder inheritsFrom(String inheritsFrom) {
             dto.inheritsFrom = inheritsFrom;
+            return this;
+        }
+
+        public Builder properties(Map<String, Object> properties) {
+            dto.properties = properties;
             return this;
         }
 
