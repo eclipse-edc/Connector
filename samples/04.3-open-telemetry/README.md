@@ -22,14 +22,14 @@ In addition, the [Jaeger exporter](https://github.com/open-telemetry/opentelemet
 To run the consumer, the provider, and Jaeger execute the following commands in the project root folder:
 
 ```bash
-./gradlew samples:04.3-open-telemetry:consumer:build samples:04.0-file-transfer:provider:build
+./gradlew samples:04.3-open-telemetry:consumer:build samples:04.3-open-telemetry:provider:build
 docker-compose -f samples/04.3-open-telemetry/docker-compose.yaml up --abort-on-container-exit
 ```
 
 Once the consumer and provider are up, start a contract negotiation by executing:
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://provider:8181/api/v1/ids/data"
+curl -X POST -H "Content-Type: application/json" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://provider:8282/api/v1/ids/data"
 ```
 
 The contract negotiation causes an HTTP request sent from the consumer to the provider connector, followed by another message from the provider to the consumer connector.
@@ -45,21 +45,30 @@ Click the globe icon near the top right corner (Metrics Explorer) and select a m
 
 ## Using another monitoring backend
 
-Other monitoring backends can be plugged in easily with OpenTelemetry. For instance, if you want to use Azure Application Insights instead of Jaeger, you can replace the OpenTelemetry Java Agent by the [Application Insights Java Agent](https://docs.microsoft.com/en-us/azure/azure-monitor/app/java-in-process-agent#download-the-jar-file) instead, which has to be stored in the root folder of this sample as well. The only additional configuration required are the `APPLICATIONINSIGHTS_CONNECTION_STRING` and `APPLICATIONINSIGHTS_ROLE_NAME` env variables:
+Other monitoring backends can be plugged in easily with OpenTelemetry. For instance, if you want to use Azure Application Insights instead of Jaeger, you can replace the OpenTelemetry Java Agent with the [Application Insights Java Agent](https://docs.microsoft.com/azure/azure-monitor/app/java-in-process-agent#download-the-jar-file), which has to be stored in the root folder of this sample as well. The only additional configuration required are the `APPLICATIONINSIGHTS_CONNECTION_STRING` and `APPLICATIONINSIGHTS_ROLE_NAME` env variables:
 
 ```yaml
   consumer:
-    image: openjdk:11-jre-slim-buster
+    image: openjdk:17-jdk-slim-buster
     environment:
       APPLICATIONINSIGHTS_CONNECTION_STRING: <your-connection-string>
       APPLICATIONINSIGHTS_ROLE_NAME: consumer
-      edc.api.control.auth.apikey.value: password
-      ids.webhook.address: http://consumer:8181
+      # optional: increase log verbosity (default level is INFO)
+      APPLICATIONINSIGHTS_INSTRUMENTATION_LOGGING_LEVEL: DEBUG
+      WEB_HTTP_PORT: 8181
+      WEB_HTTP_PATH: /api
+      WEB_HTTP_DATA_PORT: 8182
+      WEB_HTTP_DATA_PATH: /api/v1/data
+      IDS_WEBHOOK_ADDRESS: http://consumer:8181
     volumes:
       - ../:/samples
     ports:
       - 9191:8181
-    entrypoint: java -javaagent:/samples/04.3-open-telemetry/applicationinsights-agent-3.2.5.jar -jar /samples/04.3-open-telemetry/consumer/build/libs/consumer.jar
+      - 9192:8182
+    entrypoint: java
+      -javaagent:/samples/04.3-open-telemetry/applicationinsights-agent-3.2.8.jar
+      -Djava.util.logging.config.file=/samples/04.3-open-telemetry/logging.properties
+      -jar /samples/04.3-open-telemetry/consumer/build/libs/consumer.jar
 ```
 
 The Application Insights Java agent will automatically collect metrics from Micrometer, without any configuration needed.

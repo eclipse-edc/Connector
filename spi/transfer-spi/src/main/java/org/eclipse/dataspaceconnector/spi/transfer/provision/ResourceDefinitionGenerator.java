@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer.provision;
 
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.Nullable;
@@ -25,8 +26,11 @@ public interface ResourceDefinitionGenerator {
 
     /**
      * Generates a resource definition. If no resource definition is generated, return null.
+     *
+     * @param process the transfer process to generate the definition for
+     * @param policy the contract agreement usage policy for the asset being transferred
      */
     @Nullable
-    ResourceDefinition generate(TransferProcess process);
+    ResourceDefinition generate(TransferProcess process, Policy policy);
 
 }

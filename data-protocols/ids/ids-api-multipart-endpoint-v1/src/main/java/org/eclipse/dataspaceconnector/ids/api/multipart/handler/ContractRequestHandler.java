@@ -82,9 +82,9 @@ public class ContractRequestHandler implements Handler {
     }
 
     @Override
-    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull Result<ClaimToken> verificationResult) {
+    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull ClaimToken claimToken) {
         Objects.requireNonNull(multipartRequest);
-        Objects.requireNonNull(verificationResult);
+        Objects.requireNonNull(claimToken);
 
         var message = (ContractRequestMessage) multipartRequest.getHeader();
 
@@ -164,7 +164,7 @@ public class ContractRequestHandler implements Handler {
 
         if (response instanceof RequestInProcessMessage) {
             // Start negotiation process
-            negotiationManager.requested(verificationResult.getContent(), requestObj);
+            negotiationManager.requested(claimToken, requestObj);
         }
 
         return MultipartResponse.Builder.newInstance()

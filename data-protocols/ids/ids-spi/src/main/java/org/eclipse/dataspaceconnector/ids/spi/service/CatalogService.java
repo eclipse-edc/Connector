@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ */
+
 package org.eclipse.dataspaceconnector.ids.spi.service;
 
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -16,5 +30,5 @@ public interface CatalogService {
      * @return data catalog
      */
     @NotNull
-    Catalog getDataCatalog(Result<ClaimToken> verificationResult);
+    Catalog getDataCatalog(ClaimToken claimToken);
 }

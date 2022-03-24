@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -35,7 +36,6 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.UNSAVED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -54,7 +54,7 @@ class TransferProcessManagerImplIntegrationTest {
     @BeforeEach
     void setup() {
         var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
-        when(manifestGenerator.generateResourceManifest(any(TransferProcess.class))).thenReturn(resourceManifest);
+        when(manifestGenerator.generateResourceManifest(any(TransferProcess.class), any(Policy.class))).thenReturn(resourceManifest);
 
         transferProcessManager = TransferProcessManagerImpl.Builder.newInstance()
                 .provisionManager(provisionManager)
@@ -78,7 +78,7 @@ class TransferProcessManagerImplIntegrationTest {
     void verifyProvision_shouldNotStarve() throws InterruptedException {
         var numProcesses = TRANSFER_MANAGER_BATCHSIZE * 2;
         var processesToProvision = new CountDownLatch(numProcesses);
-        when(provisionManager.provision(any(TransferProcess.class))).thenAnswer(i -> {
+        when(provisionManager.provision(any(TransferProcess.class), any(Policy.class))).thenAnswer(i -> {
             processesToProvision.countDown();
             return completedFuture(List.of(ProvisionResponse.Builder.newInstance().resource(new TestProvisionedDataDestinationResource("any")).build()));
         });
@@ -101,7 +101,7 @@ class TransferProcessManagerImplIntegrationTest {
                     assertThat(storedProcess).describedAs("Should exist in the TransferProcessStore").isNotNull();
                     assertThat(storedProcess.getState()).isGreaterThan(INITIAL.code());
                 });
-        verify(provisionManager, times(numProcesses)).provision(any());
+        verify(provisionManager, times(numProcesses)).provision(any(), any());
     }
 
     private ProvisionedResourceSet provisionedResourceSet() {

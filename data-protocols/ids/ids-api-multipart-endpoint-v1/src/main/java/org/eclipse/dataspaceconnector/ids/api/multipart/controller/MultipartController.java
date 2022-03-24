@@ -124,13 +124,14 @@ public class MultipartController {
             return Response.ok(createFormDataMultiPart(notAuthenticated(header, connectorId))).build();
         }
 
-        MultipartRequest multipartRequest = MultipartRequest.Builder.newInstance()
+        var claimToken = verificationResult.getContent();
+        var multipartRequest = MultipartRequest.Builder.newInstance()
                 .header(header)
                 .payload(payload)
-                .verificationResult(verificationResult)
+                .claimToken(claimToken)
                 .build();
 
-        Handler handler = multipartHandlers.stream()
+        var handler = multipartHandlers.stream()
                 .filter(h -> h.canHandle(multipartRequest))
                 .findFirst()
                 .orElse(null);
@@ -138,7 +139,7 @@ public class MultipartController {
             return Response.ok(createFormDataMultiPart(messageTypeNotSupported(header, connectorId))).build();
         }
 
-        MultipartResponse multipartResponse = handler.handleRequest(multipartRequest, verificationResult);
+        MultipartResponse multipartResponse = handler.handleRequest(multipartRequest, claimToken);
         if (multipartResponse != null) {
             return Response.ok(createFormDataMultiPart(multipartResponse)).build();
         }

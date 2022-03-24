@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -47,12 +48,17 @@ public class ReflectionUtil {
             return getFieldValue(rest, object);
         } else {
             try {
-                var field = getFieldRecursive(object.getClass(), propertyName);
-                if (field == null) {
-                    throw new ReflectionException(propertyName);
+                if (object instanceof Map) {
+                    var map = (Map) object;
+                    return (T) map.get(propertyName);
+                } else {
+                    var field = getFieldRecursive(object.getClass(), propertyName);
+                    if (field == null) {
+                        throw new ReflectionException(propertyName);
+                    }
+                    field.setAccessible(true);
+                    return (T) field.get(object);
                 }
-                field.setAccessible(true);
-                return (T) field.get(object);
             } catch (IllegalAccessException e) {
                 throw new ReflectionException(e);
             }

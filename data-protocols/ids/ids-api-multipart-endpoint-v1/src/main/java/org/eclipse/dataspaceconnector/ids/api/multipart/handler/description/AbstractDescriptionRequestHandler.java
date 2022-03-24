@@ -57,7 +57,7 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
     @Override
     public final MultipartResponse handle(
             @NotNull DescriptionRequestMessage descriptionRequestMessage,
-            @NotNull Result<ClaimToken> verificationResult,
+            @NotNull ClaimToken claimToken,
             @Nullable String payload) {
         Objects.requireNonNull(descriptionRequestMessage);
 
@@ -82,7 +82,7 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
-        T retrievedObject = retrieveObject(idsId, verificationResult);
+        T retrievedObject = retrieveObject(idsId, claimToken);
         if (retrievedObject == null) {
             return createNotFoundErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
@@ -110,5 +110,5 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
                 .build();
     }
 
-    protected abstract T retrieveObject(@NotNull IdsId idsId, @NotNull Result<ClaimToken> verificationResult);
+    protected abstract T retrieveObject(@NotNull IdsId idsId, @NotNull ClaimToken verificationResult);
 }

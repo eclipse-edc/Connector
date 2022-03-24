@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer.provision;
 
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
@@ -45,15 +46,21 @@ public interface Provisioner<RD extends ResourceDefinition, PR extends Provision
      * Implementations should not throw exceptions. If an unexpected exception occurs and the flow should be re-attempted, return
      * {@link ResponseStatus#ERROR_RETRY}. If an exception occurs and re-tries should not be re-attempted, return
      * {@link ResponseStatus#FATAL_ERROR}.
+     *
+     * @param resourceDefinition that contains metadata associated with the provision operation
+     * @param policy the contract agreement usage policy for the asset being transferred
      */
-    CompletableFuture<ProvisionResponse> provision(RD resourceDefinition);
+    CompletableFuture<ProvisionResponse> provision(RD resourceDefinition, Policy policy);
 
     /**
      * Removes ephemeral resources of a specific type associated with the data transfer. Implements must be idempotent.
      * Implementations should not throw exceptions. If an unexpected exception occurs and the flow should be re-attempted, return
      * {@link ResponseStatus#ERROR_RETRY}. If an exception occurs and re-tries should not be re-attempted, return
      * {@link ResponseStatus#FATAL_ERROR}.
+     *
+     * @param provisionedResource that contains metadata associated with the provisioned resource
+     * @param policy the contract agreement usage policy for the asset being transferred
      */
-    CompletableFuture<DeprovisionResponse> deprovision(PR provisionedResource);
+    CompletableFuture<DeprovisionResponse> deprovision(PR provisionedResource, Policy policy);
 
 }
