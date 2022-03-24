@@ -5,8 +5,8 @@ plugins {
 gradlePlugin {
     plugins {
         create("DataspaceConnectorPlugin") {
-            id = "org.eclipse.dataspaceconnector"
-            implementationClass = "org.eclipse.dataspaceconnector.gradle.DataspaceConnectorPlugin"
+            id = "org.eclipse.dataspaceconnector.dependency-rules"
+            implementationClass = "org.eclipse.dataspaceconnector.gradle.DependencyRulesPlugin"
         }
     }
 }
