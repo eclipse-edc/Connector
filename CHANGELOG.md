@@ -27,6 +27,7 @@ the detailed section referring to by linking pull requests or issues.
 * Implement S3BucketReader (#675)
 * Add configuration setting for state machine batch size (#872)
 * Add Jetty context alias for IDS API (#815)
+* New Policy Extension for Token Claim Validation (#953)
 
 #### Changed
 
