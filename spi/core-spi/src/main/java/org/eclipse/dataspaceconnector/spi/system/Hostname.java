@@ -19,7 +19,7 @@ package org.eclipse.dataspaceconnector.spi.system;
 public interface Hostname {
 
     /**
-     * Gives the hostname of the connector.
+     * Provides the hostname of the connector.
      *
      * @return the hostname of the connector
      */
