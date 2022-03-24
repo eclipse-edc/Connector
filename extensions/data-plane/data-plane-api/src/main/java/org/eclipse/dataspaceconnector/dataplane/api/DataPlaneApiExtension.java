@@ -21,9 +21,12 @@ import org.eclipse.dataspaceconnector.dataplane.api.validation.RemoteTokenValida
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.WebService;
+import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+
+import java.util.concurrent.Executors;
 
 /**
  * Provides the control plane and public APIs for a data plane server.
@@ -53,9 +56,13 @@ public class DataPlaneApiExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var controlPlaneAddress = context.getSetting(CONTROL_PLANE_VALIDATION_ENDPOINT, "/api/validation");
         var tokenValidationClient = new RemoteTokenValidationService(httpClient, controlPlaneAddress, context.getTypeManager().getMapper());
+
+        var executorService = context.getService(ExecutorInstrumentation.class)
+                .instrument(Executors.newSingleThreadExecutor(), DataPlanePublicApiController.class.getSimpleName());
+
         webService.registerResource(CONTROL, new DataPlaneTransferController(dataPlaneManager));
 
-        var publicApiController = new DataPlanePublicApiController(dataPlaneManager, tokenValidationClient, context.getMonitor(), new ContainerRequestContextApiImpl(), context.getTypeManager());
+        var publicApiController = new DataPlanePublicApiController(dataPlaneManager, tokenValidationClient, context.getMonitor(), new ContainerRequestContextApiImpl(), context.getTypeManager(), executorService);
         webService.registerResource(PUBLIC, publicApiController);
     }
 }

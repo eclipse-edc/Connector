@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistr
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.CoreExtension;
+import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -127,6 +128,7 @@ public class CoreTransferExtension implements ServiceExtension {
                 .statusCheckerRegistry(statusCheckerRegistry)
                 .monitor(monitor)
                 .telemetry(telemetry)
+                .executorInstrumentation(context.getService(ExecutorInstrumentation.class))
                 .vault(vault)
                 .typeManager(typeManager)
                 .commandQueue(commandQueue)
