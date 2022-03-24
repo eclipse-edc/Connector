@@ -27,7 +27,6 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@IntegrationTest
 @Tag("OpenTelemetryIntegrationTest")
 public @interface OpenTelemetryIntegrationTest {
 }
