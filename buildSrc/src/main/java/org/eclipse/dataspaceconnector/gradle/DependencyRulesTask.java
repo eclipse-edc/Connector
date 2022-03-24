@@ -87,7 +87,7 @@ abstract public class DependencyRulesTask extends DefaultTask {
                 if (pathFromRoot.startsWith("core/") // no module may depend directly on any core module
                         && !dependency.getName().endsWith("-core") // exception: other core modules
                 ) {
-                    dependencyError(format("modules may not depend directly on core modules. Invalid dependency: %s", dependency));
+                    dependencyError(format("modules may not depend directly on core modules. Invalid dependency: %s", dependency.getName()));
                 }
             });
         }
