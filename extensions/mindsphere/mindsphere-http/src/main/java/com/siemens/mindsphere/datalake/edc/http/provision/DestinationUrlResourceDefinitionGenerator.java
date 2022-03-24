@@ -1,6 +1,8 @@
 package com.siemens.mindsphere.datalake.edc.http.provision;
 
 import com.siemens.mindsphere.datalake.edc.http.DataLakeSchema;
+
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceDefinitionGenerator;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
@@ -17,7 +19,7 @@ public class DestinationUrlResourceDefinitionGenerator implements ResourceDefini
     private Monitor monitor;
 
     @Override
-    public @Nullable ResourceDefinition generate(TransferProcess process) {
+    public @Nullable ResourceDefinition generate(TransferProcess process, Policy policy) {
         var request = process.getDataRequest();
 
         if (request.getDestinationType() == null) {
@@ -38,4 +40,5 @@ public class DestinationUrlResourceDefinitionGenerator implements ResourceDefini
                 .path(destinationPath)
                 .build();
     }
+
 }

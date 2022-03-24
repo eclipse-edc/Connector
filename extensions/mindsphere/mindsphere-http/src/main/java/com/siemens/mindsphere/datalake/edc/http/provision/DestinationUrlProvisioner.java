@@ -2,6 +2,8 @@ package com.siemens.mindsphere.datalake.edc.http.provision;
 
 import com.siemens.mindsphere.datalake.edc.http.DataLakeClient;
 import net.jodah.failsafe.RetryPolicy;
+
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionResponse;
@@ -11,7 +13,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefiniti
 
 import java.util.concurrent.CompletableFuture;
 
-public class DestinationUrlProvisioner implements Provisioner<DestinationUrlResourceDefinition, DestinationUrlProvisionedResource> {
+public class DestinationUrlProvisioner
+        implements Provisioner<DestinationUrlResourceDefinition, DestinationUrlProvisionedResource> {
     public DestinationUrlProvisioner(DataLakeClient dataLakeClient, Monitor monitor, RetryPolicy<Object> retryPolicy) {
         this.dataLakeClient = dataLakeClient;
         this.monitor = monitor;
@@ -33,7 +36,8 @@ public class DestinationUrlProvisioner implements Provisioner<DestinationUrlReso
     }
 
     @Override
-    public CompletableFuture<ProvisionResponse> provision(DestinationUrlResourceDefinition resourceDefinition) {
+    public CompletableFuture<ProvisionResponse> provision(DestinationUrlResourceDefinition resourceDefinition,
+            Policy policy) {
         return DestinationUrlProvisionPipeline.Builder.newInstance(retryPolicy)
                 .client(dataLakeClient)
                 .monitor(monitor)
@@ -43,9 +47,11 @@ public class DestinationUrlProvisioner implements Provisioner<DestinationUrlReso
     }
 
     @Override
-    public CompletableFuture<DeprovisionResponse> deprovision(DestinationUrlProvisionedResource provisionedResource) {
+    public CompletableFuture<DeprovisionResponse> deprovision(DestinationUrlProvisionedResource provisionedResource,
+            Policy policy) {
         // NOTE: there is nothing to de-provision
-        return CompletableFuture.completedFuture(DeprovisionResponse.Builder.newInstance().resource(provisionedResource).build());
+        return CompletableFuture
+                .completedFuture(DeprovisionResponse.Builder.newInstance().resource(provisionedResource).build());
     }
 
     private ProvisionResponse provisionSuccedeed(DestinationUrlResourceDefinition resourceDefinition, String url) {
