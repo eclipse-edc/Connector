@@ -14,7 +14,7 @@ import static java.lang.String.format;
 
 abstract public class DependencyRulesTask extends DefaultTask {
 
-    private static Pattern CROSS_MODULE_DEPENDENCY_PATTERN = Pattern.compile("\\.\\./[^.].*");
+    private static final Pattern CROSS_MODULE_DEPENDENCY_PATTERN = Pattern.compile("\\.\\./[^.].*");
 
     @Input
     abstract public Property<Boolean> getFailOnError();
@@ -68,7 +68,7 @@ abstract public class DependencyRulesTask extends DefaultTask {
                 dependencyError(format("there should not be \"cross-module\" dependencies at the same level. Invalid dependency: %s", dependency));
             }
 
-            if (project.getName() == "core-spi") { // `core:spi` cannot depend on any other module
+            if (project.getName().equals("core-spi")) { // `core:spi` cannot depend on any other module
                 dependencyError(format("core:spi` cannot depend on any other module. Invalid dependency: %s", dependency));
             }
 
