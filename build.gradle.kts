@@ -18,7 +18,7 @@ plugins {
     checkstyle
     jacoco
     id("com.rameshkp.openapi-merger-gradle-plugin") version "1.0.4"
-    id ("org.eclipse.dataspaceconnector.gradle") apply(false)
+    id ("org.eclipse.dataspaceconnector") apply(false)
     id("com.autonomousapps.dependency-analysis") version "1.0.0-rc03" apply (false)
 }
 
@@ -239,7 +239,10 @@ openApiMerger {
 }
 
 if (dependencyAnalysis != null) {
-    apply(plugin = "org.eclipse.dataspaceconnector.gradle")
+    apply(plugin = "org.eclipse.dataspaceconnector")
+    configure<org.eclipse.dataspaceconnector.gradle.DataspaceConnectorPluginExtension> {
+        severity.set(dependencyAnalysis)
+    }
     apply(plugin = "com.autonomousapps.dependency-analysis")
     configure<com.autonomousapps.DependencyAnalysisExtension> {
         // See https://github.com/autonomousapps/dependency-analysis-android-gradle-plugin
