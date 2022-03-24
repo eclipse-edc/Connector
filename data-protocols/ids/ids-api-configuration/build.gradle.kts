@@ -18,7 +18,6 @@ plugins {
 
 dependencies {
     implementation(project(":spi"))
-    implementation(project(":extensions:http"))
 }
 
 publishing {

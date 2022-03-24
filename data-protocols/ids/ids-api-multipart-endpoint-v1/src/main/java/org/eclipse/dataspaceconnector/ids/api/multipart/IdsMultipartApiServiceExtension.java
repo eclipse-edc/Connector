@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Daimler TSS GmbH
+ *  Copyright (c) 2021 Daimler TSS GmbH, Fraunhofer Institute for Software and Systems Engineering
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -10,6 +10,7 @@
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Fraunhofer Institute for Software and Systems Engineering
+ *       Daimler TSS GmbH - introduce factory to create RequestInProcessMessage
  *
  */
 
@@ -38,6 +39,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.Conn
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DataCatalogDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.RepresentationDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ResourceDescriptionRequestHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
@@ -163,9 +165,10 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         handlers.add(artifactRequestHandler);
 
         // create contract message handlers
-        handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager, transformerRegistry, assetIndex));
+        var responseMessageFactory = new IdsResponseMessageFactory(connectorId, identityService);
+        handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager, responseMessageFactory, transformerRegistry, assetIndex));
         handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager, transformerRegistry, assetIndex));
-        handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper, providerNegotiationManager, consumerNegotiationManager));
+        handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper, providerNegotiationManager, consumerNegotiationManager, responseMessageFactory));
         handlers.add(new ContractRejectionHandler(monitor, connectorId, providerNegotiationManager, consumerNegotiationManager));
 
         // add notification handler and sub-handlers

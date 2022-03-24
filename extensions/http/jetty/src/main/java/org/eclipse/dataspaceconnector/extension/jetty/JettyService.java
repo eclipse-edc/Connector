@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.extension.jetty;
 
 import jakarta.servlet.Servlet;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.WebServer;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -45,7 +46,7 @@ import static org.eclipse.jetty.servlet.ServletContextHandler.NO_SESSIONS;
 /**
  * Provides HTTP(S) support using Jetty.
  */
-public class JettyService {
+public class JettyService implements WebServer {
 
     public static final String DEFAULT_ROOT_PATH = "/api";
     private static final String LOG_ANNOUNCE = "org.eclipse.jetty.util.log.announce";
@@ -133,9 +134,12 @@ public class JettyService {
      * Allows adding a {@link PortMapping} that is not defined in the configuration. This can only
      * be done before the JettyService is started, i.e. before {@link #start()} is called.
      *
-     * @param portMapping the port mapping.
+     * @param contextName name of the port mapping.
+     * @param port port of the port mapping.
+     * @param path path of the port mapping.
      */
-    public void addPortMapping(PortMapping portMapping) {
+    public void addPortMapping(String contextName, int port, String path) {
+        var portMapping = new PortMapping(contextName, port, path);
         if (server != null && (server.isStarted() || server.isStarting())) {
             return;
         }
