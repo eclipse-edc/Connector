@@ -19,7 +19,6 @@ abstract class DependencyRulesTask : DefaultTask() {
         val compileConfiguration = project.configurations.get("compileClasspath").resolvedConfiguration
         compileConfiguration.resolvedArtifacts.forEach { artifact -> dependencyRules(artifact) }
         compileConfiguration.firstLevelModuleDependencies.forEach { dependency -> directDependencyRules(dependency) }
-        println("hello from GreetingTask")
     }
 
     fun dependencyRules(artifact: ResolvedArtifact) {
