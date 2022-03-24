@@ -30,6 +30,11 @@ public interface DataFlowRequestSchema {
     String QUERY_PARAMS = "queryParams";
 
     /**
+     * The path segments to be used when calling the data source (optional).
+     */
+    String PATH = "pathSegments";
+
+    /**
      * Media-type of the request body.
      */
     String MEDIA_TYPE = "mediaType";

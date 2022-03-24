@@ -29,7 +29,7 @@ a regular basis. Snapshots, however, do not actually represent released versions
 #### API Compatibility
 
 The concept of API compatibility is defined in terms of binary compatibility according to
-the [Java SE 11 Language Specification](https://docs.oracle.com/javase/specs/jls/se11/html/jls-13.html)
+the [Java SE 17 Language Specification](https://docs.oracle.com/javase/specs/jls/se17/html/jls-13.html)
 
 #### Modules Providing API
 

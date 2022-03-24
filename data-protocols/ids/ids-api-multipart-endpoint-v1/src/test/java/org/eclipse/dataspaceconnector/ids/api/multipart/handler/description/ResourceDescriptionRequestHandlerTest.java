@@ -59,7 +59,6 @@ public class ResourceDescriptionRequestHandlerTest {
     private AssetIndex assetIndex;
     private Resource resource;
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     @BeforeEach
     public void setup() throws URISyntaxException {
         monitor = mock(Monitor.class);
@@ -91,13 +90,13 @@ public class ResourceDescriptionRequestHandlerTest {
 
     @Test
     public void testSimpleSuccessPath() {
-        var verificationResult = Result.success(ClaimToken.Builder.newInstance().build());
+        var claimToken = ClaimToken.Builder.newInstance().build();
         when(assetIndex.findById(anyString())).thenReturn(Asset.Builder.newInstance().build());
         var resourceResult = Result.success(resource);
         when(transformerRegistry.transform(isA(OfferedAsset.class), eq(Resource.class))).thenReturn(resourceResult);
         when(contractOfferService.queryContractOffers(isA(ContractOfferQuery.class))).thenReturn(Stream.empty());
 
-        var result = resourceDescriptionRequestHandler.handle(descriptionRequestMessage, verificationResult, null);
+        var result = resourceDescriptionRequestHandler.handle(descriptionRequestMessage, claimToken, null);
 
         assertNotNull(result);
         assertNotNull(result.getHeader());

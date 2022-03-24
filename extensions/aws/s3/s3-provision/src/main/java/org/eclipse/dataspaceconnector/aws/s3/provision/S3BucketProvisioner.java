@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.aws.s3.provision;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.aws.s3.core.AwsTemporarySecretToken;
 import org.eclipse.dataspaceconnector.aws.s3.core.ClientProvider;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionResponse;
@@ -59,7 +60,7 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
     }
 
     @Override
-    public CompletableFuture<ProvisionResponse> provision(S3BucketResourceDefinition resourceDefinition) {
+    public CompletableFuture<ProvisionResponse> provision(S3BucketResourceDefinition resourceDefinition, Policy policy) {
         return S3ProvisionPipeline.Builder.newInstance(retryPolicy)
                 .clientProvider(clientProvider)
                 .roleMaxSessionDuration(configuration.getRoleMaxSessionDuration())
@@ -70,7 +71,7 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
     }
 
     @Override
-    public CompletableFuture<DeprovisionResponse> deprovision(S3BucketProvisionedResource resource) {
+    public CompletableFuture<DeprovisionResponse> deprovision(S3BucketProvisionedResource resource, Policy policy) {
         return S3DeprovisionPipeline.Builder.newInstance(retryPolicy)
                 .clientProvider(clientProvider)
                 .monitor(monitor)

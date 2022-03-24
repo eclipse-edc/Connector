@@ -30,6 +30,11 @@ public abstract class MultiplicityConstraint extends Constraint {
         return constraints;
     }
 
+    /**
+     * Creates another instance of the constraint with the given child constraints.
+     */
+    public abstract MultiplicityConstraint create(List<Constraint> constraints);
+
     protected abstract static class Builder<T extends MultiplicityConstraint, B extends Builder<T, B>> {
         protected T constraint;
 

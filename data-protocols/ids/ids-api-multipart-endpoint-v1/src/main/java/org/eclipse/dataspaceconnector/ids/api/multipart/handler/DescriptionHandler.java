@@ -75,12 +75,12 @@ public class DescriptionHandler implements Handler {
 
     @Override
     public MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest,
-                                           @NotNull Result<ClaimToken> verificationResult) {
+                                           @NotNull ClaimToken claimToken) {
         Objects.requireNonNull(multipartRequest);
-        Objects.requireNonNull(verificationResult);
+        Objects.requireNonNull(claimToken);
 
         try {
-            return handleRequestInternal(multipartRequest, verificationResult);
+            return handleRequestInternal(multipartRequest, claimToken);
         } catch (EdcException exception) {
             monitor.severe(String.format("Could not handle multipart request: %s", exception.getMessage()), exception);
         }
@@ -89,9 +89,9 @@ public class DescriptionHandler implements Handler {
     }
 
     public MultipartResponse handleRequestInternal(@NotNull MultipartRequest multipartRequest,
-                                                   @NotNull Result<ClaimToken> verificationResult) {
+                                                   @NotNull ClaimToken claimToken) {
         Objects.requireNonNull(multipartRequest);
-        Objects.requireNonNull(verificationResult);
+        Objects.requireNonNull(claimToken);
 
         var descriptionRequestMessage = (DescriptionRequestMessage) multipartRequest.getHeader();
 
@@ -101,7 +101,7 @@ public class DescriptionHandler implements Handler {
         IdsId idsId = null;
         if (requestedElement != null) {
             var result = transformerRegistry.transform(requestedElement, IdsId.class);
-            if (result.failed() || (idsId = result.getContent()) == null) {
+            if (result.failed()) {
                 monitor.warning(
                         String.format(
                                 "Could not transform URI to IdsId: [%s]",
@@ -110,22 +110,24 @@ public class DescriptionHandler implements Handler {
                 );
                 return createBadParametersErrorMultipartResponse(descriptionRequestMessage);
             }
+
+            idsId = result.getContent();
         }
 
         IdsType type;
         if (idsId == null || (type = idsId.getType()) == IdsType.CONNECTOR) {
-            return connectorDescriptionRequestHandler.handle(descriptionRequestMessage, verificationResult, payload);
+            return connectorDescriptionRequestHandler.handle(descriptionRequestMessage, claimToken, payload);
         }
 
         switch (type) {
             case ARTIFACT:
-                return artifactDescriptionRequestHandler.handle(descriptionRequestMessage, verificationResult, payload);
+                return artifactDescriptionRequestHandler.handle(descriptionRequestMessage, claimToken, payload);
             case CATALOG:
-                return dataCatalogDescriptionRequestHandler.handle(descriptionRequestMessage, verificationResult, payload);
+                return dataCatalogDescriptionRequestHandler.handle(descriptionRequestMessage, claimToken, payload);
             case REPRESENTATION:
-                return representationDescriptionRequestHandler.handle(descriptionRequestMessage, verificationResult, payload);
+                return representationDescriptionRequestHandler.handle(descriptionRequestMessage, claimToken, payload);
             case RESOURCE:
-                return resourceDescriptionRequestHandler.handle(descriptionRequestMessage, verificationResult, payload);
+                return resourceDescriptionRequestHandler.handle(descriptionRequestMessage, claimToken, payload);
             default:
                 return createErrorMultipartResponse(descriptionRequestMessage);
         }

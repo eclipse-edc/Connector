@@ -74,9 +74,9 @@ public class ContractAgreementHandler implements Handler {
     }
 
     @Override
-    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull Result<ClaimToken> verificationResult) {
+    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull ClaimToken claimToken) {
         Objects.requireNonNull(multipartRequest);
-        Objects.requireNonNull(verificationResult);
+        Objects.requireNonNull(claimToken);
 
         var message = (ContractAgreementMessage) multipartRequest.getHeader();
 
@@ -121,7 +121,7 @@ public class ContractAgreementHandler implements Handler {
         // TODO get hash from message
         var agreement = result.getContent();
         var processId = message.getTransferContract();
-        var negotiationResponse = negotiationManager.confirmed(verificationResult.getContent(),
+        var negotiationResponse = negotiationManager.confirmed(claimToken,
                 String.valueOf(processId), agreement, null);
         if (negotiationResponse.failed() && negotiationResponse.getStatus() == NegotiationResult.Status.FATAL_ERROR) {
             monitor.debug("ContractAgreementHandler: Could not process contract agreement");
@@ -139,10 +139,4 @@ public class ContractAgreementHandler implements Handler {
                 .build();
     }
 
-    private MultipartResponse createBadParametersErrorMultipartResponse(Message message, String payload) {
-        return MultipartResponse.Builder.newInstance()
-                .header(badParameters(message, connectorId))
-                .payload(payload)
-                .build();
-    }
 }

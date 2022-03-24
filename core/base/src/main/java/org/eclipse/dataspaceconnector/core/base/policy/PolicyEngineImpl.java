@@ -29,6 +29,8 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.BiFunction;
 
 import static java.util.stream.Collectors.toList;
@@ -37,13 +39,22 @@ import static java.util.stream.Collectors.toList;
  * Default implementation of the policy engine.
  */
 public class PolicyEngineImpl implements PolicyEngine {
-    private List<ConstraintFunctionEntry<Rule>> constraintFunctions = new ArrayList<>();
-    private List<RuleFunctionEntry<Rule>> ruleFunctions = new ArrayList<>();
+    private static final String ALL_SCOPES_DELIMITED = ALL_SCOPES + ".";
+
+    private ScopeFilter scopeFilter;
+
+    private Map<String, List<ConstraintFunctionEntry<Rule>>> constraintFunctions = new TreeMap<>();
+    private Map<String, List<RuleFunctionEntry<Rule>>> ruleFunctions = new TreeMap<>();
+
     private List<BiFunction<Policy, PolicyContext, Boolean>> preValidators = new ArrayList<>();
     private List<BiFunction<Policy, PolicyContext, Boolean>> postValidators = new ArrayList<>();
 
+    public PolicyEngineImpl(ScopeFilter scopeFilter) {
+        this.scopeFilter = scopeFilter;
+    }
+
     @Override
-    public Result<Policy> evaluate(Policy policy, ParticipantAgent agent) {
+    public Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent) {
         var context = new PolicyContextImpl(agent);
 
         for (BiFunction<Policy, PolicyContext, Boolean> validator : preValidators) {
@@ -54,7 +65,9 @@ public class PolicyEngineImpl implements PolicyEngine {
 
         var evalBuilder = PolicyEvaluator.Builder.newInstance();
 
-        ruleFunctions.forEach(entry -> {
+        final var delimitedScope = scope + ".";
+
+        ruleFunctions.entrySet().stream().filter(entry -> scopeFilter(entry.getKey(), delimitedScope)).flatMap(entry -> entry.getValue().stream()).forEach(entry -> {
             if (Duty.class.isAssignableFrom(entry.type)) {
                 evalBuilder.dutyRuleFunction((rule) -> entry.function.evaluate(rule, context));
             } else if (Permission.class.isAssignableFrom(entry.type)) {
@@ -64,7 +77,7 @@ public class PolicyEngineImpl implements PolicyEngine {
             }
         });
 
-        constraintFunctions.forEach(entry -> {
+        constraintFunctions.entrySet().stream().filter(entry -> scopeFilter(entry.getKey(), delimitedScope)).flatMap(entry -> entry.getValue().stream()).forEach(entry -> {
             if (Duty.class.isAssignableFrom(entry.type)) {
                 evalBuilder.dutyFunction(entry.key, (operator, value, duty) -> entry.function.evaluate(operator, value, duty, context));
             } else if (Permission.class.isAssignableFrom(entry.type)) {
@@ -75,7 +88,11 @@ public class PolicyEngineImpl implements PolicyEngine {
         });
 
         var evaluator = evalBuilder.build();
-        var result = evaluator.evaluate(policy);
+
+        var filteredPolicy = scopeFilter.applyScope(policy, scope);
+
+        var result = evaluator.evaluate(filteredPolicy);
+
         if (result.valid()) {
             for (BiFunction<Policy, PolicyContext, Boolean> validator : postValidators) {
                 if (!validator.apply(policy, context)) {
@@ -90,24 +107,28 @@ public class PolicyEngineImpl implements PolicyEngine {
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <R extends Rule> void registerFunction(Class<R> type, String key, AtomicConstraintFunction<R> function) {
-        constraintFunctions.add(new ConstraintFunctionEntry(type, key, function));
+    public <R extends Rule> void registerFunction(String scope, Class<R> type, String key, AtomicConstraintFunction<R> function) {
+        constraintFunctions.computeIfAbsent(scope + ".", k -> new ArrayList<>()).add(new ConstraintFunctionEntry(type, key, function));
     }
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <R extends Rule> void registerFunction(Class<R> type, RuleFunction<R> function) {
-        ruleFunctions.add(new RuleFunctionEntry(type, function));
+    public <R extends Rule> void registerFunction(String scope, Class<R> type, RuleFunction<R> function) {
+        ruleFunctions.computeIfAbsent(scope + ".", k -> new ArrayList<>()).add(new RuleFunctionEntry(type, function));
     }
 
     @Override
-    public void registerPreValidator(BiFunction<Policy, PolicyContext, Boolean> validator) {
+    public void registerPreValidator(String scope, BiFunction<Policy, PolicyContext, Boolean> validator) {
         preValidators.add(validator);
     }
 
     @Override
-    public void registerPostValidator(BiFunction<Policy, PolicyContext, Boolean> validator) {
+    public void registerPostValidator(String scope, BiFunction<Policy, PolicyContext, Boolean> validator) {
         postValidators.add(validator);
+    }
+
+    private boolean scopeFilter(String entry, String scope) {
+        return ALL_SCOPES_DELIMITED.equals(entry) || scope.startsWith(entry);
     }
 
     private static class ConstraintFunctionEntry<R extends Rule> {

@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.TransferProcessDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.TransferRequestDto;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 
 import java.util.List;
@@ -32,4 +33,6 @@ public interface TransferProcessApi {
     void cancelTransferProcess(String id);
 
     void deprovisionTransferProcess(String id);
+
+    String initiateTransfer(String assetId, TransferRequestDto transferRequest);
 }

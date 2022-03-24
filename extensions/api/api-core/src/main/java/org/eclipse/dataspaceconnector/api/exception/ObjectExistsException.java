@@ -21,4 +21,8 @@ public class ObjectExistsException extends EdcApiException {
     public ObjectExistsException(String objectId, String objectType) {
         super(format("Object of type %s already exists with ID = %s", objectType, objectId));
     }
+
+    public ObjectExistsException(Class<?> objectType, String objectId) {
+        this(objectType.getSimpleName(), objectId);
+    }
 }

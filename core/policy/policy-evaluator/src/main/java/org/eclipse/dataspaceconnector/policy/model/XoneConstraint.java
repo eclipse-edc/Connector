@@ -40,6 +40,11 @@ public class XoneConstraint extends MultiplicityConstraint {
     }
 
     @Override
+    public XoneConstraint create(List<Constraint> constraints) {
+        return XoneConstraint.Builder.newInstance().constraints(constraints).build();
+    }
+
+    @Override
     public String toString() {
         return "Xone constraint: [" + constraints.stream().map(Object::toString).collect(joining(",")) + "]";
     }

@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.provision.azure.blob;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureSasToken;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionResponse;
@@ -52,7 +53,7 @@ public class ObjectStorageProvisioner implements Provisioner<ObjectStorageResour
     }
 
     @Override
-    public CompletableFuture<ProvisionResponse> provision(ObjectStorageResourceDefinition resourceDefinition) {
+    public CompletableFuture<ProvisionResponse> provision(ObjectStorageResourceDefinition resourceDefinition, Policy policy) {
         String containerName = resourceDefinition.getContainerName();
         String accountName = resourceDefinition.getAccountName();
 
@@ -84,7 +85,7 @@ public class ObjectStorageProvisioner implements Provisioner<ObjectStorageResour
     }
 
     @Override
-    public CompletableFuture<DeprovisionResponse> deprovision(ObjectContainerProvisionedResource provisionedResource) {
+    public CompletableFuture<DeprovisionResponse> deprovision(ObjectContainerProvisionedResource provisionedResource, Policy policy) {
         return with(retryPolicy).runAsync(() -> blobStoreApi.deleteContainer(provisionedResource.getAccountName(), provisionedResource.getContainerName()))
                 //the sas token will expire automatically. there is no way of revoking them other than a stored access policy
                 .thenApply(empty -> DeprovisionResponse.Builder.newInstance().resource(provisionedResource).build());

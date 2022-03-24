@@ -19,5 +19,4 @@ public interface AssetApi {
 
     void removeAsset(String id);
 
-    String initiateTransfer(String assetId, TransferRequestDto transferRequest);
 }
