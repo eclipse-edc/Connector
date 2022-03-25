@@ -9,14 +9,15 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial Implementation
+ *       Fraunhofer Insitute for Software and Systems Engineering
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.BinaryOperator;
-import de.fraunhofer.iais.eis.LeftOperand;
 import de.fraunhofer.iais.eis.util.RdfResource;
+import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintImpl;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Constraint;
@@ -61,9 +62,11 @@ public class IdsConstraintToConstraintTransformer implements IdsTypeTransformer<
         }
 
         Expression leftExpression = null;
-        LeftOperand leftOperand = constraint.getLeftOperand();
-        if (leftOperand != null) {
-            leftExpression = context.transform(leftOperand, Expression.class);
+        if (constraint instanceof IdsConstraintImpl) {
+            var leftOperand = ((IdsConstraintImpl) constraint).getLeftOperandAsString();
+            if (leftOperand != null) {
+                leftExpression = context.transform(leftOperand, Expression.class);
+            }
         }
 
         if (leftExpression == null) {
@@ -91,6 +94,3 @@ public class IdsConstraintToConstraintTransformer implements IdsTypeTransformer<
     }
 
 }
-
-
-
