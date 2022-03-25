@@ -74,51 +74,18 @@ public class AtomikosTransactionContext implements TransactionContext {
             }
             throw new EdcException(e);
         } finally {
-            commitOrRollback(startedTransaction);
-        }
-    }
-
-    @Override
-    public <T> T execute(ResultTransactionBlock<T> block) {
-        var startedTransaction = false;
-        Transaction transaction = null;
-        try {
-            transaction = transactionManager.getTransaction();
-            if (transaction == null) {
-                transactionManager.begin();
-                transaction = transactionManager.getTransaction();
-                startedTransaction = true;
-            }
-
-            return block.execute();
-
-        } catch (Exception e) {
-            try {
-                if (transaction != null) {
-                    transaction.setRollbackOnly();
+            if (startedTransaction) {
+                try {
+                    var status = transactionManager.getStatus();
+                    if (STATUS_ACTIVE == status) {
+                        transactionManager.commit();
+                    } else if (STATUS_MARKED_ROLLBACK == status) {
+                        transactionManager.rollback();
+                    }
+                } catch (HeuristicRollbackException | SystemException | HeuristicMixedException | RollbackException e) {
+                    monitor.severe("Transaction error", e);
                 }
-            } catch (SystemException ex) {
-                monitor.severe("Error setting rollback", ex);
-            }
-            throw new EdcException(e);
-        } finally {
-            commitOrRollback(startedTransaction);
-        }
-    }
-
-    private void commitOrRollback(boolean startedTransaction) {
-        if (startedTransaction) {
-            try {
-                var status = transactionManager.getStatus();
-                if (STATUS_ACTIVE == status) {
-                    transactionManager.commit();
-                } else if (STATUS_MARKED_ROLLBACK == status) {
-                    transactionManager.rollback();
-                }
-            } catch (HeuristicRollbackException | SystemException | HeuristicMixedException | RollbackException e) {
-                monitor.severe("Transaction error", e);
             }
         }
     }
-
 }
