@@ -63,7 +63,8 @@ public abstract class DependencyRulesTask extends DefaultTask {
             }
 
             if (CROSS_MODULE_DEPENDENCY_PATTERN.matcher(pathFromThisModule.toString()).matches() && // there should not be "cross-module" dependencies at the same level
-                    !dependency.getName().endsWith("-core") // exception: technology libs such as "blob-core"
+                    !dependency.getName().endsWith("-core") && // exception: technology libs such as "blob-core"
+                    !pathFromRoot.startsWith("samples/") // exception: samples may refer to own modules
             ) {
                 dependencyError(format("there should not be \"cross-module\" dependencies at the same level. Invalid dependency: %s", dependency));
             }
