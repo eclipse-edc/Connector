@@ -237,11 +237,10 @@ openApiMerger {
     }
 }
 
-val dependencyAnalysisSeverity = project.findProperty("dependency.analysis.severity").toString()
-if (dependencyAnalysisSeverity != null) {
+if (project.hasProperty("dependency.analysis")) {
     apply(plugin = "org.eclipse.dataspaceconnector.dependency-rules")
     configure<org.eclipse.dataspaceconnector.gradle.DependencyRulesPluginExtension> {
-        severity.set(dependencyAnalysisSeverity)
+        severity.set(project.property("dependency.analysis").toString())
     }
     apply(plugin = "com.autonomousapps.dependency-analysis")
     configure<com.autonomousapps.DependencyAnalysisExtension> {
@@ -249,7 +248,7 @@ if (dependencyAnalysisSeverity != null) {
         issues {
             all { // all projects
                 onAny {
-                    severity(dependencyAnalysisSeverity)
+                    severity(project.property("dependency.analysis").toString())
                     exclude(
                         "org.jetbrains:annotations",
                         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",

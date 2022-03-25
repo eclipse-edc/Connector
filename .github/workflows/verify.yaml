@@ -37,7 +37,7 @@ jobs:
           cache: 'gradle'
 
       - name: Dependency rules report # possible severity values: <'fail'|'warn'|'ignore'>
-        run: ./gradlew buildHealth applyDependencyRules -Pdependency.analysis.severity=warn -Pdependency.analysis.clear.artifacts=false
+        run: ./gradlew buildHealth applyDependencyRules -Pdependency.analysis=warn -Pdependency.analysis.clear.artifacts=false
 
       - name: Dependency analysis report
         run: cat build/reports/dependency-analysis/build-health-report.txt
