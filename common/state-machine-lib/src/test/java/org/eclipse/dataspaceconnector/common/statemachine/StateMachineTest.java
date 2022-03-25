@@ -81,7 +81,7 @@ class StateMachineTest {
         doAnswer(i -> {
             latch.countDown();
             return 0L;
-        }).when(waitStrategy).success();
+        }).when(waitStrategy).waitForMillis();
         var stateMachine = StateMachine.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
                 .processor(processor)
                 .build();
