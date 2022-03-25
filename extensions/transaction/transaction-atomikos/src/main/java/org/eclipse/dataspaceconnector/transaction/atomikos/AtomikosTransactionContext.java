@@ -88,5 +88,4 @@ public class AtomikosTransactionContext implements TransactionContext {
             }
         }
     }
-
 }

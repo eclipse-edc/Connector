@@ -16,6 +16,7 @@ the detailed section referring to by linking pull requests or issues.
 * Improved CosmosDB interaction
 * Added DPF Selector
 * Updated Data Management API
+* Added SQL as data backend
 
 ### Detailed Changes
 
@@ -32,6 +33,7 @@ the detailed section referring to by linking pull requests or issues.
 * Add `Hostname` service (#948)
 * Add embedded and remote DPF Selector (#832)
 * Pass path information into http data source through DPF public API (#929)
+* SQL-based TransferProcessStore (#865)
 * Add instructions for observability sample with Azure Application Insights (#928)
 * Add interface `WebServer` to `web-spi` (#921)
 * Implement Asset service for Data Management API (#931)

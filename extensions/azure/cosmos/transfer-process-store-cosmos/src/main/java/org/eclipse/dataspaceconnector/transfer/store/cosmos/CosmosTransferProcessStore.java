@@ -26,7 +26,7 @@ import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument;
 import org.eclipse.dataspaceconnector.azure.cosmos.dialect.SqlStatement;
-import org.eclipse.dataspaceconnector.azure.cosmos.util.LeaseContext;
+import org.eclipse.dataspaceconnector.azure.cosmos.util.CosmosLeaseContext;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
@@ -58,7 +58,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     private final RetryPolicy<Object> generalRetry;
     private final RetryPolicy<Object> rateLimitRetry;
     private final FailsafeExecutor<Object> failsafeExecutor;
-    private final LeaseContext leaseContext;
+    private final CosmosLeaseContext leaseContext;
 
     /**
      * Creates a new instance of the CosmosDB-based transfer process store.
@@ -87,7 +87,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
         generalRetry = retryPolicy;
 
         failsafeExecutor = with(rateLimitRetry, generalRetry);
-        leaseContext = LeaseContext.with(cosmosDbApi, partitionKey, leaseHolder).usingRetry(List.of(rateLimitRetry, generalRetry));
+        leaseContext = CosmosLeaseContext.with(cosmosDbApi, partitionKey, leaseHolder).usingRetry(List.of(rateLimitRetry, generalRetry));
     }
 
     @Override
@@ -108,29 +108,6 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
                 .map(pd -> pd.getWrappedInstance().getId())
                 .findFirst()
                 .orElse(null);
-    }
-
-    @Override
-    public @NotNull List<TransferProcess> nextForState(int state, int max) {
-        tracingOptions.setMaxBufferedItemCount(max);
-
-        var rawJson = with(Fallback.of((String) null), rateLimitRetry, generalRetry)
-                .get(() -> cosmosDbApi.invokeStoredProcedure(NEXT_FOR_STATE_S_PROC_NAME, partitionKey, state, max, leaseHolderName));
-
-        if (rawJson == null) {
-            return Collections.emptyList();
-        }
-
-        //now we need to convert to a list, convert each element in that list to json, and convert that back to a TransferProcessDocument
-        var typeRef = new TypeReference<List<Object>>() {
-        };
-        var l = typeManager.readValue(rawJson, typeRef);
-
-        return l.stream()
-                .map(this::convertToDocument)
-                .map(CosmosDocument::getWrappedInstance)
-                .collect(Collectors.toList());
-
     }
 
     @Override
@@ -178,6 +155,29 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
 
         var objects = failsafeExecutor.get(() -> cosmosDbApi.queryItems(query));
         return objects.map(this::convertToDocument).map(TransferProcessDocument::getWrappedInstance);
+    }
+
+    @Override
+    public @NotNull List<TransferProcess> nextForState(int state, int max) {
+        tracingOptions.setMaxBufferedItemCount(max);
+
+        var rawJson = with(Fallback.of((String) null), rateLimitRetry, generalRetry)
+                .get(() -> cosmosDbApi.invokeStoredProcedure(NEXT_FOR_STATE_S_PROC_NAME, partitionKey, state, max, leaseHolderName));
+
+        if (rawJson == null) {
+            return Collections.emptyList();
+        }
+
+        //now we need to convert to a list, convert each element in that list to json, and convert that back to a TransferProcessDocument
+        var typeRef = new TypeReference<List<Object>>() {
+        };
+        var l = typeManager.readValue(rawJson, typeRef);
+
+        return l.stream()
+                .map(this::convertToDocument)
+                .map(CosmosDocument::getWrappedInstance)
+                .collect(Collectors.toList());
+
     }
 
     private TransferProcessDocument convertToDocument(Object databaseDocument) {

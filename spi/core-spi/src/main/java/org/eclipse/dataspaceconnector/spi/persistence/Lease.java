@@ -12,12 +12,12 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.azure.cosmos;
+package org.eclipse.dataspaceconnector.spi.persistence;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Acts as exclusive lock on a {@link LeaseableCosmosDocument}
+ * Acts as exclusive lock on a database entity
  */
 public class Lease {
     @JsonProperty

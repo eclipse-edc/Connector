@@ -45,6 +45,7 @@ include(":data-protocols:ids:ids-api-configuration")
 
 include("extensions:sql:contract-definition:store")
 
+
 // modules for technology- or cloud-provider extensions
 include(":extensions:aws")
 include(":extensions:api:control")
@@ -135,7 +136,9 @@ include(":extensions:azure:data-plane:storage")
 include(":extensions:data-plane:data-plane-api")
 include(":extensions:data-plane:integration-tests")
 include(":extensions:sql:common")
+include(":extensions:sql:lease")
 include(":extensions:sql:pool:apache-commons-pool")
+include(":extensions:sql:transfer-process-store")
 include(":extensions:http-receiver")
 
 // modules for launchers, i.e. runnable compositions of the app

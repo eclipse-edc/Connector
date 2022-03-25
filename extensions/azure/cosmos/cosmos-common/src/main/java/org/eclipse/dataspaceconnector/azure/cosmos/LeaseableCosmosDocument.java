@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.azure.cosmos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.eclipse.dataspaceconnector.spi.persistence.Lease;
 
 import java.time.Duration;
 import java.time.Instant;
