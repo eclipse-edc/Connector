@@ -41,6 +41,7 @@ dependencies {
     implementation(project(":data-protocols:ids"))
     runtimeOnly(project(":extensions:http:jersey-micrometer"))
     runtimeOnly(project(":extensions:http:jetty-micrometer"))
+    runtimeOnly(project(":extensions:jdk-logger-monitor"))
     implementation(project(":samples:04.0-file-transfer:api"))
 }
 

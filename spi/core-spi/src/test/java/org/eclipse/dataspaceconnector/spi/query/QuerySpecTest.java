@@ -83,4 +83,5 @@ class QuerySpecTest {
 
         assertThat(qs.getFilterExpression()).isNotNull().isEmpty();
     }
+
 }

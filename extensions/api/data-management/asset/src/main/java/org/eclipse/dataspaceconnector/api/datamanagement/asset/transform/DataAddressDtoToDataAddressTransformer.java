@@ -21,13 +21,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.crypto.Data;
-
 public class DataAddressDtoToDataAddressTransformer implements DtoTransformer<DataAddressDto, DataAddress> {
-    @Override
-    public boolean canHandle(@NotNull Object object, @NotNull Class<?> outputType) {
-        return getInputType().isInstance(object) && outputType.equals(getOutputType());
-    }
 
     @Override
     public Class<DataAddressDto> getInputType() {

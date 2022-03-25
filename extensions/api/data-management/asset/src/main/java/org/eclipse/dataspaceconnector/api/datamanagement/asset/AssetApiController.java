@@ -112,7 +112,7 @@ public class AssetApiController implements AssetApi {
     public AssetDto getAsset(@PathParam("id") String id) {
         monitor.debug(format("Attempting to return Asset with id %s", id));
         return Optional.of(id)
-                .map(it -> service.findbyId(id))
+                .map(it -> service.findById(id))
                 .map(it -> transformerRegistry.transform(it, AssetDto.class))
                 .filter(Result::succeeded)
                 .map(Result::getContent)

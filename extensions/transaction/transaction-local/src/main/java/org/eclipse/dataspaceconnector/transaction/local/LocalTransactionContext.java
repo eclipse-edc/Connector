@@ -29,10 +29,10 @@ import java.util.List;
  * Note that this transaction context cannot implement atomicity if multiple resources are enlisted for a transaction. The only way to achieve this is to use XA transactions.
  */
 public class LocalTransactionContext implements TransactionContext, LocalTransactionContextManager {
-    private List<LocalTransactionResource> resources = new ArrayList<>();
-    private ThreadLocal<Transaction> transactions = new ThreadLocal<>();
+    private final List<LocalTransactionResource> resources = new ArrayList<>();
+    private final ThreadLocal<Transaction> transactions = new ThreadLocal<>();
 
-    private Monitor monitor;
+    private final Monitor monitor;
 
     public LocalTransactionContext(Monitor monitor) {
         this.monitor = monitor;
@@ -40,6 +40,14 @@ public class LocalTransactionContext implements TransactionContext, LocalTransac
 
     @Override
     public void execute(TransactionBlock block) {
+        execute((ResultTransactionBlock<Void>) () -> {
+            block.execute();
+            return null;
+        });
+    }
+
+    @Override
+    public <T> T execute(ResultTransactionBlock<T> block) {
         var startedTransaction = false;
         var transaction = transactions.get();
 
@@ -50,7 +58,7 @@ public class LocalTransactionContext implements TransactionContext, LocalTransac
                 startedTransaction = true;
                 transactions.set(transaction);
             }
-            block.execute();
+            return block.execute();
         } catch (Exception e) {
             assert transaction != null;
             transaction.setRollbackOnly();
@@ -86,6 +94,7 @@ public class LocalTransactionContext implements TransactionContext, LocalTransac
     public void registerResource(LocalTransactionResource resource) {
         resources.add(resource);
     }
+
 
     private static class Transaction {
         private boolean rollbackOnly = false;
