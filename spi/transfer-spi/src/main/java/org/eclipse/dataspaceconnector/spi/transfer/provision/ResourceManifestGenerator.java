@@ -21,7 +21,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 
 /**
- * Generates resource manifests for data transfer requests. Implementations are responsible for enforcing policy contraints associated with transfer requests.
+ * Generates resource manifests for data transfer requests. Implementations are responsible for enforcing policy constraints associated with transfer requests.
  */
 @Feature("edc:core:transfer:provision:resourcemanifest-generator")
 public interface ResourceManifestGenerator {
