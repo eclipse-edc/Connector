@@ -11,34 +11,35 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.transfer.core.transfer;
+package org.eclipse.dataspaceconnector.transfer.core.command.handlers;
 
 import org.eclipse.dataspaceconnector.spi.command.CommandHandler;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.transfer.core.command.commands.AddProvisionedResourceCommand;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.ProvisionCompletionDelegate;
 
 import java.util.List;
 
 /**
  * Processes a {@link AddProvisionedResourceCommand} by delegating it to the {@link TransferProcessManager}.
- *
+ * <p>
  * This class exists to avoid coupling the TPM to the command handler registry.
  */
 public class AddProvisionedResourceCommandHandler implements CommandHandler<AddProvisionedResourceCommand> {
-    private final TransferProcessManagerImpl transferProcessManager;
+    private final ProvisionCompletionDelegate delegate;
 
-    public AddProvisionedResourceCommandHandler(TransferProcessManagerImpl transferProcessManager) {
-        this.transferProcessManager = transferProcessManager;
+    public AddProvisionedResourceCommandHandler(ProvisionCompletionDelegate delegate) {
+        this.delegate = delegate;
+    }
+
+    @Override
+    public void handle(AddProvisionedResourceCommand command) {
+        delegate.handleProvisionResult(command.getTransferProcessId(), List.of(command.getProvisionResponse()));
     }
 
     @Override
     public Class<AddProvisionedResourceCommand> getType() {
         return AddProvisionedResourceCommand.class;
-    }
-
-    @Override
-    public void handle(AddProvisionedResourceCommand command) {
-        transferProcessManager.onProvisionComplete(command.getTransferProcessId(), List.of(command.getProvisionResponse()));
     }
 
 }

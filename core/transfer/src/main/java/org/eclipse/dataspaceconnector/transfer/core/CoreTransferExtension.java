@@ -42,6 +42,7 @@ import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
+import org.eclipse.dataspaceconnector.transfer.core.command.handlers.AddProvisionedResourceCommandHandler;
 import org.eclipse.dataspaceconnector.transfer.core.edr.DefaultEndpointDataReferenceTransformer;
 import org.eclipse.dataspaceconnector.transfer.core.edr.EndpointDataReferenceReceiverRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.flow.DataFlowManagerImpl;
@@ -49,7 +50,6 @@ import org.eclipse.dataspaceconnector.transfer.core.inline.DataOperatorRegistryI
 import org.eclipse.dataspaceconnector.transfer.core.observe.TransferProcessObservableImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ProvisionManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ResourceManifestGeneratorImpl;
-import org.eclipse.dataspaceconnector.transfer.core.transfer.AddProvisionedResourceCommandHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.StatusCheckerRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessManagerImpl;
 
@@ -57,9 +57,9 @@ import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessMana
  * Provides core data transfer services to the system.
  */
 @CoreExtension
-@Provides({StatusCheckerRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class,
+@Provides({ StatusCheckerRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class,
         TransferProcessObservable.class, DataOperatorRegistry.class, DataFlowManager.class, ProvisionManager.class,
-        EndpointDataReferenceReceiverRegistry.class, EndpointDataReferenceTransformer.class})
+        EndpointDataReferenceReceiverRegistry.class, EndpointDataReferenceTransformer.class })
 public class CoreTransferExtension implements ServiceExtension {
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
 
