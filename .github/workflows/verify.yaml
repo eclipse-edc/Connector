@@ -36,10 +36,8 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Dependency rules report
-        env:
-          DEPENDENCY_ANALYSIS: warn #  <'fail'|'warn'|'ignore'>
-        run: ./gradlew buildHealth applyDependencyRules -Pdependency.analysis.clear.artifacts=false
+      - name: Dependency rules report # possible severity values: <'fail'|'warn'|'ignore'>
+        run: ./gradlew buildHealth applyDependencyRules -Pdependency.analysis.severity=warn -Pdependency.analysis.clear.artifacts=false
 
       - name: Dependency analysis report
         run: cat build/reports/dependency-analysis/build-health-report.txt

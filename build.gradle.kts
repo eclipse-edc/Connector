@@ -36,7 +36,6 @@ val assertj: String by project
 val rsApi: String by project
 val swagger: String by project
 val faker: String by project
-val dependencyAnalysis: String? = System.getenv("DEPENDENCY_ANALYSIS")
 
 val groupId: String = "org.eclipse.dataspaceconnector"
 var edcVersion: String = "0.0.1-SNAPSHOT"
@@ -238,10 +237,11 @@ openApiMerger {
     }
 }
 
-if (dependencyAnalysis != null) {
+val dependencyAnalysisSeverity = project.findProperty("dependency.analysis.severity").toString()
+if (dependencyAnalysisSeverity != null) {
     apply(plugin = "org.eclipse.dataspaceconnector.dependency-rules")
     configure<org.eclipse.dataspaceconnector.gradle.DependencyRulesPluginExtension> {
-        severity.set(dependencyAnalysis)
+        severity.set(dependencyAnalysisSeverity)
     }
     apply(plugin = "com.autonomousapps.dependency-analysis")
     configure<com.autonomousapps.DependencyAnalysisExtension> {
@@ -249,7 +249,7 @@ if (dependencyAnalysis != null) {
         issues {
             all { // all projects
                 onAny {
-                    severity(dependencyAnalysis)
+                    severity(dependencyAnalysisSeverity)
                     exclude(
                         "org.jetbrains:annotations",
                         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
