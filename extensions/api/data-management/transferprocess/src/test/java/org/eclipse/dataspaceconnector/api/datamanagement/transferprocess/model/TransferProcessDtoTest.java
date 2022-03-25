@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model;
+package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

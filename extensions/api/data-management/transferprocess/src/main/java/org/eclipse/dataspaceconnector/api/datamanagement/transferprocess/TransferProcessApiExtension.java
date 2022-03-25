@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition;
+package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess;
 
 import org.eclipse.dataspaceconnector.api.datamanagement.configuration.DataManagementApiConfiguration;
 import org.eclipse.dataspaceconnector.spi.WebService;
@@ -20,15 +20,15 @@ import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
-public class ContractAgreementApiExtension implements ServiceExtension {
+public class TransferProcessApiExtension implements ServiceExtension {
     @Inject
     private WebService webService;
 
     @Inject
-    private DataManagementApiConfiguration config;
+    private DataManagementApiConfiguration configuration;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        webService.registerResource(config.getContextAlias(), new ContractAgreementApiController(context.getMonitor()));
+        webService.registerResource(configuration.getContextAlias(), new TransferProcessApiController(context.getMonitor()));
     }
 }
