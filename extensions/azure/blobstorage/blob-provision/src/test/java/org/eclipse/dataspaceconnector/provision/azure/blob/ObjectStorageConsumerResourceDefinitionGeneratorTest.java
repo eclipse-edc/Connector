@@ -19,24 +19,21 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.regex.Pattern;
 
-import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ObjectStorageDefinitionConsumerGeneratorTest {
+class ObjectStorageConsumerResourceDefinitionGeneratorTest {
 
     private final Pattern regexPattern = Pattern.compile("([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})");
-    private ObjectStorageDefinitionConsumerGenerator generator;
+    private ObjectStorageConsumerResourceDefinitionGenerator generator;
 
     @BeforeEach
     void setUp() {
-        generator = new ObjectStorageDefinitionConsumerGenerator();
+        generator = new ObjectStorageConsumerResourceDefinitionGenerator();
     }
 
     @Test
@@ -47,13 +44,12 @@ class ObjectStorageDefinitionConsumerGeneratorTest {
                 .build();
         var asset = Asset.Builder.newInstance().build();
         var dr = DataRequest.Builder.newInstance().dataDestination(destination).assetId(asset.getId()).build();
-        var tp = TransferProcess.Builder.newInstance().dataRequest(dr).id(randomUUID().toString()).build();
         var policy = Policy.Builder.newInstance().build();
 
-        ResourceDefinition def = generator.generate(tp, policy);
+        var definition = generator.generate(dr, policy);
 
-        assertThat(def).isInstanceOf(ObjectStorageResourceDefinition.class);
-        var objectDef = (ObjectStorageResourceDefinition) def;
+        assertThat(definition).isInstanceOf(ObjectStorageResourceDefinition.class);
+        var objectDef = (ObjectStorageResourceDefinition) definition;
         assertThat(objectDef.getAccountName()).isEqualTo("test-account");
         assertThat(objectDef.getContainerName()).isEqualTo("test-container");
         assertThat(objectDef.getId()).matches(regexPattern);
@@ -66,12 +62,11 @@ class ObjectStorageDefinitionConsumerGeneratorTest {
                 .build();
         var asset = Asset.Builder.newInstance().build();
         var dataRequest = DataRequest.Builder.newInstance().dataDestination(destination).assetId(asset.getId()).build();
-        var tp = TransferProcess.Builder.newInstance().dataRequest(dataRequest).id(randomUUID().toString()).build();
         var policy = Policy.Builder.newInstance().build();
 
-        ResourceDefinition def = generator.generate(tp, policy);
-        assertThat(def).isNotNull();
-        assertThat(((ObjectStorageResourceDefinition) def).getContainerName()).matches(
+        var definition = generator.generate(dataRequest, policy);
+        assertThat(definition).isNotNull();
+        assertThat(((ObjectStorageResourceDefinition) definition).getContainerName()).matches(
                 regexPattern);
     }
 }
