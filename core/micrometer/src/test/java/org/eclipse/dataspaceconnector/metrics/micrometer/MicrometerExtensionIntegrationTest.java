@@ -58,7 +58,7 @@ public class MicrometerExtensionIntegrationTest {
 
     @BeforeEach
     void before(EdcExtension extension) {
-        extension.setConfiguration(Map.of("web.http.data.port", String.valueOf(CONNECTOR_PORT)));
+        extension.setConfiguration(Map.of("web.http.port", String.valueOf(CONNECTOR_PORT)));
     }
 
     @Test
