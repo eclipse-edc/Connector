@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.api.datamanagement.asset.transform;
 
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.DataAddressDto;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
-import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -32,13 +31,6 @@ class DataAddressDtoToDataAddressTransformerTest {
     void inputOutputType() {
         assertThat(transformer.getInputType()).isNotNull();
         assertThat(transformer.getOutputType()).isNotNull();
-    }
-
-    @Test
-    void canHandle() {
-        assertThat(transformer.canHandle(DataAddressDto.Builder.newInstance().build(), DataAddress.class)).isTrue();
-        assertThat(transformer.canHandle("any other", DataAddress.class)).isFalse();
-        assertThat(transformer.canHandle(DataAddressDto.Builder.newInstance().build(), Object.class)).isFalse();
     }
 
     @Test

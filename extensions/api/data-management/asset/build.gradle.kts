@@ -12,9 +12,6 @@
  *    Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  */
 
-val infoModelVersion: String by project
-val jerseyVersion: String by project
-val okHttpVersion: String by project
 val restAssured: String by project
 val rsApi: String by project
 
@@ -35,7 +32,6 @@ dependencies {
     testImplementation(project(":extensions:http"))
     testImplementation(project(":extensions:in-memory:assetindex-memory"))
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
-    testImplementation(project(":extensions:transaction:transaction-local"))
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")

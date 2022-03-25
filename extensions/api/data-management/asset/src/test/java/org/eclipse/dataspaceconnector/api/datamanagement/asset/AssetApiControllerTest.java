@@ -133,7 +133,7 @@ public class AssetApiControllerTest {
 
     @Test
     void getAssetById() {
-        when(service.findbyId("id")).thenReturn(Asset.Builder.newInstance().build());
+        when(service.findById("id")).thenReturn(Asset.Builder.newInstance().build());
         when(transformerRegistry.transform(isA(Asset.class), eq(AssetDto.class))).thenReturn(Result.success(AssetDto.Builder.newInstance().build()));
 
         var assetDto = controller.getAsset("id");
@@ -144,14 +144,14 @@ public class AssetApiControllerTest {
 
     @Test
     void getAssetById_notExists() {
-        when(service.findbyId("id")).thenReturn(null);
+        when(service.findById("id")).thenReturn(null);
 
         assertThatThrownBy(() -> controller.getAsset("id")).isInstanceOf(ObjectNotFoundException.class);
     }
 
     @Test
     void getAssetById_notExistsIfTransformFails() {
-        when(service.findbyId("id")).thenReturn(Asset.Builder.newInstance().build());
+        when(service.findById("id")).thenReturn(Asset.Builder.newInstance().build());
         when(transformerRegistry.transform(isA(Asset.class), eq(AssetDto.class))).thenReturn(Result.failure("failure"));
 
         assertThatThrownBy(() -> controller.getAsset("id")).isInstanceOf(ObjectNotFoundException.class);

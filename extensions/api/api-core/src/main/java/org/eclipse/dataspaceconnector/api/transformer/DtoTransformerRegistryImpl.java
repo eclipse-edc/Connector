@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
@@ -77,7 +78,8 @@ public class DtoTransformerRegistryImpl implements DtoTransformerRegistry {
     private <INPUT, OUTPUT> OUTPUT transform(INPUT object, Class<OUTPUT> outputType, TransformerContext context) {
         Objects.requireNonNull(object);
 
-        var t = transformers.stream().filter(tr -> tr.canHandle(object, outputType))
+        var t = transformers.stream()
+                .filter(tr -> tr.getInputType().isInstance(object) && tr.getOutputType().equals(outputType))
                 .findFirst().orElse(null);
 
         if (t == null) {
