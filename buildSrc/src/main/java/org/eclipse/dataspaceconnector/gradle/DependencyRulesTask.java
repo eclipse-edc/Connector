@@ -12,12 +12,12 @@ import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 
-abstract public class DependencyRulesTask extends DefaultTask {
+public abstract class DependencyRulesTask extends DefaultTask {
 
     private static final Pattern CROSS_MODULE_DEPENDENCY_PATTERN = Pattern.compile("\\.\\./[^.].*");
 
     @Input
-    abstract public Property<Boolean> getFailOnError();
+    public abstract Property<Boolean> getFailOnError();
 
     @TaskAction
     public void check() {
@@ -34,14 +34,14 @@ abstract public class DependencyRulesTask extends DefaultTask {
             var pathFromRoot = project.getRootDir().toPath().relativize(artifact.getFile().toPath());
             var pathFromThisModule = project.getProjectDir().toPath().relativize(artifact.getFile().toPath());
 
-            if (!dependency.getName().endsWith("-spi") // modules may only depend on `-spi` modules (exceptions follow)
-                    && dependency.getName() != "spi" // exception: modules may depend on spi module
-                    && !dependency.getName().endsWith("-core") // exception: modules may depend on technology libs such as "blob-core"
-                    && !pathFromRoot.startsWith("common/") // exception: modules may depend on common module
-                    && !pathFromRoot.startsWith("extensions/http/jetty/") // exception: modules might depend on `jetty` (this exception should be removed once there is an SPI for jetty)
-                    && !project.getPath().startsWith(":launchers:") // exception: launchers may depend on other modules
-                    && !project.getPath().startsWith(":samples:") // exception: samples may depend on other modules
-                    && !project.getPath().startsWith(":system-tests:") // exception: system-tests may depend on other modules
+            if (!dependency.getName().endsWith("-spi") && // modules may only depend on `-spi` modules (exceptions follow)
+                    dependency.getName() != "spi" && // exception: modules may depend on spi module
+                    !dependency.getName().endsWith("-core") && // exception: modules may depend on technology libs such as "blob-core"
+                    !pathFromRoot.startsWith("common/") && // exception: modules may depend on common module
+                    !pathFromRoot.startsWith("extensions/http/jetty/") && // exception: modules might depend on `jetty` (this exception should be removed once there is an SPI for jetty)
+                    !project.getPath().startsWith(":launchers:") && // exception: launchers may depend on other modules
+                    !project.getPath().startsWith(":samples:") && // exception: samples may depend on other modules
+                    !project.getPath().startsWith(":system-tests:") // exception: system-tests may depend on other modules
             ) {
                 dependencyError(format("modules may only depend on '*-spi' modules. Invalid dependency: %s", dependency));
             }
@@ -51,8 +51,8 @@ abstract public class DependencyRulesTask extends DefaultTask {
                 dependencyError(format("modules may not depend on launcher modules. Invalid dependency: %s", dependency));
             }
 
-            if (pathFromRoot.startsWith("samples/") // no module may depend on samples (exceptions follow)
-                    && !project.getPath().startsWith(":samples:") // exception: other samples might depend on samples
+            if (pathFromRoot.startsWith("samples/") && // no module may depend on samples (exceptions follow)
+                    !project.getPath().startsWith(":samples:") // exception: other samples might depend on samples
             ) {
                 dependencyError(format("modules may not depend on samples modules. Invalid dependency: %s", dependency));
             }
@@ -62,8 +62,8 @@ abstract public class DependencyRulesTask extends DefaultTask {
                 dependencyError(format("modules may not depend on system-tests modules. Invalid dependency: %s", dependency));
             }
 
-            if (CROSS_MODULE_DEPENDENCY_PATTERN.matcher(pathFromThisModule.toString()).matches()   // there should not be "cross-module" dependencies at the same level
-                    && !dependency.getName().endsWith("-core") // exception: technology libs such as "blob-core"
+            if (CROSS_MODULE_DEPENDENCY_PATTERN.matcher(pathFromThisModule.toString()).matches() && // there should not be "cross-module" dependencies at the same level
+                    !dependency.getName().endsWith("-core") // exception: technology libs such as "blob-core"
             ) {
                 dependencyError(format("there should not be \"cross-module\" dependencies at the same level. Invalid dependency: %s", dependency));
             }
@@ -84,8 +84,8 @@ abstract public class DependencyRulesTask extends DefaultTask {
         if (dependency.getModuleGroup().equals(project.getGroup())) {
             dependency.getModuleArtifacts().forEach(artifact -> {
                 var pathFromRoot = project.getRootDir().toPath().relativize(artifact.getFile().toPath());
-                if (pathFromRoot.startsWith("core/") // no module may depend directly on any core module
-                        && !dependency.getName().endsWith("-core") // exception: other core modules
+                if (pathFromRoot.startsWith("core/") && // no module may depend directly on any core module
+                        !dependency.getName().endsWith("-core") // exception: other core modules
                 ) {
                     dependencyError(format("modules may not depend directly on core modules. Invalid dependency: %s", dependency.getName()));
                 }
