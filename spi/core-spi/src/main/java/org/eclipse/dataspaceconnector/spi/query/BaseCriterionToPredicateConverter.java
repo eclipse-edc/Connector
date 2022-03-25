@@ -37,7 +37,6 @@ public abstract class BaseCriterionToPredicateConverter<T> implements CriterionC
         switch (operator) {
             case "=": return equalPredicate(criterion);
             case "in": return inPredicate(criterion);
-            case "like": return likePredicate(criterion);
             default:
                 throw new IllegalArgumentException(String.format("Operator [%s] is not supported by this converter!", criterion.getOperator()));
         }
@@ -74,22 +73,6 @@ public abstract class BaseCriterionToPredicateConverter<T> implements CriterionC
                     .split(",");
 
             return Arrays.asList(items).contains(property);
-        };
-    }
-
-    @NotNull
-    private Predicate<T> likePredicate(Criterion criterion) {
-        return t -> {
-            Object property = property((String) criterion.getOperandLeft(), t);
-            if (property == null) {
-                return false;
-            }
-
-            String operandRight = (String) criterion.getOperandRight();
-
-            return Pattern.compile("^" + operandRight.replace("%", ".*") + "$")
-                    .matcher(property.toString())
-                    .matches();
         };
     }
 

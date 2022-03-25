@@ -21,18 +21,13 @@ import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
-import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -41,7 +36,7 @@ import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFr
 import static org.hamcrest.Matchers.is;
 
 @ExtendWith(EdcExtension.class)
-public class ContractDefinitionsApiControllerIntegrationTest {
+public class ContractDefinitionApiControllerIntegrationTest {
 
     private final int port = getFreePort();
     private final String authKey = "123456";
@@ -147,19 +142,6 @@ public class ContractDefinitionsApiControllerIntegrationTest {
                 .statusCode(404);
     }
 
-    @Test
-    void deleteAsset_alreadyReferencedInAgreement(ContractNegotiationStore negotiationStore, ContractDefinitionLoader loader) {
-        var contractDefinition = createContractDefinition("definitionId");
-        loader.accept(contractDefinition);
-        negotiationStore.save(createContractNegotiation(contractDefinition));
-
-        baseRequest()
-                .contentType(JSON)
-                .delete("/contractdefinitions/definitionId")
-                .then()
-                .statusCode(409);
-    }
-
     private ContractDefinition createContractDefinition(String id) {
         return ContractDefinition.Builder.newInstance()
                 .id(id)
@@ -177,23 +159,4 @@ public class ContractDefinitionsApiControllerIntegrationTest {
                 .when();
     }
 
-    private ContractNegotiation createContractNegotiation(ContractDefinition contractDefinition) {
-        return ContractNegotiation.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .counterPartyId(UUID.randomUUID().toString())
-                .counterPartyAddress("address")
-                .protocol("protocol")
-                .contractAgreement(createContractAgreement(contractDefinition))
-                .build();
-    }
-
-    private ContractAgreement createContractAgreement(ContractDefinition contractDefinition) {
-        return ContractAgreement.Builder.newInstance()
-                .id(contractDefinition.getId() + ":" + UUID.randomUUID())
-                .providerAgentId(UUID.randomUUID().toString())
-                .consumerAgentId(UUID.randomUUID().toString())
-                .asset(Asset.Builder.newInstance().build())
-                .policy(Policy.Builder.newInstance().build())
-                .build();
-    }
 }

@@ -24,7 +24,6 @@ import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -47,9 +46,6 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
     ContractDefinitionStore contractDefinitionStore;
 
     @Inject
-    ContractNegotiationStore contractNegotiationStore;
-
-    @Inject
     ContractDefinitionLoader contractDefinitionLoader;
 
     @Inject(required = false)
@@ -67,7 +63,7 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
                     return new NoopTransactionContext();
                 });
 
-        var service = new ContractDefinitionServiceImpl(contractDefinitionStore, contractDefinitionLoader, transactionContextImpl, contractNegotiationStore);
+        var service = new ContractDefinitionServiceImpl(contractDefinitionStore, contractDefinitionLoader, transactionContextImpl);
         webService.registerResource(config.getContextAlias(), new ContractDefinitionApiController(monitor, service, transformerRegistry));
     }
 }

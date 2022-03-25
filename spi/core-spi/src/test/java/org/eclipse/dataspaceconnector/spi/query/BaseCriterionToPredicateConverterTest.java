@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class BaseCriterionToPredicateConverterTest {
 
-    private TestCriterionToPredicateConverter converter = new TestCriterionToPredicateConverter();
+    private final TestCriterionToPredicateConverter converter = new TestCriterionToPredicateConverter();
 
     @Test
     void convertEqual() {
@@ -25,42 +25,6 @@ class BaseCriterionToPredicateConverterTest {
         assertThat(predicate)
                 .accepts(new TestObject("first"), new TestObject("second"))
                 .rejects(new TestObject("third"), new TestObject(""), new TestObject(null));
-    }
-
-    @Test
-    void convertLike() {
-        var predicate = converter.convert(new Criterion("value", "like", "any"));
-
-        assertThat(predicate)
-                .accepts(new TestObject("any"))
-                .rejects(new TestObject("other"), new TestObject(""), new TestObject(null));
-    }
-
-    @Test
-    void convertLikePrefix() {
-        var predicate = converter.convert(new Criterion("value", "like", "prefix%"));
-
-        assertThat(predicate)
-                .accepts(new TestObject("prefix"), new TestObject("prefix-suffix"))
-                .rejects(new TestObject("other-prefix"), new TestObject(""), new TestObject(null));
-    }
-
-    @Test
-    void convertLikeSuffix() {
-        var predicate = converter.convert(new Criterion("value", "like", "%suffix"));
-
-        assertThat(predicate)
-                .accepts(new TestObject("suffix"), new TestObject("prefix-suffix"))
-                .rejects(new TestObject("suffix-other"), new TestObject(""), new TestObject(null));
-    }
-
-    @Test
-    void convertLikeContent() {
-        var predicate = converter.convert(new Criterion("value", "like", "%content%"));
-
-        assertThat(predicate)
-                .accepts(new TestObject("content"), new TestObject("prefix-content-suffix"))
-                .rejects(new TestObject("conten"), new TestObject(""), new TestObject(null));
     }
 
     private static class TestCriterionToPredicateConverter extends BaseCriterionToPredicateConverter<TestObject> {

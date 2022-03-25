@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.ser
 
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -34,17 +33,15 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
     private final ContractDefinitionStore store;
     private final ContractDefinitionLoader loader;
     private final TransactionContext transactionContext;
-    private final ContractNegotiationStore contractNegotiationStore;
 
-    public ContractDefinitionServiceImpl(ContractDefinitionStore store, ContractDefinitionLoader loader, TransactionContext transactionContext, ContractNegotiationStore contractNegotiationStore) {
+    public ContractDefinitionServiceImpl(ContractDefinitionStore store, ContractDefinitionLoader loader, TransactionContext transactionContext) {
         this.store = store;
         this.loader = loader;
         this.transactionContext = transactionContext;
-        this.contractNegotiationStore = contractNegotiationStore;
     }
 
     @Override
-    public ContractDefinition findbyId(String contractDefinitionId) {
+    public ContractDefinition findById(String contractDefinitionId) {
         var querySpec = QuerySpec.Builder.newInstance()
                 .filter(List.of(new Criterion("id", "=", contractDefinitionId)))
                 .build();
@@ -62,7 +59,7 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
         var result = new AtomicReference<ServiceResult<ContractDefinition>>();
 
         transactionContext.execute(() -> {
-            if (findbyId(contractDefinition.getId()) == null) {
+            if (findById(contractDefinition.getId()) == null) {
                 loader.accept(contractDefinition);
                 result.set(ServiceResult.success(contractDefinition));
             } else {
@@ -78,14 +75,7 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
         var result = new AtomicReference<ServiceResult<ContractDefinition>>();
 
         transactionContext.execute(() -> {
-            var filter = format("contractAgreement.id like %s:%%", contractDefinitionId);
-            var query = QuerySpec.Builder.newInstance().filter(filter).build();
-
-            var negotiationsOnAsset = contractNegotiationStore.queryNegotiations(query);
-            if (negotiationsOnAsset.findAny().isPresent()) {
-                result.set(ServiceResult.conflict(format("ContractDefinition %s cannot be deleted as it is referenced by at least one contract agreement", contractDefinitionId)));
-                return;
-            }
+            // TODO: should be checked if a contract agreement based on this definition exists. Currently not implementable because it's not possibile to filter agreements by definition id
 
             var deleted = store.deleteById(contractDefinitionId);
             if (deleted == null) {

@@ -20,6 +20,10 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDe
 
 import java.util.Collection;
 
+/**
+ * Service that permits actions and queries on ContractDefinition entity.
+ *
+ */
 public interface ContractDefinitionService {
 
     /**
@@ -28,7 +32,7 @@ public interface ContractDefinitionService {
      * @param contractDefinitionId id of the contract definition
      * @return the contract definition, null if it's not found
      */
-    ContractDefinition findbyId(String contractDefinitionId);
+    ContractDefinition findById(String contractDefinitionId);
 
     /**
      * Query contract definitions
@@ -39,7 +43,8 @@ public interface ContractDefinitionService {
     Collection<ContractDefinition> query(QuerySpec query);
 
     /**
-     * Create a contract definition with its related data address
+     * Create a contract definition with its related data address.
+     * If a definition with the same id exists, returns CONFLICT failure.
      *
      * @param contractDefinition the contract definition
      * @return successful result if the contract definition is created correctly, failure otherwise
@@ -47,7 +52,9 @@ public interface ContractDefinitionService {
     ServiceResult<ContractDefinition> create(ContractDefinition contractDefinition);
 
     /**
-     * Delete a contract definition
+     * Delete a contract definition.
+     * If the definition is already referenced by a contract agreement, returns CONFLICT failure.
+     * If the definition does not exist, returns NOT_FOUND failure.
      *
      * @param contractDefinitionId the id of the contract definition to be deleted
      * @return successful result if the contract definition is deleted correctly, failure otherwise

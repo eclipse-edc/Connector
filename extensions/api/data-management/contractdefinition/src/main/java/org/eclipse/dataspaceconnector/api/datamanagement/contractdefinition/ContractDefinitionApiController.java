@@ -35,7 +35,6 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 
 import java.util.List;
@@ -87,7 +86,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
         monitor.debug(format("get contract definition with ID %s", id));
 
         return Optional.of(id)
-                .map(service::findbyId)
+                .map(service::findById)
                 .map(it -> transformerRegistry.transform(it, ContractDefinitionDto.class))
                 .filter(Result::succeeded)
                 .map(Result::getContent)

@@ -41,7 +41,7 @@ class AssetServiceImplTest {
     void findById_shouldRelyOnAssetIndex() {
         when(index.findById("assetId")).thenReturn(createAsset("assetId"));
 
-        var asset = service.findbyId("assetId");
+        var asset = service.findById("assetId");
 
         String assetId = "assetId";
         assertThat(asset).isNotNull().matches(hasId(assetId));

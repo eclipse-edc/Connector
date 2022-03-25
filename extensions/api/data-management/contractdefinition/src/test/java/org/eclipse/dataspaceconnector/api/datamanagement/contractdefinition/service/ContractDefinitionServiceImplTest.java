@@ -17,15 +17,11 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.ser
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -36,7 +32,6 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason.CONFLICT;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -47,17 +42,16 @@ import static org.mockito.Mockito.when;
 class ContractDefinitionServiceImplTest {
 
     private final ContractDefinitionStore store = mock(ContractDefinitionStore.class);
-    private final ContractNegotiationStore contractNegotiationStore = mock(ContractNegotiationStore.class);
     private final ContractDefinitionLoader loader = mock(ContractDefinitionLoader.class);
     private final TransactionContext transactionContext = new NoopTransactionContext();
-    private final ContractDefinitionServiceImpl service = new ContractDefinitionServiceImpl(store, loader, transactionContext, contractNegotiationStore);
+    private final ContractDefinitionServiceImpl service = new ContractDefinitionServiceImpl(store, loader, transactionContext);
 
     @Test
     void findById_filtersById() {
         var definition = createContractDefinition();
         when(store.findAll(isA(QuerySpec.class))).thenReturn(Stream.of(definition));
 
-        var result = service.findbyId(definition.getId());
+        var result = service.findById(definition.getId());
 
         assertThat(result).matches(hasId(definition.getId()));
         verify(store).findAll(argThat(q -> q.getFilterExpression().contains(new Criterion("id", "=", definition.getId()))));
@@ -67,7 +61,7 @@ class ContractDefinitionServiceImplTest {
     void findById_returnsNullIfNotFound() {
         when(store.findAll(isA(QuerySpec.class))).thenReturn(Stream.empty());
 
-        var result = service.findbyId("any");
+        var result = service.findById("any");
 
         assertThat(result).isNull();
     }
@@ -110,38 +104,12 @@ class ContractDefinitionServiceImplTest {
     @Test
     void delete_shouldDeleteDefinitionIfItsNotReferencedByAnyAgreement() {
         var definition = createContractDefinition();
-        when(contractNegotiationStore.queryNegotiations(any())).thenReturn(Stream.empty());
         when(store.deleteById("assetId")).thenReturn(definition);
 
         var deleted = service.delete("assetId");
 
         assertThat(deleted.succeeded()).isTrue();
         assertThat(deleted.getContent()).matches(hasId(definition.getId()));
-    }
-
-    @Test
-    void delete_shouldNotDeleteIfNegotiationIsAlreadyPartOfAnAgreement() {
-        var contractDefinition = createContractDefinition();
-        when(store.deleteById("assetId")).thenReturn(contractDefinition);
-        ContractNegotiation contractNegotiation = ContractNegotiation.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .counterPartyId(UUID.randomUUID().toString())
-                .counterPartyAddress("address")
-                .protocol("protocol")
-                .contractAgreement(ContractAgreement.Builder.newInstance()
-                        .id(contractDefinition.getId() + ":" + UUID.randomUUID())
-                        .providerAgentId(UUID.randomUUID().toString())
-                        .consumerAgentId(UUID.randomUUID().toString())
-                        .asset(Asset.Builder.newInstance().build())
-                        .policy(Policy.Builder.newInstance().build())
-                        .build())
-                .build();
-        when(contractNegotiationStore.queryNegotiations(any())).thenReturn(Stream.of(contractNegotiation));
-
-        var deleted = service.delete(contractNegotiation.getId());
-
-        assertThat(deleted.failed()).isTrue();
-        assertThat(deleted.getFailure().getReason()).isEqualTo(CONFLICT);
     }
 
     @NotNull

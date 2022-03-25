@@ -34,7 +34,6 @@ dependencies {
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(project(":extensions:in-memory:contractdefinition-store-memory"))
-    testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
 }
 

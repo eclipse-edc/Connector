@@ -29,8 +29,6 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 import java.util.UUID;
@@ -94,7 +92,7 @@ class ContractDefinitionApiControllerTest {
     @Test
     void getContractDef_found() {
         var contractDefinition = createContractDefinition();
-        when(service.findbyId("definitionId")).thenReturn(contractDefinition);
+        when(service.findById("definitionId")).thenReturn(contractDefinition);
         var dto = ContractDefinitionDto.Builder.newInstance().id(contractDefinition.getId()).build();
         when(transformerRegistry.transform(isA(ContractDefinition.class), eq(ContractDefinitionDto.class))).thenReturn(Result.success(dto));
 
@@ -105,7 +103,7 @@ class ContractDefinitionApiControllerTest {
 
     @Test
     void getContractDef_notFound() {
-        when(service.findbyId("definitionId")).thenReturn(null);
+        when(service.findById("definitionId")).thenReturn(null);
 
         assertThatThrownBy(() -> controller.getContractDefinition("nonExistingId")).isInstanceOf(ObjectNotFoundException.class);
         verifyNoInteractions(transformerRegistry);
@@ -114,7 +112,7 @@ class ContractDefinitionApiControllerTest {
     @Test
     void getContractDef_notFoundIfTransformationFails() {
         var contractDefinition = createContractDefinition();
-        when(service.findbyId("definitionId")).thenReturn(contractDefinition);
+        when(service.findById("definitionId")).thenReturn(contractDefinition);
         when(transformerRegistry.transform(isA(ContractDefinition.class), eq(ContractDefinitionDto.class))).thenReturn(Result.failure("failure"));
 
         assertThatThrownBy(() -> controller.getContractDefinition("nonExistingId")).isInstanceOf(ObjectNotFoundException.class);
