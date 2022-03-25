@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition;
+package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
 import static org.mockito.Mockito.mock;
 
-public class ContractAgreementApiControllerIntegrationTest {
+class TransferProcessApiControllerIntegrationTest {
 
     private static int port;
     private OkHttpClient client;
@@ -49,7 +49,7 @@ public class ContractAgreementApiControllerIntegrationTest {
         config.portMapping(new PortMapping("data", port, "/api/v1/data"));
         var jetty = new JettyService(config, monitor);
 
-        var ctrl = new ContractAgreementApiController(monitor);
+        var ctrl = new TransferProcessApiController(monitor);
         var jerseyService = new JerseyRestService(jetty, new TypeManager(), mock(CorsFilterConfiguration.class), monitor);
         jetty.start();
         jerseyService.registerResource("data", ctrl);
@@ -62,20 +62,20 @@ public class ContractAgreementApiControllerIntegrationTest {
     }
 
     @Test
-    void getAllContractAgreements() throws IOException {
+    void getAllTransferProcesses() throws IOException {
         var response = get(basePath());
         assertThat(response.code()).isEqualTo(200);
     }
 
     @Test
-    void getAllContractAgreements_withPaging() throws IOException {
+    void getTransferProcesses_withPaging() throws IOException {
         try (var response = get(basePath() + "?offset=10&limit=15&sort=ASC")) {
             assertThat(response.code()).isEqualTo(200);
         }
     }
 
     @Test
-    void getSingleContractAgreement() throws IOException {
+    void getSingleTransferProcess() throws IOException {
         var id = "test-id";
         try (var response = get(basePath() + "/" + id)) {
             //assertThat(response.code()).isEqualTo(200);
@@ -84,7 +84,7 @@ public class ContractAgreementApiControllerIntegrationTest {
     }
 
     @Test
-    void getSingleContractAgreement_notFound() throws IOException {
+    void getSingleTransferProcess_notFound() throws IOException {
         try (var response = get(basePath() + "/not-exist")) {
             // assertThat(response.code()).isEqualTo(404);
         }
@@ -93,7 +93,7 @@ public class ContractAgreementApiControllerIntegrationTest {
 
     @NotNull
     private String basePath() {
-        return "http://localhost:" + port + "/api/v1/data/contractagreements";
+        return "http://localhost:" + port + "/api/v1/data/transferprocess";
     }
 
     @NotNull

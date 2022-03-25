@@ -11,10 +11,10 @@
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
-package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition;
+package org.eclipse.dataspaceconnector.api.datamanagement.contractagreement;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractAgreementDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.model.ContractAgreementDto;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 
 import java.util.List;
