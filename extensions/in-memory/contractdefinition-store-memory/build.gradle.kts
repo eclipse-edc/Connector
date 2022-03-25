@@ -17,7 +17,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi"))
+    implementation(project(":extensions:dataloading"))
     implementation(project(":common:util"))
 }
 

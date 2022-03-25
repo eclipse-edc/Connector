@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.contractdefinition.store.memory;
 
+import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -22,7 +23,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 /**
  * Provides an in-memory implementation of the {@link ContractDefinitionStore}.
  */
-@Provides(ContractDefinitionStore.class)
+@Provides({ ContractDefinitionStore.class, ContractDefinitionLoader.class })
 public class InMemoryContractDefinitionStoreExtension implements ServiceExtension {
 
     @Override
@@ -32,6 +33,8 @@ public class InMemoryContractDefinitionStoreExtension implements ServiceExtensio
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        context.registerService(ContractDefinitionStore.class, new InMemoryContractDefinitionStore());
+        var store = new InMemoryContractDefinitionStore();
+        context.registerService(ContractDefinitionStore.class, store);
+        context.registerService(ContractDefinitionLoader.class, store::save);
     }
 }
