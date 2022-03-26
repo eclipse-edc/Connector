@@ -19,7 +19,7 @@ plugins {
     jacoco
     id("com.rameshkp.openapi-merger-gradle-plugin") version "1.0.4"
     id ("org.eclipse.dataspaceconnector.dependency-rules") apply(false)
-    id("com.autonomousapps.dependency-analysis") version "1.0.0-rc03" apply (false)
+    id("com.autonomousapps.dependency-analysis") version "1.0.0-rc04" apply (false)
 }
 
 repositories {
@@ -273,13 +273,18 @@ if (project.hasProperty("dependency.analysis")) {
                         // some common dependencies are intentionally exported by core:base for simplicity
                         "com.squareup.okhttp3:okhttp",
                         "net.jodah:failsafe",
-                        // public methods annotated with @WithSpan
-                        "io.opentelemetry:opentelemetry-extension-annotations",
                     )
                 }
                 onUsedTransitiveDependencies {
                     severity("ignore")
                 }
+            }
+        }
+        abi {
+            exclusions {
+                excludeAnnotations(
+                        "io.opentelemetry.extension.annotations.WithSpan",
+                )
             }
         }
     }
