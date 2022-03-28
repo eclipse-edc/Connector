@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model;
+package org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.model;
 
 public class ContractAgreementDto {
     private String id;
