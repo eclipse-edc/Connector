@@ -23,7 +23,6 @@ public class ContractAgreementDto {
     private long contractEndDate;
     private String assetId;
     private String policyId;
-    private String negotiationId;
 
     public String getId() {
         return id;
@@ -55,10 +54,6 @@ public class ContractAgreementDto {
 
     public String getPolicyId() {
         return policyId;
-    }
-
-    public String getNegotiationId() {
-        return negotiationId;
     }
 
     public static final class Builder {
@@ -104,11 +99,6 @@ public class ContractAgreementDto {
 
         public Builder assetId(String assetId) {
             agreement.assetId = assetId;
-            return this;
-        }
-
-        public Builder negotiationId(String negotiationId) {
-            agreement.negotiationId = negotiationId;
             return this;
         }
 
