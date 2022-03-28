@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.transfer.dataplane.sync;
 
 import org.eclipse.dataspaceconnector.common.token.TokenValidationRulesRegistryImpl;
 import org.eclipse.dataspaceconnector.common.token.TokenValidationServiceImpl;
+import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
@@ -36,11 +37,13 @@ import org.eclipse.dataspaceconnector.transfer.dataplane.sync.api.rules.Contract
 import org.eclipse.dataspaceconnector.transfer.dataplane.sync.api.rules.ExpirationDateValidationRule;
 import org.eclipse.dataspaceconnector.transfer.dataplane.sync.flow.ProviderDataPlaneProxyDataFlowController;
 
-import static org.eclipse.dataspaceconnector.transfer.dataplane.sync.DataPlaneTransferSyncConfiguration.API_CONTEXT_ALIAS;
-import static org.eclipse.dataspaceconnector.transfer.dataplane.sync.DataPlaneTransferSyncConfiguration.PUBLIC_KEY_ALIAS;
-
 @Provides({EndpointDataReferenceTransformer.class})
 public class DataPlaneTransferSyncExtension implements ServiceExtension {
+
+    private static final String API_CONTEXT_ALIAS = "validation";
+
+    @EdcSetting
+    private static final String PUBLIC_KEY_ALIAS = "edc.public.key.alias";
 
     @Inject
     private DataAddressResolver dataAddressResolver;

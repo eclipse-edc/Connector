@@ -35,10 +35,10 @@ import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunc
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
 @Path("/transfer")
-public class DataPlaneTransferController {
+public class DataPlaneControlApiController {
     private final DataPlaneManager dataPlaneManager;
 
-    public DataPlaneTransferController(DataPlaneManager dataPlaneManager) {
+    public DataPlaneControlApiController(DataPlaneManager dataPlaneManager) {
         this.dataPlaneManager = dataPlaneManager;
     }
 

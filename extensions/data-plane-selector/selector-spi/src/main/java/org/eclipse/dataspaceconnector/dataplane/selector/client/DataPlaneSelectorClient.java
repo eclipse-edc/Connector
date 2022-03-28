@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.dataplane.selector.client;
 
 import org.eclipse.dataspaceconnector.dataplane.selector.instance.DataPlaneInstance;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -23,6 +24,7 @@ import java.util.List;
  * Main interaction interface for an EDC runtime (=control plane) to communicate with the DPF selector.
  */
 public interface DataPlaneSelectorClient {
+
     /**
      * Returns all {@link DataPlaneInstance}s known in the system
      */
@@ -32,6 +34,7 @@ public interface DataPlaneSelectorClient {
      * Selects the {@link DataPlaneInstance} that can handle a source and destination {@link DataAddress} using the default
      * {@link org.eclipse.dataspaceconnector.dataplane.selector.strategy.SelectionStrategy} which is "random"
      */
+    @Nullable
     DataPlaneInstance find(DataAddress source, DataAddress destination);
 
     /**
@@ -40,6 +43,7 @@ public interface DataPlaneSelectorClient {
      *
      * @throws IllegalArgumentException if the selection strategy was not found
      */
+    @Nullable
     DataPlaneInstance find(DataAddress source, DataAddress destination, String selectionStrategyName);
 
 }

@@ -29,8 +29,8 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Instant;
 import java.util.Date;
 
-import static org.eclipse.dataspaceconnector.spi.types.domain.dataplane.DataPlaneConstants.CONTRACT_ID;
-import static org.eclipse.dataspaceconnector.spi.types.domain.dataplane.DataPlaneConstants.DATA_ADDRESS;
+import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.CONTRACT_ID;
+import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.DATA_ADDRESS;
 
 public class DataPlaneProxyTokenGeneratorImpl implements DataPlaneProxyTokenGenerator {
 
