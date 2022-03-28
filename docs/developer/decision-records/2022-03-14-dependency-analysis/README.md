@@ -18,3 +18,5 @@ The [Gradle Java library plugin](https://docs.gradle.org/current/userguide/java_
 The Java library plugin introduces the concept of ABI (Application Binary Interface) which includes (among others) types used in public methods. Dependencies that define those types should be defined in the `api` configuration. Other dependencies should be defined in the `implementation` configuration so that they are not transitively exposed, and therefore do not leak into the consumers' compile classpath.
 
 The Dependency Analysis Gradle Plugin analyzes the abstract syntax tree to determine the ABI. On that basis, it can recommend which import configurations should be changed.
+
+The annotation `ExcludeFromDependencyAnalysisReport` allows excluding classes from the analysis report, that for some reason  don't adhere to the rules of the dependency analysis plugin.
