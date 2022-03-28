@@ -37,11 +37,13 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
 
     @Override
     public @Nullable ContractOfferRequest transform(@Nullable NegotiationInitiateRequestDto object, @NotNull TransformerContext context) {
+        // TODO: ContractOfferRequest should contain only the contractOfferId and the contract offer should be retrieved from the catalog. Ref #985
+        var contractOffer = ContractOffer.Builder.newInstance().id(object.getOfferId()).policy(Policy.Builder.newInstance().build()).build();
         return ContractOfferRequest.Builder.newInstance()
                 .connectorId(object.getConnectorId())
                 .connectorAddress(object.getConnectorAddress())
                 .protocol(object.getProtocol())
-                .contractOffer(ContractOffer.Builder.newInstance().id(object.getOfferId()).policy(Policy.Builder.newInstance().build()).build())
+                .contractOffer(contractOffer)
                 .type(ContractOfferRequest.Type.INITIAL)
                 .build();
     }

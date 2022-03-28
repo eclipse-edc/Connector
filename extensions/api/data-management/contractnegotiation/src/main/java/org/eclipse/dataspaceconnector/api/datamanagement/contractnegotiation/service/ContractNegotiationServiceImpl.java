@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.se
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.contract.negotiation.command.commands.CancelNegotiationCommand;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -26,11 +25,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.Contra
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 
 import java.util.Collection;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -49,12 +46,12 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
 
     @Override
     public ContractNegotiation findbyId(String contractNegotiationId) {
-        return store.find(contractNegotiationId);
+        return transactionContext.execute(() -> store.find(contractNegotiationId));
     }
 
     @Override
     public Collection<ContractNegotiation> query(QuerySpec query) {
-        return store.queryNegotiations(query).collect(toList());
+        return transactionContext.execute(() -> store.queryNegotiations(query).collect(toList()));
     }
 
     @Override
@@ -69,49 +66,40 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
 
     @Override
     public ContractAgreement getForNegotiation(String negotiationId) {
-        return store.findContractAgreement(negotiationId);
+        return transactionContext.execute(() -> store.findContractAgreement(negotiationId));
     }
 
     @Override
     public ContractNegotiation initiateNegotiation(ContractOfferRequest request) {
-        var result = manager.initiate(request);
-        return result.getContent();
+        return transactionContext.execute(() -> manager.initiate(request).getContent());
     }
 
     @Override
     public ServiceResult<ContractNegotiation> cancel(String negotiationId) {
-        var result = new AtomicReference<ServiceResult<ContractNegotiation>>();
-
-        transactionContext.execute(() -> {
+        return transactionContext.execute(() -> {
             var negotiation = store.find(negotiationId);
             if (negotiation == null) {
-                result.set(ServiceResult.notFound(format("ContractNegotiation %s does not exist", negotiationId)));
-                return;
+                return ServiceResult.notFound(format("ContractNegotiation %s does not exist", negotiationId));
+            } else {
+                manager.enqueueCommand(new CancelNegotiationCommand(negotiationId));
+                return ServiceResult.success(negotiation);
             }
-            manager.enqueueCommand(new CancelNegotiationCommand(negotiationId));
-            result.set(ServiceResult.success(negotiation));
         });
-
-        return result.get();
     }
 
     @Override
     public ServiceResult<ContractNegotiation> decline(String negotiationId) {
-        var result = new AtomicReference<ServiceResult<ContractNegotiation>>();
-
-        transactionContext.execute(() -> {
+        return transactionContext.execute(() -> {
             try {
                 var declineResult = manager.declined(ClaimToken.Builder.newInstance().build(), negotiationId);
                 if (declineResult.succeeded()) {
-                    result.set(ServiceResult.success(declineResult.getContent()));
+                    return ServiceResult.success(declineResult.getContent());
                 } else {
-                    result.set(ServiceResult.conflict(format("Cannot decline ContractNegotiation %s", negotiationId)));
+                    return ServiceResult.conflict(format("Cannot decline ContractNegotiation %s", negotiationId));
                 }
             } catch (Exception e) {
-                result.set(ServiceResult.conflict(format("Cannot decline ContractNegotiation %s: %s", negotiationId, e.getLocalizedMessage())));
+                return ServiceResult.conflict(format("Cannot decline ContractNegotiation %s: %s", negotiationId, e.getLocalizedMessage()));
             }
         });
-
-        return result.get();
     }
 }
