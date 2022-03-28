@@ -21,7 +21,7 @@ import java.lang.annotation.Target;
 
 /**
  * Exclude a class from dependency analysis.
- * <p>
+ *
  * @see <a href="https://github.com/autonomousapps/dependency-analysis-android-gradle-plugin">Gradle Dependency Analysis Plugin</a>
  */
 @Retention(RetentionPolicy.RUNTIME)
