@@ -284,6 +284,7 @@ if (project.hasProperty("dependency.analysis")) {
             exclusions {
                 excludeAnnotations(
                         "io.opentelemetry.extension.annotations.WithSpan",
+                        "org.eclipse.dataspaceconnector.common.annotations.ExcludeFromDependecyAnalysisReport",
                 )
             }
         }
