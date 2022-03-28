@@ -2,7 +2,7 @@ package org.eclipse.dataspaceconnector.transfer.core.provision;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ConsumerResourceDefinitionGenerator;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ProducerResourceDefinitionGenerator;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ProviderResourceDefinitionGenerator;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.core.TestResourceDefinition;
@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
 class ResourceManifestGeneratorImplTest {
 
     private final ConsumerResourceDefinitionGenerator consumerGenerator = mock(ConsumerResourceDefinitionGenerator.class);
-    private final ProducerResourceDefinitionGenerator providerGenerator = mock(ProducerResourceDefinitionGenerator.class);
+    private final ProviderResourceDefinitionGenerator providerGenerator = mock(ProviderResourceDefinitionGenerator.class);
     private final ResourceManifestGeneratorImpl generator = new ResourceManifestGeneratorImpl();
     private Policy policy;
     private DataAddress dataAddress;

@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Generates a resource definition for a data transfer request on a provider.
  */
-public interface ProducerResourceDefinitionGenerator {
+public interface ProviderResourceDefinitionGenerator {
 
     /**
      * Generates a resource definition. If no resource definition is generated, return null.

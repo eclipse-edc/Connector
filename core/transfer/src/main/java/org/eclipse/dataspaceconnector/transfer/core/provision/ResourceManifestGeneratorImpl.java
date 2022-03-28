@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.transfer.core.provision;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ConsumerResourceDefinitionGenerator;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ProducerResourceDefinitionGenerator;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ProviderResourceDefinitionGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  */
 public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator {
     private final List<ConsumerResourceDefinitionGenerator> consumerGenerators = new ArrayList<>();
-    private final List<ProducerResourceDefinitionGenerator> providerGenerators = new ArrayList<>();
+    private final List<ProviderResourceDefinitionGenerator> providerGenerators = new ArrayList<>();
 
     @Override
     public void registerGenerator(ConsumerResourceDefinitionGenerator generator) {
@@ -40,7 +40,7 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
     }
 
     @Override
-    public void registerGenerator(ProducerResourceDefinitionGenerator generator) {
+    public void registerGenerator(ProviderResourceDefinitionGenerator generator) {
         providerGenerators.add(generator);
     }
 

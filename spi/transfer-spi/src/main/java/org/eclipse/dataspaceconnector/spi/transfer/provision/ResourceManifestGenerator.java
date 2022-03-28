@@ -38,7 +38,7 @@ public interface ResourceManifestGenerator {
      *
      * @param generator the generator
      */
-    void registerGenerator(ProducerResourceDefinitionGenerator generator);
+    void registerGenerator(ProviderResourceDefinitionGenerator generator);
 
     /**
      * Generates a resource manifest for a consumer-side data request. Operations must be idempotent.
