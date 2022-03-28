@@ -90,10 +90,6 @@ As mentioned above the JUnit runner won't pick up integration tests unless a tag
 ./gradlew test -p path/to/module -DincludeTags="AzureCosmosDbIntegrationTest"
 ```
 
-_Cosmos DB integration tests are run by default against a locally running
-[Cosmos DB Emulator](https://docs.microsoft.com/azure/cosmos-db/local-emulator). You can also use an instance of Cosmos
-DB running in Azure, in which case you should set the `COSMOS_KEY` environment variable._
-
 if needed to run all types of tests(e.g. unit & integration) then it can be achieved by passing the `runAllTests=true`
 parameter to the `gradlew` command:
 
@@ -110,7 +106,7 @@ For example to run all integration tests from Azure cosmos db module and its sub
 _Command as `./gradlew :extensions:azure:cosmos test -DincludeTags="AzureCosmosDbIntegrationTest"` does not execute
 tests from all sub-modules so we need to use `-p` to specify the module project path._
 
-Cosmos DB integration tests are run by default against a locally running [Cosmos DB Emulator](https://docs.microsoft.com/azure/cosmos-db/local-emulator). You can also use an instance of Cosmos DB running in Azure, in which case you should set the `COSMOS_KEY` environment variable.
+Cosmos DB integration tests are run by default against a locally running [Cosmos DB Emulator](https://docs.microsoft.com/azure/cosmos-db/local-emulator). You can also use an instance of Cosmos DB running in Azure, in which case you should set the `COSMOS_KEY` and `COSMOS_URL` environment variables.
 
 ### Running them in the CI pipeline
 

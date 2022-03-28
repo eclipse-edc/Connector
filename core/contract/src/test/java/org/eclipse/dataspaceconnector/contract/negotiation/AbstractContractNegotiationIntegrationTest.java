@@ -133,7 +133,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
         }
         
         @Override
-        public void confirmed(ContractNegotiation negotiation) {
+        public void preConfirmed(ContractNegotiation negotiation) {
             countDownLatch.countDown();
         }
     }
@@ -151,7 +151,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
         }
         
         @Override
-        public void declined(ContractNegotiation negotiation) {
+        public void preDeclined(ContractNegotiation negotiation) {
             countDownLatch.countDown();
         }
     }

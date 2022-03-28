@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
@@ -35,12 +36,12 @@ import static java.lang.String.format;
  * and register one otherwise:
  * <pre>
  * \@Inject(required=false)
- * private ApiTransformerRegistry registry;
+ * private DtoTransformerRegistry registry;
  *
  * void initialize(ServiceExtensionContext context){
  *      if(registry == null){
- *          registry= new ApiTransformerRegistryImpl();
- *          context.registerService(ApiTransformerRegistry.class, registry);
+ *          registry= new DtoTransformerRegistryImpl();
+ *          context.registerService(DtoTransformerRegistry.class, registry);
  *      }
  *
  *      var yourController = new YourApiController(..., registry);
@@ -77,11 +78,12 @@ public class DtoTransformerRegistryImpl implements DtoTransformerRegistry {
     private <INPUT, OUTPUT> OUTPUT transform(INPUT object, Class<OUTPUT> outputType, TransformerContext context) {
         Objects.requireNonNull(object);
 
-        var t = transformers.stream().filter(tr -> tr.canHandle(object, outputType))
+        var t = transformers.stream()
+                .filter(tr -> tr.getInputType().isInstance(object) && tr.getOutputType().equals(outputType))
                 .findFirst().orElse(null);
 
         if (t == null) {
-            throw new EdcException(format("No ApiTransformer registered that can handle %s -> %s", object, outputType));
+            throw new EdcException(format("No DtoTransformer registered that can handle %s -> %s", object, outputType));
         }
         return outputType.cast(((DtoTransformer<INPUT, OUTPUT>) t).transform(object, context));
     }

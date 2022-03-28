@@ -22,108 +22,108 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessS
  * Interface implemented by listeners registered to observe transfer process
  * state changes via {@link Observable#registerListener}.
  * <p>
- * Note that the listener is not guaranteed to be called after a state change, in case
- * the application restarts. That is relevant when using a persistent transfer
- * store implementation.
+ * Note that the listener is called before state changes are persisted.
+ * Therefore, when using a persistent transfer store implementation, it
+ * is guaranteed to be called at least once.
  */
 public interface TransferProcessListener {
     /**
      * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#INITIAL INITIAL}.
+     * {@link TransferProcessStates#INITIAL INITIAL}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
      */
-    default void created(TransferProcess process) {
+    default void preCreated(TransferProcess process) {
     }
 
     /**
      * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#PROVISIONING PROVISIONING}.
+     * {@link TransferProcessStates#PROVISIONING PROVISIONING}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
      */
-    default void provisioning(TransferProcess process) {
+    default void preProvisioning(TransferProcess process) {
     }
 
     /**
      * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#PROVISIONED PROVISIONED}.
+     * {@link TransferProcessStates#PROVISIONED PROVISIONED}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
      */
-    default void provisioned(TransferProcess process) {
+    default void preProvisioned(TransferProcess process) {
     }
 
     /**
      * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#REQUESTING REQUESTING}.
+     * {@link TransferProcessStates#REQUESTING REQUESTING}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
      */
-    default void requesting(TransferProcess process) {
+    default void preRequesting(TransferProcess process) {
     }
 
     /**
      * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#REQUESTED REQUESTED}.
+     * {@link TransferProcessStates#REQUESTED REQUESTED}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
      */
-    default void requested(TransferProcess process) {
+    default void preRequested(TransferProcess process) {
     }
 
     /**
      * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#IN_PROGRESS IN_PROGRESS}.
+     * {@link TransferProcessStates#IN_PROGRESS IN_PROGRESS}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
      */
-    default void inProgress(TransferProcess process) {
+    default void preInProgress(TransferProcess process) {
     }
 
     /**
      * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#COMPLETED COMPLETED}.
+     * {@link TransferProcessStates#COMPLETED COMPLETED}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
      */
-    default void completed(TransferProcess process) {
+    default void preCompleted(TransferProcess process) {
     }
 
     /**
      * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#DEPROVISIONING DEPROVISIONING}.
+     * {@link TransferProcessStates#DEPROVISIONING DEPROVISIONING}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
      */
-    default void deprovisioning(TransferProcess process) {
+    default void preDeprovisioning(TransferProcess process) {
     }
 
     /**
      * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#DEPROVISIONED DEPROVISIONED}.
+     * {@link TransferProcessStates#DEPROVISIONED DEPROVISIONED}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
      */
-    default void deprovisioned(TransferProcess process) {
+    default void preDeprovisioned(TransferProcess process) {
     }
 
     /**
      * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#ENDED ENDED}.
+     * {@link TransferProcessStates#ENDED ENDED}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
      */
-    default void ended(TransferProcess process) {
+    default void preEnded(TransferProcess process) {
     }
 
     /**
      * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#ERROR ERROR}.
+     * {@link TransferProcessStates#ERROR ERROR}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
      */
-    default void error(TransferProcess process) {
+    default void preError(TransferProcess process) {
     }
 
 }

@@ -34,11 +34,6 @@ public class AssetToAssetDtoTransformer implements DtoTransformer<Asset, AssetDt
     }
 
     @Override
-    public boolean canHandle(@NotNull Object object, @NotNull Class<?> outputType) {
-        return getInputType().isInstance(object) && outputType.equals(getOutputType());
-    }
-
-    @Override
     public @Nullable AssetDto transform(@Nullable Asset object, @NotNull TransformerContext context) {
         return AssetDto.Builder.newInstance().properties(object.getProperties()).build();
     }

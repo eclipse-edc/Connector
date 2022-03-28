@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Daimler TSS GmbH
+ *  Copyright (c) 2021-2022 Daimler TSS GmbH, Fraunhofer Institute for Software and Systems Engineering
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -10,6 +10,7 @@
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Fraunhofer Institute for Software and Systems Engineering - add methods
+ *       Daimler TSS GmbH - introduce factory to create RequestInProcessMessage
  *
  */
 
@@ -160,6 +161,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
         var message = new ContractRequestMessageBuilder()
                 ._correlationMessage_(URI.create("correlationId"))
                 ._securityToken_(getDynamicAttributeToken())
+                ._senderAgent_(URI.create("sender"))
                 ._issuerConnector_(URI.create("issuerConnector"))
                 .build();
         message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, "http://someUrl");
@@ -186,6 +188,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
     protected ContractOfferMessage getContractOfferMessage() {
         return new ContractOfferMessageBuilder()
                 ._correlationMessage_(URI.create("correlationId"))
+                ._senderAgent_(URI.create("sender"))
                 ._securityToken_(getDynamicAttributeToken())
                 ._issuerConnector_(URI.create("issuerConnector"))
                 .build();
