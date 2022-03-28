@@ -256,7 +256,6 @@ if (project.hasProperty("dependency.analysis")) {
                         "com.fasterxml.jackson.core:jackson-core",
                         "com.fasterxml.jackson.core:jackson-annotations",
                         "com.fasterxml.jackson.core:jackson-databind",
-                        "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
                     )
                 }
                 onUnusedDependencies {
