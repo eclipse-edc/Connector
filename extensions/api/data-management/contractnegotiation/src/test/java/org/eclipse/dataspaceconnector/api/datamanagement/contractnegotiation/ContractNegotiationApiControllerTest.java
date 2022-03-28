@@ -48,6 +48,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.TestFunctions.createOffer;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -177,7 +178,7 @@ class ContractNegotiationApiControllerTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .protocol("protocol")
-                .offerId("offerId")
+                .offerId(createOffer("offerId"))
                 .build();
 
         var negotiationId = controller.initiateContractNegotiation(request);
@@ -192,7 +193,7 @@ class ContractNegotiationApiControllerTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .protocol("protocol")
-                .offerId("offerId")
+                .offerId(createOffer("offerId"))
                 .build();
         when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("failure"));
 
@@ -254,7 +255,7 @@ class ContractNegotiationApiControllerTest {
                 .connectorAddress(connectorAddress)
                 .connectorId(connectorId)
                 .protocol(protocol)
-                .offerId(offerId)
+                .offerId(createOffer(offerId))
                 .build();
         assertThatThrownBy(() -> controller.initiateContractNegotiation(rq)).isInstanceOf(IllegalArgumentException.class);
     }

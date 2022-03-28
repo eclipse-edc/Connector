@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.TestFunctions.createOffer;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest.Type.INITIAL;
 import static org.mockito.Mockito.mock;
 
@@ -39,7 +40,7 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
                 .connectorId("connectorId")
                 .connectorAddress("address")
                 .protocol("protocol")
-                .offerId("offerId")
+                .offerId(createOffer("offerId"))
                 .build();
 
         var request = transformer.transform(dto, context);
