@@ -69,6 +69,7 @@ the detailed section referring to by linking pull requests or issues.
 * Flaky S3 StatusChecker Test (#794)
 * Added missing Data Management Asset controller openapi (#853)
 * Policy deserialization (#898)
+* Fix extensions loading of EdcRuntimeExtension (?)
 
 ---
 
