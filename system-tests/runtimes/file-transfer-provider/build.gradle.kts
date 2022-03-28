@@ -26,7 +26,7 @@ dependencies {
     implementation(project(":common:util"))
     implementation(project(":core:transfer"))
     implementation(project(":extensions:in-memory:assetindex-memory"))
-    implementation(project(":extensions:dataloading"))
+    api(project(":extensions:dataloading"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 

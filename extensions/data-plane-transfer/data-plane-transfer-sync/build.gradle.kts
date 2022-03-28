@@ -25,12 +25,11 @@ dependencies {
     api(project(":spi:core-spi"))
     api(project(":spi:contract-spi"))
     api(project(":spi:transfer-spi"))
+    api(project(":spi:web-spi"))
     api(project(":extensions:data-plane-transfer:data-plane-transfer-core"))
     api(project(":common:token-validation-lib"))
-    implementation(project(":spi:web-spi"))
-
     api("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
+    api("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
     // Note: nimbus requires bouncycastle as mentioned in documentation:
     // https://www.javadoc.io/doc/com.nimbusds/nimbus-jose-jwt/7.2.1/com/nimbusds/jose/jwk/JWK.html#parseFromPEMEncodedObjects-java.lang.String-
     api("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")

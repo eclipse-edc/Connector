@@ -19,7 +19,7 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    implementation(project(":extensions:transfer-functions:transfer-functions-spi"))
+    api(project(":extensions:transfer-functions:transfer-functions-spi"))
 
     // extensions needed for integration testing
     testImplementation(project(":core:transfer"))

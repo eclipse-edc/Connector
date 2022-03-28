@@ -23,7 +23,7 @@ val mockitoVersion: String by project
 
 dependencies {
     api(project((":spi")))
-    implementation(project(":extensions:transaction:transaction-datasource-spi"))
+    api(project(":extensions:transaction:transaction-datasource-spi"))
     api(project(":extensions:sql:common"))
 
     implementation("org.apache.commons:commons-pool2:${apacheCommonsPool2Version}")

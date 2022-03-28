@@ -21,8 +21,8 @@ plugins {
 val jupiterVersion: String by project
 
 dependencies {
-    api(project(":core:boot"))
-    api(project(":extensions:dataloading"))
+    implementation(project(":core:boot"))
+    implementation(project(":extensions:dataloading"))
 
     // the following lines enable the CosmosDB-based AssetIndex
     implementation(project(":extensions:azure:cosmos:assetindex-cosmos"))
@@ -38,7 +38,7 @@ dependencies {
 
 
     // lightweight lib for CLI args
-    api("info.picocli:picocli:4.6.2")
+    implementation("info.picocli:picocli:4.6.2")
 
     testImplementation(testFixtures(project(":common:util")))
 }

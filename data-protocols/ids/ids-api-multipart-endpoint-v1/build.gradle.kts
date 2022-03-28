@@ -25,14 +25,17 @@ dependencies {
     api(project(":spi"))
     api(project(":data-protocols:ids:ids-spi"))
     api(project(":data-protocols:ids:ids-core"))
+    api(project(":data-protocols:ids:ids-transform-v1"))
     api(project(":extensions:http"))
 
     implementation(project(":data-protocols:ids:ids-api-configuration"))
-    implementation(project(":data-protocols:ids:ids-transform-v1"))
+
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
 
     testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.28.0")
+    testImplementation("net.javacrumbs.json-unit:json-unit-json-path:2.28.0")
+    testImplementation("net.javacrumbs.json-unit:json-unit:2.28.0")
 
     testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     testImplementation(testFixtures(project(":launchers:junit")))
