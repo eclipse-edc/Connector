@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Daimler TSS GmbH - introduce factory to create IDS ResponseMessages
  *
  */
 
@@ -17,9 +18,11 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.RejectionMessage;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
@@ -40,7 +43,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
 import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 public class ArtifactRequestHandler implements Handler {
@@ -52,6 +54,7 @@ public class ArtifactRequestHandler implements Handler {
     private final ContractValidationService contractValidationService;
     private final ContractNegotiationStore contractNegotiationStore;
     private final Vault vault;
+    private final IdsResponseMessageFactory responseMessageFactory;
 
     public ArtifactRequestHandler(
             @NotNull Monitor monitor,
@@ -60,7 +63,8 @@ public class ArtifactRequestHandler implements Handler {
             @NotNull ContractNegotiationStore contractNegotiationStore,
             @NotNull ContractValidationService contractValidationService,
             @NotNull TransferProcessManager transferProcessManager,
-            @NotNull Vault vault) {
+            @NotNull Vault vault,
+            @NotNull IdsResponseMessageFactory responseMessageFactory) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
         this.objectMapper = Objects.requireNonNull(objectMapper);
@@ -68,6 +72,7 @@ public class ArtifactRequestHandler implements Handler {
         this.contractValidationService = Objects.requireNonNull(contractValidationService);
         this.transferProcessManager = Objects.requireNonNull(transferProcessManager);
         this.vault = Objects.requireNonNull(vault);
+        this.responseMessageFactory = Objects.requireNonNull(responseMessageFactory);
     }
 
     @Override
@@ -158,14 +163,14 @@ public class ArtifactRequestHandler implements Handler {
     }
 
     private MultipartResponse createBadParametersErrorMultipartResponse(Message message) {
-        return MultipartResponse.Builder.newInstance()
-                .header(badParameters(message, connectorId))
-                .build();
+        RejectionMessage badParametersMessage = responseMessageFactory.createBadParametersMessage(message);
+        return MultipartResponse.Builder.newInstance().header(badParametersMessage).build();
     }
 
     private MultipartResponse createBadParametersErrorMultipartResponse(Message message, String payload) {
+        RejectionMessage badParametersMessage = responseMessageFactory.createBadParametersMessage(message);
         return MultipartResponse.Builder.newInstance()
-                .header(badParameters(message, connectorId))
+                .header(badParametersMessage)
                 .payload(payload)
                 .build();
     }

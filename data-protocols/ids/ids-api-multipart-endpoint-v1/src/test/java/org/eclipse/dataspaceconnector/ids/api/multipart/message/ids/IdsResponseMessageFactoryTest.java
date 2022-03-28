@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial Implementation
+ *       Daimler TSS GmbH - Introduce IDS RejectionMessages
  *
  */
 
@@ -103,6 +104,13 @@ public class IdsResponseMessageFactoryTest {
 
         Assertions.assertAll("message id",
                 () -> assertFunc.accept(factory.createRequestInProcessMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotFoundMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotAuthenticatedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotAuthorizedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createMalformedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createMessageTypeNotSupportedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createBadParametersMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createInternalRecipientErrorMessage(correlationMessage)),
                 () -> assertFunc.accept(factory.createRejectionMessage(correlationMessage, exception))
         );
     }
@@ -116,6 +124,13 @@ public class IdsResponseMessageFactoryTest {
 
         Assertions.assertAll("sender agent",
                 () -> assertFunc.accept(factory.createRequestInProcessMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotFoundMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotAuthenticatedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotAuthorizedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createMalformedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createMessageTypeNotSupportedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createBadParametersMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createInternalRecipientErrorMessage(correlationMessage)),
                 () -> assertFunc.accept(factory.createRejectionMessage(correlationMessage, exception))
         );
     }
@@ -126,6 +141,13 @@ public class IdsResponseMessageFactoryTest {
 
         Assertions.assertAll("correlation message id",
                 () -> assertFunc.accept(factory.createRequestInProcessMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotFoundMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotAuthenticatedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotAuthorizedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createMalformedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createMessageTypeNotSupportedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createBadParametersMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createInternalRecipientErrorMessage(correlationMessage)),
                 () -> assertFunc.accept(factory.createRejectionMessage(correlationMessage, exception))
         );
     }
@@ -142,6 +164,13 @@ public class IdsResponseMessageFactoryTest {
 
         Assertions.assertAll("issued",
                 () -> assertFunc.accept(factory.createRequestInProcessMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotFoundMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotAuthenticatedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotAuthorizedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createMalformedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createMessageTypeNotSupportedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createBadParametersMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createInternalRecipientErrorMessage(correlationMessage)),
                 () -> assertFunc.accept(factory.createRejectionMessage(correlationMessage, exception))
         );
     }
@@ -152,6 +181,13 @@ public class IdsResponseMessageFactoryTest {
 
         Assertions.assertAll("security token value",
                 () -> assertFunc.accept(factory.createRequestInProcessMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotFoundMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotAuthenticatedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotAuthorizedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createMalformedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createMessageTypeNotSupportedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createBadParametersMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createInternalRecipientErrorMessage(correlationMessage)),
                 () -> assertFunc.accept(factory.createRejectionMessage(correlationMessage, exception))
         );
     }
@@ -163,6 +199,13 @@ public class IdsResponseMessageFactoryTest {
 
         Assertions.assertAll("security token format",
                 () -> assertFunc.accept(factory.createRequestInProcessMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotFoundMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotAuthenticatedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotAuthorizedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createMalformedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createMessageTypeNotSupportedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createBadParametersMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createInternalRecipientErrorMessage(correlationMessage)),
                 () -> assertFunc.accept(factory.createRejectionMessage(correlationMessage, exception))
         );
     }
@@ -174,6 +217,13 @@ public class IdsResponseMessageFactoryTest {
 
         Assertions.assertAll("model version",
                 () -> assertFunc.accept(factory.createRequestInProcessMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotFoundMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotAuthenticatedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createNotAuthorizedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createMalformedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createMessageTypeNotSupportedMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createBadParametersMessage(correlationMessage)),
+                () -> assertFunc.accept(factory.createInternalRecipientErrorMessage(correlationMessage)),
                 () -> assertFunc.accept(factory.createRejectionMessage(correlationMessage, exception))
         );
     }
@@ -192,6 +242,13 @@ public class IdsResponseMessageFactoryTest {
 
         Assertions.assertAll("correlation message null",
                 () -> assertFunc.accept(() -> factory.createRequestInProcessMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createNotFoundMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createNotAuthenticatedMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createNotAuthorizedMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createMalformedMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createMessageTypeNotSupportedMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createBadParametersMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createInternalRecipientErrorMessage(correlationMessage)),
                 () -> assertExFunc.accept(() -> factory.createRejectionMessage(correlationMessage, exception))
         );
     }
@@ -210,6 +267,13 @@ public class IdsResponseMessageFactoryTest {
 
         Assertions.assertAll("sender agent null",
                 () -> assertFunc.accept(() -> factory.createRequestInProcessMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createNotFoundMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createNotAuthenticatedMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createNotAuthorizedMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createMalformedMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createMessageTypeNotSupportedMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createBadParametersMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createInternalRecipientErrorMessage(correlationMessage)),
                 () -> assertExFunc.accept(() -> factory.createRejectionMessage(correlationMessage, exception))
         );
     }
@@ -228,6 +292,13 @@ public class IdsResponseMessageFactoryTest {
 
         Assertions.assertAll("issuer connector null",
                 () -> assertFunc.accept(() -> factory.createRequestInProcessMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createNotFoundMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createNotAuthenticatedMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createNotAuthorizedMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createMalformedMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createMessageTypeNotSupportedMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createBadParametersMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createInternalRecipientErrorMessage(correlationMessage)),
                 () -> assertExFunc.accept(() -> factory.createRejectionMessage(correlationMessage, exception))
         );
     }
@@ -246,6 +317,13 @@ public class IdsResponseMessageFactoryTest {
 
         Assertions.assertAll("client credentials missing",
                 () -> assertFunc.accept(() -> factory.createRequestInProcessMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createNotFoundMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createNotAuthenticatedMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createNotAuthorizedMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createMalformedMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createMessageTypeNotSupportedMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createBadParametersMessage(correlationMessage)),
+                () -> assertFunc.accept(() -> factory.createInternalRecipientErrorMessage(correlationMessage)),
                 () -> assertExFunc.accept(() -> factory.createRejectionMessage(correlationMessage, exception))
         );
     }
@@ -253,18 +331,24 @@ public class IdsResponseMessageFactoryTest {
     @Test
     public void testRejectionReasons() {
 
-        BiConsumer<Exception, RejectionReason> assertFunc = (exception, reason) -> {
+        BiConsumer<Provider<RejectionMessage>, RejectionReason> assertFunc = (provider, reason) -> Assertions.assertEquals(reason, provider.get().getRejectionReason());
+
+        BiConsumer<Exception, RejectionReason> assertExFunc = (exception, reason) -> {
             RejectionMessage message = factory.createRejectionMessage(correlationMessage, exception);
             Assertions.assertEquals(reason, message.getRejectionReason());
         };
 
         Assertions.assertAll("rejection reasons",
-                () -> assertFunc.accept(InvalidCorrelationMessageException.createExceptionForCorrelationIdMissing(),
-                        RejectionReason.BAD_PARAMETERS),
-                () -> assertFunc.accept(new MissingClientCredentialsException(Collections.emptyList()),
-                        RejectionReason.INTERNAL_RECIPIENT_ERROR),
-                () -> assertFunc.accept(Mockito.mock(Exception.class),
-                        RejectionReason.INTERNAL_RECIPIENT_ERROR)
+                () -> assertExFunc.accept(InvalidCorrelationMessageException.createExceptionForCorrelationIdMissing(), RejectionReason.BAD_PARAMETERS),
+                () -> assertExFunc.accept(new MissingClientCredentialsException(Collections.emptyList()), RejectionReason.INTERNAL_RECIPIENT_ERROR),
+                () -> assertExFunc.accept(Mockito.mock(Exception.class), RejectionReason.INTERNAL_RECIPIENT_ERROR),
+                () -> assertFunc.accept(() -> factory.createNotFoundMessage(correlationMessage), RejectionReason.NOT_FOUND),
+                () -> assertFunc.accept(() -> factory.createNotAuthenticatedMessage(correlationMessage), RejectionReason.NOT_AUTHENTICATED),
+                () -> assertFunc.accept(() -> factory.createNotAuthorizedMessage(correlationMessage), RejectionReason.NOT_AUTHORIZED),
+                () -> assertFunc.accept(() -> factory.createMalformedMessage(correlationMessage), RejectionReason.MALFORMED_MESSAGE),
+                () -> assertFunc.accept(() -> factory.createMessageTypeNotSupportedMessage(correlationMessage), RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED),
+                () -> assertFunc.accept(() -> factory.createBadParametersMessage(correlationMessage), RejectionReason.BAD_PARAMETERS),
+                () -> assertFunc.accept(() -> factory.createInternalRecipientErrorMessage(correlationMessage), RejectionReason.INTERNAL_RECIPIENT_ERROR)
         );
     }
 }

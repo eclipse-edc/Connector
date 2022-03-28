@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Daimler TSS GmbH - introduce factory to create RequestInProcessMessage
  *
  */
 
@@ -16,6 +17,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import de.fraunhofer.iais.eis.Resource;
+import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
@@ -54,11 +56,13 @@ public class ResourceDescriptionRequestHandlerTest {
 
     private Monitor monitor;
     private IdsTransformerRegistry transformerRegistry;
+    private IdsResponseMessageFactory responseMessageFactory;
     private DescriptionRequestMessage descriptionRequestMessage;
     private ContractOfferService contractOfferService;
     private AssetIndex assetIndex;
     private Resource resource;
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @BeforeEach
     public void setup() throws URISyntaxException {
         monitor = mock(Monitor.class);
@@ -69,23 +73,26 @@ public class ResourceDescriptionRequestHandlerTest {
         descriptionRequestMessage = mockDescriptionRequestMessage(resource.getId());
         assetIndex = mockAssetIndex();
         transformerRegistry = mockTransformerRegistry(IdsType.RESOURCE);
+        responseMessageFactory = mock(IdsResponseMessageFactory.class);
 
-        resourceDescriptionRequestHandler = new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, contractOfferService, transformerRegistry);
+        resourceDescriptionRequestHandler = new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, contractOfferService, transformerRegistry, responseMessageFactory);
     }
 
     @Test
     @SuppressWarnings("ConstantConditions")
     public void testConstructorArgumentsNotNullable() {
         assertThrows(NullPointerException.class,
-                () -> new ResourceDescriptionRequestHandler(null, CONNECTOR_ID, assetIndex, contractOfferService, transformerRegistry));
+                () -> new ResourceDescriptionRequestHandler(null, CONNECTOR_ID, assetIndex, contractOfferService, transformerRegistry, responseMessageFactory));
         assertThrows(NullPointerException.class,
-                () -> new ResourceDescriptionRequestHandler(monitor, null, assetIndex, contractOfferService, transformerRegistry));
+                () -> new ResourceDescriptionRequestHandler(monitor, null, assetIndex, contractOfferService, transformerRegistry, responseMessageFactory));
         assertThrows(NullPointerException.class,
-                () -> new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, null, contractOfferService, transformerRegistry));
+                () -> new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, null, contractOfferService, transformerRegistry, responseMessageFactory));
         assertThrows(NullPointerException.class,
-                () -> new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, null, transformerRegistry));
+                () -> new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, null, transformerRegistry, responseMessageFactory));
         assertThrows(NullPointerException.class,
-                () -> new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, contractOfferService, null));
+                () -> new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, contractOfferService, null, responseMessageFactory));
+        assertThrows(NullPointerException.class,
+                () -> new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, contractOfferService, transformerRegistry, null));
     }
 
     @Test

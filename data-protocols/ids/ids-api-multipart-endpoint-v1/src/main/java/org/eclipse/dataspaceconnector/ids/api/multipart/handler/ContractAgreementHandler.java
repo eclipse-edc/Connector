@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Daimler TSS GmbH - introduce factory to create IDS ResponseMessages
  *
  */
 
@@ -18,11 +19,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractAgreementMessage;
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.RejectionMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -37,8 +39,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
-
 /**
  * This class handles and processes incoming IDS {@link ContractAgreementMessage}s.
  */
@@ -49,7 +49,7 @@ public class ContractAgreementHandler implements Handler {
     private final String connectorId;
     private final ConsumerContractNegotiationManager negotiationManager;
     private final IdsTransformerRegistry transformerRegistry;
-    private final AssetIndex assetIndex;
+    private final IdsResponseMessageFactory responseMessageFactory;
 
     public ContractAgreementHandler(
             @NotNull Monitor monitor,
@@ -57,13 +57,13 @@ public class ContractAgreementHandler implements Handler {
             @NotNull ObjectMapper objectMapper,
             @NotNull ConsumerContractNegotiationManager negotiationManager,
             @NotNull IdsTransformerRegistry transformerRegistry,
-            @NotNull AssetIndex assetIndex) {
+            @NotNull IdsResponseMessageFactory responseMessageFactory) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
         this.objectMapper = Objects.requireNonNull(objectMapper);
         this.negotiationManager = Objects.requireNonNull(negotiationManager);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
-        this.assetIndex = Objects.requireNonNull(assetIndex);
+        this.responseMessageFactory = Objects.requireNonNull(responseMessageFactory);
     }
 
     @Override
@@ -134,9 +134,7 @@ public class ContractAgreementHandler implements Handler {
     }
 
     private MultipartResponse createBadParametersErrorMultipartResponse(Message message) {
-        return MultipartResponse.Builder.newInstance()
-                .header(badParameters(message, connectorId))
-                .build();
+        RejectionMessage badParametersMessage = responseMessageFactory.createBadParametersMessage(message);
+        return MultipartResponse.Builder.newInstance().header(badParametersMessage).build();
     }
-
 }

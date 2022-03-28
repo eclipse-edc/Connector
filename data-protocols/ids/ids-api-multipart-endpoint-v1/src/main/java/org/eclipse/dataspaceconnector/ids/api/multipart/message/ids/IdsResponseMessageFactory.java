@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial Implementation
+ *       Daimler TSS GmbH - Introduce IDS RejectionMessages
  *
  */
 
@@ -193,6 +194,132 @@ public class IdsResponseMessageFactory {
         // builder._issued_(CalendarUtil.gregorianNow()); // TODO enable with IDS-Serializer from issue 236
         builder._issuerConnector_(connectorId);
         builder._senderAgent_(connectorId);
+
+        URI correlationMessageId = correlationMessage.getId();
+        if (correlationMessageId == null) {
+            throw InvalidCorrelationMessageException.createExceptionForCorrelationIdMissing();
+        }
+        builder._correlationMessage_(correlationMessageId);
+
+        URI recipientAgent = correlationMessage.getSenderAgent();
+        if (recipientAgent == null) {
+            throw InvalidCorrelationMessageException.createExceptionForSenderAgentMissing();
+        }
+        builder._recipientAgent_(new ArrayList<>(Collections.singletonList(recipientAgent)));
+
+        URI recipientConnector = correlationMessage.getIssuerConnector();
+        if (recipientConnector == null) {
+            throw InvalidCorrelationMessageException.createExceptionForIssuerConnectorMissing();
+        }
+        builder._recipientConnector_(new ArrayList<>(Collections.singletonList(recipientConnector)));
+
+        Result<TokenRepresentation> tokenResult = identityService.obtainClientCredentials(IdsClientCredentialsScope.ALL);
+        if (tokenResult.failed()) {
+            throw new MissingClientCredentialsException(tokenResult.getFailureMessages());
+        }
+        DynamicAttributeToken token = new DynamicAttributeTokenBuilder()
+                ._tokenFormat_(TokenFormat.JWT)
+                ._tokenValue_(tokenResult.getContent().getToken())
+                .build();
+        builder._securityToken_(token);
+
+        return builder.build();
+    }
+
+    /**
+     * Create an IDS {@link RejectionMessage} with reason {@link RejectionReason#NOT_FOUND}
+     *
+     * @param correlationMessage message the response is referring to
+     * @return RejectionMessage
+     */
+    @NotNull
+    public RejectionMessage createNotFoundMessage(@NotNull Message correlationMessage) {
+        return createRejectionMessage(correlationMessage, RejectionReason.NOT_FOUND);
+    }
+
+    /**
+     * Create an IDS {@link RejectionMessage} with reason {@link RejectionReason#NOT_AUTHENTICATED}
+     *
+     * @param correlationMessage message the response is referring to
+     * @return RejectionMessage
+     */
+    @NotNull
+    public RejectionMessage createNotAuthenticatedMessage(@NotNull Message correlationMessage) {
+        return createRejectionMessage(correlationMessage, RejectionReason.NOT_AUTHENTICATED);
+    }
+
+    /**
+     * Create an IDS {@link RejectionMessage} with reason {@link RejectionReason#NOT_AUTHORIZED}
+     *
+     * @param correlationMessage message the response is referring to
+     * @return RejectionMessage
+     */
+    @NotNull
+    public RejectionMessage createNotAuthorizedMessage(@NotNull Message correlationMessage) {
+        return createRejectionMessage(correlationMessage, RejectionReason.NOT_AUTHORIZED);
+    }
+
+    /**
+     * Create an IDS {@link RejectionMessage} with reason {@link RejectionReason#MALFORMED_MESSAGE}
+     *
+     * @param correlationMessage message the response is referring to
+     * @return RejectionMessage
+     */
+    @NotNull
+    public RejectionMessage createMalformedMessage(@NotNull Message correlationMessage) {
+        return createRejectionMessage(correlationMessage, RejectionReason.MALFORMED_MESSAGE);
+    }
+
+    /**
+     * Create an IDS {@link RejectionMessage} with reason {@link RejectionReason#MESSAGE_TYPE_NOT_SUPPORTED}
+     *
+     * @param correlationMessage message the response is referring to
+     * @return RejectionMessage
+     */
+    @NotNull
+    public RejectionMessage createMessageTypeNotSupportedMessage(@NotNull Message correlationMessage) {
+        return createRejectionMessage(correlationMessage, RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
+    }
+
+    /**
+     * Create an IDS {@link RejectionMessage} with reason {@link RejectionReason#BAD_PARAMETERS}
+     *
+     * @param correlationMessage message the response is referring to
+     * @return RejectionMessage
+     */
+    @NotNull
+    public RejectionMessage createBadParametersMessage(@NotNull Message correlationMessage) {
+        return createRejectionMessage(correlationMessage, RejectionReason.BAD_PARAMETERS);
+    }
+
+    /**
+     * Create an IDS {@link RejectionMessage} with reason {@link RejectionReason#INTERNAL_RECIPIENT_ERROR}
+     *
+     * @param correlationMessage message the response is referring to
+     * @return RejectionMessage
+     */
+    @NotNull
+    public RejectionMessage createInternalRecipientErrorMessage(@NotNull Message correlationMessage) {
+        return createRejectionMessage(correlationMessage, RejectionReason.INTERNAL_RECIPIENT_ERROR);
+    }
+
+    private RejectionMessage createRejectionMessage(@NotNull Message correlationMessage, @NotNull RejectionReason reason) {
+        Objects.requireNonNull(correlationMessage);
+        Objects.requireNonNull(reason);
+
+        String randomMessageId = String.join(
+                IdsIdParser.DELIMITER,
+                IdsIdParser.SCHEME,
+                IdsType.MESSAGE.getValue(),
+                UUID.randomUUID().toString());
+
+        RejectionMessageBuilder builder = new RejectionMessageBuilder(URI.create(randomMessageId));
+
+        builder._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
+        // builder._issued_(CalendarUtil.gregorianNow()); // TODO enable with IDS-Serializer from issue 236
+        builder._issuerConnector_(connectorId);
+        builder._senderAgent_(connectorId);
+        builder._rejectionReason_(reason);
 
         URI correlationMessageId = correlationMessage.getId();
         if (correlationMessageId == null) {

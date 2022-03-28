@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Daimler TSS GmbH - introduce factory to create IDS ResponseMessages
  *
  */
 
@@ -16,6 +17,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.RejectionMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ArtifactDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ConnectorDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DataCatalogDescriptionRequestHandler;
@@ -23,47 +25,44 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.Repr
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ResourceDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.messageTypeNotSupported;
-
 public class DescriptionHandler implements Handler {
     private final Monitor monitor;
-    private final String connectorId;
     private final IdsTransformerRegistry transformerRegistry;
     private final ArtifactDescriptionRequestHandler artifactDescriptionRequestHandler;
     private final DataCatalogDescriptionRequestHandler dataCatalogDescriptionRequestHandler;
     private final RepresentationDescriptionRequestHandler representationDescriptionRequestHandler;
     private final ResourceDescriptionRequestHandler resourceDescriptionRequestHandler;
     private final ConnectorDescriptionRequestHandler connectorDescriptionRequestHandler;
+    private final IdsResponseMessageFactory responseMessageFactory;
 
     public DescriptionHandler(
             @NotNull Monitor monitor,
-            @NotNull String connectorId,
             @NotNull IdsTransformerRegistry transformerRegistry,
             @NotNull ArtifactDescriptionRequestHandler artifactDescriptionRequestHandler,
             @NotNull DataCatalogDescriptionRequestHandler dataCatalogDescriptionRequestHandler,
             @NotNull RepresentationDescriptionRequestHandler representationDescriptionRequestHandler,
             @NotNull ResourceDescriptionRequestHandler resourceDescriptionRequestHandler,
-            @NotNull ConnectorDescriptionRequestHandler connectorDescriptionRequestHandler) {
+            @NotNull ConnectorDescriptionRequestHandler connectorDescriptionRequestHandler,
+            @NotNull IdsResponseMessageFactory responseMessageFactory) {
         this.monitor = Objects.requireNonNull(monitor);
-        this.connectorId = Objects.requireNonNull(connectorId);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
         this.artifactDescriptionRequestHandler = Objects.requireNonNull(artifactDescriptionRequestHandler);
         this.dataCatalogDescriptionRequestHandler = Objects.requireNonNull(dataCatalogDescriptionRequestHandler);
         this.representationDescriptionRequestHandler = Objects.requireNonNull(representationDescriptionRequestHandler);
         this.resourceDescriptionRequestHandler = Objects.requireNonNull(resourceDescriptionRequestHandler);
         this.connectorDescriptionRequestHandler = Objects.requireNonNull(connectorDescriptionRequestHandler);
+        this.responseMessageFactory = Objects.requireNonNull(responseMessageFactory);
     }
 
     @Override
@@ -134,14 +133,12 @@ public class DescriptionHandler implements Handler {
     }
 
     private MultipartResponse createBadParametersErrorMultipartResponse(Message message) {
-        return MultipartResponse.Builder.newInstance()
-                .header(badParameters(message, connectorId))
-                .build();
+        RejectionMessage badParametersMessage = responseMessageFactory.createBadParametersMessage(message);
+        return MultipartResponse.Builder.newInstance().header(badParametersMessage).build();
     }
 
     private MultipartResponse createErrorMultipartResponse(Message message) {
-        return MultipartResponse.Builder.newInstance()
-                .header(messageTypeNotSupported(message, connectorId))
-                .build();
+        RejectionMessage messageTypeNotSupportedMessage = responseMessageFactory.createMessageTypeNotSupportedMessage(message);
+        return MultipartResponse.Builder.newInstance().header(messageTypeNotSupportedMessage).build();
     }
 }

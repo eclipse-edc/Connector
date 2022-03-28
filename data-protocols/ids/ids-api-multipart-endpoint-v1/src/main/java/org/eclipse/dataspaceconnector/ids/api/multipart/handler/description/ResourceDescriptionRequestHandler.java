@@ -9,12 +9,14 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Daimler TSS GmbH - introduce factory to create IDS ResponseMessages
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 
 import de.fraunhofer.iais.eis.Resource;
+import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
@@ -25,7 +27,6 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
@@ -44,14 +45,15 @@ public class ResourceDescriptionRequestHandler extends AbstractDescriptionReques
             @NotNull String connectorId,
             @NotNull AssetIndex assetIndex,
             @NotNull ContractOfferService contractOfferService,
-            @NotNull IdsTransformerRegistry transformerRegistry) {
+            @NotNull IdsTransformerRegistry transformerRegistry,
+            @NotNull IdsResponseMessageFactory responseMessageFactory) {
         super(
                 connectorId,
                 monitor,
                 transformerRegistry,
                 IdsType.RESOURCE,
-                Resource.class
-        );
+                Resource.class,
+                responseMessageFactory);
         this.assetIndex = Objects.requireNonNull(assetIndex);
         this.contractOfferService = Objects.requireNonNull(contractOfferService);
     }

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Daimler TSS GmbH - introduce factory to create IDS ResponseMessages
  *
  */
 
@@ -17,6 +18,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import de.fraunhofer.iais.eis.DescriptionResponseMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
@@ -39,19 +41,22 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
     protected final IdsTransformerRegistry transformerRegistry;
     protected final IdsType targetIdsType;
     protected final Class<S> resultType;
+    protected final IdsResponseMessageFactory responseMessageFactory;
 
     public AbstractDescriptionRequestHandler(
             @NotNull String connectorId,
             @NotNull Monitor monitor,
             @NotNull IdsTransformerRegistry transformerRegistry,
             @NotNull IdsType targetIdsType,
-            @NotNull Class<S> resultType
+            @NotNull Class<S> resultType,
+            @NotNull IdsResponseMessageFactory responseMessageFactory
     ) {
         this.connectorId = Objects.requireNonNull(connectorId);
         this.monitor = Objects.requireNonNull(monitor);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
         this.targetIdsType = Objects.requireNonNull(targetIdsType);
         this.resultType = Objects.requireNonNull(resultType);
+        this.responseMessageFactory = Objects.requireNonNull(responseMessageFactory);
     }
 
     @Override
@@ -63,7 +68,7 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
 
         URI uri = descriptionRequestMessage.getRequestedElement();
         if (uri == null) {
-            return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
+            return createBadParametersErrorMultipartResponse(responseMessageFactory, descriptionRequestMessage);
         }
 
         var result = transformerRegistry.transform(uri, IdsId.class);
@@ -74,17 +79,17 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
                             String.join(", ", result.getFailureMessages())
                     )
             );
-            return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
+            return createBadParametersErrorMultipartResponse(responseMessageFactory, descriptionRequestMessage);
         }
 
         IdsId idsId = result.getContent();
         if (Objects.requireNonNull(idsId).getType() != targetIdsType) {
-            return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
+            return createBadParametersErrorMultipartResponse(responseMessageFactory, descriptionRequestMessage);
         }
 
         T retrievedObject = retrieveObject(idsId, claimToken);
         if (retrievedObject == null) {
-            return createNotFoundErrorMultipartResponse(connectorId, descriptionRequestMessage);
+            return createNotFoundErrorMultipartResponse(responseMessageFactory, descriptionRequestMessage);
         }
 
         Result<S> transformResult = transformerRegistry.transform(retrievedObject, resultType);
@@ -97,7 +102,7 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
                             String.join(", ", transformResult.getFailureMessages())
                     )
             );
-            return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
+            return createBadParametersErrorMultipartResponse(responseMessageFactory, descriptionRequestMessage);
         }
 
         S handlerResult = transformResult.getContent();

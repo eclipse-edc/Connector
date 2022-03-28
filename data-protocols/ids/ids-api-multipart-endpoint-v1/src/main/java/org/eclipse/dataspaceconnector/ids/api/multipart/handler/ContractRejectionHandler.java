@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Daimler TSS GmbH - introduce factory to create IDS ResponseMessages
  *
  */
 
@@ -16,8 +17,10 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
 import de.fraunhofer.iais.eis.ContractRejectionMessage;
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.RejectionMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
@@ -28,8 +31,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
-
 /**
  * This class handles and processes incoming IDS {@link ContractRejectionMessage}s.
  */
@@ -39,16 +40,19 @@ public class ContractRejectionHandler implements Handler {
     private final String connectorId;
     private final ProviderContractNegotiationManager providerNegotiationManager;
     private final ConsumerContractNegotiationManager consumerNegotiationManager;
+    private final IdsResponseMessageFactory responseMessageFactory;
 
     public ContractRejectionHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
             @NotNull ProviderContractNegotiationManager providerNegotiationManager,
-            @NotNull ConsumerContractNegotiationManager consumerNegotiationManager) {
+            @NotNull ConsumerContractNegotiationManager consumerNegotiationManager,
+            @NotNull IdsResponseMessageFactory responseMessageFactory) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
         this.providerNegotiationManager = Objects.requireNonNull(providerNegotiationManager);
         this.consumerNegotiationManager = Objects.requireNonNull(consumerNegotiationManager);
+        this.responseMessageFactory = Objects.requireNonNull(responseMessageFactory);
     }
 
     @Override
@@ -68,7 +72,7 @@ public class ContractRejectionHandler implements Handler {
         var correlationId = message.getTransferContract();
         var rejectionReason = message.getContractRejectionReason();
         monitor.debug(String.format("ContractRejectionHandler: Received contract rejection to " +
-                "message %s. Negotiation process: %s. Rejection Reason: %s", correlationMessageId,
+                        "message %s. Negotiation process: %s. Rejection Reason: %s", correlationMessageId,
                 correlationId, rejectionReason));
 
         if (correlationId == null) {
@@ -91,8 +95,7 @@ public class ContractRejectionHandler implements Handler {
     }
 
     private MultipartResponse createBadParametersErrorMultipartResponse(Message message) {
-        return MultipartResponse.Builder.newInstance()
-                .header(badParameters(message, connectorId))
-                .build();
+        RejectionMessage badParametersMessage = responseMessageFactory.createBadParametersMessage(message);
+        return MultipartResponse.Builder.newInstance().header(badParametersMessage).build();
     }
 }

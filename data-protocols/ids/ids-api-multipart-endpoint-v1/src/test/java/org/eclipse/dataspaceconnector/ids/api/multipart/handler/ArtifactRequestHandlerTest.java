@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       Daimler TSS GmbH - introduce factory to create IDS ResponseMessages
  *
  */
 
@@ -20,6 +21,7 @@ import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
+import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
@@ -28,7 +30,6 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNeg
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
@@ -58,6 +59,7 @@ class ArtifactRequestHandlerTest {
     private String connectorId;
     private ContractValidationService contractValidationService;
     private ContractNegotiationStore contractNegotiationStore;
+    private IdsResponseMessageFactory responseMessageFactory;
 
     @BeforeEach
     public void setUp() {
@@ -67,8 +69,9 @@ class ArtifactRequestHandlerTest {
         var mapper = new ObjectMapper();
         contractValidationService = mock(ContractValidationService.class);
         contractNegotiationStore = mock(ContractNegotiationStore.class);
+        responseMessageFactory = mock(IdsResponseMessageFactory.class);
         Vault vault = mock(Vault.class);
-        handler = new ArtifactRequestHandler(monitor, connectorId, mapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault);
+        handler = new ArtifactRequestHandler(monitor, connectorId, mapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault, responseMessageFactory);
     }
 
     @Test

@@ -10,19 +10,20 @@
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *       Daimler TSS GmbH - introduce factory to create IDS ResponseMessages
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 
 import de.fraunhofer.iais.eis.ResourceCatalog;
+import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,14 +34,15 @@ public class DataCatalogDescriptionRequestHandler extends AbstractDescriptionReq
             @NotNull Monitor monitor,
             @NotNull String connectorId,
             @NotNull CatalogService dataCatalogService,
-            @NotNull IdsTransformerRegistry transformerRegistry) {
+            @NotNull IdsTransformerRegistry transformerRegistry,
+            @NotNull IdsResponseMessageFactory responseMessageFactory) {
         super(
                 connectorId,
                 monitor,
                 transformerRegistry,
                 IdsType.CATALOG,
-                ResourceCatalog.class
-        );
+                ResourceCatalog.class,
+                responseMessageFactory);
         this.dataCatalogService = dataCatalogService;
     }
 

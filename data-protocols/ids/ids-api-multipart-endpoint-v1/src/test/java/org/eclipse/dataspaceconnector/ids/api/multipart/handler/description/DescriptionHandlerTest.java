@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Daimler TSS GmbH - introduce factory to create IDS ResponseMessages
  *
  */
 
@@ -19,10 +20,10 @@ import de.fraunhofer.iais.eis.Message;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,12 +35,11 @@ import static org.mockito.Mockito.when;
 
 class DescriptionHandlerTest {
 
-    private static final String CONNECTOR_ID = "urn:connector:edc";
-
     private DescriptionHandler descriptionHandler;
 
     private Monitor monitor;
     private IdsTransformerRegistry transformerRegistry;
+    private IdsResponseMessageFactory responseMessageFactory;
     private ArtifactDescriptionRequestHandler artifactDescriptionRequestHandler;
     private DataCatalogDescriptionRequestHandler dataCatalogDescriptionRequestHandler;
     private RepresentationDescriptionRequestHandler representationDescriptionRequestHandler;
@@ -55,16 +55,17 @@ class DescriptionHandlerTest {
         representationDescriptionRequestHandler = mock(RepresentationDescriptionRequestHandler.class);
         resourceDescriptionRequestHandler = mock(ResourceDescriptionRequestHandler.class);
         connectorDescriptionRequestHandler = mock(ConnectorDescriptionRequestHandler.class);
+        responseMessageFactory = mock(IdsResponseMessageFactory.class);
 
         descriptionHandler = new DescriptionHandler(
                 monitor,
-                CONNECTOR_ID,
                 transformerRegistry,
                 artifactDescriptionRequestHandler,
                 dataCatalogDescriptionRequestHandler,
                 representationDescriptionRequestHandler,
                 resourceDescriptionRequestHandler,
-                connectorDescriptionRequestHandler);
+                connectorDescriptionRequestHandler,
+                responseMessageFactory);
     }
 
     @Test

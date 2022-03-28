@@ -9,14 +9,18 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       Daimler TSS GmbH - introduce factory to create IDS ResponseMessages
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
+import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessage;
+import de.fraunhofer.iais.eis.RejectionMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -30,7 +34,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.dataspaceconnector.common.async.AsyncUtils.asyncAllOf;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.internalRecipientError;
 
 /**
  * Implementation of the {@link Handler} class for handling of {@link EndpointDataReferenceMessage}.
@@ -42,15 +45,18 @@ public class EndpointDataReferenceHandler implements Handler {
     private final String connectorId;
     private final EndpointDataReferenceReceiverRegistry receiverRegistry;
     private final EndpointDataReferenceTransformer transformer;
+    private final IdsResponseMessageFactory responseMessageFactory;
     private final TypeManager typeManager;
 
     public EndpointDataReferenceHandler(@NotNull Monitor monitor,
                                         @NotNull String connectorId,
+                                        @NotNull IdsResponseMessageFactory responseMessageFactory,
                                         @NotNull EndpointDataReferenceReceiverRegistry receiverRegistry,
                                         @NotNull EndpointDataReferenceTransformer transformer,
                                         @NotNull TypeManager typeManager) {
         this.monitor = monitor;
         this.connectorId = connectorId;
+        this.responseMessageFactory = responseMessageFactory;
         this.receiverRegistry = receiverRegistry;
         this.transformer = transformer;
         this.typeManager = typeManager;
@@ -73,7 +79,7 @@ public class EndpointDataReferenceHandler implements Handler {
         var transformationResult = transformer.transform(edr);
         if (transformationResult.failed()) {
             monitor.severe("EDR transformation failed: " + String.join(", ", transformationResult.getFailureMessages()));
-            return createErrorMultipartResponse(multipartRequest);
+            return createErrorMultipartResponse(multipartRequest.getHeader());
         }
 
         var transformedEdr = transformationResult.getContent();
@@ -90,7 +96,7 @@ public class EndpointDataReferenceHandler implements Handler {
 
         if (receiveResult.failed()) {
             monitor.severe("EDR dispatch failed: " + String.join(", ", receiveResult.getFailureMessages()));
-            return createErrorMultipartResponse(multipartRequest);
+            return createErrorMultipartResponse(multipartRequest.getHeader());
         }
 
         return MultipartResponse.Builder.newInstance()
@@ -98,9 +104,10 @@ public class EndpointDataReferenceHandler implements Handler {
                 .build();
     }
 
-    private MultipartResponse createErrorMultipartResponse(MultipartRequest request) {
+    private MultipartResponse createErrorMultipartResponse(Message message) {
+        RejectionMessage internalError = responseMessageFactory.createInternalRecipientErrorMessage(message);
         return MultipartResponse.Builder.newInstance()
-                .header(internalRecipientError(request.getHeader(), connectorId))
+                .header(internalError)
                 .build();
     }
 }

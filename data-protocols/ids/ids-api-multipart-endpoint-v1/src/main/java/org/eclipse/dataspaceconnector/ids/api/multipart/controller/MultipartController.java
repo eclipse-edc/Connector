@@ -10,6 +10,7 @@
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Fraunhofer Institute for Software and Systems Engineering
+ *       Daimler TSS GmbH - introduce factory to create IDS ResponseMessages
  *
  */
 
@@ -20,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.Connector;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.RejectionMessage;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -29,6 +31,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -48,10 +51,6 @@ import java.util.Map;
 import java.util.Objects;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.malformedMessage;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.messageTypeNotSupported;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.notAuthenticated;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.notFound;
 
 @Consumes({MediaType.MULTIPART_FORM_DATA})
 @Produces({MediaType.MULTIPART_FORM_DATA})
@@ -62,20 +61,20 @@ public class MultipartController {
     private static final String PAYLOAD = "payload";
 
     private final Monitor monitor;
-    private final String connectorId;
     private final List<Handler> multipartHandlers;
     private final ObjectMapper objectMapper;
     private final IdentityService identityService;
+    private final IdsResponseMessageFactory responseMessageFactory;
 
     public MultipartController(@NotNull Monitor monitor,
-                               @NotNull String connectorId,
                                @NotNull ObjectMapper objectMapper,
                                @NotNull IdentityService identityService,
+                               @NotNull IdsResponseMessageFactory responseMessageFactory,
                                @NotNull List<Handler> multipartHandlers) {
         this.monitor = Objects.requireNonNull(monitor);
-        this.connectorId = Objects.requireNonNull(connectorId);
         this.objectMapper = Objects.requireNonNull(objectMapper);
         this.multipartHandlers = Objects.requireNonNull(multipartHandlers);
+        this.responseMessageFactory = Objects.requireNonNull(responseMessageFactory);
         this.identityService = Objects.requireNonNull(identityService);
     }
 
@@ -83,24 +82,25 @@ public class MultipartController {
     public Response request(@FormDataParam(HEADER) InputStream headerInputStream,
                             @FormDataParam(PAYLOAD) String payload) {
         if (headerInputStream == null) {
-            return Response.ok(createFormDataMultiPart(malformedMessage(null, connectorId))).build();
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
         Message header;
         try {
             header = objectMapper.readValue(headerInputStream, Message.class);
         } catch (IOException e) {
-            return Response.ok(createFormDataMultiPart(malformedMessage(null, connectorId))).build();
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
         if (header == null) {
-            return Response.ok(createFormDataMultiPart(malformedMessage(null, connectorId))).build();
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
         DynamicAttributeToken dynamicAttributeToken = header.getSecurityToken();
         if (dynamicAttributeToken == null || dynamicAttributeToken.getTokenValue() == null) {
             monitor.warning("MultipartController: Token is missing in header");
-            return Response.ok(createFormDataMultiPart(notAuthenticated(header, connectorId))).build();
+            RejectionMessage notAuthenticatedMessage = responseMessageFactory.createNotAuthenticatedMessage(header);
+            return Response.ok(createFormDataMultiPart(notAuthenticatedMessage)).build();
         }
 
         Map<String, Object> additional = new HashMap<>();
@@ -119,9 +119,16 @@ public class MultipartController {
 
         Result<ClaimToken> verificationResult = identityService.verifyJwtToken(tokenRepresentation);
 
+        if (verificationResult == null) {
+            RejectionMessage notAuthenticatedMessage = responseMessageFactory.createNotAuthenticatedMessage(header);
+            return Response.ok(createFormDataMultiPart(notAuthenticatedMessage)).build();
+        }
+
         if (verificationResult.failed()) {
             monitor.warning(format("MultipartController: Token validation failed %s", verificationResult.getFailure().getMessages()));
-            return Response.ok(createFormDataMultiPart(notAuthenticated(header, connectorId))).build();
+
+            RejectionMessage notAuthorized = responseMessageFactory.createNotAuthorizedMessage(header);
+            return Response.ok(createFormDataMultiPart(notAuthorized)).build();
         }
 
         var claimToken = verificationResult.getContent();
@@ -136,7 +143,8 @@ public class MultipartController {
                 .findFirst()
                 .orElse(null);
         if (handler == null) {
-            return Response.ok(createFormDataMultiPart(messageTypeNotSupported(header, connectorId))).build();
+            RejectionMessage messageTypeNotSupportedMessage = responseMessageFactory.createMessageTypeNotSupportedMessage(header);
+            return Response.ok(createFormDataMultiPart(messageTypeNotSupportedMessage)).build();
         }
 
         MultipartResponse multipartResponse = handler.handleRequest(multipartRequest, claimToken);
@@ -144,7 +152,8 @@ public class MultipartController {
             return Response.ok(createFormDataMultiPart(multipartResponse)).build();
         }
 
-        return Response.ok(createFormDataMultiPart(notFound(header, connectorId))).build();
+        RejectionMessage notFoundMessage = responseMessageFactory.createNotFoundMessage(header);
+        return Response.ok(createFormDataMultiPart(notFoundMessage)).build();
     }
 
     private FormDataMultiPart createFormDataMultiPart(MultipartResponse multipartResponse) {

@@ -10,7 +10,7 @@
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Fraunhofer Institute for Software and Systems Engineering
- *       Daimler TSS GmbH - introduce factory to create RequestInProcessMessage
+ *       Daimler TSS GmbH - introduce factory to create IDS ResponseMessages
  *
  */
 
@@ -127,13 +127,14 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     private void registerControllers(ServiceExtensionContext serviceExtensionContext) {
 
         var connectorId = resolveConnectorId(serviceExtensionContext);
+        var responseMessageFactory = new IdsResponseMessageFactory(connectorId, identityService);
 
         // create description request handlers
-        var artifactDescriptionRequestHandler = new ArtifactDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry);
-        var dataCatalogDescriptionRequestHandler = new DataCatalogDescriptionRequestHandler(monitor, connectorId, dataCatalogService, transformerRegistry);
-        var representationDescriptionRequestHandler = new RepresentationDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry);
-        var resourceDescriptionRequestHandler = new ResourceDescriptionRequestHandler(monitor, connectorId, assetIndex, contractOfferService, transformerRegistry);
-        var connectorDescriptionRequestHandler = new ConnectorDescriptionRequestHandler(monitor, connectorId, connectorService, transformerRegistry);
+        var artifactDescriptionRequestHandler = new ArtifactDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry, responseMessageFactory);
+        var dataCatalogDescriptionRequestHandler = new DataCatalogDescriptionRequestHandler(monitor, connectorId, dataCatalogService, transformerRegistry, responseMessageFactory);
+        var representationDescriptionRequestHandler = new RepresentationDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry, responseMessageFactory);
+        var resourceDescriptionRequestHandler = new ResourceDescriptionRequestHandler(monitor, connectorId, assetIndex, contractOfferService, transformerRegistry, responseMessageFactory);
+        var connectorDescriptionRequestHandler = new ConnectorDescriptionRequestHandler(monitor, connectorId, connectorService, transformerRegistry, responseMessageFactory);
 
         // create & register controller
         // TODO ObjectMapper needs to be replaced by one capable to write proper IDS JSON-LD
@@ -149,36 +150,35 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         // create request handler
         var descriptionHandler = new DescriptionHandler(
                 monitor,
-                connectorId,
                 transformerRegistry,
                 artifactDescriptionRequestHandler,
                 dataCatalogDescriptionRequestHandler,
                 representationDescriptionRequestHandler,
                 resourceDescriptionRequestHandler,
-                connectorDescriptionRequestHandler);
+                connectorDescriptionRequestHandler,
+                responseMessageFactory);
 
         var handlers = new LinkedList<Handler>();
         handlers.add(descriptionHandler);
 
         var vault = serviceExtensionContext.getService(Vault.class);
-        var artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault);
+        var artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault, responseMessageFactory);
         handlers.add(artifactRequestHandler);
 
         // create contract message handlers
-        var responseMessageFactory = new IdsResponseMessageFactory(connectorId, identityService);
-        handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager, responseMessageFactory, transformerRegistry, assetIndex));
-        handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager, transformerRegistry, assetIndex));
-        handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper, providerNegotiationManager, consumerNegotiationManager, responseMessageFactory));
-        handlers.add(new ContractRejectionHandler(monitor, connectorId, providerNegotiationManager, consumerNegotiationManager));
+        handlers.add(new ContractRequestHandler(monitor, objectMapper, providerNegotiationManager, responseMessageFactory, transformerRegistry, assetIndex));
+        handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager, transformerRegistry, responseMessageFactory));
+        handlers.add(new ContractOfferHandler(monitor, objectMapper, providerNegotiationManager, consumerNegotiationManager, responseMessageFactory));
+        handlers.add(new ContractRejectionHandler(monitor, connectorId, providerNegotiationManager, consumerNegotiationManager, responseMessageFactory));
 
         // add notification handler and sub-handlers
         var notificationHandlersRegistry = new NotificationMessageHandlerRegistry();
-        var endpointDataReferenceHandler = new EndpointDataReferenceHandler(monitor, connectorId, endpointDataReferenceReceiverRegistry, endpointDataReferenceTransformer, serviceExtensionContext.getTypeManager());
+        var endpointDataReferenceHandler = new EndpointDataReferenceHandler(monitor, connectorId, responseMessageFactory, endpointDataReferenceReceiverRegistry, endpointDataReferenceTransformer, serviceExtensionContext.getTypeManager());
         notificationHandlersRegistry.addHandler(ParticipantUpdateMessage.class, endpointDataReferenceHandler);
-        handlers.add(new NotificationMessageHandler(connectorId, notificationHandlersRegistry));
+        handlers.add(new NotificationMessageHandler(responseMessageFactory, notificationHandlersRegistry));
 
         // create & register controller
-        var multipartController = new MultipartController(monitor, connectorId, objectMapper, identityService, handlers);
+        var multipartController = new MultipartController(monitor, objectMapper, identityService, responseMessageFactory, handlers);
         webService.registerResource(idsApiConfiguration.getContextAlias(), multipartController);
     }
 

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       Daimler TSS GmbH - introduce factory to create IDS ResponseMessages
  *
  */
 
@@ -18,23 +19,21 @@ import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.NotificationMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.messageTypeNotSupported;
 
 /**
  * Implementation of the {@link Handler} class for handling of {@link NotificationMessage}
  */
 public class NotificationMessageHandler implements Handler {
 
-    private final String connectorId;
+    private final IdsResponseMessageFactory responseMessageFactory;
     private final NotificationMessageHandlerRegistry subhandlers;
 
-    public NotificationMessageHandler(String connectorId, @NotNull NotificationMessageHandlerRegistry subhandlers) {
-        this.connectorId = connectorId;
+    public NotificationMessageHandler(IdsResponseMessageFactory responseMessageFactory, @NotNull NotificationMessageHandlerRegistry subhandlers) {
+        this.responseMessageFactory = responseMessageFactory;
         this.subhandlers = subhandlers;
     }
 
@@ -61,8 +60,7 @@ public class NotificationMessageHandler implements Handler {
     }
 
     private MultipartResponse createErrorMultipartResponse(Message message) {
-        return MultipartResponse.Builder.newInstance()
-                .header(messageTypeNotSupported(message, connectorId))
-                .build();
+        Message notSupported = responseMessageFactory.createMessageTypeNotSupportedMessage(message);
+        return MultipartResponse.Builder.newInstance().header(notSupported).build();
     }
 }

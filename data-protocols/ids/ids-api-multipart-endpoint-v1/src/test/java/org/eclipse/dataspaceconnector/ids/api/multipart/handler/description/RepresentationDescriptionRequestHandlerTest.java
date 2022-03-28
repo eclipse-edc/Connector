@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Daimler TSS GmbH - introduce factory to create IDS ResponseMessages
  *
  */
 
@@ -16,6 +17,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import de.fraunhofer.iais.eis.Representation;
+import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
@@ -53,6 +55,7 @@ public class RepresentationDescriptionRequestHandlerTest {
     private DescriptionRequestMessage descriptionRequestMessage;
     private AssetIndex assetIndex;
     private Representation representation;
+    private IdsResponseMessageFactory responseMessageFactory;
 
     @BeforeEach
     public void setup() throws URISyntaxException {
@@ -66,21 +69,25 @@ public class RepresentationDescriptionRequestHandlerTest {
         transformerRegistry = mockTransformerRegistry(IdsType.REPRESENTATION);
         when(transformerRegistry.transform(isA(Asset.class), eq(Representation.class))).thenReturn(Result.success(representation));
 
+        responseMessageFactory = mock(IdsResponseMessageFactory.class);
+
         descriptionRequestMessage = mockDescriptionRequestMessage(representation.getId());
 
-        representationDescriptionRequestHandler = new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, transformerRegistry);
+        representationDescriptionRequestHandler = new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, transformerRegistry, responseMessageFactory);
     }
 
     @Test
     public void testConstructorArgumentsNotNullable() {
         assertThrows(NullPointerException.class,
-                () -> new RepresentationDescriptionRequestHandler(null, CONNECTOR_ID, assetIndex, transformerRegistry));
+                () -> new RepresentationDescriptionRequestHandler(null, CONNECTOR_ID, assetIndex, transformerRegistry, responseMessageFactory));
         assertThrows(NullPointerException.class,
-                () -> new RepresentationDescriptionRequestHandler(monitor, null, assetIndex, transformerRegistry));
+                () -> new RepresentationDescriptionRequestHandler(monitor, null, assetIndex, transformerRegistry, responseMessageFactory));
         assertThrows(NullPointerException.class,
-                () -> new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, null, transformerRegistry));
+                () -> new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, null, transformerRegistry, responseMessageFactory));
         assertThrows(NullPointerException.class,
-                () -> new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, null));
+                () -> new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, null, responseMessageFactory));
+        assertThrows(NullPointerException.class,
+                () -> new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, transformerRegistry, null));
     }
 
     @Test

@@ -9,36 +9,32 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Daimler TSS GmbH - introduce factory to create IDS ResponseMessages
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.RejectionMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.jetbrains.annotations.Nullable;
-
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.messageTypeNotSupported;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.notFound;
+import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
+import org.jetbrains.annotations.NotNull;
 
 class MultipartResponseUtil {
 
-    public static MultipartResponse createBadParametersErrorMultipartResponse(@Nullable String connectorId, @Nullable Message message) {
-        return MultipartResponse.Builder.newInstance()
-                .header(badParameters(message, connectorId))
-                .build();
+    public static MultipartResponse createBadParametersErrorMultipartResponse(@NotNull IdsResponseMessageFactory factory, @NotNull Message message) {
+        RejectionMessage badParametersMessage = factory.createBadParametersMessage(message);
+        return MultipartResponse.Builder.newInstance().header(badParametersMessage).build();
     }
 
-    public static MultipartResponse createNotFoundErrorMultipartResponse(@Nullable String connectorId, @Nullable Message message) {
-        return MultipartResponse.Builder.newInstance()
-                .header(notFound(message, connectorId))
-                .build();
+    public static MultipartResponse createNotFoundErrorMultipartResponse(@NotNull IdsResponseMessageFactory factory, @NotNull Message message) {
+        RejectionMessage notFoundMessage = factory.createNotFoundMessage(message);
+        return MultipartResponse.Builder.newInstance().header(notFoundMessage).build();
     }
 
-    public static MultipartResponse createErrorMultipartResponse(@Nullable String connectorId, @Nullable Message message) {
-        return MultipartResponse.Builder.newInstance()
-                .header(messageTypeNotSupported(message, connectorId))
-                .build();
+    public static MultipartResponse createErrorMultipartResponse(@NotNull IdsResponseMessageFactory factory, @NotNull Message message) {
+        RejectionMessage messageTypeNotSupportedMessage = factory.createMessageTypeNotSupportedMessage(message);
+        return MultipartResponse.Builder.newInstance().header(messageTypeNotSupportedMessage).build();
     }
 }
