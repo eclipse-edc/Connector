@@ -1,8 +1,3 @@
-package org.eclipse.dataspaceconnector.gradle;
-
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-
 /*
  *  Copyright (c) 2022 Microsoft Corporation
  *
@@ -16,6 +11,11 @@ import org.gradle.api.Project;
  *       Microsoft Corporation - initial API and implementation
  *
  */
+package org.eclipse.dataspaceconnector.gradle;
+
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+
 public class DependencyRulesPlugin implements Plugin<Project> {
 
     @Override

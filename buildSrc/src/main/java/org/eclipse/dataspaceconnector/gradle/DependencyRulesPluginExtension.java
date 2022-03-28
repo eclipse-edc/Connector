@@ -1,7 +1,3 @@
-package org.eclipse.dataspaceconnector.gradle;
-
-import org.gradle.api.provider.Property;
-
 /*
  *  Copyright (c) 2022 Microsoft Corporation
  *
@@ -15,6 +11,10 @@ import org.gradle.api.provider.Property;
  *       Microsoft Corporation - initial API and implementation
  *
  */
+package org.eclipse.dataspaceconnector.gradle;
+
+import org.gradle.api.provider.Property;
+
 public abstract class DependencyRulesPluginExtension {
     public abstract Property<String> getSeverity();
 
