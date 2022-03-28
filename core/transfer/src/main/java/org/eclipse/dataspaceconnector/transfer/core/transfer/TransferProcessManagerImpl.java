@@ -40,9 +40,9 @@ import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedContentResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
@@ -174,23 +174,33 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         responses.stream()
                 .map(response -> {
-                    var destinationResource = response.getResource();
+                    var provisionedResource = response.getResource();
                     var secretToken = response.getSecretToken();
 
-                    if (destinationResource instanceof ProvisionedDataDestinationResource) {
-                        var dataDestinationResource = (ProvisionedDataDestinationResource) destinationResource;
-                        DataAddress dataDestination = dataDestinationResource.createDataDestination();
+                    if (provisionedResource instanceof ProvisionedDataDestinationResource) {
+                        // a data destination was provisioned by a consumer
+                        var dataDestinationResource = (ProvisionedDataDestinationResource) provisionedResource;
+                        var dataDestination = dataDestinationResource.createDataDestination();
 
                         if (secretToken != null) {
-                            String keyName = dataDestinationResource.getResourceName();
+                            var keyName = dataDestinationResource.getResourceName();
                             vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
                             dataDestination.setKeyName(keyName);
                         }
-
                         transferProcess.getDataRequest().updateDestination(dataDestination);
+                    } else if (provisionedResource instanceof ProvisionedContentResource) {
+                        // content for the data transfer was provisioned by the provider
+                        var contentResource = (ProvisionedContentResource) provisionedResource;
+                        var contentAddress = contentResource.getContentDataAddress();
+                        if (secretToken != null) {
+                            var keyName = contentResource.getResourceName();
+                            vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
+                            contentAddress.setKeyName(keyName);
+                        }
+                        transferProcess.addContentDataAddress(contentAddress);
                     }
 
-                    return destinationResource;
+                    return provisionedResource;
                 })
                 .forEach(transferProcess::addProvisionedResource);
 
@@ -243,6 +253,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 process.transitionError("Asset not found: " + assetId);
                 updateTransferProcess(process, l -> l.preError(process));
             }
+            // default the content address to the asset address; this may be overridden during provisioning
+            process.addContentDataAddress(dataAddress);
             manifest = manifestGenerator.generateProviderResourceManifest(dataRequest, dataAddress, policy);
         }
 
