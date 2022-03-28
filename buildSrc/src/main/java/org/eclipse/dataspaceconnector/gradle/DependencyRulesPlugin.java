@@ -16,6 +16,10 @@ package org.eclipse.dataspaceconnector.gradle;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 
+/**
+ * Custom grade plugin to run EDC dependency rules.
+ * Use the "applyDependencyRules" task registered by this plugin to run the dependency rules.
+ */
 public class DependencyRulesPlugin implements Plugin<Project> {
 
     @Override

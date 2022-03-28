@@ -25,10 +25,18 @@ import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 
+/**
+ * Custom gradle task to run dependency rules.
+ */
 public abstract class DependencyRulesTask extends DefaultTask {
 
     private static final Pattern CROSS_MODULE_DEPENDENCY_PATTERN = Pattern.compile("\\.\\./[^.].*");
 
+    /**
+     * Flag to specify if build should fail on dependency rule violation
+     *
+     * @return True if fail on dependency rule violation
+     */
     @Input
     public abstract Property<Boolean> getFailOnError();
 

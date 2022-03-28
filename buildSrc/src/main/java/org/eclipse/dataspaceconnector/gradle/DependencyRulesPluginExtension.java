@@ -15,7 +15,18 @@ package org.eclipse.dataspaceconnector.gradle;
 
 import org.gradle.api.provider.Property;
 
+/**
+ * Configuration for {@link DependencyRulesPlugin}.
+ */
 public abstract class DependencyRulesPluginExtension {
+
+    /**
+     * Severity for rule violations.
+     *
+     * Use "fail" to fail the build whenever a rule is violated. Any other value will generate warnings.
+     *
+     * @return Severity
+     */
     public abstract Property<String> getSeverity();
 
     public boolean isFailSeverity() {
