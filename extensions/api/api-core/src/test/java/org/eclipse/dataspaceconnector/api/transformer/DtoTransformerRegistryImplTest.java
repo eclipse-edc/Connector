@@ -70,7 +70,7 @@ class DtoTransformerRegistryImplTest {
         registry.register(new TestTransformer());
 
         assertThatThrownBy(() -> registry.transform("foo", Integer.class)).isInstanceOf(EdcException.class)
-                .hasMessageStartingWith("No ApiTransformer registered that can handle foo -> " + Integer.class);
+                .hasMessageStartingWith("No DtoTransformer registered that can handle foo -> " + Integer.class);
     }
 
     @Test
@@ -86,10 +86,6 @@ class DtoTransformerRegistryImplTest {
     }
 
     private static class TestTransformer implements DtoTransformer<String, String> {
-        @Override
-        public boolean canHandle(@NotNull Object object, @NotNull Class<?> outputType) {
-            return object instanceof String && outputType == String.class;
-        }
 
         @Override
         public Class<String> getInputType() {

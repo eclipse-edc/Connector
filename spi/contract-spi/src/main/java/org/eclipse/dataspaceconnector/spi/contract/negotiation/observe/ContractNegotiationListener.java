@@ -21,127 +21,126 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
  * Interface implemented by listeners registered to observe contract negotiation state changes
  * via {@link Observable#registerListener}.
  * <p>
- * Note that the listener is not guaranteed to be called after a state change, in case
- * the application restarts. That is relevant when using a persistent contract negotiation
- * store implementation.
+ * Note that the listener is called before state changes are persisted.
+ * Therefore, when using a persistent contract negotiation store implementation, it
+ * is guaranteed to be called at least once.
  */
 public interface ContractNegotiationListener {
     
     /**
      * Called after a {@link ContractNegotiation} has moved to state
-     * {@link ContractNegotiationStates#REQUESTING}.
+     * {@link ContractNegotiationStates#REQUESTING}, but before the change is persisted.
      *
      * @param negotiation the contract negotiation whose state has changed.
      */
-    default void requesting(ContractNegotiation negotiation) {
+    default void preRequesting(ContractNegotiation negotiation) {
     }
     
     /**
      * Called after a {@link ContractNegotiation} has moved to state
-     * {@link ContractNegotiationStates#REQUESTED}.
+     * {@link ContractNegotiationStates#REQUESTED}, but before the change is persisted.
      *
      * @param negotiation the contract negotiation whose state has changed.
      */
-    default void requested(ContractNegotiation negotiation) {
+    default void preRequested(ContractNegotiation negotiation) {
     }
     
     /**
      * Called after a {@link ContractNegotiation} has moved to state
-     * {@link ContractNegotiationStates#PROVIDER_OFFERING}.
+     * {@link ContractNegotiationStates#PROVIDER_OFFERING}, but before the change is persisted.
      *
      * @param negotiation the contract negotiation whose state has changed.
      */
-    default void providerOffering(ContractNegotiation negotiation) {
+    default void preProviderOffering(ContractNegotiation negotiation) {
     }
     
     /**
      * Called after a {@link ContractNegotiation} has moved to state
-     * {@link ContractNegotiationStates#PROVIDER_OFFERED}.
+     * {@link ContractNegotiationStates#PROVIDER_OFFERED}, but before the change is persisted.
      *
      * @param negotiation the contract negotiation whose state has changed.
      */
-    default void providerOffered(ContractNegotiation negotiation) {
+    default void preProviderOffered(ContractNegotiation negotiation) {
     }
     
     /**
      * Called after a {@link ContractNegotiation} has moved to state
-     * {@link ContractNegotiationStates#CONSUMER_OFFERING}.
+     * {@link ContractNegotiationStates#CONSUMER_OFFERING}, but before the change is persisted.
      *
      * @param negotiation the contract negotiation whose state has changed.
      */
-    default void consumerOffering(ContractNegotiation negotiation) {
+    default void preConsumerOffering(ContractNegotiation negotiation) {
     }
     
     /**
      * Called after a {@link ContractNegotiation} has moved to state
-     * {@link ContractNegotiationStates#CONSUMER_OFFERED}.
+     * {@link ContractNegotiationStates#CONSUMER_OFFERED}, but before the change is persisted.
      *
      * @param negotiation the contract negotiation whose state has changed.
      */
-    default void consumerOffered(ContractNegotiation negotiation) {
+    default void preConsumerOffered(ContractNegotiation negotiation) {
     }
     
     /**
      * Called after a {@link ContractNegotiation} has moved to state
-     * {@link ContractNegotiationStates#CONSUMER_APPROVING}.
+     * {@link ContractNegotiationStates#CONSUMER_APPROVING}, but before the change is persisted.
      *
      * @param negotiation the contract negotiation whose state has changed.
      */
-    default void consumerApproving(ContractNegotiation negotiation) {
+    default void preConsumerApproving(ContractNegotiation negotiation) {
     }
     
     /**
      * Called after a {@link ContractNegotiation} has moved to state
-     * {@link ContractNegotiationStates#CONSUMER_APPROVED}.
+     * {@link ContractNegotiationStates#CONSUMER_APPROVED}, but before the change is persisted.
      *
      * @param negotiation the contract negotiation whose state has changed.
      */
-    default void consumerApproved(ContractNegotiation negotiation) {
+    default void preConsumerApproved(ContractNegotiation negotiation) {
     }
     
     /**
      * Called after a {@link ContractNegotiation} has moved to state
-     * {@link ContractNegotiationStates#DECLINING}.
+     * {@link ContractNegotiationStates#DECLINING}, but before the change is persisted.
      *
      * @param negotiation the contract negotiation whose state has changed.
      */
-    default void declining(ContractNegotiation negotiation) {
+    default void preDeclining(ContractNegotiation negotiation) {
     }
     
     /**
      * Called after a {@link ContractNegotiation} has moved to state
-     * {@link ContractNegotiationStates#DECLINED}.
+     * {@link ContractNegotiationStates#DECLINED}, but before the change is persisted.
      *
      * @param negotiation the contract negotiation whose state has changed.
      */
-    default void declined(ContractNegotiation negotiation) {
+    default void preDeclined(ContractNegotiation negotiation) {
     }
     
     /**
      * Called after a {@link ContractNegotiation} has moved to state
-     * {@link ContractNegotiationStates#CONFIRMING}.
+     * {@link ContractNegotiationStates#CONFIRMING}, but before the change is persisted.
      *
      * @param negotiation the contract negotiation whose state has changed.
      */
-    default void confirming(ContractNegotiation negotiation) {
+    default void preConfirming(ContractNegotiation negotiation) {
     }
-    
+
     /**
      * Called after a {@link ContractNegotiation} has moved to state
-     * {@link ContractNegotiationStates#CONFIRMED}.
+     * {@link ContractNegotiationStates#CONFIRMED}, but before the change is persisted.
      *
      * @param negotiation the contract negotiation whose state has changed.
      */
-    default void confirmed(ContractNegotiation negotiation) {
+    default void preConfirmed(ContractNegotiation negotiation) {
     }
-    
+
     /**
      * Called after a {@link ContractNegotiation} has moved to state
-     * {@link ContractNegotiationStates#ERROR}.
+     * {@link ContractNegotiationStates#ERROR}, but before the change is persisted.
      *
      * @param negotiation the contract negotiation whose state has changed.
      */
-    default void error(ContractNegotiation negotiation) {
+    default void preError(ContractNegotiation negotiation) {
     }
-    
 }

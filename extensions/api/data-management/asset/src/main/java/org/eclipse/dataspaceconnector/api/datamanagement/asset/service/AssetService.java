@@ -29,13 +29,13 @@ public interface AssetService {
      * @param assetId id of the asset
      * @return the asset, null if it's not found
      */
-    Asset findbyId(String assetId);
+    Asset findById(String assetId);
 
     /**
      * Query assets
      *
      * @param query request
-     * @return the collection of assets that match the query
+     * @return the collection of assets that matches the query
      */
     Collection<Asset> query(QuerySpec query);
 

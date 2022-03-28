@@ -14,8 +14,7 @@
 
 package org.eclipse.dataspaceconnector.ids.api.configuration;
 
-import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
-import org.eclipse.dataspaceconnector.extension.jetty.PortMapping;
+import org.eclipse.dataspaceconnector.spi.WebServer;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -30,13 +29,13 @@ import static java.lang.String.format;
 public class IdsApiConfigurationExtension implements ServiceExtension {
     
     public static final String IDS_API_CONFIG = "web.http.ids";
-    private static final String IDS_API_CONTEXT_ALIAS = "ids";
+    public static final String IDS_API_CONTEXT_ALIAS = "ids";
     
     public static final int DEFAULT_IDS_PORT = 8282;
     public static final String DEFAULT_IDS_API_PATH = "/api/v1/ids";
     
     @Inject
-    private JettyService jettyService;
+    private WebServer webServer;
     
     @Override
     public String name() {
@@ -55,7 +54,7 @@ public class IdsApiConfigurationExtension implements ServiceExtension {
         if (config.getEntries().isEmpty()) {
             monitor.warning(format("Settings for [%s] and/or [%s] were not provided. Using default" +
                     " value(s) instead.", IDS_API_CONFIG + ".path", IDS_API_CONFIG + ".path"));
-            jettyService.addPortMapping(new PortMapping(contextAlias, port, path));
+            webServer.addPortMapping(contextAlias, port, path);
         } else {
             path = config.getString("path", path);
             port = config.getInteger("port", port);

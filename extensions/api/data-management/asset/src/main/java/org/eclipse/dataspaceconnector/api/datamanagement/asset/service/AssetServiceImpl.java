@@ -44,7 +44,7 @@ public class AssetServiceImpl implements AssetService {
     }
 
     @Override
-    public Asset findbyId(String assetId) {
+    public Asset findById(String assetId) {
         return index.findById(assetId);
     }
 
@@ -84,7 +84,7 @@ public class AssetServiceImpl implements AssetService {
         var result = new AtomicReference<ServiceResult<Asset>>();
 
         transactionContext.execute(() -> {
-            if (index.findById(asset.getId()) == null) {
+            if (findById(asset.getId()) == null) {
                 loader.accept(asset, dataAddress);
                 result.set(ServiceResult.success(asset));
             } else {

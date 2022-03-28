@@ -31,8 +31,8 @@ import static javax.transaction.Status.STATUS_MARKED_ROLLBACK;
  * An implementation backed by the Atomikos transaction manager.
  */
 public class AtomikosTransactionContext implements TransactionContext {
+    private final Monitor monitor;
     private TransactionManager transactionManager;
-    private Monitor monitor;
 
     public AtomikosTransactionContext(Monitor monitor) {
         this.monitor = monitor;
@@ -44,6 +44,14 @@ public class AtomikosTransactionContext implements TransactionContext {
 
     @Override
     public void execute(TransactionBlock block) {
+        execute((ResultTransactionBlock<Void>) () -> {
+            block.execute();
+            return null;
+        });
+    }
+
+    @Override
+    public <T> T execute(ResultTransactionBlock<T> block) {
         var startedTransaction = false;
         Transaction transaction = null;
         try {
@@ -54,7 +62,7 @@ public class AtomikosTransactionContext implements TransactionContext {
                 startedTransaction = true;
             }
 
-            block.execute();
+            return block.execute();
 
         } catch (Exception e) {
             try {

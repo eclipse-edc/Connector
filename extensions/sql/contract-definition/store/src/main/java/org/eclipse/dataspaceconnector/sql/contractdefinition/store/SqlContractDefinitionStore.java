@@ -33,7 +33,6 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 
@@ -91,36 +90,40 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
 
     @Override
     public @NotNull Collection<ContractDefinition> findAll() {
-        try (var connection = getConnection()) {
-            return executeQuery(
-                    connection,
-                    this::mapResultSet,
-                    String.format(SQL_FIND_CLAUSE_TEMPLATE, CONTRACT_DEFINITION_TABLE));
-        } catch (Exception exception) {
-            throw new EdcPersistenceException(exception);
-        }
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                return executeQuery(
+                        connection,
+                        this::mapResultSet,
+                        String.format(SQL_FIND_CLAUSE_TEMPLATE, CONTRACT_DEFINITION_TABLE));
+            } catch (Exception exception) {
+                throw new EdcPersistenceException(exception);
+            }
+        });
     }
 
     @Override
     public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
-        Objects.requireNonNull(spec);
+        return transactionContext.execute(() -> {
+            Objects.requireNonNull(spec);
 
-        var limit = Limit.Builder.newInstance()
-                .limit(spec.getLimit())
-                .offset(spec.getOffset())
-                .build();
+            var limit = Limit.Builder.newInstance()
+                    .limit(spec.getLimit())
+                    .offset(spec.getOffset())
+                    .build();
 
-        var query = SQL_FIND_CLAUSE_TEMPLATE + " " + limit.getStatement();
+            var query = SQL_FIND_CLAUSE_TEMPLATE + " " + limit.getStatement();
 
-        try (var connection = getConnection()) {
-            var definitions = executeQuery(
-                    connection,
-                    this::mapResultSet,
-                    String.format(query, CONTRACT_DEFINITION_TABLE));
-            return definitions.stream();
-        } catch (Exception exception) {
-            throw new EdcPersistenceException(exception);
-        }
+            try (var connection = getConnection()) {
+                var definitions = executeQuery(
+                        connection,
+                        this::mapResultSet,
+                        String.format(query, CONTRACT_DEFINITION_TABLE));
+                return definitions.stream();
+            } catch (Exception exception) {
+                throw new EdcPersistenceException(exception);
+            }
+        });
     }
 
     @Override
@@ -150,12 +153,12 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
     @Override
     public void update(ContractDefinition definition) {
         Objects.requireNonNull(definition);
+        transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                if (existsById(definition.getId(), connection)) {
+                    throw new EdcPersistenceException(String.format("Cannot update. Contract Definition with ID '%s' does not exist.", definition.getId()));
+                }
 
-        try (var connection = getConnection()) {
-            if (existsById(definition.getId(), connection)) {
-                throw new EdcPersistenceException(String.format("Cannot update. Contract Definition with ID '%s' does not exist.", definition.getId()));
-            }
-            transactionContext.execute(() -> {
                 try {
                     executeQuery(connection, SQL_UPDATE_CLAUSE_TEMPLATE,
                             definition.getId(),
@@ -166,34 +169,31 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
                 } catch (JsonProcessingException e) {
                     throw new EdcPersistenceException(e);
                 }
-            });
-        } catch (Exception e) {
-            if (e instanceof EdcPersistenceException) {
-                throw (EdcPersistenceException) e;
+
+            } catch (Exception e) {
+                if (e instanceof EdcPersistenceException) {
+                    throw (EdcPersistenceException) e;
+                }
+                throw new EdcPersistenceException(e.getMessage(), e);
             }
-            throw new EdcPersistenceException(e.getMessage(), e);
-        }
+        });
     }
 
     @Override
     public ContractDefinition deleteById(String id) {
         Objects.requireNonNull(id);
-
-        AtomicReference<ContractDefinition> atomicRef = new AtomicReference<>();
-
-        transactionContext.execute(() -> {
+        return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var entity = findById(connection, id);
                 if (entity != null) {
-                    atomicRef.set(entity);
                     executeQuery(connection, SQL_DELETE_CLAUSE_TEMPLATE, id);
                 }
+                return entity;
             } catch (Exception e) {
                 throw new EdcPersistenceException(e.getMessage(), e);
             }
         });
 
-        return atomicRef.get();
     }
 
     private boolean existsById(String definitionId, Connection connection) {

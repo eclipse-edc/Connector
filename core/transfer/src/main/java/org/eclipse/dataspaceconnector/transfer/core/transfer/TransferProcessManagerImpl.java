@@ -33,6 +33,7 @@ import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
+import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
@@ -50,6 +51,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.Transfer
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static java.lang.String.format;
@@ -85,7 +87,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
  * If no processes need to be transitioned, the transfer manager will wait according to the the defined {@link WaitStrategy} before conducting the next iteration.
  * A wait strategy may implement a backoff scheme.
  */
-public class TransferProcessManagerImpl implements TransferProcessManager {
+public class TransferProcessManagerImpl implements TransferProcessManager, ProvisionCompletionDelegate {
 
     private int batchSize = 5;
     private WaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
@@ -154,6 +156,50 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         commandQueue.enqueue(command);
     }
 
+    @Override
+    public void handleProvisionResult(String processId, List<ProvisionResponse> responses) {
+        var transferProcess = transferProcessStore.find(processId);
+        if (transferProcess == null) {
+            monitor.severe("TransferProcessManager: no TransferProcess found for deprovisioned resources");
+            return;
+        }
+
+        if (transferProcess.getState() == ERROR.code()) {
+            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so provisioning could not be completed", transferProcess.getId()));
+            return;
+        }
+
+        responses.stream()
+                .map(response -> {
+                    var destinationResource = response.getResource();
+                    var secretToken = response.getSecretToken();
+
+                    if (destinationResource instanceof ProvisionedDataDestinationResource) {
+                        var dataDestinationResource = (ProvisionedDataDestinationResource) destinationResource;
+                        DataAddress dataDestination = dataDestinationResource.createDataDestination();
+
+                        if (secretToken != null) {
+                            String keyName = dataDestinationResource.getResourceName();
+                            vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
+                            dataDestination.setKeyName(keyName);
+                        }
+
+                        transferProcess.getDataRequest().updateDestination(dataDestination);
+                    }
+
+                    return destinationResource;
+                })
+                .forEach(transferProcess::addProvisionedResource);
+
+        if (transferProcess.provisioningComplete()) {
+            transferProcess.transitionProvisioned();
+            transferProcessStore.update(transferProcess);
+            observable.invokeForEach(l -> l.preProvisioned(transferProcess));
+        } else {
+            transferProcessStore.update(transferProcess);
+        }
+    }
+
     private TransferInitiateResult initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
         // make the request idempotent: if the process exists, return
         var processId = transferProcessStore.processIdForTransferId(dataRequest.getId());
@@ -166,8 +212,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         if (process.getState() == TransferProcessStates.UNSAVED.code()) {
             process.transitionInitial();
         }
+        observable.invokeForEach(l -> l.preCreated(process));
         transferProcessStore.create(process);
-        observable.invokeForEach(l -> l.created(process));
         return TransferInitiateResult.success(process.getId());
     }
 
@@ -185,8 +231,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
         var manifest = manifestGenerator.generateResourceManifest(process, policy);
         process.transitionProvisioning(manifest);
-        transferProcessStore.update(process);
-        observable.invokeForEach(l -> l.provisioning(process));
+        updateTransferProcess(process, l -> l.preProvisioning(process));
         return true;
     }
 
@@ -207,7 +252,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         provisionManager.provision(process, policy)
                 .whenComplete((responses, throwable) -> {
                     if (throwable == null) {
-                        onProvisionComplete(process.getId(), responses);
+                        handleProvisionResult(process.getId(), responses);
                     } else {
                         transitionToError(process.getId(), throwable, "Error during provisioning");
                     }
@@ -228,7 +273,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         if (CONSUMER == process.getType()) {
             process.transitionRequesting();
             transferProcessStore.update(process);
-            observable.invokeForEach(l -> l.requesting(process));
+            observable.invokeForEach(l -> l.preRequesting(process));
         } else {
             processProviderRequest(process, process.getDataRequest());
         }
@@ -265,8 +310,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private boolean processRequested(TransferProcess process) {
         if (!process.getDataRequest().isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
             process.transitionInProgressOrStreaming();
-            transferProcessStore.update(process);
-            observable.invokeForEach(l -> l.inProgress(process));
+            updateTransferProcess(process, l -> l.preInProgress(process));
             monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
             return true;
         } else {
@@ -322,7 +366,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private boolean processDeprovisioning(TransferProcess process) {
         // TODO resolve contract agreement policy from the PolicyStore
         var policy = Policy.Builder.newInstance().build();
-        observable.invokeForEach(l -> l.deprovisioning(process)); // TODO: this is called here since it's not callable from the command handler
+        observable.invokeForEach(l -> l.preDeprovisioning(process)); // TODO: this is called here since it's not callable from the command handler
         provisionManager.deprovision(process, policy)
                 .whenComplete((responses, throwable) -> {
                     if (throwable == null) {
@@ -346,56 +390,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private boolean processDeprovisioned(TransferProcess process) {
         process.transitionEnded();
         transferProcessStore.update(process);
-        observable.invokeForEach(l -> l.ended(process));
+        observable.invokeForEach(l -> l.preEnded(process));
         monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
         return true;
     }
 
     private boolean processCommand(TransferProcessCommand command) {
         return commandProcessor.processCommandQueue(command);
-    }
-
-    void onProvisionComplete(String processId, List<ProvisionResponse> responses) {
-        var transferProcess = transferProcessStore.find(processId);
-        if (transferProcess == null) {
-            monitor.severe("TransferProcessManager: no TransferProcess found for deprovisioned resources");
-            return;
-        }
-
-        if (transferProcess.getState() == ERROR.code()) {
-            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so provisioning could not be completed", transferProcess.getId()));
-            return;
-        }
-
-        responses.stream()
-                .map(response -> {
-                    var destinationResource = response.getResource();
-                    var secretToken = response.getSecretToken();
-
-                    if (destinationResource instanceof ProvisionedDataDestinationResource) {
-                        var dataDestinationResource = (ProvisionedDataDestinationResource) destinationResource;
-                        DataAddress dataDestination = dataDestinationResource.createDataDestination();
-
-                        if (secretToken != null) {
-                            String keyName = dataDestinationResource.getResourceName();
-                            vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
-                            dataDestination.setKeyName(keyName);
-                        }
-
-                        transferProcess.getDataRequest().updateDestination(dataDestination);
-                    }
-
-                    return destinationResource;
-                })
-                .forEach(transferProcess::addProvisionedResource);
-
-        if (transferProcess.provisioningComplete()) {
-            transferProcess.transitionProvisioned();
-            transferProcessStore.update(transferProcess);
-            observable.invokeForEach(l -> l.provisioned(transferProcess));
-        } else {
-            transferProcessStore.update(transferProcess);
-        }
     }
 
     void onDeprovisionComplete(String processId) {
@@ -414,7 +415,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
         transferProcess.transitionDeprovisioned();
         transferProcessStore.update(transferProcess);
-        observable.invokeForEach(l -> l.deprovisioned(transferProcess));
+        observable.invokeForEach(l -> l.preDeprovisioned(transferProcess));
     }
 
     private StateProcessorImpl<TransferProcess> processTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
@@ -430,8 +431,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private void transitionToCompleted(TransferProcess process) {
         process.transitionCompleted();
         monitor.debug("Process " + process.getId() + " is now " + COMPLETED);
-        transferProcessStore.update(process);
-        observable.invokeForEach(listener -> listener.completed(process));
+        updateTransferProcess(process, l -> l.preCompleted(process));
     }
 
     private void transitionToError(String id, Throwable throwable, String message) {
@@ -443,8 +443,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
         monitor.severe(message, throwable);
         transferProcess.transitionError(format("%s: %s", message, throwable.getLocalizedMessage()));
-        transferProcessStore.update(transferProcess);
-        observable.invokeForEach(l -> l.error(transferProcess));
+        updateTransferProcess(transferProcess, l -> l.preError(transferProcess));
     }
 
     private void processProviderRequest(TransferProcess process, DataRequest dataRequest) {
@@ -454,19 +453,16 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         var response = dataFlowManager.initiate(dataRequest, policy);
         if (response.succeeded()) {
             process.transitionInProgressOrStreaming();
-            transferProcessStore.update(process);
-            observable.invokeForEach(l -> l.inProgress(process));
+            updateTransferProcess(process, l -> l.preInProgress(process));
         } else {
             if (ResponseStatus.ERROR_RETRY == response.getFailure().status()) {
                 monitor.severe("Error processing transfer request. Setting to retry: " + process.getId());
                 process.transitionProvisioned();
-                transferProcessStore.update(process);
-                observable.invokeForEach(l -> l.provisioned(process));
+                updateTransferProcess(process, l -> l.preProvisioned(process));
             } else {
                 monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), String.join(", ", response.getFailureMessages())));
                 process.transitionError(response.getFailureMessages().stream().findFirst().orElse(""));
-                transferProcessStore.update(process);
-                observable.invokeForEach(l -> l.error(process));
+                updateTransferProcess(process, l -> l.preError(process));
             }
         }
     }
@@ -483,7 +479,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
                     transferProcess.transitionRequested();
                     transferProcessStore.update(transferProcess);
-                    observable.invokeForEach(l -> l.requested(transferProcess));
+                    observable.invokeForEach(l -> l.preRequested(transferProcess));
                     return result;
                 })
                 .whenComplete((o, throwable) -> {
@@ -497,10 +493,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                         }
 
                         transferProcess.transitionInProgressOrStreaming();
-                        transferProcessStore.update(transferProcess);
-                        observable.invokeForEach(l -> l.inProgress(transferProcess));
+                        updateTransferProcess(transferProcess, l -> l.preInProgress(transferProcess));
                     }
                 });
+    }
+
+    private void updateTransferProcess(TransferProcess transferProcess, Consumer<TransferProcessListener> observe) {
+        observable.invokeForEach(observe);
+        transferProcessStore.update(transferProcess);
     }
 
     public static class Builder {
