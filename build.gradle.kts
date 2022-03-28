@@ -177,8 +177,9 @@ allprojects {
                 }
             }
         }
+
         testLogging {
-            events("failed", "passed")
+            events("failed")
             showStackTraces = true
             exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         }
