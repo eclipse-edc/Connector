@@ -38,6 +38,7 @@ the detailed section referring to by linking pull requests or issues.
 * Add interface `WebServer` to `web-spi` (#921)
 * Implement Asset service for Data Management API (#931)
 * Implement ContractDefinition service for Data Management API (#940)
+* Implement ContractNegotiation service for Data Management API (#957)
 
 #### Changed
 
@@ -69,6 +70,7 @@ the detailed section referring to by linking pull requests or issues.
 * Flaky S3 StatusChecker Test (#794)
 * Added missing Data Management Asset controller openapi (#853)
 * Policy deserialization (#898)
+* Fix extensions loading of EdcRuntimeExtension (#180)
 
 ---
 

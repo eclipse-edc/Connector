@@ -24,7 +24,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 import java.util.Collection;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -45,53 +44,43 @@ public class AssetServiceImpl implements AssetService {
 
     @Override
     public Asset findById(String assetId) {
-        return index.findById(assetId);
+        return transactionContext.execute(() -> index.findById(assetId));
     }
 
     @Override
     public Collection<Asset> query(QuerySpec query) {
-        return index.queryAssets(query).collect(toList());
+        return transactionContext.execute(() -> index.queryAssets(query).collect(toList()));
     }
 
     @Override
     public ServiceResult<Asset> delete(String assetId) {
-        var result = new AtomicReference<ServiceResult<Asset>>();
-
-        transactionContext.execute(() -> {
+        return transactionContext.execute(() -> {
             var filter = format("contractAgreement.asset.properties.%s = %s", PROPERTY_ID, assetId);
             var query = QuerySpec.Builder.newInstance().filter(filter).build();
 
             var negotiationsOnAsset = contractNegotiationStore.queryNegotiations(query);
             if (negotiationsOnAsset.findAny().isPresent()) {
-                result.set(ServiceResult.conflict(format("Asset %s cannot be deleted as it is referenced by at least one contract agreement", assetId)));
-                return;
+                return ServiceResult.conflict(format("Asset %s cannot be deleted as it is referenced by at least one contract agreement", assetId));
             }
 
             var deleted = loader.deleteById(assetId);
             if (deleted == null) {
-                result.set(ServiceResult.notFound(format("Asset %s does not exist", assetId)));
-                return;
+                return ServiceResult.notFound(format("Asset %s does not exist", assetId));
             }
 
-            result.set(ServiceResult.success(deleted));
+            return ServiceResult.success(deleted);
         });
-
-        return result.get();
     }
 
     @Override
     public ServiceResult<Asset> create(Asset asset, DataAddress dataAddress) {
-        var result = new AtomicReference<ServiceResult<Asset>>();
-
-        transactionContext.execute(() -> {
+        return transactionContext.execute(() -> {
             if (findById(asset.getId()) == null) {
                 loader.accept(asset, dataAddress);
-                result.set(ServiceResult.success(asset));
+                return ServiceResult.success(asset);
             } else {
-                result.set(ServiceResult.conflict(format("Asset %s cannot be created because it already exist", asset.getId())));
+                return ServiceResult.conflict(format("Asset %s cannot be created because it already exist", asset.getId()));
             }
         });
-
-        return result.get();
     }
 }

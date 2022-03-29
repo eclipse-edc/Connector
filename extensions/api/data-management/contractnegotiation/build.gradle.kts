@@ -11,7 +11,7 @@
  *   ZF Friedrichshafen AG - Initial API and Implementation
  */
 
-
+val restAssured: String by project
 val rsApi: String by project
 
 plugins {
@@ -20,15 +20,23 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":extensions:api:api-core"))
     implementation(project(":spi:contract-spi"))
+    implementation(project(":spi:transfer-spi"))
+    implementation(project(":core:contract"))
+    implementation(project(":extensions:api:api-core"))
     implementation(project(":extensions:api:data-management:api-configuration"))
+    implementation(project(":extensions:transaction:transaction-spi"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+
     testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(testFixtures(project(":common:util")))
     testImplementation(project(":common:util"))
     testImplementation(project(":extensions:http"))
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(project(":extensions:in-memory:assetindex-memory"))
+    testImplementation(project(":extensions:in-memory:contractdefinition-store-memory"))
+    testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
+    testImplementation("io.rest-assured:rest-assured:${restAssured}")
 }
 
 publishing {

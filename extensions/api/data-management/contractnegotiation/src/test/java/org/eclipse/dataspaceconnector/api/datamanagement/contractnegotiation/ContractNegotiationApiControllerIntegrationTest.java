@@ -8,93 +8,234 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  * Contributors:
- *   ZF Friedrichshafen AG - Initial API and Implementation
+ *    ZF Friedrichshafen AG - Initial API and Implementation
+ *    Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  */
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import org.eclipse.dataspaceconnector.common.testfixtures.TestUtils;
-import org.eclipse.dataspaceconnector.extension.jersey.CorsFilterConfiguration;
-import org.eclipse.dataspaceconnector.extension.jersey.JerseyRestService;
-import org.eclipse.dataspaceconnector.extension.jetty.JettyConfiguration;
-import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
-import org.eclipse.dataspaceconnector.extension.jetty.PortMapping;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeAll;
+import io.restassured.specification.RequestSpecification;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
+import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.message.MessageContext;
+import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
+import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
+import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
+import static io.restassured.RestAssured.given;
+import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
-import static org.mockito.Mockito.mock;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTED;
+import static org.hamcrest.Matchers.is;
 
+@ExtendWith(EdcExtension.class)
 class ContractNegotiationApiControllerIntegrationTest {
-    private static int port;
-    private OkHttpClient client;
 
-    @BeforeAll
-    static void prepareWebserver() {
-        port = TestUtils.getFreePort();
-        var monitor = mock(Monitor.class);
-        var config = new JettyConfiguration(null, null);
-        config.portMapping(new PortMapping("data", port, "/api/v1/data"));
-        var jetty = new JettyService(config, monitor);
-
-        var controller = new ContractNegotiationApiController(monitor);
-        var jerseyService = new JerseyRestService(jetty, new TypeManager(), mock(CorsFilterConfiguration.class), monitor);
-        jetty.start();
-        jerseyService.registerResource("data", controller);
-        jerseyService.start();
-    }
+    private final int port = getFreePort();
+    private final String authKey = "123456";
 
     @BeforeEach
-    void setup() {
-        client = testOkHttpClient();
+    void setUp(EdcExtension extension) {
+        extension.setConfiguration(Map.of(
+                "web.http.data.port", String.valueOf(port),
+                "web.http.data.path", "/api/v1/data",
+                "edc.api.auth.key", authKey
+        ));
     }
 
     @Test
-    void getAllContractNegotiations() throws IOException {
-        var response = get(basePath());
-        assertThat(response.code()).isEqualTo(200);
+    void getAllContractNegotiations(ContractNegotiationStore store) {
+        store.save(createContractNegotiation("negotiationId"));
+
+        baseRequest()
+                .get("/contractnegotiations")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(1));
     }
 
     @Test
-    void getAllContractNegotiations_withPaging() throws IOException {
-        try (var response = get(basePath() + "?offset=10&limit=15&sort=ASC")) {
-            assertThat(response.code()).isEqualTo(200);
+    void getAllContractNegotiations_withPaging(ContractNegotiationStore store) {
+        store.save(createContractNegotiation("negotiationId"));
+
+        baseRequest()
+                .get("/contractnegotiations?offset=0&limit=15&sort=ASC")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(1));
+    }
+
+    @Test
+    void getSingleContractNegotation(ContractNegotiationStore store) {
+        store.save(createContractNegotiation("negotiationId"));
+
+        baseRequest()
+                .get("/contractnegotiations/negotiationId")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("id", is("negotiationId"));
+    }
+
+    @Test
+    void getSingleContractNegotation_notFound() {
+        baseRequest()
+                .get("/contractnegotiations/nonExistingId")
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    void getSingleContractNegotationState(ContractNegotiationStore store) {
+        store.save(createContractNegotiationBuilder("negotiationId").state(REQUESTED.code()).build());
+
+        var state = baseRequest()
+                .get("/contractnegotiations/negotiationId/state")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .extract().asString();
+
+        assertThat(state).isEqualTo("REQUESTED");
+    }
+
+    @Test
+    void getSingleContractNegotationAgreement(ContractNegotiationStore store) {
+        var contractAgreement = createContractAgreement("negotiationId");
+        store.save(createContractNegotiationBuilder("negotiationId").contractAgreement(contractAgreement).build());
+
+        baseRequest()
+                .get("/contractnegotiations/negotiationId/agreement")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("id", is(contractAgreement.getId()));
+    }
+
+    @Test
+    void getSingleContractNegotationAgreement_notFound(ContractNegotiationStore store) {
+        store.save(createContractNegotiation("negotiationId"));
+
+        baseRequest()
+                .get("/contractnegotiations/negotiationId/agreement")
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    void initiateContractNegotiation(RemoteMessageDispatcherRegistry registry) {
+        registry.register(new TestRemoteMessageDispatcher());
+        var request = NegotiationInitiateRequestDto.Builder.newInstance()
+                .connectorId("connector")
+                .protocol(TestRemoteMessageDispatcher.TEST_PROTOCOL)
+                .connectorAddress("connectorAddress")
+                .offerId(UUID.randomUUID().toString())
+                .build();
+
+        var result = baseRequest()
+                .contentType(JSON)
+                .body(request)
+                .post("/contractnegotiations")
+                .then()
+                .statusCode(200)
+                .extract().body().asString();
+
+        assertThat(result).isNotBlank();
+    }
+
+    @Test
+    void cancel(ContractNegotiationStore store) {
+        store.save(createContractNegotiation("negotiationId"));
+
+        baseRequest()
+                .contentType(JSON)
+                .post("/contractnegotiations/negotiationId/cancel")
+                .then()
+                .statusCode(204);
+    }
+
+    @Test
+    void decline(ContractNegotiationStore store) {
+        store.save(createContractNegotiationBuilder("negotiationId").state(REQUESTED.code()).build());
+
+        baseRequest()
+                .contentType(JSON)
+                .post("/contractnegotiations/negotiationId/decline")
+                .then()
+                .statusCode(204);
+    }
+
+    private RequestSpecification baseRequest() {
+        return given()
+                .baseUri("http://localhost:" + port)
+                .basePath("/api/v1/data")
+                .header("x-api-key", authKey)
+                .when();
+    }
+
+    private ContractNegotiation createContractNegotiation(String negotiationId) {
+        return createContractNegotiationBuilder(negotiationId)
+                .build();
+    }
+
+    private ContractAgreement createContractAgreement(String negotiationId) {
+        return ContractAgreement.Builder.newInstance()
+                .id(negotiationId)
+                .providerAgentId(UUID.randomUUID().toString())
+                .consumerAgentId(UUID.randomUUID().toString())
+                .asset(Asset.Builder.newInstance().build())
+                .policy(Policy.Builder.newInstance().build())
+                .build();
+    }
+
+    private ContractOfferRequest createContractOfferRequest() {
+        return ContractOfferRequest.Builder.newInstance()
+                .protocol("protocol")
+                .connectorId("connectorId")
+                .connectorAddress("connectorAddress")
+                .contractOffer(ContractOffer.Builder.newInstance()
+                        .id(UUID.randomUUID().toString())
+                        .policy(Policy.Builder.newInstance().build())
+                        .build())
+                .build();
+    }
+
+    private ContractNegotiation.Builder createContractNegotiationBuilder(String negotiationId) {
+        return ContractNegotiation.Builder.newInstance()
+                .id(negotiationId)
+                .counterPartyId(UUID.randomUUID().toString())
+                .counterPartyAddress("address")
+                .protocol("protocol");
+    }
+
+    private static class TestRemoteMessageDispatcher implements RemoteMessageDispatcher {
+        static final String TEST_PROTOCOL = "test";
+
+        @Override
+        public String protocol() {
+            return TEST_PROTOCOL;
         }
-    }
 
-    @Test
-    void getSingleContractNegotation() throws IOException {
-        var id = "test-id";
-        try (var response = get(basePath() + "/" + id)) {
-            //assertThat(response.code()).isEqualTo(200);
+        @Override
+        public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {
+            return CompletableFuture.completedFuture(null);
         }
-
-    }
-
-    @Test
-    void getSingleContractNegotation_notFound() throws IOException {
-        try (var response = get(basePath() + "/not-exist")) {
-            // assertThat(response.code()).isEqualTo(404);
-        }
-    }
-
-    @NotNull
-    private String basePath() {
-        return "http://localhost:" + port + "/api/v1/data/contractnegotiations";
-    }
-
-    @NotNull
-    private Response get(String url) throws IOException {
-        return client.newCall(new Request.Builder().get().url(url).build()).execute();
     }
 }
