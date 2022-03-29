@@ -135,12 +135,12 @@ public class PolicyDefinitionDto {
         }
 
         public Builder assignee(String assignee) {
-            dto.assigner = assignee;
+            dto.assignee = assignee;
             return this;
         }
 
         public Builder target(String target) {
-            dto.assigner = target;
+            dto.target = target;
             return this;
         }
 
