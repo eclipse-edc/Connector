@@ -19,7 +19,7 @@ plugins {
     jacoco
     id("com.rameshkp.openapi-merger-gradle-plugin") version "1.0.4"
     id ("org.eclipse.dataspaceconnector.dependency-rules") apply(false)
-    id("com.autonomousapps.dependency-analysis") version "1.0.0-rc04" apply (false)
+    id("com.autonomousapps.dependency-analysis") version "1.0.0-rc05" apply (false)
 }
 
 repositories {
@@ -282,8 +282,8 @@ if (project.hasProperty("dependency.analysis")) {
         abi {
             exclusions {
                 excludeAnnotations(
-                        "io.opentelemetry.extension.annotations.WithSpan",
-                        "org.eclipse.dataspaceconnector.common.annotations.ExcludeFromDependecyAnalysisReport",
+                        "io\\.opentelemetry\\.extension\\.annotations\\.WithSpan",
+                        "org\\.eclipse\\.dataspaceconnector\\.common\\.annotations\\.ExcludeFromDependencyAnalysisReport",
                 )
             }
         }
