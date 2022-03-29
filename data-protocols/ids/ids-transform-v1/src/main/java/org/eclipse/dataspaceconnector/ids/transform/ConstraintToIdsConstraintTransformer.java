@@ -9,15 +9,15 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial Implementation
+ *       Fraunhofer Insitute for Software and Systems Engineering
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.BinaryOperator;
-import de.fraunhofer.iais.eis.ConstraintBuilder;
-import de.fraunhofer.iais.eis.LeftOperand;
 import de.fraunhofer.iais.eis.util.RdfResource;
+import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintBuilder;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
@@ -59,17 +59,17 @@ public class ConstraintToIdsConstraintTransformer implements IdsTypeTransformer<
     }
 
     private de.fraunhofer.iais.eis.Constraint transformAtomicConstraint(AtomicConstraint atomicConstraint, @NotNull TransformerContext context) {
-        var leftOperand = context.transform(atomicConstraint.getLeftExpression(), LeftOperand.class);
+        var leftOperand = context.transform(atomicConstraint.getLeftExpression(), String.class);
         var rightOperand = context.transform(atomicConstraint.getRightExpression(), RdfResource.class);
         var operator = context.transform(atomicConstraint.getOperator(), BinaryOperator.class);
 
         var idsId = IdsId.Builder.newInstance().value(atomicConstraint.hashCode()).type(IdsType.CONSTRAINT).build();
         var id = context.transform(idsId, URI.class);
-        var constraintBuilder = new ConstraintBuilder(id);
+        var constraintBuilder = new IdsConstraintBuilder(id);
 
-        constraintBuilder._leftOperand_(leftOperand);
-        constraintBuilder._rightOperand_(rightOperand);
-        constraintBuilder._operator_(operator);
+        constraintBuilder.leftOperand(leftOperand);
+        constraintBuilder.rightOperand(rightOperand);
+        constraintBuilder.operator(operator);
 
         return constraintBuilder.build();
     }

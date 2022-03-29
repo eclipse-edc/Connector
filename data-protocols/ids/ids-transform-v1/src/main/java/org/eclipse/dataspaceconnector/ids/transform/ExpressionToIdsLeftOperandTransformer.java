@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import de.fraunhofer.iais.eis.LeftOperand;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.policy.model.Expression;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
@@ -24,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public class ExpressionToIdsLeftOperandTransformer implements IdsTypeTransformer<Expression, LeftOperand> {
+public class ExpressionToIdsLeftOperandTransformer implements IdsTypeTransformer<Expression, String> {
 
     @Override
     public Class<Expression> getInputType() {
@@ -32,12 +31,12 @@ public class ExpressionToIdsLeftOperandTransformer implements IdsTypeTransformer
     }
 
     @Override
-    public Class<LeftOperand> getOutputType() {
-        return LeftOperand.class;
+    public Class<String> getOutputType() {
+        return String.class;
     }
 
     @Override
-    public @Nullable LeftOperand transform(Expression object, @NotNull TransformerContext context) {
+    public @Nullable String transform(Expression object, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (object == null) {
             return null;
@@ -48,21 +47,6 @@ public class ExpressionToIdsLeftOperandTransformer implements IdsTypeTransformer
             return null;
         }
 
-        var value = ((LiteralExpression) object).asString();
-
-        LeftOperand leftOperand = null;
-
-        // this is a hack until https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/338 is resolved - LeftOperand cannot be an enum
-        if (value.contains("absoluteSpatialPosition")) {
-            leftOperand = LeftOperand.ABSOLUTE_SPATIAL_POSITION;
-        } else {
-            try {
-                leftOperand = LeftOperand.valueOf(value);
-            } catch (IllegalArgumentException e) {
-                context.reportProblem(String.format("Encountered undefined left operand type: %s. Error was: %s.", value, e.getMessage()));
-            }
-
-        }
-        return leftOperand;
+        return ((LiteralExpression) object).asString();
     }
 }
