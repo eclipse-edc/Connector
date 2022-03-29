@@ -24,7 +24,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDe
 
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -46,46 +45,38 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
                 .filter(List.of(new Criterion("id", "=", contractDefinitionId)))
                 .build();
 
-        return store.findAll(querySpec).findFirst().orElse(null);
+        return transactionContext.execute(() -> store.findAll(querySpec).findFirst().orElse(null));
     }
 
     @Override
     public Collection<ContractDefinition> query(QuerySpec query) {
-        return store.findAll(query).collect(toList());
+        return transactionContext.execute(() -> store.findAll(query).collect(toList()));
     }
 
     @Override
     public ServiceResult<ContractDefinition> create(ContractDefinition contractDefinition) {
-        var result = new AtomicReference<ServiceResult<ContractDefinition>>();
-
-        transactionContext.execute(() -> {
+        return transactionContext.execute(() -> {
             if (findById(contractDefinition.getId()) == null) {
                 loader.accept(contractDefinition);
-                result.set(ServiceResult.success(contractDefinition));
+                return ServiceResult.success(contractDefinition);
             } else {
-                result.set(ServiceResult.conflict(format("ContractDefinition %s cannot be created because it already exist", contractDefinition.getId())));
+                return ServiceResult.conflict(format("ContractDefinition %s cannot be created because it already exist", contractDefinition.getId()));
             }
         });
-
-        return result.get();
     }
 
     @Override
     public ServiceResult<ContractDefinition> delete(String contractDefinitionId) {
-        var result = new AtomicReference<ServiceResult<ContractDefinition>>();
-
-        transactionContext.execute(() -> {
+        return transactionContext.execute(() -> {
             // TODO: should be checked if a contract agreement based on this definition exists. Currently not implementable because it's not possibile to filter agreements by definition id
 
             var deleted = store.deleteById(contractDefinitionId);
             if (deleted == null) {
-                result.set(ServiceResult.notFound(format("ContractDefinition %s does not exist", contractDefinitionId)));
-                return;
+                return ServiceResult.notFound(format("ContractDefinition %s does not exist", contractDefinitionId));
+            } else {
+                return ServiceResult.success(deleted);
             }
 
-            result.set(ServiceResult.success(deleted));
         });
-
-        return result.get();
     }
 }

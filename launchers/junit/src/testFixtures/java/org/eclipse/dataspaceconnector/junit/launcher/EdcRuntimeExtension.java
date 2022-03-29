@@ -175,7 +175,7 @@ public class EdcRuntimeExtension extends EdcExtension {
             var buildDir = f.getParentFile().getParentFile();
             return Stream.of(
                     new File(buildDir, "/classes/java/main").toURI().toURL(),
-                    new File(buildDir, "/resources/main").toURI().toURL()
+                    new File(buildDir, "../src/main/resources").toURI().toURL()
             );
         } catch (IOException e) {
             throw new EdcException(e);
