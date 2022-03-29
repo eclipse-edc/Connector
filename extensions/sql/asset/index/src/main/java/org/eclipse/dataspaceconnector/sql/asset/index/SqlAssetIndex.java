@@ -222,8 +222,8 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
         }
     }
 
-    private boolean existsById(String definitionId, Connection connection) {
-        var assetCount = transactionContext.execute(() -> executeQuery(connection, this::mapRowCount, sqlAssetQueries.getSqlAssetCountByIdClause(), definitionId).iterator().next());
+    private boolean existsById(String assetId, Connection connection) {
+        var assetCount = transactionContext.execute(() -> executeQuery(connection, this::mapRowCount, sqlAssetQueries.getSqlAssetCountByIdClause(), assetId).iterator().next());
 
         if (assetCount <= 0) {
             return false;
