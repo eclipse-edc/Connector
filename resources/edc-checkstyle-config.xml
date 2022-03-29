@@ -49,6 +49,7 @@
   <module name="RegexpHeader">
     <property name="severity" value="${enhanced_checks_severity}" default="warning"/>
     <property name="fileExtensions" value="java"/>
+    <!-- default path is for checkstyle GitHub Action running in docker -->
     <property name="headerFile" value="${base_dir}/resources/java.header" default="/github/workspace/resources/java.header"/>
     <property name="multiLines" value="11"/>
   </module>
