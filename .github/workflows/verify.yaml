@@ -25,15 +25,15 @@ jobs:
           checkstyle_version: '9.0'
           reporter: 'github-check'
           filter_mode: 'nofilter'
-          properties_file: resources/edc-checkstyle-ignore-newchecks.properties
+          properties_file: resources/edc-checkstyle-ignore-enhanced.properties
 
-      - name: Run Checkstyle
+      - name: Run Checkstyle with additional checks for changed lines
         uses: nikitasavinov/checkstyle-action@0.4.0
         with:
           checkstyle_config: resources/edc-checkstyle-config.xml
           level: error
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          tool_name: 'checkstyle-warnings'
+          tool_name: 'checkstyle-enhanced'
           checkstyle_version: '9.0'
           reporter: 'github-check'
           filter_mode: 'added'
