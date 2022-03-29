@@ -174,54 +174,54 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         }
 
         var fatalProvisioningErrors = new ArrayList<String>();
-        responses.stream()
-                .map(result -> {
-                    if (result.failed()) {
-                        ResponseStatus status = result.getFailure().status();
-                        //noinspection StatementWithEmptyBody
-                        if (status == ResponseStatus.ERROR_RETRY) {
-                            // do nothing, will be retried
-                        } else if (status == ResponseStatus.FATAL_ERROR) {
-                            fatalProvisioningErrors.addAll(result.getFailure().getMessages());
-                        }
-                        return null;
-                    }
-                    var response = result.getContent();
+        responses.forEach(result -> {
+            if (result.failed()) {
+                // Provision failed, if it is fatal, mark it so that transfer process can be transitioned to the error state
+                // If the error is non-fatal, skip processing for this iteration and a retry will be performed later
+                var status = result.getFailure().status();
+                if (status == ResponseStatus.FATAL_ERROR) {
+                    fatalProvisioningErrors.addAll(result.getFailure().getMessages());
+                }
+                return;
+            } else if (result.getContent().isInProcess()) {
+                // Still in process, ignore and continue processing other resources
+                return;
+            }
 
-                    var provisionedResource = response.getResource();
-                    var secretToken = response.getSecretToken();
+            var response = result.getContent();
+            var provisionedResource = response.getResource();
+            var secretToken = response.getSecretToken();
 
-                    if (provisionedResource instanceof ProvisionedDataDestinationResource) {
-                        // a data destination was provisioned by a consumer
-                        var dataDestinationResource = (ProvisionedDataDestinationResource) provisionedResource;
-                        var dataDestination = dataDestinationResource.createDataDestination();
+            if (provisionedResource instanceof ProvisionedDataDestinationResource) {
+                // a data destination was provisioned by a consumer
+                var dataDestinationResource = (ProvisionedDataDestinationResource) provisionedResource;
+                var dataDestination = dataDestinationResource.createDataDestination();
 
-                        if (secretToken != null) {
-                            var keyName = dataDestinationResource.getResourceName();
-                            vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
-                            dataDestination.setKeyName(keyName);
-                        }
-                        transferProcess.getDataRequest().updateDestination(dataDestination);
-                    } else if (provisionedResource instanceof ProvisionedContentResource) {
-                        // content for the data transfer was provisioned by the provider
-                        var contentResource = (ProvisionedContentResource) provisionedResource;
-                        var contentAddress = contentResource.getContentDataAddress();
-                        if (secretToken != null) {
-                            var keyName = contentResource.getResourceName();
-                            vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
-                            contentAddress.setKeyName(keyName);
-                        }
-                        transferProcess.addContentDataAddress(contentAddress);
-                    }
-
-                    return provisionedResource;
-                })
-                .filter(Objects::nonNull)
-                .forEach(transferProcess::addProvisionedResource);
+                if (secretToken != null) {
+                    var keyName = dataDestinationResource.getResourceName();
+                    vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
+                    dataDestination.setKeyName(keyName);
+                }
+                transferProcess.getDataRequest().updateDestination(dataDestination);
+            } else if (provisionedResource instanceof ProvisionedContentResource) {
+                // content for the data transfer was provisioned by the provider
+                var contentResource = (ProvisionedContentResource) provisionedResource;
+                var contentAddress = contentResource.getContentDataAddress();
+                if (secretToken != null) {
+                    var keyName = contentResource.getResourceName();
+                    vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
+                    contentAddress.setKeyName(keyName);
+                }
+                transferProcess.addContentDataAddress(contentAddress);
+            }
+            // update the transfer process with the provisioned resource
+            transferProcess.addProvisionedResource(provisionedResource);
+        });
         if (!fatalProvisioningErrors.isEmpty()) {
             var errors = String.join("\n", fatalProvisioningErrors);
             monitor.severe(format("Transitioning transfer process %s to ERROR state due to fatal provisioning errors: \n%s", transferProcess.getId(), errors));
-            transferProcess.transitionError("Fatal provisioning errors encountered. See logs for details");
+            transferProcess.transitionError("Fatal provisioning errors encountered. See logs for details.");
+            transferProcessStore.update(transferProcess);
         } else if (transferProcess.provisioningComplete()) {
             transferProcess.transitionProvisioned();
             transferProcessStore.update(transferProcess);

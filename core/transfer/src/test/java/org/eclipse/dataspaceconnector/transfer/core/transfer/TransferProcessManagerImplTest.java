@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
@@ -219,6 +220,42 @@ class TransferProcessManagerImplTest {
 
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         verify(store).update(argThat(p -> p.getState() == ERROR.code()));
+    }
+
+    @Test
+    void provisioning_shouldTransitionToErrorOnFatalProvisionError() throws InterruptedException {
+        var process = createTransferProcess(PROVISIONING).toBuilder()
+                .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
+                .build();
+        var provisionResult = ProvisionResult.failure(ResponseStatus.FATAL_ERROR, "test error");
+
+        when(provisionManager.provision(any(TransferProcess.class), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
+        when(store.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(store.find(process.getId())).thenReturn(process);
+        var latch = countDownOnUpdateLatch();
+
+        manager.start();
+
+        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(store).update(argThat(p -> p.getState() == ERROR.code()));
+    }
+
+    @Test
+    void provisioning_shouldContinueOnRetryProvisionError() throws InterruptedException {
+        var process = createTransferProcess(PROVISIONING).toBuilder()
+                .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
+                .build();
+        var provisionResult = ProvisionResult.failure(ResponseStatus.ERROR_RETRY, "test error");
+
+        when(provisionManager.provision(any(TransferProcess.class), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
+        when(store.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(store.find(process.getId())).thenReturn(process);
+        var latch = countDownOnUpdateLatch();
+
+        manager.start();
+
+        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(store).update(argThat(p -> p.getState() == PROVISIONING.code()));
     }
 
     @Test
