@@ -46,10 +46,5 @@ public class PolicyToPolicyDefinitionDtoTransformer implements DtoTransformer<Po
                 .build();
     }
 
-    @Override
-    public boolean canHandle(@NotNull Object object, @NotNull Class<?> outputType) {
-        return getInputType().isInstance(object) && outputType.equals(getOutputType());
-    }
-
 
 }

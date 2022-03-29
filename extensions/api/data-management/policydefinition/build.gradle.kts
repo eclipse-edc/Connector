@@ -25,6 +25,9 @@ dependencies {
     implementation(project(":common:util"))
     implementation(project(":extensions:api:api-core"))
     implementation(project(":extensions:api:data-management:api-configuration"))
+    implementation(project(":spi:policy-spi"))
+    implementation(project(":spi:contract-spi"))
+    implementation(project(":extensions:transaction:transaction-spi"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     testImplementation(testFixtures(project(":launchers:junit")))

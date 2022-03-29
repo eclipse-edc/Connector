@@ -34,15 +34,8 @@ public class PolicyDefinitionDtoToPolicyTransformerTest {
 
     @Test
     void inputOutputType() {
-        assertThat(transformer.getInputType()).isNotNull();
-        assertThat(transformer.getOutputType()).isNotNull();
-    }
-
-    @Test
-    void canHandle() {
-        assertThat(transformer.canHandle(PolicyDefinitionDto.Builder.newInstance().build(), Policy.class));
-        assertThat(transformer.canHandle("any other", Policy.class)).isFalse();
-        assertThat(transformer.canHandle(PolicyDefinitionDto.Builder.newInstance().build(), Object.class)).isFalse();
+        assertThat(transformer.getInputType()).isInstanceOf(PolicyDefinitionDto.class);
+        assertThat(transformer.getOutputType()).isInstanceOf(Policy.class);
     }
 
     @Test
