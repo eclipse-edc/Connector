@@ -30,11 +30,11 @@ public interface ContractNegotiationApi {
 
     String getNegotiationState(String id);
 
-    void cancelNegotiation(String id);
-
-    void declineNegotiation(String id);
-
     ContractAgreementDto getAgreementForNegotiation(String negotiationId);
 
     String initiateContractNegotiation(NegotiationInitiateRequestDto initiateDto);
+
+    void cancelNegotiation(String id);
+
+    void declineNegotiation(String id);
 }

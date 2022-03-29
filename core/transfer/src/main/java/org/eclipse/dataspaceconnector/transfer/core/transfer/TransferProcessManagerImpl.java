@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.common.statemachine.StateMachine;
 import org.eclipse.dataspaceconnector.common.statemachine.StateProcessorImpl;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
@@ -39,11 +40,12 @@ import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedContentResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
@@ -107,6 +109,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private Telemetry telemetry;
     private ExecutorInstrumentation executorInstrumentation;
     private StateMachine stateMachine;
+    private DataAddressResolver addressResolver;
 
     private TransferProcessManagerImpl() {
     }
@@ -171,23 +174,33 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         responses.stream()
                 .map(response -> {
-                    var destinationResource = response.getResource();
+                    var provisionedResource = response.getResource();
                     var secretToken = response.getSecretToken();
 
-                    if (destinationResource instanceof ProvisionedDataDestinationResource) {
-                        var dataDestinationResource = (ProvisionedDataDestinationResource) destinationResource;
-                        DataAddress dataDestination = dataDestinationResource.createDataDestination();
+                    if (provisionedResource instanceof ProvisionedDataDestinationResource) {
+                        // a data destination was provisioned by a consumer
+                        var dataDestinationResource = (ProvisionedDataDestinationResource) provisionedResource;
+                        var dataDestination = dataDestinationResource.createDataDestination();
 
                         if (secretToken != null) {
-                            String keyName = dataDestinationResource.getResourceName();
+                            var keyName = dataDestinationResource.getResourceName();
                             vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
                             dataDestination.setKeyName(keyName);
                         }
-
                         transferProcess.getDataRequest().updateDestination(dataDestination);
+                    } else if (provisionedResource instanceof ProvisionedContentResource) {
+                        // content for the data transfer was provisioned by the provider
+                        var contentResource = (ProvisionedContentResource) provisionedResource;
+                        var contentAddress = contentResource.getContentDataAddress();
+                        if (secretToken != null) {
+                            var keyName = contentResource.getResourceName();
+                            vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
+                            contentAddress.setKeyName(keyName);
+                        }
+                        transferProcess.addContentDataAddress(contentAddress);
                     }
 
-                    return destinationResource;
+                    return provisionedResource;
                 })
                 .forEach(transferProcess::addProvisionedResource);
 
@@ -226,10 +239,25 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
      */
     @WithSpan
     private boolean processInitial(TransferProcess process) {
+        var dataRequest = process.getDataRequest();
         // TODO resolve contract agreement policy from the PolicyStore
         var policy = Policy.Builder.newInstance().build();
 
-        var manifest = manifestGenerator.generateResourceManifest(process, policy);
+        ResourceManifest manifest;
+        if (process.getType() == CONSUMER) {
+            manifest = manifestGenerator.generateConsumerResourceManifest(dataRequest, policy);
+        } else {
+            var assetId = process.getDataRequest().getAssetId();
+            var dataAddress = addressResolver.resolveForAsset(assetId);
+            if (dataAddress == null) {
+                process.transitionError("Asset not found: " + assetId);
+                updateTransferProcess(process, l -> l.preError(process));
+            }
+            // default the content address to the asset address; this may be overridden during provisioning
+            process.addContentDataAddress(dataAddress);
+            manifest = manifestGenerator.generateProviderResourceManifest(dataRequest, dataAddress, policy);
+        }
+
         process.transitionProvisioning(manifest);
         updateTransferProcess(process, l -> l.preProvisioning(process));
         return true;
@@ -596,6 +624,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return this;
         }
 
+        public Builder addressResolver(DataAddressResolver addressResolver) {
+            manager.addressResolver = addressResolver;
+            return this;
+        }
+
         public TransferProcessManagerImpl build() {
             Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator");
             Objects.requireNonNull(manager.provisionManager, "provisionManager");
@@ -609,6 +642,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             Objects.requireNonNull(manager.observable, "Observable cannot be null");
             Objects.requireNonNull(manager.telemetry, "Telemetry cannot be null");
             Objects.requireNonNull(manager.transferProcessStore, "Store cannot be null");
+            Objects.requireNonNull(manager.addressResolver, "DataAddressResolver cannot be null");
             manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
 
             return manager;

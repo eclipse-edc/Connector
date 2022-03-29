@@ -15,22 +15,24 @@
 package org.eclipse.dataspaceconnector.spi.transfer.provision;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Generates a resource definition for a data transfer request.
+ * Generates a resource definition for a data transfer request on a provider.
  */
-public interface ResourceDefinitionGenerator {
+public interface ProviderResourceDefinitionGenerator {
 
     /**
      * Generates a resource definition. If no resource definition is generated, return null.
      *
-     * @param process the transfer process to generate the definition for
+     * @param dataRequest the data request associated with transfer process
+     * @param assetAddress the asset data address
      * @param policy the contract agreement usage policy for the asset being transferred
      */
     @Nullable
-    ResourceDefinition generate(TransferProcess process, Policy policy);
+    ResourceDefinition generate(DataRequest dataRequest, DataAddress assetAddress, Policy policy);
 
 }

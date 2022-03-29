@@ -16,10 +16,9 @@ package org.eclipse.dataspaceconnector.aws.s3.provision;
 
 import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceDefinitionGenerator;
-import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ConsumerResourceDefinitionGenerator;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import software.amazon.awssdk.regions.Region;
 
 import static java.util.UUID.randomUUID;
@@ -27,23 +26,22 @@ import static java.util.UUID.randomUUID;
 /**
  * Generates S3 buckets on the consumer (requesting connector) that serve as data destinations.
  */
-public class S3ResourceDefinitionConsumerGenerator implements ResourceDefinitionGenerator {
+public class S3ConsumerResourceDefinitionGenerator implements ConsumerResourceDefinitionGenerator {
 
     @Override
-    public ResourceDefinition generate(TransferProcess process, Policy policy) {
-        var request = process.getDataRequest();
-        if (request.getDestinationType() != null) {
-            if (!S3BucketSchema.TYPE.equals(request.getDestinationType())) {
+    public ResourceDefinition generate(DataRequest dataRequest, Policy policy) {
+        if (dataRequest.getDestinationType() != null) {
+            if (!S3BucketSchema.TYPE.equals(dataRequest.getDestinationType())) {
                 return null;
             }
             // FIXME generate region from policy engine
-            return S3BucketResourceDefinition.Builder.newInstance().id(randomUUID().toString()).bucketName(process.getId()).regionId(Region.US_EAST_1.id()).build();
+            return S3BucketResourceDefinition.Builder.newInstance().id(randomUUID().toString()).bucketName(dataRequest.getProcessId()).regionId(Region.US_EAST_1.id()).build();
 
-        } else if (request.getDataDestination() == null || !(request.getDataDestination().getType().equals(S3BucketSchema.TYPE))) {
+        } else if (dataRequest.getDataDestination() == null || !(dataRequest.getDataDestination().getType().equals(S3BucketSchema.TYPE))) {
             return null;
         }
-        DataAddress destination = request.getDataDestination();
-        String id = randomUUID().toString();
+        var destination = dataRequest.getDataDestination();
+        var id = randomUUID().toString();
         return S3BucketResourceDefinition.Builder.newInstance().id(id).bucketName(destination.getProperty(S3BucketSchema.BUCKET_NAME)).regionId(destination.getProperty(S3BucketSchema.REGION)).build();
     }
 }

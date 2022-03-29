@@ -16,25 +16,23 @@ package org.eclipse.dataspaceconnector.provision.azure.blob;
 
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceDefinitionGenerator;
-import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ConsumerResourceDefinitionGenerator;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.Nullable;
 
 import static java.util.UUID.randomUUID;
 
-public class ObjectStorageDefinitionConsumerGenerator implements ResourceDefinitionGenerator {
+public class ObjectStorageConsumerResourceDefinitionGenerator implements ConsumerResourceDefinitionGenerator {
 
     @Override
-    public @Nullable ResourceDefinition generate(TransferProcess process, Policy policy) {
-        var request = process.getDataRequest();
-        if (request.getDataDestination() == null || request.getDestinationType() == null || !AzureBlobStoreSchema.TYPE.equals(request.getDestinationType())) {
+    public @Nullable ResourceDefinition generate(DataRequest dataRequest, Policy policy) {
+        if (dataRequest.getDataDestination() == null || dataRequest.getDestinationType() == null || !AzureBlobStoreSchema.TYPE.equals(dataRequest.getDestinationType())) {
             return null;
         }
 
-        DataAddress destination = request.getDataDestination();
-        String id = randomUUID().toString();
+        var destination = dataRequest.getDataDestination();
+        var id = randomUUID().toString();
         var account = destination.getProperty(AzureBlobStoreSchema.ACCOUNT_NAME);
         var container = destination.getProperty(AzureBlobStoreSchema.CONTAINER_NAME);
         if (container == null) {

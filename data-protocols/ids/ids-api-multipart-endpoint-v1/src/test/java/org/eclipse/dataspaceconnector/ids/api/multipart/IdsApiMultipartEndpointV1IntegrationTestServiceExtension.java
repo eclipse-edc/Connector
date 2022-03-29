@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
@@ -43,6 +44,7 @@ import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -69,8 +71,15 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 
-@Provides({ AssetIndex.class, ContractDefinitionStore.class, IdentityService.class, TransferProcessStore.class, ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class,
-        ContractOfferService.class, ContractValidationService.class })
+@Provides({AssetIndex.class,
+        DataAddressResolver.class,
+        ContractDefinitionStore.class,
+        IdentityService.class,
+        TransferProcessStore.class,
+        ConsumerContractNegotiationManager.class,
+        ProviderContractNegotiationManager.class,
+        ContractOfferService.class,
+        ContractValidationService.class})
 class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements ServiceExtension {
     private final List<Asset> assets;
 
@@ -104,7 +113,9 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         context.registerService(IdentityService.class, new FakeIdentityService());
         context.registerService(TransferProcessStore.class, new FakeTransferProcessStore());
         context.registerService(RemoteMessageDispatcherRegistry.class, new FakeRemoteMessageDispatcherRegistry());
-        context.registerService(AssetIndex.class, new FakeAssetIndex(assets));
+        var assetIndex = new FakeAssetIndex(assets);
+        context.registerService(AssetIndex.class, assetIndex);
+        context.registerService(DataAddressResolver.class, assetIndex);
         context.registerService(ContractOfferService.class, new FakeContractOfferService(assets));
         context.registerService(ContractDefinitionStore.class, new FakeContractDefinitionStore());
         context.registerService(ContractValidationService.class, new FakeContractValidationService());
@@ -125,7 +136,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         }
     }
 
-    private static class FakeAssetIndex implements AssetIndex {
+    private static class FakeAssetIndex implements AssetIndex, DataAddressResolver {
         private final List<Asset> assets;
 
         private FakeAssetIndex(List<Asset> assets) {
@@ -147,6 +158,14 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
             return assets.stream().filter(a -> a.getId().equals(assetId)).findFirst().orElse(null);
         }
 
+        @Override
+        public DataAddress resolveForAsset(String assetId) {
+            var asset = findById(assetId);
+            if (asset == null) {
+                return null;
+            }
+            return DataAddress.Builder.newInstance().type("test").build();
+        }
     }
 
     private static class FakeContractOfferService implements ContractOfferService {

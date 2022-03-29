@@ -30,7 +30,6 @@ class ContractAgreementDtoTest {
                 .contractEndDate(1234L)
                 .contractStartDate(1234L)
                 .contractSigningDate(5432L)
-                .negotiationId("test-neg-id")
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
                 .policyId("policy-id")

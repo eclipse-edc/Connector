@@ -16,6 +16,7 @@
 package org.eclipse.dataspaceconnector.transfer.core;
 
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.command.BoundedCommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
@@ -40,6 +41,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.retry.TransferWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedContentResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
 import org.eclipse.dataspaceconnector.transfer.core.command.handlers.AddProvisionedResourceCommandHandler;
@@ -57,9 +59,9 @@ import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessMana
  * Provides core data transfer services to the system.
  */
 @CoreExtension
-@Provides({ StatusCheckerRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class,
+@Provides({StatusCheckerRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class,
         TransferProcessObservable.class, DataOperatorRegistry.class, DataFlowManager.class, ProvisionManager.class,
-        EndpointDataReferenceReceiverRegistry.class, EndpointDataReferenceTransformer.class })
+        EndpointDataReferenceReceiverRegistry.class, EndpointDataReferenceTransformer.class})
 public class CoreTransferExtension implements ServiceExtension {
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
 
@@ -68,10 +70,15 @@ public class CoreTransferExtension implements ServiceExtension {
 
     @Inject
     private TransferProcessStore transferProcessStore;
+
     @Inject
     private CommandHandlerRegistry registry;
+
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
+
+    @Inject
+    private DataAddressResolver addressResolver;
 
     private TransferProcessManagerImpl processManager;
 
@@ -137,6 +144,7 @@ public class CoreTransferExtension implements ServiceExtension {
                 .observable(observable)
                 .store(transferProcessStore)
                 .batchSize(context.getSetting(TRANSFER_STATE_MACHINE_BATCH_SIZE, 5))
+                .addressResolver(addressResolver)
                 .build();
 
         context.registerService(TransferProcessManager.class, processManager);
@@ -158,5 +166,6 @@ public class CoreTransferExtension implements ServiceExtension {
 
     private void registerTypes(TypeManager typeManager) {
         typeManager.registerTypes(DataRequest.class);
+        typeManager.registerTypes(ProvisionedContentResource.class);
     }
 }
