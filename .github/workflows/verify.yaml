@@ -25,4 +25,17 @@ jobs:
           checkstyle_version: '9.0'
           reporter: 'github-check'
           filter_mode: 'nofilter'
+          properties_file: resources/edc-checkstyle-ignore-newchecks.properties
+
+      - name: Run Checkstyle
+        uses: nikitasavinov/checkstyle-action@0.4.0
+        with:
+          checkstyle_config: resources/edc-checkstyle-config.xml
+          level: warning
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tool_name: 'checkstyle'
+          checkstyle_version: '9.0'
+          reporter: 'github-check'
+          filter_mode: 'nofilter'
+
 
