@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition;
+package org.eclipse.dataspaceconnector.api.datamanagement.contractagreement;
 
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -22,7 +22,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractAgreementDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.model.ContractAgreementDto;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;

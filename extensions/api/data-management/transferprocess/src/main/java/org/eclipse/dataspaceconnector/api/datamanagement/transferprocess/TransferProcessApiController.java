@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition;
+package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess;
 
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -23,8 +23,8 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.TransferProcessDto;
-import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.TransferRequestDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferProcessDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferRequestDto;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;

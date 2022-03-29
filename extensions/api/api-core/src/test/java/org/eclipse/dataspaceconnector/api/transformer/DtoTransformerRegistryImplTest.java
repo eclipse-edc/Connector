@@ -70,7 +70,7 @@ class DtoTransformerRegistryImplTest {
         registry.register(new TestTransformer());
 
         assertThatThrownBy(() -> registry.transform("foo", Integer.class)).isInstanceOf(EdcException.class)
-                .hasMessageStartingWith("No ApiTransformer registered that can handle foo -> " + Integer.class);
+                .hasMessageStartingWith("No DtoTransformer registered that can handle foo -> " + Integer.class);
     }
 
     @Test

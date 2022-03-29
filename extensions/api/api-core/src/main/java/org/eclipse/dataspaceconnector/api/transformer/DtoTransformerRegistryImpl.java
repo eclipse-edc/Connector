@@ -36,12 +36,12 @@ import static java.lang.String.format;
  * and register one otherwise:
  * <pre>
  * \@Inject(required=false)
- * private ApiTransformerRegistry registry;
+ * private DtoTransformerRegistry registry;
  *
  * void initialize(ServiceExtensionContext context){
  *      if(registry == null){
- *          registry= new ApiTransformerRegistryImpl();
- *          context.registerService(ApiTransformerRegistry.class, registry);
+ *          registry= new DtoTransformerRegistryImpl();
+ *          context.registerService(DtoTransformerRegistry.class, registry);
  *      }
  *
  *      var yourController = new YourApiController(..., registry);
@@ -83,7 +83,7 @@ public class DtoTransformerRegistryImpl implements DtoTransformerRegistry {
                 .findFirst().orElse(null);
 
         if (t == null) {
-            throw new EdcException(format("No ApiTransformer registered that can handle %s -> %s", object, outputType));
+            throw new EdcException(format("No DtoTransformer registered that can handle %s -> %s", object, outputType));
         }
         return outputType.cast(((DtoTransformer<INPUT, OUTPUT>) t).transform(object, context));
     }
