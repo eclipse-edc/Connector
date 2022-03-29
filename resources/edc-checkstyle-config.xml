@@ -19,7 +19,7 @@
 <module name = "Checker">
   <property name="charset" value="UTF-8"/>
 
-  <property name="severity" value="warning"/>
+  <property name="severity" value="error"/>
 
   <property name="fileExtensions" value="java, properties, xml"/>
   <!-- Excludes all 'module-info.java' files              -->
@@ -44,6 +44,12 @@
     <property name="fileExtensions" value="java"/>
     <property name="max" value="250"/>
     <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+  </module>
+
+  <module name="RegexpHeader">
+    <property name="severity" value="warning"/>
+    <property name="headerFile" value="${base_dir}/resources/java.header" default="/github/workspace/resources/java.header"/>
+    <property name="multiLines" value="11"/>
   </module>
 
   <module name="TreeWalker">
