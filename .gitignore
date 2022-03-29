@@ -50,3 +50,4 @@ launchers/demo-e2e/edc-config.properties
 **/out
 *.hprof
 samples/other/file-transfer-http-to-http/deployment
+java.config
