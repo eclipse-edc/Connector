@@ -30,8 +30,7 @@ jobs:
         env:
           INTEGRATION_TEST: false
           JACOCO: true
-        # checkstyle would also run as part of the `check` task
-        run: ./gradlew clean check jacocoTestReport -x checkstyleMain -x checkstyleTest -quiet
+        run: ./gradlew test jacocoTestReport
 
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
@@ -58,8 +57,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'gradle'
-
-      # c
 
       - name: Check basic launcher
         run: |
