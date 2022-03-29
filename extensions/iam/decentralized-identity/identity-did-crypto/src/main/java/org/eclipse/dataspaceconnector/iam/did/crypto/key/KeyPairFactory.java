@@ -32,28 +32,6 @@ import java.security.spec.ECGenParameterSpec;
 public class KeyPairFactory {
 
     /**
-     * Generates a Elliptic Curve Public/Private Key pair on the SECP256k1 curve
-     *
-     * @return A {@link JWK} that is in fact an {@link ECKey}
-     */
-    public static JWK generateKeyPair() {
-        try {
-
-            ECGenParameterSpec ecSpec = new ECGenParameterSpec("secp256k1");
-            KeyPairGenerator g = KeyPairGenerator.getInstance("EC");
-            g.initialize(ecSpec, new SecureRandom());
-            KeyPair keyPair = g.generateKeyPair();
-
-
-            return new ECKey.Builder(Curve.SECP256K1, (ECPublicKey) keyPair.getPublic())
-                    .privateKey((ECPrivateKey) keyPair.getPrivate())
-                    .build();
-        } catch (Exception e) {
-            throw new CryptoException(e);
-        }
-    }
-
-    /**
      * Generates a Elliptic Curve Public/Private Key pair on the P-256 curve
      *
      * @return A {@link JWK} that is in fact an {@link ECKey}

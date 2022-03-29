@@ -9,12 +9,11 @@
  *
  * Contributors:
  *    ZF Friedrichshafen AG - Initial API and Implementation
+ *    Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  */
 
-val infoModelVersion: String by project
+val restAssured: String by project
 val rsApi: String by project
-val jerseyVersion: String by project
-val okHttpVersion: String by project
 
 plugins {
     `java-library`
@@ -25,11 +24,17 @@ dependencies {
     implementation(project(":extensions:api:api-core"))
     implementation(project(":extensions:api:auth-spi"))
     implementation(project(":extensions:api:data-management:api-configuration"))
+    implementation(project(":extensions:dataloading"))
+    implementation(project(":extensions:transaction:transaction-spi"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    testImplementation(testFixtures(project(":common:util")))
-    testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+
     testImplementation(project(":extensions:http"))
+    testImplementation(project(":extensions:in-memory:assetindex-memory"))
+    testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
+    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation("io.rest-assured:rest-assured:${restAssured}")
 }
 
 publishing {

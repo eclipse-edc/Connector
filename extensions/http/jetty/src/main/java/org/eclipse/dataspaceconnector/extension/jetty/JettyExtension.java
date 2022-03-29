@@ -1,11 +1,12 @@
 package org.eclipse.dataspaceconnector.extension.jetty;
 
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.WebServer;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
-@Provides({ JettyService.class })
+@Provides({ WebServer.class, JettyService.class })
 public class JettyExtension implements ServiceExtension {
 
 
@@ -30,6 +31,7 @@ public class JettyExtension implements ServiceExtension {
 
         jettyService = new JettyService(configuration, monitor);
         context.registerService(JettyService.class, jettyService);
+        context.registerService(WebServer.class, jettyService);
     }
 
     @Override

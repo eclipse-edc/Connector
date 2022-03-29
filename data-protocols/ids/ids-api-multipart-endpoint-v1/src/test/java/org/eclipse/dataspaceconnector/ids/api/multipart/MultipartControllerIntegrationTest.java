@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Daimler TSS GmbH
+ *  Copyright (c) 2021-2022 Daimler TSS GmbH, Fraunhofer Institute for Software and Systems Engineering
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -10,6 +10,7 @@
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Fraunhofer Institute for Software and Systems Engineering - add tests
+ *       Daimler TSS GmbH - introduce factory to create RequestInProcessMessage
  *
  */
 
@@ -513,7 +514,6 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         jsonHeader.inPath("$.@type").isString().isEqualTo("ids:RequestInProcessMessage");
         jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
         jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
-        jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");
         //jsonHeader.inPath("$.ids:issued").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}UTC$");
         jsonHeader.inPath("$.ids:issuerConnector").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
         jsonHeader.inPath("$.ids:senderAgent").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
@@ -548,7 +548,6 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         jsonHeader.inPath("$.@type").isString().isEqualTo("ids:RequestInProcessMessage");
         jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
         jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
-        jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");
         //jsonHeader.inPath("$.ids:issued").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}UTC$");
         jsonHeader.inPath("$.ids:issuerConnector").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
         jsonHeader.inPath("$.ids:senderAgent").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);

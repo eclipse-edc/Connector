@@ -37,7 +37,7 @@ public class AssetEntryDtoTest {
         var assetDto = AssetDto.Builder.newInstance().properties(Collections.singletonMap("Asset-1", "")).build();
         var dataAddress = DataAddressDto.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
 
-        var assetEntryDto = AssetEntryDto.Builder.newInstance().assetDto(assetDto).dataAddress(dataAddress).build();
+        var assetEntryDto = AssetEntryDto.Builder.newInstance().asset(assetDto).dataAddress(dataAddress).build();
 
         var str = objectMapper.writeValueAsString(assetEntryDto);
 

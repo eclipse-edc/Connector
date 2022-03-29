@@ -1,3 +1,4 @@
+
 # Changelog
 
 All notable changes to this project will be documented in this file - formatted and maintained according to the rules
@@ -13,7 +14,9 @@ the detailed section referring to by linking pull requests or issues.
 
 * Removed deprecated code
 * Improved CosmosDB interaction
+* Added DPF Selector
 * Updated Data Management API
+* Added SQL as data backend
 
 ### Detailed Changes
 
@@ -27,6 +30,14 @@ the detailed section referring to by linking pull requests or issues.
 * Implement S3BucketReader (#675)
 * Add configuration setting for state machine batch size (#872)
 * Add Jetty context alias for IDS API (#815)
+* Add `Hostname` service (#948)
+* Add embedded and remote DPF Selector (#832)
+* Pass path information into http data source through DPF public API (#929)
+* SQL-based TransferProcessStore (#865)
+* Add instructions for observability sample with Azure Application Insights (#928)
+* Add interface `WebServer` to `web-spi` (#921)
+* Implement Asset service for Data Management API (#931)
+* Implement ContractDefinition service for Data Management API (#940)
 
 #### Changed
 
@@ -36,8 +47,15 @@ the detailed section referring to by linking pull requests or issues.
 * Add `findAll` method to `TransferProcessStore` (#859)
 * Add data-management api to the samples (#733)
 * Enable pluggable transfer service in DPF (#844)
+* Apply 2-state transition pattern to `ContractNegotiationManager`s (#870)
 * Apply 2-state transition pattern to `TransferProcessManager` (#831)
+* Update build system to Java 17 (#934)
 * Refactor (=generify) transformer subsystem (#779)
+* Extract interfaces for every api controller class to improve swagger documentation (#891)
+* Instrument executors with metrics (#912)
+* Call the listeners before the state transition is persisted. (#876)
+* Added an overload to `TransactionContext#execute()` (#968)
+* Run CosmosDB integration tests on cloud in CI (#964)
 
 #### Removed
 
@@ -47,8 +65,10 @@ the detailed section referring to by linking pull requests or issues.
 * Remove module `:samples:other:streaming` (#889)
 
 #### Fixed
+
 * Flaky S3 StatusChecker Test (#794)
-* Added missing Data Management Asset controller openapi (#853) 
+* Added missing Data Management Asset controller openapi (#853)
+* Policy deserialization (#898)
 
 ---
 

@@ -40,7 +40,7 @@ class AzureEventGridPublisher implements TransferProcessListener {
     }
 
     @Override
-    public void created(TransferProcess process) {
+    public void preCreated(TransferProcess process) {
         var dto = createTransferProcessDto(process);
         if (process.getType() == TransferProcess.Type.CONSUMER) {
             sendEvent("createdConsumer", eventTypeTransferprocess, dto).subscribe(new LoggingSubscriber<>("Transfer process created"));
@@ -50,25 +50,25 @@ class AzureEventGridPublisher implements TransferProcessListener {
     }
 
     @Override
-    public void completed(TransferProcess process) {
+    public void preCompleted(TransferProcess process) {
         sendEvent("completed", eventTypeTransferprocess, createTransferProcessDto(process)).subscribe(new LoggingSubscriber<>("Transfer process completed"));
     }
 
 
     @Override
-    public void deprovisioned(TransferProcess process) {
+    public void preDeprovisioned(TransferProcess process) {
         sendEvent("deprovisioned", eventTypeTransferprocess, createTransferProcessDto(process)).subscribe(new LoggingSubscriber<>("Transfer process resources deprovisioned"));
 
     }
 
     @Override
-    public void ended(TransferProcess process) {
+    public void preEnded(TransferProcess process) {
         sendEvent("ended", eventTypeTransferprocess, createTransferProcessDto(process)).subscribe(new LoggingSubscriber<>("Transfer process ended"));
 
     }
 
     @Override
-    public void error(TransferProcess process) {
+    public void preError(TransferProcess process) {
         sendEvent("error", eventTypeTransferprocess, createTransferProcessDto(process)).subscribe(new LoggingSubscriber<>("Transfer process errored!"));
 
     }

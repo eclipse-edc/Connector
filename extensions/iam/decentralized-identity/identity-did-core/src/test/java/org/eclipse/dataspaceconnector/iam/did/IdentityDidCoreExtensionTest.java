@@ -1,8 +1,8 @@
 package org.eclipse.dataspaceconnector.iam.did;
 
 import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubApiController;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubClientImpl;
-import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubController;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubImpl;
 import org.eclipse.dataspaceconnector.iam.did.resolution.DidPublicKeyResolverImpl;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
@@ -53,6 +53,6 @@ class IdentityDidCoreExtensionTest {
         assertThat(context.getService(DidPublicKeyResolver.class)).isInstanceOf(DidPublicKeyResolverImpl.class);
         assertThat(context.getService(IdentityHub.class)).isInstanceOf(IdentityHubImpl.class);
         assertThat(context.getService(IdentityHubClient.class)).isInstanceOf(IdentityHubClientImpl.class);
-        verify(webserviceMock).registerResource(isA(IdentityHubController.class));
+        verify(webserviceMock).registerResource(isA(IdentityHubApiController.class));
     }
 }

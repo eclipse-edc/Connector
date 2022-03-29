@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 class ContractNegotiationApiControllerTest {
-    private ContractNegotiationController controller;
+    private ContractNegotiationApiController controller;
 
     public static Stream<Arguments> getInvalidNegotiationParameters() {
         return Stream.of(Arguments.of(null, "consumer", "ids-multipart", "test-offer"),
@@ -53,7 +53,7 @@ class ContractNegotiationApiControllerTest {
     @BeforeEach
     void setup() {
         var monitor = mock(Monitor.class);
-        controller = new ContractNegotiationController(monitor);
+        controller = new ContractNegotiationApiController(monitor);
     }
 
     @Test

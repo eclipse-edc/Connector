@@ -18,7 +18,6 @@ import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
 import com.azure.cosmos.CosmosException;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
-import com.azure.cosmos.models.CosmosItemRequestOptions;
 import com.azure.cosmos.models.PartitionKey;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
@@ -89,7 +88,11 @@ class CosmosAssetIndexIntegrationTest {
 
     @AfterEach
     void tearDown() {
-        container.deleteAllItemsByPartitionKey(new PartitionKey(TEST_PARTITION_KEY), new CosmosItemRequestOptions());
+        // Delete items one by one as deleteAllItemsByPartitionKey is disabled by default on new Cosmos DB accounts.
+        PartitionKey partitionKey = new PartitionKey(TEST_PARTITION_KEY);
+        container.readAllItems(partitionKey, CosmosDbEntity.class)
+                .stream().parallel()
+                .forEach(i -> container.deleteItem(i.id, partitionKey, null));
     }
 
     @Test
@@ -379,5 +382,13 @@ class CosmosAssetIndexIntegrationTest {
                 .id(id)
                 .property(somePropertyKey, somePropertyValue)
                 .build();
+    }
+
+    static class CosmosDbEntity {
+        String id;
+
+        public void setId(String id) {
+            this.id = id;
+        }
     }
 }

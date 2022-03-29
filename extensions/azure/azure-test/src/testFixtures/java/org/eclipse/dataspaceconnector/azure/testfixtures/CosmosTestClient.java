@@ -29,17 +29,18 @@ public interface CosmosTestClient {
     static CosmosClient createClient() {
         var cosmosKey = propOrEnv("COSMOS_KEY", null);
         if (!StringUtils.isNullOrBlank(cosmosKey)) {
-            return azureClient(cosmosKey);
+            String endpoint = propOrEnv("COSMOS_URL", "https://cosmos-itest.documents.azure.com:443/");
+            return azureClient(cosmosKey, endpoint);
         } else {
             return localClient();
         }
     }
 
-    private static CosmosClient azureClient(String cosmosKey) {
+    private static CosmosClient azureClient(String cosmosKey, String cosmosUrl) {
         return new CosmosClientBuilder()
                 .key(cosmosKey)
                 .preferredRegions(List.of("westeurope"))
-                .endpoint("https://cosmos-itest.documents.azure.com:443/")
+                .endpoint(cosmosUrl)
                 .buildClient();
     }
 

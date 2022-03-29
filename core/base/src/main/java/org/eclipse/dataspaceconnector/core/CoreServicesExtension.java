@@ -21,18 +21,22 @@ import org.eclipse.dataspaceconnector.core.base.CommandHandlerRegistryImpl;
 import org.eclipse.dataspaceconnector.core.base.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.dataspaceconnector.core.base.agent.ParticipantAgentServiceImpl;
 import org.eclipse.dataspaceconnector.core.base.policy.PolicyEngineImpl;
-import org.eclipse.dataspaceconnector.core.executor.NoopExecutorInstrumentation;
+import org.eclipse.dataspaceconnector.core.base.policy.RuleBindingRegistryImpl;
+import org.eclipse.dataspaceconnector.core.base.policy.ScopeFilter;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceConfiguration;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceImpl;
+import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
+import org.eclipse.dataspaceconnector.spi.policy.RuleBindingRegistry;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.BaseExtension;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
+import org.eclipse.dataspaceconnector.spi.system.Hostname;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -52,8 +56,18 @@ import java.util.concurrent.TimeUnit;
 
 import static java.util.Optional.ofNullable;
 
+
 @BaseExtension
-@Provides({RetryPolicy.class, HealthCheckService.class, OkHttpClient.class, RemoteMessageDispatcherRegistry.class, ParticipantAgentService.class, PolicyEngine.class})
+@Provides({
+        HealthCheckService.class,
+        Hostname.class,
+        OkHttpClient.class,
+        ParticipantAgentService.class,
+        PolicyEngine.class,
+        RemoteMessageDispatcherRegistry.class,
+        RetryPolicy.class,
+        RuleBindingRegistry.class,
+})
 public class CoreServicesExtension implements ServiceExtension {
 
     @EdcSetting
@@ -70,9 +84,12 @@ public class CoreServicesExtension implements ServiceExtension {
     public static final String READINESS_PERIOD_SECONDS_SETTING = "edc.core.system.health.check.readiness-period";
     @EdcSetting
     public static final String THREADPOOL_SIZE_SETTING = "edc.core.system.health.check.threadpool-size";
+    @EdcSetting
+    public static final String HOSTNAME_SETTING = "edc.hostname";
 
     private static final long DEFAULT_DURATION = 60;
     private static final int DEFAULT_TP_SIZE = 3;
+    private static final String DEFAULT_HOSTNAME = "localhost";
 
     /**
      * An optional OkHttp {@link EventListener} that can be used to instrument OkHttp client for collecting metrics.
@@ -114,8 +131,18 @@ public class CoreServicesExtension implements ServiceExtension {
         var agentService = new ParticipantAgentServiceImpl();
         context.registerService(ParticipantAgentService.class, agentService);
 
-        var policyEngine = new PolicyEngineImpl();
+        var bindingRegistry = new RuleBindingRegistryImpl();
+        context.registerService(RuleBindingRegistry.class, bindingRegistry);
+
+        var scopeFilter = new ScopeFilter(bindingRegistry);
+
+        var typeManager = context.getTypeManager();
+        PolicyRegistrationTypes.TYPES.forEach(typeManager::registerTypes);
+
+        var policyEngine = new PolicyEngineImpl(scopeFilter);
         context.registerService(PolicyEngine.class, policyEngine);
+
+        registerHostname(context);
     }
 
     @Override
@@ -138,6 +165,14 @@ public class CoreServicesExtension implements ServiceExtension {
                 .readinessPeriod(Duration.ofSeconds(context.getSetting(READINESS_PERIOD_SECONDS_SETTING, DEFAULT_DURATION)))
                 .threadPoolSize(context.getSetting(THREADPOOL_SIZE_SETTING, DEFAULT_TP_SIZE))
                 .build();
+    }
+
+    private void registerHostname(ServiceExtensionContext context) {
+        var hostname = context.getSetting(HOSTNAME_SETTING, DEFAULT_HOSTNAME);
+        if (DEFAULT_HOSTNAME.equals(hostname)) {
+            context.getMonitor().warning(String.format("Settings: No setting found for key '%s'. Using default value '%s'", HOSTNAME_SETTING, DEFAULT_HOSTNAME));
+        }
+        context.registerService(Hostname.class, () -> hostname);
     }
 
     private void registerParser(ServiceExtensionContext context) {
@@ -179,7 +214,7 @@ public class CoreServicesExtension implements ServiceExtension {
     }
 
     private ExecutorInstrumentation registerExecutorInstrumentation(ServiceExtensionContext context) {
-        var executorInstrumentationImpl = ofNullable(this.executorInstrumentation).orElse(new NoopExecutorInstrumentation());
+        var executorInstrumentationImpl = ofNullable(this.executorInstrumentation).orElse(ExecutorInstrumentation.noop());
         // Register ExecutorImplementation with default noop implementation if none available
         context.registerService(ExecutorInstrumentation.class, executorInstrumentationImpl);
         return executorInstrumentationImpl;

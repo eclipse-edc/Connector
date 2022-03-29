@@ -32,7 +32,7 @@ val jupiterVersion: String by project
 val mockitoVersion: String by project
 val assertj: String by project
 val rsApi: String by project
-val swaggerJaxrs2Version: String by project
+val swagger: String by project
 val faker: String by project
 
 val groupId: String = "org.eclipse.dataspaceconnector"
@@ -60,7 +60,7 @@ subprojects {
 
 buildscript {
     dependencies {
-        classpath("io.swagger.core.v3:swagger-gradle-plugin:2.1.12")
+        classpath("io.swagger.core.v3:swagger-gradle-plugin:2.1.13")
     }
 }
 
@@ -83,6 +83,12 @@ allprojects {
     java {
         toolchain {
             languageVersion.set(JavaLanguageVersion.of(javaVersion))
+        }
+
+        tasks.withType(JavaCompile::class.java) {
+            // making sure the code does not use any APIs from a more recent version.
+            // Ref: https://docs.gradle.org/current/userguide/building_java_projects.html#sec:java_cross_compilation
+            options.release.set(javaVersion.toInt())
         }
     }
 
@@ -131,7 +137,7 @@ allprojects {
 
         dependencies {
             // this is used to scan the classpath and generate an openapi yaml file
-            implementation("io.swagger.core.v3:swagger-jaxrs2-jakarta:${swaggerJaxrs2Version}")
+            implementation("io.swagger.core.v3:swagger-jaxrs2-jakarta:${swagger}")
             implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
         }
 // this is used to scan the classpath and generate an openapi yaml file
@@ -226,8 +232,4 @@ openApiMerger {
             }
         }
     }
-}
-
-val test by tasks.getting(Test::class) {
-    useJUnitPlatform()
 }

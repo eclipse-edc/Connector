@@ -18,10 +18,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static java.util.stream.Collectors.joining;
@@ -32,15 +30,10 @@ import static java.util.stream.Collectors.joining;
 @JsonDeserialize(builder = Permission.Builder.class)
 @JsonTypeName("dataspaceconnector:permission")
 public class Permission extends Rule {
-    private final List<Duty> duties;
+    private final List<Duty> duties = new ArrayList<>();
 
-    private Permission() {
-        this.duties = new ArrayList<>();
-    }
-
-    @Nullable
     public List<Duty> getDuties() {
-        return Collections.unmodifiableList(duties);
+        return duties;
     }
 
     @Override

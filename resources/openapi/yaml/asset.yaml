@@ -79,27 +79,6 @@ paths:
           description: default response
           content:
             application/json: {}
-  /assets/{id}/transfer:
-    post:
-      operationId: initiateTransfer
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TransferRequestDto'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: string
 components:
   schemas:
     AssetDto:
@@ -112,7 +91,7 @@ components:
     AssetEntryDto:
       type: object
       properties:
-        assetDto:
+        asset:
           $ref: '#/components/schemas/AssetDto'
         dataAddress:
           $ref: '#/components/schemas/DataAddressDto'
@@ -122,39 +101,4 @@ components:
         properties:
           type: object
           additionalProperties:
-            type: object
-    DataAddress:
-      type: object
-      properties:
-        properties:
-          type: object
-          additionalProperties:
             type: string
-    TransferRequestDto:
-      type: object
-      properties:
-        connectorAddress:
-          type: string
-        contractId:
-          type: string
-        dataDestination:
-          $ref: '#/components/schemas/DataAddress'
-        managedResources:
-          type: boolean
-        properties:
-          type: object
-          additionalProperties:
-            type: string
-        transferType:
-          $ref: '#/components/schemas/TransferType'
-        protocol:
-          type: string
-        connectorId:
-          type: string
-    TransferType:
-      type: object
-      properties:
-        contentType:
-          type: string
-        isFinite:
-          type: boolean

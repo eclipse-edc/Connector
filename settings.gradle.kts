@@ -45,6 +45,7 @@ include(":data-protocols:ids:ids-api-configuration")
 
 include("extensions:sql:contract-definition:store")
 
+
 // modules for technology- or cloud-provider extensions
 include(":extensions:aws")
 include(":extensions:api:control")
@@ -124,12 +125,20 @@ include(":extensions:data-plane-transfer:data-plane-transfer-sync")
 include(":extensions:data-plane:data-plane-spi")
 include(":extensions:data-plane:data-plane-framework")
 include(":extensions:data-plane:data-plane-http")
+include(":extensions:data-plane-selector")
+include(":extensions:data-plane-selector:selector-spi")
+include(":extensions:data-plane-selector:selector-api")
+include(":extensions:data-plane-selector:selector-core")
+include(":extensions:data-plane-selector:selector-store")
+include(":extensions:data-plane-selector:selector-client")
 include(":extensions:azure:data-plane:common")
 include(":extensions:azure:data-plane:storage")
 include(":extensions:data-plane:data-plane-api")
 include(":extensions:data-plane:integration-tests")
 include(":extensions:sql:common")
+include(":extensions:sql:lease")
 include(":extensions:sql:pool:apache-commons-pool")
+include(":extensions:sql:transfer-process-store")
 include(":extensions:http-receiver")
 
 // modules for launchers, i.e. runnable compositions of the app
@@ -139,6 +148,7 @@ include(":launchers:test")
 include(":launchers:ids-connector")
 include(":launchers:registration-service-app")
 include(":launchers:data-loader-cli")
+include(":launchers:dpf-selector")
 include(":launchers:data-plane-server")
 
 // modules for code samples
@@ -182,6 +192,7 @@ include(":samples:04.2-modify-transferprocess:simulator")
 
 include(":samples:04.3-open-telemetry:micrometer")
 include(":samples:04.3-open-telemetry:consumer")
+include(":samples:04.3-open-telemetry:provider")
 
 include(":samples:05-file-transfer-cloud:consumer")
 include(":samples:05-file-transfer-cloud:provider")

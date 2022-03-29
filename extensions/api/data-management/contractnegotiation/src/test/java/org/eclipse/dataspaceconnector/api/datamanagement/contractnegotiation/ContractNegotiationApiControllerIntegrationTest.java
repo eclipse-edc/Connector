@@ -47,7 +47,7 @@ class ContractNegotiationApiControllerIntegrationTest {
         config.portMapping(new PortMapping("data", port, "/api/v1/data"));
         var jetty = new JettyService(config, monitor);
 
-        var controller = new ContractNegotiationController(monitor);
+        var controller = new ContractNegotiationApiController(monitor);
         var jerseyService = new JerseyRestService(jetty, new TypeManager(), mock(CorsFilterConfiguration.class), monitor);
         jetty.start();
         jerseyService.registerResource("data", controller);

@@ -23,7 +23,6 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractN
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,9 +59,9 @@ public class ContractRejectionHandler implements Handler {
     }
 
     @Override
-    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull Result<ClaimToken> verificationResult) {
+    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull ClaimToken claimToken) {
         Objects.requireNonNull(multipartRequest);
-        Objects.requireNonNull(verificationResult);
+        Objects.requireNonNull(claimToken);
 
         var message = (ContractRejectionMessage) multipartRequest.getHeader();
         var correlationMessageId = message.getCorrelationMessage(); // TODO correlation msg missing
@@ -77,10 +76,9 @@ public class ContractRejectionHandler implements Handler {
         }
 
         // abort negotiation process (one of them can handle this process by id)
-        var token = verificationResult.getContent();
-        var result = providerNegotiationManager.declined(token, String.valueOf(correlationId));
+        var result = providerNegotiationManager.declined(claimToken, String.valueOf(correlationId));
         if (result.failed() && result.getStatus() == NegotiationResult.Status.FATAL_ERROR) {
-            result = consumerNegotiationManager.declined(token, String.valueOf(correlationId));
+            result = consumerNegotiationManager.declined(claimToken, String.valueOf(correlationId));
         }
 
         if (result.failed() && result.getStatus() == NegotiationResult.Status.FATAL_ERROR) {

@@ -57,7 +57,11 @@ public class HttpDataSource implements DataSource {
     }
 
     private String createUrl() {
-        return sourceEndpoint + Optional.ofNullable(name).map(s -> "/" + name).orElse("") +
+        return sourceEndpoint +
+                Optional.ofNullable(name)
+                        .filter(s -> !s.isBlank())
+                        .map(s -> "/" + name)
+                        .orElse("") +
                 Optional.ofNullable(queryParams)
                         .filter(qp -> !qp.isBlank())
                         .map(s -> "?" + queryParams)

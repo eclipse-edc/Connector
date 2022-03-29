@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.transfer.core.provision;
 
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceDefinitionGenerator;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -23,20 +24,22 @@ class ResourceManifestGeneratorImplTest {
     private final ResourceDefinitionGenerator consumerGenerator = mock(ResourceDefinitionGenerator.class);
     private final ResourceDefinitionGenerator providerGenerator = mock(ResourceDefinitionGenerator.class);
     private final ResourceManifestGeneratorImpl generator = new ResourceManifestGeneratorImpl();
+    private Policy policy;
 
     @BeforeEach
     void setUp() {
         generator.registerConsumerGenerator(consumerGenerator);
         generator.registerProviderGenerator(providerGenerator);
+        policy = Policy.Builder.newInstance().build();
     }
 
     @Test
     void shouldGenerateResourceManifestForConsumerManagedTransferProcess() {
         var process = createTransferProcess(CONSUMER, true);
         var resourceDefinition = TestResourceDefinition.Builder.newInstance().id(UUID.randomUUID().toString()).build();
-        when(consumerGenerator.generate(any())).thenReturn(resourceDefinition);
+        when(consumerGenerator.generate(any(), any())).thenReturn(resourceDefinition);
 
-        var resourceManifest = generator.generateResourceManifest(process);
+        var resourceManifest = generator.generateResourceManifest(process, policy);
 
         assertThat(resourceManifest.getDefinitions()).hasSize(1).containsExactly(resourceDefinition);
         verifyNoInteractions(providerGenerator);
@@ -46,7 +49,7 @@ class ResourceManifestGeneratorImplTest {
     void shouldGenerateEmptyResourceManifestForEmptyConsumerNotManagedTransferProcess() {
         var process = createTransferProcess(CONSUMER, false);
 
-        var resourceManifest = generator.generateResourceManifest(process);
+        var resourceManifest = generator.generateResourceManifest(process, policy);
 
         assertThat(resourceManifest.getDefinitions()).isEmpty();
         verifyNoInteractions(consumerGenerator);
@@ -57,9 +60,9 @@ class ResourceManifestGeneratorImplTest {
     void shouldGenerateResourceManifestForProviderTransferProcess() {
         var process = createTransferProcess(PROVIDER, false);
         var resourceDefinition = TestResourceDefinition.Builder.newInstance().id(UUID.randomUUID().toString()).build();
-        when(providerGenerator.generate(any())).thenReturn(resourceDefinition);
+        when(providerGenerator.generate(any(), any())).thenReturn(resourceDefinition);
 
-        var resourceManifest = generator.generateResourceManifest(process);
+        var resourceManifest = generator.generateResourceManifest(process, policy);
 
         assertThat(resourceManifest.getDefinitions()).hasSize(1).containsExactly(resourceDefinition);
         verifyNoInteractions(consumerGenerator);

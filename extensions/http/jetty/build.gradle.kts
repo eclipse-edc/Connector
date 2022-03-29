@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *      Catena-X Consortium - initial API and implementation
+ *      Fraunhofer Institute for Software and Systems Engineering - added dependency
  *
  */
 
@@ -24,6 +25,7 @@ dependencies {
     implementation("org.eclipse.jetty.websocket:websocket-jakarta-server:${jettyVersion}")
 
     api(project(":spi:core-spi"))
+    api(project(":spi:web-spi"))
 
     testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     testImplementation("org.glassfish.jersey.core:jersey-server:${jerseyVersion}")
