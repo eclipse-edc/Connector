@@ -1,10 +1,10 @@
 package org.eclipse.dataspaceconnector.transfer.core.provision;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceDefinitionGenerator;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ConsumerResourceDefinitionGenerator;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ProviderResourceDefinitionGenerator;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.transfer.core.TestResourceDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,8 +12,6 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -21,25 +19,27 @@ import static org.mockito.Mockito.when;
 
 class ResourceManifestGeneratorImplTest {
 
-    private final ResourceDefinitionGenerator consumerGenerator = mock(ResourceDefinitionGenerator.class);
-    private final ResourceDefinitionGenerator providerGenerator = mock(ResourceDefinitionGenerator.class);
+    private final ConsumerResourceDefinitionGenerator consumerGenerator = mock(ConsumerResourceDefinitionGenerator.class);
+    private final ProviderResourceDefinitionGenerator providerGenerator = mock(ProviderResourceDefinitionGenerator.class);
     private final ResourceManifestGeneratorImpl generator = new ResourceManifestGeneratorImpl();
     private Policy policy;
+    private DataAddress dataAddress;
 
     @BeforeEach
     void setUp() {
-        generator.registerConsumerGenerator(consumerGenerator);
-        generator.registerProviderGenerator(providerGenerator);
+        generator.registerGenerator(consumerGenerator);
+        generator.registerGenerator(providerGenerator);
         policy = Policy.Builder.newInstance().build();
+        dataAddress = DataAddress.Builder.newInstance().type("test").build();
     }
 
     @Test
     void shouldGenerateResourceManifestForConsumerManagedTransferProcess() {
-        var process = createTransferProcess(CONSUMER, true);
+        var dataRequest = createDataRequest(true);
         var resourceDefinition = TestResourceDefinition.Builder.newInstance().id(UUID.randomUUID().toString()).build();
         when(consumerGenerator.generate(any(), any())).thenReturn(resourceDefinition);
 
-        var resourceManifest = generator.generateResourceManifest(process, policy);
+        var resourceManifest = generator.generateConsumerResourceManifest(dataRequest, policy);
 
         assertThat(resourceManifest.getDefinitions()).hasSize(1).containsExactly(resourceDefinition);
         verifyNoInteractions(providerGenerator);
@@ -47,9 +47,9 @@ class ResourceManifestGeneratorImplTest {
 
     @Test
     void shouldGenerateEmptyResourceManifestForEmptyConsumerNotManagedTransferProcess() {
-        var process = createTransferProcess(CONSUMER, false);
+        var dataRequest = createDataRequest(false);
 
-        var resourceManifest = generator.generateResourceManifest(process, policy);
+        var resourceManifest = generator.generateConsumerResourceManifest(dataRequest, policy);
 
         assertThat(resourceManifest.getDefinitions()).isEmpty();
         verifyNoInteractions(consumerGenerator);
@@ -58,19 +58,18 @@ class ResourceManifestGeneratorImplTest {
 
     @Test
     void shouldGenerateResourceManifestForProviderTransferProcess() {
-        var process = createTransferProcess(PROVIDER, false);
+        var process = createDataRequest(false);
         var resourceDefinition = TestResourceDefinition.Builder.newInstance().id(UUID.randomUUID().toString()).build();
-        when(providerGenerator.generate(any(), any())).thenReturn(resourceDefinition);
+        when(providerGenerator.generate(any(), any(), any())).thenReturn(resourceDefinition);
 
-        var resourceManifest = generator.generateResourceManifest(process, policy);
+        var resourceManifest = generator.generateProviderResourceManifest(process, dataAddress, policy);
 
         assertThat(resourceManifest.getDefinitions()).hasSize(1).containsExactly(resourceDefinition);
         verifyNoInteractions(consumerGenerator);
     }
 
-    private TransferProcess createTransferProcess(TransferProcess.Type type, boolean managedResources) {
+    private DataRequest createDataRequest(boolean managedResources) {
         var destination = DataAddress.Builder.newInstance().type("any").build();
-        var dataRequest = DataRequest.Builder.newInstance().managedResources(managedResources).dataDestination(destination).build();
-        return TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).dataRequest(dataRequest).type(type).build();
+        return DataRequest.Builder.newInstance().managedResources(managedResources).dataDestination(destination).build();
     }
 }

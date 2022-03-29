@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.spi.telemetry.TraceCarrier;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
@@ -100,6 +101,7 @@ public class TransferProcess implements TraceCarrier {
     private Map<String, String> traceContext = new HashMap<>();
     private String errorDetail;
     private DataRequest dataRequest;
+    private DataAddress contentDataAddress;
     private ResourceManifest resourceManifest;
     private ProvisionedResourceSet provisionedResourceSet;
 
@@ -142,6 +144,10 @@ public class TransferProcess implements TraceCarrier {
         return provisionedResourceSet;
     }
 
+    public DataAddress getContentDataAddress() {
+        return contentDataAddress;
+    }
+
     public String getErrorDetail() {
         return errorDetail;
     }
@@ -161,6 +167,10 @@ public class TransferProcess implements TraceCarrier {
             provisionedResourceSet = ProvisionedResourceSet.Builder.newInstance().transferProcessId(id).build();
         }
         provisionedResourceSet.addResource(resource);
+    }
+
+    public void addContentDataAddress(DataAddress dataAddress) {
+        contentDataAddress = dataAddress;
     }
 
     public boolean provisioningComplete() {
@@ -275,8 +285,19 @@ public class TransferProcess implements TraceCarrier {
     }
 
     public TransferProcess copy() {
-        return Builder.newInstance().id(id).state(state).stateTimestamp(stateTimestamp).stateCount(stateCount).resourceManifest(resourceManifest).dataRequest(dataRequest)
-                .provisionedResourceSet(provisionedResourceSet).traceContext(traceContext).type(type).errorDetail(errorDetail).build();
+        return Builder.newInstance()
+                .id(id)
+                .state(state)
+                .stateTimestamp(stateTimestamp)
+                .stateCount(stateCount)
+                .resourceManifest(resourceManifest)
+                .dataRequest(dataRequest)
+                .provisionedResourceSet(provisionedResourceSet)
+                .contentDataAddress(contentDataAddress)
+                .traceContext(traceContext)
+                .type(type)
+                .errorDetail(errorDetail)
+                .build();
     }
 
     public Builder toBuilder() {
@@ -376,6 +397,11 @@ public class TransferProcess implements TraceCarrier {
 
         public Builder resourceManifest(ResourceManifest manifest) {
             process.resourceManifest = manifest;
+            return this;
+        }
+
+        public Builder contentDataAddress(DataAddress dataAddress) {
+            process.contentDataAddress = dataAddress;
             return this;
         }
 

@@ -16,24 +16,44 @@ package org.eclipse.dataspaceconnector.spi.transfer.provision;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 
 /**
- * Generates resource manifests for data transfer requests. Implementations are responsible for enforcing policy contraints associated with transfer requests.
+ * Generates resource manifests for data transfer requests. Implementations are responsible for enforcing policy constraints associated with transfer requests.
  */
 @Feature("edc:core:transfer:provision:resourcemanifest-generator")
 public interface ResourceManifestGenerator {
 
-    void registerConsumerGenerator(ResourceDefinitionGenerator generator);
-
-    void registerProviderGenerator(ResourceDefinitionGenerator generator);
+    /**
+     * Registers a generator for consumer-side generation.
+     *
+     * @param generator the generator
+     */
+    void registerGenerator(ConsumerResourceDefinitionGenerator generator);
 
     /**
-     * Generates a resource manifest for a data request on a connector. Operations should be idempotent.
+     * Registers a generator for producer-side generation.
      *
-     * @param process the transfer process to generate the definition for
+     * @param generator the generator
+     */
+    void registerGenerator(ProviderResourceDefinitionGenerator generator);
+
+    /**
+     * Generates a resource manifest for a consumer-side data request. Operations must be idempotent.
+     *
+     * @param dataRequest the data request associated with transfer process
      * @param policy the contract agreement usage policy for the asset being transferred
      */
-    ResourceManifest generateResourceManifest(TransferProcess process, Policy policy);
+    ResourceManifest generateConsumerResourceManifest(DataRequest dataRequest, Policy policy);
+
+    /**
+     * Generates a resource manifest for a provider-side data request. Operations must be idempotent.
+     *
+     * @param dataRequest the data request associated with transfer process
+     * @param assetAddress the asset data address
+     * @param policy the contract agreement usage policy for the asset being transferred
+     */
+    ResourceManifest generateProviderResourceManifest(DataRequest dataRequest, DataAddress assetAddress, Policy policy);
 }

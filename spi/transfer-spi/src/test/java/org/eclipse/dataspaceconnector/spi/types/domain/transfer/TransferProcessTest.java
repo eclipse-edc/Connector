@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.spi.types.domain.transfer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -30,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -51,13 +53,23 @@ class TransferProcessTest {
 
     @Test
     void verifyCopy() {
-        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.PROVIDER).state(TransferProcessStates.COMPLETED.code()).stateCount(1).stateTimestamp(1).build();
+        TransferProcess process = TransferProcess.Builder
+                .newInstance()
+                .id(UUID.randomUUID().toString())
+                .type(TransferProcess.Type.PROVIDER)
+                .state(TransferProcessStates.COMPLETED.code())
+                .contentDataAddress(DataAddress.Builder.newInstance().type("test").build())
+                .stateCount(1)
+                .stateTimestamp(1)
+                .build();
+
         TransferProcess copy = process.copy();
 
         assertEquals(process.getState(), copy.getState());
         assertEquals(process.getType(), copy.getType());
         assertEquals(process.getStateCount(), copy.getStateCount());
         assertEquals(process.getStateTimestamp(), copy.getStateTimestamp());
+        assertNotNull(process.getContentDataAddress());
 
         assertEquals(process, copy);
     }
@@ -143,7 +155,7 @@ class TransferProcessTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "ENDED", "ERROR" }, mode = EnumSource.Mode.EXCLUDE)
+    @EnumSource(value = TransferProcessStates.class, names = {"COMPLETED", "ENDED", "ERROR"}, mode = EnumSource.Mode.EXCLUDE)
     void verifyCancel_validStates(TransferProcessStates state) {
         TransferProcess.Builder builder = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
         builder.state(state.code());
@@ -154,7 +166,7 @@ class TransferProcessTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "ENDED", "ERROR" }, mode = EnumSource.Mode.INCLUDE)
+    @EnumSource(value = TransferProcessStates.class, names = {"COMPLETED", "ENDED", "ERROR"}, mode = EnumSource.Mode.INCLUDE)
     void verifyCancel_invalidStates(TransferProcessStates state) {
         TransferProcess.Builder builder = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
         builder.state(state.code());
