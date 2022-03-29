@@ -39,6 +39,7 @@ the detailed section referring to by linking pull requests or issues.
 * Implement Asset service for Data Management API (#931)
 * Implement ContractDefinition service for Data Management API (#940)
 * Implement ContractNegotiation service for Data Management API (#957)
+* In-memory implementation of PolicyStore (#930)
 
 #### Changed
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020-2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -16,21 +16,15 @@ plugins {
     `java-library`
 }
 
-
 dependencies {
-    api(project(":spi:core-spi"))
-    api(project(":spi:transfer-spi"))
-    api(project(":spi:contract-spi"))
-    api(project(":spi:catalog-spi"))
-    api(project(":spi:web-spi"))
-    api(project(":spi:transport-spi"))
-    api(project(":spi:policy-spi"))
+    api(project(":spi"))
+    implementation(project(":common:util"))
 }
 
 publishing {
     publications {
-        create<MavenPublication>("spi") {
-            artifactId = "spi"
+        create<MavenPublication>("policy-store-memory") {
+            artifactId = "policy-store-memory"
             from(components["java"])
         }
     }

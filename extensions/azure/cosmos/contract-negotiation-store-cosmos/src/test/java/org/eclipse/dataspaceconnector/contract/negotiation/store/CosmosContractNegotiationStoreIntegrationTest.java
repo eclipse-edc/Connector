@@ -470,6 +470,14 @@ class CosmosContractNegotiationStoreIntegrationTest {
         assertThat(store.queryNegotiations(descendingQuery)).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
     }
 
+    @Test
+    void findAll_verifySortingInvalidSortField() {
+        IntStream.range(0, 10).mapToObj(i -> generateDocument()).forEach(d -> container.createItem(d));
+
+        var query = QuerySpec.Builder.newInstance().sortField("xyz").sortOrder(SortOrder.ASC).build();
+        assertThat(store.queryNegotiations(query)).isEmpty();
+    }
+
     private ContractNegotiationDocument toDocument(Object object) {
         var json = typeManager.writeValueAsString(object);
         return typeManager.readValue(json, ContractNegotiationDocument.class);
