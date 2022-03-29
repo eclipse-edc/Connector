@@ -120,7 +120,7 @@ public abstract class DependencyRulesTask extends DefaultTask {
         if (getFailOnError().get()) {
             throw new GradleException(message);
         } else {
-            System.out.println(message);
+            getLogger().warn(message);
         }
     }
 }
