@@ -80,7 +80,7 @@ class TransferProcessManagerImplIntegrationTest {
     void verifyProvision_shouldNotStarve() throws InterruptedException {
         var numProcesses = TRANSFER_MANAGER_BATCHSIZE * 2;
         var processesToProvision = new CountDownLatch(numProcesses);
-        when(provisionManager.provision(any(TransferProcess.class), any(Policy.class))).thenAnswer(i -> {
+        when(provisionManager.provision(any(), any(Policy.class))).thenAnswer(i -> {
             processesToProvision.countDown();
             return completedFuture(List.of(ProvisionResponse.Builder.newInstance().resource(new TestProvisionedDataDestinationResource("any")).build()));
         });

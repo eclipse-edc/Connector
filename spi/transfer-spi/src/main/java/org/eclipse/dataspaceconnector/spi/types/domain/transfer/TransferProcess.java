@@ -22,18 +22,22 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.spi.telemetry.TraceCarrier;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.unmodifiableList;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.CANCELLED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
@@ -173,16 +177,43 @@ public class TransferProcess implements TraceCarrier {
         contentDataAddress = dataAddress;
     }
 
+    /**
+     * Returns the collection of resources that have not been provisioned.
+     */
+    @NotNull
+    public List<ResourceDefinition> getResourcesToProvision() {
+        if (resourceManifest == null) {
+            return emptyList();
+        }
+        if (provisionedResourceSet == null) {
+            return unmodifiableList(resourceManifest.getDefinitions());
+        }
+        var provisionedResources = provisionedResourceSet.getResources().stream().map(ProvisionedResource::getResourceDefinitionId).collect(toSet());
+        return resourceManifest.getDefinitions().stream().filter(r -> !provisionedResources.contains(r.getId())).collect(toList());
+    }
+
+    /**
+     * Returns the collection of resources that have not been deprovisioned.
+     */
+    @NotNull
+    public List<ProvisionedResource> getResourcesToDeprovision() {
+        if (provisionedResourceSet == null) {
+            return emptyList();
+        }
+        // TODO track deprovisioned resources
+        return unmodifiableList(provisionedResourceSet.getResources());
+    }
+
     public boolean provisioningComplete() {
         if (resourceManifest == null) {
             return false;
         }
 
-        Set<String> definitions = resourceManifest.getDefinitions().stream()
+        var definitions = resourceManifest.getDefinitions().stream()
                 .map(ResourceDefinition::getId)
                 .collect(toSet());
 
-        Set<String> resources = Optional.ofNullable(provisionedResourceSet).stream()
+        var resources = Optional.ofNullable(provisionedResourceSet).stream()
                 .flatMap(it -> it.getResources().stream())
                 .map(ProvisionedResource::getResourceDefinitionId)
                 .collect(toSet());

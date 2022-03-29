@@ -295,7 +295,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private boolean processProvisioning(TransferProcess process) {
         // TODO resolve contract agreement policy from the PolicyStore
         var policy = Policy.Builder.newInstance().build();
-        provisionManager.provision(process, policy)
+
+        var resources = process.getResourcesToProvision();
+        provisionManager.provision(resources, policy)
                 .whenComplete((responses, throwable) -> {
                     if (throwable == null) {
                         handleProvisionResult(process.getId(), responses);
@@ -413,7 +415,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         // TODO resolve contract agreement policy from the PolicyStore
         var policy = Policy.Builder.newInstance().build();
         observable.invokeForEach(l -> l.preDeprovisioning(process)); // TODO: this is called here since it's not callable from the command handler
-        provisionManager.deprovision(process, policy)
+
+        var resourcesToDeprovision = process.getResourcesToDeprovision();
+
+        provisionManager.deprovision(resourcesToDeprovision, policy)
                 .whenComplete((responses, throwable) -> {
                     if (throwable == null) {
                         // TODO: handle partial deprovisioning

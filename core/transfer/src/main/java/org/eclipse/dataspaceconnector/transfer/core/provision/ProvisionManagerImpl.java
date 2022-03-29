@@ -24,7 +24,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -51,16 +50,16 @@ public class ProvisionManagerImpl implements ProvisionManager {
 
     @WithSpan
     @Override
-    public CompletableFuture<List<ProvisionResult>> provision(TransferProcess process, Policy policy) {
-        return process.getResourceManifest().getDefinitions().stream()
+    public CompletableFuture<List<ProvisionResult>> provision(List<ResourceDefinition> definitions, Policy policy) {
+        return definitions.stream()
                 .map(definition -> provision(definition, policy).whenComplete(logOnError(definition)))
                 .collect(asyncAllOf());
     }
 
     @WithSpan
     @Override
-    public CompletableFuture<List<DeprovisionResult>> deprovision(TransferProcess process, Policy policy) {
-        return process.getProvisionedResourceSet().getResources().stream()
+    public CompletableFuture<List<DeprovisionResult>> deprovision(List<ProvisionedResource> resources, Policy policy) {
+        return resources.stream()
                 .map(definition -> deprovision(definition, policy).whenComplete(logOnError(definition)))
                 .collect(asyncAllOf());
     }

@@ -23,6 +23,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.List;
 import java.util.UUID;
 
 import static java.util.Collections.emptyList;
@@ -40,20 +41,20 @@ class TransferProcessTest {
 
     @Test
     void verifyDeserialization() throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
+        var mapper = new ObjectMapper();
 
-        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).build();
-        StringWriter writer = new StringWriter();
+        var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).build();
+        var writer = new StringWriter();
         mapper.writeValue(writer, process);
 
-        TransferProcess deserialized = mapper.readValue(writer.toString(), TransferProcess.class);
+        var deserialized = mapper.readValue(writer.toString(), TransferProcess.class);
 
         assertEquals(process, deserialized);
     }
 
     @Test
     void verifyCopy() {
-        TransferProcess process = TransferProcess.Builder
+        var process = TransferProcess.Builder
                 .newInstance()
                 .id(UUID.randomUUID().toString())
                 .type(TransferProcess.Type.PROVIDER)
@@ -63,7 +64,7 @@ class TransferProcessTest {
                 .stateTimestamp(1)
                 .build();
 
-        TransferProcess copy = process.copy();
+        var copy = process.copy();
 
         assertEquals(process.getState(), copy.getState());
         assertEquals(process.getType(), copy.getType());
@@ -76,7 +77,7 @@ class TransferProcessTest {
 
     @Test
     void verifyConsumerTransitions() {
-        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.CONSUMER).build();
+        var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.CONSUMER).build();
 
         // test illegal transition
         assertThrows(IllegalStateException.class, () -> process.transitionProvisioning(ResourceManifest.Builder.newInstance().build()));
@@ -104,7 +105,7 @@ class TransferProcessTest {
 
     @Test
     void verifyProviderTransitions() {
-        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.PROVIDER).build();
+        var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.PROVIDER).build();
 
         process.transitionInitial();
 
@@ -122,7 +123,7 @@ class TransferProcessTest {
 
     @Test
     void verifyTransitionRollback() {
-        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).build();
+        var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).build();
         process.transitionInitial();
         process.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
 
@@ -134,12 +135,12 @@ class TransferProcessTest {
 
     @Test
     void verifyProvisioningComplete() {
-        TransferProcess.Builder builder = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
+        var builder = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
 
-        ResourceManifest manifest = ResourceManifest.Builder.newInstance().build();
+        var manifest = ResourceManifest.Builder.newInstance().build();
         manifest.addDefinition(TestResourceDefinition.Builder.newInstance().id("r1").build());
 
-        TransferProcess process = builder.resourceManifest(manifest).build();
+        var process = builder.resourceManifest(manifest).build();
 
         assertFalse(process.provisioningComplete());
 
@@ -154,10 +155,56 @@ class TransferProcessTest {
         assertTrue(process.provisioningComplete());
     }
 
+    @Test
+    void verifyResourceToProvisionWhenEmptyResources() {
+        var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).build();
+        assertThat(process.getResourcesToProvision()).isEmpty();
+    }
+
+    @Test
+    void verifyResourceToProvisionResultsHaveNotBeenReturned() {
+        var manifest = ResourceManifest.Builder.newInstance()
+                .definitions(List.of(TestResourceDefinition.Builder.newInstance().id("1").build()))
+                .build();
+
+        var process = TransferProcess.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .resourceManifest(manifest)
+                .build();
+
+        assertThat(process.getResourcesToProvision().size()).isEqualTo(1);
+    }
+
+    @Test
+    void verifyResourceToProvisionResultsHaveBeenReturned() {
+        var manifest = ResourceManifest.Builder.newInstance()
+                .definitions(List.of(TestResourceDefinition.Builder.newInstance().id("1").build()))
+                .definitions(List.of(TestResourceDefinition.Builder.newInstance().id("2").build()))
+                .build();
+
+        var provisionedResource = TestProvisionedResource.Builder.newInstance()
+                .id("123")
+                .transferProcessId("4")
+                .resourceDefinitionId("1")
+                .build();
+
+        var provisionedResourceSet = ProvisionedResourceSet.Builder.newInstance()
+                .resources(List.of(provisionedResource))
+                .build();
+
+        var process = TransferProcess.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .resourceManifest(manifest)
+                .provisionedResourceSet(provisionedResourceSet)
+                .build();
+
+        assertThat(process.getResourcesToProvision().size()).isEqualTo(1);
+    }
+
     @ParameterizedTest
     @EnumSource(value = TransferProcessStates.class, names = {"COMPLETED", "ENDED", "ERROR"}, mode = EnumSource.Mode.EXCLUDE)
     void verifyCancel_validStates(TransferProcessStates state) {
-        TransferProcess.Builder builder = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
+        var builder = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
         builder.state(state.code());
         var tp = builder.build();
         tp.transitionCancelled();
@@ -168,7 +215,7 @@ class TransferProcessTest {
     @ParameterizedTest
     @EnumSource(value = TransferProcessStates.class, names = {"COMPLETED", "ENDED", "ERROR"}, mode = EnumSource.Mode.INCLUDE)
     void verifyCancel_invalidStates(TransferProcessStates state) {
-        TransferProcess.Builder builder = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
+        var builder = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
         builder.state(state.code());
         var tp = builder.build();
         assertThatThrownBy(tp::transitionCancelled).isInstanceOf(IllegalStateException.class);
