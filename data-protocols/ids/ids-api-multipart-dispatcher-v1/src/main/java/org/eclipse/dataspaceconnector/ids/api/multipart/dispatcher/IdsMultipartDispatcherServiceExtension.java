@@ -54,8 +54,8 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
     public static final String DEFAULT_EDC_IDS_ID = "urn:connector:edc";
 
     @EdcSetting
-    public static final String IDS_WEBOHOOK_ADDRESS = "ids.webhook.address";
-    public static final String DEFAULT_IDS_WEBOHOOK_ADDRESS = "http://localhost";
+    public static final String IDS_WEBHOOK_ADDRESS = "ids.webhook.address";
+    public static final String DEFAULT_IDS_WEBHOOK_ADDRESS = "http://localhost";
 
     private Monitor monitor;
     @Inject
@@ -90,7 +90,7 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
         objectMapper.registerSubtypes(IdsConstraintImpl.class);
 
-        String idsWebhookAddress = getSetting(context, IDS_WEBOHOOK_ADDRESS, DEFAULT_IDS_WEBOHOOK_ADDRESS);
+        String idsWebhookAddress = getSetting(context, IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS);
         String idsApiPath = idsApiConfiguration.getPath();
 
         var multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
