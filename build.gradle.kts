@@ -260,6 +260,7 @@ if (project.hasProperty("dependency.analysis")) {
                 }
                 onUnusedDependencies {
                     exclude(
+                        // test dependencies
                         "com.github.javafaker:javafaker",
                         "org.assertj:assertj-core",
                         "org.junit.jupiter:junit-jupiter-api",
