@@ -285,6 +285,9 @@ if (project.hasProperty("dependency.analysis")) {
                 excludeAnnotations(
                         "io\\.opentelemetry\\.extension\\.annotations\\.WithSpan",
                 )
+                excludeClasses(
+                        "org\\.eclipse\\.dataspaceconnector\\.api\\.exception\\.NotAuthorizedException",
+                )
             }
         }
     }
