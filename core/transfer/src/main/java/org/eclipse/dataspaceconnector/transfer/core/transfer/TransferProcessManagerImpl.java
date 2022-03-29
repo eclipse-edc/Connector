@@ -37,11 +37,11 @@ import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedContentResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
@@ -51,6 +51,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -160,7 +161,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     @Override
-    public void handleProvisionResult(String processId, List<ProvisionResponse> responses) {
+    public void handleProvisionResult(String processId, List<ProvisionResult> responses) {
         var transferProcess = transferProcessStore.find(processId);
         if (transferProcess == null) {
             monitor.severe("TransferProcessManager: no TransferProcess found for deprovisioned resources");
@@ -172,8 +173,21 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return;
         }
 
+        var fatalProvisioningErrors = new ArrayList<String>();
         responses.stream()
-                .map(response -> {
+                .map(result -> {
+                    if (result.failed()) {
+                        ResponseStatus status = result.getFailure().status();
+                        //noinspection StatementWithEmptyBody
+                        if (status == ResponseStatus.ERROR_RETRY) {
+                            // do nothing, will be retried
+                        } else if (status == ResponseStatus.FATAL_ERROR) {
+                            fatalProvisioningErrors.addAll(result.getFailure().getMessages());
+                        }
+                        return null;
+                    }
+                    var response = result.getContent();
+
                     var provisionedResource = response.getResource();
                     var secretToken = response.getSecretToken();
 
@@ -202,9 +216,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
                     return provisionedResource;
                 })
+                .filter(Objects::nonNull)
                 .forEach(transferProcess::addProvisionedResource);
-
-        if (transferProcess.provisioningComplete()) {
+        if (!fatalProvisioningErrors.isEmpty()) {
+            var errors = String.join("\n", fatalProvisioningErrors);
+            monitor.severe(format("Transitioning transfer process %s to ERROR state due to fatal provisioning errors: \n%s", transferProcess.getId(), errors));
+            transferProcess.transitionError("Fatal provisioning errors encountered. See logs for details");
+        } else if (transferProcess.provisioningComplete()) {
             transferProcess.transitionProvisioned();
             transferProcessStore.update(transferProcess);
             observable.invokeForEach(l -> l.preProvisioned(transferProcess));
@@ -398,6 +416,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         provisionManager.deprovision(process, policy)
                 .whenComplete((responses, throwable) -> {
                     if (throwable == null) {
+                        // TODO: handle partial deprovisioning
                         onDeprovisionComplete(process.getId());
                     } else {
                         transitionToError(process.getId(), throwable, "Error during deprovisioning");

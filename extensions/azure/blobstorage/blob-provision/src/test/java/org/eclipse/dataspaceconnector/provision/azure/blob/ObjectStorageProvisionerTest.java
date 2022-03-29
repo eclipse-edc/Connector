@@ -79,7 +79,7 @@ class ObjectStorageProvisionerTest {
         when(blobStoreApiMock.exists(anyString(), anyString())).thenReturn(false);
         when(blobStoreApiMock.createContainerSasToken(eq(accountName), eq(containerName), eq("w"), any())).thenReturn("some-sas");
 
-        var response = provisioner.provision(resourceDef, policy).join();
+        var response = provisioner.provision(resourceDef, policy).join().getContent();
 
         assertThat(response.getResource()).isInstanceOfSatisfying(ObjectContainerProvisionedResource.class, resource -> {
             assertThat(resource.getTransferProcessId()).isEqualTo("tpId");
@@ -99,7 +99,7 @@ class ObjectStorageProvisionerTest {
         when(blobStoreApiMock.exists(accountName, containerName)).thenReturn(true);
         when(blobStoreApiMock.createContainerSasToken(eq(accountName), eq(containerName), eq("w"), any())).thenReturn("some-sas");
 
-        var response = provisioner.provision(resourceDef, policy).join();
+        var response = provisioner.provision(resourceDef, policy).join().getContent();
 
         assertThat(response.getResource()).isInstanceOfSatisfying(ObjectContainerProvisionedResource.class, resource -> {
             assertThat(resource.getTransferProcessId()).isEqualTo("tpId");

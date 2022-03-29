@@ -15,6 +15,7 @@ package org.eclipse.dataspaceconnector.transfer.core.command.handlers;
 
 import org.eclipse.dataspaceconnector.spi.command.CommandHandler;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
 import org.eclipse.dataspaceconnector.transfer.core.command.commands.AddProvisionedResourceCommand;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.ProvisionCompletionDelegate;
 
@@ -34,7 +35,7 @@ public class AddProvisionedResourceCommandHandler implements CommandHandler<AddP
 
     @Override
     public void handle(AddProvisionedResourceCommand command) {
-        delegate.handleProvisionResult(command.getTransferProcessId(), List.of(command.getProvisionResponse()));
+        delegate.handleProvisionResult(command.getTransferProcessId(), List.of(ProvisionResult.success(command.getProvisionResponse())));
     }
 
     @Override

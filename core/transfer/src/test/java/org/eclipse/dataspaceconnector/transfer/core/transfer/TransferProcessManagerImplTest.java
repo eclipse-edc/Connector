@@ -26,7 +26,9 @@ import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -158,10 +160,10 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(PROVISIONING).toBuilder()
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
-        var provisionResponse = ProvisionResponse.Builder.newInstance()
+        var provisionResult = ProvisionResult.success(ProvisionResponse.Builder.newInstance()
                 .resource(provisionedDataDestinationResource())
-                .build();
-        when(provisionManager.provision(any(TransferProcess.class), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResponse)));
+                .build());
+        when(provisionManager.provision(any(TransferProcess.class), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
         when(store.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(store.find(process.getId())).thenReturn(process);
         var latch = countDownOnUpdateLatch();
@@ -188,11 +190,11 @@ class TransferProcessManagerImplTest {
                 .contentDataAddress(DataAddress.Builder.newInstance().type("test").build())
                 .build();
 
-        var provisionResponse = ProvisionResponse.Builder.newInstance()
+        var provisionResult = ProvisionResult.success(ProvisionResponse.Builder.newInstance()
                 .resource(resource)
-                .build();
+                .build());
 
-        when(provisionManager.provision(any(TransferProcess.class), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResponse)));
+        when(provisionManager.provision(any(TransferProcess.class), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
         when(store.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(store.find(process.getId())).thenReturn(process);
         var latch = countDownOnUpdateLatch();
@@ -401,10 +403,10 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(DEPROVISIONING).toBuilder()
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
-        var provisionResponse = DeprovisionResponse.Builder.newInstance()
+        var deprovisionResult = DeprovisionResult.success(DeprovisionResponse.Builder.newInstance()
                 .resource(provisionedDataDestinationResource())
-                .build();
-        when(provisionManager.deprovision(any(TransferProcess.class), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResponse)));
+                .build());
+        when(provisionManager.deprovision(any(TransferProcess.class), isA(Policy.class))).thenReturn(completedFuture(List.of(deprovisionResult)));
         when(store.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(store.find(process.getId())).thenReturn(process);
         var latch = countDownOnUpdateLatch();
