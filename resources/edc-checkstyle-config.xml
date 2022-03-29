@@ -49,8 +49,7 @@
   <module name="RegexpHeader">
     <property name="severity" value="${enhanced_checks_severity}" default="warning"/>
     <property name="fileExtensions" value="java"/>
-    <!-- default path is for checkstyle GitHub Action running in docker -->
-    <property name="headerFile" value="${base_dir}/resources/java.header" default="/github/workspace/resources/java.header"/>
+    <property name="header" value="^/\*$\n^ \*  Copyright \(c\) 20\d\d((,| -) 20\d{2})? [A-Za-z].+\S$\n^ \*$\n^ \*  This program and the accompanying materials are made available under the$\n^ \*  terms of the Apache License, Version 2\.0 which is available at$\n^ \*  https://www\.apache\.org/licenses/LICENSE-2\.0$\n^ \*$\n^ \*  SPDX-License-Identifier: Apache-2\.0$\n^ \*$\n^ \*  Contributors:$\n^ \*       \S.*\S - \S.*\S$\n^ \*$\n^ \*/$\n^$\n^package"/>
     <property name="multiLines" value="11"/>
   </module>
 
