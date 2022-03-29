@@ -18,6 +18,7 @@ import de.fraunhofer.iais.eis.Builder;
 import de.fraunhofer.iais.eis.Constraint;
 import de.fraunhofer.iais.eis.util.ConstraintViolationException;
 import de.fraunhofer.iais.eis.util.RdfResource;
+import de.fraunhofer.iais.eis.util.VocabUtil;
 
 import java.net.URI;
 
@@ -38,37 +39,39 @@ public class IdsConstraintBuilder implements Builder<Constraint> {
     }
 
     public IdsConstraintBuilder leftOperand(String leftOperand) {
-        this.constraintImpl.setLeftOperand(leftOperand);
+        constraintImpl.setLeftOperand(leftOperand);
         return this;
     }
 
     public IdsConstraintBuilder operator(BinaryOperator operator) {
-        this.constraintImpl.setOperator(operator);
+        constraintImpl.setOperator(operator);
         return this;
     }
 
     public IdsConstraintBuilder rightOperand(RdfResource rightOperand) {
-        this.constraintImpl.setRightOperand(rightOperand);
+        constraintImpl.setRightOperand(rightOperand);
         return this;
     }
 
     public IdsConstraintBuilder rightOperandReference(URI rightOperandReference) {
-        this.constraintImpl.setRightOperandReference(rightOperandReference);
+        constraintImpl.setRightOperandReference(rightOperandReference);
         return this;
     }
 
     public IdsConstraintBuilder unit(URI unit) {
-        this.constraintImpl.setUnit(unit);
+        constraintImpl.setUnit(unit);
         return this;
     }
 
     public IdsConstraintBuilder pipEndpoint(URI pipEndpoint) {
-        this.constraintImpl.setPipEndpoint(pipEndpoint);
+        constraintImpl.setPipEndpoint(pipEndpoint);
         return this;
     }
 
     @Override
+    @SuppressWarnings("deprecated")
     public Constraint build() throws ConstraintViolationException {
+        VocabUtil.getInstance().validate(constraintImpl);
         return constraintImpl;
     }
 }

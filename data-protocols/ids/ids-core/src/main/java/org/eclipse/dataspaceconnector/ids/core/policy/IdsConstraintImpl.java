@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import de.fraunhofer.iais.eis.Constraint;
 import de.fraunhofer.iais.eis.ConstraintImpl;
 import de.fraunhofer.iais.eis.LeftOperand;
@@ -32,6 +33,7 @@ import javax.validation.constraints.NotNull;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeName("ids:Constraint")
+@JsonDeserialize(using = CustomIdsConstraintDeserializer.class)
 public class IdsConstraintImpl extends ConstraintImpl {
 
     @NotNull
