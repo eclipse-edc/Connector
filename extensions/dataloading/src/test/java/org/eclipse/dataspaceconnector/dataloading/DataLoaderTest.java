@@ -12,6 +12,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.dataloading;
 
 import org.eclipse.dataspaceconnector.spi.result.Result;

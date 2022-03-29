@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.spi.contract.offer.store;
 
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;

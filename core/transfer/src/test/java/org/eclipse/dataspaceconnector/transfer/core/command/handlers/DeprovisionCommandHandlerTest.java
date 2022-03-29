@@ -1,6 +1,6 @@
 
 /*
- *  Copyright (c) 2020-2022 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,6 +12,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.transfer.core.command.handlers;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;

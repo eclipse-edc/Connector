@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.spi.types.domain.contract.offer;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;

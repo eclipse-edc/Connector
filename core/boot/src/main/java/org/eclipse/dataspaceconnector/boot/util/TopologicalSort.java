@@ -31,6 +31,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.boot.util;
 
 import java.util.ArrayList;

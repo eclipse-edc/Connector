@@ -13,6 +13,7 @@
  *       Microsoft Corporation
  *
  */
+
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
