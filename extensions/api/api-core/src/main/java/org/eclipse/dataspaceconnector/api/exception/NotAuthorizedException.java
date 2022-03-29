@@ -14,10 +14,8 @@
 
 package org.eclipse.dataspaceconnector.api.exception;
 
-import org.eclipse.dataspaceconnector.common.annotations.ExcludeFromDependencyAnalysisReport;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
-@ExcludeFromDependencyAnalysisReport // api-core package required as api dependency for modules using this exception
 public class NotAuthorizedException extends EdcException {
     public NotAuthorizedException() {
         super("This request could not be authorized");
