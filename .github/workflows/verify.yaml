@@ -36,6 +36,6 @@ jobs:
           tool_name: 'checkstyle-enhanced'
           checkstyle_version: '9.0'
           reporter: 'github-check'
-          filter_mode: 'added'
+          filter_mode: 'file'
 
 
