@@ -17,17 +17,15 @@ import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
-import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.dataspaceconnector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore.State;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
-import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
@@ -48,6 +46,7 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
     private long waitTimeout = 100;
 
     private PipelineService pipelineService;
+    private ExecutorInstrumentation executorInstrumentation;
     private Monitor monitor;
 
     private BlockingQueue<DataFlowRequest> queue;
@@ -60,7 +59,7 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
     public void start() {
         queue = new ArrayBlockingQueue<>(queueCapacity);
         active.set(true);
-        executorService = Executors.newFixedThreadPool(workers);
+        executorService = executorInstrumentation.instrument(Executors.newFixedThreadPool(workers), getClass().getSimpleName());
         for (var i = 0; i < workers; i++) {
             executorService.submit(this::run);
         }
@@ -156,6 +155,11 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
 
         public Builder pipelineService(PipelineService pipelineService) {
             manager.pipelineService = pipelineService;
+            return this;
+        }
+
+        public Builder executorInstrumentation(ExecutorInstrumentation executorInstrumentation) {
+            manager.executorInstrumentation = executorInstrumentation;
             return this;
         }
 
