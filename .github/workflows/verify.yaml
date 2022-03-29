@@ -35,7 +35,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tool_name: 'checkstyle-enhanced'
           checkstyle_version: '9.0'
-          reporter: 'github-pr-check'
+          reporter: 'github-check'
           # Include only violations on added or modified files
           filter_mode: 'file'
 
