@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.asset.loader;
+package org.eclipse.dataspaceconnector.sql.asset.index;
 
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
@@ -26,7 +26,7 @@ import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegis
 
 
 @Provides({AssetLoader.class, AssetIndex.class, DataAddressResolver.class})
-public class SqlAssetLoaderServiceExtension implements ServiceExtension {
+public class SqlAssetIndexServiceExtension implements ServiceExtension {
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -38,7 +38,7 @@ public class SqlAssetLoaderServiceExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var dataSourceName = context.getConfig().getString(ConfigurationKeys.DATASOURCE_SETTING_NAME);
 
-        var sqlAssetLoader = new SqlAssetLoader(dataSourceRegistry, dataSourceName, transactionContext, context.getTypeManager().getMapper());
+        var sqlAssetLoader = new SqlAssetIndex(dataSourceRegistry, dataSourceName, transactionContext, context.getTypeManager().getMapper(), new PostgresSqlAssetQueries());
 
         context.registerService(AssetLoader.class, sqlAssetLoader);
         context.registerService(AssetIndex.class, sqlAssetLoader);

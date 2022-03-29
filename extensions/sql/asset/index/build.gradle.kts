@@ -37,8 +37,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("sql-asset-loader") {
-            artifactId = "sql-asset-loader"
+        create<MavenPublication>("sql-asset-index") {
+            artifactId = "sql-asset-index"
             from(components["java"])
         }
     }

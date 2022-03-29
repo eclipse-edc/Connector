@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.asset.loader;
+package org.eclipse.dataspaceconnector.sql.asset.index;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.dataloading.AssetEntry;
@@ -47,11 +47,11 @@ import java.util.Objects;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class SqlAssetLoaderTest {
+public class SqlAssetIndexTest {
 
     private static final String DATASOURCE_NAME = "asset";
 
-    private SqlAssetLoader sqlAssetLoader;
+    private SqlAssetIndex sqlAssetIndex;
     private ConnectionPool connectionPool;
 
     @BeforeEach
@@ -69,7 +69,7 @@ public class SqlAssetLoaderTest {
         var poolDataSource = new ConnectionPoolDataSource(connectionPool);
         dataSourceRegistry.register(DATASOURCE_NAME, poolDataSource);
         txManager.registerResource(new DataSourceResource(poolDataSource));
-        sqlAssetLoader = new SqlAssetLoader(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper());
+        sqlAssetIndex = new SqlAssetIndex(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper(), new PostgresSqlAssetQueries());
 
         try (var inputStream = getClass().getClassLoader().getResourceAsStream("schema.sql")) {
             var schema = new String(Objects.requireNonNull(inputStream).readAllBytes(), StandardCharsets.UTF_8);
@@ -89,9 +89,9 @@ public class SqlAssetLoaderTest {
     @DisplayName("Accept an asset and a data address that don't exist yet")
     void acceptAssetAndDataAddress_doesNotExist() {
         var assetExpected = getAsset("id1");
-        sqlAssetLoader.accept(assetExpected, getDataAddress());
+        sqlAssetIndex.accept(assetExpected, getDataAddress());
 
-        var assetFound = sqlAssetLoader.findById("id1");
+        var assetFound = sqlAssetIndex.findById("id1");
 
         assertThat(assetFound).isNotNull();
         assertThat(assetFound.getId()).isEqualTo(assetExpected.getId());
@@ -101,9 +101,9 @@ public class SqlAssetLoaderTest {
     @DisplayName("Accept an asset and a data address that already exist")
     void acceptAssetAndDataAddress_exists() {
         var asset = getAsset("id1");
-        sqlAssetLoader.accept(asset, getDataAddress());
+        sqlAssetIndex.accept(asset, getDataAddress());
 
-        assertThatThrownBy(() -> sqlAssetLoader.accept(asset, getDataAddress()))
+        assertThatThrownBy(() -> sqlAssetIndex.accept(asset, getDataAddress()))
                 .isInstanceOf(EdcPersistenceException.class)
                 .hasMessageContaining(String.format("Cannot persist. Asset with ID '%s' already exists.", asset.getId()));
     }
@@ -112,9 +112,9 @@ public class SqlAssetLoaderTest {
     @DisplayName("Accept an asset entry that doesn't exist yet")
     void acceptAssetEntry_doesNotExist() {
         var assetExpected = getAsset("id1");
-        sqlAssetLoader.accept(new AssetEntry(assetExpected, getDataAddress()));
+        sqlAssetIndex.accept(new AssetEntry(assetExpected, getDataAddress()));
 
-        var assetFound = sqlAssetLoader.findById("id1");
+        var assetFound = sqlAssetIndex.findById("id1");
 
         assertThat(assetFound).isNotNull();
         assertThat(assetFound.getId()).isEqualTo(assetExpected.getId());
@@ -124,9 +124,9 @@ public class SqlAssetLoaderTest {
     @DisplayName("Accept an asset entry that already exists")
     void acceptEntry_exists() {
         var asset = getAsset("id1");
-        sqlAssetLoader.accept(new AssetEntry(asset, getDataAddress()));
+        sqlAssetIndex.accept(new AssetEntry(asset, getDataAddress()));
 
-        assertThatThrownBy(() -> sqlAssetLoader.accept(asset, getDataAddress()))
+        assertThatThrownBy(() -> sqlAssetIndex.accept(asset, getDataAddress()))
                 .isInstanceOf(EdcPersistenceException.class)
                 .hasMessageContaining(String.format("Cannot persist. Asset with ID '%s' already exists.", asset.getId()));
     }
@@ -134,7 +134,7 @@ public class SqlAssetLoaderTest {
     @Test
     @DisplayName("Delete an asset that doesn't exist")
     void deleteAsset_doesNotExist() {
-        var assetDeleted = sqlAssetLoader.deleteById("id1");
+        var assetDeleted = sqlAssetIndex.deleteById("id1");
 
         assertThat(assetDeleted).isNull();
     }
@@ -143,9 +143,9 @@ public class SqlAssetLoaderTest {
     @DisplayName("Delete an asset that exists")
     void deleteAsset_exists() {
         var asset = getAsset("id1");
-        sqlAssetLoader.accept(asset, getDataAddress());
+        sqlAssetIndex.accept(asset, getDataAddress());
 
-        var assetDeleted = sqlAssetLoader.deleteById("id1");
+        var assetDeleted = sqlAssetIndex.deleteById("id1");
 
         assertThat(assetDeleted).isNotNull();
         assertThat(assetDeleted.getId()).isEqualTo("id1");
@@ -155,11 +155,11 @@ public class SqlAssetLoaderTest {
     @DisplayName("Query assets with selector expression")
     void queryAsset_selectorExpression() {
         var asset1 = getAsset("id1");
-        sqlAssetLoader.accept(asset1, getDataAddress());
+        sqlAssetIndex.accept(asset1, getDataAddress());
         var asset2 = getAsset("id2");
-        sqlAssetLoader.accept(asset2, getDataAddress());
+        sqlAssetIndex.accept(asset2, getDataAddress());
 
-        var assetsFound = sqlAssetLoader.queryAssets(AssetSelectorExpression.Builder.newInstance().build());
+        var assetsFound = sqlAssetIndex.queryAssets(AssetSelectorExpression.Builder.newInstance().build());
 
         assertThat(assetsFound).isNotNull();
         assertThat(assetsFound.count()).isEqualTo(2);
@@ -170,10 +170,10 @@ public class SqlAssetLoaderTest {
     void queryAsset_querySpec() {
         for (var i = 1; i <= 10; i++) {
             var asset = getAsset("id" + i);
-            sqlAssetLoader.accept(asset, getDataAddress());
+            sqlAssetIndex.accept(asset, getDataAddress());
         }
 
-        var assetsFound = sqlAssetLoader.queryAssets(getQuerySpec());
+        var assetsFound = sqlAssetIndex.queryAssets(getQuerySpec());
 
         assertThat(assetsFound).isNotNull();
         assertThat(assetsFound.count()).isEqualTo(3);
@@ -184,10 +184,10 @@ public class SqlAssetLoaderTest {
     void queryAsset_querySpecShortCount() {
         for (var i = 1; i <= 4; i++) {
             var asset = getAsset("id" + i);
-            sqlAssetLoader.accept(asset, getDataAddress());
+            sqlAssetIndex.accept(asset, getDataAddress());
         }
 
-        var assetsFound = sqlAssetLoader.queryAssets(getQuerySpec());
+        var assetsFound = sqlAssetIndex.queryAssets(getQuerySpec());
 
         assertThat(assetsFound).isNotNull();
         assertThat(assetsFound.count()).isEqualTo(2);
@@ -196,7 +196,7 @@ public class SqlAssetLoaderTest {
     @Test
     @DisplayName("Find an asset that doesn't exist")
     void findAsset_doesNotExist() {
-        var assetFound = sqlAssetLoader.findById("id1");
+        var assetFound = sqlAssetIndex.findById("id1");
 
         assertThat(assetFound).isNull();
     }
@@ -205,9 +205,9 @@ public class SqlAssetLoaderTest {
     @DisplayName("Find an asset that exists")
     void findAsset_exists() {
         var asset = getAsset("id1");
-        sqlAssetLoader.accept(asset, getDataAddress());
+        sqlAssetIndex.accept(asset, getDataAddress());
 
-        var assetFound = sqlAssetLoader.findById("id1");
+        var assetFound = sqlAssetIndex.findById("id1");
 
         assertThat(assetFound).isNotNull();
         assertThat(assetFound.getId()).isEqualTo("id1");
@@ -216,7 +216,7 @@ public class SqlAssetLoaderTest {
     @Test
     @DisplayName("Find a data address that doesn't exist")
     void resolveDataAddress_doesNotExist() {
-        var dataAddressFound = sqlAssetLoader.resolveForAsset("id1");
+        var dataAddressFound = sqlAssetIndex.resolveForAsset("id1");
 
         assertThat(dataAddressFound).isNull();
     }
@@ -225,9 +225,9 @@ public class SqlAssetLoaderTest {
     @DisplayName("Find a data address that exists")
     void resolveDataAddress_exists() {
         var asset = getAsset("id1");
-        sqlAssetLoader.accept(asset, getDataAddress());
+        sqlAssetIndex.accept(asset, getDataAddress());
 
-        var dataAddressFound = sqlAssetLoader.resolveForAsset("id1");
+        var dataAddressFound = sqlAssetIndex.resolveForAsset("id1");
 
         assertThat(dataAddressFound).isNotNull();
         assertThat(dataAddressFound.getType()).isEqualTo("type");

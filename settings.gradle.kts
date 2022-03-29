@@ -140,7 +140,7 @@ include(":extensions:data-plane:integration-tests")
 include(":extensions:sql:common")
 include(":extensions:sql:lease")
 include(":extensions:sql:pool:apache-commons-pool")
-include(":extensions:sql:asset:loader")
+include(":extensions:sql:asset:index")
 include(":extensions:sql:transfer-process-store")
 include(":extensions:http-receiver")
 

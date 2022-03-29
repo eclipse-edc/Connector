@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.asset.loader;
+package org.eclipse.dataspaceconnector.sql.asset.index;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,66 +41,21 @@ import java.util.stream.Stream;
 import javax.sql.DataSource;
 
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
-import static org.eclipse.dataspaceconnector.sql.asset.loader.SqlAssetTables.ASSET_COLUMN_ID;
-import static org.eclipse.dataspaceconnector.sql.asset.loader.SqlAssetTables.ASSET_PROPERTY_COLUMN_NAME;
-import static org.eclipse.dataspaceconnector.sql.asset.loader.SqlAssetTables.ASSET_PROPERTY_COLUMN_TYPE;
-import static org.eclipse.dataspaceconnector.sql.asset.loader.SqlAssetTables.ASSET_PROPERTY_COLUMN_VALUE;
-import static org.eclipse.dataspaceconnector.sql.asset.loader.SqlAssetTables.ASSET_PROPERTY_TABLE;
-import static org.eclipse.dataspaceconnector.sql.asset.loader.SqlAssetTables.ASSET_TABLE;
-import static org.eclipse.dataspaceconnector.sql.asset.loader.SqlAssetTables.DATA_ADDRESS_COLUMN_PROPERTIES;
-import static org.eclipse.dataspaceconnector.sql.asset.loader.SqlAssetTables.DATA_ADDRESS_TABLE;
 
-public class SqlAssetLoader implements AssetLoader, AssetIndex, DataAddressResolver {
-    private static final String SQL_ROW_COUNT_VARIABLE = "count";
-
-    private static final String SQL_ASSET_INSERT_CLAUSE_TEMPLATE = String.format("INSERT INTO %s (%s) VALUES (?)",
-            ASSET_TABLE,
-            ASSET_COLUMN_ID);
-    private static final String SQL_DATA_ADDRESS_INSERT_CLAUSE_TEMPLATE = String.format("INSERT INTO %s (%s, %s) VALUES (?, ?)",
-            DATA_ADDRESS_TABLE,
-            ASSET_COLUMN_ID,
-            DATA_ADDRESS_COLUMN_PROPERTIES);
-    private static final String SQL_PROPERTY_INSERT_CLAUSE_TEMPLATE = String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)",
-            ASSET_PROPERTY_TABLE,
-            ASSET_COLUMN_ID,
-            ASSET_PROPERTY_COLUMN_NAME,
-            ASSET_PROPERTY_COLUMN_VALUE,
-            ASSET_PROPERTY_COLUMN_TYPE);
-
-    private static final String SQL_ASSET_COUNT_BY_ID_CLAUSE_TEMPLATE = String.format("SELECT COUNT(*) AS %s FROM %s WHERE %s = ?",
-            SQL_ROW_COUNT_VARIABLE,
-            ASSET_TABLE,
-            ASSET_COLUMN_ID);
-    private static final String SQL_ASSET_PROPERTY_FIND_BY_ID_CLAUSE_TEMPLATE = String.format("SELECT * FROM %s WHERE %s = ?",
-            ASSET_PROPERTY_TABLE,
-            ASSET_COLUMN_ID);
-    private static final String SQL_DATA_ADDRESS_FIND_BY_ID_CLAUSE_TEMPLATE = String.format("SELECT * FROM %s WHERE %s = ?",
-            DATA_ADDRESS_TABLE,
-            ASSET_COLUMN_ID);
-    private static final String SQL_ASSET_LIST_CLAUSE_TEMPLATE = String.format("SELECT * FROM %s",
-            ASSET_TABLE);
-
-    private static final String SQL_ASSET_DELETE_BY_ID_CLAUSE_TEMPLATE = String.format("DELETE FROM %s WHERE %s = ?",
-            ASSET_TABLE,
-            ASSET_COLUMN_ID);
-    private static final String SQL_DATA_ADDRESS_DELETE_BY_ID_CLAUSE_TEMPLATE = String.format("DELETE FROM %s WHERE %s = ?",
-            DATA_ADDRESS_TABLE,
-            ASSET_COLUMN_ID);
-    private static final String SQL_ASSET_PROPERTY_DELETE_BY_ID_CLAUSE_TEMPLATE = String.format("DELETE FROM %s WHERE %s = ?",
-            ASSET_PROPERTY_TABLE,
-            ASSET_COLUMN_ID);
-
+public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolver {
 
     private final ObjectMapper objectMapper;
     private final DataSourceRegistry dataSourceRegistry;
     private final String dataSourceName;
     private final TransactionContext transactionContext;
+    private final SqlAssetQueries sqlAssetQueries;
 
-    public SqlAssetLoader(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, ObjectMapper objectMapper) {
+    public SqlAssetIndex(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, ObjectMapper objectMapper, SqlAssetQueries sqlAssetQueries) {
         this.dataSourceRegistry = Objects.requireNonNull(dataSourceRegistry);
         this.dataSourceName = Objects.requireNonNull(dataSourceName);
         this.transactionContext = Objects.requireNonNull(transactionContext);
         this.objectMapper = Objects.requireNonNull(objectMapper);
+        this.sqlAssetQueries = Objects.requireNonNull(sqlAssetQueries);
     }
 
     @Override
@@ -115,14 +70,14 @@ public class SqlAssetLoader implements AssetLoader, AssetIndex, DataAddressResol
 
             transactionContext.execute(() -> {
                 try {
-                    executeQuery(connection, SQL_ASSET_INSERT_CLAUSE_TEMPLATE,
+                    executeQuery(connection, sqlAssetQueries.getSqlAssetInsertClause(),
                             asset.getId());
-                    executeQuery(connection, SQL_DATA_ADDRESS_INSERT_CLAUSE_TEMPLATE,
+                    executeQuery(connection, sqlAssetQueries.getSqlDataAddressInsertClause(),
                             asset.getId(),
                             objectMapper.writeValueAsString(dataAddress.getProperties()));
 
                     for (var property : asset.getProperties().entrySet()) {
-                        executeQuery(connection, SQL_PROPERTY_INSERT_CLAUSE_TEMPLATE,
+                        executeQuery(connection, sqlAssetQueries.getSqlPropertyInsertClause(),
                                 asset.getId(),
                                 property.getKey(),
                                 objectMapper.writeValueAsString(property.getValue()),
@@ -161,9 +116,9 @@ public class SqlAssetLoader implements AssetLoader, AssetIndex, DataAddressResol
 
         try (var connection = getConnection()) {
             transactionContext.execute(() -> {
-                executeQuery(connection, SQL_ASSET_PROPERTY_DELETE_BY_ID_CLAUSE_TEMPLATE, assetId);
-                executeQuery(connection, SQL_DATA_ADDRESS_DELETE_BY_ID_CLAUSE_TEMPLATE, assetId);
-                executeQuery(connection, SQL_ASSET_DELETE_BY_ID_CLAUSE_TEMPLATE, assetId);
+                executeQuery(connection, sqlAssetQueries.getSqlAssetDeleteByIdClause(), assetId);
+                executeQuery(connection, sqlAssetQueries.getSqlDataAddressDeleteByIdClause(), assetId);
+                executeQuery(connection, sqlAssetQueries.getSqlPropertyDeleteByIdClause(), assetId);
             });
         } catch (Exception e) {
             throw new EdcPersistenceException(e.getMessage(), e);
@@ -176,15 +131,17 @@ public class SqlAssetLoader implements AssetLoader, AssetIndex, DataAddressResol
     public Stream<Asset> queryAssets(AssetSelectorExpression expression) {
         Objects.requireNonNull(expression);
 
-        return getAssetStream(SQL_ASSET_LIST_CLAUSE_TEMPLATE);
+        return getAssetStream(sqlAssetQueries.getSqlAssetListClause());
     }
 
     @Override
     public Stream<Asset> queryAssets(QuerySpec querySpec) {
         Objects.requireNonNull(querySpec);
 
-        var limit = Limit.Builder.newInstance().limit(querySpec.getLimit()).offset(querySpec.getOffset()).build();
-        var query = SQL_ASSET_LIST_CLAUSE_TEMPLATE + " " + limit.getStatement();
+        var query = String.format("%s LIMIT %s OFFSET %s",
+                sqlAssetQueries.getSqlAssetListClause(),
+                querySpec.getLimit(),
+                querySpec.getOffset());
 
         return getAssetStream(query);
     }
@@ -198,7 +155,7 @@ public class SqlAssetLoader implements AssetLoader, AssetIndex, DataAddressResol
                 return null;
             }
 
-            var assetProperties = transactionContext.execute(() -> executeQuery(connection, this::mapPropertyResultSet, SQL_ASSET_PROPERTY_FIND_BY_ID_CLAUSE_TEMPLATE, assetId).stream().collect(Collectors.toMap(
+            var assetProperties = transactionContext.execute(() -> executeQuery(connection, this::mapPropertyResultSet, sqlAssetQueries.getSqlPropertyFindByIdClause(), assetId).stream().collect(Collectors.toMap(
                     AbstractMap.SimpleImmutableEntry::getKey,
                     AbstractMap.SimpleImmutableEntry::getValue)));
 
@@ -218,7 +175,7 @@ public class SqlAssetLoader implements AssetLoader, AssetIndex, DataAddressResol
         Objects.requireNonNull(assetId);
 
         try (var connection = getConnection()) {
-            var dataAddressList = transactionContext.execute(() -> executeQuery(connection, this::mapDataAddress, SQL_DATA_ADDRESS_FIND_BY_ID_CLAUSE_TEMPLATE, assetId));
+            var dataAddressList = transactionContext.execute(() -> executeQuery(connection, this::mapDataAddress, sqlAssetQueries.getSqlDataAddressFindByIdClause(), assetId));
             if (dataAddressList.size() <= 0) {
                 return null;
             } else if (dataAddressList.size() > 1) {
@@ -239,7 +196,7 @@ public class SqlAssetLoader implements AssetLoader, AssetIndex, DataAddressResol
     @Nullable
     private Stream<Asset> getAssetStream(String query) {
         try (var connection = getConnection()) {
-            var assetIds = executeQuery(connection, this::mapAssetIds, query);
+            var assetIds = transactionContext.execute(() -> executeQuery(connection, this::mapAssetIds, query));
             if (assetIds.size() <= 0) {
                 return null;
             }
@@ -247,7 +204,7 @@ public class SqlAssetLoader implements AssetLoader, AssetIndex, DataAddressResol
             var assets = new LinkedList<Asset>();
 
             for (var assetId : assetIds) {
-                var assetProperties = transactionContext.execute(() -> executeQuery(connection, this::mapPropertyResultSet, SQL_ASSET_PROPERTY_FIND_BY_ID_CLAUSE_TEMPLATE, assetId).stream().collect(Collectors.toMap(
+                var assetProperties = transactionContext.execute(() -> executeQuery(connection, this::mapPropertyResultSet, sqlAssetQueries.getSqlPropertyFindByIdClause(), assetId).stream().collect(Collectors.toMap(
                         AbstractMap.SimpleImmutableEntry::getKey,
                         AbstractMap.SimpleImmutableEntry::getValue)));
 
@@ -266,7 +223,7 @@ public class SqlAssetLoader implements AssetLoader, AssetIndex, DataAddressResol
     }
 
     private boolean existsById(String definitionId, Connection connection) {
-        var assetCount = transactionContext.execute(() -> executeQuery(connection, this::mapRowCount, SQL_ASSET_COUNT_BY_ID_CLAUSE_TEMPLATE, definitionId).iterator().next());
+        var assetCount = transactionContext.execute(() -> executeQuery(connection, this::mapRowCount, sqlAssetQueries.getSqlAssetCountByIdClause(), definitionId).iterator().next());
 
         if (assetCount <= 0) {
             return false;
@@ -286,22 +243,22 @@ public class SqlAssetLoader implements AssetLoader, AssetIndex, DataAddressResol
     }
 
     private int mapRowCount(ResultSet resultSet) throws SQLException {
-        return resultSet.getInt(SQL_ROW_COUNT_VARIABLE);
+        return resultSet.getInt(sqlAssetQueries.getCountVariableName());
     }
 
     private AbstractMap.SimpleImmutableEntry<String, Object> mapPropertyResultSet(ResultSet resultSet) throws SQLException, ClassNotFoundException, JsonProcessingException {
-        return new AbstractMap.SimpleImmutableEntry<>(resultSet.getString(ASSET_PROPERTY_COLUMN_NAME),
-                objectMapper.readValue(resultSet.getString(ASSET_PROPERTY_COLUMN_VALUE),
-                        Class.forName(resultSet.getString(ASSET_PROPERTY_COLUMN_TYPE))));
+        return new AbstractMap.SimpleImmutableEntry<>(resultSet.getString(sqlAssetQueries.getAssetPropertyColumnName()),
+                objectMapper.readValue(resultSet.getString(sqlAssetQueries.getAssetPropertyColumnValue()),
+                        Class.forName(resultSet.getString(sqlAssetQueries.getAssetPropertyColumnType()))));
     }
 
     private DataAddress mapDataAddress(ResultSet resultSet) throws SQLException, JsonProcessingException {
         return DataAddress.Builder.newInstance()
-                .properties(objectMapper.readValue(resultSet.getString(DATA_ADDRESS_COLUMN_PROPERTIES), HashMap.class))
+                .properties(objectMapper.readValue(resultSet.getString(sqlAssetQueries.getDataAddressColumnProperties()), HashMap.class))
                 .build();
     }
 
     private String mapAssetIds(ResultSet resultSet) throws SQLException {
-        return resultSet.getString(ASSET_COLUMN_ID);
+        return resultSet.getString(sqlAssetQueries.getAssetColumnId());
     }
 }

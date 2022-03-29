@@ -12,12 +12,12 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.asset.loader;
+package org.eclipse.dataspaceconnector.sql.asset.index;
 
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 
 /**
- * Defines configuration keys used by the SqlAssetLoaderServiceExtension.
+ * Defines configuration keys used by the SqlAssetIndexServiceExtension.
  */
 public interface ConfigurationKeys {
 
