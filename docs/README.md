@@ -1,6 +1,6 @@
 **Please note**
 
-### Work in progress
+### Work in progress <!-- {docsify-ignore-all} -->
 
 All content reflects the current state of discussion, not final decisions.
 
