@@ -36,6 +36,7 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.dataplane.DataPlaneConstants;
@@ -134,7 +135,13 @@ public class DataPlanePublicApiController {
             return notAuthorizedErrors(tokenValidationResult.getFailureMessages());
         }
 
-        var dataFlowRequest = createDataFlowRequest(tokenValidationResult.getContent(), requestContext);
+        var dataFlowRequestResult = createDataFlowRequest(tokenValidationResult.getContent(), requestContext);
+        if (dataFlowRequestResult.failed()) {
+            return dataFlowRequestResult.getFailureMessages().isEmpty() ?
+                    validationError("Failed to validate parse request") :
+                    validationErrors(dataFlowRequestResult.getFailureMessages());
+        }
+        var dataFlowRequest = dataFlowRequestResult.getContent();
 
         var validationResult = dataPlaneManager.validate(dataFlowRequest);
         if (validationResult.failed()) {
@@ -160,11 +167,18 @@ public class DataPlanePublicApiController {
     /**
      * Create a {@link DataFlowRequest} based on the decoded claim token and the request content.
      */
-    private DataFlowRequest createDataFlowRequest(ClaimToken claims, ContainerRequestContext requestContext) {
-        var origDataAddress = typeManager.readValue(claims.getClaims().get(DataPlaneConstants.DATA_ADDRESS), DataAddress.class);
+    private Result<DataFlowRequest> createDataFlowRequest(ClaimToken claims, ContainerRequestContext requestContext) {
+        DataAddress origDataAddress;
+        try {
+            origDataAddress = typeManager.readValue(claims.getClaims().get(DataPlaneConstants.DATA_ADDRESS), DataAddress.class);
+        } catch (EdcException e) {
+            monitor.warning(String.format("Cannot deserialize DataAddress from token claim %s", DataPlaneConstants.DATA_ADDRESS), e);
+            return Result.failure("invalid token");
+        }
+
         if (!HttpDataAddressSchema.TYPE.equals(origDataAddress.getType())) {
-            throw new EdcException("illegal token format");
-            //TODO better return HTTP 400
+            monitor.warning(String.format("DataAddress passed as token claim is not of type '%s'", HttpDataAddressSchema.TYPE));
+            return Result.failure("invalid token");
         }
 
         var dataAddress = DataAddress.Builder.newInstance().type(HttpDataAddressSchema.TYPE).properties(origDataAddress.getProperties());
@@ -194,7 +208,7 @@ public class DataPlanePublicApiController {
         }
 
 
-        return DataFlowRequest.Builder.newInstance()
+        return Result.success(DataFlowRequest.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(dataAddress.build())
                 .destinationDataAddress(DataAddress.Builder.newInstance()
@@ -202,7 +216,7 @@ public class DataPlanePublicApiController {
                         .build())
                 .trackable(false)
                 .id(UUID.randomUUID().toString())
-                .build();
+                .build());
     }
 
 }
