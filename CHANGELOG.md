@@ -41,6 +41,7 @@ the detailed section referring to by linking pull requests or issues.
 * Implement ContractDefinition service for Data Management API (#940)
 * Implement ContractNegotiation service for Data Management API (#957)
 * In-memory implementation of PolicyStore (#930)
+* Add basic authentication mechanism for DataManagement API (#981)
 
 #### Changed
 
@@ -59,6 +60,7 @@ the detailed section referring to by linking pull requests or issues.
 * Call the listeners before the state transition is persisted. (#876)
 * Added an overload to `TransactionContext#execute()` (#968)
 * Run CosmosDB integration tests on cloud in CI (#964)
+* Remove default token-based authentication at the DataManagement API (#981)
 
 #### Removed
 
