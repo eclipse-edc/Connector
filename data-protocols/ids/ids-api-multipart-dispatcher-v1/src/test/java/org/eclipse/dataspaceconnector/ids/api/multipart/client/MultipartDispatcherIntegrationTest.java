@@ -196,7 +196,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         var contractAgreement = ContractAgreement.Builder.newInstance()
                 .id("1:23456").consumerAgentId("consumer").providerAgentId("provider")
                 .policy(Policy.Builder.newInstance().build())
-                .asset(Asset.Builder.newInstance().build())
+                .assetId(UUID.randomUUID().toString())
                 .build();
 
         when(transformerRegistry.transform(any(), eq(de.fraunhofer.iais.eis.ContractAgreement.class)))

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021-2022 Microsoft Corporation
+ *  Copyright (c) 2021 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.UUID;
 
 public class TestFunctions {
 
@@ -45,7 +46,7 @@ public class TestFunctions {
                 .id("agreementId")
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
-                .asset(Asset.Builder.newInstance().build())
+                .assetId(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .contractStartDate(Instant.now().getEpochSecond())
                 .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())

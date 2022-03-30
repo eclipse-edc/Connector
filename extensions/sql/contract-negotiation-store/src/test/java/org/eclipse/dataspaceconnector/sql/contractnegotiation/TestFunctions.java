@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 
 public class TestFunctions {
 
@@ -57,7 +58,7 @@ public class TestFunctions {
                 .id(id)
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
-                .asset(Asset.Builder.newInstance().build())
+                .assetId(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .contractStartDate(Instant.now().getEpochSecond())
                 .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())

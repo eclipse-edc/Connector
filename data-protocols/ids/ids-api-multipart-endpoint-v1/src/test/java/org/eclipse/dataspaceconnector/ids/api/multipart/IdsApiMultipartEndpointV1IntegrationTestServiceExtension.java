@@ -98,7 +98,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
                 .contractAgreement(ContractAgreement.Builder.newInstance().id("1")
                         .providerAgentId("provider")
                         .consumerAgentId("consumer")
-                        .asset(Asset.Builder.newInstance().build())
+                        .assetId(UUID.randomUUID().toString())
                         .policy(Policy.Builder.newInstance().build())
                         .contractStartDate(Instant.now().getEpochSecond())
                         .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())

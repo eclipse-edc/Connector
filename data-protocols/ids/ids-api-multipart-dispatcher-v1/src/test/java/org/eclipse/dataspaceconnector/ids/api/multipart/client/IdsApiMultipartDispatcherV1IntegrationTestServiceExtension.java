@@ -88,7 +88,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
                 .contractAgreement(ContractAgreement.Builder.newInstance().id("1")
                         .providerAgentId("provider")
                         .consumerAgentId("consumer")
-                        .asset(Asset.Builder.newInstance().build())
+                        .assetId(UUID.randomUUID().toString())
                         .policy(Policy.Builder.newInstance().build())
                         .contractSigningDate(Instant.now().getEpochSecond())
                         .contractStartDate(Instant.now().getEpochSecond())

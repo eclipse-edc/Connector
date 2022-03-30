@@ -35,18 +35,10 @@ import static org.mockito.Mockito.mock;
 @ExtendWith(DependencyInjectionExtension.class)
 class SqlContractNegotiationStoreExtensionTest {
 
-    private ServiceExtensionContext context;
     private SqlContractNegotiationStoreExtension extension;
-    private ObjectFactory factory;
-
-    @BeforeEach
-    void setUp(ServiceExtensionContext context, ObjectFactory factory) {
-        this.context = context;
-        this.factory = factory;
-    }
 
     @Test
-    void initialize() {
+    void initialize(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(DataSourceRegistry.class, mock(DataSourceRegistry.class));
         context.registerService(TransactionContext.class, mock(TransactionContext.class));
 
@@ -60,7 +52,7 @@ class SqlContractNegotiationStoreExtensionTest {
     }
 
     @Test
-    void initialize_withCustomSqlDialect() {
+    void initialize_withCustomSqlDialect(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(DataSourceRegistry.class, mock(DataSourceRegistry.class));
         context.registerService(TransactionContext.class, mock(TransactionContext.class));
         context.registerService(ContractNegotiationStatements.class, new TestStatements());
@@ -75,7 +67,7 @@ class SqlContractNegotiationStoreExtensionTest {
     }
 
     @Test
-    void initialize_missingDataSourceRegistry() {
+    void initialize_missingDataSourceRegistry(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(TransactionContext.class, mock(TransactionContext.class));
 
         assertThatThrownBy(() -> factory.constructInstance(SqlContractNegotiationStoreExtension.class))
@@ -83,7 +75,7 @@ class SqlContractNegotiationStoreExtensionTest {
     }
 
     @Test
-    void initialize_missingTransactionContext() {
+    void initialize_missingTransactionContext(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(TransactionContext.class, mock(TransactionContext.class));
 
         assertThatThrownBy(() -> factory.constructInstance(SqlContractNegotiationStoreExtension.class))
