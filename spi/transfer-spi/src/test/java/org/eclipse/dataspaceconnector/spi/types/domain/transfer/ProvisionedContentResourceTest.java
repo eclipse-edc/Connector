@@ -13,8 +13,12 @@
  */
 package org.eclipse.dataspaceconnector.spi.types.domain.transfer;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 
@@ -25,7 +29,7 @@ class ProvisionedContentResourceTest {
     @Test
     void verifySerializeDeserialize() throws JsonProcessingException {
         var dataAddress = DataAddress.Builder.newInstance().type("test").build();
-        var resource = ProvisionedContentResource.Builder.newInstance()
+        var resource = TestProvisionedContentResource.Builder.newInstance()
                 .resourceName("test")
                 .contentDataAddress(dataAddress)
                 .id("1")
@@ -34,7 +38,7 @@ class ProvisionedContentResourceTest {
                 .build();
         var mapper = new ObjectMapper();
         var serialized = mapper.writeValueAsString(resource);
-        var deserialized = mapper.readValue(serialized, ProvisionedContentResource.class);
+        var deserialized = mapper.readValue(serialized, TestProvisionedContentResource.class);
 
         assertThat(deserialized).isNotNull();
         assertThat(deserialized.getContentDataAddress()).isNotNull();
@@ -42,5 +46,23 @@ class ProvisionedContentResourceTest {
         assertThat(deserialized.getId()).isEqualTo("1");
         assertThat(deserialized.getTransferProcessId()).isEqualTo("2");
         assertThat(deserialized.getResourceDefinitionId()).isEqualTo("12");
+    }
+
+    @JsonTypeName("dataspaceconnector:testprovisioneddcontentresource")
+    @JsonDeserialize(builder = TestProvisionedContentResource.Builder.class)
+    private static class TestProvisionedContentResource extends ProvisionedContentResource {
+
+        @JsonPOJOBuilder(withPrefix = "")
+        public static class Builder extends ProvisionedContentResource.Builder<TestProvisionedContentResource, Builder> {
+
+            protected Builder() {
+                super(new TestProvisionedContentResource());
+            }
+
+            @JsonCreator
+            public static Builder newInstance() {
+                return new Builder();
+            }
+        }
     }
 }

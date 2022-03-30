@@ -146,6 +146,7 @@ include(":extensions:sql:pool:apache-commons-pool")
 include(":extensions:sql:asset:index")
 include(":extensions:sql:transfer-process-store")
 include(":extensions:http-receiver")
+include(":extensions:http-provisioner")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")

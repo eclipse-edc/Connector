@@ -15,6 +15,10 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
@@ -185,7 +189,7 @@ class TransferProcessManagerImplTest {
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(resourceDefinition)).build())
                 .build();
 
-        var resource = ProvisionedContentResource.Builder.newInstance()
+        var resource = TestProvisionedContentResource.Builder.newInstance()
                 .resourceName("test")
                 .id("1")
                 .transferProcessId("2")
@@ -590,5 +594,23 @@ class TransferProcessManagerImplTest {
         }).when(store).update(any());
 
         return latch;
+    }
+
+    @JsonTypeName("dataspaceconnector:testprovisioneddcontentresource")
+    @JsonDeserialize(builder = TestProvisionedContentResource.Builder.class)
+    private static class TestProvisionedContentResource extends ProvisionedContentResource {
+
+        @JsonPOJOBuilder(withPrefix = "")
+        public static class Builder extends ProvisionedContentResource.Builder<TestProvisionedContentResource, Builder> {
+
+            protected Builder() {
+                super(new TestProvisionedContentResource());
+            }
+
+            @JsonCreator
+            public static Builder newInstance() {
+                return new Builder();
+            }
+        }
     }
 }
