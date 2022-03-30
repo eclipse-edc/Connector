@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added method
  *
  */
 
@@ -44,6 +45,24 @@ public class Permission extends Rule {
     @Override
     public String toString() {
         return "Permission constraints: [" + getConstraints().stream().map(Object::toString).collect(joining(",")) + "]";
+    }
+    
+    /**
+     * Returns a copy of this permission with the specified target.
+     *
+     * @param target the target.
+     * @return a copy with the specified target.
+     */
+    public Permission copy(String target) {
+        return Builder.newInstance()
+                .uid(this.uid)
+                .assigner(this.assigner)
+                .assignee(this.assignee)
+                .action(this.action)
+                .constraints(this.constraints)
+                .duties(this.duties)
+                .target(target)
+                .build();
     }
 
     @JsonPOJOBuilder(withPrefix = "")
