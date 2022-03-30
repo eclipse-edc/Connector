@@ -33,20 +33,22 @@ import static org.mockito.Mockito.mock;
 
 class BasicAuthenticationServiceTest {
 
-    private static final Map<String, String> testCredentials = Map.of(
+    private static final Map<String, String> TEST_CREDENTIALS = Map.of(
             "first-user", "password1",
             "second-user", "password2"
     );
-    private static final Base64.Encoder b64encoder = Base64.getEncoder();
-    private final List<String> testCredentialsEncoded = testCredentials.entrySet().stream()
+    private static final Base64.Encoder BASE_64_ENCODER = Base64.getEncoder();
+
+    private final List<String> testCredentialsEncoded = TEST_CREDENTIALS.entrySet().stream()
             .map(it -> format("%s:%s", it.getKey(), it.getValue()))
             .map(this::generateBearerToken)
             .collect(Collectors.toList());
+    
     private BasicAuthenticationService service;
 
     @BeforeEach
     void setUp() {
-        service = new BasicAuthenticationService(testCredentials, mock(Monitor.class));
+        service = new BasicAuthenticationService(TEST_CREDENTIALS, mock(Monitor.class));
     }
 
     @ParameterizedTest
@@ -127,6 +129,6 @@ class BasicAuthenticationServiceTest {
     }
 
     private String generateBearerToken(String plainCredentials) {
-        return format("Bearer %s", b64encoder.encodeToString(plainCredentials.getBytes()));
+        return format("Bearer %s", BASE_64_ENCODER.encodeToString(plainCredentials.getBytes()));
     }
 }
