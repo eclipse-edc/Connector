@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020-2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering
  *       ZF Friedrichshafen AG - add dependency & reorder entries
+ *       Daimler TSS GmbH - add entries
  *
  */
 
@@ -139,6 +140,7 @@ include(":extensions:data-plane:integration-tests")
 include(":extensions:sql:common")
 include(":extensions:sql:lease")
 include(":extensions:sql:pool:apache-commons-pool")
+include(":extensions:sql:asset:index")
 include(":extensions:sql:transfer-process-store")
 include(":extensions:http-receiver")
 
