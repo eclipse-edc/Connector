@@ -36,6 +36,7 @@ the detailed section referring to by linking pull requests or issues.
 * SQL-based TransferProcessStore (#865)
 * Add instructions for observability sample with Azure Application Insights (#928)
 * Add interface `WebServer` to `web-spi` (#921)
+* Add MicrometerExtension integration tests (#935)
 * Implement Asset service for Data Management API (#931)
 * Implement ContractDefinition service for Data Management API (#940)
 * Implement ContractNegotiation service for Data Management API (#957)

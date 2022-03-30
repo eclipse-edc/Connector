@@ -11,7 +11,7 @@ In order to visualize and analyze the traces and metrics, we use [OpenTelemetry 
 
 ## Prerequisites
 
-Download the [opentelemetry-javaagent.jar](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v1.10.1/opentelemetry-javaagent.jar) and place it in the root folder of this sample.
+Download the [opentelemetry-javaagent.jar](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v1.12.0/opentelemetry-javaagent.jar) and place it in the root folder of this sample.
 
 ## Run the sample
 
@@ -38,7 +38,7 @@ You can access the Jaeger UI on your browser at `http://localhost:16686`.
 In the search tool, we can select the service `consumer` and click on `Find traces`.
 A trace represents an event and is composed of several spans. You can inspect details on the spans contained in a trace by clicking on it in the Jaeger UI.
 
-OkHttp and Jetty are part the [libraries and frameworks](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation) that OpenTelemetry can capture telemetry from. We can observe spans related to OkHttp and Jetty as EDC uses both frameworks internally. The `otel.library.name` tag of the different spans indicates the framework each span is coming from.
+OkHttp and Jetty are part of the [libraries and frameworks](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation) that OpenTelemetry can capture telemetry from. We can observe spans related to OkHttp and Jetty as EDC uses both frameworks internally. The `otel.library.name` tag of the different spans indicates the framework each span is coming from.
 
 You can access the Prometheus UI on your browser at `http://localhost:9090`.
 Click the globe icon near the top right corner (Metrics Explorer) and select a metric to display. Metrics include System (e.g. CPU usage), JVM (e.g. memory usage), Executor service (call timings and thread pools), and the instrumented OkHttp, Jetty and Jersey libraries (HTTP client and server).
