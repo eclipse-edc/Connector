@@ -18,16 +18,16 @@ import net.jodah.failsafe.RetryPolicy;
 import net.jodah.failsafe.function.CheckedSupplier;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
-import org.eclipse.dataspaceconnector.contract.definition.store.model.ContractDefinitionDocument;
-import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.contract.definition.store.model.PolicyDocument;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.query.QueryResolver;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.ReflectionBasedQueryResolver;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,69 +39,57 @@ import java.util.stream.Stream;
 import static net.jodah.failsafe.Failsafe.with;
 
 /**
- * Implementation of the {@link ContractDefinitionStore} based on CosmosDB. This store implements simple write-through
- * caching mechanics: read operations (e.g. findAll) hit the cache, while write operations affect both the cache AND the
+ * Implementation of the {@link PolicyStore} based on CosmosDB. This store implements simple write-through
+ * caching mechanics: read operations (e.g. findAll) always hit the cache, while write operations affect both the cache AND the
  * database.
  */
-public class CosmosContractDefinitionStore implements ContractDefinitionStore {
+public class CosmosPolicyStore implements PolicyStore {
     private final CosmosDbApi cosmosDbApi;
     private final TypeManager typeManager;
     private final RetryPolicy<Object> retryPolicy;
     private final LockManager lockManager;
     private final String partitionKey;
-    private final QueryResolver<ContractDefinition> queryResolver;
-    private AtomicReference<Map<String, ContractDefinition>> objectCache;
+    private final QueryResolver<Policy> queryResolver;
+    private AtomicReference<Map<String, Policy>> objectCache;
 
-    public CosmosContractDefinitionStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy, String partitionKey) {
+    public CosmosPolicyStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy, String partitionKey) {
         this.cosmosDbApi = cosmosDbApi;
         this.typeManager = typeManager;
         this.retryPolicy = retryPolicy;
         this.partitionKey = partitionKey;
         lockManager = new LockManager(new ReentrantReadWriteLock(true));
-        queryResolver = new ReflectionBasedQueryResolver<>(ContractDefinition.class);
+        queryResolver = new ReflectionBasedQueryResolver<>(Policy.class);
     }
 
     @Override
-    public @NotNull Collection<ContractDefinition> findAll() {
-        return getCache().values();
+    public @Nullable Policy findById(String policyId) {
+        return lockManager.readLock(() -> getCache().get(policyId));
     }
 
     @Override
-    public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
+    public Stream<Policy> findAll(QuerySpec spec) {
         return lockManager.readLock(() -> queryResolver.query(getCache().values().stream(), spec));
     }
 
     @Override
-    public void save(Collection<ContractDefinition> definitions) {
+    public void save(Policy policy) {
         lockManager.writeLock(() -> {
-            with(retryPolicy).run(() -> cosmosDbApi.saveItems(definitions.stream().map(this::convertToDocument).collect(Collectors.toList())));
-            definitions.forEach(this::storeInCache);
+            with(retryPolicy).run(() -> cosmosDbApi.saveItem(convertToDocument(policy)));
+            storeInCache(policy);
             return null;
         });
     }
 
     @Override
-    public void save(ContractDefinition definition) {
-        lockManager.writeLock(() -> {
-            with(retryPolicy).run(() -> cosmosDbApi.saveItem(convertToDocument(definition)));
-            storeInCache(definition);
-            return null;
+    public @Nullable Policy deleteById(String policyId) {
+        return lockManager.writeLock(() -> {
+            var deletedItem = cosmosDbApi.deleteItem(policyId);
+            if (deletedItem == null) {
+                return null;
+            }
+            removeFromCache(policyId);
+            return convert(deletedItem);
         });
-    }
-
-    @Override
-    public void update(ContractDefinition definition) {
-        lockManager.writeLock(() -> {
-            save(definition); //cosmos db api internally uses "upsert" semantics
-            storeInCache(definition);
-            return null;
-        });
-    }
-
-    @Override
-    public ContractDefinition deleteById(String id) {
-        var deletedItem = cosmosDbApi.deleteItem(id);
-        return deletedItem == null ? null : convert(deletedItem);
     }
 
     @Override
@@ -113,7 +101,7 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
                     .get((CheckedSupplier<List<Object>>) cosmosDbApi::queryAllItems)
                     .stream()
                     .map(this::convert)
-                    .collect(Collectors.toMap(ContractDefinition::getId, cd -> cd));
+                    .collect(Collectors.toMap(Policy::getUid, cd -> cd));
 
             if (objectCache == null) {
                 objectCache = new AtomicReference<>(new HashMap<>());
@@ -123,16 +111,24 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
         });
     }
 
-    private void storeInCache(ContractDefinition definition) {
-        getCache().put(definition.getId(), definition);
+    private Policy removeFromCache(String policyId) {
+        return lockManager.readLock(() -> {
+            var map = getCache();
+            return map.remove(policyId);
+        });
+
+    }
+
+    private void storeInCache(Policy definition) {
+        getCache().put(definition.getUid(), definition);
     }
 
     @NotNull
-    private ContractDefinitionDocument convertToDocument(ContractDefinition def) {
-        return new ContractDefinitionDocument(def, partitionKey);
+    private PolicyDocument convertToDocument(Policy policy) {
+        return new PolicyDocument(policy, partitionKey);
     }
 
-    private Map<String, ContractDefinition> getCache() {
+    private Map<String, Policy> getCache() {
         if (objectCache == null) {
             objectCache = new AtomicReference<>(new HashMap<>());
             reload();
@@ -140,8 +136,8 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
         return objectCache.get();
     }
 
-    private ContractDefinition convert(Object object) {
+    private Policy convert(Object object) {
         var json = typeManager.writeValueAsString(object);
-        return typeManager.readValue(json, ContractDefinitionDocument.class).getWrappedInstance();
+        return typeManager.readValue(json, PolicyDocument.class).getWrappedInstance();
     }
 }
