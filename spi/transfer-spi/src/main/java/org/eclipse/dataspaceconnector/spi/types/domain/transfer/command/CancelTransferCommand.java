@@ -12,7 +12,7 @@
  *       Fraunhofer Institute for Software and Systems Engineering - refactored
  *
  */
-package org.eclipse.dataspaceconnector.transfer.core.command.commands;
+package org.eclipse.dataspaceconnector.spi.types.domain.transfer.command;
 
 /**
  * Cancels a transfer process by sending it to the ERROR state

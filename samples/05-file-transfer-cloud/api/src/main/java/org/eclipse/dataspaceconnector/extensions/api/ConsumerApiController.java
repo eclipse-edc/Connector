@@ -15,7 +15,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
-import org.eclipse.dataspaceconnector.transfer.core.command.commands.DeprovisionRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.DeprovisionRequest;
 
 import java.util.UUID;
 

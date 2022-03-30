@@ -12,18 +12,14 @@
  *       Fraunhofer Institute for Software and Systems Engineering - refactored
  *
  */
-package org.eclipse.dataspaceconnector.transfer.core.command.commands;
+package org.eclipse.dataspaceconnector.spi.types.domain.transfer.command;
 
 import org.eclipse.dataspaceconnector.spi.command.Command;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
-import org.eclipse.dataspaceconnector.transfer.core.command.handlers.SingleTransferProcessCommandHandler;
 
 /**
  * Specialization of the {@link Command} interface, that is useful in situations where
  * a single {@link org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess} is
  * operated on.
- *
- * @see SingleTransferProcessCommandHandler
  */
 public class SingleTransferProcessCommand extends TransferProcessCommand {
     protected final String transferProcessId;

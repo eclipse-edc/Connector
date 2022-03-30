@@ -42,6 +42,7 @@ the detailed section referring to by linking pull requests or issues.
 * Implement ContractNegotiation service for Data Management API (#957)
 * In-memory implementation of PolicyStore (#930)
 * Implement AssetLoader, AssetIndex, DataAddressResolver for SQL (#863)
+* Implement TransferProcess service for Data Management API (#1005)
 
 #### Changed
 

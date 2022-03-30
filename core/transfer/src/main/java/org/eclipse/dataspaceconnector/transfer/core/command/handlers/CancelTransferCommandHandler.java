@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.transfer.core.command.handlers;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
-import org.eclipse.dataspaceconnector.transfer.core.command.commands.CancelTransferCommand;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.CancelTransferCommand;
 
 public class CancelTransferCommandHandler extends SingleTransferProcessCommandHandler<CancelTransferCommand> {
 

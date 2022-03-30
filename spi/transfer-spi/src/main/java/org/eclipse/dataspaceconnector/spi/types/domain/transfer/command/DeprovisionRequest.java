@@ -12,15 +12,11 @@
  *       Fraunhofer Institute for Software and Systems Engineering - refactored
  *
  */
-package org.eclipse.dataspaceconnector.transfer.core.command.commands;
-
-import org.eclipse.dataspaceconnector.transfer.core.command.handlers.DeprovisionRequestHandler;
+package org.eclipse.dataspaceconnector.spi.types.domain.transfer.command;
 
 /**
  * Issues a request to start deprovisioning a transfer process by setting its state to
- * DEPROVISIONING_REQ
- *
- * @see DeprovisionRequestHandler
+ * {@link org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates#DEPROVISIONING DEPROVISIONING}.
  */
 public class DeprovisionRequest extends SingleTransferProcessCommand {
 
