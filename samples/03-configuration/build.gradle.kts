@@ -26,6 +26,7 @@ dependencies {
     api(project(":core"))
     api(project(":extensions:http"))
 
+    implementation(project(":extensions:api:auth-tokenbased"))
     implementation(project(":extensions:api:data-management"))
 
     implementation(project(":extensions:filesystem:configuration-fs"))
