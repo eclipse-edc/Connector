@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Daimler TSS GmbH - security improvement: don't overwrite values of DataAddress
  *
  */
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
@@ -16,6 +17,7 @@ package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 import net.jodah.failsafe.RetryPolicy;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
+import okhttp3.internal.http.HttpMethod;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSourceFactory;
@@ -31,11 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.BODY;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.MEDIA_TYPE;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.PATH;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
@@ -85,9 +82,11 @@ public class HttpDataSourceFactory implements DataSourceFactory {
         if (StringUtils.isNullOrBlank(endpoint)) {
             return Result.failure("Missing endpoint for request: " + request.getId());
         }
-        var method = request.getProperties().get(METHOD);
+
+        var method = dataAddress.getProperty(HttpDataAddressSchema.METHOD);
         if (StringUtils.isNullOrBlank(method)) {
-            return Result.failure("Missing http method for request: " + request.getId());
+            method = "GET";
+            monitor.debug(format("No HTTP method defined, fallback to %s", method));
         }
 
         var name = dataAddress.getProperty(NAME);
@@ -100,14 +99,15 @@ public class HttpDataSourceFactory implements DataSourceFactory {
                 .method(method)
                 .retryPolicy(retryPolicy)
                 .monitor(monitor);
+
         // map body
-        var mediaType = request.getProperties().get(MEDIA_TYPE);
+        var mediaType = dataAddress.getProperties().get(HttpDataAddressSchema.MEDIA_TYPE);
         if (mediaType != null) {
             var parsed = MediaType.parse(mediaType);
             if (parsed == null) {
                 return Result.failure(format("Unhandled media type %s for request: %s", mediaType, request.getId()));
             }
-            builder.requestBody(parsed, request.getProperties().get(BODY));
+            builder.requestBody(parsed, dataAddress.getProperty(HttpDataAddressSchema.BODY));
         }
 
         // map auth header
@@ -120,10 +120,8 @@ public class HttpDataSourceFactory implements DataSourceFactory {
             builder.header(authKey, secretResult.getContent());
         }
 
-        Optional.ofNullable(request.getProperties().get(PATH))
-                .ifPresent(builder::name);
 
-        Optional.ofNullable(request.getProperties().get(QUERY_PARAMS))
+        Optional.ofNullable(dataAddress.getProperty(HttpDataAddressSchema.QUERY_PARAMS))
                 .ifPresent(builder::queryParams);
 
         try {

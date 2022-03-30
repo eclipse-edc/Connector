@@ -22,9 +22,9 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import org.apache.http.HttpStatus;
-import org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore.State;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcRuntimeExtension;
+import org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -357,10 +357,10 @@ public class DataPlaneHttpIntegrationTests {
     private ObjectNode transferRequestPayload(String processId, Map<String, String> queryParams) {
 
         var requestProperties = new HashMap<String, String>();
-        requestProperties.put(DataFlowRequestSchema.METHOD, HttpMethod.GET.name());
+        requestProperties.put(HttpDataAddressSchema.METHOD, HttpMethod.GET.name());
 
         if (!queryParams.isEmpty()) {
-            requestProperties.put(DataFlowRequestSchema.QUERY_PARAMS, queryParams.entrySet()
+            requestProperties.put(HttpDataAddressSchema.QUERY_PARAMS, queryParams.entrySet()
                     .stream()
                     .map(entry -> entry.getKey() + "=" + entry.getValue())
                     .collect(Collectors.joining("&")));

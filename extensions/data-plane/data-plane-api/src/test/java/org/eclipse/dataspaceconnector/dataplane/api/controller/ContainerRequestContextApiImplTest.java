@@ -27,15 +27,8 @@ import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
-import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.BODY;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.MEDIA_TYPE;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.PATH;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -52,23 +45,6 @@ class ContainerRequestContextApiImplTest {
         assertThat(api.authHeader(context)).isEqualTo(token);
     }
 
-    @Test
-    void properties() {
-        var body = testJsonBody();
-        var headers = defaultHeaders();
-        var path = "path/test";
-        var context = testContext(testQueryParams(), path, headers, MediaType.valueOf(APPLICATION_JSON), body);
-
-        var props = api.properties(context);
-
-        assertThat(props).containsExactlyInAnyOrderEntriesOf(Map.of(
-                METHOD, HttpMethod.POST,
-                QUERY_PARAMS, "foo=bar&hello=world",
-                MEDIA_TYPE, APPLICATION_JSON,
-                PATH, "path/test",
-                BODY, body
-        ));
-    }
 
     private ContainerRequestContext testContext(MultivaluedMap<String, String> queryParams,
                                                 String path,

@@ -18,8 +18,8 @@ import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
 import java.util.Collections;
@@ -33,7 +33,7 @@ public class HttpTestFixtures {
 
     public static DataFlowRequest.Builder createRequest(String type) {
         return createRequest(
-                Map.of(DataFlowRequestSchema.METHOD, "GET"),
+                Map.of(HttpDataAddressSchema.METHOD, "GET"),
                 createDataAddress(type, Collections.emptyMap()).build(),
                 createDataAddress(type, Collections.emptyMap()).build()
         );

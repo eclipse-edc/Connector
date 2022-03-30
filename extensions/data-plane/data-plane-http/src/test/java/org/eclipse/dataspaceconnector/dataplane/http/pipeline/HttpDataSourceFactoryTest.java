@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -39,11 +40,6 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.BODY;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.MEDIA_TYPE;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.PATH;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
@@ -122,9 +118,6 @@ class HttpDataSourceFactoryTest {
         var endpoint = "http://example.com";
         var authKey = "apikey-test";
 
-        var missingMethod = TestInstance.newInstance()
-                .endpoint(endpoint);
-
         var missingEndpoint = TestInstance.newInstance()
                 .method("GET");
 
@@ -139,7 +132,6 @@ class HttpDataSourceFactoryTest {
                 .endpoint(endpoint);
 
         return Stream.of(
-                Arguments.of("MISSING METHOD", missingMethod),
                 Arguments.of("MISSING ENDPOINT", missingEndpoint),
                 Arguments.of("INCOMPLETE HEADER", incompleteHeader),
                 Arguments.of("UNHANDLED MEDIA TYPE", unknownMediaType)
@@ -250,7 +242,7 @@ class HttpDataSourceFactoryTest {
         }
 
         public TestInstance method(String method) {
-            props.put(METHOD, method);
+            address.property(HttpDataAddressSchema.METHOD, method);
             source.method(method);
             return this;
         }
@@ -286,25 +278,25 @@ class HttpDataSourceFactoryTest {
         }
 
         public TestInstance body(String body) {
-            props.put(BODY, body);
+            address.property(HttpDataAddressSchema.BODY, body);
             return this;
         }
 
         public TestInstance body(String mediaType, String body) {
-            props.put(MEDIA_TYPE, mediaType);
-            props.put(BODY, body);
+            address.property(HttpDataAddressSchema.MEDIA_TYPE, mediaType);
+            address.property(HttpDataAddressSchema.BODY, body);
             source.requestBody(MediaType.parse(mediaType), body);
             return this;
         }
 
         public TestInstance basePath(String basePath) {
-            props.put(PATH, "hello/world");
+            address.property(NAME, "hello/world");
             source.name(basePath);
             return this;
         }
 
         public TestInstance queryParams(String queryParams) {
-            props.put(QUERY_PARAMS, queryParams);
+            address.property(HttpDataAddressSchema.QUERY_PARAMS, queryParams);
             source.queryParams(queryParams);
             return this;
         }

@@ -98,7 +98,6 @@ class DataPlanePublicApiControllerTest {
         var claims = createClaimsToken(testDestAddress());
         when(requestContextWrapperMock.authHeader(any())).thenReturn(TOKEN);
         when(tokenValidationServiceMock.validate(TOKEN)).thenReturn(Result.success(claims));
-        when(requestContextWrapperMock.properties(any())).thenReturn(Map.of());
         when(dataPlaneManagerMock.validate(any())).thenReturn(Result.failure("request validation error"));
 
         var response = controller.post(null);
@@ -116,7 +115,6 @@ class DataPlanePublicApiControllerTest {
         var claims = createClaimsToken(testDestAddress());
         when(requestContextWrapperMock.authHeader(any())).thenReturn(TOKEN);
         when(tokenValidationServiceMock.validate(TOKEN)).thenReturn(Result.success(claims));
-        when(requestContextWrapperMock.properties(any())).thenReturn(Map.of());
         when(dataPlaneManagerMock.validate(any())).thenReturn(Result.success(true));
         when(dataPlaneManagerMock.transfer(any(DataSink.class), any()))
                 .thenReturn(CompletableFuture.completedFuture(TransferResult.failure(ResponseStatus.FATAL_ERROR, "transfer error")));
@@ -134,7 +132,6 @@ class DataPlanePublicApiControllerTest {
         var claims = createClaimsToken(testDestAddress());
         when(requestContextWrapperMock.authHeader(any())).thenReturn(TOKEN);
         when(tokenValidationServiceMock.validate(TOKEN)).thenReturn(Result.success(claims));
-        when(requestContextWrapperMock.properties(any())).thenReturn(Map.of());
         when(dataPlaneManagerMock.validate(any())).thenReturn(Result.success(true));
         when(dataPlaneManagerMock.transfer(any(DataSink.class), any(DataFlowRequest.class)))
                 .thenReturn(CompletableFuture.failedFuture(new RuntimeException("transfer exception")));
@@ -153,7 +150,6 @@ class DataPlanePublicApiControllerTest {
 
         when(requestContextWrapperMock.authHeader(any())).thenReturn(TOKEN);
         when(tokenValidationServiceMock.validate(anyString())).thenReturn(Result.success(claimsToken));
-        when(requestContextWrapperMock.properties(any())).thenReturn(requestProperties);
         when(dataPlaneManagerMock.validate(any())).thenReturn(Result.success(true));
         when(dataPlaneManagerMock.transfer(any(DataSink.class), any()))
                 .thenReturn(CompletableFuture.completedFuture(TransferResult.success()));
@@ -171,8 +167,8 @@ class DataPlanePublicApiControllerTest {
                 .allSatisfy(request -> {
                     assertThat(request.getDestinationDataAddress().getType()).isEqualTo(OutputStreamDataSinkFactory.TYPE);
                     assertThat(request.getSourceDataAddress().getType()).isEqualTo(address.getType());
-                    assertThat(request.getProperties()).containsExactlyInAnyOrderEntriesOf(requestProperties);
                 });
+        //TODO add check for props of dataaddress!
     }
 
     private static ClaimToken createClaimsToken(DataAddress address) {

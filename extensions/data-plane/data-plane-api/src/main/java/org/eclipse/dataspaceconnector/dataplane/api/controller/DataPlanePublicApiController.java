@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       Daimler TSS GmbH - security improvement: don't overwrite values of DataAddress
  *
  */
 
@@ -25,22 +26,24 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.dataplane.DataPlaneConstants;
+import org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
@@ -131,8 +134,7 @@ public class DataPlanePublicApiController {
             return notAuthorizedErrors(tokenValidationResult.getFailureMessages());
         }
 
-        var properties = requestContextApi.properties(requestContext);
-        var dataFlowRequest = createDataFlowRequest(tokenValidationResult.getContent(), properties);
+        var dataFlowRequest = createDataFlowRequest(tokenValidationResult.getContent(), requestContext);
 
         var validationResult = dataPlaneManager.validate(dataFlowRequest);
         if (validationResult.failed()) {
@@ -158,17 +160,49 @@ public class DataPlanePublicApiController {
     /**
      * Create a {@link DataFlowRequest} based on the decoded claim token and the request content.
      */
-    private DataFlowRequest createDataFlowRequest(ClaimToken claims, Map<String, String> properties) {
-        var dataAddress = typeManager.readValue(claims.getClaims().get(DataPlaneConstants.DATA_ADDRESS), DataAddress.class);
+    private DataFlowRequest createDataFlowRequest(ClaimToken claims, ContainerRequestContext requestContext) {
+        var origDataAddress = typeManager.readValue(claims.getClaims().get(DataPlaneConstants.DATA_ADDRESS), DataAddress.class);
+        if (!HttpDataAddressSchema.TYPE.equals(origDataAddress.getType())) {
+            throw new EdcException("illegal token format");
+            //TODO better return HTTP 400
+        }
+
+        var dataAddress = DataAddress.Builder.newInstance().type(HttpDataAddressSchema.TYPE).properties(origDataAddress.getProperties());
+
+        if (!StringUtils.isNullOrBlank(origDataAddress.getKeyName())) {
+            dataAddress.keyName(origDataAddress.getKeyName());
+        }
+
+        if (StringUtils.isNullOrBlank(origDataAddress.getProperty(HttpDataAddressSchema.METHOD))) {
+            dataAddress.property(HttpDataAddressSchema.METHOD, requestContextApi.method(requestContext));
+        }
+
+        if (StringUtils.isNullOrBlank(origDataAddress.getProperty(HttpDataAddressSchema.NAME))) {
+            dataAddress.property(HttpDataAddressSchema.NAME, requestContextApi.path(requestContext));
+        }
+
+        if (StringUtils.isNullOrBlank(origDataAddress.getProperty(HttpDataAddressSchema.BODY))) {
+            dataAddress.property(HttpDataAddressSchema.BODY, requestContextApi.body(requestContext));
+        }
+
+        if (StringUtils.isNullOrBlank(origDataAddress.getProperty(HttpDataAddressSchema.MEDIA_TYPE))) {
+            dataAddress.property(HttpDataAddressSchema.MEDIA_TYPE, requestContextApi.mediaType(requestContext));
+        }
+
+        if (StringUtils.isNullOrBlank(origDataAddress.getProperty(HttpDataAddressSchema.QUERY_PARAMS))) {
+            dataAddress.property(HttpDataAddressSchema.QUERY_PARAMS, requestContextApi.queryParams(requestContext));
+        }
+
+
         return DataFlowRequest.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())
-                .sourceDataAddress(dataAddress)
+                .sourceDataAddress(dataAddress.build())
                 .destinationDataAddress(DataAddress.Builder.newInstance()
                         .type(OutputStreamDataSinkFactory.TYPE)
                         .build())
                 .trackable(false)
                 .id(UUID.randomUUID().toString())
-                .properties(properties)
                 .build();
     }
+
 }

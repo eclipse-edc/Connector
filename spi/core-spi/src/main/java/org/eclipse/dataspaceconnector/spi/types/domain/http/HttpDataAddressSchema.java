@@ -29,6 +29,8 @@ public interface HttpDataAddressSchema {
      */
     String ENDPOINT = "endpoint";
 
+    String METHOD = "method";
+
     /**
      * The name associated with the HTTP data, typically a filename (optional).
      */
@@ -49,4 +51,8 @@ public interface HttpDataAddressSchema {
      */
     String SECRET_NAME = "secretName";
 
+    String BODY = "body";
+
+    String MEDIA_TYPE = "mediaType";
+    String QUERY_PARAMS = "queryParams";
 }

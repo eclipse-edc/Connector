@@ -26,7 +26,7 @@ dependencies {
     api(project(":spi:web-spi"))
     api(project(":common:token-validation-lib"))
     implementation(project(":extensions:data-plane:data-plane-spi"))
-
+    implementation(project(":common:util"))
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     testImplementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
