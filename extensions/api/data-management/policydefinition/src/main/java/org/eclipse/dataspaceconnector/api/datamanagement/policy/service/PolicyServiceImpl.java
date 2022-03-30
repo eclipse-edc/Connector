@@ -15,14 +15,12 @@ package org.eclipse.dataspaceconnector.api.datamanagement.policy.service;
 
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 
 import java.util.Collection;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -33,14 +31,14 @@ public class PolicyServiceImpl implements PolicyService {
     private final PolicyStore policyStore;
     private final ContractDefinitionStore contractDefinitionStore;
 
-    public PolicyServiceImpl(TransactionContext transactionContext, PolicyStore policyStore, AssetIndex index, ContractDefinitionStore contractDefinitionStore) {
+    public PolicyServiceImpl(TransactionContext transactionContext, PolicyStore policyStore, ContractDefinitionStore contractDefinitionStore) {
         this.transactionContext = transactionContext;
         this.policyStore = policyStore;
         this.contractDefinitionStore = contractDefinitionStore;
     }
 
     @Override
-    public Policy findbyId(String policyId) {
+    public Policy findById(String policyId) {
         return policyStore.findById(policyId);
     }
 
@@ -50,35 +48,41 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     @Override
-    public Policy delete(String policyId) {
+    public ServiceResult<Policy> delete(String policyId) {
+        return transactionContext.execute(() -> {
+            var contractFilter = format("contractPolicy.uid = %s ", policyId);
+            var queryContractPolicyFilter = QuerySpec.Builder.newInstance().filter(contractFilter).build();
+            var contractDefinitionOnPolicy = contractDefinitionStore.findAll(queryContractPolicyFilter);
+            if (contractDefinitionOnPolicy.findAny().isPresent()) {
+                return ServiceResult.conflict(format("Policy %s cannot be deleted as it is referenced by at least one contractPolicy", policyId));
+            }
 
-        var result = new AtomicReference<ServiceResult<Policy>>();
-        var filter = format("contractPolicy.uid = %s ", policyId);
+            var accessFilter = format("accessPolicy.uid = %s ", policyId);
+            var queryAccessPolicyFilter = QuerySpec.Builder.newInstance().filter(accessFilter).build();
+            var accessDefinitionOnPolicy = contractDefinitionStore.findAll(queryAccessPolicyFilter);
+            if (accessDefinitionOnPolicy.findAny().isPresent()) {
+                return ServiceResult.conflict(format("Policy %s cannot be deleted as it is referenced by at least one accessPolicy", policyId));
+            }
 
+            Policy deleted = policyStore.delete(policyId);
+            if (deleted == null) {
+                return ServiceResult.notFound(format("Policy %s does not exist", policyId));
+            }
 
-        var query = QuerySpec.Builder.newInstance().filter(filter).build();
-
-        //transactionContext.execute(() -> {
-        //    var filter = format("contractAgreement.asset.properties.%s = %s", PROPERTY_ID, assetId);
-        //}
-
-
-        return policyStore.delete(policyId);
+            return ServiceResult.success(deleted);
+        });
     }
 
     @Override
-    public void create(Policy policy) {
+    public ServiceResult<Policy> create(Policy policy) {
 
-        var result = new AtomicReference<ServiceResult<Policy>>();
-
-        transactionContext.execute(() -> {
+        return transactionContext.execute(() -> {
             if (policyStore.findById(policy.getUid()) == null) {
                 policyStore.save(policy);
-                result.set(ServiceResult.success(policy));
+                return ServiceResult.success(policy);
             } else {
-                result.set(ServiceResult.conflict(format("Policy %s cannot be created because it already exist", policy.getUid())));
+                return ServiceResult.conflict(format("Policy %s cannot be created because it already exist", policy.getUid()));
             }
         });
-        result.set(ServiceResult.success(policy));
     }
 }

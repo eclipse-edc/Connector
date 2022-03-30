@@ -40,13 +40,8 @@ public class PolicyDefinitionDto {
     private String assignee;
     private String target;
     private PolicyType type = PolicyType.SET;
-    private Map<String, Object> properties;
 
     private PolicyDefinitionDto() {
-    }
-
-    public Map<String, Object> getProperties() {
-        return properties;
     }
 
     public List<Permission> getPermissions() {

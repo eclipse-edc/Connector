@@ -13,6 +13,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.policy.service;
 
+import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 
@@ -26,7 +27,7 @@ public interface PolicyService {
      * @param policyId id of the policy
      * @return the policy, null if it's not found
      */
-    Policy findbyId(String policyId);
+    Policy findById(String policyId);
 
     /**
      * Query policies
@@ -42,12 +43,12 @@ public interface PolicyService {
      * @param policyId the id of the policy to be deleted
      * @return Policy deleted if the policy is deleted correctly, failure otherwise
      */
-    Policy delete(String policyId);
+    ServiceResult<Policy> delete(String policyId);
 
     /**
      * Create an policy
      *
      * @param policy the policy
      */
-    void create(Policy policy);
+    ServiceResult<Policy> create(Policy policy);
 }
