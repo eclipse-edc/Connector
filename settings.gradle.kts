@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020-2022 Microsoft Corporation
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -11,7 +11,6 @@
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering
  *       ZF Friedrichshafen AG - add dependency & reorder entries
- *       Daimler TSS GmbH - add entries
  *
  */
 
@@ -46,7 +45,7 @@ include(":data-protocols:ids:ids-api-configuration")
 
 include("extensions:sql:contract-definition:store")
 include("extensions:sql:contract-negotiation-store")
-
+include("extensions:sql:policy:store")
 
 // modules for technology- or cloud-provider extensions
 include(":extensions:aws")
@@ -126,7 +125,6 @@ include(":extensions:transaction:transaction-local")
 include(":extensions:data-plane-transfer:data-plane-transfer-spi")
 include(":extensions:data-plane-transfer:data-plane-transfer-core")
 include(":extensions:data-plane-transfer:data-plane-transfer-sync")
-include(":extensions:data-plane-transfer:data-plane-transfer-client")
 include(":extensions:data-plane:data-plane-spi")
 include(":extensions:data-plane:data-plane-framework")
 include(":extensions:data-plane:data-plane-http")
