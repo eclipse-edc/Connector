@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.sql.asset.index;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.dataloading.AssetEntry;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
-import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
@@ -41,11 +41,16 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.AbstractMap;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
 public class SqlAssetIndexTest {
 
@@ -53,13 +58,17 @@ public class SqlAssetIndexTest {
 
     private SqlAssetIndex sqlAssetIndex;
     private ConnectionPool connectionPool;
+    private DataSourceRegistry dataSourceRegistry;
+    private PostgresSqlAssetQueries sqlAssetQueries;
+    private TransactionContext transactionContext;
 
     @BeforeEach
     void setUp() throws SQLException {
-        var monitor = new ConsoleMonitor();
+        var monitor = new Monitor() {
+        };
         var txManager = new LocalTransactionContext(monitor);
-        DataSourceRegistry dataSourceRegistry = new LocalDataSourceRegistry(txManager);
-        var transactionContext = (TransactionContext) txManager;
+        dataSourceRegistry = new LocalDataSourceRegistry(txManager);
+        transactionContext = txManager;
         var jdbcDataSource = new JdbcDataSource();
         jdbcDataSource.setURL("jdbc:h2:mem:");
 
@@ -78,6 +87,7 @@ public class SqlAssetIndexTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        sqlAssetQueries = new PostgresSqlAssetQueries();
     }
 
     @AfterEach
@@ -91,10 +101,34 @@ public class SqlAssetIndexTest {
         var assetExpected = getAsset("id1");
         sqlAssetIndex.accept(assetExpected, getDataAddress());
 
-        var assetFound = sqlAssetIndex.findById("id1");
+        try (var connection = getConnection()) {
 
-        assertThat(assetFound).isNotNull();
-        assertThat(assetFound.getId()).isEqualTo(assetExpected.getId());
+            var assetProperties = transactionContext.execute(() -> {
+                var assetCount = executeQuery(connection, sqlAssetIndex::mapRowCount, sqlAssetQueries.getSqlAssetCountByIdClause(), assetExpected.getId()).iterator().next();
+
+                if (assetCount <= 0) {
+                    return null;
+                } else if (assetCount > 1) {
+                    throw new IllegalStateException("Expected result set size of 0 or 1 but got " + assetCount);
+                }
+
+                return executeQuery(connection, sqlAssetIndex::mapPropertyResultSet, sqlAssetQueries.getSqlPropertyFindByIdClause(), assetExpected.getId()).stream().collect(Collectors.toMap(
+                        AbstractMap.SimpleImmutableEntry::getKey,
+                        AbstractMap.SimpleImmutableEntry::getValue));
+            });
+
+            var assetFound = Asset.Builder.newInstance().id(assetExpected.getId()).properties(assetProperties).build();
+
+            assertThat(assetFound).isNotNull();
+            assertThat(assetFound).usingRecursiveComparison().isEqualTo(assetExpected);
+
+        } catch (Exception e) {
+            if (e instanceof EdcPersistenceException) {
+                throw (EdcPersistenceException) e;
+            } else {
+                throw new EdcPersistenceException(e.getMessage(), e);
+            }
+        }
     }
 
     @Test
@@ -114,10 +148,34 @@ public class SqlAssetIndexTest {
         var assetExpected = getAsset("id1");
         sqlAssetIndex.accept(new AssetEntry(assetExpected, getDataAddress()));
 
-        var assetFound = sqlAssetIndex.findById("id1");
+        try (var connection = getConnection()) {
 
-        assertThat(assetFound).isNotNull();
-        assertThat(assetFound.getId()).isEqualTo(assetExpected.getId());
+            var assetProperties = transactionContext.execute(() -> {
+                var assetCount = executeQuery(connection, sqlAssetIndex::mapRowCount, sqlAssetQueries.getSqlAssetCountByIdClause(), assetExpected.getId()).iterator().next();
+
+                if (assetCount <= 0) {
+                    return null;
+                } else if (assetCount > 1) {
+                    throw new IllegalStateException("Expected result set size of 0 or 1 but got " + assetCount);
+                }
+
+                return executeQuery(connection, sqlAssetIndex::mapPropertyResultSet, sqlAssetQueries.getSqlPropertyFindByIdClause(), assetExpected.getId()).stream().collect(Collectors.toMap(
+                        AbstractMap.SimpleImmutableEntry::getKey,
+                        AbstractMap.SimpleImmutableEntry::getValue));
+            });
+
+            var assetFound = Asset.Builder.newInstance().id(assetExpected.getId()).properties(assetProperties).build();
+
+            assertThat(assetFound).isNotNull();
+            assertThat(assetFound).usingRecursiveComparison().isEqualTo(assetExpected);
+
+        } catch (Exception e) {
+            if (e instanceof EdcPersistenceException) {
+                throw (EdcPersistenceException) e;
+            } else {
+                throw new EdcPersistenceException(e.getMessage(), e);
+            }
+        }
     }
 
     @Test
@@ -148,7 +206,24 @@ public class SqlAssetIndexTest {
         var assetDeleted = sqlAssetIndex.deleteById("id1");
 
         assertThat(assetDeleted).isNotNull();
-        assertThat(assetDeleted.getId()).isEqualTo("id1");
+        assertThat(assetDeleted).usingRecursiveComparison().isEqualTo(asset);
+
+        try (var connection = getConnection()) {
+            transactionContext.execute(() -> {
+                var assetCount = executeQuery(connection, sqlAssetIndex::mapRowCount,
+                        String.format("SELECT COUNT(*) AS %s FROM %s",
+                                sqlAssetQueries.getCountVariableName(),
+                                sqlAssetQueries.getAssetTable()
+                        )).iterator().next();
+                assertThat(assetCount).isEqualTo(0);
+            });
+        } catch (Exception e) {
+            if (e instanceof EdcPersistenceException) {
+                throw (EdcPersistenceException) e;
+            } else {
+                throw new EdcPersistenceException(e.getMessage(), e);
+            }
+        }
     }
 
     @Test
@@ -182,10 +257,10 @@ public class SqlAssetIndexTest {
     @Test
     @DisplayName("Query assets with query spec and short asset count")
     void queryAsset_querySpecShortCount() {
-        for (var i = 1; i <= 4; i++) {
-            var asset = getAsset("id" + i);
+        IntStream.range(1, 4).forEach((item) -> {
+            var asset = getAsset("id" + item);
             sqlAssetIndex.accept(asset, getDataAddress());
-        }
+        });
 
         var assetsFound = sqlAssetIndex.queryAssets(getQuerySpec());
 
@@ -196,9 +271,7 @@ public class SqlAssetIndexTest {
     @Test
     @DisplayName("Find an asset that doesn't exist")
     void findAsset_doesNotExist() {
-        var assetFound = sqlAssetIndex.findById("id1");
-
-        assertThat(assetFound).isNull();
+        assertThat(sqlAssetIndex.findById("id1")).isNull();
     }
 
     @Test
@@ -210,28 +283,26 @@ public class SqlAssetIndexTest {
         var assetFound = sqlAssetIndex.findById("id1");
 
         assertThat(assetFound).isNotNull();
-        assertThat(assetFound.getId()).isEqualTo("id1");
+        assertThat(assetFound).usingRecursiveComparison().isEqualTo(asset);
     }
 
     @Test
     @DisplayName("Find a data address that doesn't exist")
     void resolveDataAddress_doesNotExist() {
-        var dataAddressFound = sqlAssetIndex.resolveForAsset("id1");
-
-        assertThat(dataAddressFound).isNull();
+        assertThat(sqlAssetIndex.resolveForAsset("id1")).isNull();
     }
 
     @Test
     @DisplayName("Find a data address that exists")
     void resolveDataAddress_exists() {
         var asset = getAsset("id1");
-        sqlAssetIndex.accept(asset, getDataAddress());
+        var dataAddress = getDataAddress();
+        sqlAssetIndex.accept(asset, dataAddress);
 
         var dataAddressFound = sqlAssetIndex.resolveForAsset("id1");
 
         assertThat(dataAddressFound).isNotNull();
-        assertThat(dataAddressFound.getType()).isEqualTo("type");
-        assertThat(dataAddressFound.getProperty("key")).isEqualTo("value");
+        assertThat(dataAddressFound).usingRecursiveComparison().isEqualTo(dataAddress);
     }
 
 
@@ -255,6 +326,10 @@ public class SqlAssetIndexTest {
                 .limit(3)
                 .offset(2)
                 .build();
+    }
+
+    private Connection getConnection() throws SQLException {
+        return dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection();
     }
 
 }

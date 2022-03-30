@@ -11,6 +11,8 @@
 --       Daimler TSS GmbH - Initial SQL Query
 --
 
+-- THIS SCHEMA HAS BEEN WRITTEN AND TESTED ONLY FOR POSTGRES
+
 -- table: edc_asset
 CREATE TABLE IF NOT EXISTS edc_asset (
     asset_id VARCHAR NOT NULL,

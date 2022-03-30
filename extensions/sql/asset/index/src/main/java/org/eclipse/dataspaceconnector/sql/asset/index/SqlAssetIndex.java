@@ -64,12 +64,12 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
         Objects.requireNonNull(dataAddress);
 
         try (var connection = getConnection()) {
-            if (existsById(asset.getId(), connection)) {
-                throw new EdcPersistenceException(String.format("Cannot persist. Asset with ID '%s' already exists.", asset.getId()));
-            }
-
             transactionContext.execute(() -> {
                 try {
+                    if (existsById(asset.getId(), connection)) {
+                        throw new EdcPersistenceException(String.format("Cannot persist. Asset with ID '%s' already exists.", asset.getId()));
+                    }
+
                     executeQuery(connection, sqlAssetQueries.getSqlAssetInsertClause(),
                             asset.getId());
                     executeQuery(connection, sqlAssetQueries.getSqlDataAddressInsertClause(),
@@ -109,22 +109,22 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
     public Asset deleteById(String assetId) {
         Objects.requireNonNull(assetId);
 
-        var asset = findById(assetId);
-        if (asset == null) {
-            return null;
-        }
-
         try (var connection = getConnection()) {
+            var asset = findById(assetId);
+            if (asset == null) {
+                return null;
+            }
+
             transactionContext.execute(() -> {
                 executeQuery(connection, sqlAssetQueries.getSqlAssetDeleteByIdClause(), assetId);
                 executeQuery(connection, sqlAssetQueries.getSqlDataAddressDeleteByIdClause(), assetId);
                 executeQuery(connection, sqlAssetQueries.getSqlPropertyDeleteByIdClause(), assetId);
             });
+
+            return asset;
         } catch (Exception e) {
             throw new EdcPersistenceException(e.getMessage(), e);
         }
-
-        return asset;
     }
 
     @Override
@@ -151,13 +151,15 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
         Objects.requireNonNull(assetId);
 
         try (var connection = getConnection()) {
-            if (!existsById(assetId, connection)) {
-                return null;
-            }
 
-            var assetProperties = transactionContext.execute(() -> executeQuery(connection, this::mapPropertyResultSet, sqlAssetQueries.getSqlPropertyFindByIdClause(), assetId).stream().collect(Collectors.toMap(
-                    AbstractMap.SimpleImmutableEntry::getKey,
-                    AbstractMap.SimpleImmutableEntry::getValue)));
+            var assetProperties = transactionContext.execute(() -> {
+                if (!existsById(assetId, connection)) {
+                    return null;
+                }
+                return executeQuery(connection, this::mapPropertyResultSet, sqlAssetQueries.getSqlPropertyFindByIdClause(), assetId).stream().collect(Collectors.toMap(
+                        AbstractMap.SimpleImmutableEntry::getKey,
+                        AbstractMap.SimpleImmutableEntry::getValue));
+            });
 
             return Asset.Builder.newInstance().id(assetId).properties(assetProperties).build();
 
@@ -196,22 +198,22 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
     @Nullable
     private Stream<Asset> getAssetStream(String query) {
         try (var connection = getConnection()) {
-            var assetIds = transactionContext.execute(() -> executeQuery(connection, this::mapAssetIds, query));
-            if (assetIds.size() <= 0) {
-                return null;
-            }
+            return transactionContext.execute(() -> {
+                var assetIds = executeQuery(connection, this::mapAssetIds, query);
+                if (assetIds.size() <= 0) {
+                    return null;
+                }
 
-            var assets = new LinkedList<Asset>();
+                var assets = new LinkedList<Asset>();
+                for (var assetId : assetIds) {
+                    var assetProperties = executeQuery(connection, this::mapPropertyResultSet, sqlAssetQueries.getSqlPropertyFindByIdClause(), assetId).stream().collect(Collectors.toMap(
+                            AbstractMap.SimpleImmutableEntry::getKey,
+                            AbstractMap.SimpleImmutableEntry::getValue));
 
-            for (var assetId : assetIds) {
-                var assetProperties = transactionContext.execute(() -> executeQuery(connection, this::mapPropertyResultSet, sqlAssetQueries.getSqlPropertyFindByIdClause(), assetId).stream().collect(Collectors.toMap(
-                        AbstractMap.SimpleImmutableEntry::getKey,
-                        AbstractMap.SimpleImmutableEntry::getValue)));
-
-                assets.add(Asset.Builder.newInstance().id(assetId).properties(assetProperties).build());
-            }
-
-            return assets.stream();
+                    assets.add(Asset.Builder.newInstance().id(assetId).properties(assetProperties).build());
+                }
+                return assets.stream();
+            });
 
         } catch (Exception e) {
             if (e instanceof EdcPersistenceException) {
@@ -242,11 +244,11 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
         return getDataSource().getConnection();
     }
 
-    private int mapRowCount(ResultSet resultSet) throws SQLException {
+    int mapRowCount(ResultSet resultSet) throws SQLException {
         return resultSet.getInt(sqlAssetQueries.getCountVariableName());
     }
 
-    private AbstractMap.SimpleImmutableEntry<String, Object> mapPropertyResultSet(ResultSet resultSet) throws SQLException, ClassNotFoundException, JsonProcessingException {
+    AbstractMap.SimpleImmutableEntry<String, Object> mapPropertyResultSet(ResultSet resultSet) throws SQLException, ClassNotFoundException, JsonProcessingException {
         return new AbstractMap.SimpleImmutableEntry<>(resultSet.getString(sqlAssetQueries.getAssetPropertyColumnName()),
                 objectMapper.readValue(resultSet.getString(sqlAssetQueries.getAssetPropertyColumnValue()),
                         Class.forName(resultSet.getString(sqlAssetQueries.getAssetPropertyColumnType()))));
