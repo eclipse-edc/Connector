@@ -29,6 +29,7 @@ dependencies {
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation(project(":extensions:api:data-management:api-configuration"))
 
+    testImplementation(project(":extensions:api:auth-tokenbased"))
     testImplementation(project(":extensions:http"))
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(testFixtures(project(":common:util")))

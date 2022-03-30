@@ -33,6 +33,7 @@ dependencies {
 
     testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(project(":extensions:api:auth-tokenbased"))
     testImplementation(project(":extensions:in-memory:contractdefinition-store-memory"))
     testImplementation(project(":extensions:http"))
     testImplementation(testFixtures(project(":common:util")))
