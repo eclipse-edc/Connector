@@ -1,14 +1,6 @@
-**Please note**
-
-### Work in progress <!-- {docsify-ignore-all} -->
-
-All content reflects the current state of discussion, not final decisions.
-
----
-
 # Eclipse Dataspace Connector
 
-TBD
+**Please note**: Work in progress. All content reflects the current state of discussion, not final decisions.
 
 ## Overview
 
