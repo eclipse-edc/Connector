@@ -58,14 +58,15 @@ class ObjectStorageProvisionerTest {
 
     @Test
     void canDeprovision() {
-        assertThat(provisioner.canDeprovision(new ObjectContainerProvisionedResource())).isTrue();
+        var resource = ObjectContainerProvisionedResource.Builder.newInstance().id("1").transferProcessId("2").resourceDefinitionId("3").build();
+        assertThat(provisioner.canDeprovision(resource)).isTrue();
         assertThat(provisioner.canDeprovision(new ProvisionedResource() {
         })).isFalse();
     }
 
     @Test
     void deprovision_should_not_do_anything() {
-        var resource = new ObjectContainerProvisionedResource();
+        var resource = ObjectContainerProvisionedResource.Builder.newInstance().id("1").transferProcessId("2").resourceDefinitionId("3").build();
         var result = provisioner.deprovision(resource, policy);
 
         assertThat(result).succeedsWithin(1, SECONDS);
