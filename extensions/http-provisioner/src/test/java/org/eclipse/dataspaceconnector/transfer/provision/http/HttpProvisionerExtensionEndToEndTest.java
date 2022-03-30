@@ -14,7 +14,6 @@
 package org.eclipse.dataspaceconnector.transfer.provision.http;
 
 import okhttp3.Interceptor;
-import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -78,7 +77,6 @@ public class HttpProvisionerExtensionEndToEndTest {
         delegate = mock(Interceptor.class);
         var httpClient = testOkHttpClient().newBuilder().addInterceptor(delegate).build();
 
-        extension.registerServiceMock(OkHttpClient.class, httpClient);
         extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
         extension.registerSystemExtension(ServiceExtension.class, new HttpProvisionerExtension(httpClient));
         extension.setConfiguration(PROVISIONER_CONFIG);
