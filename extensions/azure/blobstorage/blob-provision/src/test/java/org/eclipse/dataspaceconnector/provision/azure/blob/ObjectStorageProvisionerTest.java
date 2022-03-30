@@ -58,14 +58,15 @@ class ObjectStorageProvisionerTest {
 
     @Test
     void canDeprovision() {
-        assertThat(provisioner.canDeprovision(new ObjectContainerProvisionedResource())).isTrue();
+        var resource = ObjectContainerProvisionedResource.Builder.newInstance().id("1").transferProcessId("2").resourceDefinitionId("3").build();
+        assertThat(provisioner.canDeprovision(resource)).isTrue();
         assertThat(provisioner.canDeprovision(new ProvisionedResource() {
         })).isFalse();
     }
 
     @Test
     void deprovision_should_not_do_anything() {
-        var resource = new ObjectContainerProvisionedResource();
+        var resource = ObjectContainerProvisionedResource.Builder.newInstance().id("1").transferProcessId("2").resourceDefinitionId("3").build();
         var result = provisioner.deprovision(resource, policy);
 
         assertThat(result).succeedsWithin(1, SECONDS);
@@ -79,7 +80,7 @@ class ObjectStorageProvisionerTest {
         when(blobStoreApiMock.exists(anyString(), anyString())).thenReturn(false);
         when(blobStoreApiMock.createContainerSasToken(eq(accountName), eq(containerName), eq("w"), any())).thenReturn("some-sas");
 
-        var response = provisioner.provision(resourceDef, policy).join();
+        var response = provisioner.provision(resourceDef, policy).join().getContent();
 
         assertThat(response.getResource()).isInstanceOfSatisfying(ObjectContainerProvisionedResource.class, resource -> {
             assertThat(resource.getTransferProcessId()).isEqualTo("tpId");
@@ -99,7 +100,7 @@ class ObjectStorageProvisionerTest {
         when(blobStoreApiMock.exists(accountName, containerName)).thenReturn(true);
         when(blobStoreApiMock.createContainerSasToken(eq(accountName), eq(containerName), eq("w"), any())).thenReturn("some-sas");
 
-        var response = provisioner.provision(resourceDef, policy).join();
+        var response = provisioner.provision(resourceDef, policy).join().getContent();
 
         assertThat(response.getResource()).isInstanceOfSatisfying(ObjectContainerProvisionedResource.class, resource -> {
             assertThat(resource.getTransferProcessId()).isEqualTo("tpId");

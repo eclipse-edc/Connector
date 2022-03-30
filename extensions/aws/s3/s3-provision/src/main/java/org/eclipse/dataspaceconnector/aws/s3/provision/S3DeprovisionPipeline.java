@@ -18,7 +18,7 @@ import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.aws.s3.core.ClientProvider;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionResponse;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import software.amazon.awssdk.services.iam.IamAsyncClient;
 import software.amazon.awssdk.services.iam.model.DeleteRolePolicyRequest;
 import software.amazon.awssdk.services.iam.model.DeleteRolePolicyResponse;
@@ -69,7 +69,7 @@ public class S3DeprovisionPipeline {
                 .thenCompose(deleteObjectsResponse -> deleteBucket(s3Client, bucketName))
                 .thenCompose(listAttachedRolePoliciesResponse -> deleteRolePolicy(iamClient, role))
                 .thenCompose(deleteRolePolicyResponse -> deleteRole(iamClient, role))
-                .thenApply(response -> DeprovisionResponse.Builder.newInstance().resource(resource).build());
+                .thenApply(response -> DeprovisionedResource.Builder.newInstance().provisionedResourceId(resource.getId()).build());
     }
 
     private CompletableFuture<DeleteRoleResponse> deleteRole(IamAsyncClient iamClient, String role) {

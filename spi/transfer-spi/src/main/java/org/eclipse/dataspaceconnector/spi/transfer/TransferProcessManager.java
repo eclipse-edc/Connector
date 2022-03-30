@@ -20,8 +20,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.Transfer
 
 /**
  * Manages data transfer processes. Currently synchronous and asynchronous data transfers are supported.
- * <br/>
- * The {@link DataRequest#isSync()} flag indicates whether a data request should be processed synchronously or asynchronously.
  */
 @Feature("edc:core:transfer:transferprocessmanager")
 public interface TransferProcessManager {
