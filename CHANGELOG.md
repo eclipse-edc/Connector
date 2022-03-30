@@ -61,6 +61,7 @@ the detailed section referring to by linking pull requests or issues.
 * Added an overload to `TransactionContext#execute()` (#968)
 * Run CosmosDB integration tests on cloud in CI (#964)
 * Improved provision signalling and align deprovisioning to handle error conditions (#992)
+* Set policy and rule target dynamically when generating contract offers (#609)
 
 #### Removed
 
