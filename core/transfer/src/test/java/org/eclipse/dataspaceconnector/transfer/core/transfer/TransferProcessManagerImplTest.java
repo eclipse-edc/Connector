@@ -114,6 +114,8 @@ class TransferProcessManagerImplTest {
     private final PolicyArchive policyArchive = mock(PolicyArchive.class);
     private final DataFlowManager dataFlowManager = mock(DataFlowManager.class);
     private final Vault vault = mock(Vault.class);
+    @SuppressWarnings("unchecked")
+    private final SendRetryManager<TransferProcess> sendRetryManager = mock(SendRetryManager.class);
 
     private TransferProcessManagerImpl manager;
 
@@ -137,6 +139,7 @@ class TransferProcessManagerImplTest {
                 .policyArchive(policyArchive)
                 .vault(vault)
                 .addressResolver(mock(DataAddressResolver.class))
+                .sendRetryManager(sendRetryManager)
                 .build();
     }
 
@@ -339,19 +342,63 @@ class TransferProcessManagerImplTest {
     }
 
     @Test
-    void requesting_shouldTransitionToRequestedThenToInProgress() throws InterruptedException {
+    void requesting_shouldTransitionToRequested() throws InterruptedException {
         var process = createTransferProcess(REQUESTING);
-        var latch = countDownOnUpdateLatch(2);
-
+        var latch = countDownOnUpdateLatch(1);
         when(dispatcherRegistry.send(eq(Object.class), any(), any())).thenReturn(completedFuture("any"));
         when(transferProcessStore.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTED.code()).build());
+        when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
 
         manager.start();
 
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         verify(transferProcessStore, times(1)).update(argThat(p -> p.getState() == REQUESTED.code()));
-        verify(transferProcessStore, times(1)).update(argThat(p -> p.getState() == IN_PROGRESS.code()));
+    }
+
+    @Test
+    void requesting_OnFailureAndRetriesNotExhausted_updatesStateCountForRetry() throws InterruptedException {
+        var process = createTransferProcess(REQUESTING);
+        var latch = countDownOnUpdateLatch(1);
+        when(dispatcherRegistry.send(eq(Object.class), any(), any())).thenReturn(failedFuture(new EdcException("send failed")));
+        when(transferProcessStore.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
+
+        manager.start();
+
+        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(transferProcessStore, times(1)).update(argThat(p -> p.getState() == REQUESTING.code()));
+    }
+
+    @Test
+    void requesting_OnFailureAndRetriesExhausted_updatesStateCountForRetry() throws InterruptedException {
+        var process = createTransferProcess(REQUESTING);
+        var latch = countDownOnUpdateLatch(1);
+        when(dispatcherRegistry.send(eq(Object.class), any(), any())).thenReturn(failedFuture(new EdcException("send failed")));
+        when(transferProcessStore.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
+        when(sendRetryManager.retriesExhausted(process)).thenReturn(true);
+
+        manager.start();
+
+        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(transferProcessStore, times(1)).update(argThat(p -> p.getState() == ERROR.code()));
+    }
+
+    @Test
+    void requesting_whenShouldWait_updatesStateCount() throws InterruptedException {
+        var process = createTransferProcess(REQUESTING);
+        when(sendRetryManager.shouldDelay(process))
+                .thenReturn(true);
+        var latch = countDownOnUpdateLatch(1);
+        when(dispatcherRegistry.send(eq(Object.class), any(), any())).thenReturn(completedFuture("any"));
+        when(transferProcessStore.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
+
+        manager.start();
+
+        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verifyNoInteractions(dispatcherRegistry);
+        verify(transferProcessStore, times(1)).update(argThat(p -> p.getState() == REQUESTING.code()));
     }
 
     @Test
