@@ -26,7 +26,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 import java.util.UUID;
@@ -41,8 +40,6 @@ import static org.eclipse.dataspaceconnector.aws.dataplane.s3.TestFunctions.VALI
 import static org.eclipse.dataspaceconnector.aws.dataplane.s3.TestFunctions.VALID_SECRET_ACCESS_KEY;
 import static org.eclipse.dataspaceconnector.aws.dataplane.s3.TestFunctions.validS3DataAddress;
 import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.REGION;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;

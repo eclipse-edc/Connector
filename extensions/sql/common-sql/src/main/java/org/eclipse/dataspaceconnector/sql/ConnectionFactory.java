@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.sql;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 
 /**
  * A ConnectionFactory combines a set of connection configuration

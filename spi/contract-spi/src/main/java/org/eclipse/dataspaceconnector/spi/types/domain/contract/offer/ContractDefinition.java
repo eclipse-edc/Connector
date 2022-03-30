@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.spi.types.domain.contract.offer;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.jetbrains.annotations.NotNull;
 

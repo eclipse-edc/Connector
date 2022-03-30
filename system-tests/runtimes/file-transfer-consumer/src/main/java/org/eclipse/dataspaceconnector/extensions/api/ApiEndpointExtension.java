@@ -21,14 +21,9 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusChecker;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 
 import java.io.File;
-import java.nio.file.Path;
-import java.util.List;
 
 public class ApiEndpointExtension implements ServiceExtension {
     @Inject

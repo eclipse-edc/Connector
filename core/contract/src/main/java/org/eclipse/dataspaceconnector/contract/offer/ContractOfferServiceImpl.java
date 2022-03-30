@@ -31,8 +31,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 

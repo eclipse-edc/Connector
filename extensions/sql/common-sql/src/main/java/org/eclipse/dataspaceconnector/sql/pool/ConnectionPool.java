@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.sql.pool;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 
 /**
  * The ConnectionPool maintains a cache of reusable {@link java.sql.Connection}s.

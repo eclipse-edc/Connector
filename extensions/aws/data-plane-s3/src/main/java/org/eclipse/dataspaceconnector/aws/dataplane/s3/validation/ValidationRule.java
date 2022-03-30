@@ -16,12 +16,9 @@ package org.eclipse.dataspaceconnector.aws.dataplane.s3.validation;
 
 import org.eclipse.dataspaceconnector.spi.result.Result;
 
-import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.util.Collections.emptyList;
 
 public interface ValidationRule<T> extends Function<T, Result<Void>> {
 
