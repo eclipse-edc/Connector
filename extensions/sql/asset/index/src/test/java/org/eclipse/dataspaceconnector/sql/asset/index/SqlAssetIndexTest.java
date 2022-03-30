@@ -257,7 +257,7 @@ public class SqlAssetIndexTest {
     @Test
     @DisplayName("Query assets with query spec and short asset count")
     void queryAsset_querySpecShortCount() {
-        IntStream.range(1, 4).forEach((item) -> {
+        IntStream.range(1, 5).forEach((item) -> {
             var asset = getAsset("id" + item);
             sqlAssetIndex.accept(asset, getDataAddress());
         });

@@ -152,16 +152,15 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
 
         try (var connection = getConnection()) {
 
-            var assetProperties = transactionContext.execute(() -> {
+            return transactionContext.execute(() -> {
                 if (!existsById(assetId, connection)) {
                     return null;
                 }
-                return executeQuery(connection, this::mapPropertyResultSet, sqlAssetQueries.getSqlPropertyFindByIdClause(), assetId).stream().collect(Collectors.toMap(
+                var assetProperties = executeQuery(connection, this::mapPropertyResultSet, sqlAssetQueries.getSqlPropertyFindByIdClause(), assetId).stream().collect(Collectors.toMap(
                         AbstractMap.SimpleImmutableEntry::getKey,
                         AbstractMap.SimpleImmutableEntry::getValue));
+                return Asset.Builder.newInstance().id(assetId).properties(assetProperties).build();
             });
-
-            return Asset.Builder.newInstance().id(assetId).properties(assetProperties).build();
 
         } catch (Exception e) {
             if (e instanceof EdcPersistenceException) {
