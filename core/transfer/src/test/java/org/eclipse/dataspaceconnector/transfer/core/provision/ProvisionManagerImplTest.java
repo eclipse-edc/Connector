@@ -6,7 +6,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionResponse;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
@@ -44,7 +44,7 @@ class ProvisionManagerImplTest {
     void provision_should_provision_all_the_transfer_process_definitions() {
         when(provisioner.canProvision(isA(TestResourceDefinition.class))).thenReturn(true);
         var provisionResult = ProvisionResult.success(ProvisionResponse.Builder.newInstance()
-                .resource(new TestProvisionedDataDestinationResource("test-resource"))
+                .resource(new TestProvisionedDataDestinationResource("test-resource", "1"))
                 .build());
 
         when(provisioner.provision(isA(TestResourceDefinition.class), isA(Policy.class))).thenReturn(completedFuture(provisionResult));
@@ -88,8 +88,8 @@ class ProvisionManagerImplTest {
 
     @Test
     void deprovision_should_deprovision_all_the_transfer_process_provisioned_resources() {
-        var deprovisionResponse = DeprovisionResult.success(DeprovisionResponse.Builder.newInstance()
-                .resource(new TestProvisionedDataDestinationResource("test-resource"))
+        var deprovisionResponse = DeprovisionResult.success(DeprovisionedResource.Builder.newInstance()
+                .provisionedResourceId("1")
                 .build());
         when(provisioner.canDeprovision(isA(ProvisionedResource.class))).thenReturn(true);
         when(provisioner.deprovision(isA(TestProvisionedResource.class), isA(Policy.class))).thenReturn(completedFuture(deprovisionResponse));
@@ -99,10 +99,8 @@ class ProvisionManagerImplTest {
         assertThat(result).succeedsWithin(1, SECONDS)
                 .extracting(responses -> responses.get(0))
                 .extracting(DeprovisionResult::getContent)
-                .extracting(DeprovisionResponse::getResource)
-                .extracting(ProvisionedDataDestinationResource.class::cast)
-                .extracting(ProvisionedDataDestinationResource::getResourceName)
-                .isEqualTo("test-resource");
+                .extracting(DeprovisionedResource::getProvisionedResourceId)
+                .isEqualTo("1");
     }
 
     @Test

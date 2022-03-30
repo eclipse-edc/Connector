@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionResponse;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
@@ -78,7 +78,9 @@ public class ObjectStorageProvisioner implements Provisioner<ObjectStorageResour
                             .accountName(accountName)
                             .containerName(containerName)
                             .resourceDefinitionId(resourceDefinition.getId())
-                            .transferProcessId(resourceDefinition.getTransferProcessId()).build();
+                            .transferProcessId(resourceDefinition.getTransferProcessId())
+                            .hasToken(true)
+                            .build();
 
                     var secretToken = new AzureSasToken("?" + writeOnlySas, expiryTime.toInstant().toEpochMilli());
 
@@ -91,7 +93,7 @@ public class ObjectStorageProvisioner implements Provisioner<ObjectStorageResour
     public CompletableFuture<DeprovisionResult> deprovision(ObjectContainerProvisionedResource provisionedResource, Policy policy) {
         return with(retryPolicy).runAsync(() -> blobStoreApi.deleteContainer(provisionedResource.getAccountName(), provisionedResource.getContainerName()))
                 //the sas token will expire automatically. there is no way of revoking them other than a stored access policy
-                .thenApply(empty -> DeprovisionResult.success(DeprovisionResponse.Builder.newInstance().resource(provisionedResource).build()));
+                .thenApply(empty -> DeprovisionResult.success(DeprovisionedResource.Builder.newInstance().provisionedResourceId(provisionedResource.getId()).build()));
     }
 
     @NotNull

@@ -14,14 +14,19 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
+import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
 
 import java.util.List;
 
-@FunctionalInterface
-public interface ProvisionCompletionDelegate {
+public interface ProvisionCallbackDelegate {
     /**
-     * Called when the {@link org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager} completes the provisioning.
+     * Called when the {@link org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager} completes provisioning.
      */
     void handleProvisionResult(String transferProcessId, List<ProvisionResult> provisionResponse);
+
+    /**
+     * Called when the {@link org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager} completes deprovisioning.
+     */
+    void handleDeprovisionResult(String transferProcessId, List<DeprovisionResult> provisionResponse);
 }

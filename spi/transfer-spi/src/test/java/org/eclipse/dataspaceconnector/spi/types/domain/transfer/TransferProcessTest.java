@@ -201,6 +201,28 @@ class TransferProcessTest {
         assertThat(process.getResourcesToProvision().size()).isEqualTo(1);
     }
 
+    @Test
+    void verifyResourceToDeprovisionWhenEmptyResources() {
+        var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).build();
+        assertThat(process.getResourcesToDeprovision()).isEmpty();
+    }
+
+    @Test
+    void verifyResourceToDeprovisionResultsHaveBeenReturned() {
+        var set = ProvisionedResourceSet.Builder.newInstance()
+                .resources(List.of(TestProvisionedResource.Builder.newInstance().id("1").transferProcessId("2").resourceDefinitionId("3").build()))
+                .resources(List.of(TestProvisionedResource.Builder.newInstance().id("4").transferProcessId("5").resourceDefinitionId("6").build()))
+                .build();
+
+        var process = TransferProcess.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .provisionedResourceSet(set)
+                .deprovisionedResources(List.of(DeprovisionedResource.Builder.newInstance().provisionedResourceId("1").build()))
+                .build();
+
+        assertThat(process.getResourcesToDeprovision().size()).isEqualTo(1);
+    }
+
     @ParameterizedTest
     @EnumSource(value = TransferProcessStates.class, names = {"COMPLETED", "ENDED", "ERROR"}, mode = EnumSource.Mode.EXCLUDE)
     void verifyCancel_validStates(TransferProcessStates state) {
@@ -226,7 +248,7 @@ class TransferProcessTest {
     void provisionComplete_emptyManifestAndResources() {
         var emptyManifest = ResourceManifest.Builder.newInstance().definitions(emptyList()).build();
         var emptyResources = ProvisionedResourceSet.Builder.newInstance().resources(emptyList()).build();
-        TransferProcess process = TransferProcess.Builder.newInstance()
+        var process = TransferProcess.Builder.newInstance()
                 .id(UUID.randomUUID().toString()).resourceManifest(emptyManifest).provisionedResourceSet(emptyResources)
                 .build();
 
@@ -239,7 +261,7 @@ class TransferProcessTest {
     @DisplayName("Should considered provisioned when there are no definitions and provisioned resource set is null")
     void provisionComplete_noResources() {
         var emptyManifest = ResourceManifest.Builder.newInstance().definitions(emptyList()).build();
-        TransferProcess process = TransferProcess.Builder.newInstance()
+        var process = TransferProcess.Builder.newInstance()
                 .id(UUID.randomUUID().toString()).resourceManifest(emptyManifest).provisionedResourceSet(null)
                 .build();
 
@@ -247,4 +269,84 @@ class TransferProcessTest {
 
         assertThat(provisioningComplete).isTrue();
     }
+
+    @Test
+    void verifyGetProvisionedResource() {
+        var provisionedResource = TestProvisionedResource.Builder.newInstance()
+                .id("123")
+                .transferProcessId("4")
+                .resourceDefinitionId("1")
+                .build();
+
+        var provisionedResourceSet = ProvisionedResourceSet.Builder.newInstance()
+                .resources(List.of(provisionedResource))
+                .build();
+
+        var process = TransferProcess.Builder.newInstance()
+                .id("1")
+                .provisionedResourceSet(provisionedResourceSet)
+                .build();
+
+        assertThat(process.getProvisionedResource("123")).isNotNull();
+    }
+
+    @Test
+    void verifyDeprovisionNoResources() {
+        var process = TransferProcess.Builder.newInstance().id("1").build();
+        assertThat(process.deprovisionComplete()).isTrue();
+    }
+
+    @Test
+    void verifyDeprovisionComplete() {
+        var provisionedResource = TestProvisionedResource.Builder.newInstance()
+                .id("1")
+                .transferProcessId("2")
+                .resourceDefinitionId("3")
+                .build();
+
+        var provisionedResourceSet = ProvisionedResourceSet.Builder.newInstance()
+                .resources(List.of(provisionedResource))
+                .build();
+
+        var process = TransferProcess.Builder.newInstance()
+                .id("1")
+                .provisionedResourceSet(provisionedResourceSet)
+                .build();
+
+        process.addDeprovisionedResource(DeprovisionedResource.Builder.newInstance().provisionedResourceId("1").build());
+
+        assertThat(process.deprovisionComplete()).isTrue();
+    }
+
+
+    @Test
+    void verifyDeprovisionNotComplete() {
+        var provisionedResource1 = TestProvisionedResource.Builder.newInstance()
+                .id("1")
+                .transferProcessId("2")
+                .resourceDefinitionId("3")
+                .build();
+
+        var provisionedResource2 = TestProvisionedResource.Builder.newInstance()
+                .id("4")
+                .transferProcessId("5")
+                .resourceDefinitionId("6")
+                .build();
+
+        var provisionedResourceSet = ProvisionedResourceSet.Builder.newInstance()
+                .resources(List.of(provisionedResource1))
+                .resources(List.of(provisionedResource2))
+                .build();
+
+        var process = TransferProcess.Builder.newInstance()
+                .id("1")
+                .provisionedResourceSet(provisionedResourceSet)
+                .build();
+
+        process.addDeprovisionedResource(DeprovisionedResource.Builder.newInstance().provisionedResourceId("4").build());
+
+        assertThat(process.deprovisionComplete()).isFalse();
+    }
+
+
 }

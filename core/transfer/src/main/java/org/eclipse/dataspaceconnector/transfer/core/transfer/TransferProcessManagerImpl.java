@@ -36,6 +36,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
@@ -90,8 +91,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
  * If no processes need to be transitioned, the transfer manager will wait according to the the defined {@link WaitStrategy} before conducting the next iteration.
  * A wait strategy may implement a backoff scheme.
  */
-public class TransferProcessManagerImpl implements TransferProcessManager, ProvisionCompletionDelegate {
-
+public class TransferProcessManagerImpl implements TransferProcessManager, ProvisionCallbackDelegate {
     private int batchSize = 5;
     private WaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
     private ResourceManifestGenerator manifestGenerator;
@@ -164,71 +164,19 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     public void handleProvisionResult(String processId, List<ProvisionResult> responses) {
         var transferProcess = transferProcessStore.find(processId);
         if (transferProcess == null) {
+            monitor.severe("TransferProcessManager: no TransferProcess found for provisioned resources");
+            return;
+        }
+        handleProvisionResult(transferProcess, responses);
+    }
+
+    public void handleDeprovisionResult(String processId, List<DeprovisionResult> responses) {
+        var transferProcess = transferProcessStore.find(processId);
+        if (transferProcess == null) {
             monitor.severe("TransferProcessManager: no TransferProcess found for deprovisioned resources");
             return;
         }
-
-        if (transferProcess.getState() == ERROR.code()) {
-            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so provisioning could not be completed", transferProcess.getId()));
-            return;
-        }
-
-        var fatalProvisioningErrors = new ArrayList<String>();
-        responses.forEach(result -> {
-            if (result.failed()) {
-                // Provision failed, if it is fatal, mark it so that transfer process can be transitioned to the error state
-                // If the error is non-fatal, skip processing for this iteration and a retry will be performed later
-                var status = result.getFailure().status();
-                if (status == ResponseStatus.FATAL_ERROR) {
-                    fatalProvisioningErrors.addAll(result.getFailure().getMessages());
-                }
-                return;
-            } else if (result.getContent().isInProcess()) {
-                // Still in process, ignore and continue processing other resources
-                return;
-            }
-
-            var response = result.getContent();
-            var provisionedResource = response.getResource();
-            var secretToken = response.getSecretToken();
-
-            if (provisionedResource instanceof ProvisionedDataDestinationResource) {
-                // a data destination was provisioned by a consumer
-                var dataDestinationResource = (ProvisionedDataDestinationResource) provisionedResource;
-                var dataDestination = dataDestinationResource.createDataDestination();
-
-                if (secretToken != null) {
-                    var keyName = dataDestinationResource.getResourceName();
-                    vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
-                    dataDestination.setKeyName(keyName);
-                }
-                transferProcess.getDataRequest().updateDestination(dataDestination);
-            } else if (provisionedResource instanceof ProvisionedContentResource) {
-                // content for the data transfer was provisioned by the provider
-                var contentResource = (ProvisionedContentResource) provisionedResource;
-                var contentAddress = contentResource.getContentDataAddress();
-                if (secretToken != null) {
-                    var keyName = contentResource.getResourceName();
-                    vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
-                    contentAddress.setKeyName(keyName);
-                }
-                transferProcess.addContentDataAddress(contentAddress);
-            }
-            // update the transfer process with the provisioned resource
-            transferProcess.addProvisionedResource(provisionedResource);
-        });
-        if (!fatalProvisioningErrors.isEmpty()) {
-            var errors = String.join("\n", fatalProvisioningErrors);
-            monitor.severe(format("Transitioning transfer process %s to ERROR state due to fatal provisioning errors: \n%s", transferProcess.getId(), errors));
-            transferProcess.transitionError("Fatal provisioning errors encountered. See logs for details.");
-            transferProcessStore.update(transferProcess);
-        } else if (transferProcess.provisioningComplete()) {
-            transferProcess.transitionProvisioned();
-            transferProcessStore.update(transferProcess);
-            observable.invokeForEach(l -> l.preProvisioned(transferProcess));
-        } else {
-            transferProcessStore.update(transferProcess);
-        }
+        handleDeprovisionResult(transferProcess, responses);
     }
 
     private TransferInitiateResult initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
@@ -300,7 +248,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         provisionManager.provision(resources, policy)
                 .whenComplete((responses, throwable) -> {
                     if (throwable == null) {
-                        handleProvisionResult(process.getId(), responses);
+                        handleProvisionResult(process, responses);
                     } else {
                         transitionToError(process.getId(), throwable, "Error during provisioning");
                     }
@@ -421,8 +369,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         provisionManager.deprovision(resourcesToDeprovision, policy)
                 .whenComplete((responses, throwable) -> {
                     if (throwable == null) {
-                        // TODO: handle partial deprovisioning
-                        onDeprovisionComplete(process.getId());
+                        handleDeprovisionResult(process, responses);
                     } else {
                         transitionToError(process.getId(), throwable, "Error during deprovisioning");
                     }
@@ -447,27 +394,131 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         return true;
     }
 
-    private boolean processCommand(TransferProcessCommand command) {
-        return commandProcessor.processCommandQueue(command);
+    private void handleProvisionResult(TransferProcess transferProcess, List<ProvisionResult> responses) {
+        if (transferProcess.getState() == ERROR.code()) {
+            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so provisioning could not be completed", transferProcess.getId()));
+            return;
+        }
+
+        var fatalErrors = new ArrayList<String>();
+        responses.forEach(result -> {
+            if (result.failed()) {
+                // Record fatal failure so that transfer process can be transitioned to the error state; if non-fatal, skip
+                var status = result.getFailure().status();
+                if (ResponseStatus.FATAL_ERROR == status) {
+                    fatalErrors.addAll(result.getFailure().getMessages());
+                }
+                return;
+            } else if (result.getContent().isInProcess()) {
+                // Still in process, ignore and continue processing other resources
+                return;
+            }
+
+            var response = result.getContent();
+            var provisionedResource = response.getResource();
+            var secretToken = response.getSecretToken();
+
+            if (provisionedResource instanceof ProvisionedDataDestinationResource) {
+                // a data destination was provisioned by a consumer
+                var dataDestinationResource = (ProvisionedDataDestinationResource) provisionedResource;
+                var dataDestination = dataDestinationResource.createDataDestination();
+
+                if (secretToken != null) {
+                    var keyName = dataDestinationResource.getResourceName();
+                    vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
+                    dataDestination.setKeyName(keyName);
+                }
+                transferProcess.getDataRequest().updateDestination(dataDestination);
+            } else if (provisionedResource instanceof ProvisionedContentResource) {
+                // content for the data transfer was provisioned by the provider
+                var contentResource = (ProvisionedContentResource) provisionedResource;
+                var contentAddress = contentResource.getContentDataAddress();
+                if (secretToken != null) {
+                    var keyName = contentResource.getResourceName();
+                    vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
+                    contentAddress.setKeyName(keyName);
+                }
+                transferProcess.addContentDataAddress(contentAddress);
+            }
+            // update the transfer process with the provisioned resource
+            transferProcess.addProvisionedResource(provisionedResource);
+        });
+        if (!fatalErrors.isEmpty()) {
+            var errors = String.join("\n", fatalErrors);
+            monitor.severe(format("Transitioning transfer process %s to ERROR state due to fatal provisioning errors: \n%s", transferProcess.getId(), errors));
+            transferProcess.transitionError("Fatal provisioning errors encountered. See logs for details.");
+            transferProcessStore.update(transferProcess);
+        } else if (transferProcess.provisioningComplete()) {
+            transferProcess.transitionProvisioned();
+            transferProcessStore.update(transferProcess);
+            observable.invokeForEach(l -> l.preProvisioned(transferProcess));
+        } else {
+            transferProcessStore.update(transferProcess);
+        }
     }
 
-    void onDeprovisionComplete(String processId) {
-        monitor.info("Deprovisioning successfully completed.");
-
-        TransferProcess transferProcess = transferProcessStore.find(processId);
-        if (transferProcess == null) {
-            monitor.severe("TransferProcessManager: no TransferProcess found for provisioned resources");
-            return;
-        }
-
+    private void handleDeprovisionResult(TransferProcess transferProcess, List<DeprovisionResult> results) {
         if (transferProcess.getState() == ERROR.code()) {
-            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so deprovisioning could not be completed", transferProcess.getId()));
+            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so deprovisioning could not be processed", transferProcess.getId()));
             return;
         }
 
-        transferProcess.transitionDeprovisioned();
-        transferProcessStore.update(transferProcess);
-        observable.invokeForEach(l -> l.preDeprovisioned(transferProcess));
+        var fatalErrors = new ArrayList<String>();
+        results.forEach(result -> {
+            if (result.failed()) {
+                // Record fatal failure so that transfer process can be transitioned to the error state; if non-fatal, skip
+                var status = result.getFailure().status();
+                if (status == ResponseStatus.FATAL_ERROR) {
+                    fatalErrors.addAll(result.getFailure().getMessages());
+                }
+                return;
+            } else if (result.getContent().isInProcess()) {
+                // Still in process, ignore and continue processing other deprovisioned resources
+                return;
+            }
+            var deprovisionedResource = result.getContent();
+
+            var provisionedResource = transferProcess.getProvisionedResource(deprovisionedResource.getProvisionedResourceId());
+            if (provisionedResource == null) {
+                monitor.severe("Received a deprovision result for a provisioned resource that was not found. Skipping.");
+                return;
+            }
+
+            if (provisionedResource instanceof ProvisionedDataDestinationResource) {
+                // a data destination was provisioned by a consumer
+                var dataDestinationResource = (ProvisionedDataDestinationResource) provisionedResource;
+                if (dataDestinationResource.hasToken()) {
+                    var keyName = dataDestinationResource.getResourceName();
+                    vault.deleteSecret(keyName);
+                }
+            } else if (provisionedResource instanceof ProvisionedContentResource) {
+                var contentResource = (ProvisionedContentResource) provisionedResource;
+                if (contentResource.hasToken()) {
+                    var keyName = contentResource.getResourceName();
+                    vault.deleteSecret(keyName);
+                }
+            }
+
+            transferProcess.addDeprovisionedResource(deprovisionedResource);
+
+        });
+
+        if (!fatalErrors.isEmpty()) {
+            var errors = String.join("\n", fatalErrors);
+            monitor.severe(format("Transitioning transfer process %s to ERROR state due to fatal deprovisioning errors: \n%s", transferProcess.getId(), errors));
+            transferProcess.transitionError("Fatal depprovisioning errors encountered. See logs for details.");
+            transferProcessStore.update(transferProcess);
+        } else if (transferProcess.deprovisionComplete()) {
+            transferProcess.transitionDeprovisioned();
+            transferProcessStore.update(transferProcess);
+            observable.invokeForEach(l -> l.preDeprovisioned(transferProcess));
+        } else {
+            transferProcessStore.update(transferProcess);
+        }
+    }
+
+    private boolean processCommand(TransferProcessCommand command) {
+        return commandProcessor.processCommandQueue(command);
     }
 
     private StateProcessorImpl<TransferProcess> processTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {

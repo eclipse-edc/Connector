@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionResponse;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
@@ -79,13 +79,14 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
                 .monitor(monitor)
                 .build()
                 .deprovision(resource)
-                .thenApply(ignore -> DeprovisionResult.success(DeprovisionResponse.Builder.newInstance().resource(resource).build()));
+                .thenApply(ignore -> DeprovisionResult.success(DeprovisionedResource.Builder.newInstance().provisionedResourceId(resource.getId()).build()));
     }
 
     private ProvisionResult provisionSuccedeed(S3BucketResourceDefinition resourceDefinition, Role role, Credentials credentials) {
         var resource = S3BucketProvisionedResource.Builder.newInstance()
                 .id(resourceDefinition.getBucketName())
                 .resourceDefinitionId(resourceDefinition.getId())
+                .hasToken(true)
                 .region(resourceDefinition.getRegionId())
                 .bucketName(resourceDefinition.getBucketName())
                 .role(role.roleName())

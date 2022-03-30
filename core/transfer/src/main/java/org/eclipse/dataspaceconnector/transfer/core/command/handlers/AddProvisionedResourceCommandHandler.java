@@ -17,7 +17,7 @@ import org.eclipse.dataspaceconnector.spi.command.CommandHandler;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
 import org.eclipse.dataspaceconnector.transfer.core.command.commands.AddProvisionedResourceCommand;
-import org.eclipse.dataspaceconnector.transfer.core.transfer.ProvisionCompletionDelegate;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.ProvisionCallbackDelegate;
 
 import java.util.List;
 
@@ -27,9 +27,9 @@ import java.util.List;
  * This class exists to avoid coupling the TPM to the command handler registry.
  */
 public class AddProvisionedResourceCommandHandler implements CommandHandler<AddProvisionedResourceCommand> {
-    private final ProvisionCompletionDelegate delegate;
+    private final ProvisionCallbackDelegate delegate;
 
-    public AddProvisionedResourceCommandHandler(ProvisionCompletionDelegate delegate) {
+    public AddProvisionedResourceCommandHandler(ProvisionCallbackDelegate delegate) {
         this.delegate = delegate;
     }
 
