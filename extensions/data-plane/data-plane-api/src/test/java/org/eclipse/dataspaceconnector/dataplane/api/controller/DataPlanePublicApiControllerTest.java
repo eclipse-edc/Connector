@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.dataplane.DataPlaneConstants;
+import org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -176,7 +177,7 @@ class DataPlanePublicApiControllerTest {
     }
 
     private static DataAddress testDestAddress() {
-        return DataAddress.Builder.newInstance().type("test").build();
+        return DataAddress.Builder.newInstance().type(HttpDataAddressSchema.TYPE).build();
     }
 
     private static Map<String, String> testRequestProperties() {
