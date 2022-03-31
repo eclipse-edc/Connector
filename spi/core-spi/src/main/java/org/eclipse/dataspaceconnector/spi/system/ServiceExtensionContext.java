@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
@@ -73,23 +74,6 @@ public interface ServiceExtensionContext extends SettingResolver {
      */
     default <T> void registerService(Class<T> type, T service) {
     }
-
-    /**
-     * Loads and orders the service extensions.
-     */
-    List<InjectionContainer<ServiceExtension>> loadServiceExtensions();
-
-    /**
-     * Loads multiple extensions, raising an exception if at least one is not found.
-     */
-    <T> List<T> loadExtensions(Class<T> type, boolean required);
-
-    /**
-     * Loads a single extension, raising an exception if one is not found.
-     */
-    @Nullable()
-    @Contract("_, true -> !null")
-    <T> T loadSingletonExtension(Class<T> type, boolean required);
 
     /**
      * Initializes the service context. This should be used to perform tasks like service registrations, etc.
