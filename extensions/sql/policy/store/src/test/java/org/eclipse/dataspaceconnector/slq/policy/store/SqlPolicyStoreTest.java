@@ -17,9 +17,10 @@ package org.eclipse.dataspaceconnector.slq.policy.store;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
+import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
@@ -50,6 +51,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -63,7 +65,7 @@ class SqlPolicyStoreTest {
 
     @BeforeEach
     void setUp() throws SQLException {
-        var monitor = new ConsoleMonitor();
+        var monitor = new Monitor() {};
         var txManager = new LocalTransactionContext(monitor);
         DataSourceRegistry dataSourceRegistry;
         dataSourceRegistry = new LocalDataSourceRegistry(txManager);
@@ -94,15 +96,14 @@ class SqlPolicyStoreTest {
     }
 
     @Test
-    @DisplayName("Save a single policy that not exists")
+    @DisplayName("Save a single policy that not exists ")
     void save_notExisting() {
         var policy = getDummyPolicy(getRandomId());
 
         sqlPolicyStore.save(policy);
 
         var policyFromDb = sqlPolicyStore.findById(policy.getUid());
-        assertThat(policyFromDb).isNotNull();
-        assertThat(policy.getUid()).isEqualTo(policyFromDb.getUid());
+        assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
     }
 
     @Test
@@ -124,7 +125,7 @@ class SqlPolicyStoreTest {
 
         var policyFromDb = sqlPolicyStore.findById(policy.getUid());
 
-        assertThat(policy.getUid()).isEqualTo(policyFromDb.getUid());
+        assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
     }
 
     @Test
@@ -146,9 +147,44 @@ class SqlPolicyStoreTest {
                 .offset(20)
                 .build();
 
-        var policiesFromDB = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
+        var policiesFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
 
-        assertThat(policiesFromDB).hasSize(limit);
+        assertThat(policiesFromDb).hasSize(limit);
+    }
+
+    @Test
+    @DisplayName("Find policies when page size larger than DB collection")
+    void findAll_pageSizeLargerThanDbCollection() {
+        var pageSize = 15;
+
+        var definitionsExpected = getDummyPolicies(10);
+        definitionsExpected.forEach(sqlPolicyStore::save);
+
+        var spec = QuerySpec.Builder.newInstance()
+                .offset(pageSize)
+                .build();
+
+        var policiesFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
+
+        assertThat(policiesFromDb).hasSize(0);
+    }
+
+    @Test
+    @DisplayName("Find policies when page size oversteps DB collection size")
+    void findAll_pageSizeLarger() {
+        var limit = 5;
+
+        var definitionsExpected = getDummyPolicies(10);
+        definitionsExpected.forEach(sqlPolicyStore::save);
+
+        var spec = QuerySpec.Builder.newInstance()
+                .offset(7)
+                .limit(limit)
+                .build();
+
+        var policiesFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
+
+        assertThat(policiesFromDb).size().isLessThanOrEqualTo(limit);
     }
 
     @Test
@@ -157,7 +193,6 @@ class SqlPolicyStoreTest {
         var policy = getDummyPolicy(getRandomId());
 
         sqlPolicyStore.save(policy);
-        assertThat(sqlPolicyStore.findById(policy.getUid()).getUid()).isEqualTo(policy.getUid());
 
         assertThat(sqlPolicyStore.delete(policy.getUid()).getUid()).isEqualTo(policy.getUid());
         assertThat(sqlPolicyStore.findById(policy.getUid())).isNull();
@@ -199,14 +234,8 @@ class SqlPolicyStoreTest {
                 .build();
     }
 
-    private ArrayList<Policy> getDummyPolicies(int count) {
-        var policies = new ArrayList<Policy>();
-
-        for (int i = 0; i < count; i++) {
-            policies.add(getDummyPolicy(getRandomId()));
-        }
-
-        return policies;
+    private List<Policy> getDummyPolicies(int count) {
+        return IntStream.range(0, count).mapToObj(i -> getDummyPolicy(getRandomId())).collect(Collectors.toList());
     }
 
 }

@@ -15,14 +15,14 @@
 CREATE TABLE IF NOT EXISTS edc_policies
 (
     policy_id VARCHAR(255) NOT NULL,
-    permissions VARCHAR(10000),
-    prohibitions VARCHAR(10000),
-    duties VARCHAR(10000),
-    extensible_properties VARCHAR(10000),
-    inherits_from VARCHAR(10000),
-    assigner VARCHAR(10000),
-    assignee VARCHAR(10000),
-    target VARCHAR(10000),
-    policy_type VARCHAR(10000) NOT NULL,
+    permissions VARCHAR(MAX),
+    prohibitions VARCHAR(MAX),
+    duties VARCHAR(MAX),
+    extensible_properties VARCHAR(MAX),
+    inherits_from VARCHAR(MAX),
+    assigner VARCHAR(MAX),
+    assignee VARCHAR(MAX),
+    target VARCHAR(MAX),
+    policy_type VARCHAR(MAX) NOT NULL,
     PRIMARY KEY (policy_id)
 );

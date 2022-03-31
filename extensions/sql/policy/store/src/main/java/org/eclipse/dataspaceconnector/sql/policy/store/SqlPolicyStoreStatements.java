@@ -14,49 +14,74 @@
 
 package org.eclipse.dataspaceconnector.sql.policy.store;
 
+/**
+ * Statement templates and SQL table+column names required for the PolicyStore.
+ */
 public interface SqlPolicyStoreStatements {
 
     /**
-     * SELECT all statement for policies
+     * SELECT all statement for policies.
      */
     String getSqlFindClauseTemplate();
 
     /**
-     * INSERT statement for policy
+     * INSERT statement for policy.
      */
     String getSqlSaveClauseTemplate();
 
     /**
-     * SELECT statement with condition
+     * SELECT statement with condition.
      */
     String getSqlFindByClauseTemplate();
 
     /**
-     * DELETE statement for policies
+     * DELETE statement for policies.
      */
     String getSqlDeleteClauseTemplate();
 
 
-    default String getPolicyTableName() { return "edc_policies"; }
+    default String getPolicyTableName() {
+        return "edc_policies";
+    }
 
-    default String getPolicyColumnId() { return "policy_id"; }
+    default String getPolicyColumnId() {
+        return "policy_id";
+    }
 
-    default String getPolicyColumnPermissions() { return "permissions"; }
+    default String getPolicyColumnPermissions() {
+        return "permissions";
+    }
 
-    default String getPolicyColumnProhibitions() { return "prohibitions"; }
+    default String getPolicyColumnProhibitions() {
+        return "prohibitions";
+    }
 
-    default String getPolicyColumnDuties() { return "duties"; }
+    default String getPolicyColumnDuties() {
+        return "duties";
+    }
 
-    default String getPolicyColumnExtensibleProperties() { return "extensible_properties"; }
+    default String getPolicyColumnExtensibleProperties() {
+        return "extensible_properties";
+    }
 
-    default String getPolicyColumnInheritsFrom() { return "inherits_from"; }
+    default String getPolicyColumnInheritsFrom() {
+        return "inherits_from";
+    }
 
-    default String getPolicyColumnAssigner() { return "assigner"; }
+    default String getPolicyColumnAssigner() {
+        return "assigner";
+    }
 
-    default String getPolicyColumnAssignee() { return "assignee"; }
+    default String getPolicyColumnAssignee() {
+        return "assignee";
+    }
 
-    default String getPolicyColumnTarget() { return "target"; }
+    default String getPolicyColumnTarget() {
+        return "target";
+    }
 
-    default String getPolicyColumnPolicyType() { return "policy_type"; }
+    default String getPolicyColumnPolicyType() {
+        return "policy_type";
+    }
 
 }

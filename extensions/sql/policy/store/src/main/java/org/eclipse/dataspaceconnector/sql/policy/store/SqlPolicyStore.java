@@ -17,9 +17,9 @@ package org.eclipse.dataspaceconnector.sql.policy.store;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -28,13 +28,13 @@ import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegis
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.jetbrains.annotations.Nullable;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
+import javax.sql.DataSource;
 
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
@@ -46,7 +46,8 @@ public class SqlPolicyStore implements PolicyStore {
     private final TypeManager typeManager;
     private final SqlPolicyStoreStatements sqlPolicyStoreStatements;
 
-    public SqlPolicyStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, TypeManager typeManager, SqlPolicyStoreStatements sqlPolicyStoreStatements) {
+    public SqlPolicyStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
+                          TypeManager typeManager, SqlPolicyStoreStatements sqlPolicyStoreStatements) {
         this.dataSourceRegistry = Objects.requireNonNull(dataSourceRegistry);
         this.dataSourceName = Objects.requireNonNull(dataSourceName);
         this.transactionContext = Objects.requireNonNull(transactionContext);
@@ -65,26 +66,24 @@ public class SqlPolicyStore implements PolicyStore {
 
     @Override
     public Stream<Policy> findAll(QuerySpec spec) {
-        return transactionContext.execute(() -> {
-            Objects.requireNonNull(spec);
+        Objects.requireNonNull(spec);
 
-            var limit = Limit.Builder.newInstance()
-                    .limit(spec.getLimit())
-                    .offset(spec.getOffset())
-                    .build();
+        var limit = Limit.Builder.newInstance()
+                .limit(spec.getLimit())
+                .offset(spec.getOffset())
+                .build();
 
-            var query = sqlPolicyStoreStatements.getSqlFindClauseTemplate() + " " + limit.getStatement();
+        var query = sqlPolicyStoreStatements.getSqlFindClauseTemplate() + " " + limit.getStatement();
 
-            try (var connection = getConnection()) {
-                var policies = executeQuery(
-                        connection,
-                        this::mapResultSet,
-                        String.format(query, sqlPolicyStoreStatements.getPolicyTableName()));
-                return policies.stream();
-            } catch (Exception exception) {
-                throw new EdcPersistenceException(exception);
-            }
-        });
+        try (var connection = getConnection()) {
+            var policies = executeQuery(
+                    connection,
+                    this::mapResultSet,
+                    String.format(query, sqlPolicyStoreStatements.getPolicyTableName()));
+            return policies.stream();
+        } catch (Exception exception) {
+            throw new EdcPersistenceException(exception);
+        }
     }
 
     @Override
@@ -95,15 +94,19 @@ public class SqlPolicyStore implements PolicyStore {
             try (var connection = getConnection()) {
                 executeQuery(connection, sqlPolicyStoreStatements.getSqlSaveClauseTemplate(),
                         policy.getUid(),
-                        toJson(policy.getPermissions(), new TypeReference<List<Permission>>() {}),
-                        toJson(policy.getProhibitions(), new TypeReference<List<Prohibition>>() {}),
-                        toJson(policy.getObligations(), new TypeReference<List<Duty>>() {}),
+                        toJson(policy.getPermissions(), new TypeReference<List<Permission>>() {
+                        }),
+                        toJson(policy.getProhibitions(), new TypeReference<List<Prohibition>>() {
+                        }),
+                        toJson(policy.getObligations(), new TypeReference<List<Duty>>() {
+                        }),
                         toJson(policy.getExtensibleProperties()),
-                        toJson(policy.getInheritsFrom()),
-                        toJson(policy.getAssigner()),
-                        toJson(policy.getAssignee()),
-                        toJson(policy.getTarget()),
-                        toJson(policy.getType(), new TypeReference<PolicyType>(){}));
+                        policy.getInheritsFrom(),
+                        policy.getAssigner(),
+                        policy.getAssignee(),
+                        policy.getTarget(),
+                        toJson(policy.getType(), new TypeReference<PolicyType>() {
+                        }));
             } catch (Exception e) {
                 throw new EdcPersistenceException(e.getMessage(), e);
             }
@@ -129,15 +132,20 @@ public class SqlPolicyStore implements PolicyStore {
     private Policy mapResultSet(ResultSet resultSet) throws SQLException {
         return Policy.Builder.newInstance()
                 .id(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnId()))
-                .permissions(fromJson(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnPermissions()), new TypeReference<>() {}))
-                .prohibitions(fromJson(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnProhibitions()), new TypeReference<>() {}))
-                .duties(fromJson(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnDuties()), new TypeReference<>() {}))
-                .extensibleProperties(fromJson(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnExtensibleProperties()), new TypeReference<>() {}))
+                .permissions(fromJson(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnPermissions()), new TypeReference<>() {
+                }))
+                .prohibitions(fromJson(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnProhibitions()), new TypeReference<>() {
+                }))
+                .duties(fromJson(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnDuties()), new TypeReference<>() {
+                }))
+                .extensibleProperties(fromJson(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnExtensibleProperties()), new TypeReference<>() {
+                }))
                 .inheritsFrom(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnInheritsFrom()))
                 .assigner(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnAssigner()))
                 .assignee(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnAssignee()))
                 .target(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnTarget()))
-                .type(fromJson(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnPolicyType()), new TypeReference<>() {}))
+                .type(fromJson(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnPolicyType()), new TypeReference<>() {
+                }))
                 .build();
     }
 
