@@ -17,6 +17,7 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart;
 
 import kotlin.NotImplementedError;
+import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -71,6 +72,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 
+@ComponentTest
 @Provides({AssetIndex.class,
         DataAddressResolver.class,
         ContractDefinitionStore.class,

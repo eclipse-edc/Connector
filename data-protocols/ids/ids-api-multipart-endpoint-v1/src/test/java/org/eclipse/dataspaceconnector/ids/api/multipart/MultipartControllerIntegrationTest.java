@@ -24,6 +24,7 @@ import net.javacrumbs.jsonunit.assertj.JsonAssertions;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
@@ -41,6 +42,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
 
+@ComponentTest
 public class MultipartControllerIntegrationTest extends AbstractMultipartControllerIntegrationTest {
     private static final String CONNECTOR_ID = UUID.randomUUID().toString();
     private static final String CATALOG_ID = UUID.randomUUID().toString();

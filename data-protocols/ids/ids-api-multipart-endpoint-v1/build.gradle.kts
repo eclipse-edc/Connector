@@ -42,6 +42,7 @@ dependencies {
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(project(":core:transfer"))
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
+    testImplementation(testFixtures(project(":common:util")))
 }
 
 publishing {

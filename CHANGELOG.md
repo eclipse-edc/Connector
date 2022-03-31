@@ -42,6 +42,7 @@ the detailed section referring to by linking pull requests or issues.
 * SQL-based ContractNegotiationStore (#864)
 * Implement ContractNegotiation service for Data Management API (#957)
 * In-memory implementation of PolicyStore (#930)
+* Added ComponentTest and EndToEndTest annotation (#?)
 * Implement AssetLoader, AssetIndex, DataAddressResolver for SQL (#863)
 * Let Control Plane delegate data transfer to Data Plane (#988)
 * CosmosDb based `PolicyStore` (#826)
