@@ -75,6 +75,7 @@ the detailed section referring to by linking pull requests or issues.
 * Added missing Data Management Asset controller openapi (#853)
 * Policy deserialization (#898)
 * Fix extensions loading of EdcRuntimeExtension (#180)
+* Fix missing extension to register TPS (#1027)
 
 ---
 
