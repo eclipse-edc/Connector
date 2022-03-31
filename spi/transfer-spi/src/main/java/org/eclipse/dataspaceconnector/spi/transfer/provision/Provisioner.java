@@ -16,6 +16,9 @@ package org.eclipse.dataspaceconnector.spi.transfer.provision;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 
@@ -46,7 +49,7 @@ public interface Provisioner<RD extends ResourceDefinition, PR extends Provision
      * @param resourceDefinition that contains metadata associated with the provision operation
      * @param policy the contract agreement usage policy for the asset being transferred
      */
-    CompletableFuture<ProvisionResult> provision(RD resourceDefinition, Policy policy);
+    CompletableFuture<StatusResult<ProvisionResponse>> provision(RD resourceDefinition, Policy policy);
 
     /**
      * Removes ephemeral resources of a specific type associated with the data transfer. Implements must be idempotent.
@@ -57,6 +60,6 @@ public interface Provisioner<RD extends ResourceDefinition, PR extends Provision
      * @param provisionedResource that contains metadata associated with the provisioned resource
      * @param policy the contract agreement usage policy for the asset being transferred
      */
-    CompletableFuture<DeprovisionResult> deprovision(PR provisionedResource, Policy policy);
+    CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(PR provisionedResource, Policy policy);
 
 }

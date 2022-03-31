@@ -27,15 +27,13 @@ import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -174,7 +172,7 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(PROVISIONING).toBuilder()
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
-        var provisionResult = ProvisionResult.success(ProvisionResponse.Builder.newInstance()
+        var provisionResult = StatusResult.success(ProvisionResponse.Builder.newInstance()
                 .resource(provisionedDataDestinationResource())
                 .build());
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
@@ -205,7 +203,7 @@ class TransferProcessManagerImplTest {
                 .hasToken(true)
                 .build();
 
-        var provisionResult = ProvisionResult.success(ProvisionResponse.Builder.newInstance()
+        var provisionResult = StatusResult.success(ProvisionResponse.Builder.newInstance()
                 .resource(resource)
                 .secretToken(new TestToken())
                 .build());
@@ -245,7 +243,7 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(PROVISIONING).toBuilder()
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
-        var provisionResult = ProvisionResult.failure(ResponseStatus.FATAL_ERROR, "test error");
+        var provisionResult = StatusResult.<ProvisionResponse>failure(ResponseStatus.FATAL_ERROR, "test error");
 
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
         when(store.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
@@ -263,7 +261,7 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(PROVISIONING).toBuilder()
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
-        var provisionResult = ProvisionResult.failure(ResponseStatus.ERROR_RETRY, "test error");
+        var provisionResult = StatusResult.<ProvisionResponse>failure(ResponseStatus.ERROR_RETRY, "test error");
 
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
         when(store.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
@@ -293,7 +291,7 @@ class TransferProcessManagerImplTest {
     void provisionedProvider_shouldTransitionToInProgress() throws InterruptedException {
         var process = createTransferProcess(PROVISIONED).toBuilder().type(PROVIDER).build();
         when(store.nextForState(eq(PROVISIONED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(dataFlowManager.initiate(any(), any())).thenReturn(DataFlowInitiateResult.success("any"));
+        when(dataFlowManager.initiate(any(), any())).thenReturn(StatusResult.success("any"));
         var latch = countDownOnUpdateLatch();
 
         manager.start();
@@ -469,7 +467,7 @@ class TransferProcessManagerImplTest {
                 .provisionedResourceSet(resourceSet)
                 .build();
 
-        var deprovisionResult = DeprovisionResult.success(DeprovisionedResource.Builder.newInstance()
+        var deprovisionResult = StatusResult.success(DeprovisionedResource.Builder.newInstance()
                 .provisionedResourceId(PROVISIONED_RESOURCE_ID)
                 .build());
 
@@ -501,7 +499,7 @@ class TransferProcessManagerImplTest {
                 .provisionedResourceSet(resourceSet)
                 .build();
 
-        var deprovisionResult = DeprovisionResult.failure(ResponseStatus.FATAL_ERROR, "test error");
+        var deprovisionResult = StatusResult.<DeprovisionedResource>failure(ResponseStatus.FATAL_ERROR, "test error");
 
         when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(deprovisionResult)));
         when(store.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
@@ -529,7 +527,7 @@ class TransferProcessManagerImplTest {
                 .provisionedResourceSet(resourceSet)
                 .build();
 
-        var deprovisionResult = DeprovisionResult.failure(ResponseStatus.ERROR_RETRY, "test error");
+        var deprovisionResult = StatusResult.<DeprovisionedResource>failure(ResponseStatus.ERROR_RETRY, "test error");
 
         when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(deprovisionResult)));
         when(store.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());

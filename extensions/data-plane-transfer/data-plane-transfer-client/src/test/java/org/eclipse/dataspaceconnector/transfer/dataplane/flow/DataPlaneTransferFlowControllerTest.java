@@ -15,9 +15,9 @@
 package org.eclipse.dataspaceconnector.transfer.dataplane.flow;
 
 import com.github.javafaker.Faker;
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -62,7 +62,7 @@ class DataPlaneTransferFlowControllerTest {
         var request = createDataRequest();
 
         when(addressResolverMock.resolveForAsset(request.getAssetId())).thenReturn(testDataAddress());
-        when(transferClientMock.transfer(any())).thenReturn(TransferResult.failure(ResponseStatus.FATAL_ERROR, errorMsg));
+        when(transferClientMock.transfer(any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg));
 
         var result = flowController.initiateFlow(request, null);
 
@@ -80,7 +80,7 @@ class DataPlaneTransferFlowControllerTest {
 
         var dfrCapture = ArgumentCaptor.forClass(DataFlowRequest.class);
         when(addressResolverMock.resolveForAsset(request.getAssetId())).thenReturn(source);
-        when(transferClientMock.transfer(any())).thenReturn(TransferResult.success());
+        when(transferClientMock.transfer(any())).thenReturn(StatusResult.success());
 
         var result = flowController.initiateFlow(request, null);
 
