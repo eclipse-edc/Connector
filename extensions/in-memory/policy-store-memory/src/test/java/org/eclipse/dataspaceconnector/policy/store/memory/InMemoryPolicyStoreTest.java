@@ -139,13 +139,13 @@ class InMemoryPolicyStoreTest {
         store.save(policy);
         assertThat(store.findById(policy.getUid())).isEqualTo(policy);
 
-        assertThat(store.delete(policy.getUid())).isEqualTo(policy);
+        assertThat(store.deleteById(policy.getUid())).isEqualTo(policy);
         assertThat(store.findById(policy.getUid())).isNull();
     }
 
     @Test
     void deleteById_whenNonexistent() {
-        assertThat(store.delete("nonexistent")).isNull();
+        assertThat(store.deleteById("nonexistent")).isNull();
     }
 
     @Test
@@ -173,6 +173,6 @@ class InMemoryPolicyStoreTest {
     void deleteById_exceptionThrown() {
         doThrow(new RuntimeException()).when(manager).writeLock(any());
 
-        assertThatExceptionOfType(EdcPersistenceException.class).isThrownBy(() -> store.delete("any-policy-id"));
+        assertThatExceptionOfType(EdcPersistenceException.class).isThrownBy(() -> store.deleteById("any-policy-id"));
     }
 }

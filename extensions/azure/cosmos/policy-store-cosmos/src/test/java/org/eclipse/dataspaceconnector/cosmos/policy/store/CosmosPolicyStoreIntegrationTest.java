@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.contract.definition.store;
+package org.eclipse.dataspaceconnector.cosmos.policy.store;
 
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
@@ -24,14 +24,13 @@ import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.azure.testfixtures.CosmosTestClient;
 import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureCosmosDbIntegrationTest;
-import org.eclipse.dataspaceconnector.cosmos.policy.store.model.ContractDefinitionDocument;
+import org.eclipse.dataspaceconnector.policy.model.Action;
+import org.eclipse.dataspaceconnector.policy.model.Duty;
+import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -40,18 +39,17 @@ import org.junit.jupiter.api.Test;
 
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
-import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDefinition;
-import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDocument;
+import static org.eclipse.dataspaceconnector.cosmos.policy.store.TestFunctions.generateDocument;
+import static org.eclipse.dataspaceconnector.cosmos.policy.store.TestFunctions.generatePolicy;
 
 @AzureCosmosDbIntegrationTest
-public class CosmosContractDefinitionStoreIntegrationTest {
+public class CosmosPolicyStoreIntegrationTest {
     private static final String TEST_ID = UUID.randomUUID().toString();
     private static final String DATABASE_NAME = "connector-itest-" + TEST_ID;
     private static final String CONTAINER_PREFIX = "ContractDefinitionStore-";
@@ -59,13 +57,12 @@ public class CosmosContractDefinitionStoreIntegrationTest {
     private static CosmosContainer container;
     private static CosmosDatabase database;
     private static TypeManager typeManager;
-    private CosmosContractDefinitionStore store;
+    private CosmosPolicyStore store;
 
     @BeforeAll
     static void prepareCosmosClient() {
         var client = CosmosTestClient.createClient();
         typeManager = new TypeManager();
-        typeManager.registerTypes(ContractDefinition.class, ContractDefinitionDocument.class);
 
         CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
         database = client.getDatabase(response.getProperties().getId());
@@ -88,7 +85,7 @@ public class CosmosContractDefinitionStoreIntegrationTest {
         assertThat(database).describedAs("CosmosDB database is null - did something go wrong during initialization?").isNotNull();
 
         var cosmosDbApi = new CosmosDbApiImpl(container, true);
-        store = new CosmosContractDefinitionStore(cosmosDbApi, typeManager, new RetryPolicy<>().withMaxRetries(3).withBackoff(1, 5, ChronoUnit.SECONDS), TEST_PARTITION_KEY);
+        store = new CosmosPolicyStore(cosmosDbApi, typeManager, new RetryPolicy<>().withMaxRetries(3).withBackoff(1, 5, ChronoUnit.SECONDS), TEST_PARTITION_KEY);
     }
 
     @AfterEach
@@ -103,8 +100,7 @@ public class CosmosContractDefinitionStoreIntegrationTest {
         container.createItem(doc1);
         container.createItem(doc2);
 
-        store.reload();
-        assertThat(store.findAll()).hasSize(2).containsExactlyInAnyOrder(doc1.getWrappedInstance(), doc2.getWrappedInstance());
+        assertThat(store.findAll(QuerySpec.none())).hasSize(2).containsExactlyInAnyOrder(doc1.getWrappedInstance(), doc2.getWrappedInstance());
     }
 
     @Test
@@ -114,23 +110,38 @@ public class CosmosContractDefinitionStoreIntegrationTest {
         container.createItem(doc1);
         container.createItem(doc2);
 
-        assertThat(store.findAll()).hasSize(2);
+        assertThat(store.findAll(QuerySpec.none())).hasSize(2);
+    }
+
+    @Test
+    void findById() {
+        var doc1 = generateDocument(TEST_PARTITION_KEY);
+        container.createItem(doc1);
+
+        store.reload();
+
+        assertThat(store.findById(doc1.getId())).isEqualTo(doc1.getWrappedInstance());
+    }
+
+    @Test
+    void findById_notExist() {
+        assertThat(store.findById("not-exist")).isNull();
     }
 
     @Test
     void findAll_emptyResult() {
-        assertThat(store.findAll()).isNotNull().isEmpty();
+        assertThat(store.findAll(QuerySpec.none())).isNotNull().isEmpty();
     }
 
     @Test
     void save() {
-        ContractDefinition def = generateDefinition();
-        store.save(def);
+        var policy = generatePolicy();
+        store.save(policy);
 
         var actual = container.readAllItems(new PartitionKey(TEST_PARTITION_KEY), Object.class);
         assertThat(actual).hasSize(1);
         var doc = actual.stream().findFirst().get();
-        assertThat(convert(doc)).isEqualTo(def);
+        assertThat(convert(doc)).isEqualTo(policy);
     }
 
     @Test
@@ -138,67 +149,22 @@ public class CosmosContractDefinitionStoreIntegrationTest {
         var doc1 = generateDocument(TEST_PARTITION_KEY);
         container.createItem(doc1);
 
-        var defToAdd = doc1.getWrappedInstance();
+        var policyToUpdate = doc1.getWrappedInstance();
 
         //modify a single field
-        defToAdd.getSelectorExpression().getCriteria().add(new Criterion("anotherkey", "isGreaterThan", "anotherValue"));
+        policyToUpdate.getPermissions().add(Permission.Builder.newInstance().target("test-permission-target").build());
+        policyToUpdate.getObligations().add(Duty.Builder.newInstance().uid("test-obligation-id").build());
 
-        store.save(defToAdd);
+
+        store.save(policyToUpdate);
         var actual = container.readAllItems(new PartitionKey(doc1.getPartitionKey()), Object.class);
         assertThat(actual).hasSize(1);
+
         var first = convert(actual.stream().findFirst().get());
-        assertThat(first.getSelectorExpression().getCriteria()).hasSize(2).anySatisfy(criterion -> {
-            assertThat(criterion.getOperandLeft()).isNotEqualTo("anotherkey");
-            assertThat(criterion.getOperator()).isNotEqualTo("isGreaterThan");
-            assertThat(criterion.getOperandLeft()).isNotEqualTo("anotherValue");
-        }); //we modified that earlier
 
-    }
+        assertThat(first.getPermissions()).hasSize(1).extracting(Permission::getTarget).containsOnly("test-permission-target");
+        assertThat(first.getObligations()).hasSize(1).extracting(Duty::getUid).containsOnly("test-obligation-id");
 
-    @Test
-    void saveAll() {
-        var def1 = generateDefinition();
-        var def2 = generateDefinition();
-        var def3 = generateDefinition();
-
-        store.save(List.of(def1, def2, def3));
-
-        var allItems = container.readAllItems(new PartitionKey(TEST_PARTITION_KEY), Object.class);
-        assertThat(allItems).hasSize(3);
-        var allDefs = allItems.stream().map(this::convert);
-        assertThat(allDefs).containsExactlyInAnyOrder(def1, def2, def3);
-    }
-
-    @Test
-    void update() {
-        var doc1 = generateDocument(TEST_PARTITION_KEY);
-        container.createItem(doc1);
-
-        var definition = doc1.getWrappedInstance();
-        //modify the object
-        definition.getSelectorExpression().getCriteria().add(new Criterion("anotherKey", "NOT EQUAL", "anotherVal"));
-        store.update(definition);
-
-        var updatedDefinition = convert(container.readItem(doc1.getId(), new PartitionKey(doc1.getPartitionKey()), Object.class).getItem());
-        assertThat(updatedDefinition.getId()).isEqualTo(definition.getId());
-        assertThat(updatedDefinition.getSelectorExpression().getCriteria()).hasSize(2)
-                .anySatisfy(criterion -> {
-                    assertThat(criterion.getOperandLeft()).isNotEqualTo("anotherKey");
-                    assertThat(criterion.getOperator()).isNotEqualTo("NOT EQUAL");
-                    assertThat(criterion.getOperandLeft()).isNotEqualTo("anotherValue");
-                }); //we modified that earlier
-    }
-
-    @Test
-    void update_notExists() {
-        var document = generateDocument(TEST_PARTITION_KEY);
-        var definition = document.getWrappedInstance();
-        //modify the object - should insert
-        store.update(definition);
-
-        var updatedDefinition = convert(container.readItem(document.getId(), new PartitionKey(document.getPartitionKey()), Object.class).getItem());
-        assertThat(updatedDefinition.getId()).isEqualTo(definition.getId());
-        assertThat(updatedDefinition.getSelectorExpression().getCriteria()).hasSize(1);
     }
 
     @Test
@@ -206,9 +172,9 @@ public class CosmosContractDefinitionStoreIntegrationTest {
         var document = generateDocument(TEST_PARTITION_KEY);
         container.createItem(document);
 
-        var contractDefinition = convert(document);
-        var deletedContractDefinition = store.deleteById(document.getId());
-        assertThat(deletedContractDefinition).isEqualTo(contractDefinition);
+        var policy = convert(document);
+        var deletedPolicy = store.deleteById(document.getId());
+        assertThat(deletedPolicy).isEqualTo(policy);
 
         assertThat(container.readAllItems(new PartitionKey(document.getPartitionKey()), Object.class)).isEmpty();
     }
@@ -228,26 +194,26 @@ public class CosmosContractDefinitionStoreIntegrationTest {
         container.createItem(doc1);
         container.createItem(doc2);
 
-        assertThat(store.findAll(QuerySpec.none())).hasSize(2).extracting(ContractDefinition::getId).containsExactlyInAnyOrder(doc1.getId(), doc2.getId());
+        assertThat(store.findAll(QuerySpec.none())).hasSize(2).extracting(Policy::getUid).containsExactlyInAnyOrder(doc1.getId(), doc2.getId());
     }
 
     @Test
     void findAll_verifyPaging() {
 
-        var all = IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PARTITION_KEY)).peek(d -> container.createItem(d)).map(ContractDefinitionDocument::getId).collect(Collectors.toList());
+        var all = IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PARTITION_KEY)).peek(d -> container.createItem(d)).map(PolicyDocument::getId).collect(Collectors.toList());
 
         // page size fits
-        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4).extracting(ContractDefinition::getId).isSubsetOf(all);
+        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4).extracting(Policy::getUid).isSubsetOf(all);
 
     }
 
     @Test
     void findAll_verifyPaging_pageSizeLargerThanCollection() {
 
-        var all = IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PARTITION_KEY)).peek(d -> container.createItem(d)).map(ContractDefinitionDocument::getId).collect(Collectors.toList());
+        var all = IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PARTITION_KEY)).peek(d -> container.createItem(d)).map(PolicyDocument::getId).collect(Collectors.toList());
 
         // page size fits
-        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(40).build())).hasSize(7).extracting(ContractDefinition::getId).isSubsetOf(all);
+        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(40).build())).hasSize(7).extracting(Policy::getUid).isSubsetOf(all);
     }
 
     @Test
@@ -256,8 +222,8 @@ public class CosmosContractDefinitionStoreIntegrationTest {
 
         var expectedId = documents.get(3).getId();
 
-        var query = QuerySpec.Builder.newInstance().filter("id=" + expectedId).build();
-        assertThat(store.findAll(query)).extracting(ContractDefinition::getId).containsOnly(expectedId);
+        var query = QuerySpec.Builder.newInstance().filter("uid=" + expectedId).build();
+        assertThat(store.findAll(query)).extracting(Policy::getUid).containsOnly(expectedId);
     }
 
     @Test
@@ -284,16 +250,16 @@ public class CosmosContractDefinitionStoreIntegrationTest {
 
         IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PARTITION_KEY)).forEach(d -> container.createItem(d));
 
-        var ascendingQuery = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build();
-        assertThat(store.findAll(ascendingQuery)).hasSize(10).isSortedAccordingTo(Comparator.comparing(ContractDefinition::getId));
-        var descendingQuery = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build();
-        assertThat(store.findAll(descendingQuery)).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
+        var ascendingQuery = QuerySpec.Builder.newInstance().sortField("uid").sortOrder(SortOrder.ASC).build();
+        assertThat(store.findAll(ascendingQuery)).hasSize(10).isSortedAccordingTo(Comparator.comparing(Policy::getUid));
+        var descendingQuery = QuerySpec.Builder.newInstance().sortField("uid").sortOrder(SortOrder.DESC).build();
+        assertThat(store.findAll(descendingQuery)).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getUid().compareTo(c1.getUid()));
     }
 
     @Test
     void findAll_sorting_nonExistentProperty() {
 
-        var ids = IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PARTITION_KEY)).peek(d -> container.createItem(d)).map(ContractDefinitionDocument::getId).collect(Collectors.toList());
+        var ids = IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PARTITION_KEY)).peek(d -> container.createItem(d)).map(PolicyDocument::getId).collect(Collectors.toList());
 
 
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
@@ -305,27 +271,31 @@ public class CosmosContractDefinitionStoreIntegrationTest {
     @Test
     void verify_readWriteFindAll() {
         // add an object
-        var def = generateDefinition();
-        store.save(def);
-        assertThat(store.findAll()).containsExactly(def);
+        var policy = generatePolicy();
+        store.save(policy);
+        assertThat(store.findAll(QuerySpec.none())).containsExactly(policy);
 
         // modify the object
-        var modifiedDef = ContractDefinition.Builder.newInstance().id(def.getId())
-                .contractPolicy(Policy.Builder.newInstance().id("test-cp-id-new").build())
-                .accessPolicy(Policy.Builder.newInstance().id("test-ap-id-new").build())
-                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals("somekey", "someval").build())
+        var modifiedPolicy = Policy.Builder.newInstance()
+                .id(policy.getUid())
+                .permission(Permission.Builder.newInstance()
+                        .target("test-asset-id")
+                        .action(Action.Builder.newInstance()
+                                .type("USE")
+                                .build())
+                        .build())
                 .build();
 
-        store.update(modifiedDef);
+        store.save(modifiedPolicy);
 
         // re-read
-        var all = store.findAll(QuerySpec.Builder.newInstance().filter("contractPolicy.uid=test-cp-id-new").build()).collect(Collectors.toList());
-        assertThat(all).hasSize(1).containsExactly(modifiedDef);
+        var all = store.findAll(QuerySpec.Builder.newInstance().filter("permissions[0].target=test-asset-id").build()).collect(Collectors.toList());
+        assertThat(all).hasSize(1).containsExactly(modifiedPolicy);
 
     }
 
-    private ContractDefinition convert(Object object) {
+    private Policy convert(Object object) {
         var json = typeManager.writeValueAsString(object);
-        return typeManager.readValue(json, ContractDefinitionDocument.class).getWrappedInstance();
+        return typeManager.readValue(json, PolicyDocument.class).getWrappedInstance();
     }
 }
