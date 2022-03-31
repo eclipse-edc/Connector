@@ -168,55 +168,57 @@ public class DataPlanePublicApiController {
      * Create a {@link DataFlowRequest} based on the decoded claim token and the request content.
      */
     private Result<DataFlowRequest> createDataFlowRequest(ClaimToken claims, ContainerRequestContext requestContext) {
-        DataAddress origDataAddress;
+        DataAddress dataAddress;
         try {
-            origDataAddress = typeManager.readValue(claims.getClaims().get(DataPlaneConstants.DATA_ADDRESS), DataAddress.class);
+            dataAddress = typeManager.readValue(claims.getClaims().get(DataPlaneConstants.DATA_ADDRESS), DataAddress.class);
         } catch (EdcException e) {
             monitor.warning(String.format("Cannot deserialize DataAddress from token claim %s", DataPlaneConstants.DATA_ADDRESS), e);
             return Result.failure("invalid token");
         }
 
-        if (!HttpDataAddressSchema.TYPE.equals(origDataAddress.getType())) {
-            monitor.warning(String.format("DataAddress passed as token claim is not of type '%s'", HttpDataAddressSchema.TYPE));
-            return Result.failure("invalid token");
+        //candidate for refactoring, right now a quick and dirty solution to control the http proxy behavior
+        if (HttpDataAddressSchema.TYPE.equals(dataAddress.getType())) {
+            dataAddress = extendHttpDataAddress(dataAddress, requestContext);
         }
-
-        var dataAddress = DataAddress.Builder.newInstance().type(HttpDataAddressSchema.TYPE).properties(origDataAddress.getProperties());
-
-        if (!StringUtils.isNullOrBlank(origDataAddress.getKeyName())) {
-            dataAddress.keyName(origDataAddress.getKeyName());
-        }
-
-        if (StringUtils.isNullOrBlank(origDataAddress.getProperty(HttpDataAddressSchema.METHOD))) {
-            dataAddress.property(HttpDataAddressSchema.METHOD, requestContextApi.method(requestContext));
-        }
-
-        if (StringUtils.isNullOrBlank(origDataAddress.getProperty(HttpDataAddressSchema.NAME))) {
-            dataAddress.property(HttpDataAddressSchema.NAME, requestContextApi.path(requestContext));
-        }
-
-        if (StringUtils.isNullOrBlank(origDataAddress.getProperty(HttpDataAddressSchema.BODY))) {
-            dataAddress.property(HttpDataAddressSchema.BODY, requestContextApi.body(requestContext));
-        }
-
-        if (StringUtils.isNullOrBlank(origDataAddress.getProperty(HttpDataAddressSchema.MEDIA_TYPE))) {
-            dataAddress.property(HttpDataAddressSchema.MEDIA_TYPE, requestContextApi.mediaType(requestContext));
-        }
-
-        if (StringUtils.isNullOrBlank(origDataAddress.getProperty(HttpDataAddressSchema.QUERY_PARAMS))) {
-            dataAddress.property(HttpDataAddressSchema.QUERY_PARAMS, requestContextApi.queryParams(requestContext));
-        }
-
 
         return Result.success(DataFlowRequest.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())
-                .sourceDataAddress(dataAddress.build())
+                .sourceDataAddress(dataAddress)
                 .destinationDataAddress(DataAddress.Builder.newInstance()
                         .type(OutputStreamDataSinkFactory.TYPE)
                         .build())
                 .trackable(false)
                 .id(UUID.randomUUID().toString())
                 .build());
+    }
+
+    private DataAddress extendHttpDataAddress(DataAddress origDataAddress, ContainerRequestContext requestContext) {
+        var result = DataAddress.Builder.newInstance().type(HttpDataAddressSchema.TYPE).properties(origDataAddress.getProperties());
+
+        if (!StringUtils.isNullOrBlank(origDataAddress.getKeyName())) {
+            result.keyName(origDataAddress.getKeyName());
+        }
+
+        if (StringUtils.isNullOrBlank(origDataAddress.getProperty(HttpDataAddressSchema.METHOD))) {
+            result.property(HttpDataAddressSchema.METHOD, requestContextApi.method(requestContext));
+        }
+
+        if (StringUtils.isNullOrBlank(origDataAddress.getProperty(HttpDataAddressSchema.NAME))) {
+            result.property(HttpDataAddressSchema.NAME, requestContextApi.path(requestContext));
+        }
+
+        if (StringUtils.isNullOrBlank(origDataAddress.getProperty(HttpDataAddressSchema.BODY))) {
+            result.property(HttpDataAddressSchema.BODY, requestContextApi.body(requestContext));
+        }
+
+        if (StringUtils.isNullOrBlank(origDataAddress.getProperty(HttpDataAddressSchema.MEDIA_TYPE))) {
+            result.property(HttpDataAddressSchema.MEDIA_TYPE, requestContextApi.mediaType(requestContext));
+        }
+
+        if (StringUtils.isNullOrBlank(origDataAddress.getProperty(HttpDataAddressSchema.QUERY_PARAMS))) {
+            result.property(HttpDataAddressSchema.QUERY_PARAMS, requestContextApi.queryParams(requestContext));
+        }
+        return result.build();
     }
 
 }
