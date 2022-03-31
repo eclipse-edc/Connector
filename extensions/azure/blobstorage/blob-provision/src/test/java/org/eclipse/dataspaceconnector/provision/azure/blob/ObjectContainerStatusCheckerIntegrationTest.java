@@ -126,6 +126,7 @@ class ObjectContainerStatusCheckerIntegrationTest extends AbstractAzureBlobTest 
                 .resourceDefinitionId(UUID.randomUUID().toString())
                 .transferProcessId(tp.getId())
                 .id(UUID.randomUUID().toString())
+                .resourceName(account1ContainerName)
                 .build();
     }
 }
