@@ -46,6 +46,12 @@ class S3BucketProvisionedResourceTest {
     @BeforeEach
     void setUp() {
         provisionedResource = S3BucketProvisionedResource.Builder.newInstance()
-                .id(randomUUID().toString()).transferProcessId("123").resourceDefinitionId(randomUUID().toString()).region("region").bucketName("bucket").build();
+                .id(randomUUID().toString())
+                .transferProcessId("123")
+                .resourceDefinitionId(randomUUID().toString())
+                .resourceName("resource")
+                .region("region")
+                .bucketName("bucket")
+                .build();
     }
 }

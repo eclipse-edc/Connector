@@ -79,6 +79,7 @@ public class ObjectStorageProvisioner implements Provisioner<ObjectStorageResour
                             .containerName(containerName)
                             .resourceDefinitionId(resourceDefinition.getId())
                             .transferProcessId(resourceDefinition.getTransferProcessId())
+                            .resourceName("resource")
                             .hasToken(true)
                             .build();
 

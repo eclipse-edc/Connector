@@ -194,7 +194,7 @@ class TransferProcessManagerImplTest {
                 .id("1")
                 .transferProcessId("2")
                 .resourceDefinitionId("3")
-                .contentDataAddress(DataAddress.Builder.newInstance().type("test").build())
+                .dataAddress(DataAddress.Builder.newInstance().type("test").build())
                 .build();
 
         var provisionResult = ProvisionResult.success(ProvisionResponse.Builder.newInstance()
