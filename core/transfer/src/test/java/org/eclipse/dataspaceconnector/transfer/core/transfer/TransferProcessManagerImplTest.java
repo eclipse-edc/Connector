@@ -15,6 +15,10 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
@@ -22,17 +26,20 @@ import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionResponse;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedContentResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
@@ -92,6 +99,8 @@ class TransferProcessManagerImplTest {
     private static final String DESTINATION_TYPE = "test-type";
     private static final long TIMEOUT = 5;
     private static final int TRANSFER_MANAGER_BATCHSIZE = 10;
+    private static final String PROVISIONED_RESOURCE_ID = "1";
+
     private final ProvisionManager provisionManager = mock(ProvisionManager.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     private final StatusCheckerRegistry statusCheckerRegistry = mock(StatusCheckerRegistry.class);
@@ -158,10 +167,10 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(PROVISIONING).toBuilder()
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
-        var provisionResponse = ProvisionResponse.Builder.newInstance()
+        var provisionResult = ProvisionResult.success(ProvisionResponse.Builder.newInstance()
                 .resource(provisionedDataDestinationResource())
-                .build();
-        when(provisionManager.provision(any(TransferProcess.class), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResponse)));
+                .build());
+        when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
         when(store.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(store.find(process.getId())).thenReturn(process);
         var latch = countDownOnUpdateLatch();
@@ -180,7 +189,7 @@ class TransferProcessManagerImplTest {
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(resourceDefinition)).build())
                 .build();
 
-        var resource = ProvisionedContentResource.Builder.newInstance()
+        var resource = TestProvisionedContentResource.Builder.newInstance()
                 .resourceName("test")
                 .id("1")
                 .transferProcessId("2")
@@ -188,11 +197,11 @@ class TransferProcessManagerImplTest {
                 .contentDataAddress(DataAddress.Builder.newInstance().type("test").build())
                 .build();
 
-        var provisionResponse = ProvisionResponse.Builder.newInstance()
+        var provisionResult = ProvisionResult.success(ProvisionResponse.Builder.newInstance()
                 .resource(resource)
-                .build();
+                .build());
 
-        when(provisionManager.provision(any(TransferProcess.class), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResponse)));
+        when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
         when(store.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(store.find(process.getId())).thenReturn(process);
         var latch = countDownOnUpdateLatch();
@@ -208,7 +217,7 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(PROVISIONING).toBuilder()
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
-        when(provisionManager.provision(any(TransferProcess.class), isA(Policy.class))).thenReturn(failedFuture(new EdcException("provision failed")));
+        when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(failedFuture(new EdcException("provision failed")));
         when(store.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(store.find(process.getId())).thenReturn(process);
         var latch = countDownOnUpdateLatch();
@@ -217,6 +226,42 @@ class TransferProcessManagerImplTest {
 
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         verify(store).update(argThat(p -> p.getState() == ERROR.code()));
+    }
+
+    @Test
+    void provisioning_shouldTransitionToErrorOnFatalProvisionError() throws InterruptedException {
+        var process = createTransferProcess(PROVISIONING).toBuilder()
+                .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
+                .build();
+        var provisionResult = ProvisionResult.failure(ResponseStatus.FATAL_ERROR, "test error");
+
+        when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
+        when(store.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(store.find(process.getId())).thenReturn(process);
+        var latch = countDownOnUpdateLatch();
+
+        manager.start();
+
+        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(store).update(argThat(p -> p.getState() == ERROR.code()));
+    }
+
+    @Test
+    void provisioning_shouldContinueOnRetryProvisionError() throws InterruptedException {
+        var process = createTransferProcess(PROVISIONING).toBuilder()
+                .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
+                .build();
+        var provisionResult = ProvisionResult.failure(ResponseStatus.ERROR_RETRY, "test error");
+
+        when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
+        when(store.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(store.find(process.getId())).thenReturn(process);
+        var latch = countDownOnUpdateLatch();
+
+        manager.start();
+
+        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(store).update(argThat(p -> p.getState() == PROVISIONING.code()));
     }
 
     @Test
@@ -398,13 +443,24 @@ class TransferProcessManagerImplTest {
 
     @Test
     void deprovisioning_shouldTransitionToDeprovisioned() throws InterruptedException {
+        var manifest = ResourceManifest.Builder.newInstance()
+                .definitions(List.of(new TestResourceDefinition()))
+                .build();
+
+        var resourceSet = ProvisionedResourceSet.Builder.newInstance()
+                .resources(List.of(new TestProvisionedDataDestinationResource("test", PROVISIONED_RESOURCE_ID)))
+                .build();
+
         var process = createTransferProcess(DEPROVISIONING).toBuilder()
-                .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
+                .resourceManifest(manifest)
+                .provisionedResourceSet(resourceSet)
                 .build();
-        var provisionResponse = DeprovisionResponse.Builder.newInstance()
-                .resource(provisionedDataDestinationResource())
-                .build();
-        when(provisionManager.deprovision(any(TransferProcess.class), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResponse)));
+
+        var deprovisionResult = DeprovisionResult.success(DeprovisionedResource.Builder.newInstance()
+                .provisionedResourceId(PROVISIONED_RESOURCE_ID)
+                .build());
+
+        when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(deprovisionResult)));
         when(store.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(store.find(process.getId())).thenReturn(process);
         var latch = countDownOnUpdateLatch();
@@ -416,11 +472,67 @@ class TransferProcessManagerImplTest {
     }
 
     @Test
-    void deprovisioning_shouldTransitionToErrorOnDeprovisionError() throws InterruptedException {
+    void deprovisioning_shouldTransitionToErrorOnFatalDeprovisionError() throws InterruptedException {
+        var manifest = ResourceManifest.Builder.newInstance()
+                .definitions(List.of(new TestResourceDefinition()))
+                .build();
+
+        var resourceSet = ProvisionedResourceSet.Builder.newInstance()
+                .resources(List.of(new TestProvisionedDataDestinationResource("test", PROVISIONED_RESOURCE_ID)))
+                .build();
+
+        var process = createTransferProcess(DEPROVISIONING).toBuilder()
+                .resourceManifest(manifest)
+                .provisionedResourceSet(resourceSet)
+                .build();
+
+        var deprovisionResult = DeprovisionResult.failure(ResponseStatus.FATAL_ERROR, "test error");
+
+        when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(deprovisionResult)));
+        when(store.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(store.find(process.getId())).thenReturn(process);
+        var latch = countDownOnUpdateLatch();
+
+        manager.start();
+
+        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(store).update(argThat(p -> p.getState() == ERROR.code()));
+    }
+
+    @Test
+    void deprovisioning_shouldNotTransitionOnRetriableDeprovisionError() throws InterruptedException {
+        var manifest = ResourceManifest.Builder.newInstance()
+                .definitions(List.of(new TestResourceDefinition()))
+                .build();
+
+        var resourceSet = ProvisionedResourceSet.Builder.newInstance()
+                .resources(List.of(new TestProvisionedDataDestinationResource("test", PROVISIONED_RESOURCE_ID)))
+                .build();
+
+        var process = createTransferProcess(DEPROVISIONING).toBuilder()
+                .resourceManifest(manifest)
+                .provisionedResourceSet(resourceSet)
+                .build();
+
+        var deprovisionResult = DeprovisionResult.failure(ResponseStatus.ERROR_RETRY, "test error");
+
+        when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(deprovisionResult)));
+        when(store.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(store.find(process.getId())).thenReturn(process);
+        var latch = countDownOnUpdateLatch();
+
+        manager.start();
+
+        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(store).update(argThat(p -> p.getState() == DEPROVISIONING.code()));
+    }
+
+    @Test
+    void deprovisioning_shouldTransitionToErrorOnDeprovisionException() throws InterruptedException {
         var process = createTransferProcess(DEPROVISIONING).toBuilder()
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
-        when(provisionManager.deprovision(any(TransferProcess.class), isA(Policy.class))).thenReturn(failedFuture(new EdcException("provision failed")));
+        when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(failedFuture(new EdcException("provision failed")));
         when(store.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(store.find(process.getId())).thenReturn(process);
         var latch = countDownOnUpdateLatch();
@@ -466,7 +578,7 @@ class TransferProcessManagerImplTest {
     }
 
     private ProvisionedDataDestinationResource provisionedDataDestinationResource() {
-        return new TestProvisionedDataDestinationResource("test-resource");
+        return new TestProvisionedDataDestinationResource("test-resource", PROVISIONED_RESOURCE_ID);
     }
 
     private CountDownLatch countDownOnUpdateLatch() {
@@ -482,5 +594,23 @@ class TransferProcessManagerImplTest {
         }).when(store).update(any());
 
         return latch;
+    }
+
+    @JsonTypeName("dataspaceconnector:testprovisioneddcontentresource")
+    @JsonDeserialize(builder = TestProvisionedContentResource.Builder.class)
+    private static class TestProvisionedContentResource extends ProvisionedContentResource {
+
+        @JsonPOJOBuilder(withPrefix = "")
+        public static class Builder extends ProvisionedContentResource.Builder<TestProvisionedContentResource, Builder> {
+
+            protected Builder() {
+                super(new TestProvisionedContentResource());
+            }
+
+            @JsonCreator
+            public static Builder newInstance() {
+                return new Builder();
+            }
+        }
     }
 }

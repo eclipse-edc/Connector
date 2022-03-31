@@ -15,15 +15,14 @@
 package org.eclipse.dataspaceconnector.sql.transferprocess.store;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.sql.datasource.ConnectionFactoryDataSource;
 import org.eclipse.dataspaceconnector.sql.datasource.ConnectionPoolDataSource;
-import org.eclipse.dataspaceconnector.sql.lease.SqlLeaseContextBuilder;
+import org.eclipse.dataspaceconnector.sql.lease.LeaseUtil;
 import org.eclipse.dataspaceconnector.sql.pool.ConnectionPool;
 import org.eclipse.dataspaceconnector.sql.pool.commons.CommonsConnectionPool;
 import org.eclipse.dataspaceconnector.sql.pool.commons.CommonsConnectionPoolConfig;
@@ -38,6 +37,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.Objects;
@@ -51,7 +51,6 @@ import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.dataspaceconnector.sql.transferprocess.store.TestFunctions.createDataRequest;
 import static org.eclipse.dataspaceconnector.sql.transferprocess.store.TestFunctions.createTransferProcess;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.fail;
 
 class SqlTransferProcessStoreTest {
     private static final String DATASOURCE_NAME = "transferprocess";
@@ -59,15 +58,14 @@ class SqlTransferProcessStoreTest {
     private DataSourceRegistry dataSourceRegistry;
     private ConnectionPool connectionPool;
     private SqlTransferProcessStore store;
-    private SqlLeaseContextBuilder leaseContext;
-    private TransactionContext transactionContext;
+    private LeaseUtil leaseUtil;
 
     @BeforeEach
     void setUp() throws SQLException {
-        var monitor = new ConsoleMonitor();
+        var monitor = new Monitor() {
+        };
         var txManager = new LocalTransactionContext(monitor);
         dataSourceRegistry = new LocalDataSourceRegistry(txManager);
-        transactionContext = txManager;
         var jdbcDataSource = new JdbcDataSource();
         jdbcDataSource.setURL("jdbc:h2:mem:");
 
@@ -77,17 +75,19 @@ class SqlTransferProcessStoreTest {
         var poolDataSource = new ConnectionPoolDataSource(connectionPool);
         dataSourceRegistry.register(DATASOURCE_NAME, poolDataSource);
         txManager.registerResource(new DataSourceResource(poolDataSource));
-        store = new SqlTransferProcessStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper(), new PostgresStatements(), CONNECTOR_NAME);
+        var statements = new PostgresStatements();
+        store = new SqlTransferProcessStore(dataSourceRegistry, DATASOURCE_NAME, txManager, new ObjectMapper(), statements, CONNECTOR_NAME);
 
         try (var inputStream = getClass().getClassLoader().getResourceAsStream("schema.sql")) {
             var schema = new String(Objects.requireNonNull(inputStream).readAllBytes(), StandardCharsets.UTF_8);
-            transactionContext.execute(() -> executeQuery(connection, schema));
+            txManager.execute(() -> executeQuery(connection, schema));
 
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        leaseContext = SqlLeaseContextBuilder.with(transactionContext, CONNECTOR_NAME, new PostgresStatements());
+        leaseUtil = new LeaseUtil(txManager, this::getConnection, statements);
+
     }
 
     @AfterEach
@@ -126,7 +126,7 @@ class SqlTransferProcessStoreTest {
                 .hasSize(5)
                 .extracting(TransferProcess::getId)
                 .isSubsetOf(all.stream().map(TransferProcess::getId).collect(Collectors.toList()))
-                .allMatch(id -> isLeased(id, CONNECTOR_NAME));
+                .allMatch(id -> leaseUtil.isLeased(id, CONNECTOR_NAME));
     }
 
     @Test
@@ -138,7 +138,7 @@ class SqlTransferProcessStoreTest {
                 .collect(Collectors.toList());
 
         // lease a few
-        var leasedTp = all.stream().skip(5).peek(tp -> leaseEntity(tp.getId(), CONNECTOR_NAME)).collect(Collectors.toList());
+        var leasedTp = all.stream().skip(5).peek(tp -> leaseUtil.leaseEntity(tp.getId(), CONNECTOR_NAME)).collect(Collectors.toList());
 
         // should not contain leased TPs
         assertThat(store.nextForState(state.code(), 10))
@@ -230,7 +230,7 @@ class SqlTransferProcessStoreTest {
 
         store.nextForState(TransferProcessStates.UNSAVED.code(), 100);
 
-        assertThat(isLeased(t.getId(), CONNECTOR_NAME)).isTrue();
+        assertThat(leaseUtil.isLeased(t.getId(), CONNECTOR_NAME)).isTrue();
     }
 
     @Test
@@ -238,7 +238,7 @@ class SqlTransferProcessStoreTest {
         var t = createTransferProcess("id1", TransferProcessStates.UNSAVED);
         store.create(t);
 
-        leaseEntity(t.getId(), CONNECTOR_NAME, Duration.ofMillis(100));
+        leaseUtil.leaseEntity(t.getId(), CONNECTOR_NAME, Duration.ofMillis(100));
 
         await().atLeast(Duration.ofMillis(100))
                 .atMost(Duration.ofMillis(500))
@@ -311,7 +311,7 @@ class SqlTransferProcessStoreTest {
         var t1 = createTransferProcess("id1");
         store.create(t1);
         // acquire lease
-        leaseEntity(t1.getId(), CONNECTOR_NAME);
+        leaseUtil.leaseEntity(t1.getId(), CONNECTOR_NAME);
 
         t1.transitionInitial(); //modify
         store.update(t1);
@@ -326,7 +326,7 @@ class SqlTransferProcessStoreTest {
         var tpId = "id1";
         var t1 = createTransferProcess(tpId);
         store.create(t1);
-        leaseEntity(tpId, "someone");
+        leaseUtil.leaseEntity(tpId, "someone");
 
         t1.transitionInitial(); //modify
 
@@ -349,7 +349,7 @@ class SqlTransferProcessStoreTest {
     void delete_isLeasedBySelf_shouldThrowException() {
         var t1 = createTransferProcess("id1");
         store.create(t1);
-        leaseEntity(t1.getId(), CONNECTOR_NAME);
+        leaseUtil.leaseEntity(t1.getId(), CONNECTOR_NAME);
 
 
         assertThatThrownBy(() -> store.delete("id1")).hasRootCauseInstanceOf(IllegalStateException.class);
@@ -360,7 +360,7 @@ class SqlTransferProcessStoreTest {
         var t1 = createTransferProcess("id1");
         store.create(t1);
 
-        leaseEntity(t1.getId(), "someone-else");
+        leaseUtil.leaseEntity(t1.getId(), "someone-else");
 
         assertThatThrownBy(() -> store.delete("id1")).hasRootCauseInstanceOf(IllegalStateException.class);
     }
@@ -421,11 +421,9 @@ class SqlTransferProcessStoreTest {
 
     }
 
-    private boolean isLeased(String id, String connectorName) {
-        try (var conn = dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection()) {
-
-            var lease = leaseContext.withConnection(conn).getLease(id);
-            return lease != null && lease.getLeasedBy().equals(connectorName);
+    private Connection getConnection() {
+        try {
+            return dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -438,21 +436,4 @@ class SqlTransferProcessStoreTest {
             throw new RuntimeException(e);
         }
     }
-
-    private void leaseEntity(String tpId, String leaseHolder) {
-        try (var conn = dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection()) {
-            leaseContext.by(leaseHolder).withConnection(conn).acquireLease(tpId);
-        } catch (SQLException e) {
-            fail(e);
-        }
-    }
-
-    private void leaseEntity(String tpId, String leaseHolder, Duration leaseDuration) {
-        try (var conn = dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection()) {
-            leaseContext.by(leaseHolder).forTime(leaseDuration).withConnection(conn).acquireLease(tpId);
-        } catch (SQLException e) {
-            fail(e);
-        }
-    }
-
 }

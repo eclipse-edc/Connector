@@ -45,6 +45,7 @@ include(":data-protocols:ids:ids-token-validation")
 include(":data-protocols:ids:ids-api-configuration")
 
 include("extensions:sql:contract-definition:store")
+include("extensions:sql:contract-negotiation-store")
 
 
 // modules for technology- or cloud-provider extensions
@@ -75,6 +76,7 @@ include(":extensions:azure:azure-test")
 include(":extensions:azure:cosmos:transfer-process-store-cosmos")
 include(":extensions:azure:cosmos:fcc-node-directory-cosmos")
 include(":extensions:azure:cosmos:contract-definition-store-cosmos")
+include(":extensions:azure:cosmos:policy-store-cosmos")
 include(":extensions:azure:cosmos:contract-negotiation-store-cosmos")
 include(":extensions:azure:cosmos:cosmos-common")
 include(":extensions:azure:cosmos:assetindex-cosmos")
@@ -124,6 +126,7 @@ include(":extensions:transaction:transaction-local")
 include(":extensions:data-plane-transfer:data-plane-transfer-spi")
 include(":extensions:data-plane-transfer:data-plane-transfer-core")
 include(":extensions:data-plane-transfer:data-plane-transfer-sync")
+include(":extensions:data-plane-transfer:data-plane-transfer-client")
 include(":extensions:data-plane:data-plane-spi")
 include(":extensions:data-plane:data-plane-framework")
 include(":extensions:data-plane:data-plane-http")
@@ -143,6 +146,7 @@ include(":extensions:sql:pool:apache-commons-pool")
 include(":extensions:sql:asset:index")
 include(":extensions:sql:transfer-process-store")
 include(":extensions:http-receiver")
+include(":extensions:http-provisioner")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")

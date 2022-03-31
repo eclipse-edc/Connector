@@ -1,6 +1,12 @@
 name: Test Code (Style, Tests)
 
-on: [ push, pull_request ]
+on:
+  push:
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
 
 jobs:
   Unit-Test:
@@ -8,14 +14,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/setup-java@v2
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'gradle'
-
       # lets run Checkstyle explicitly (as opposed to within gradle) due to better reporting capabilities
       - name: Run Checkstyle
+        if: github.event_name == 'pull_request'
         uses: nikitasavinov/checkstyle-action@0.4.0
         with:
           checkstyle_config: resources/edc-checkstyle-config.xml
@@ -23,8 +24,16 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tool_name: 'checkstyle'
           checkstyle_version: '9.0'
-          reporter: 'github-check'
-          filter_mode: 'nofilter'
+          # Filtering does not work on github-check, needs github-pr-check
+          reporter: 'github-pr-check'
+          # Include only violations on added or modified files
+          filter_mode: 'file'
+
+      - uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
 
       - name: Gradle Test Core
         env:
@@ -128,7 +137,7 @@ jobs:
           sleep 5
           grep "INFO.*edc-.*ready" log.txt
           rm log.txt
-          killall java      
+          killall java
 
       # we cannot check sample 5 currently because we'd need repo secrets for that (client id,...)
 

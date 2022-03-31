@@ -14,24 +14,19 @@
 
 package org.eclipse.dataspaceconnector.spi.types.domain.transfer;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 
-import java.util.Objects;
+import static java.util.Objects.requireNonNull;
 
 /**
  * A provisioned resource that is a content data address.
  *
  * This resource type is created when a provider's backend system provisions data as part of a data transfer.
  */
-@JsonTypeName("dataspaceconnector:provisioneddcontentresource")
-@JsonDeserialize(builder = ProvisionedContentResource.Builder.class)
-public class ProvisionedContentResource extends ProvisionedResource {
-    private String resourceName;
-    private DataAddress contentDataAddress;
+public abstract class ProvisionedContentResource extends ProvisionedResource {
+    protected String resourceName;
+    protected DataAddress contentDataAddress;
 
     public String getResourceName() {
         return resourceName;
@@ -41,34 +36,33 @@ public class ProvisionedContentResource extends ProvisionedResource {
         return contentDataAddress;
     }
 
-    private ProvisionedContentResource() {
+    protected ProvisionedContentResource() {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends ProvisionedResource.Builder<ProvisionedContentResource, Builder> {
+    // public static class Builder<RD extends ResourceDefinition, B extends Builder<RD, B>> {
+    public static class Builder<T extends ProvisionedContentResource, B extends Builder<T, B>> extends ProvisionedResource.Builder<T, B> {
 
-        @JsonCreator
-        public static Builder newInstance() {
-            return new Builder();
-        }
-
-        public Builder resourceName(String name) {
+        @SuppressWarnings("unchecked")
+        public B resourceName(String name) {
             provisionedResource.resourceName = name;
-            return this;
+            return (B) this;
         }
 
-        public Builder contentDataAddress(DataAddress dataAddress) {
+        @SuppressWarnings("unchecked")
+        public B contentDataAddress(DataAddress dataAddress) {
             provisionedResource.contentDataAddress = dataAddress;
-            return this;
+            return (B) this;
+        }
+
+        protected Builder(T resource) {
+            super(resource);
         }
 
         @Override
         protected void verify() {
-            Objects.requireNonNull(provisionedResource.resourceName, "resourceName");
-        }
-
-        private Builder() {
-            super(new ProvisionedContentResource());
+            requireNonNull(provisionedResource.resourceName, "resourceName");
+            requireNonNull(provisionedResource.contentDataAddress, "contentDataAddress");
         }
 
     }

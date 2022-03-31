@@ -39,10 +39,14 @@ the detailed section referring to by linking pull requests or issues.
 * Add MicrometerExtension integration tests (#935)
 * Implement Asset service for Data Management API (#931)
 * Implement ContractDefinition service for Data Management API (#940)
+* SQL-based ContractNegotiationStore (#864)
 * Implement ContractNegotiation service for Data Management API (#957)
 * In-memory implementation of PolicyStore (#930)
 * Implement AssetLoader, AssetIndex, DataAddressResolver for SQL (#863)
+* Support for HTTP-based provisioning (#963)
+* Let Control Plane delegate data transfer to Data Plane (#988)
 * Add integration tests for traces (#1035)
+* CosmosDb based `PolicyStore` (#826)
 
 #### Changed
 
@@ -61,6 +65,9 @@ the detailed section referring to by linking pull requests or issues.
 * Call the listeners before the state transition is persisted. (#876)
 * Added an overload to `TransactionContext#execute()` (#968)
 * Run CosmosDB integration tests on cloud in CI (#964)
+* Added SQL-AssetIndex to support `QuerySpec` (#1014)
+* Improved provision signalling and align deprovisioning to handle error conditions (#992)
+* Set policy and rule target dynamically when generating contract offers (#609)
 
 #### Removed
 
@@ -75,6 +82,7 @@ the detailed section referring to by linking pull requests or issues.
 * Added missing Data Management Asset controller openapi (#853)
 * Policy deserialization (#898)
 * Fix extensions loading of EdcRuntimeExtension (#180)
+* Fix missing extension to register TPS (#1027)
 
 ---
 

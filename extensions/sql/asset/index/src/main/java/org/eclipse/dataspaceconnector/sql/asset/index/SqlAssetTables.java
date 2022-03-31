@@ -21,40 +21,56 @@ public interface SqlAssetTables {
     /**
      * The asset table name.
      */
-    String getAssetTable();
+    default String getAssetTable() {
+        return "edc_asset";
+    }
 
     /**
      * The asset table ID column.
      */
-    String getAssetColumnId();
+    default String getAssetColumnId() {
+        return "asset_id";
+    }
 
     /**
      * The data address table name.
      */
-    String getDataAddressTable();
+    default String getDataAddressTable() {
+        return "edc_asset_dataaddress";
+    }
 
     /**
      * The data address table properties column.
      */
-    String getDataAddressColumnProperties();
+    default String getDataAddressColumnProperties() {
+        return "properties";
+    }
 
     /**
      * The asset property table name.
      */
-    String getAssetPropertyTable();
+    default String getAssetPropertyTable() {
+        return "edc_asset_property";
+    }
 
     /**
      * The asset property name column.
      */
-    String getAssetPropertyColumnName();
+    default String getAssetPropertyColumnName() {
+        return "property_name";
+    }
 
     /**
      * The asset property value column.
      */
-    String getAssetPropertyColumnValue();
+    default String getAssetPropertyColumnValue() {
+        return "property_value";
+    }
 
     /**
      * The asset property type column.
      */
-    String getAssetPropertyColumnType();
+    default String getAssetPropertyColumnType() {
+        return "property_type";
+    }
 }

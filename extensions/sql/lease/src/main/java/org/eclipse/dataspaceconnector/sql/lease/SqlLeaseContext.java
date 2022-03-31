@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.sql.lease;
 
 import org.eclipse.dataspaceconnector.spi.persistence.LeaseContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
-import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
@@ -64,7 +63,7 @@ public class SqlLeaseContext implements LeaseContext {
                 }
 
                 var stmt = statements.getDeleteLeaseTemplate();
-                SqlQueryExecutor.executeQuery(connection, stmt, l.getLeaseId());
+                executeQuery(connection, stmt, l.getLeaseId());
             }
         });
     }
@@ -82,17 +81,17 @@ public class SqlLeaseContext implements LeaseContext {
 
             //clean out old lease if present
             var deleteStmt = statements.getDeleteLeaseTemplate();
-            SqlQueryExecutor.executeQuery(connection, deleteStmt, entityId);
+            executeQuery(connection, deleteStmt, entityId);
 
             // create new lease in DB
             var id = UUID.randomUUID().toString();
             var duration = leaseDuration != null ? leaseDuration.toMillis() : DEFAULT_LEASE_DURATION;
             var stmt = statements.getInsertLeaseTemplate();
-            SqlQueryExecutor.executeQuery(connection, stmt, id, leaseHolder, now, duration);
+            executeQuery(connection, stmt, id, leaseHolder, now, duration);
 
             //update entity with lease -> effectively lease entity
             var updStmt = statements.getUpdateLeaseTemplate();
-            SqlQueryExecutor.executeQuery(connection, updStmt, id, entityId);
+            executeQuery(connection, updStmt, id, entityId);
 
         });
     }

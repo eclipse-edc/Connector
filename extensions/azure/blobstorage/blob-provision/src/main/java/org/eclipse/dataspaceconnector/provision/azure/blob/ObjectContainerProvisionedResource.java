@@ -56,6 +56,9 @@ public class ObjectContainerProvisionedResource extends ProvisionedDataDestinati
         return containerName;
     }
 
+    private ObjectContainerProvisionedResource() {
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends ProvisionedResource.Builder<ObjectContainerProvisionedResource, Builder> {
 

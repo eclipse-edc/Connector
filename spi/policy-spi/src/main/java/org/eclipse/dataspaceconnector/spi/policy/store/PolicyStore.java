@@ -60,5 +60,12 @@ public interface PolicyStore {
      * @throws EdcPersistenceException if something goes wrong.
      */
     @Nullable
-    Policy delete(String policyId);
+    Policy deleteById(String policyId);
+
+    /**
+     * If the store implementation supports caching, this method triggers a cache-reload.
+     */
+    default void reload() {
+
+    }
 }

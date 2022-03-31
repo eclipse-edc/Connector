@@ -14,12 +14,14 @@
 
 package org.eclipse.dataspaceconnector.dataplane.api.controller;
 
-import groovy.util.MapEntry;
+import com.github.javafaker.Faker;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
+import org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSinkFactory;
+import org.eclipse.dataspaceconnector.dataplane.spi.response.TransferErrorResponse;
 import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -27,19 +29,16 @@ import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
-import org.eclipse.dataspaceconnector.spi.types.domain.dataplane.DataPlaneConstants;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -49,7 +48,8 @@ import static org.mockito.Mockito.when;
 
 class DataPlanePublicApiControllerTest {
 
-    private static final String TOKEN = "token-test";
+    private static final Faker FAKER = new Faker();
+
     private static final TypeManager TYPE_MANAGER = new TypeManager();
 
     private DataPlaneManager dataPlaneManagerMock;
@@ -82,12 +82,14 @@ class DataPlanePublicApiControllerTest {
      */
     @Test
     void postFailure_tokenValidationFailure() {
-        when(requestContextWrapperMock.authHeader(any())).thenReturn(TOKEN);
-        when(tokenValidationServiceMock.validate(TOKEN)).thenReturn(Result.failure("token validation error"));
+        var token = FAKER.internet().uuid();
+        var errorMsg = FAKER.internet().uuid();
+        when(requestContextWrapperMock.authHeader(any())).thenReturn(token);
+        when(tokenValidationServiceMock.validate(token)).thenReturn(Result.failure(errorMsg));
 
         var response = controller.post(null);
 
-        assertErrorResponse(response, 401, "token validation error");
+        assertErrorResponse(response, 401, errorMsg);
     }
 
     /**
@@ -95,17 +97,19 @@ class DataPlanePublicApiControllerTest {
      */
     @Test
     void postFailure_requestValidationFailure() {
+        var token = FAKER.internet().uuid();
+        var errorMsg = FAKER.internet().uuid();
         var claims = createClaimsToken(testDestAddress());
-        when(requestContextWrapperMock.authHeader(any())).thenReturn(TOKEN);
-        when(tokenValidationServiceMock.validate(TOKEN)).thenReturn(Result.success(claims));
+        when(requestContextWrapperMock.authHeader(any())).thenReturn(token);
+        when(tokenValidationServiceMock.validate(token)).thenReturn(Result.success(claims));
         when(requestContextWrapperMock.properties(any())).thenReturn(Map.of());
-        when(dataPlaneManagerMock.validate(any())).thenReturn(Result.failure("request validation error"));
+        when(dataPlaneManagerMock.validate(any())).thenReturn(Result.failure(errorMsg));
 
         var response = controller.post(null);
 
         verify(dataPlaneManagerMock, times(1)).validate(any());
 
-        assertErrorResponse(response, 400, "request validation error");
+        assertErrorResponse(response, 400, errorMsg);
     }
 
     /**
@@ -113,17 +117,19 @@ class DataPlanePublicApiControllerTest {
      */
     @Test
     void postFailure_transferFailure() {
+        var token = FAKER.internet().uuid();
+        var errorMsg = FAKER.internet().uuid();
         var claims = createClaimsToken(testDestAddress());
-        when(requestContextWrapperMock.authHeader(any())).thenReturn(TOKEN);
-        when(tokenValidationServiceMock.validate(TOKEN)).thenReturn(Result.success(claims));
+        when(requestContextWrapperMock.authHeader(any())).thenReturn(token);
+        when(tokenValidationServiceMock.validate(token)).thenReturn(Result.success(claims));
         when(requestContextWrapperMock.properties(any())).thenReturn(Map.of());
         when(dataPlaneManagerMock.validate(any())).thenReturn(Result.success(true));
         when(dataPlaneManagerMock.transfer(any(DataSink.class), any()))
-                .thenReturn(CompletableFuture.completedFuture(TransferResult.failure(ResponseStatus.FATAL_ERROR, "transfer error")));
+                .thenReturn(CompletableFuture.completedFuture(TransferResult.failure(ResponseStatus.FATAL_ERROR, errorMsg)));
 
         var response = controller.post(null);
 
-        assertErrorResponse(response, 500, "transfer error");
+        assertErrorResponse(response, 500, errorMsg);
     }
 
     /**
@@ -131,27 +137,30 @@ class DataPlanePublicApiControllerTest {
      */
     @Test
     void postFailure_transferErrorUnhandledException() {
+        var token = FAKER.internet().uuid();
+        var errorMsg = FAKER.internet().uuid();
         var claims = createClaimsToken(testDestAddress());
-        when(requestContextWrapperMock.authHeader(any())).thenReturn(TOKEN);
-        when(tokenValidationServiceMock.validate(TOKEN)).thenReturn(Result.success(claims));
+        when(requestContextWrapperMock.authHeader(any())).thenReturn(token);
+        when(tokenValidationServiceMock.validate(token)).thenReturn(Result.success(claims));
         when(requestContextWrapperMock.properties(any())).thenReturn(Map.of());
         when(dataPlaneManagerMock.validate(any())).thenReturn(Result.success(true));
         when(dataPlaneManagerMock.transfer(any(DataSink.class), any(DataFlowRequest.class)))
-                .thenReturn(CompletableFuture.failedFuture(new RuntimeException("transfer exception")));
+                .thenReturn(CompletableFuture.failedFuture(new RuntimeException(errorMsg)));
 
         var response = controller.post(null);
 
-        assertErrorResponse(response, 500, "Unhandled exception: transfer exception");
+        assertErrorResponse(response, 500, "Unhandled exception: " + errorMsg);
     }
 
     @Test
     void postSuccess() {
+        var token = FAKER.internet().uuid();
         var address = testDestAddress();
         var claimsToken = createClaimsToken(address);
         var requestCaptor = ArgumentCaptor.forClass(DataFlowRequest.class);
         var requestProperties = testRequestProperties();
 
-        when(requestContextWrapperMock.authHeader(any())).thenReturn(TOKEN);
+        when(requestContextWrapperMock.authHeader(any())).thenReturn(token);
         when(tokenValidationServiceMock.validate(anyString())).thenReturn(Result.success(claimsToken));
         when(requestContextWrapperMock.properties(any())).thenReturn(requestProperties);
         when(dataPlaneManagerMock.validate(any())).thenReturn(Result.success(true));
@@ -193,8 +202,10 @@ class DataPlanePublicApiControllerTest {
     private static void assertErrorResponse(Response response, int errorCode, String message) {
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(errorCode);
-        assertThat(response.getEntity())
-                .asInstanceOf(MAP)
-                .containsExactly(new MapEntry("errors", List.of(message)));
+
+        var entity = response.getEntity();
+        assertThat(entity).isInstanceOf(TransferErrorResponse.class);
+        var errorResponse = (TransferErrorResponse) entity;
+        assertThat(errorResponse.getErrors()).containsExactly(message);
     }
 }

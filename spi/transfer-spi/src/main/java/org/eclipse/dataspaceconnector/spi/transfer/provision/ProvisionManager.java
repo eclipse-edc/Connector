@@ -15,11 +15,8 @@
 package org.eclipse.dataspaceconnector.spi.transfer.provision;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionResponse;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -37,10 +34,10 @@ public interface ProvisionManager {
     /**
      * Provisions resources required to perform the data transfer. This operation is idempotent.
      */
-    CompletableFuture<List<ProvisionResponse>> provision(TransferProcess process, Policy policy);
+    CompletableFuture<List<ProvisionResult>> provision(List<ResourceDefinition> definitions, Policy policy);
 
     /**
-     * Removes ephemeral resources associated with the data transfer. this operation is idempotent.
+     * Removes ephemeral resources associated with the data transfer. This operation is idempotent.
      */
-    CompletableFuture<List<DeprovisionResponse>> deprovision(TransferProcess process, Policy policy);
+    CompletableFuture<List<DeprovisionResult>> deprovision(List<ProvisionedResource> resources, Policy policy);
 }

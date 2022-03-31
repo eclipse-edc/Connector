@@ -18,7 +18,7 @@ package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
-import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
@@ -60,7 +60,9 @@ public class SqlContractDefinitionStoreTest {
 
     @BeforeEach
     void setUp() throws SQLException {
-        var monitor = new ConsoleMonitor();
+        var monitor = new Monitor() {
+
+        };
         var txManager = new LocalTransactionContext(monitor);
         dataSourceRegistry = new LocalDataSourceRegistry(txManager);
         var transactionContext = (TransactionContext) txManager;

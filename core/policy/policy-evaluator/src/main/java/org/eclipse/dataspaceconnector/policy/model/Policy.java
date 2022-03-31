@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added method
  *
  */
 
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * A collection of permissions, prohibitions, and obligations associated with an asset. Subtypes are defined by {@link PolicyType}.
@@ -112,6 +114,27 @@ public class Policy extends Identifiable {
 
     public interface Visitor<R> {
         R visitPolicy(Policy policy);
+    }
+    
+    /**
+     * Returns a copy of this policy with the specified target.
+     *
+     * @param target the target.
+     * @return a copy with the specified target.
+     */
+    public Policy withTarget(String target) {
+        return Builder.newInstance()
+                .id(this.uid)
+                .prohibitions(this.prohibitions.stream().map(p -> p.withTarget(target)).collect(Collectors.toList()))
+                .permissions(this.permissions.stream().map(p -> p.withTarget(target)).collect(Collectors.toList()))
+                .duties(this.obligations.stream().map(o -> o.withTarget(target)).collect(Collectors.toList()))
+                .assigner(this.assigner)
+                .assignee(this.assignee)
+                .inheritsFrom(this.inheritsFrom)
+                .type(this.type)
+                .extensibleProperties(this.extensibleProperties)
+                .target(target)
+                .build();
     }
 
     @JsonPOJOBuilder(withPrefix = "")
