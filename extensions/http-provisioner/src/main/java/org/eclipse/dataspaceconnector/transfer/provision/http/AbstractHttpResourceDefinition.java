@@ -24,6 +24,9 @@ import java.util.Objects;
 public abstract class AbstractHttpResourceDefinition extends ResourceDefinition {
     protected String dataAddressType;
 
+    /**
+     * Returns the data address type the definition is associated with. This is used to determine which provisioner will be engaged.
+     */
     public String getDataAddressType() {
         return dataAddressType;
     }

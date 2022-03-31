@@ -98,7 +98,7 @@ public class HttpProviderProvisioner implements Provisioner<HttpProviderResource
         }
 
         try (var response = httpClient.newCall(request).execute()) {
-            if (response.code() == 200) {
+            if (response.isSuccessful()) {
                 return completedFuture(ProvisionResult.success(new ProvisionResponse()));   // in-process
             } else if (response.code() >= 500 && response.code() <= 504) {
                 // retry
