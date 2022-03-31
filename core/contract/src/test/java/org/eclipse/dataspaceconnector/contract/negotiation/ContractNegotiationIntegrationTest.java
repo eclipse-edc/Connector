@@ -9,7 +9,6 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
- *
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
