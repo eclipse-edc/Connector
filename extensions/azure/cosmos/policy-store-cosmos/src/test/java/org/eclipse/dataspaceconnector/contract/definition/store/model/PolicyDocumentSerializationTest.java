@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generatePolicy;
 
-class ContractDefinitionDocumentSerializationTest {
+class PolicyDocumentSerializationTest {
 
     private TypeManager typeManager;
 
@@ -29,7 +29,6 @@ class ContractDefinitionDocumentSerializationTest {
     @BeforeEach
     void setup() {
         typeManager = new TypeManager();
-        typeManager.registerTypes(PolicyDocument.class, PolicyDocument.class);
     }
 
     @Test

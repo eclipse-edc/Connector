@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.contract.definition.store;
 
 import net.jodah.failsafe.RetryPolicy;
-import net.jodah.failsafe.function.CheckedSupplier;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
 import org.eclipse.dataspaceconnector.contract.definition.store.model.PolicyDocument;
@@ -29,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -50,7 +48,7 @@ public class CosmosPolicyStore implements PolicyStore {
     private final LockManager lockManager;
     private final String partitionKey;
     private final QueryResolver<Policy> queryResolver;
-    private AtomicReference<Map<String, Policy>> objectCache;
+    private final AtomicReference<Map<String, Policy>> objectCache;
 
     public CosmosPolicyStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy, String partitionKey) {
         this.cosmosDbApi = cosmosDbApi;
@@ -59,6 +57,7 @@ public class CosmosPolicyStore implements PolicyStore {
         this.partitionKey = partitionKey;
         lockManager = new LockManager(new ReentrantReadWriteLock(true));
         queryResolver = new ReflectionBasedQueryResolver<>(Policy.class);
+        objectCache = new AtomicReference<>(new HashMap<>());
     }
 
     @Override
@@ -98,14 +97,11 @@ public class CosmosPolicyStore implements PolicyStore {
             // this reloads ALL items from the database. We might want something more elaborate in the future, especially
             // if large amounts of ContractDefinitions need to be held in memory
             var databaseObjects = with(retryPolicy)
-                    .get((CheckedSupplier<List<Object>>) cosmosDbApi::queryAllItems)
+                    .get(() -> cosmosDbApi.queryAllItems())
                     .stream()
                     .map(this::convert)
                     .collect(Collectors.toMap(Policy::getUid, cd -> cd));
 
-            if (objectCache == null) {
-                objectCache = new AtomicReference<>(new HashMap<>());
-            }
             objectCache.set(databaseObjects);
             return null;
         });
@@ -129,8 +125,7 @@ public class CosmosPolicyStore implements PolicyStore {
     }
 
     private Map<String, Policy> getCache() {
-        if (objectCache == null) {
-            objectCache = new AtomicReference<>(new HashMap<>());
+        if (objectCache.get().isEmpty()) {
             reload();
         }
         return objectCache.get();

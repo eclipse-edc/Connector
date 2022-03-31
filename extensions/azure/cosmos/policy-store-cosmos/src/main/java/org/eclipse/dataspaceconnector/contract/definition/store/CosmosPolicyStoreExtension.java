@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.contract.definition.store;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.contract.definition.store.model.PolicyDocument;
-import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
@@ -25,18 +24,18 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
-@Provides({ ContractDefinitionStore.class })
+@Provides({ PolicyStore.class })
 public class CosmosPolicyStoreExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "CosmosDB ContractDefinition Store";
+        return "CosmosDB Policy Store";
     }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         var configuration = new CosmosPolicyStoreConfig(context);
-        Vault vault = context.getService(Vault.class);
+        var vault = context.getService(Vault.class);
 
         var cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
 

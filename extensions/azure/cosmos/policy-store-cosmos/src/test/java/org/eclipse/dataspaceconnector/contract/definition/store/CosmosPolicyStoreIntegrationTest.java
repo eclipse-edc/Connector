@@ -32,7 +32,6 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -65,7 +64,6 @@ public class CosmosPolicyStoreIntegrationTest {
     static void prepareCosmosClient() {
         var client = CosmosTestClient.createClient();
         typeManager = new TypeManager();
-        typeManager.registerTypes(ContractDefinition.class, PolicyDocument.class);
 
         CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
         database = client.getDatabase(response.getProperties().getId());
@@ -175,9 +173,9 @@ public class CosmosPolicyStoreIntegrationTest {
         var document = generateDocument(TEST_PARTITION_KEY);
         container.createItem(document);
 
-        var contractDefinition = convert(document);
-        var deletedContractDefinition = store.deleteById(document.getId());
-        assertThat(deletedContractDefinition).isEqualTo(contractDefinition);
+        var policy = convert(document);
+        var deletedPolicy = store.deleteById(document.getId());
+        assertThat(deletedPolicy).isEqualTo(policy);
 
         assertThat(container.readAllItems(new PartitionKey(document.getPartitionKey()), Object.class)).isEmpty();
     }
