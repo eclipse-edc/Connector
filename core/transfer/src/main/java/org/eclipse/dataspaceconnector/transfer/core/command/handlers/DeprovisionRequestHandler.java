@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.transfer.core.command.handlers;
 
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
-import org.eclipse.dataspaceconnector.transfer.core.command.commands.DeprovisionRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.DeprovisionRequest;
 
 public class DeprovisionRequestHandler extends SingleTransferProcessCommandHandler<DeprovisionRequest> {
 
