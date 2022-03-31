@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - add functionalities
  *
  */
 
@@ -156,6 +157,34 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                 var offset = querySpec.getOffset();
                 var limit = querySpec.getLimit();
                 return executeQuery(connection, this::mapContractNegotiation, stmt, limit, offset).stream();
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
+    @Override
+    public @NotNull Stream<ContractAgreement> getAgreementsForDefinitionId(String definitionId) {
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                var stmt = statements.getFindContractAgreementByDefinitionIdTemplate();
+
+                var contractNegotiation = executeQuery(connection, this::mapContractAgreement, stmt, definitionId + ":%");
+                return contractNegotiation.stream();
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
+    @Override
+    public @NotNull Stream<ContractAgreement> queryAgreements(QuerySpec querySpec) {
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                var stmt = statements.getQueryAgreementsTemplate();
+                var offset = querySpec.getOffset();
+                var limit = querySpec.getLimit();
+                return executeQuery(connection, this::mapContractAgreement, stmt, limit, offset).stream();
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }

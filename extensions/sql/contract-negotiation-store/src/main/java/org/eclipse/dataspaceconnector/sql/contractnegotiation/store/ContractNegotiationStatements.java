@@ -27,6 +27,8 @@ public interface ContractNegotiationStatements extends LeaseStatements {
 
     String getFindContractAgreementTemplate();
 
+    String getFindContractAgreementByDefinitionIdTemplate();
+
     String getUpdateNegotiationTemplate();
 
     String getInsertNegotiationTemplate();
@@ -36,6 +38,8 @@ public interface ContractNegotiationStatements extends LeaseStatements {
     String getNextForStateTemplate();
 
     String getQueryTemplate();
+
+    String getQueryAgreementsTemplate();
 
     String getInsertAgreementTemplate();
 

@@ -38,6 +38,11 @@ public final class PostgresStatements implements ContractNegotiationStatements {
     }
 
     @Override
+    public String getFindContractAgreementByDefinitionIdTemplate() {
+        return format("SELECT * FROM %s where %s LIKE ?", getContractAgreementTable(), getIdColumn());
+    }
+
+    @Override
     public String getUpdateNegotiationTemplate() {
         return format("UPDATE %s\n" +
                 "SET %s=?,\n" +
@@ -73,8 +78,14 @@ public final class PostgresStatements implements ContractNegotiationStatements {
 
     @Override
     public String getQueryTemplate() {
-        // todo: add WHERE ... AND ... statements here
+        // todo: add WHERE ... AND ... ORDER BY... statements here
         return format("SELECT * FROM %s LIMIT ? OFFSET ?;", getContractNegotiationTable());
+    }
+
+    @Override
+    public String getQueryAgreementsTemplate() {
+        // todo: add WHERE ... AND ... ORDER BY... statements here
+        return format("SELECT * FROM %s LIMIT ? OFFSET ?;", getContractAgreementTable());
     }
 
     @Override

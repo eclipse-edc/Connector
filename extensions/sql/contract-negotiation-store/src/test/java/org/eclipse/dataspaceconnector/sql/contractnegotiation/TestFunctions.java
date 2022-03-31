@@ -44,7 +44,6 @@ public class TestFunctions {
         return ContractNegotiation.Builder.newInstance()
                 .type(ContractNegotiation.Type.CONSUMER)
                 .id(id)
-                .contractAgreement(null)
                 .contractAgreement(agreement)
                 .correlationId("corr-" + id)
                 .counterPartyAddress("consumer")

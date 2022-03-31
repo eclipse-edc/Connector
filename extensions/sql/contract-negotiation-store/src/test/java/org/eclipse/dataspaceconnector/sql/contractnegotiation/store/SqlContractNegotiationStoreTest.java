@@ -9,16 +9,20 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - add functionalities
  *
  */
 
 package org.eclipse.dataspaceconnector.sql.contractnegotiation.store;
 
+import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.sql.datasource.ConnectionFactoryDataSource;
@@ -41,6 +45,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Duration;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -428,6 +433,56 @@ class SqlContractNegotiationStoreTest {
                 .containsAll(negotiations);
 
         assertThat(leasedNegotiations).allMatch(n -> leaseUtil.isLeased(n.getId(), CONNECTOR_NAME));
+    }
+
+    @Test
+    void getAgreementsForDefinitionId() {
+        var contractAgreement = createContract(ContractId.createContractId("definitionId"));
+        var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
+        store.save(negotiation);
+
+        var result = store.getAgreementsForDefinitionId("definitionId");
+
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void getAgreementsForDefinitionId_notFound() {
+        var contractAgreement = createContract(ContractId.createContractId("otherDefinitionId"));
+        var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
+        store.save(negotiation);
+
+        var result = store.getAgreementsForDefinitionId("definitionId");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void queryAgreements_noQuerySpec() {
+        IntStream.range(0, 10).forEach(i -> {
+            var contractAgreement = createContract(ContractId.createContractId(UUID.randomUUID().toString()));
+            var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
+            store.save(negotiation);
+        });
+
+        var all = store.queryAgreements(QuerySpec.Builder.newInstance().build());
+
+        assertThat(all).hasSize(10);
+    }
+
+    @Test
+    void queryAgreements_verifyPaging() {
+        IntStream.range(0, 10).forEach(i -> {
+            var contractAgreement = createContract(ContractId.createContractId(UUID.randomUUID().toString()));
+            var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
+            store.save(negotiation);
+        });
+
+        // page size fits
+        assertThat(store.queryAgreements(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4);
+
+        // page size too large
+        assertThat(store.queryAgreements(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(5);
     }
 
     private Connection getConnection() {

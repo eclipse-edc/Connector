@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - add functionalities
  *
  */
 
@@ -30,6 +31,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -46,7 +48,8 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
     private final Map<String, ContractNegotiation> processesByCorrelationId = new HashMap<>();
     private final Map<String, ContractNegotiation> contractAgreements = new HashMap<>();
     private final Map<Integer, List<ContractNegotiation>> stateCache = new HashMap<>();
-    private final QueryResolver<ContractNegotiation> queryResolver = new ReflectionBasedQueryResolver<>(ContractNegotiation.class);
+    private final QueryResolver<ContractNegotiation> negotiationQueryResolver = new ReflectionBasedQueryResolver<>(ContractNegotiation.class);
+    private final QueryResolver<ContractAgreement> agreementQueryResolver = new ReflectionBasedQueryResolver<>(ContractAgreement.class);
 
     @Override
     public ContractNegotiation find(String id) {
@@ -130,7 +133,24 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
 
     @Override
     public Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
-        return lockManager.readLock(() -> queryResolver.query(processesById.values().stream(), querySpec));
+        return lockManager.readLock(() -> negotiationQueryResolver.query(processesById.values().stream(), querySpec));
+    }
+
+    @Override
+    public @NotNull Stream<ContractAgreement> getAgreementsForDefinitionId(String definitionId) {
+        return lockManager.readLock(() -> getAgreements().filter(it -> it.getId().startsWith(definitionId + ":")));
+    }
+
+    @Override
+    public @NotNull Stream<ContractAgreement> queryAgreements(QuerySpec querySpec) {
+        return lockManager.readLock(() -> agreementQueryResolver.query(getAgreements(), querySpec));
+    }
+
+    @NotNull
+    private Stream<ContractAgreement> getAgreements() {
+        return processesById.values().stream()
+                .map(ContractNegotiation::getContractAgreement)
+                .filter(Objects::nonNull);
     }
 
 }
