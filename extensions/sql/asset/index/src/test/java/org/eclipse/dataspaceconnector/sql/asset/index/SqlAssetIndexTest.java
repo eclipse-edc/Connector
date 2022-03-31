@@ -239,11 +239,24 @@ public class SqlAssetIndexTest {
         sqlAssetIndex.accept(asset2, getDataAddress());
 
         var assetsFound = sqlAssetIndex.queryAssets(AssetSelectorExpression.Builder.newInstance()
-                .constraint(Asset.PROPERTY_ID, "in", "('id1', 'id2')")
+                .constraint(Asset.PROPERTY_ID, "in", List.of("id1", "id2"))
                 .build());
 
         assertThat(assetsFound).isNotNull();
         assertThat(assetsFound).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("Query assets with selector expression using the IN operator, invalid righ-operand")
+    void queryAsset_selectorExpression_invalidOperand() {
+        var asset1 = getAsset("id1");
+        sqlAssetIndex.accept(asset1, getDataAddress());
+        var asset2 = getAsset("id2");
+        sqlAssetIndex.accept(asset2, getDataAddress());
+
+        assertThatThrownBy(() -> sqlAssetIndex.queryAssets(AssetSelectorExpression.Builder.newInstance()
+                .constraint(Asset.PROPERTY_ID, "in", "(id1, id2)")
+                .build())).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

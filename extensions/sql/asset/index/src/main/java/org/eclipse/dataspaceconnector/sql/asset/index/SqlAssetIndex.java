@@ -25,6 +25,7 @@ import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -35,7 +36,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -48,7 +48,6 @@ import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
 public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolver {
 
-    private static final List<String> SUPPORTED_PREPARED_STATEMENT_OPERATORS = List.of("=", "like");
 
     private final ObjectMapper objectMapper;
     private final DataSourceRegistry dataSourceRegistry;
@@ -149,22 +148,23 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
     public Stream<Asset> queryAssets(QuerySpec querySpec) {
         Objects.requireNonNull(querySpec);
 
-        var criteria = querySpec.getFilterExpression();
-        var subSelects = criteria.stream().map(this::toSubSelect).collect(Collectors.toList());
+
+        var conditions = querySpec.getFilterExpression().stream().map(SqlConditionExpression::new).collect(Collectors.toList());
+        var results = conditions.stream().map(SqlConditionExpression::isValidExpression).collect(Collectors.toList());
+
+        if (results.stream().anyMatch(Result::failed)) {
+            var message = results.stream().flatMap(r -> r.getFailureMessages().stream()).collect(Collectors.joining(", "));
+            throw new IllegalArgumentException(message);
+
+        }
+        var subSelects = conditions.stream().map(this::toSubSelect).collect(Collectors.toList());
 
         var template = "%s %s LIMIT %s OFFSET %s";
         var query = format(template, sqlAssetQueries.getSqlAssetListClause(), concatSubSelects(subSelects), querySpec.getLimit(), querySpec.getOffset());
 
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                var params = new ArrayList<String>();
-                criteria.forEach(c -> {
-                    params.add(c.getOperandLeft().toString());
-                    //only use the right-operand as statement parameter, if  supported
-                    if (supportsPreparedStatement(c)) {
-                        params.add(c.getOperandRight().toString());
-                    }
-                });
+                var params = conditions.stream().flatMap(SqlConditionExpression::toStatementParameter).collect(Collectors.toList());
 
                 List<String> ids = executeQuery(connection, this::mapAssetIds, query, params.toArray(Object[]::new));
                 return ids.stream().map(this::findById);
@@ -228,6 +228,7 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
         return new AbstractMap.SimpleImmutableEntry<>(name, fromPropertyValue(value, type));
     }
 
+
     @Nullable
     private DataAddress single(List<DataAddress> dataAddressList) {
         if (dataAddressList.size() <= 0) {
@@ -264,19 +265,12 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
     /**
      * Converts a {@linkplain Criterion} into a dynamically assembled SELECT statement.
      */
-    private String toSubSelect(Criterion c) {
-        return format("%s %s %s)", sqlAssetQueries.getQuerySubSelectClause(), c.getOperator(),
-                (supportsPreparedStatement(c) ? "?" : c.getOperandRight()));
+    private String toSubSelect(SqlConditionExpression c) {
+        return format("%s %s %s)", sqlAssetQueries.getQuerySubSelectClause(),
+                c.getCriterion().getOperator(),
+                c.toValuePlaceholder());
     }
 
-    /**
-     * checks whether a certain {@linkplain Criterion} supports usage in prepared statements.
-     *
-     * @see SqlAssetIndex#SUPPORTED_PREPARED_STATEMENT_OPERATORS
-     */
-    private boolean supportsPreparedStatement(Criterion c) {
-        return SUPPORTED_PREPARED_STATEMENT_OPERATORS.contains(c.getOperator().toLowerCase());
-    }
 
     private boolean existsById(String assetId, Connection connection) {
         var assetCount = transactionContext.execute(() -> executeQuery(connection, this::mapRowCount, sqlAssetQueries.getSqlAssetCountByIdClause(), assetId).iterator().next());
