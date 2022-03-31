@@ -20,11 +20,21 @@ plugins {
 
 val apacheCommonsPool2Version: String by project
 val mockitoVersion: String by project
+val h2Version: String by project
+val assertj: String by project
 
 dependencies {
     api(project(":extensions:transaction:transaction-datasource-spi"))
     api(project(":extensions:transaction:transaction-spi"))
     api(project(":extensions:sql:common"))
+
+
+    testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(project(":core:base"))
+    testImplementation(project(":extensions:transaction:transaction-local"))
+    testImplementation(testFixtures(project(":extensions:sql:lease")))
+    testImplementation("com.h2database:h2:${h2Version}")
+    testImplementation("org.assertj:assertj-core:${assertj}")
 }
 
 publishing {

@@ -12,7 +12,33 @@
  *
  */
 
--- Statements are designed for and tested with Postgres only!
+/*
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
+/*
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
 
 CREATE TABLE IF NOT EXISTS edc_lease
 (
@@ -28,8 +54,10 @@ COMMENT ON COLUMN edc_lease.leased_at IS 'posix timestamp of lease';
 
 COMMENT ON COLUMN edc_lease.lease_duration IS 'duration of lease in milliseconds';
 
+
 CREATE UNIQUE INDEX lease_lease_id_uindex
     ON edc_lease (lease_id);
+
 
 
 CREATE TABLE IF NOT EXISTS edc_contract_agreement
@@ -77,6 +105,7 @@ COMMENT ON COLUMN edc_contract_negotiation.contract_agreement_id IS 'ContractAgr
 COMMENT ON COLUMN edc_contract_negotiation.contract_offers IS 'List<ContractOffer> serialized as JSON';
 
 COMMENT ON COLUMN edc_contract_negotiation.trace_context IS 'Map<String,String> serialized as JSON';
+
 
 CREATE INDEX IF NOT EXISTS contract_negotiation_correlationid_index
     ON edc_contract_negotiation (correlation_id);

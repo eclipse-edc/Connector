@@ -19,8 +19,6 @@ plugins {
 
 val h2Version: String by project
 val assertj: String by project
-val awaitility: String by project
-
 
 dependencies {
     implementation(project(":spi:core-spi"))
@@ -32,19 +30,18 @@ dependencies {
     implementation(project(":extensions:sql:lease"))
 
     testImplementation(testFixtures(project(":launchers:junit")))
-    testImplementation(testFixtures(project(":extensions:sql:lease")))
     testImplementation(project(":core:base"))
     testImplementation(project(":extensions:sql:pool:apache-commons-pool"))
     testImplementation(project(":extensions:transaction:transaction-local"))
+    testImplementation(testFixtures(project(":extensions:sql:lease")))
     testImplementation("com.h2database:h2:${h2Version}")
     testImplementation("org.assertj:assertj-core:${assertj}")
-    testImplementation("org.awaitility:awaitility:${awaitility}")
 }
 
 publishing {
     publications {
-        create<MavenPublication>("sql-transferprocess-store") {
-            artifactId = "sql-transferprocess-store"
+        create<MavenPublication>("sql-contractnegotiation-store") {
+            artifactId = "sql-contractnegotiation-store"
             from(components["java"])
         }
     }
