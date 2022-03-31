@@ -12,13 +12,13 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.contract.definition.store;
+package org.eclipse.dataspaceconnector.cosmos.policy.store;
 
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
-import org.eclipse.dataspaceconnector.contract.definition.store.model.PolicyDocument;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -26,6 +26,11 @@ import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
 @Provides({ PolicyStore.class })
 public class CosmosPolicyStoreExtension implements ServiceExtension {
+
+    @Inject
+    private RetryPolicy retryPolicy;
+    @Inject
+    private Vault vault;
 
     @Override
     public String name() {
@@ -35,11 +40,10 @@ public class CosmosPolicyStoreExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var configuration = new CosmosPolicyStoreConfig(context);
-        var vault = context.getService(Vault.class);
 
         var cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
 
-        var store = new CosmosPolicyStore(cosmosDbApi, context.getTypeManager(), (RetryPolicy<Object>) context.getService(RetryPolicy.class), configuration.getPartitionKey());
+        var store = new CosmosPolicyStore(cosmosDbApi, context.getTypeManager(), retryPolicy, configuration.getPartitionKey());
         context.registerService(PolicyStore.class, store);
 
         context.getTypeManager().registerTypes(PolicyDocument.class);

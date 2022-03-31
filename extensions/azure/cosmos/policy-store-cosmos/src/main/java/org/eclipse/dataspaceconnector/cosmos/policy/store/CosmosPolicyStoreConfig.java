@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.contract.definition.store;
+package org.eclipse.dataspaceconnector.cosmos.policy.store;
 
 import org.eclipse.dataspaceconnector.azure.cosmos.AbstractCosmosConfig;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;

@@ -12,13 +12,12 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.contract.definition.store;
+package org.eclipse.dataspaceconnector.cosmos.policy.store;
 
 import com.azure.cosmos.models.SqlQuerySpec;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument;
-import org.eclipse.dataspaceconnector.contract.definition.store.model.PolicyDocument;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -37,8 +36,8 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDocument;
-import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generatePolicy;
+import static org.eclipse.dataspaceconnector.cosmos.policy.store.TestFunctions.generateDocument;
+import static org.eclipse.dataspaceconnector.cosmos.policy.store.TestFunctions.generatePolicy;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.doNothing;

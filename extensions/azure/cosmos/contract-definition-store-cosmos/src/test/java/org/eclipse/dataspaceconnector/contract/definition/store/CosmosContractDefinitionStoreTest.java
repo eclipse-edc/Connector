@@ -18,7 +18,7 @@ import com.azure.cosmos.models.SqlQuerySpec;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument;
-import org.eclipse.dataspaceconnector.contract.definition.store.model.ContractDefinitionDocument;
+import org.eclipse.dataspaceconnector.cosmos.policy.store.model.ContractDefinitionDocument;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;

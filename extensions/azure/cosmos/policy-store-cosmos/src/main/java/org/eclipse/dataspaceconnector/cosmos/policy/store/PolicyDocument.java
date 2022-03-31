@@ -12,26 +12,26 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.contract.definition.store.model;
+package org.eclipse.dataspaceconnector.cosmos.policy.store;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 
-@JsonTypeName("dataspaceconnector:contractddefinitiondocument")
-public class ContractDefinitionDocument extends CosmosDocument<ContractDefinition> {
+@JsonTypeName("dataspaceconnector:policydocument")
+public class PolicyDocument extends CosmosDocument<Policy> {
 
     @JsonCreator
-    public ContractDefinitionDocument(@JsonProperty("wrappedInstance") ContractDefinition contractDefinition,
-                                      @JsonProperty("partitionKey") String partitionKey) {
-        super(contractDefinition, partitionKey);
+    public PolicyDocument(@JsonProperty("wrappedInstance") Policy policy,
+                          @JsonProperty("partitionKey") String partitionKey) {
+        super(policy, partitionKey);
     }
 
 
     @Override
     public String getId() {
-        return getWrappedInstance().getId();
+        return getWrappedInstance().getUid();
     }
 }

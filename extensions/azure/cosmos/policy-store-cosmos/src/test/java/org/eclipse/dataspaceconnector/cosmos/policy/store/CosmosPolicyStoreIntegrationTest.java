@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.contract.definition.store;
+package org.eclipse.dataspaceconnector.cosmos.policy.store;
 
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
@@ -24,7 +24,6 @@ import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.azure.testfixtures.CosmosTestClient;
 import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureCosmosDbIntegrationTest;
-import org.eclipse.dataspaceconnector.contract.definition.store.model.PolicyDocument;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
@@ -46,8 +45,8 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDocument;
-import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generatePolicy;
+import static org.eclipse.dataspaceconnector.cosmos.policy.store.TestFunctions.generateDocument;
+import static org.eclipse.dataspaceconnector.cosmos.policy.store.TestFunctions.generatePolicy;
 
 @AzureCosmosDbIntegrationTest
 public class CosmosPolicyStoreIntegrationTest {

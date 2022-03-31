@@ -12,12 +12,11 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.contract.definition.store;
+package org.eclipse.dataspaceconnector.cosmos.policy.store;
 
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
-import org.eclipse.dataspaceconnector.contract.definition.store.model.PolicyDocument;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.query.QueryResolver;

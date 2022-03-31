@@ -12,9 +12,8 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.contract.definition.store;
+package org.eclipse.dataspaceconnector.cosmos.policy.store;
 
-import org.eclipse.dataspaceconnector.contract.definition.store.model.PolicyDocument;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 
 import java.util.UUID;

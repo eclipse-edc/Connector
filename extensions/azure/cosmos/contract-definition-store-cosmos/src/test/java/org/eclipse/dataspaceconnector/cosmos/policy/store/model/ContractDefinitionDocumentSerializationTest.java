@@ -12,16 +12,16 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.contract.definition.store.model;
+package org.eclipse.dataspaceconnector.cosmos.policy.store.model;
 
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generatePolicy;
+import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDefinition;
 
-class PolicyDocumentSerializationTest {
+class ContractDefinitionDocumentSerializationTest {
 
     private TypeManager typeManager;
 
@@ -29,31 +29,33 @@ class PolicyDocumentSerializationTest {
     @BeforeEach
     void setup() {
         typeManager = new TypeManager();
+        typeManager.registerTypes(ContractDefinitionDocument.class, ContractDefinitionDocument.class);
     }
 
     @Test
     void testSerialization() {
-        var def = generatePolicy();
+        var def = generateDefinition();
         var pk = "test-part-key";
 
-        var document = new PolicyDocument(def, pk);
+        var document = new ContractDefinitionDocument(def, pk);
 
         String s = typeManager.writeValueAsString(document);
 
         assertThat(s).isNotNull()
+                .contains("\"selectorExpression\":{\"criteria\":[{\"left\":\"somekey\",\"op\":\"=\",\"right\":\"someval\"}]}}")
                 .contains("wrappedInstance")
-                .contains("\"id\":\"" + def.getUid() + "\"")
+                .contains("\"id\":\"" + def.getId() + "\"")
                 .contains("\"partitionKey\":\"" + pk + "\"");
     }
 
     @Test
     void testDeserialization() {
-        var def = generatePolicy();
+        var def = generateDefinition();
 
-        var document = new PolicyDocument(def, "test-part-key");
+        var document = new ContractDefinitionDocument(def, "test-part-key");
         String json = typeManager.writeValueAsString(document);
 
-        var transferProcessDeserialized = typeManager.readValue(json, PolicyDocument.class);
+        var transferProcessDeserialized = typeManager.readValue(json, ContractDefinitionDocument.class);
         assertThat(transferProcessDeserialized).usingRecursiveComparison().isEqualTo(document);
     }
 }
