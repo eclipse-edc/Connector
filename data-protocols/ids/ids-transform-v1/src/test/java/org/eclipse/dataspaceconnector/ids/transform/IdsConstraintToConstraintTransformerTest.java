@@ -9,14 +9,15 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial Implementation
+ *       Fraunhofer Insitute for Software and Systems Engineering
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.BinaryOperator;
-import de.fraunhofer.iais.eis.LeftOperand;
 import de.fraunhofer.iais.eis.util.RdfResource;
+import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintBuilder;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Expression;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
@@ -46,10 +47,10 @@ public class IdsConstraintToConstraintTransformerTest {
     @BeforeEach
     void setUp() {
         transformer = new IdsConstraintToConstraintTransformer();
-        idsConstraint = new de.fraunhofer.iais.eis.ConstraintBuilder(CONSTRAINT_ID)
-                ._leftOperand_(LeftOperand.PURPOSE)
-                ._operator_(BinaryOperator.EQ)
-                ._rightOperand_(new RdfResource("hello"))
+        idsConstraint = new IdsConstraintBuilder(CONSTRAINT_ID)
+                .leftOperand("PURPOSE")
+                .operator(BinaryOperator.EQ)
+                .rightOperand(new RdfResource("hello"))
                 .build();
         context = mock(TransformerContext.class);
     }
@@ -80,7 +81,7 @@ public class IdsConstraintToConstraintTransformerTest {
         var expectedLeftExpression = new LiteralExpression("left");
         var expectedRightExpression = new LiteralExpression("right");
 
-        when(context.transform(any(LeftOperand.class), eq(Expression.class)))
+        when(context.transform(any(String.class), eq(Expression.class)))
                 .thenReturn(expectedLeftExpression);
         when(context.transform(any(BinaryOperator.class), eq(Operator.class)))
                 .thenReturn(Operator.EQ);
@@ -95,7 +96,7 @@ public class IdsConstraintToConstraintTransformerTest {
         Assertions.assertNotNull(result.getOperator());
         Assertions.assertNotNull(result.getRightExpression());
         Assertions.assertEquals(result.getRightExpression(), expectedRightExpression);
-        verify(context).transform(any(LeftOperand.class), eq(Expression.class));
+        verify(context).transform(any(String.class), eq(Expression.class));
         verify(context).transform(any(BinaryOperator.class), eq(Operator.class));
         verify(context).transform(any(RdfResource.class), eq(Expression.class));
     }

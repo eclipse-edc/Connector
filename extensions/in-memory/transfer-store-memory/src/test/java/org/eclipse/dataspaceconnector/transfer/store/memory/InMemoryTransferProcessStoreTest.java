@@ -217,8 +217,7 @@ class InMemoryTransferProcessStoreTest {
 
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 
-        // must actually collect, otherwise the stream is not materialized
-        assertThat(store.findAll(query).collect(Collectors.toList())).hasSize(10);
+        assertThat(store.findAll(query).collect(Collectors.toList())).isEmpty();
     }
 
     @NotNull

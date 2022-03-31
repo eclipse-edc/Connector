@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020-2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering
  *       ZF Friedrichshafen AG - add dependency & reorder entries
+ *       Daimler TSS GmbH - add entries
  *
  */
 
@@ -88,6 +89,7 @@ include(":extensions:in-memory:fcc-node-directory-memory")
 include(":extensions:in-memory:fcc-store-memory")
 include(":extensions:in-memory:negotiation-store-memory")
 include(":extensions:in-memory:contractdefinition-store-memory")
+include(":extensions:in-memory:policy-store-memory")
 include(":extensions:iam:iam-mock")
 include(":extensions:iam:oauth2:oauth2-spi")
 include(":extensions:iam:oauth2:oauth2-core")
@@ -138,6 +140,7 @@ include(":extensions:data-plane:integration-tests")
 include(":extensions:sql:common")
 include(":extensions:sql:lease")
 include(":extensions:sql:pool:apache-commons-pool")
+include(":extensions:sql:asset:index")
 include(":extensions:sql:transfer-process-store")
 include(":extensions:http-receiver")
 
@@ -168,6 +171,7 @@ include(":spi:contract-spi")
 include(":spi:catalog-spi")
 include(":spi:web-spi")
 include(":spi:transport-spi")
+include(":spi:policy-spi")
 
 //include(":openapi")
 

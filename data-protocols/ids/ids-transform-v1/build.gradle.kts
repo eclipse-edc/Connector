@@ -24,6 +24,7 @@ dependencies {
     api(project(":spi"))
     api(project(":data-protocols:ids:ids-spi"))
     implementation(project(":common:util"))
+    api(project(":data-protocols:ids:ids-core"))
 
     api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
 
