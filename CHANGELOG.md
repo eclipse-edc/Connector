@@ -85,6 +85,7 @@ the detailed section referring to by linking pull requests or issues.
 * Resolve content addresses in the `TransferProcessManager` (#1090)
 * Reliably send transfers from consumer to provider (#1007)
 * Http Deprovisioner Webhook endpoint (#1039)
+* Add performance test example and scheduled workflow (#1029)
 
 
 #### Changed
