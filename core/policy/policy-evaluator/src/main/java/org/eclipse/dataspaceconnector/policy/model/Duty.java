@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added method
  *
  */
 
@@ -59,6 +60,25 @@ public class Duty extends Rule {
     @Override
     public String toString() {
         return "Duty constraint: [" + getConstraints().stream().map(Object::toString).collect(joining(",")) + "]";
+    }
+    
+    /**
+     * Returns a copy of this duty with the specified target.
+     *
+     * @param target the target.
+     * @return a copy with the specified target.
+     */
+    public Duty withTarget(String target) {
+        return Builder.newInstance()
+                .uid(this.uid)
+                .assigner(this.assigner)
+                .assignee(this.assignee)
+                .action(this.action)
+                .constraints(this.constraints)
+                .parentPermission(this.parentPermission)
+                .consequence(this.consequence == null ? null : this.consequence.withTarget(target))
+                .target(target)
+                .build();
     }
 
     @JsonPOJOBuilder(withPrefix = "")

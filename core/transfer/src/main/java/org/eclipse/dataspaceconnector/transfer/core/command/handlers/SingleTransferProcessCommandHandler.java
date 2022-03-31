@@ -18,7 +18,7 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandler;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
-import org.eclipse.dataspaceconnector.transfer.core.command.commands.SingleTransferProcessCommand;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.SingleTransferProcessCommand;
 
 import static java.lang.String.format;
 

@@ -44,6 +44,8 @@ the detailed section referring to by linking pull requests or issues.
 * In-memory implementation of PolicyStore (#930)
 * Added ComponentTest and EndToEndTest annotation (#?)
 * Implement AssetLoader, AssetIndex, DataAddressResolver for SQL (#863)
+* Implement TransferProcess service for Data Management API (#1005)
+* Support for HTTP-based provisioning (#963)
 * Let Control Plane delegate data transfer to Data Plane (#988)
 * CosmosDb based `PolicyStore` (#826)
 
@@ -66,6 +68,7 @@ the detailed section referring to by linking pull requests or issues.
 * Run CosmosDB integration tests on cloud in CI (#964)
 * Added SQL-AssetIndex to support `QuerySpec` (#1014)
 * Improved provision signalling and align deprovisioning to handle error conditions (#992)
+* Set policy and rule target dynamically when generating contract offers (#609)
 
 #### Removed
 

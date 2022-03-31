@@ -85,7 +85,7 @@ public class ProvisionResponse {
         }
 
         public ProvisionResponse build() {
-            Objects.requireNonNull(resource, "provisionedDataDestinationResource");
+            Objects.requireNonNull(resource, "resource");
             return new ProvisionResponse(resource, secretToken);
         }
     }
