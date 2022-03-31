@@ -46,6 +46,7 @@ the detailed section referring to by linking pull requests or issues.
 * Implement AssetLoader, AssetIndex, DataAddressResolver for SQL (#863)
 * Let Control Plane delegate data transfer to Data Plane (#988)
 * CosmosDb based `PolicyStore` (#826)
+* Add integration test for traces (#1035)
 
 #### Changed
 
