@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.sql.transferprocess;
 
+import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -28,6 +29,7 @@ import org.eclipse.dataspaceconnector.sql.transferprocess.store.TransferProcessS
 @Provides(TransferProcessStore.class)
 public class SqlTransferProcessStoreExtension implements ServiceExtension {
 
+    @EdcSetting
     private static final String DATASOURCE_NAME_SETTING = "edc.datasource.transferprocess.name";
     private static final String DEFAULT_DATASOURCE_NAME = "transferprocess";
 
