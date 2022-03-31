@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 
@@ -60,7 +61,7 @@ public class Permission extends Rule {
                 .assignee(this.assignee)
                 .action(this.action)
                 .constraints(this.constraints)
-                .duties(this.duties)
+                .duties(this.duties.stream().map(d -> d.copy(target)).collect(Collectors.toList()))
                 .target(target)
                 .build();
     }

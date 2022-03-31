@@ -76,7 +76,7 @@ public class Duty extends Rule {
                 .action(this.action)
                 .constraints(this.constraints)
                 .parentPermission(this.parentPermission)
-                .consequence(this.consequence)
+                .consequence(this.consequence == null ? null : this.consequence.copy(target))
                 .target(target)
                 .build();
     }
