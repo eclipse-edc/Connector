@@ -23,7 +23,6 @@ import java.util.Objects;
  */
 public abstract class AbstractHttpResourceDefinition extends ResourceDefinition {
     protected String dataAddressType;
-    protected String transferProcessId;
 
     public String getDataAddressType() {
         return dataAddressType;
@@ -43,12 +42,6 @@ public abstract class AbstractHttpResourceDefinition extends ResourceDefinition 
         @SuppressWarnings("unchecked")
         public B dataAddressType(String dataAddressType) {
             resourceDefinition.dataAddressType = dataAddressType;
-            return (B) this;
-        }
-
-        @SuppressWarnings("unchecked")
-        public B transferProcessId(String transferProcessId) {
-            resourceDefinition.transferProcessId = transferProcessId;
             return (B) this;
         }
 
