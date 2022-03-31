@@ -33,7 +33,7 @@ import java.util.stream.Stream;
 public class InMemoryPolicyStore implements PolicyStore {
 
     private final LockManager lockManager;
-    private final Map<String, Policy> policiesById =  new HashMap<>();
+    private final Map<String, Policy> policiesById = new HashMap<>();
     private final QueryResolver<Policy> queryResolver = new ReflectionBasedQueryResolver<>(Policy.class);
 
     public InMemoryPolicyStore(LockManager lockManager) {
@@ -68,7 +68,7 @@ public class InMemoryPolicyStore implements PolicyStore {
     }
 
     @Override
-    public Policy delete(String policyId) {
+    public Policy deleteById(String policyId) {
         try {
             return lockManager.writeLock(() -> policiesById.remove(policyId));
         } catch (Exception e) {

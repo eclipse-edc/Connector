@@ -18,7 +18,8 @@ import org.mockito.ArgumentCaptor;
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.spi.types.domain.dataplane.DataPlaneConstants.CONTRACT_ID;
+import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.CONTRACT_ID;
+import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType.SYNC;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -26,8 +27,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ProviderDataPlaneProxyDataFlowControllerTest {
-
-    private static final String DATA_PLANE_ENDPOINT = "http://data-plane.com";
 
     private String connectorId;
     private RemoteMessageDispatcherRegistry dispatcherRegistryMock;
@@ -46,13 +45,13 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
 
     @Test
     void verifyCanHandle() {
-        assertThat(controller.canHandle(createDataRequest("HttpProxy"))).isTrue();
+        assertThat(controller.canHandle(createDataRequest(SYNC))).isTrue();
         assertThat(controller.canHandle(createDataRequest("dummy"))).isFalse();
     }
 
     @Test
     void verifyInitiateFlowSuccess() {
-        var request = createDataRequest("HttpProxy");
+        var request = createDataRequest(SYNC);
         var policy = Policy.Builder.newInstance().build();
         var dataAddress = testDataAddress();
         var edr = createEndpointDataReference();
@@ -87,7 +86,7 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
 
     @Test
     void proxyCreationFails_shouldReturnFailedResult() {
-        var request = createDataRequest("HttpProxy");
+        var request = createDataRequest(SYNC);
         var policy = Policy.Builder.newInstance().build();
         var dataAddress = testDataAddress();
         var edr = createEndpointDataReference();

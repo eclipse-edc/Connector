@@ -25,7 +25,8 @@ import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.security.DataEncrypter;
 
-import static org.eclipse.dataspaceconnector.spi.types.domain.dataplane.DataPlaneConstants.DATA_ADDRESS;
+import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.DATA_ADDRESS;
+import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.PUBLIC_API_AUTH_HEADER;
 
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
@@ -43,7 +44,7 @@ public class DataPlaneTransferSyncApiController {
     }
 
     @GET
-    public Response validate(@HeaderParam("Authorization") String token) {
+    public Response validate(@HeaderParam(PUBLIC_API_AUTH_HEADER) String token) {
         monitor.info("Received request for validToken validation");
         var validationResult = tokenValidationService.validate(token);
         if (validationResult.failed()) {

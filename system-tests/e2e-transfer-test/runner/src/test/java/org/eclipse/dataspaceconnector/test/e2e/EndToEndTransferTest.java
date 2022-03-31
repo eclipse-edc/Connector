@@ -45,6 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
+import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType.SYNC;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
@@ -221,7 +222,7 @@ class EndToEndTransferTest {
                 .connectorAddress(provider + "/api/v1/ids/data")
                 .protocol("ids-multipart")
                 .assetId(assetId)
-                .dataDestination(DataAddress.Builder.newInstance().type("HttpProxy").build())
+                .dataDestination(DataAddress.Builder.newInstance().type(SYNC).build())
                 .managedResources(false)
                 .transferType(TransferType.Builder.transferType()
                         .contentType("application/octet-stream")

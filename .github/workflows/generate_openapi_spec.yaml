@@ -1,6 +1,12 @@
 name: Generate OpenApi Spec
 
-on: [ push, pull_request ]
+on:
+  push:
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
 
 jobs:
   GenerateOAS:
