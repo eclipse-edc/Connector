@@ -27,6 +27,7 @@ dependencies {
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
     testFixturesImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    testFixturesImplementation(testFixtures(project(":launchers:junit")))
 }
 
 publishing {
