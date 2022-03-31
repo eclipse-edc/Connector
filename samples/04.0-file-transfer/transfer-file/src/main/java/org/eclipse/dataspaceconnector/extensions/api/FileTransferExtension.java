@@ -70,13 +70,11 @@ public class FileTransferExtension implements ServiceExtension {
 
         var usePermission = Permission.Builder.newInstance()
                 .action(Action.Builder.newInstance().type("USE").build())
-                .target("test-document")
                 .build();
 
         return Policy.Builder.newInstance()
                 .id(USE_POLICY)
                 .permission(usePermission)
-                .target("test-document")
                 .build();
     }
 
