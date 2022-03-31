@@ -132,6 +132,7 @@ class S3StatusCheckerIntegrationTest extends AbstractS3Test {
                 .resourceDefinitionId(UUID.randomUUID().toString())
                 .transferProcessId(transferProcess.getId())
                 .id(UUID.randomUUID().toString())
+                .resourceName(bucketName)
                 .build();
     }
 
