@@ -9,16 +9,19 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial Tests
+ *       Microsoft Corporation - added full QuerySpec support
  *
  */
 
 package org.eclipse.dataspaceconnector.sql.asset.index;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.dataloading.AssetEntry;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
@@ -44,6 +47,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.AbstractMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -227,17 +231,62 @@ public class SqlAssetIndexTest {
     }
 
     @Test
-    @DisplayName("Query assets with selector expression")
-    void queryAsset_selectorExpression() {
+    @DisplayName("Query assets with selector expression using the IN operator")
+    void queryAsset_selectorExpression_in() {
         var asset1 = getAsset("id1");
         sqlAssetIndex.accept(asset1, getDataAddress());
         var asset2 = getAsset("id2");
         sqlAssetIndex.accept(asset2, getDataAddress());
 
-        var assetsFound = sqlAssetIndex.queryAssets(AssetSelectorExpression.Builder.newInstance().build());
+        var assetsFound = sqlAssetIndex.queryAssets(AssetSelectorExpression.Builder.newInstance()
+                .constraint(Asset.PROPERTY_ID, "in", List.of("id1", "id2"))
+                .build());
 
         assertThat(assetsFound).isNotNull();
-        assertThat(assetsFound.count()).isEqualTo(2);
+        assertThat(assetsFound).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("Query assets with selector expression using the IN operator, invalid righ-operand")
+    void queryAsset_selectorExpression_invalidOperand() {
+        var asset1 = getAsset("id1");
+        sqlAssetIndex.accept(asset1, getDataAddress());
+        var asset2 = getAsset("id2");
+        sqlAssetIndex.accept(asset2, getDataAddress());
+
+        assertThatThrownBy(() -> sqlAssetIndex.queryAssets(AssetSelectorExpression.Builder.newInstance()
+                .constraint(Asset.PROPERTY_ID, "in", "(id1, id2)")
+                .build())).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("Query assets with selector expression using the LIKE operator")
+    void queryAsset_selectorExpression_like() {
+        var asset1 = getAsset("id1");
+        sqlAssetIndex.accept(asset1, getDataAddress());
+        var asset2 = getAsset("id2");
+        sqlAssetIndex.accept(asset2, getDataAddress());
+
+        var assetsFound = sqlAssetIndex.queryAssets(AssetSelectorExpression.Builder.newInstance()
+                .constraint(Asset.PROPERTY_ID, "LIKE", "id%")
+                .build());
+
+        assertThat(assetsFound).isNotNull();
+        assertThat(assetsFound).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("Query assets with selector expression using the LIKE operator on a json value")
+    void queryAsset_selectorExpression_likeJson() throws JsonProcessingException {
+        var asset = getAsset("id1");
+        asset.getProperties().put("myjson", new ObjectMapper().writeValueAsString(new TestObject("test123", 42, false)));
+        sqlAssetIndex.accept(asset, getDataAddress());
+
+        var assetsFound = sqlAssetIndex.queryAssets(AssetSelectorExpression.Builder.newInstance()
+                .constraint("myjson", "LIKE", "%test123%")
+                .build());
+
+        assertThat(assetsFound).usingRecursiveFieldByFieldElementComparator().containsExactly(asset);
     }
 
     @Test
@@ -255,6 +304,47 @@ public class SqlAssetIndexTest {
     }
 
     @Test
+    @DisplayName("Query assets with query spec where the property (=leftOperand) does not exist")
+    void queryAsset_querySpec_nonExistProperty() {
+        var asset = getAsset("id1");
+        sqlAssetIndex.accept(asset, getDataAddress());
+
+        var qs = QuerySpec.Builder
+                .newInstance()
+                .filter(List.of(new Criterion("noexist", "=", "42")))
+                .build();
+        assertThat(sqlAssetIndex.queryAssets(qs)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Query assets with selector expression using the LIKE operator on a json value")
+    void queryAsset_querySpec_likeJson() throws JsonProcessingException {
+        var asset = getAsset("id1");
+        asset.getProperties().put("myjson", new ObjectMapper().writeValueAsString(new TestObject("test123", 42, false)));
+        sqlAssetIndex.accept(asset, getDataAddress());
+
+        var assetsFound = sqlAssetIndex.queryAssets(QuerySpec.Builder.newInstance()
+                .filter(List.of(new Criterion("myjson", "LIKE", "%test123%")))
+                .build());
+
+        assertThat(assetsFound).usingRecursiveFieldByFieldElementComparator().containsExactly(asset);
+    }
+
+    @Test
+    @DisplayName("Query assets with query spec where the value (=rightOperand) does not exist")
+    void queryAsset_querySpec_nonExistValue() {
+        var asset = getAsset("id1");
+        asset.getProperties().put("someprop", "someval");
+        sqlAssetIndex.accept(asset, getDataAddress());
+
+        var qs = QuerySpec.Builder
+                .newInstance()
+                .filter(List.of(new Criterion("someprop", "=", "some-other-val")))
+                .build();
+        assertThat(sqlAssetIndex.queryAssets(qs)).isEmpty();
+    }
+
+    @Test
     @DisplayName("Query assets with query spec and short asset count")
     void queryAsset_querySpecShortCount() {
         IntStream.range(1, 5).forEach((item) -> {
@@ -267,6 +357,24 @@ public class SqlAssetIndexTest {
         assertThat(assetsFound).isNotNull();
         assertThat(assetsFound.count()).isEqualTo(2);
     }
+
+    @Test
+    void queryAsset_withFilterExpression() {
+        var qs = QuerySpec.Builder.newInstance().filter(List.of(
+                new Criterion("version", "=", "2.0"),
+                new Criterion("content-type", "=", "whatever")
+        ));
+
+        var asset = getAsset("id1");
+        asset.getProperties().put("version", "2.0");
+        asset.getProperties().put("content-type", "whatever");
+        sqlAssetIndex.accept(asset, getDataAddress());
+
+        var result = sqlAssetIndex.queryAssets(qs.build()).collect(Collectors.toList());
+        assertThat(result).usingRecursiveFieldByFieldElementComparator().containsOnly(asset);
+
+    }
+
 
     @Test
     @DisplayName("Find an asset that doesn't exist")
@@ -332,4 +440,42 @@ public class SqlAssetIndexTest {
         return dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection();
     }
 
+    private static class TestObject {
+        private String someText;
+        private int someNumber;
+        private boolean someBoolean;
+
+        public TestObject(String text, int number, boolean bool) {
+            someText = text;
+            someNumber = number;
+            someBoolean = bool;
+        }
+
+        public TestObject() {
+        }
+
+        public String getSomeText() {
+            return someText;
+        }
+
+        public void setSomeText(String someText) {
+            this.someText = someText;
+        }
+
+        public int getSomeNumber() {
+            return someNumber;
+        }
+
+        public void setSomeNumber(int someNumber) {
+            this.someNumber = someNumber;
+        }
+
+        public boolean isSomeBoolean() {
+            return someBoolean;
+        }
+
+        public void setSomeBoolean(boolean someBoolean) {
+            this.someBoolean = someBoolean;
+        }
+    }
 }

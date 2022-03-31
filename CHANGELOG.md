@@ -63,6 +63,7 @@ the detailed section referring to by linking pull requests or issues.
 * Call the listeners before the state transition is persisted. (#876)
 * Added an overload to `TransactionContext#execute()` (#968)
 * Run CosmosDB integration tests on cloud in CI (#964)
+* Added SQL-AssetIndex to support `QuerySpec` (#1014)
 * Improved provision signalling and align deprovisioning to handle error conditions (#992)
 
 #### Removed
