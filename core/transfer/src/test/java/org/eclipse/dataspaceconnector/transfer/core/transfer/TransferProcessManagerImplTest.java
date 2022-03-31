@@ -27,7 +27,9 @@ import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
@@ -45,6 +47,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedConte
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResourceSet;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.SecretToken;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
@@ -56,6 +59,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -107,6 +111,8 @@ class TransferProcessManagerImplTest {
     private final ResourceManifestGenerator manifestGenerator = mock(ResourceManifestGenerator.class);
     private final TransferProcessStore store = mock(TransferProcessStore.class);
     private final DataFlowManager dataFlowManager = mock(DataFlowManager.class);
+    private final Vault vault = mock(Vault.class);
+
     private TransferProcessManagerImpl manager;
 
     @SuppressWarnings("unchecked")
@@ -126,6 +132,7 @@ class TransferProcessManagerImplTest {
                 .statusCheckerRegistry(statusCheckerRegistry)
                 .observable(mock(TransferProcessObservable.class))
                 .store(store)
+                .vault(vault)
                 .addressResolver(mock(DataAddressResolver.class))
                 .build();
     }
@@ -195,11 +202,15 @@ class TransferProcessManagerImplTest {
                 .transferProcessId("2")
                 .resourceDefinitionId("3")
                 .dataAddress(DataAddress.Builder.newInstance().type("test").build())
+                .hasToken(true)
                 .build();
 
         var provisionResult = ProvisionResult.success(ProvisionResponse.Builder.newInstance()
                 .resource(resource)
+                .secretToken(new TestToken())
                 .build());
+
+        when(vault.storeSecret(any(), any())).thenReturn(Result.success());
 
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
         when(store.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
@@ -210,6 +221,7 @@ class TransferProcessManagerImplTest {
 
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         verify(store).update(argThat(p -> p.getState() == PROVISIONED.code()));
+        verify(vault).storeSecret(any(), any());
     }
 
     @Test
@@ -447,8 +459,9 @@ class TransferProcessManagerImplTest {
                 .definitions(List.of(new TestResourceDefinition()))
                 .build();
 
+
         var resourceSet = ProvisionedResourceSet.Builder.newInstance()
-                .resources(List.of(new TestProvisionedDataDestinationResource("test", PROVISIONED_RESOURCE_ID)))
+                .resources(List.of(new TokenTestProvisionResource("test", PROVISIONED_RESOURCE_ID)))
                 .build();
 
         var process = createTransferProcess(DEPROVISIONING).toBuilder()
@@ -460,6 +473,7 @@ class TransferProcessManagerImplTest {
                 .provisionedResourceId(PROVISIONED_RESOURCE_ID)
                 .build());
 
+        when(vault.deleteSecret(any())).thenReturn(Result.success());
         when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(deprovisionResult)));
         when(store.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(store.find(process.getId())).thenReturn(process);
@@ -469,6 +483,7 @@ class TransferProcessManagerImplTest {
 
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         verify(store).update(argThat(p -> p.getState() == DEPROVISIONED.code()));
+        verify(vault).deleteSecret(any());
     }
 
     @Test
@@ -613,4 +628,25 @@ class TransferProcessManagerImplTest {
             }
         }
     }
+
+    private static class TokenTestProvisionResource extends TestProvisionedDataDestinationResource {
+        public TokenTestProvisionResource(String resourceName, String id) {
+            super(resourceName, id);
+            this.hasToken = true;
+        }
+    }
+
+    private class TestToken implements SecretToken {
+
+        @Override
+        public long getExpiration() {
+            return 0;
+        }
+
+        @Override
+        public Map<String, ?> flatten() {
+            return null;
+        }
+    }
+
 }
