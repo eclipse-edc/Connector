@@ -16,7 +16,6 @@
 
 package org.eclipse.dataspaceconnector.system.tests.local;
 
-import org.eclipse.dataspaceconnector.common.annotations.PerformanceTest;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcRuntimeExtension;
 import org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils;
 import org.junit.jupiter.api.Test;
@@ -35,7 +34,6 @@ import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.tempD
 import static org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils.PROVIDER_ASSET_NAME;
 import static org.eclipse.dataspaceconnector.system.tests.utils.GatlingUtils.runGatling;
 
-@PerformanceTest
 public class FileTransferIntegrationTest {
 
     public static final String CONSUMER_ASSET_PATH = tempDirectory();

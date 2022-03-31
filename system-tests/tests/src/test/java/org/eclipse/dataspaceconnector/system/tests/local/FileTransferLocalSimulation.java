@@ -20,7 +20,6 @@ import static io.gatling.javaapi.core.CoreDsl.atOnceUsers;
 import static io.gatling.javaapi.core.CoreDsl.global;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.http;
-import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
 import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.API_KEY_CONTROL_AUTH;
 import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.CONSUMER_ASSET_PATH;
 import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.CONSUMER_CONNECTOR_HOST;
@@ -34,24 +33,19 @@ import static org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimu
  */
 public class FileTransferLocalSimulation extends Simulation {
 
-    private static final int REPEAT = Integer.parseInt(propOrEnv("repeat", "1"));
-    private static final int AT_ONCE_USERS = Integer.parseInt(propOrEnv("at.once.users", "1"));
-    private static final int MAX_RESPONSE_TIME = Integer.parseInt(propOrEnv("max.response.time", "5000"));
-    private static final double SUCCESS_PERCENTAGE = Double.parseDouble(propOrEnv("success.percentage", "100.0"));
-
     public FileTransferLocalSimulation() {
 
         setUp(scenario(DESCRIPTION)
-                .repeat(REPEAT)
+                .repeat(1)
                 .on(
                         contractNegotiationAndFileTransfer(PROVIDER_IDS_API, CONSUMER_ASSET_PATH, API_KEY_CONTROL_AUTH)
                 )
-                .injectOpen(atOnceUsers(AT_ONCE_USERS)))
+                .injectOpen(atOnceUsers(1)))
                 .protocols(http
                         .baseUrl(CONSUMER_CONNECTOR_HOST))
                 .assertions(
-                        global().responseTime().max().lt(MAX_RESPONSE_TIME),
-                        global().successfulRequests().percent().is(SUCCESS_PERCENTAGE)
+                        global().responseTime().max().lt(5000),
+                        global().successfulRequests().percent().is(100.0)
                 );
     }
 }
