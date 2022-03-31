@@ -30,7 +30,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class DataPlaneTransferControllerTest {
-    private DataPlaneTransferController controller;
+    private DataPlaneControlApiController controller;
     private DataPlaneManager dataPlaneManager;
 
     @Test
@@ -52,7 +52,7 @@ class DataPlaneTransferControllerTest {
     @BeforeEach
     void setUp() {
         dataPlaneManager = mock(DataPlaneManager.class);
-        controller = new DataPlaneTransferController(dataPlaneManager);
+        controller = new DataPlaneControlApiController(dataPlaneManager);
     }
 
     private DataFlowRequest createRequest() {

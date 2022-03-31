@@ -13,7 +13,7 @@
  */
 
 
-package org.eclipse.dataspaceconnector.spi.types.domain.dataplane;
+package org.eclipse.dataspaceconnector.dataplane.spi;
 
 public interface DataPlaneConstants {
     String PUBLIC_API_AUTH_HEADER = "Authorization";

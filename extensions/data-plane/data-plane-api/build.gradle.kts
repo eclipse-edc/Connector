@@ -17,6 +17,7 @@ val okHttpVersion: String by project
 val servletApi: String by project
 val httpMockServer: String by project
 val restAssured: String by project
+val faker: String by project
 
 plugins {
     `java-library`
@@ -31,6 +32,7 @@ dependencies {
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     testImplementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
+    testImplementation("com.github.javafaker:javafaker:${faker}")
 }
 
 publishing {

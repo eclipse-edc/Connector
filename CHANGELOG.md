@@ -1,4 +1,3 @@
-
 # Changelog
 
 All notable changes to this project will be documented in this file - formatted and maintained according to the rules
@@ -42,6 +41,7 @@ the detailed section referring to by linking pull requests or issues.
 * Implement ContractNegotiation service for Data Management API (#957)
 * In-memory implementation of PolicyStore (#930)
 * Implement AssetLoader, AssetIndex, DataAddressResolver for SQL (#863)
+* Let Control Plane delegate data transfer to Data Plane (#988)
 
 #### Changed
 

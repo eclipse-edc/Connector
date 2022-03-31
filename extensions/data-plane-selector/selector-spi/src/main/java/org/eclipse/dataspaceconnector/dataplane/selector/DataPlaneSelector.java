@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.dataplane.selector.instance.DataPlaneInsta
 import org.eclipse.dataspaceconnector.dataplane.selector.strategy.RandomSelectionStrategy;
 import org.eclipse.dataspaceconnector.dataplane.selector.strategy.SelectionStrategy;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@link DataPlaneSelector} accepts a certain data request (rather: its source and destination address) and selects a
@@ -32,6 +33,7 @@ public interface DataPlaneSelector {
      *
      * @return The best-fit {@link DataPlaneInstance}, or null if none was found.
      */
+    @Nullable
     default DataPlaneInstance select(DataAddress sourceAddress, DataAddress destinationAddress) {
         return select(sourceAddress, destinationAddress, new RandomSelectionStrategy());
     }
@@ -41,5 +43,6 @@ public interface DataPlaneSelector {
      *
      * @return The best-fit {@link DataPlaneInstance}, or null if none was found.
      */
+    @Nullable
     DataPlaneInstance select(DataAddress sourceAddress, DataAddress destinationAddress, SelectionStrategy strategy);
 }
