@@ -11,16 +11,15 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-
-package org.eclipse.dataspaceconnector.transfer.provision.http;
+package org.eclipse.dataspaceconnector.transfer.provision.http.config;
 
 import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.transfer.provision.http.ConfigParser.parseConfigurations;
 import static org.eclipse.dataspaceconnector.transfer.provision.http.HttpProvisionerFixtures.PROVISIONER_CONFIG;
 import static org.eclipse.dataspaceconnector.transfer.provision.http.HttpProvisionerFixtures.TEST_DATA_TYPE;
+import static org.eclipse.dataspaceconnector.transfer.provision.http.config.ConfigParser.parseConfigurations;
 
 class ConfigParserTest {
 
@@ -33,7 +32,7 @@ class ConfigParserTest {
         var configuration = configurations.get(0);
 
         assertThat(configuration.getProvisionerType()).isEqualTo(ProvisionerConfiguration.ProvisionerType.PROVIDER);
-        assertThat(configuration.getPolicyScope().toString()).isEqualTo("provision1.scope");
+        assertThat(configuration.getPolicyScope()).isEqualTo("provision1.scope");
         assertThat(configuration.getEndpoint().toString()).isEqualTo("http://foo.com");
         assertThat(configuration.getDataAddressType()).isEqualTo(TEST_DATA_TYPE);
     }

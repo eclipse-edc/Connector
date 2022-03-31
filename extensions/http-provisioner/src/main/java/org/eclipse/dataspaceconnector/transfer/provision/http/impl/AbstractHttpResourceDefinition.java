@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.transfer.provision.http;
+package org.eclipse.dataspaceconnector.transfer.provision.http.impl;
 
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
@@ -24,6 +24,9 @@ import java.util.Objects;
  */
 public abstract class AbstractHttpResourceDefinition extends ResourceDefinition {
     protected String dataAddressType;
+
+    protected AbstractHttpResourceDefinition() {
+    }
 
     /**
      * Returns the data address type the definition is associated with. This is used to determine which provisioner will be engaged.
@@ -37,11 +40,12 @@ public abstract class AbstractHttpResourceDefinition extends ResourceDefinition 
         return transferProcessId;
     }
 
-    protected AbstractHttpResourceDefinition() {
-    }
-
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder<RD extends AbstractHttpResourceDefinition, B extends ResourceDefinition.Builder<RD, B>> extends ResourceDefinition.Builder<RD, B> {
+
+        protected Builder(RD definition) {
+            super(definition);
+        }
 
         @SuppressWarnings("unchecked")
         public B dataAddressType(String dataAddressType) {
@@ -53,10 +57,6 @@ public abstract class AbstractHttpResourceDefinition extends ResourceDefinition 
         protected void verify() {
             super.verify();
             Objects.requireNonNull(resourceDefinition.dataAddressType, "transferType");
-        }
-
-        protected Builder(RD definition) {
-            super(definition);
         }
 
     }

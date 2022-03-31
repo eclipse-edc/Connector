@@ -11,8 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-
-package org.eclipse.dataspaceconnector.transfer.provision.http;
+package org.eclipse.dataspaceconnector.transfer.provision.http.impl;
 
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.transfer.provision.http;
+package org.eclipse.dataspaceconnector.transfer.provision.http.impl;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -30,7 +30,7 @@ import static java.util.Objects.requireNonNull;
  * Generates {@link HttpProviderResourceDefinition}s for data addresses matching a type.
  */
 public class HttpProviderResourceDefinitionGenerator implements ProviderResourceDefinitionGenerator {
-    private String dataAddressType;
+    private final String dataAddressType;
 
     public HttpProviderResourceDefinitionGenerator(String dataAddressType) {
         this.dataAddressType = requireNonNull(dataAddressType);

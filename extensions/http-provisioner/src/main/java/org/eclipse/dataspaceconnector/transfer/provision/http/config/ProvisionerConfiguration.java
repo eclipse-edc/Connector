@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.transfer.provision.http;
+package org.eclipse.dataspaceconnector.transfer.provision.http.config;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 
@@ -23,24 +23,16 @@ import static java.util.Objects.requireNonNull;
 /**
  * Configuration to create a resource definition and provisioner pair.
  */
-class ProvisionerConfiguration {
-
-    public enum ProvisionerType {
-        CLIENT,
-        PROVIDER
-    }
+public class ProvisionerConfiguration {
 
     private String name;
-
     private ProvisionerType provisionerType = ProvisionerType.PROVIDER;
-
     private String dataAddressType;
-
     private String policyScope;
-
     private URL endpoint;
 
-    private URL callbackAddress;
+    private ProvisionerConfiguration() {
+    }
 
     public String getName() {
         return name;
@@ -62,16 +54,18 @@ class ProvisionerConfiguration {
         return endpoint;
     }
 
-    public URL getCallbackAddress() {
-        return callbackAddress;
-    }
-
-    private ProvisionerConfiguration() {
+    public enum ProvisionerType {
+        CLIENT,
+        PROVIDER
     }
 
     public static class Builder {
 
-        private ProvisionerConfiguration configuration;
+        private final ProvisionerConfiguration configuration;
+
+        private Builder() {
+            configuration = new ProvisionerConfiguration();
+        }
 
         @JsonCreator
         public static Builder newInstance() {
@@ -103,21 +97,11 @@ class ProvisionerConfiguration {
             return this;
         }
 
-        public Builder callbackAddress(URL callbackAddress) {
-            configuration.callbackAddress = callbackAddress;
-            return this;
-        }
-
         public ProvisionerConfiguration build() {
             requireNonNull(configuration.name, "name");
             requireNonNull(configuration.provisionerType, "type");
             requireNonNull(configuration.policyScope, "policyScope");
-            requireNonNull(configuration.callbackAddress, "callbackAddress");
             return configuration;
-        }
-
-        private Builder() {
-            configuration = new ProvisionerConfiguration();
         }
 
     }
