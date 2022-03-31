@@ -67,7 +67,6 @@ public class FakeSetup {
     public void setupContractOffers() {
         Policy publicPolicy = Policy.Builder.newInstance()
                 .permission(Permission.Builder.newInstance()
-                        .target("1")
                         .action(Action.Builder.newInstance()
                                 .type("USE")
                                 .build())
@@ -76,7 +75,6 @@ public class FakeSetup {
 
         Policy publicPolicy2 = Policy.Builder.newInstance()
                 .permission(Permission.Builder.newInstance()
-                        .target("2")
                         .action(Action.Builder.newInstance()
                                 .type("USE")
                                 .build())
