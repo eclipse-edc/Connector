@@ -122,12 +122,12 @@ public class Policy extends Identifiable {
      * @param target the target.
      * @return a copy with the specified target.
      */
-    public Policy copy(String target) {
+    public Policy withTarget(String target) {
         return Builder.newInstance()
                 .id(this.uid)
-                .prohibitions(this.prohibitions.stream().map(p -> p.copy(target)).collect(Collectors.toList()))
-                .permissions(this.permissions.stream().map(p -> p.copy(target)).collect(Collectors.toList()))
-                .duties(this.obligations.stream().map(o -> o.copy(target)).collect(Collectors.toList()))
+                .prohibitions(this.prohibitions.stream().map(p -> p.withTarget(target)).collect(Collectors.toList()))
+                .permissions(this.permissions.stream().map(p -> p.withTarget(target)).collect(Collectors.toList()))
+                .duties(this.obligations.stream().map(o -> o.withTarget(target)).collect(Collectors.toList()))
                 .assigner(this.assigner)
                 .assignee(this.assignee)
                 .inheritsFrom(this.inheritsFrom)

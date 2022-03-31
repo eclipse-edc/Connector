@@ -30,7 +30,7 @@ class PermissionTest {
     }
     
     @Test
-    void copyWithTarget() {
+    void withTarget() {
         var target = "target-id";
         var permission = Permission.Builder.newInstance()
                 .uid("id")
@@ -45,7 +45,7 @@ class PermissionTest {
                 .duty(Duty.Builder.newInstance().build())
                 .build();
         
-        var copy = permission.copy(target);
+        var copy = permission.withTarget(target);
         
         assertThat(copy.getUid()).isEqualTo(permission.getUid());
         assertThat(copy.getAssigner()).isEqualTo(permission.getAssigner());

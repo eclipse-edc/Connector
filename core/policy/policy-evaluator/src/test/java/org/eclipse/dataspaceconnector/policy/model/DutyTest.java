@@ -30,7 +30,7 @@ class DutyTest {
     }
     
     @Test
-    void copyWithTarget() {
+    void withTarget() {
         var target = "target-id";
         var duty = Duty.Builder.newInstance()
                 .uid("id")
@@ -45,7 +45,7 @@ class DutyTest {
                 .consequence(Duty.Builder.newInstance().build())
                 .build();
         
-        var copy = duty.copy(target);
+        var copy = duty.withTarget(target);
     
         assertThat(copy.getUid()).isEqualTo(duty.getUid());
         assertThat(copy.getAssigner()).isEqualTo(duty.getAssigner());

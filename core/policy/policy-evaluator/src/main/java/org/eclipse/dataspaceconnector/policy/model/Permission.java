@@ -54,14 +54,14 @@ public class Permission extends Rule {
      * @param target the target.
      * @return a copy with the specified target.
      */
-    public Permission copy(String target) {
+    public Permission withTarget(String target) {
         return Builder.newInstance()
                 .uid(this.uid)
                 .assigner(this.assigner)
                 .assignee(this.assignee)
                 .action(this.action)
                 .constraints(this.constraints)
-                .duties(this.duties.stream().map(d -> d.copy(target)).collect(Collectors.toList()))
+                .duties(this.duties.stream().map(d -> d.withTarget(target)).collect(Collectors.toList()))
                 .target(target)
                 .build();
     }

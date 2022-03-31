@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ProhibitionTest {
     
     @Test
-    void copyWithTarget() {
+    void withTarget() {
         var target = "target-id";
         var prohibition = Prohibition.Builder.newInstance()
                 .uid("id")
@@ -35,7 +35,7 @@ class ProhibitionTest {
                         .build())
                 .build();
         
-        var copy = prohibition.copy(target);
+        var copy = prohibition.withTarget(target);
     
         assertThat(copy.getUid()).isEqualTo(prohibition.getUid());
         assertThat(copy.getAssigner()).isEqualTo(prohibition.getAssigner());

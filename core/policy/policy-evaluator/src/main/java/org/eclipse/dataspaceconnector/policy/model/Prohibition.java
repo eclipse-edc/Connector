@@ -38,7 +38,7 @@ public class Prohibition extends Rule {
      * @param target the target.
      * @return a copy with the specified target.
      */
-    public Prohibition copy(String target) {
+    public Prohibition withTarget(String target) {
         return Builder.newInstance()
                 .uid(this.uid)
                 .assigner(this.assigner)

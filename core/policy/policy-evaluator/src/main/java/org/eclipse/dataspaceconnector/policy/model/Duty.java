@@ -68,7 +68,7 @@ public class Duty extends Rule {
      * @param target the target.
      * @return a copy with the specified target.
      */
-    public Duty copy(String target) {
+    public Duty withTarget(String target) {
         return Builder.newInstance()
                 .uid(this.uid)
                 .assigner(this.assigner)
@@ -76,7 +76,7 @@ public class Duty extends Rule {
                 .action(this.action)
                 .constraints(this.constraints)
                 .parentPermission(this.parentPermission)
-                .consequence(this.consequence == null ? null : this.consequence.copy(target))
+                .consequence(this.consequence == null ? null : this.consequence.withTarget(target))
                 .target(target)
                 .build();
     }

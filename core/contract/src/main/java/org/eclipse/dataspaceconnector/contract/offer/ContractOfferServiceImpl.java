@@ -53,7 +53,7 @@ public class ContractOfferServiceImpl implements ContractOfferService {
             var assets = assetIndex.queryAssets(definition.getSelectorExpression());
             return assets.map(asset -> ContractOffer.Builder.newInstance()
                     .id(ContractId.createContractId(definition.getId()))
-                    .policy(definition.getContractPolicy().copy(asset.getId()))
+                    .policy(definition.getContractPolicy().withTarget(asset.getId()))
                     .asset(asset)
                     // TODO: this is a workaround for the bug described in https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/753
                     .provider(uri("urn:connector:provider"))

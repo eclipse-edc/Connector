@@ -36,7 +36,7 @@ class PolicyTest {
     }
     
     @Test
-    void copyWithTarget() {
+    void withTarget() {
         var target = "target-id";
         var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("USE").build()).build();
         var prohibition = Prohibition.Builder.newInstance().action(Action.Builder.newInstance().type("MODIFY").build()).build();
@@ -53,7 +53,7 @@ class PolicyTest {
                 .extensibleProperties(new HashMap<>())
                 .build();
         
-        var copy = policy.copy(target);
+        var copy = policy.withTarget(target);
         
         assertThat(copy.getUid()).isEqualTo(policy.getUid());
         assertThat(copy.getPermissions().size()).isEqualTo(policy.getPermissions().size());
