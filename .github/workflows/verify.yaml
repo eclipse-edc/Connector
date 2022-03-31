@@ -1,6 +1,12 @@
 name: Test Code (Style, Tests)
 
-on: [ push, pull_request ]
+on:
+  push:
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
 
 jobs:
   Unit-Test:
@@ -128,7 +134,7 @@ jobs:
           sleep 5
           grep "INFO.*edc-.*ready" log.txt
           rm log.txt
-          killall java      
+          killall java
 
       # we cannot check sample 5 currently because we'd need repo secrets for that (client id,...)
 
