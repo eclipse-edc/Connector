@@ -93,20 +93,15 @@ public class SqlPolicyStore implements PolicyStore {
         transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 executeQuery(connection, sqlPolicyStoreStatements.getSqlSaveClauseTemplate(),
-                        policy.getUid(),
-                        toJson(policy.getPermissions(), new TypeReference<List<Permission>>() {
-                        }),
-                        toJson(policy.getProhibitions(), new TypeReference<List<Prohibition>>() {
-                        }),
-                        toJson(policy.getObligations(), new TypeReference<List<Duty>>() {
-                        }),
+                        policy.getUid(), toJson(policy.getPermissions(), new TypeReference<List<Permission>>() {}),
+                        toJson(policy.getProhibitions(), new TypeReference<List<Prohibition>>() {}),
+                        toJson(policy.getObligations(), new TypeReference<List<Duty>>() {}),
                         toJson(policy.getExtensibleProperties()),
                         policy.getInheritsFrom(),
                         policy.getAssigner(),
                         policy.getAssignee(),
                         policy.getTarget(),
-                        toJson(policy.getType(), new TypeReference<PolicyType>() {
-                        }));
+                        toJson(policy.getType(), new TypeReference<PolicyType>() {}));
             } catch (Exception e) {
                 throw new EdcPersistenceException(e.getMessage(), e);
             }
@@ -114,7 +109,7 @@ public class SqlPolicyStore implements PolicyStore {
     }
 
     @Override
-    public Policy delete(String policyId) {
+    public Policy deleteById(String policyId) {
         Objects.requireNonNull(policyId);
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
@@ -132,20 +127,15 @@ public class SqlPolicyStore implements PolicyStore {
     private Policy mapResultSet(ResultSet resultSet) throws SQLException {
         return Policy.Builder.newInstance()
                 .id(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnId()))
-                .permissions(fromJson(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnPermissions()), new TypeReference<>() {
-                }))
-                .prohibitions(fromJson(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnProhibitions()), new TypeReference<>() {
-                }))
-                .duties(fromJson(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnDuties()), new TypeReference<>() {
-                }))
-                .extensibleProperties(fromJson(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnExtensibleProperties()), new TypeReference<>() {
-                }))
+                .permissions(fromJson(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnPermissions()), new TypeReference<>() {}))
+                .prohibitions(fromJson(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnProhibitions()), new TypeReference<>() {}))
+                .duties(fromJson(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnDuties()), new TypeReference<>() {}))
+                .extensibleProperties(fromJson(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnExtensibleProperties()), new TypeReference<>() {}))
                 .inheritsFrom(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnInheritsFrom()))
                 .assigner(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnAssigner()))
                 .assignee(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnAssignee()))
                 .target(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnTarget()))
-                .type(fromJson(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnPolicyType()), new TypeReference<>() {
-                }))
+                .type(fromJson(resultSet.getString(sqlPolicyStoreStatements.getPolicyColumnPolicyType()), new TypeReference<>() {}))
                 .build();
     }
 

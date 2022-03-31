@@ -194,14 +194,14 @@ class SqlPolicyStoreTest {
 
         sqlPolicyStore.save(policy);
 
-        assertThat(sqlPolicyStore.delete(policy.getUid()).getUid()).isEqualTo(policy.getUid());
+        assertThat(sqlPolicyStore.deleteById(policy.getUid()).getUid()).isEqualTo(policy.getUid());
         assertThat(sqlPolicyStore.findById(policy.getUid())).isNull();
     }
 
     @Test
     @DisplayName("Delete a non existing policy")
     void deleteById_whenNonexistent() {
-        assertThat(sqlPolicyStore.delete("nonexistent")).isNull();
+        assertThat(sqlPolicyStore.deleteById("nonexistent")).isNull();
     }
 
     private String getRandomId() {
