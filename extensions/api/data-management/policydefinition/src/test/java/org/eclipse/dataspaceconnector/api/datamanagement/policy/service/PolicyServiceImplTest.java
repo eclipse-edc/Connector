@@ -50,7 +50,7 @@ public class PolicyServiceImplTest {
         var uidTest = policy.getUid();
 
         String assetId = "policyId";
-        assertThat(policy).isNotNull().matches(hasId(assetId));
+        assertThat(policy).isEqualTo(createPolicy("policyId"));
     }
 
     @Test
@@ -70,7 +70,7 @@ public class PolicyServiceImplTest {
         var inserted = policyService.create(policy);
 
         assertThat(inserted.succeeded()).isTrue();
-        assertThat(inserted.getContent()).matches(hasId("policyId"));
+        assertThat(inserted.getContent()).isEqualTo(policy);
     }
 
     @Test
