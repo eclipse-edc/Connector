@@ -15,11 +15,11 @@
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.flow;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyCreationRequest;
@@ -32,30 +32,24 @@ public class ProviderDataPlaneProxyDataFlowController implements DataFlowControl
 
     private final String connectorId;
     private final RemoteMessageDispatcherRegistry dispatcherRegistry;
-    private final DataAddressResolver resolver;
     private final DataPlaneProxyManager proxyManager;
 
-    public ProviderDataPlaneProxyDataFlowController(String connectorId,
-                                                    RemoteMessageDispatcherRegistry dispatcherRegistry,
-                                                    DataAddressResolver resolver,
-                                                    DataPlaneProxyManager proxyManager) {
+    public ProviderDataPlaneProxyDataFlowController(String connectorId, RemoteMessageDispatcherRegistry dispatcherRegistry, DataPlaneProxyManager proxyManager) {
         this.connectorId = connectorId;
         this.dispatcherRegistry = dispatcherRegistry;
-        this.resolver = resolver;
         this.proxyManager = proxyManager;
     }
 
     @Override
-    public boolean canHandle(DataRequest dataRequest) {
+    public boolean canHandle(DataRequest dataRequest, DataAddress contentAddress) {
         return SYNC.equals(dataRequest.getDestinationType());
     }
 
     @Override
-    public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest, Policy policy) {
-        var address = resolver.resolveForAsset(dataRequest.getAssetId());
+    public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
         var proxyCreationRequest = DataPlaneProxyCreationRequest.Builder.newInstance()
                 .id(dataRequest.getId())
-                .address(address)
+                .address(contentAddress)
                 .contractId(dataRequest.getContractId())
                 .build();
         var proxyCreationResult = proxyManager.createProxy(proxyCreationRequest);

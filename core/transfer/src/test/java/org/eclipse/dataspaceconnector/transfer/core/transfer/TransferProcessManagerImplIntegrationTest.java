@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
@@ -88,6 +89,7 @@ class TransferProcessManagerImplIntegrationTest {
                 .statusCheckerRegistry(mock(StatusCheckerRegistry.class))
                 .observable(mock(TransferProcessObservable.class))
                 .store(store)
+                .policyStore(mock(PolicyStore.class))
                 .addressResolver(mock(DataAddressResolver.class))
                 .build();
     }

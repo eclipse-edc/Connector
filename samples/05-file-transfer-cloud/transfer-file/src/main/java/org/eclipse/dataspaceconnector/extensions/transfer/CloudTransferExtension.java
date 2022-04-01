@@ -72,7 +72,7 @@ public class CloudTransferExtension implements ServiceExtension {
         dataOperatorRegistry.registerWriter(new S3BucketWriter(context.getMonitor(), context.getTypeManager(), retryPolicy, s3ClientProvider));
         dataOperatorRegistry.registerWriter(new BlobStoreWriter(context.getMonitor(), context.getTypeManager()));
 
-        dataFlowMgr.register(new InlineDataFlowController(vault, context.getMonitor(), dataOperatorRegistry, dataAddressResolver));
+        dataFlowMgr.register(new InlineDataFlowController(vault, context.getMonitor(), dataOperatorRegistry));
     }
 
     private void registerDataEntries(ServiceExtensionContext context) {

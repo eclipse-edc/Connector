@@ -26,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -43,7 +44,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGen
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedContentResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataAddressResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
@@ -114,6 +114,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private ExecutorInstrumentation executorInstrumentation;
     private StateMachine stateMachine;
     private DataAddressResolver addressResolver;
+    private PolicyStore policyStore;
 
     private TransferProcessManagerImpl() {
     }
@@ -432,7 +433,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                     }
                     dataAddressResource.getDataAddress().setKeyName(keyName);
                 }
-                handleProvisionDataAddressResource(dataAddressResource, response, transferProcess);
+                handleProvisionDataAddressResource(dataAddressResource, transferProcess);
             }
             // update the transfer process with the provisioned resource
             transferProcess.addProvisionedResource(provisionedResource);
@@ -451,7 +452,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         }
     }
 
-    private void handleProvisionDataAddressResource(ProvisionedDataAddressResource resource, ProvisionResponse response, TransferProcess transferProcess) {
+    private void handleProvisionDataAddressResource(ProvisionedDataAddressResource resource, TransferProcess transferProcess) {
         var dataAddress = resource.getDataAddress();
         if (resource instanceof ProvisionedDataDestinationResource) {
             // a data destination was provisioned by a consumer
@@ -555,9 +556,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
     private void processProviderRequest(TransferProcess process, DataRequest dataRequest) {
         // TODO resolve contract agreement policy from the PolicyStore
+        var contentAddress = process.getContentDataAddress();
         var policy = Policy.Builder.newInstance().build();
 
-        var response = dataFlowManager.initiate(dataRequest, policy);
+        var response = dataFlowManager.initiate(dataRequest, contentAddress, policy);
         if (response.succeeded()) {
             process.transitionInProgressOrStreaming();
             updateTransferProcess(process, l -> l.preInProgress(process));
@@ -700,6 +702,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         public Builder store(TransferProcessStore transferProcessStore) {
             manager.transferProcessStore = transferProcessStore;
+            return this;
+        }
+
+        public Builder policyStore(PolicyStore policyStore) {
+            manager.policyStore = policyStore;
             return this;
         }
 

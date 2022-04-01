@@ -93,8 +93,8 @@ public class EndToEndTest {
 
         DataFlowController controllerMock = mock(DataFlowController.class);
 
-        when(controllerMock.canHandle(isA(DataRequest.class))).thenReturn(true);
-        when(controllerMock.initiateFlow(isA(DataRequest.class), isA(Policy.class))).thenAnswer(i -> {
+        when(controllerMock.canHandle(isA(DataRequest.class), isA(DataAddress.class))).thenReturn(true);
+        when(controllerMock.initiateFlow(isA(DataRequest.class), isA(DataAddress.class), isA(Policy.class))).thenAnswer(i -> {
             latch.countDown();
             return DataFlowInitiateResult.success("");
         });
@@ -115,8 +115,8 @@ public class EndToEndTest {
         processManager.initiateProviderRequest(request);
 
         assertThat(latch.await(1, TimeUnit.MINUTES)).isTrue();
-        verify(controllerMock).canHandle(isA(DataRequest.class));
-        verify(controllerMock).initiateFlow(isA(DataRequest.class), isA(Policy.class));
+        verify(controllerMock).canHandle(isA(DataRequest.class), isA(DataAddress.class));
+        verify(controllerMock).initiateFlow(isA(DataRequest.class), isA(DataAddress.class), isA(Policy.class));
     }
 
     @BeforeEach

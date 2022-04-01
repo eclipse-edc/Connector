@@ -104,7 +104,6 @@ public class DataRequest implements RemoteMessage, Polymorphic {
         return assetId;
     }
 
-
     /**
      * The id of the requested contract.
      */

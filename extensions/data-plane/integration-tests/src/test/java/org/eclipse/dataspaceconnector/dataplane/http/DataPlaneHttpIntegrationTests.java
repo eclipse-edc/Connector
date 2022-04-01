@@ -350,7 +350,7 @@ public class DataPlaneHttpIntegrationTests {
     /**
      * Request payload with query params to initiate DPF transfer.
      *
-     * @param processId   ProcessID of transfer.See {@link DataFlowRequest}
+     * @param processId ProcessID of transfer.See {@link DataFlowRequest}
      * @param queryParams Query params name and value as key-value entries.
      * @return JSON object. see {@link ObjectNode}.
      */
@@ -496,7 +496,7 @@ public class DataPlaneHttpIntegrationTests {
     /**
      * Mock plain text response from source.
      *
-     * @param statusCode   Response status code.
+     * @param statusCode Response status code.
      * @param responseBody Response body.
      * @return see {@link HttpResponse}
      */

@@ -26,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
@@ -110,6 +111,7 @@ class TransferProcessManagerImplTest {
     private final StatusCheckerRegistry statusCheckerRegistry = mock(StatusCheckerRegistry.class);
     private final ResourceManifestGenerator manifestGenerator = mock(ResourceManifestGenerator.class);
     private final TransferProcessStore store = mock(TransferProcessStore.class);
+    private final PolicyStore policyStore = mock(PolicyStore.class);
     private final DataFlowManager dataFlowManager = mock(DataFlowManager.class);
     private final Vault vault = mock(Vault.class);
 
@@ -132,6 +134,7 @@ class TransferProcessManagerImplTest {
                 .statusCheckerRegistry(statusCheckerRegistry)
                 .observable(mock(TransferProcessObservable.class))
                 .store(store)
+                .policyStore(policyStore)
                 .vault(vault)
                 .addressResolver(mock(DataAddressResolver.class))
                 .build();
@@ -293,7 +296,7 @@ class TransferProcessManagerImplTest {
     void provisionedProvider_shouldTransitionToInProgress() throws InterruptedException {
         var process = createTransferProcess(PROVISIONED).toBuilder().type(PROVIDER).build();
         when(store.nextForState(eq(PROVISIONED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(dataFlowManager.initiate(any(), any())).thenReturn(DataFlowInitiateResult.success("any"));
+        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(DataFlowInitiateResult.success("any"));
         var latch = countDownOnUpdateLatch();
 
         manager.start();
