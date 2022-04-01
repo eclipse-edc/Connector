@@ -166,7 +166,7 @@ class SqlPolicyStoreTest {
 
         var policiesFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
 
-        assertThat(policiesFromDb).hasSize(0);
+        assertThat(policiesFromDb).isEmpty();
     }
 
     @Test

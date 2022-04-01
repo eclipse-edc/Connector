@@ -65,22 +65,12 @@ public class SqlPolicyStore implements PolicyStore {
     }
 
     @Override
-    public Stream<Policy> findAll(QuerySpec spec) {
-        Objects.requireNonNull(spec);
-
-        var limit = Limit.Builder.newInstance()
-                .limit(spec.getLimit())
-                .offset(spec.getOffset())
-                .build();
-
-        var query = sqlPolicyStoreStatements.getSqlFindClauseTemplate() + " " + limit.getStatement();
+    public Stream<Policy> findAll(QuerySpec querySpec) {
+        Objects.requireNonNull(querySpec);
+        var query = sqlPolicyStoreStatements.getSqlFindClauseTemplate();
 
         try (var connection = getConnection()) {
-            var policies = executeQuery(
-                    connection,
-                    this::mapResultSet,
-                    String.format(query, sqlPolicyStoreStatements.getPolicyTableName()));
-            return policies.stream();
+            return executeQuery(connection, this::mapResultSet, query, querySpec.getLimit(), querySpec.getOffset()).stream();
         } catch (Exception exception) {
             throw new EdcPersistenceException(exception);
         }

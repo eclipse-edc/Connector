@@ -18,7 +18,7 @@ public class PostgressStatements implements SqlPolicyStoreStatements {
 
     @Override
     public String getSqlFindClauseTemplate() {
-        return String.format("SELECT * FROM %s",
+        return String.format("SELECT * FROM %s LIMIT ? OFFSET ?",
                 getPolicyTableName());
     }
 
