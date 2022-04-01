@@ -13,7 +13,6 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.policy.transform;
 
-import org.assertj.core.api.SoftAssertions;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionDto;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
@@ -58,17 +57,8 @@ public class PolicyToPolicyDefinitionDtoTransformerTest {
 
         var policyDefinitionDto = transformer.transform(policy, context);
 
-        SoftAssertions softAssertions = new SoftAssertions();
+        assertThat(policyDefinitionDto).usingRecursiveComparison().isEqualTo(policy);
 
-        softAssertions.assertThat(policyDefinitionDto.getInheritsFrom()).isEqualTo(policy.getInheritsFrom());
-        softAssertions.assertThat(policyDefinitionDto.getAssigner()).isEqualTo(policy.getAssigner());
-        softAssertions.assertThat(policyDefinitionDto.getAssignee()).isEqualTo(policy.getAssignee());
-        softAssertions.assertThat(policyDefinitionDto.getTarget()).isEqualTo(policy.getTarget());
-        softAssertions.assertThat(policyDefinitionDto.getExtensibleProperties()).containsExactlyEntriesOf(policy.getExtensibleProperties());
-        softAssertions.assertThat(policyDefinitionDto.getPermissions()).hasSameElementsAs(policy.getPermissions());
-        softAssertions.assertThat(policyDefinitionDto.getProhibitions()).hasSameElementsAs(policy.getProhibitions());
-        softAssertions.assertThat(policyDefinitionDto.getObligations()).hasSameElementsAs(policy.getObligations());
-        softAssertions.assertAll();
     }
 
 }

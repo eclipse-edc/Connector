@@ -43,6 +43,7 @@ public class PolicyDefinitionDtoToPolicyTransformer implements DtoTransformer<Po
                 .assignee(object.getAssignee())
                 .target(object.getTarget())
                 .type(object.getType())
+                .id(object.getUid())
                 .build();
     }
 }

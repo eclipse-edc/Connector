@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
+import org.eclipse.dataspaceconnector.policy.model.Identifiable;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
@@ -29,8 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 @JsonDeserialize(builder = PolicyDefinitionDto.Builder.class)
-public class PolicyDefinitionDto {
-    private String uid;
+public class PolicyDefinitionDto extends Identifiable {
     private List<Permission> permissions = new ArrayList<>();
     private List<Prohibition> prohibitions = new ArrayList<>();
     private List<Duty> obligations = new ArrayList<>();
@@ -79,11 +79,6 @@ public class PolicyDefinitionDto {
     @JsonProperty("@type")
     public PolicyType getType() {
         return type;
-    }
-
-
-    public String getUid() {
-        return uid;
     }
 
     @JsonPOJOBuilder(withPrefix = "")

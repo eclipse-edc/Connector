@@ -13,16 +13,12 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.policy.transform;
 
-import org.assertj.core.api.SoftAssertions;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionDto;
-import org.eclipse.dataspaceconnector.policy.model.Duty;
-import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,9 +36,6 @@ public class PolicyDefinitionDtoToPolicyTransformerTest {
 
     @Test
     void transform() {
-        ArrayList<Permission> permissionsTest = new ArrayList<>();
-        ArrayList<Prohibition> prohibitionsTest = new ArrayList<>();
-        ArrayList<Duty> obligationsTest = new ArrayList<>();
 
         var context = mock(TransformerContext.class);
         var policyDefinitionDto = PolicyDefinitionDto.Builder.newInstance()
@@ -51,24 +44,16 @@ public class PolicyDefinitionDtoToPolicyTransformerTest {
                 .assignee("the tested")
                 .target("the target")
                 .extensibleProperties(Map.of("key", "value"))
-                .permissions(permissionsTest)
-                .prohibitions(prohibitionsTest)
-                .obligations(obligationsTest)
+                .permissions(List.of())
+                .prohibitions(List.of())
+                .obligations(List.of())
+                .id("an Id")
                 .build();
 
         var policy = transformer.transform(policyDefinitionDto, context);
 
-        SoftAssertions softAssertions = new SoftAssertions();
+        assertThat(policy).usingRecursiveComparison().isEqualTo(policyDefinitionDto);
 
-        softAssertions.assertThat(policy.getInheritsFrom()).isEqualTo(policyDefinitionDto.getInheritsFrom());
-        softAssertions.assertThat(policy.getAssigner()).isEqualTo(policyDefinitionDto.getAssigner());
-        softAssertions.assertThat(policy.getAssignee()).isEqualTo(policyDefinitionDto.getAssignee());
-        softAssertions.assertThat(policy.getTarget()).isEqualTo(policyDefinitionDto.getTarget());
-        softAssertions.assertThat(policy.getExtensibleProperties()).containsExactlyEntriesOf(policyDefinitionDto.getExtensibleProperties());
-        softAssertions.assertThat(policy.getPermissions()).hasSameElementsAs(policyDefinitionDto.getPermissions());
-        softAssertions.assertThat(policy.getProhibitions()).hasSameElementsAs(policyDefinitionDto.getProhibitions());
-        softAssertions.assertThat(policy.getObligations()).hasSameElementsAs(policyDefinitionDto.getObligations());
-        softAssertions.assertAll();
     }
 
 }
