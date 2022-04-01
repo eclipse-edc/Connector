@@ -124,7 +124,7 @@ Before starting the connector that will load data from a file, a few prepartions
 3. Create a `*.json` file which contains assets or contract definitions. This file will be loaded by the connector and
    its entries will be persisted. Examples for both assets and contract definitions can be found in the `resources`
    folder of this launcher. For an example on how to generate these `*.json` files, have a look at the
-   `JsonFileGenerator` in the `test` directory of this launcher.
+   `JsonFileGenerator` under the `test/java/org/eclipse/dataspaceconnector/examples` directory of this launcher.
 
 Once the preparation is complete, the connector can be built using gradle and then started. Depending on whether you
 are using CosmosDB or in-memory stores, the `config.properties` file has to be supplied:
