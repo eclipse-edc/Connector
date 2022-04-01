@@ -65,7 +65,7 @@ class HttpProviderProvisionerTest {
                 .assetId("1")
                 .transferProcessId("2")
                 .resourceName("test")
-                .contentDataAddress(dataAddress)
+                .dataAddress(dataAddress)
                 .resourceDefinitionId("3")
                 .id("3")
                 .build();
@@ -191,7 +191,7 @@ class HttpProviderProvisionerTest {
                 .assetId("1")
                 .transferProcessId("2")
                 .resourceName("test")
-                .contentDataAddress(dataAddress)
+                .dataAddress(dataAddress)
                 .resourceDefinitionId("3")
                 .id("3")
                 .build();

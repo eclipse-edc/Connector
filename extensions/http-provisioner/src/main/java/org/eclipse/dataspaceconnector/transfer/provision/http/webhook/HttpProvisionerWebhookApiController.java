@@ -21,7 +21,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
-import org.eclipse.dataspaceconnector.transfer.core.command.commands.AddProvisionedResourceCommand;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.AddProvisionedResourceCommand;
 import org.eclipse.dataspaceconnector.transfer.provision.http.impl.HttpProvisionedContentResource;
 
 import java.util.Objects;
@@ -52,7 +52,7 @@ public class HttpProvisionerWebhookApiController implements HttpProvisionerWebho
         var cr = HttpProvisionedContentResource.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .assetId(request.getAssetId())
-                .contentDataAddress(request.getContentDataAddress())
+                .dataAddress(request.getContentDataAddress())
                 .resourceName(request.getResourceName())
                 .transferProcessId(request.getTransferProcessId())
                 .hasToken(request.hasToken())

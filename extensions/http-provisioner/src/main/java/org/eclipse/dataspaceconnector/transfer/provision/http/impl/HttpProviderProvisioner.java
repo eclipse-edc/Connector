@@ -84,7 +84,7 @@ public class HttpProviderProvisioner implements Provisioner<HttpProviderResource
     @Override
     public boolean canDeprovision(ProvisionedResource provisionedResource) {
         return provisionedResource instanceof HttpProvisionedContentResource &&
-                dataAddressType.equals(((HttpProvisionedContentResource) provisionedResource).getContentDataAddress().getType());
+                dataAddressType.equals(((HttpProvisionedContentResource) provisionedResource).getDataAddress().getType());
     }
 
     @Override
