@@ -422,10 +422,17 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
             if (provisionedResource instanceof ProvisionedDataAddressResource) {
                 var dataAddressResource = (ProvisionedDataAddressResource) provisionedResource;
-                if (!handleProvisionDataAddressResource(dataAddressResource, response, transferProcess)) {
-                    transferProcess.transitionError("Transitioning transfer process to ERROR state: " + transferProcess.getId());
-                    transferProcessStore.update(transferProcess);
+                var secretToken = response.getSecretToken();
+                if (secretToken != null) {
+                    var keyName = dataAddressResource.getResourceName();
+                    var secretResult = vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
+                    if (secretResult.failed()) {
+                        fatalErrors.add(format("Error storing secret in vault with key %s for transfer process %s: \n %s",
+                                keyName, transferProcess.getId(), join("\n", secretResult.getFailureMessages())));
+                    }
+                    dataAddressResource.getDataAddress().setKeyName(keyName);
                 }
+                handleProvisionDataAddressResource(dataAddressResource, response, transferProcess);
             }
             // update the transfer process with the provisioned resource
             transferProcess.addProvisionedResource(provisionedResource);
@@ -444,19 +451,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         }
     }
 
-    private boolean handleProvisionDataAddressResource(ProvisionedDataAddressResource resource, ProvisionResponse response, TransferProcess transferProcess) {
-        var secretToken = response.getSecretToken();
-        if (secretToken != null) {
-            var keyName = resource.getResourceName();
-            var result = vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
-            if (result.failed()) {
-                monitor.severe(format("Error deleting storing secret in vault with key %s for transfer process %s: \n %s",
-                        keyName, transferProcess.getId(), join("\n", result.getFailureMessages())));
-                return false;
-            }
-            resource.getDataAddress().setKeyName(keyName);
-        }
-
+    private void handleProvisionDataAddressResource(ProvisionedDataAddressResource resource, ProvisionResponse response, TransferProcess transferProcess) {
         var dataAddress = resource.getDataAddress();
         if (resource instanceof ProvisionedDataDestinationResource) {
             // a data destination was provisioned by a consumer
@@ -465,7 +460,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             // content for the data transfer was provisioned by the provider
             transferProcess.addContentDataAddress(dataAddress);
         }
-        return true;
     }
 
 
@@ -496,7 +490,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 return;
             }
 
-            if (provisionedResource instanceof ProvisionedDataAddressResource) {
+            if (provisionedResource.hasToken() && provisionedResource instanceof ProvisionedDataAddressResource) {
                 removeDeprovisionedSecrets((ProvisionedDataAddressResource) provisionedResource, transferProcess);
             }
 
@@ -519,9 +513,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     private void removeDeprovisionedSecrets(ProvisionedDataAddressResource provisionedResource, TransferProcess transferProcess) {
-        if (!provisionedResource.hasToken()) {
-            return;
-        }
         var keyName = provisionedResource.getResourceName();
         var result = vault.deleteSecret(keyName);
         if (result.failed()) {
