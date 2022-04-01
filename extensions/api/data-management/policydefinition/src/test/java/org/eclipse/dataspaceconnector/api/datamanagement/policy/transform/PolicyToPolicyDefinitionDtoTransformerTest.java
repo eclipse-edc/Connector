@@ -33,8 +33,8 @@ public class PolicyToPolicyDefinitionDtoTransformerTest {
 
     @Test
     void inputOutputType() {
-        assertThat(transformer.getInputType()).isInstanceOf(Policy.class);
-        assertThat(transformer.getOutputType()).isInstanceOf(PolicyDefinitionDto.class);
+        assertThat(transformer.getInputType()).isEqualTo(Policy.class);
+        assertThat(transformer.getOutputType()).isEqualTo(PolicyDefinitionDto.class);
     }
 
     @Test
