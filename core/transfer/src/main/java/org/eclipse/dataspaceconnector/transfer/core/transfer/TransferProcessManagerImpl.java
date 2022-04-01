@@ -91,7 +91,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
  * Each iteration will seek to transition a set number of processes for each state to avoid situations where an excessive number of processes in one state block progress of
  * processes in other states.
  * <br/>
- * If no processes need to be transitioned, the transfer manager will wait according to the the defined {@link WaitStrategy} before conducting the next iteration.
+ * If no processes need to be transitioned, the transfer manager will wait according to the defined {@link WaitStrategy} before conducting the next iteration.
  * A wait strategy may implement a backoff scheme.
  */
 public class TransferProcessManagerImpl implements TransferProcessManager, ProvisionCallbackDelegate {
