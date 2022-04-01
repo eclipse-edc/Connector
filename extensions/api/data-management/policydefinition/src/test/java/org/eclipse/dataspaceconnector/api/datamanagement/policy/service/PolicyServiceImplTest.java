@@ -59,12 +59,12 @@ public class PolicyServiceImplTest {
         when(policyStore.findAll(any(QuerySpec.class))).thenReturn(Stream.of(policy));
         var policies = policyService.query(QuerySpec.none());
 
-        assertThat(policies).hasSize(1).first().matches(hasId("policyId"));
+        assertThat(policies).containsExactly(policy);
     }
 
     @Test
     void createPolicy_shouldCreatePolicyIfItDoesNotAlreadyExist() {
-        var policy = createPolicy("policyId");
+        Policy policy = createPolicy("policyId");
         when(policyStore.findById("policyId")).thenReturn(null);
 
         var inserted = policyService.create(policy);
@@ -85,7 +85,7 @@ public class PolicyServiceImplTest {
 
     @Test
     void delete_shouldDeletePolicyIfItsNotReferencedByAnyContractDefinition() {
-        when(contractDefinitionStore.findAll(any())).thenReturn(Stream.empty()).thenReturn(Stream.empty());
+        when(contractDefinitionStore.findAll(any())).thenReturn(Stream.empty(), Stream.empty());
         when(policyStore.delete("policyId")).thenReturn(createPolicy("policyId"));
 
         var deleted = policyService.delete("policyId");
