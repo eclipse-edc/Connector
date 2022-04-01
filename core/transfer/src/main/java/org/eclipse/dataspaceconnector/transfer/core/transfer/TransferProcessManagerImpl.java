@@ -43,7 +43,9 @@ import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGen
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedContentResource;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataAddressResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
@@ -59,6 +61,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static java.lang.String.format;
+import static java.lang.String.join;
 import static java.util.Collections.emptyList;
 import static java.util.UUID.randomUUID;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
@@ -88,7 +91,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
  * Each iteration will seek to transition a set number of processes for each state to avoid situations where an excessive number of processes in one state block progress of
  * processes in other states.
  * <br/>
- * If no processes need to be transitioned, the transfer manager will wait according to the the defined {@link WaitStrategy} before conducting the next iteration.
+ * If no processes need to be transitioned, the transfer manager will wait according to the defined {@link WaitStrategy} before conducting the next iteration.
  * A wait strategy may implement a backoff scheme.
  */
 public class TransferProcessManagerImpl implements TransferProcessManager, ProvisionCallbackDelegate {
@@ -416,35 +419,26 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
             var response = result.getContent();
             var provisionedResource = response.getResource();
-            var secretToken = response.getSecretToken();
 
-            if (provisionedResource instanceof ProvisionedDataDestinationResource) {
-                // a data destination was provisioned by a consumer
-                var dataDestinationResource = (ProvisionedDataDestinationResource) provisionedResource;
-                var dataDestination = dataDestinationResource.createDataDestination();
-
+            if (provisionedResource instanceof ProvisionedDataAddressResource) {
+                var dataAddressResource = (ProvisionedDataAddressResource) provisionedResource;
+                var secretToken = response.getSecretToken();
                 if (secretToken != null) {
-                    var keyName = dataDestinationResource.getResourceName();
-                    vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
-                    dataDestination.setKeyName(keyName);
+                    var keyName = dataAddressResource.getResourceName();
+                    var secretResult = vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
+                    if (secretResult.failed()) {
+                        fatalErrors.add(format("Error storing secret in vault with key %s for transfer process %s: \n %s",
+                                keyName, transferProcess.getId(), join("\n", secretResult.getFailureMessages())));
+                    }
+                    dataAddressResource.getDataAddress().setKeyName(keyName);
                 }
-                transferProcess.getDataRequest().updateDestination(dataDestination);
-            } else if (provisionedResource instanceof ProvisionedContentResource) {
-                // content for the data transfer was provisioned by the provider
-                var contentResource = (ProvisionedContentResource) provisionedResource;
-                var contentAddress = contentResource.getContentDataAddress();
-                if (secretToken != null) {
-                    var keyName = contentResource.getResourceName();
-                    vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
-                    contentAddress.setKeyName(keyName);
-                }
-                transferProcess.addContentDataAddress(contentAddress);
+                handleProvisionDataAddressResource(dataAddressResource, response, transferProcess);
             }
             // update the transfer process with the provisioned resource
             transferProcess.addProvisionedResource(provisionedResource);
         });
         if (!fatalErrors.isEmpty()) {
-            var errors = String.join("\n", fatalErrors);
+            var errors = join("\n", fatalErrors);
             monitor.severe(format("Transitioning transfer process %s to ERROR state due to fatal provisioning errors: \n%s", transferProcess.getId(), errors));
             transferProcess.transitionError("Fatal provisioning errors encountered. See logs for details.");
             transferProcessStore.update(transferProcess);
@@ -456,6 +450,18 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             transferProcessStore.update(transferProcess);
         }
     }
+
+    private void handleProvisionDataAddressResource(ProvisionedDataAddressResource resource, ProvisionResponse response, TransferProcess transferProcess) {
+        var dataAddress = resource.getDataAddress();
+        if (resource instanceof ProvisionedDataDestinationResource) {
+            // a data destination was provisioned by a consumer
+            transferProcess.getDataRequest().updateDestination(dataAddress);
+        } else if (resource instanceof ProvisionedContentResource) {
+            // content for the data transfer was provisioned by the provider
+            transferProcess.addContentDataAddress(dataAddress);
+        }
+    }
+
 
     private void handleDeprovisionResult(TransferProcess transferProcess, List<DeprovisionResult> results) {
         if (transferProcess.getState() == ERROR.code()) {
@@ -484,19 +490,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 return;
             }
 
-            if (provisionedResource instanceof ProvisionedDataDestinationResource) {
-                // a data destination was provisioned by a consumer
-                var dataDestinationResource = (ProvisionedDataDestinationResource) provisionedResource;
-                if (dataDestinationResource.hasToken()) {
-                    var keyName = dataDestinationResource.getResourceName();
-                    vault.deleteSecret(keyName);
-                }
-            } else if (provisionedResource instanceof ProvisionedContentResource) {
-                var contentResource = (ProvisionedContentResource) provisionedResource;
-                if (contentResource.hasToken()) {
-                    var keyName = contentResource.getResourceName();
-                    vault.deleteSecret(keyName);
-                }
+            if (provisionedResource.hasToken() && provisionedResource instanceof ProvisionedDataAddressResource) {
+                removeDeprovisionedSecrets((ProvisionedDataAddressResource) provisionedResource, transferProcess);
             }
 
             transferProcess.addDeprovisionedResource(deprovisionedResource);
@@ -504,7 +499,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         });
 
         if (!fatalErrors.isEmpty()) {
-            var errors = String.join("\n", fatalErrors);
+            var errors = join("\n", fatalErrors);
             monitor.severe(format("Transitioning transfer process %s to ERROR state due to fatal deprovisioning errors: \n%s", transferProcess.getId(), errors));
             transferProcess.transitionError("Fatal depprovisioning errors encountered. See logs for details.");
             transferProcessStore.update(transferProcess);
@@ -514,6 +509,15 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             observable.invokeForEach(l -> l.preDeprovisioned(transferProcess));
         } else {
             transferProcessStore.update(transferProcess);
+        }
+    }
+
+    private void removeDeprovisionedSecrets(ProvisionedDataAddressResource provisionedResource, TransferProcess transferProcess) {
+        var keyName = provisionedResource.getResourceName();
+        var result = vault.deleteSecret(keyName);
+        if (result.failed()) {
+            monitor.severe(format("Error deleting secret from vault with key %s for transfer process %s: \n %s",
+                    keyName, transferProcess.getId(), join("\n", result.getFailureMessages())));
         }
     }
 
@@ -563,7 +567,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 process.transitionProvisioned();
                 updateTransferProcess(process, l -> l.preProvisioned(process));
             } else {
-                monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), String.join(", ", response.getFailureMessages())));
+                monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), join(", ", response.getFailureMessages())));
                 process.transitionError(response.getFailureMessages().stream().findFirst().orElse(""));
                 updateTransferProcess(process, l -> l.preError(process));
             }
