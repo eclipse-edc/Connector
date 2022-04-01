@@ -19,6 +19,10 @@ import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 
 import java.util.Collection;
 
+/**
+ * The following interface is created for the implementation of the policy endpoint.
+ */
+
 public interface PolicyService {
 
     /**

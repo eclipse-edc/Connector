@@ -66,7 +66,7 @@ public class PolicyServiceImpl implements PolicyService {
                 return ServiceResult.conflict(format("Policy %s cannot be deleted as it is referenced by at least one access policy", policyId));
             }
 
-            var deleted = policyStore.delete(policyId);
+            var deleted = policyStore.deleteById(policyId);
             if (deleted == null) {
                 return ServiceResult.notFound(format("Policy %s does not exist", policyId));
             }
