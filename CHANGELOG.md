@@ -63,11 +63,12 @@ the detailed section referring to by linking pull requests or issues.
 * Extract interfaces for every api controller class to improve swagger documentation (#891)
 * Instrument executors with metrics (#912)
 * Call the listeners before the state transition is persisted. (#876)
-* Added an overload to `TransactionContext#execute()` (#968)
+* Add an overload to `TransactionContext#execute()` (#968)
 * Run CosmosDB integration tests on cloud in CI (#964)
-* Added SQL-AssetIndex to support `QuerySpec` (#1014)
-* Improved provision signalling and align deprovisioning to handle error conditions (#992)
 * Set policy and rule target dynamically when generating contract offers (#609)
+* Add SQL-AssetIndex to support `QuerySpec` (#1014)
+* Improve provision signalling and align deprovisioning to handle error conditions (#992)
+* Replace Asset with assetId on ContractAgreement (#1009)
 
 #### Removed
 

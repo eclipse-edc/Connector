@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 ZF Friedrichshafen AG
+ * Copyright (c) 2022 - 2022 ZF Friedrichshafen AG
  *
  * This program and the accompanying materials are made available under the
  * terms of the Apache License, Version 2.0 which is available at
@@ -200,7 +200,7 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .id(negotiationId)
                 .providerAgentId(UUID.randomUUID().toString())
                 .consumerAgentId(UUID.randomUUID().toString())
-                .asset(Asset.Builder.newInstance().build())
+                .assetId(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .build();
     }

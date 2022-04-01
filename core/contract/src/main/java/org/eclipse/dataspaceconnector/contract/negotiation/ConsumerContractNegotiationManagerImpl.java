@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021-2022 Microsoft Corporation
+ *  Copyright (c) 2021 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -11,7 +11,8 @@
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
  *       Daimler TSS GmbH - fixed contract dates to epoch seconds
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - refactor
+ *
  */
 
 package org.eclipse.dataspaceconnector.contract.negotiation;
@@ -397,7 +398,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .providerAgentId(String.valueOf(lastOffer.getProvider()))
                 .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
                 .policy(lastOffer.getPolicy())
-                .asset(lastOffer.getAsset())
+                .assetId(lastOffer.getAsset().getId())
                 .build();
 
         var request = ContractAgreementRequest.Builder.newInstance()

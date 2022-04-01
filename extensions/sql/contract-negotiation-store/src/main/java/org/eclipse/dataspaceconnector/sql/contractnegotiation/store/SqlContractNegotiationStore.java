@@ -22,7 +22,6 @@ import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.sql.lease.SqlLeaseContextBuilder;
@@ -214,7 +213,7 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                     agr.getContractSigningDate(),
                     agr.getContractStartDate(),
                     agr.getContractEndDate(),
-                    agr.getAsset().getId(),
+                    agr.getAssetId(),
                     agr.getPolicy().getUid());
         }
 
@@ -250,7 +249,7 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                 .id(resultSet.getString(statements.getContractAgreementIdColumn()))
                 .providerAgentId(resultSet.getString(statements.getProviderAgentColumn()))
                 .consumerAgentId(resultSet.getString(statements.getConsumerAgentColumn()))
-                .asset(Asset.Builder.newInstance().id(resultSet.getString(statements.getAssetIdColumn())).build())
+                .assetId(resultSet.getString(statements.getAssetIdColumn()))
                 .policy(Policy.Builder.newInstance().id(resultSet.getString(statements.getPolicyIdColumn())).build())
                 .contractStartDate(resultSet.getLong(statements.getStartDateColumn()))
                 .contractEndDate(resultSet.getLong(statements.getEndDateColumn()))
