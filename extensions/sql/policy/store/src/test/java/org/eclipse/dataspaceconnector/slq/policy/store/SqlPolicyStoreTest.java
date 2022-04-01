@@ -19,7 +19,6 @@ import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
-import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -46,7 +45,6 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -107,14 +105,25 @@ class SqlPolicyStoreTest {
     }
 
     @Test
-    @DisplayName("Save a single a single policy that already exists")
+    @DisplayName("Save (update) a single policy that already exists")
     void save_alreadyExists() {
         var id = getRandomId();
-        var policy = getDummyPolicy(id);
+        Policy policy1 = Policy.Builder.newInstance()
+                .id(id)
+                .target("Target1")
+                .build();
+        Policy policy2 = Policy.Builder.newInstance()
+                .id(id)
+                .target("Target2")
+                .build();
+        var spec = QuerySpec.Builder.newInstance().build();
 
-        sqlPolicyStore.save(policy);
+        sqlPolicyStore.save(policy1);
+        sqlPolicyStore.save(policy2);
+        var policyFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
 
-        assertThatThrownBy(() -> sqlPolicyStore.save(policy)).isInstanceOf(EdcPersistenceException.class);
+        assertThat(1).isEqualTo(policyFromDb.size());
+        assertThat("Target2").isEqualTo(policyFromDb.get(0).getTarget());
     }
 
     @Test

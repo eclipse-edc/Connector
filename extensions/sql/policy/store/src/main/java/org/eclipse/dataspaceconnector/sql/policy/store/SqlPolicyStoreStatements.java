@@ -27,7 +27,12 @@ public interface SqlPolicyStoreStatements {
     /**
      * INSERT statement for policy.
      */
-    String getSqlSaveClauseTemplate();
+    String getSqlInsertClauseTemplate();
+
+    /**
+     * UPDATE statement for policy.
+     */
+    String getSqlUpdateClauseTemplate();
 
     /**
      * SELECT statement with condition.

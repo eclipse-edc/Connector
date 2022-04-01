@@ -23,7 +23,7 @@ public class PostgressStatements implements SqlPolicyStoreStatements {
     }
 
     @Override
-    public String getSqlSaveClauseTemplate() {
+    public String getSqlInsertClauseTemplate() {
         return String.format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 getPolicyTableName(),
                 getPolicyColumnId(),
@@ -36,6 +36,22 @@ public class PostgressStatements implements SqlPolicyStoreStatements {
                 getPolicyColumnAssignee(),
                 getPolicyColumnTarget(),
                 getPolicyColumnPolicyType());
+    }
+
+    @Override
+    public String getSqlUpdateClauseTemplate() {
+        return String.format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=? WHERE %s=?",
+                getPolicyTableName(),
+                getPolicyColumnPermissions(),
+                getPolicyColumnProhibitions(),
+                getPolicyColumnDuties(),
+                getPolicyColumnExtensibleProperties(),
+                getPolicyColumnInheritsFrom(),
+                getPolicyColumnAssigner(),
+                getPolicyColumnAssignee(),
+                getPolicyColumnTarget(),
+                getPolicyColumnPolicyType(),
+                getPolicyColumnId());
     }
 
     @Override
