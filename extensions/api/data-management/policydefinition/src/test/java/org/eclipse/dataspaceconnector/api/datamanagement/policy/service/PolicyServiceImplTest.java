@@ -86,7 +86,7 @@ public class PolicyServiceImplTest {
     @Test
     void delete_shouldDeletePolicyIfItsNotReferencedByAnyContractDefinition() {
         when(contractDefinitionStore.findAll(any())).thenReturn(Stream.empty(), Stream.empty());
-        when(policyStore.delete("policyId")).thenReturn(createPolicy("policyId"));
+        when(policyStore.deleteById("policyId")).thenReturn(createPolicy("policyId"));
 
         var deleted = policyService.delete("policyId");
 
@@ -97,7 +97,7 @@ public class PolicyServiceImplTest {
     @Test
     void delete_shouldNotDeleteIfPolicyIsAlreadyPartOfAContractDefinition() {
         var policy = createPolicy("policyId");
-        when(policyStore.delete("policyId")).thenReturn(policy);
+        when(policyStore.deleteById("policyId")).thenReturn(policy);
 
         ContractDefinition contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("A found Contract Definition")
@@ -116,7 +116,7 @@ public class PolicyServiceImplTest {
 
     @Test
     void delete_shouldFailIfPolicyDoesNotExist() {
-        when(policyStore.delete("assetId")).thenReturn(null);
+        when(policyStore.deleteById("assetId")).thenReturn(null);
 
         var deleted = policyService.delete("policyId");
 
