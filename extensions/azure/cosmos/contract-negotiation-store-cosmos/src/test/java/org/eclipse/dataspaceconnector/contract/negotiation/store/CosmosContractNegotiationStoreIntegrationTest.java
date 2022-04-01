@@ -18,7 +18,6 @@ package org.eclipse.dataspaceconnector.contract.negotiation.store;
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
 import com.azure.cosmos.implementation.BadRequestException;
-import com.azure.cosmos.models.CosmosStoredProcedureProperties;
 import com.azure.cosmos.models.PartitionKey;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
@@ -41,18 +40,21 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
-import java.util.Scanner;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
+import static org.eclipse.dataspaceconnector.azure.cosmos.util.StoredProcedureTestUtils.uploadStoredProcedure;
 import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateAgreementBuilder;
 import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateDocument;
 import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateNegotiation;
@@ -280,18 +282,6 @@ class CosmosContractNegotiationStoreIntegrationTest {
     }
 
     @Test
-    void nextForState_leasedByAnother() {
-        var state = ContractNegotiationStates.CONFIRMED;
-        var n = generateNegotiation(state);
-        var doc = new ContractNegotiationDocument(n, partitionKey);
-        doc.acquireLease("another-connector");
-        container.createItem(doc);
-
-        var result = store.nextForState(state.code(), 10);
-        assertThat(result).isEmpty();
-    }
-
-    @Test
     void nextForState_leasedBySelf() {
         var state = ContractNegotiationStates.CONFIRMED;
         var n = generateNegotiation(state);
@@ -306,37 +296,30 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
         // verify that the subsequent call to nextForState does not return the entity
         result = store.nextForState(state.code(), 10);
-
         assertThat(result).isEmpty();
     }
 
     @Test
-    void nextForState_leaseByAnotherExpired() throws InterruptedException {
+    void nextForState_leasedByAnotherExpired() {
         var state = ContractNegotiationStates.CONFIRMED;
         var n = generateNegotiation(state);
         var doc = new ContractNegotiationDocument(n, partitionKey);
-        doc.acquireLease("another-connector", Duration.ofMillis(10));
+        Duration leaseDuration = Duration.ofSeconds(2);
+        doc.acquireLease("another-connector", leaseDuration);
         container.createItem(doc);
 
-        Thread.sleep(20); //give the lease time to expire
-
-        var result = store.nextForState(state.code(), 10);
-        assertThat(result).hasSize(1).allSatisfy(neg -> assertThat(neg).usingRecursiveComparison().isEqualTo(n));
-    }
-
-    @Test
-    void nextForState_lockEntity() {
-        var n = generateNegotiation("test-id-lock", ContractNegotiationStates.CONSUMER_OFFERED);
-        var doc = new ContractNegotiationDocument(n, partitionKey);
-        container.createItem(doc);
-
-        // verify nextForState sets the lease
-        var result = store.nextForState(ContractNegotiationStates.CONSUMER_OFFERED.code(), 5);
-        assertThat(result).hasSize(1).extracting(ContractNegotiation::getId).containsExactly(n.getId());
-        var storedDoc = readItem(n.getId());
-
-        // verify subsequent call to nextforState does not return the CN
-        assertThat(store.nextForState(ContractNegotiationStates.CONSUMER_OFFERED.code(), 5)).isEmpty();
+        // before the lease expired
+        var negotiationsBeforeLeaseExpired = store.nextForState(state.code(), 10);
+        assertThat(negotiationsBeforeLeaseExpired).isEmpty();
+        // after the lease expired
+        await()
+                .atMost(Duration.ofSeconds(10))
+                .pollInterval(Duration.ofMillis(500))
+                .pollDelay(leaseDuration) //give the lease time to expire
+                .untilAsserted(() -> {
+                    List<ContractNegotiation> negotiationsAfterLeaseExpired = store.nextForState(state.code(), 10);
+                    assertThat(negotiationsAfterLeaseExpired).hasSize(1).allSatisfy(neg -> assertThat(neg).usingRecursiveComparison().isEqualTo(n));
+                });
     }
 
     @Test
@@ -365,7 +348,8 @@ class CosmosContractNegotiationStoreIntegrationTest {
     }
 
     @Test
-    void nextforState_verifyDelete() {
+    @DisplayName("Verify that a leased entity can still be deleted")
+    void nextForState_verifyDelete() {
         var n = generateNegotiation("test-id", ContractNegotiationStates.CONSUMER_OFFERED);
         var doc = new ContractNegotiationDocument(n, partitionKey);
         container.createItem(doc);
@@ -373,6 +357,10 @@ class CosmosContractNegotiationStoreIntegrationTest {
         // verify nextForState sets the lease
         var result = store.nextForState(ContractNegotiationStates.CONSUMER_OFFERED.code(), 5);
         assertThat(result).hasSize(1).extracting(ContractNegotiation::getId).containsExactly(n.getId());
+
+        // verify entity can be deleted
+        store.delete(n.getId());
+        assertThat(container.readAllItems(new PartitionKey(partitionKey), Object.class)).isEmpty();
     }
 
     @Test

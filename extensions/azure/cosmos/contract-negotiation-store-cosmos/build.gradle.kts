@@ -18,6 +18,7 @@ plugins {
 
 val cosmosSdkVersion: String by project
 val jodahFailsafeVersion: String by project
+val awaitility: String by project
 
 dependencies {
     api(project(":spi:contract-spi"))
@@ -31,6 +32,8 @@ dependencies {
     testImplementation(project(":core:contract"))
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))
+    testImplementation(testFixtures(project(":extensions:azure:cosmos:cosmos-common")))
+    testImplementation("org.awaitility:awaitility:${awaitility}")
 }
 
 
