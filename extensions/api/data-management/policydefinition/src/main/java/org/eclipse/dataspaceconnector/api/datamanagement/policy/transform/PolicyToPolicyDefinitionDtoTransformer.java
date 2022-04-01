@@ -34,7 +34,6 @@ public class PolicyToPolicyDefinitionDtoTransformer implements DtoTransformer<Po
 
     @Override
     public @Nullable PolicyDefinitionDto transform(@Nullable Policy object, @NotNull TransformerContext context) {
-        assert object != null;
         return PolicyDefinitionDto.Builder.newInstance()
                 .permissions(object.getPermissions())
                 .prohibitions(object.getProhibitions())
