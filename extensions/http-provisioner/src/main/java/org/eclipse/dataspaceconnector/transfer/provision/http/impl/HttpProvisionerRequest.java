@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.transfer.provision.http;
+package org.eclipse.dataspaceconnector.transfer.provision.http.impl;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -28,20 +28,14 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 @JsonDeserialize(builder = HttpProvisionerRequest.Builder.class)
 public class HttpProvisionerRequest {
 
-    public enum Type {
-        @JsonProperty("provision")
-        PROVISION,
-
-        @JsonProperty("deprovision")
-        DEPROVISION
-    }
-
     private String assetId;
     private String transferProcessId;
     private Policy policy;
     private String callbackAddress;
-
     private Type type = Type.PROVISION;
+
+    private HttpProvisionerRequest() {
+    }
 
     public String getAssetId() {
         return assetId;
@@ -59,13 +53,22 @@ public class HttpProvisionerRequest {
         return callbackAddress;
     }
 
-    private HttpProvisionerRequest() {
+    public enum Type {
+        @JsonProperty("provision")
+        PROVISION,
+
+        @JsonProperty("deprovision")
+        DEPROVISION
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
 
-        private HttpProvisionerRequest request;
+        private final HttpProvisionerRequest request;
+
+        private Builder() {
+            request = new HttpProvisionerRequest();
+        }
 
         @JsonCreator
         public static Builder newInstance() {
@@ -99,10 +102,6 @@ public class HttpProvisionerRequest {
 
         public HttpProvisionerRequest build() {
             return request;
-        }
-
-        private Builder() {
-            request = new HttpProvisionerRequest();
         }
 
     }

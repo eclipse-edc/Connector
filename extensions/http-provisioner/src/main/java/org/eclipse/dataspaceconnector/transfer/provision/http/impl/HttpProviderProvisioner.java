@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.transfer.provision.http;
+package org.eclipse.dataspaceconnector.transfer.provision.http.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,14 +31,15 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedRes
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
+import org.eclipse.dataspaceconnector.transfer.provision.http.config.ProvisionerConfiguration;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.eclipse.dataspaceconnector.transfer.provision.http.HttpProvisionerRequest.Type.DEPROVISION;
-import static org.eclipse.dataspaceconnector.transfer.provision.http.HttpProvisionerRequest.Type.PROVISION;
+import static org.eclipse.dataspaceconnector.transfer.provision.http.impl.HttpProvisionerRequest.Type.DEPROVISION;
+import static org.eclipse.dataspaceconnector.transfer.provision.http.impl.HttpProvisionerRequest.Type.PROVISION;
 
 /**
  * Invokes an HTTP endpoint to provision asset data. The endpoint will asynchronously return a content data address to a callback supplied with the address that can be used to
@@ -49,28 +50,29 @@ public class HttpProviderProvisioner implements Provisioner<HttpProviderResource
 
     private final String name;
 
-    private String dataAddressType;
-    private String policyScope;
-    private URL endpoint;
-    private URL callbackAddress;
-    private PolicyEngine policyEngine;
-    private OkHttpClient httpClient;
-    private ObjectMapper mapper;
-    private Monitor monitor;
+    private final String dataAddressType;
+    private final String policyScope;
+    private final URL endpoint;
+    private final URL callbackAddress;
+    private final PolicyEngine policyEngine;
+    private final OkHttpClient httpClient;
+    private final ObjectMapper mapper;
+    private final Monitor monitor;
 
     public HttpProviderProvisioner(ProvisionerConfiguration configuration,
+                                   URL callbackAddress,
                                    PolicyEngine policyEngine,
                                    OkHttpClient httpClient,
                                    ObjectMapper objectMapper,
                                    Monitor monitor) {
-        this.name = configuration.getName();
-        this.dataAddressType = configuration.getDataAddressType();
-        this.policyScope = configuration.getPolicyScope();
-        this.endpoint = configuration.getEndpoint();
-        this.callbackAddress = configuration.getCallbackAddress();
+        name = configuration.getName();
+        dataAddressType = configuration.getDataAddressType();
+        policyScope = configuration.getPolicyScope();
+        endpoint = configuration.getEndpoint();
+        this.callbackAddress = callbackAddress;
         this.policyEngine = policyEngine;
         this.httpClient = httpClient;
-        this.mapper = objectMapper;
+        mapper = objectMapper;
         this.monitor = monitor;
     }
 

@@ -11,8 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-
-package org.eclipse.dataspaceconnector.transfer.provision.http;
+package org.eclipse.dataspaceconnector.transfer.provision.http.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Interceptor;
@@ -23,6 +22,7 @@ import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
+import org.eclipse.dataspaceconnector.transfer.provision.http.config.ProvisionerConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +32,7 @@ import java.net.URL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
 import static org.eclipse.dataspaceconnector.transfer.provision.http.HttpProvisionerFixtures.createResponse;
-import static org.eclipse.dataspaceconnector.transfer.provision.http.ProvisionerConfiguration.ProvisionerType.PROVIDER;
+import static org.eclipse.dataspaceconnector.transfer.provision.http.config.ProvisionerConfiguration.ProvisionerType.PROVIDER;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -167,13 +167,12 @@ class HttpProviderProvisionerTest {
                 .provisionerType(PROVIDER)
                 .dataAddressType("test")
                 .policyScope("test")
-                .callbackAddress(new URL("http://foo.com"))
                 .endpoint(new URL("http://bar.com"))
                 .build();
 
         delegate = mock(Interceptor.class);
         var httpClient = testOkHttpClient().newBuilder().addInterceptor(delegate).build();
-        provisioner = new HttpProviderProvisioner(configuration, mock(PolicyEngine.class), httpClient, new ObjectMapper(), mock(Monitor.class));
+        provisioner = new HttpProviderProvisioner(configuration, new URL("http://foo.com"), mock(PolicyEngine.class), httpClient, new ObjectMapper(), mock(Monitor.class));
     }
 
     private HttpProviderResourceDefinition createResourceDefinition() {

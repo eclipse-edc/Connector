@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.transfer.provision.http;
+package org.eclipse.dataspaceconnector.transfer.provision.http.impl;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
@@ -29,16 +29,20 @@ import static java.util.Objects.requireNonNull;
 public class HttpProviderResourceDefinition extends AbstractHttpResourceDefinition {
     private String assetId;
 
-    public String getAssetId() {
-        return assetId;
-    }
-
     private HttpProviderResourceDefinition() {
         super();
     }
 
+    public String getAssetId() {
+        return assetId;
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends AbstractHttpResourceDefinition.Builder<HttpProviderResourceDefinition, Builder> {
+
+        private Builder() {
+            super(new HttpProviderResourceDefinition());
+        }
 
         @JsonCreator
         public static Builder newInstance() {
@@ -54,10 +58,6 @@ public class HttpProviderResourceDefinition extends AbstractHttpResourceDefiniti
         protected void verify() {
             super.verify();
             requireNonNull(resourceDefinition.assetId, "assetId");
-        }
-
-        private Builder() {
-            super(new HttpProviderResourceDefinition());
         }
 
     }

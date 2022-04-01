@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.transfer.provision.http;
+package org.eclipse.dataspaceconnector.transfer.provision.http.impl;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
@@ -28,22 +28,27 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedConte
 public class HttpProvisionedContentResource extends ProvisionedContentResource {
     private String assetId;
 
-    public String getAssetId() {
-        return assetId;
-    }
-
     private HttpProvisionedContentResource() {
         super();
     }
 
+    public String getAssetId() {
+        return assetId;
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends ProvisionedContentResource.Builder<HttpProvisionedContentResource, Builder> {
+
+        private Builder() {
+            super(new HttpProvisionedContentResource());
+        }
 
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
 
+        @Override
         public Builder transferProcessId(String transferProcessId) {
             provisionedResource.transferProcessId = transferProcessId;
             return this;
@@ -52,10 +57,6 @@ public class HttpProvisionedContentResource extends ProvisionedContentResource {
         public Builder assetId(String assetId) {
             provisionedResource.assetId = assetId;
             return this;
-        }
-
-        private Builder() {
-            super(new HttpProvisionedContentResource());
         }
     }
 }

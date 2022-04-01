@@ -12,12 +12,12 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.transfer.provision.http;
+package org.eclipse.dataspaceconnector.transfer.provision.http.config;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
-import org.eclipse.dataspaceconnector.transfer.provision.http.ProvisionerConfiguration.ProvisionerType;
+import org.eclipse.dataspaceconnector.transfer.provision.http.config.ProvisionerConfiguration.ProvisionerType;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -28,10 +28,10 @@ import static java.util.stream.Collectors.toList;
 
 /**
  * Parses provisioner configuration.
- *
+ * <p>
  * Multiple named provisioners can be configured per runtime.
  */
-class ConfigParser {
+public class ConfigParser {
     private static final String DEFAULT_POLICY_SCOPE = "http.provisioner";
 
     private static final String CONFIG_PREFIX = "provisioner.http";
@@ -50,18 +50,13 @@ class ConfigParser {
     @EdcSetting
     private static final String POLICY_SCOPE = "policy.scope";
 
-    @EdcSetting
-    private static final String CALLBACK_ADDRESS = "callback.address";
-
-    // TODO replace
-    private static final String DEFAULT_CALLBACK_ADDRESS = "http://localhost:8080";
+    private ConfigParser() {
+    }
 
     /**
      * Parses the runtime configuration source, returning a provisioner configuration.
      */
     public static List<ProvisionerConfiguration> parseConfigurations(Config root) {
-
-        var callbackAddress = parseCallback(root);
 
         var configurations = root.getConfig(HTTP_PROVISIONER_ENTRIES);
 
@@ -83,18 +78,8 @@ class ConfigParser {
                             .dataAddressType(dataAddressType)
                             .policyScope(policyScope)
                             .endpoint(endpoint)
-                            .callbackAddress(callbackAddress)
                             .build();
                 }).collect(toList());
-    }
-
-    private static URL parseCallback(Config root) {
-        var callbackAddress = root.getConfig(CONFIG_PREFIX).getString(CALLBACK_ADDRESS, DEFAULT_CALLBACK_ADDRESS);
-        try {
-            return new URL(callbackAddress);
-        } catch (MalformedURLException e) {
-            throw new EdcException("Invalid callback address for HTTP provisioners", e);
-        }
     }
 
     private static URL parseEndpoint(Config config, String provisionerName) {
@@ -113,8 +98,5 @@ class ConfigParser {
         } catch (IllegalArgumentException e) {
             throw new EdcException(format("Invalid provisioner type specified for %s: %s", provisionerName, typeValue));
         }
-    }
-
-    private ConfigParser() {
     }
 }

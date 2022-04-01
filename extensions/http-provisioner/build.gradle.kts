@@ -14,16 +14,24 @@
 
 plugins {
     `java-library`
+    id("io.swagger.core.v3.swagger-gradle-plugin")
 }
 
 val okHttpVersion: String by project
 val jodahFailsafeVersion: String by project
+val rsApi: String by project
+val restAssured: String by project
+
 
 dependencies {
     api(project(":spi:transfer-spi"))
+    api(project(":spi:web-spi"))
+    implementation(project(":extensions:api:auth-spi"))
+    implementation(project(":core:transfer")) // needs the AddProvisionedResourceCommand
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("net.jodah:failsafe:${jodahFailsafeVersion}")
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(project(":core:transfer"))
@@ -31,6 +39,7 @@ dependencies {
     testImplementation(project(":extensions:in-memory:transfer-store-memory"))
     testImplementation(project(":extensions:dataloading"))
     testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation("io.rest-assured:rest-assured:${restAssured}")
 
 }
 

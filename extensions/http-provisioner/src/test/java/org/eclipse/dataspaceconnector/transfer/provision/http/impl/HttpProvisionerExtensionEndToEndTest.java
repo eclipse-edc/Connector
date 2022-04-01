@@ -11,23 +11,28 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-
-package org.eclipse.dataspaceconnector.transfer.provision.http;
+package org.eclipse.dataspaceconnector.transfer.provision.http.impl;
 
 import okhttp3.Interceptor;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.retry.TransferWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
+import org.eclipse.dataspaceconnector.transfer.provision.http.HttpProvisionerExtension;
+import org.eclipse.dataspaceconnector.transfer.provision.http.HttpProvisionerWebhookUrl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -37,11 +42,12 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
 import static org.eclipse.dataspaceconnector.transfer.provision.http.HttpProvisionerFixtures.PROVISIONER_CONFIG;
 import static org.eclipse.dataspaceconnector.transfer.provision.http.HttpProvisionerFixtures.TEST_DATA_TYPE;
 import static org.eclipse.dataspaceconnector.transfer.provision.http.HttpProvisionerFixtures.createResponse;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(EdcExtension.class)
+@ExtendWith({ EdcExtension.class })
 public class HttpProvisionerExtensionEndToEndTest {
 
     private Interceptor delegate;
@@ -80,6 +86,7 @@ public class HttpProvisionerExtensionEndToEndTest {
 
         extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
         extension.registerSystemExtension(ServiceExtension.class, new HttpProvisionerExtension(httpClient));
+        extension.registerSystemExtension(ServiceExtension.class, new DummyCallbackUrlExtension());
         extension.setConfiguration(PROVISIONER_CONFIG);
     }
 
@@ -95,4 +102,17 @@ public class HttpProvisionerExtensionEndToEndTest {
         return DataRequest.Builder.newInstance().destinationType("test").assetId("1").build();
     }
 
+    @Provides(HttpProvisionerWebhookUrl.class)
+    private static class DummyCallbackUrlExtension implements ServiceExtension {
+        @Override
+        public void initialize(ServiceExtensionContext context) {
+            try {
+                var url = new URL("http://localhost:8080");
+                context.registerService(HttpProvisionerWebhookUrl.class, () -> url);
+            } catch (MalformedURLException e) {
+                fail(e);
+            }
+
+        }
+    }
 }
