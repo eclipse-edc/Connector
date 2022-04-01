@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.spi.contract.negotiation.store;
 
 import org.eclipse.dataspaceconnector.spi.persistence.StateEntityStore;

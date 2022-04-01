@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.dataplane.framework.pipeline;
 
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;

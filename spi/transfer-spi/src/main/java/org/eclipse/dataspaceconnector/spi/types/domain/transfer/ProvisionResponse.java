@@ -10,7 +10,9 @@
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *       Microsoft Corporation
+ *
  */
+
 package org.eclipse.dataspaceconnector.spi.types.domain.transfer;
 
 import org.jetbrains.annotations.Nullable;

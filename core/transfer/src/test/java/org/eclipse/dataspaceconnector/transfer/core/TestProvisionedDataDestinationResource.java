@@ -12,6 +12,7 @@
  *       Microsoft Corporation
  *
  */
+
 package org.eclipse.dataspaceconnector.transfer.core;
 
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;

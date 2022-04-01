@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
- *       Fraunhofer Institute for Software and Systems Engineering
+ *       Fraunhofer Institute for Software and Systems Engineering - Improvements
  *       Daimler TSS GmbH - introduce factory to create RequestInProcessMessage
  *
  */

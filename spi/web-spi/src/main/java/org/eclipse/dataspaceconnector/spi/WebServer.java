@@ -11,6 +11,7 @@
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.spi;
 
 import org.eclipse.dataspaceconnector.spi.system.Feature;

@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.spi.system.injection;
 
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;

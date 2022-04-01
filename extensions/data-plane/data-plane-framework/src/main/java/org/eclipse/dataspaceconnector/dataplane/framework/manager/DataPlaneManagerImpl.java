@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.dataplane.framework.manager;
 
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;

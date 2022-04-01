@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021-2022 Fraunhofer Institute for Software and Systems Engineering, Daimler TSS GmbH
+ *  Copyright (c) 2021 - 2022 Fraunhofer Institute for Software and Systems Engineering, Daimler TSS GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at

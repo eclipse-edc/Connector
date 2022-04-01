@@ -13,6 +13,7 @@
  *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.contract.offer;
 
 import org.eclipse.dataspaceconnector.contract.common.ContractId;

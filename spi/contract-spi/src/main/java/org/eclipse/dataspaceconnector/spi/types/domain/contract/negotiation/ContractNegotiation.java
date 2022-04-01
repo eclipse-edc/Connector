@@ -10,9 +10,10 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
+
 package org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation;
 
 import com.fasterxml.jackson.annotation.JsonCreator;

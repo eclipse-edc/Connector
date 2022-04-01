@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *      Fraunhofer Institute for Software and Systems Engineering - Initial Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - Initial Implementation
  *
  */
 

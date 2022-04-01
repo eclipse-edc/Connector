@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage;
 
 import net.jodah.failsafe.RetryPolicy;

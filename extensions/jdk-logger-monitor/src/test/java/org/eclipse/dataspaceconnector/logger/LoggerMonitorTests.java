@@ -8,9 +8,10 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *      Catena-X Consortium - initial API and implementation
+ *       Catena-X Consortium - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.logger;
 
 import com.github.javafaker.Faker;
