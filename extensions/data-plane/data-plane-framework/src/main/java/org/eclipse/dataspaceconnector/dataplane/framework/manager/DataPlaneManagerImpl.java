@@ -17,17 +17,15 @@ import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
-import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.dataspaceconnector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore.State;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
-import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
@@ -49,6 +47,7 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
 
     private PipelineService pipelineService;
     private Monitor monitor;
+    private Telemetry telemetry;
 
     private BlockingQueue<DataFlowRequest> queue;
     private ExecutorService executorService;
@@ -89,6 +88,8 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
     }
 
     public void initiateTransfer(DataFlowRequest dataRequest) {
+        // set current trace context into entity for request traceability
+        dataRequest.setTraceContext(telemetry.getCurrentTraceContext());
         queue.add(dataRequest);
         store.received(dataRequest.getProcessId());
     }
@@ -116,21 +117,9 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
                 if (request == null) {
                     continue;
                 }
-                final var polledRequest = request;
+                // propagate trace context for request into the current thread
+                telemetry.contextPropagationMiddleware(this::processDataFlowRequest).accept(request);
 
-                var transferService = transferServiceRegistry.resolveTransferService(polledRequest);
-                if (transferService == null) {
-                    // Should not happen since resolving a transferService is part of payload validation
-                    // TODO persist error details
-                    store.completed(polledRequest.getProcessId());
-                } else {
-                    transferService.transfer(request).whenComplete((result, exception) -> {
-                        if (polledRequest.isTrackable()) {
-                            // TODO persist TransferResult or error details
-                            store.completed(polledRequest.getProcessId());
-                        }
-                    });
-                }
             } catch (InterruptedException e) {
                 Thread.interrupted();
                 active.set(false);
@@ -144,6 +133,22 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
                     store.completed(request.getProcessId());
                 }
             }
+        }
+    }
+
+    private void processDataFlowRequest(DataFlowRequest request) {
+        var transferService = transferServiceRegistry.resolveTransferService(request);
+        if (transferService == null) {
+            // Should not happen since resolving a transferService is part of payload validation
+            // TODO persist error details
+            store.completed(request.getProcessId());
+        } else {
+            transferService.transfer(request).whenComplete((result, exception) -> {
+                if (request.isTrackable()) {
+                    // TODO persist TransferResult or error details
+                    store.completed(request.getProcessId());
+                }
+            });
         }
     }
 
@@ -166,6 +171,11 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
 
         public Builder monitor(Monitor monitor) {
             manager.monitor = monitor;
+            return this;
+        }
+
+        public Builder telemetry(Telemetry telemetry) {
+            manager.telemetry = telemetry;
             return this;
         }
 

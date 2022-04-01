@@ -18,9 +18,12 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.spi.telemetry.TraceCarrier;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.Polymorphic;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -29,7 +32,7 @@ import java.util.Objects;
  */
 @JsonTypeName("dataspaceconnector:dataflowrequest")
 @JsonDeserialize(builder = DataFlowRequest.Builder.class)
-public class DataFlowRequest implements Polymorphic {
+public class DataFlowRequest implements Polymorphic, TraceCarrier {
     private String id;
     private String processId;
 
@@ -39,6 +42,8 @@ public class DataFlowRequest implements Polymorphic {
     private boolean trackable;
 
     private Map<String, String> properties = Map.of();
+
+    private Map<String, String> traceContext = new HashMap<>();
 
     private DataFlowRequest() {
     }
@@ -83,6 +88,20 @@ public class DataFlowRequest implements Polymorphic {
      */
     public Map<String, String> getProperties() {
         return properties;
+    }
+
+    /**
+     * @return Trace context for this carrier
+     */
+    public Map<String, String> getTraceContext() {
+        return Collections.unmodifiableMap(traceContext);
+    }
+
+    /**
+     * Sets the trace context in this carrier
+     */
+    public void setTraceContext(Map<String, String> traceContext) {
+        this.traceContext = traceContext;
     }
 
     @JsonPOJOBuilder(withPrefix = "")

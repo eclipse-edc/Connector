@@ -7,6 +7,7 @@ import io.opentelemetry.context.propagation.TextMapGetter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -46,6 +47,20 @@ public class Telemetry {
         return (t) -> {
             try (Scope scope = propagateTraceContext(t)) {
                 return delegate.apply(t);
+            }
+        };
+    }
+
+    /**
+     * Wraps a consumer with a middleware to propagate the trace context present in the carrier to the executing thread
+     *
+     * @param delegate The wrapped consumer
+     * @return The resulting function with the context propagation middleware
+     */
+    public <T extends TraceCarrier> Consumer<T> contextPropagationMiddleware(Consumer<T> delegate) {
+        return (t) -> {
+            try (Scope scope = propagateTraceContext(t)) {
+                delegate.accept(t);
             }
         };
     }
