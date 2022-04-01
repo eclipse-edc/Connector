@@ -39,12 +39,14 @@ public class PolicyServiceImpl implements PolicyService {
 
     @Override
     public Policy findById(String policyId) {
-        return policyStore.findById(policyId);
+        return transactionContext.execute(() ->
+                policyStore.findById(policyId));
     }
 
     @Override
     public Collection<Policy> query(QuerySpec query) {
-        return policyStore.findAll(query).collect(toList());
+        return transactionContext.execute(() ->
+                policyStore.findAll(query).collect(toList()));
     }
 
     @Override
@@ -54,17 +56,17 @@ public class PolicyServiceImpl implements PolicyService {
             var queryContractPolicyFilter = QuerySpec.Builder.newInstance().filter(contractFilter).build();
             var contractDefinitionOnPolicy = contractDefinitionStore.findAll(queryContractPolicyFilter);
             if (contractDefinitionOnPolicy.findAny().isPresent()) {
-                return ServiceResult.conflict(format("Policy %s cannot be deleted as it is referenced by at least one contractPolicy", policyId));
+                return ServiceResult.conflict(format("Policy %s cannot be deleted as it is referenced by at least one contract policy", policyId));
             }
 
             var accessFilter = format("accessPolicy.uid = %s ", policyId);
             var queryAccessPolicyFilter = QuerySpec.Builder.newInstance().filter(accessFilter).build();
             var accessDefinitionOnPolicy = contractDefinitionStore.findAll(queryAccessPolicyFilter);
             if (accessDefinitionOnPolicy.findAny().isPresent()) {
-                return ServiceResult.conflict(format("Policy %s cannot be deleted as it is referenced by at least one accessPolicy", policyId));
+                return ServiceResult.conflict(format("Policy %s cannot be deleted as it is referenced by at least one access policy", policyId));
             }
 
-            Policy deleted = policyStore.delete(policyId);
+            var deleted = policyStore.delete(policyId);
             if (deleted == null) {
                 return ServiceResult.notFound(format("Policy %s does not exist", policyId));
             }
@@ -81,7 +83,7 @@ public class PolicyServiceImpl implements PolicyService {
                 policyStore.save(policy);
                 return ServiceResult.success(policy);
             } else {
-                return ServiceResult.conflict(format("Policy %s cannot be created because it already exist", policy.getUid()));
+                return ServiceResult.conflict(format("Policy %s cannot be created because it already exists", policy.getUid()));
             }
         });
     }
