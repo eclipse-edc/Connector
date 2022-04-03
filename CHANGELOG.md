@@ -48,6 +48,7 @@ the detailed section referring to by linking pull requests or issues.
 * Let Control Plane delegate data transfer to Data Plane (#988)
 * CosmosDb based `PolicyStore` (#826)
 * Http Provisioner Webhook endpoint (#1039)
+* Add dependency checks (#1000)
 
 #### Changed
 
