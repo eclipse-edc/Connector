@@ -36,4 +36,4 @@ COMMENT ON COLUMN edc_policies.extensible_properties IS 'Java Map<String, Object
 COMMENT ON COLUMN edc_policies.policy_type IS 'Java PolicyType serialized as JSON';
 
 CREATE UNIQUE INDEX edc_policies_id_uindex
-    ON edc_policies (id);
+    ON edc_policies (policy_id);
