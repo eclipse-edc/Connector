@@ -265,7 +265,12 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
             throw new UnsupportedOperationException();
         }
-
+    
+        @Override
+        public ContractDefinition findById(String definitionId) {
+            throw new UnsupportedOperationException();
+        }
+    
         @Override
         public void save(Collection<ContractDefinition> definitions) {
             contractDefinitions.addAll(definitions);
