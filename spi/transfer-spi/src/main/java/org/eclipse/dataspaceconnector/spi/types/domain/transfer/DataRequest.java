@@ -71,7 +71,10 @@ public class DataRequest implements RemoteMessage, Polymorphic {
         return processId;
     }
 
-    void setProcessId(String processId) {
+    /**
+     * Associates the request with a process id.
+     */
+    void associateWithProcessId(String processId) {
         this.processId = processId;
     }
 
