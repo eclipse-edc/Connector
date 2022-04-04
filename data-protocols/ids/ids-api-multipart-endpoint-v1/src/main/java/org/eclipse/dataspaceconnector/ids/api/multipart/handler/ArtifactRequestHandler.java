@@ -148,6 +148,7 @@ public class ArtifactRequestHandler implements Handler {
                 .dataDestination(dataAddress)
                 .connectorId(connectorId)
                 .assetId(contractAgreement.getAssetId())
+                .policyId(contractAgreement.getPolicy().getUid())
                 .contractId(contractAgreement.getId())
                 .properties(props)
                 .connectorAddress(idsWebhookAddress)

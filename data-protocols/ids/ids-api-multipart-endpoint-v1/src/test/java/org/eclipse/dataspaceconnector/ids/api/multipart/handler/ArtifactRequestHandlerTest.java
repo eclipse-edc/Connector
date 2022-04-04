@@ -96,6 +96,7 @@ class ArtifactRequestHandlerTest {
         assertThat(drCapture.getValue().getDataDestination().getKeyName()).isEqualTo(destination.getKeyName());
         assertThat(drCapture.getValue().getConnectorId()).isEqualTo(connectorId);
         assertThat(drCapture.getValue().getAssetId()).isEqualTo(agreement.getAssetId());
+        assertThat(drCapture.getValue().getPolicyId()).isEqualTo(agreement.getPolicy().getUid());
         assertThat(drCapture.getValue().getContractId()).isEqualTo(agreement.getId());
         assertThat(drCapture.getValue().getConnectorAddress()).isEqualTo(header.getProperties().get(IDS_WEBHOOK_ADDRESS_PROPERTY).toString());
         assertThat(drCapture.getValue().getProperties()).containsExactlyEntriesOf(Map.of("foo", "bar"));
