@@ -4,11 +4,11 @@ Provides SQL persistence for policies.
 
 ## Prerequisites
 
-Please apply this [schema](docs/schema.sql) to your SQL database.
+Please apply this [schema](../docs/schema.sql) to your SQL database.
 
 ## Entity Diagram
 
-![ER Diagram](https://plantuml.com/plantuml/png/VT11QWCn38NX_Pn2wq0kK4B8lflUm3YUrucAHpAI1ZAKtht5RQ6XcIpz_WyCEdbaYsMk0oGuLi9OKjFAXU7qFX3jg3_NnECJUHZBH8V3o_Fn-1Nt-ovoAN1Ft_2FUdELxdPKLC9oYOV8KL52BU7Q3EwiSXyssCoz-mOmlV2POrkCIp0s6gu1SJvNf6RQODkKvGBZyFHgEl-INh8xJmAxD-9cZ6mJucRwkNci3V___HXEa76PwoS0)
+![ER Diagram](../docs/er.png)
 <!--
 ```plantuml
 @startuml

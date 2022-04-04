@@ -105,39 +105,43 @@ public class SqlPolicyStore implements PolicyStore {
     }
 
     private void insert(Policy policy) {
-        try (var connection = getConnection()) {
-            executeQuery(connection, sqlPolicyStoreStatements.getSqlInsertClauseTemplate(),
-                    policy.getUid(),
-                    toJson(policy.getPermissions(), new TypeReference<List<Permission>>() {}),
-                    toJson(policy.getProhibitions(), new TypeReference<List<Prohibition>>() {}),
-                    toJson(policy.getObligations(), new TypeReference<List<Duty>>() {}),
-                    toJson(policy.getExtensibleProperties()),
-                    policy.getInheritsFrom(),
-                    policy.getAssigner(),
-                    policy.getAssignee(),
-                    policy.getTarget(),
-                    toJson(policy.getType(), new TypeReference<PolicyType>() {}));
-        } catch (Exception e) {
-            throw new EdcPersistenceException(e.getMessage(), e);
-        }
+        transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                executeQuery(connection, sqlPolicyStoreStatements.getSqlInsertClauseTemplate(),
+                        policy.getUid(),
+                        toJson(policy.getPermissions(), new TypeReference<List<Permission>>() {}),
+                        toJson(policy.getProhibitions(), new TypeReference<List<Prohibition>>() {}),
+                        toJson(policy.getObligations(), new TypeReference<List<Duty>>() {}),
+                        toJson(policy.getExtensibleProperties()),
+                        policy.getInheritsFrom(),
+                        policy.getAssigner(),
+                        policy.getAssignee(),
+                        policy.getTarget(),
+                        toJson(policy.getType(), new TypeReference<PolicyType>() {}));
+            } catch (Exception e) {
+                throw new EdcPersistenceException(e.getMessage(), e);
+            }
+        });
     }
 
     private void update(Policy policy) {
-        try (var connection = getConnection()) {
-            executeQuery(connection, sqlPolicyStoreStatements.getSqlUpdateClauseTemplate(),
-                    toJson(policy.getPermissions(), new TypeReference<List<Permission>>() {}),
-                    toJson(policy.getProhibitions(), new TypeReference<List<Prohibition>>() {}),
-                    toJson(policy.getObligations(), new TypeReference<List<Duty>>() {}),
-                    toJson(policy.getExtensibleProperties()),
-                    policy.getInheritsFrom(),
-                    policy.getAssigner(),
-                    policy.getAssignee(),
-                    policy.getTarget(),
-                    toJson(policy.getType(), new TypeReference<PolicyType>() {}),
-                    policy.getUid());
-        } catch (Exception e) {
-            throw new EdcPersistenceException(e.getMessage(), e);
-        }
+        transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                executeQuery(connection, sqlPolicyStoreStatements.getSqlUpdateClauseTemplate(),
+                        toJson(policy.getPermissions(), new TypeReference<List<Permission>>() {}),
+                        toJson(policy.getProhibitions(), new TypeReference<List<Prohibition>>() {}),
+                        toJson(policy.getObligations(), new TypeReference<List<Duty>>() {}),
+                        toJson(policy.getExtensibleProperties()),
+                        policy.getInheritsFrom(),
+                        policy.getAssigner(),
+                        policy.getAssignee(),
+                        policy.getTarget(),
+                        toJson(policy.getType(), new TypeReference<PolicyType>() {}),
+                        policy.getUid());
+            } catch (Exception e) {
+                throw new EdcPersistenceException(e.getMessage(), e);
+            }
+        });
     }
 
     private Policy mapResultSet(ResultSet resultSet) throws SQLException {

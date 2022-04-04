@@ -28,12 +28,9 @@ dependencies {
     implementation(project(":extensions:transaction:transaction-datasource-spi"))
     implementation(project(":extensions:sql:common"))
 
-    testImplementation(testFixtures(project(":launchers:junit")))
-    testImplementation(project(":core:base"))
     testImplementation(project(":extensions:sql:pool:apache-commons-pool"))
     testImplementation(project(":extensions:transaction:transaction-local"))
     testImplementation("com.h2database:h2:${h2Version}")
-    testImplementation("org.assertj:assertj-core:${assertj}")
 }
 
 publishing {
