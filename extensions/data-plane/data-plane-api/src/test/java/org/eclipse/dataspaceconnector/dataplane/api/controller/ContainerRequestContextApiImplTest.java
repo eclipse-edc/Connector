@@ -14,8 +14,10 @@
 
 package org.eclipse.dataspaceconnector.dataplane.api.controller;
 
+import com.github.javafaker.Faker;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
@@ -41,22 +43,24 @@ import static org.mockito.Mockito.when;
 
 class ContainerRequestContextApiImplTest {
 
+    private static final Faker FAKER = new Faker();
+
     private final ContainerRequestContextApi api = new ContainerRequestContextApiImpl();
 
     @Test
     void authHeader() {
-        var token = "test";
+        var token = FAKER.internet().uuid();
         var context = mock(ContainerRequestContext.class);
-        when(context.getHeaderString("Authorization")).thenReturn(token);
+        when(context.getHeaderString(HttpHeaders.AUTHORIZATION)).thenReturn(token);
 
         assertThat(api.authHeader(context)).isEqualTo(token);
     }
 
     @Test
     void properties() {
-        var body = testJsonBody();
+        var body = FAKER.internet().uuid();
         var headers = defaultHeaders();
-        var path = "path/test";
+        var path = FAKER.internet().uuid();
         var context = testContext(testQueryParams(), path, headers, MediaType.valueOf(APPLICATION_JSON), body);
 
         var props = api.properties(context);
@@ -65,7 +69,7 @@ class ContainerRequestContextApiImplTest {
                 METHOD, HttpMethod.POST,
                 QUERY_PARAMS, "foo=bar&hello=world",
                 MEDIA_TYPE, APPLICATION_JSON,
-                PATH, "path/test",
+                PATH, path,
                 BODY, body
         ));
     }
@@ -95,17 +99,13 @@ class ContainerRequestContextApiImplTest {
         var uriInfo = mock(UriInfo.class);
         when(uriInfo.getQueryParameters()).thenReturn(queryParams);
         when(uriInfo.getPath()).thenReturn(path);
-        when(uriInfo.getBaseUri()).thenReturn(URI.create("http://localhost:8080/"));
+        when(uriInfo.getBaseUri()).thenReturn(URI.create(FAKER.internet().url()));
         return uriInfo;
-    }
-
-    private String testJsonBody() {
-        return "{ \"foo\" : \"bar\"}";
     }
 
     private static MultivaluedMap<String, String> defaultHeaders() {
         var headers = new MultivaluedHashMap<String, String>();
-        headers.put("Authorization", List.of("test-token"));
+        headers.put("Authorization", List.of(FAKER.internet().uuid()));
         return headers;
     }
 

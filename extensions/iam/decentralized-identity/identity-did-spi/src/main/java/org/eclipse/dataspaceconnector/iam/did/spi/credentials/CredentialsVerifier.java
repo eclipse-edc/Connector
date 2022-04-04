@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.iam.did.spi.credentials;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;

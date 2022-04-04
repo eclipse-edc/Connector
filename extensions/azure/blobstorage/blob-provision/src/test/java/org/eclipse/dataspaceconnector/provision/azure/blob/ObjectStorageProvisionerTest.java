@@ -58,14 +58,15 @@ class ObjectStorageProvisionerTest {
 
     @Test
     void canDeprovision() {
-        assertThat(provisioner.canDeprovision(new ObjectContainerProvisionedResource())).isTrue();
+        var resource = createProvisionedResource();
+        assertThat(provisioner.canDeprovision(resource)).isTrue();
         assertThat(provisioner.canDeprovision(new ProvisionedResource() {
         })).isFalse();
     }
 
     @Test
     void deprovision_should_not_do_anything() {
-        var resource = new ObjectContainerProvisionedResource();
+        ObjectContainerProvisionedResource resource = createProvisionedResource();
         var result = provisioner.deprovision(resource, policy);
 
         assertThat(result).succeedsWithin(1, SECONDS);
@@ -73,13 +74,13 @@ class ObjectStorageProvisionerTest {
 
     @Test
     void provision_success() {
-        var resourceDef = resourceDefinition().transferProcessId("tpId").build();
+        var resourceDef = createResourceDefinitionBuilder().transferProcessId("tpId").build();
         String accountName = resourceDef.getAccountName();
         String containerName = resourceDef.getContainerName();
         when(blobStoreApiMock.exists(anyString(), anyString())).thenReturn(false);
         when(blobStoreApiMock.createContainerSasToken(eq(accountName), eq(containerName), eq("w"), any())).thenReturn("some-sas");
 
-        var response = provisioner.provision(resourceDef, policy).join();
+        var response = provisioner.provision(resourceDef, policy).join().getContent();
 
         assertThat(response.getResource()).isInstanceOfSatisfying(ObjectContainerProvisionedResource.class, resource -> {
             assertThat(resource.getTransferProcessId()).isEqualTo("tpId");
@@ -93,13 +94,13 @@ class ObjectStorageProvisionerTest {
 
     @Test
     void provision_container_already_exists() {
-        var resourceDef = resourceDefinition().transferProcessId("tpId").build();
+        var resourceDef = createResourceDefinitionBuilder().transferProcessId("tpId").build();
         String accountName = resourceDef.getAccountName();
         String containerName = resourceDef.getContainerName();
         when(blobStoreApiMock.exists(accountName, containerName)).thenReturn(true);
         when(blobStoreApiMock.createContainerSasToken(eq(accountName), eq(containerName), eq("w"), any())).thenReturn("some-sas");
 
-        var response = provisioner.provision(resourceDef, policy).join();
+        var response = provisioner.provision(resourceDef, policy).join().getContent();
 
         assertThat(response.getResource()).isInstanceOfSatisfying(ObjectContainerProvisionedResource.class, resource -> {
             assertThat(resource.getTransferProcessId()).isEqualTo("tpId");
@@ -113,7 +114,7 @@ class ObjectStorageProvisionerTest {
 
     @Test
     void provision_no_key_found_in_vault() {
-        var resourceDefinition = resourceDefinition().build();
+        var resourceDefinition = createResourceDefinitionBuilder().build();
         when(blobStoreApiMock.exists(any(), anyString()))
                 .thenThrow(new IllegalArgumentException("No Object Storage credential found in vault"));
 
@@ -123,7 +124,7 @@ class ObjectStorageProvisionerTest {
 
     @Test
     void provision_key_not_authorized() {
-        var resourceDef = resourceDefinition().build();
+        var resourceDef = createResourceDefinitionBuilder().build();
         when(blobStoreApiMock.exists(anyString(), anyString())).thenReturn(false);
         doThrow(new BlobStorageException("not authorized", null, null))
                 .when(blobStoreApiMock).createContainer(resourceDef.getAccountName(), resourceDef.getContainerName());
@@ -132,7 +133,7 @@ class ObjectStorageProvisionerTest {
         verify(blobStoreApiMock).exists(anyString(), anyString());
     }
 
-    private ObjectStorageResourceDefinition.Builder resourceDefinition() {
+    private ObjectStorageResourceDefinition.Builder createResourceDefinitionBuilder() {
         return ObjectStorageResourceDefinition.Builder
                 .newInstance()
                 .accountName("test-account-name")
@@ -140,4 +141,14 @@ class ObjectStorageProvisionerTest {
                 .transferProcessId("test-process-id")
                 .id("test-id");
     }
+
+    private ObjectContainerProvisionedResource createProvisionedResource() {
+        return ObjectContainerProvisionedResource.Builder.newInstance()
+                .id("1")
+                .transferProcessId("2")
+                .resourceDefinitionId("3")
+                .resourceName("resource")
+                .build();
+    }
+
 }

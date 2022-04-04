@@ -26,6 +26,7 @@ dependencies {
     api(project(":extensions:in-memory:identity-hub-memory"))
     api(project(":extensions:in-memory:negotiation-store-memory"))
     api(project(":extensions:in-memory:transfer-store-memory"))
+    api(project(":extensions:in-memory:policy-store-memory"))
 }
 
 publishing {

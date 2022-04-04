@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import de.fraunhofer.iais.eis.ConstraintBuilder;
 import de.fraunhofer.iais.eis.DutyBuilder;
+import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintBuilder;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Constraint;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
@@ -54,7 +54,7 @@ public class IdsPermissionToPermissionTransformerTest {
     void setUp() {
         transformer = new IdsPermissionToPermissionTransformer();
         idsDuty = new DutyBuilder().build();
-        idsConstraint = new ConstraintBuilder().build();
+        idsConstraint = new IdsConstraintBuilder().build();
         idsPermission = new de.fraunhofer.iais.eis.PermissionBuilder()
                 ._action_(new ArrayList<>(Collections.singletonList(de.fraunhofer.iais.eis.Action.USE)))
                 ._target_(TARGET_URI)

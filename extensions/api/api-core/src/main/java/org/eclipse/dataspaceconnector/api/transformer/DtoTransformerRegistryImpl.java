@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
@@ -88,11 +88,11 @@ public class DtoTransformerRegistryImpl implements DtoTransformerRegistry {
         return outputType.cast(((DtoTransformer<INPUT, OUTPUT>) t).transform(object, context));
     }
 
-    private static class DtoTransformerContext implements TransformerContext {
+    public static class DtoTransformerContext implements TransformerContext {
         private final DtoTransformerRegistry registry;
         private final List<String> problems;
 
-        private DtoTransformerContext(DtoTransformerRegistry registry) {
+        public DtoTransformerContext(DtoTransformerRegistry registry) {
             this.registry = registry;
             problems = new ArrayList<>();
         }

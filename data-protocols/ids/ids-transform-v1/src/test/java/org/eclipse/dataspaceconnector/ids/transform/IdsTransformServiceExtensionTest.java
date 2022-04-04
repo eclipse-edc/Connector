@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.Artifact;
 import de.fraunhofer.iais.eis.BinaryOperator;
-import de.fraunhofer.iais.eis.LeftOperand;
 import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
@@ -110,10 +109,10 @@ class IdsTransformServiceExtensionTest {
                     Arguments.arguments(de.fraunhofer.iais.eis.Permission.class, Permission.class),
                     Arguments.arguments(de.fraunhofer.iais.eis.Prohibition.class, Prohibition.class),
                     Arguments.arguments(Duty.class, de.fraunhofer.iais.eis.Duty.class),
-                    Arguments.arguments(Expression.class, LeftOperand.class),
+                    Arguments.arguments(Expression.class, String.class),
                     Arguments.arguments(Expression.class, RdfResource.class),
                     Arguments.arguments(IdsId.class, URI.class),
-                    Arguments.arguments(LeftOperand.class, Expression.class),
+                    Arguments.arguments(String.class, Expression.class),
                     Arguments.arguments(OfferedAsset.class, Resource.class),
                     Arguments.arguments(Operator.class, BinaryOperator.class),
                     Arguments.arguments(Permission.class, de.fraunhofer.iais.eis.Permission.class),

@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import de.fraunhofer.iais.eis.LeftOperand;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.junit.jupiter.api.Assertions;
@@ -58,12 +57,12 @@ class ExpressionToIdsLeftOperandTransformerTest {
 
     @Test
     void testSuccessfulMap() {
-        var expression = new LiteralExpression("COUNT");
+        var expression = new LiteralExpression("absoluteSpatialPosition");
 
         var result = transformer.transform(expression, context);
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(LeftOperand.COUNT, result);
+        Assertions.assertEquals("absoluteSpatialPosition", result);
     }
 
 }

@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.ids.core.transform;
 
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;

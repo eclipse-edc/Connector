@@ -11,19 +11,19 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage;
 
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.adapter.BlobAdapterFactory;
 import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageDataSinkFactory;
 import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageDataSourceFactory;
+import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-
-import java.util.concurrent.Executors;
 
 /**
  * Provides support for reading data from an Azure Storage Blob endpoint and sending data to an Azure Storage Blob endpoint.
@@ -35,6 +35,9 @@ public class DataPlaneAzureStorageExtension implements ServiceExtension {
 
     @Inject
     private PipelineService pipelineService;
+
+    @Inject
+    private DataTransferExecutorServiceContainer executorContainer;
 
     @EdcSetting
     public static final String EDC_BLOBSTORE_ENDPOINT = "edc.blobstore.endpoint";
@@ -48,8 +51,6 @@ public class DataPlaneAzureStorageExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var blobstoreEndpoint = context.getSetting(EDC_BLOBSTORE_ENDPOINT, null);
 
-        var executorService = Executors.newFixedThreadPool(10); // TODO make configurable
-
         var monitor = context.getMonitor();
 
         var blobAdapterFactory = new BlobAdapterFactory(blobstoreEndpoint);
@@ -57,7 +58,7 @@ public class DataPlaneAzureStorageExtension implements ServiceExtension {
         var sourceFactory = new AzureStorageDataSourceFactory(blobAdapterFactory, retryPolicy, monitor);
         pipelineService.registerFactory(sourceFactory);
 
-        var sinkFactory = new AzureStorageDataSinkFactory(blobAdapterFactory, executorService, 5, monitor);
+        var sinkFactory = new AzureStorageDataSinkFactory(blobAdapterFactory, executorContainer.getExecutorService(), 5, monitor);
         pipelineService.registerFactory(sinkFactory);
     }
 }

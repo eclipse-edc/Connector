@@ -10,8 +10,9 @@
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Fraunhofer Institute for Software and Systems Engineering - add contract negotiation functionality
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
- *       Microsoft Corporation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       Microsoft Corporation - improvements
+ *
  */
 
 package org.eclipse.dataspaceconnector.contract;

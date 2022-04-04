@@ -9,12 +9,12 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial Implementation
+ *       Fraunhofer Insitute for Software and Systems Engineering
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import de.fraunhofer.iais.eis.LeftOperand;
 import org.eclipse.dataspaceconnector.policy.model.Expression;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
@@ -34,7 +34,8 @@ import static org.mockito.Mockito.mock;
 
 class IdsLeftOperandToExpressionTransformerTest {
 
-    private final LeftOperand leftOperand = LeftOperand.PURPOSE;
+    private final String leftOperand = "PURPOSE";
+
     // subject
     private IdsLeftOperandToExpressionTransformer transformer;
     // mocks
@@ -69,7 +70,7 @@ class IdsLeftOperandToExpressionTransformerTest {
 
     @ParameterizedTest
     @ArgumentsSource(TransformParameterArgumentSource.class)
-    void transform(LeftOperand leftOperand, String expected) {
+    void transform(String leftOperand, String expected) {
         Expression result = transformer.transform(leftOperand, context);
 
         assertThat(result).isNotNull().isInstanceOf(LiteralExpression.class);
@@ -82,23 +83,23 @@ class IdsLeftOperandToExpressionTransformerTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    Arguments.arguments(LeftOperand.ABSOLUTE_SPATIAL_POSITION, "ABSOLUTE_SPATIAL_POSITION"),
-                    Arguments.arguments(LeftOperand.COUNT, "COUNT"),
-                    Arguments.arguments(LeftOperand.DELAY, "DELAY"),
-                    Arguments.arguments(LeftOperand.ELAPSED_TIME, "ELAPSED_TIME"),
-                    Arguments.arguments(LeftOperand.ENDPOINT, "ENDPOINT"),
-                    Arguments.arguments(LeftOperand.EVENT, "EVENT"),
-                    Arguments.arguments(LeftOperand.PATH, "PATH"),
-                    Arguments.arguments(LeftOperand.PAYMENT, "PAYMENT"),
-                    Arguments.arguments(LeftOperand.PAY_AMOUNT, "PAY_AMOUNT"),
-                    Arguments.arguments(LeftOperand.POLICY_EVALUATION_TIME, "POLICY_EVALUATION_TIME"),
-                    Arguments.arguments(LeftOperand.PURPOSE, "PURPOSE"),
-                    Arguments.arguments(LeftOperand.QUANTITY, "QUANTITY"),
-                    Arguments.arguments(LeftOperand.RECURRENCE_RATE, "RECURRENCE_RATE"),
-                    Arguments.arguments(LeftOperand.SECURITY_LEVEL, "SECURITY_LEVEL"),
-                    Arguments.arguments(LeftOperand.STATE, "STATE"),
-                    Arguments.arguments(LeftOperand.SYSTEM, "SYSTEM"),
-                    Arguments.arguments(LeftOperand.USER, "USER")
+                    Arguments.arguments("ABSOLUTE_SPATIAL_POSITION", "ABSOLUTE_SPATIAL_POSITION"),
+                    Arguments.arguments("COUNT", "COUNT"),
+                    Arguments.arguments("DELAY", "DELAY"),
+                    Arguments.arguments("ELAPSED_TIME", "ELAPSED_TIME"),
+                    Arguments.arguments("ENDPOINT", "ENDPOINT"),
+                    Arguments.arguments("EVENT", "EVENT"),
+                    Arguments.arguments("PATH", "PATH"),
+                    Arguments.arguments("PAYMENT", "PAYMENT"),
+                    Arguments.arguments("PAY_AMOUNT", "PAY_AMOUNT"),
+                    Arguments.arguments("POLICY_EVALUATION_TIME", "POLICY_EVALUATION_TIME"),
+                    Arguments.arguments("PURPOSE", "PURPOSE"),
+                    Arguments.arguments("QUANTITY", "QUANTITY"),
+                    Arguments.arguments("RECURRENCE_RATE", "RECURRENCE_RATE"),
+                    Arguments.arguments("SECURITY_LEVEL", "SECURITY_LEVEL"),
+                    Arguments.arguments("STATE", "STATE"),
+                    Arguments.arguments("SYSTEM", "SYSTEM"),
+                    Arguments.arguments("USER", "USER")
             );
         }
     }

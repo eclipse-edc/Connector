@@ -75,11 +75,11 @@ public class CosmosLeaseContext implements LeaseContext {
         writeLease(entityId, true);
     }
 
-    private void writeLease(String documentId, boolean writeLease) {
+    private void writeLease(String entityId, boolean writeLease) {
         if (retryPolicy == null) {
-            cosmosDbApi.invokeStoredProcedure(LEASE_SPROC_NAME, partitionKey, documentId, leaseHolder, writeLease);
+            cosmosDbApi.invokeStoredProcedure(LEASE_SPROC_NAME, partitionKey, entityId, leaseHolder, writeLease);
         } else {
-            retryPolicy.run(() -> cosmosDbApi.invokeStoredProcedure(LEASE_SPROC_NAME, partitionKey, documentId, leaseHolder, writeLease));
+            retryPolicy.run(() -> cosmosDbApi.invokeStoredProcedure(LEASE_SPROC_NAME, partitionKey, entityId, leaseHolder, writeLease));
         }
     }
 }

@@ -1,6 +1,12 @@
 name: Test Code (Style, Tests)
 
-on: [ push, pull_request ]
+on:
+  push:
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
 
 jobs:
   Unit-Test:
@@ -30,8 +36,7 @@ jobs:
         env:
           INTEGRATION_TEST: false
           JACOCO: true
-        # checkstyle would also run as part of the `check` task
-        run: ./gradlew clean check jacocoTestReport -x checkstyleMain -x checkstyleTest -quiet
+        run: ./gradlew test jacocoTestReport
 
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
@@ -58,8 +63,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'gradle'
-
-      # c
 
       - name: Check basic launcher
         run: |
@@ -131,7 +134,7 @@ jobs:
           sleep 5
           grep "INFO.*edc-.*ready" log.txt
           rm log.txt
-          killall java      
+          killall java
 
       # we cannot check sample 5 currently because we'd need repo secrets for that (client id,...)
 

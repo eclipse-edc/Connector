@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.dataplane.spi.result;
 
 import org.eclipse.dataspaceconnector.spi.response.ResponseFailure;

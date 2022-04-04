@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.Multip
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractRejectionSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartEndpointDataReferenceRequestSender;
+import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintImpl;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
@@ -53,8 +54,8 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
     public static final String DEFAULT_EDC_IDS_ID = "urn:connector:edc";
 
     @EdcSetting
-    public static final String IDS_WEBOHOOK_ADDRESS = "ids.webhook.address";
-    public static final String DEFAULT_IDS_WEBOHOOK_ADDRESS = "http://localhost";
+    public static final String IDS_WEBHOOK_ADDRESS = "ids.webhook.address";
+    public static final String DEFAULT_IDS_WEBHOOK_ADDRESS = "http://localhost";
 
     private Monitor monitor;
     @Inject
@@ -87,8 +88,9 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+        objectMapper.registerSubtypes(IdsConstraintImpl.class);
 
-        String idsWebhookAddress = getSetting(context, IDS_WEBOHOOK_ADDRESS, DEFAULT_IDS_WEBOHOOK_ADDRESS);
+        String idsWebhookAddress = getSetting(context, IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS);
         String idsApiPath = idsApiConfiguration.getPath();
 
         var multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();

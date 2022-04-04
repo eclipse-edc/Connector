@@ -9,14 +9,15 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial Implementation
+ *       Fraunhofer Insitute for Software and Systems Engineering
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.BinaryOperator;
-import de.fraunhofer.iais.eis.LeftOperand;
 import de.fraunhofer.iais.eis.util.RdfResource;
+import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintImpl;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
@@ -83,7 +84,7 @@ public class ConstraintToIdsConstraintTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        LeftOperand leftOperand = LeftOperand.PURPOSE;
+        String leftOperand = "PURPOSE";
         RdfResource rightOperand = mock(RdfResource.class);
         BinaryOperator binaryOperator = BinaryOperator.AFTER;
 
@@ -99,19 +100,19 @@ public class ConstraintToIdsConstraintTransformerTest {
 
         var idsId = IdsId.Builder.newInstance().value(constraint.hashCode()).type(IdsType.CONSTRAINT).build();
         when(context.transform(eq(idsId), eq(URI.class))).thenReturn(CONSTRAINT_ID);
-        when(context.transform(eq(leftExpression), eq(LeftOperand.class))).thenReturn(leftOperand);
+        when(context.transform(eq(leftExpression), eq(String.class))).thenReturn(leftOperand);
         when(context.transform(eq(rightExpression), eq(RdfResource.class))).thenReturn(rightOperand);
         when(context.transform(eq(operator), eq(BinaryOperator.class))).thenReturn(binaryOperator);
 
-        var result = transformer.transform(constraint, context);
+        var result = (IdsConstraintImpl) transformer.transform(constraint, context);
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals(CONSTRAINT_ID, result.getId());
-        Assertions.assertEquals(leftOperand, result.getLeftOperand());
+        Assertions.assertEquals(leftOperand, result.getLeftOperandAsString());
         Assertions.assertEquals(rightOperand, result.getRightOperand());
         Assertions.assertEquals(binaryOperator, result.getOperator());
         verify(context).transform(eq(idsId), eq(URI.class));
-        verify(context).transform(eq(leftExpression), eq(LeftOperand.class));
+        verify(context).transform(eq(leftExpression), eq(String.class));
         verify(context).transform(eq(rightExpression), eq(RdfResource.class));
         verify(context).transform(eq(operator), eq(BinaryOperator.class));
     }

@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.dataplane.framework.e2e;
 
 import org.eclipse.dataspaceconnector.dataplane.framework.manager.DataPlaneManagerImpl;
@@ -21,6 +22,7 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.InputStreamDataSour
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSink;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +47,7 @@ public class EndToEndTest {
         var manager = DataPlaneManagerImpl.Builder.newInstance()
                 .monitor(monitor)
                 .pipelineService(pipelineService)
+                .executorInstrumentation(ExecutorInstrumentation.noop())
                 .build();
         manager.start();
         manager.transfer(new InputStreamDataSource("test", new ByteArrayInputStream("bytes".getBytes())), createRequest("1").build()).get();

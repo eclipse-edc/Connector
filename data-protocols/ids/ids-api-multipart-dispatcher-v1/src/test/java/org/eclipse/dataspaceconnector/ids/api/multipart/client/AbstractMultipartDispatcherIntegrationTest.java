@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
+import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintImpl;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -59,6 +60,7 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
         OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         OBJECT_MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         OBJECT_MAPPER.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+        OBJECT_MAPPER.registerSubtypes(IdsConstraintImpl.class);
     }
 
     protected IdentityService identityService;
@@ -101,7 +103,7 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
     protected int getPort() {
         return PORT.get();
     }
-    
+
     protected int getIdsPort() {
         return IDS_PORT.get();
     }
