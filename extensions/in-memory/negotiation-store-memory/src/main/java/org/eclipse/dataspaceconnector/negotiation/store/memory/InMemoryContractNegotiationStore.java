@@ -43,6 +43,7 @@ import static java.util.stream.Collectors.toList;
  * This implementation is intended for testing purposes only.
  */
 public class InMemoryContractNegotiationStore implements ContractNegotiationStore {
+
     private final LockManager lockManager = new LockManager(new ReentrantReadWriteLock());
     private final Map<String, ContractNegotiation> processesById = new HashMap<>();
     private final Map<String, ContractNegotiation> processesByCorrelationId = new HashMap<>();

@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - add functionalities
  *
  */
 
@@ -23,12 +23,18 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.model.ContractAgreementDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.service.ContractAgreementService;
+import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
+import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
+import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -37,9 +43,13 @@ import static java.lang.String.format;
 @Path("/contractagreements")
 public class ContractAgreementApiController implements ContractAgreementApi {
     private final Monitor monitor;
+    private final ContractAgreementService service;
+    private final DtoTransformerRegistry transformerRegistry;
 
-    public ContractAgreementApiController(Monitor monitor) {
+    public ContractAgreementApiController(Monitor monitor, ContractAgreementService service, DtoTransformerRegistry transformerRegistry) {
         this.monitor = monitor;
+        this.service = service;
+        this.transformerRegistry = transformerRegistry;
     }
 
     @GET
@@ -55,19 +65,27 @@ public class ContractAgreementApiController implements ContractAgreementApi {
                 .sortField(sortField)
                 .filter(filterExpression)
                 .sortOrder(sortOrder).build();
-        monitor.debug(format("get all contract definitions %s", spec));
+        monitor.debug(format("get all contract agreements %s", spec));
 
-        return Collections.emptyList();
-
+        return service.query(spec).stream()
+                .map(it -> transformerRegistry.transform(it, ContractAgreementDto.class))
+                .filter(Result::succeeded)
+                .map(Result::getContent)
+                .collect(Collectors.toList());
     }
 
     @GET
     @Path("{id}")
     @Override
     public ContractAgreementDto getContractAgreement(@PathParam("id") String id) {
-        monitor.debug(format("get contract definition with ID %s", id));
+        monitor.debug(format("get contract agreement with ID %s", id));
 
-        return null;
+        return Optional.of(id)
+                .map(service::findById)
+                .map(it -> transformerRegistry.transform(it, ContractAgreementDto.class))
+                .filter(Result::succeeded)
+                .map(Result::getContent)
+                .orElseThrow(() -> new ObjectNotFoundException(ContractAgreement.class, id));
     }
 
 }
