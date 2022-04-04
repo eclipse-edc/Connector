@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationU
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,7 +37,7 @@ import static org.eclipse.dataspaceconnector.system.tests.utils.GatlingUtils.run
 
 public class FileTransferIntegrationTest {
 
-    public static final String CONSUMER_ASSET_PATH = tempDirectory();
+    public static final String CONSUMER_ASSET_PATH = new File(tempDirectory(), "output.txt").getAbsolutePath();
     public static final int CONSUMER_CONNECTOR_PORT = getFreePort();
     public static final int CONSUMER_MANAGEMENT_PORT = getFreePort();
     public static final String CONSUMER_CONNECTOR_PATH = "/api";
@@ -96,7 +97,7 @@ public class FileTransferIntegrationTest {
         runGatling(FileTransferLocalSimulation.class, FileTransferSimulationUtils.DESCRIPTION);
 
         // Assert
-        var copiedFilePath = Path.of(format(CONSUMER_ASSET_PATH + "/%s.txt", PROVIDER_ASSET_NAME));
+        var copiedFilePath = Path.of(CONSUMER_ASSET_PATH);
         assertThat(copiedFilePath)
                 .withFailMessage("Destination file %s not created", copiedFilePath)
                 .exists();
