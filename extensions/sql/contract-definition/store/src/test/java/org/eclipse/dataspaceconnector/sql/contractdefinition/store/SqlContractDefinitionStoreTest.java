@@ -10,6 +10,7 @@
  *  Contributors:
  *       Daimler TSS GmbH - Initial Tests
  *       Microsoft Corporation - Method signature change
+ *       Fraunhofer Institute for Software and Systems Engineering - added tests
  *
  */
 
@@ -238,6 +239,22 @@ public class SqlContractDefinitionStoreTest {
 
         assertThat(definitionsRetrieved).isNotNull();
         assertThat(definitionsRetrieved.size()).isEqualTo(limit);
+    }
+    
+    @Test
+    void findById() {
+        var id = "definitionId";
+        var definition = getContractDefinition(id, "contractId", "policyId");
+        sqlContractDefinitionStore.save(definition);
+    
+        var result = sqlContractDefinitionStore.findById(id);
+    
+        assertThat(result).isNotNull().isEqualTo(definition);
+    }
+    
+    @Test
+    void findById_invalidId() {
+        assertThat(sqlContractDefinitionStore.findById("invalid-id")).isNull();
     }
 
     @Test

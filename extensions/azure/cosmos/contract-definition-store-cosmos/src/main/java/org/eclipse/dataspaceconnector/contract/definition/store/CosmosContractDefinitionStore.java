@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added method
  *
  */
 
@@ -70,7 +71,12 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
     public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
         return lockManager.readLock(() -> queryResolver.query(getCache().values().stream(), spec));
     }
-
+    
+    @Override
+    public ContractDefinition findById(String definitionId) {
+        return lockManager.readLock(() -> getCache().get(definitionId));
+    }
+    
     @Override
     public void save(Collection<ContractDefinition> definitions) {
         lockManager.writeLock(() -> {

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added method
  *
  */
 
@@ -125,7 +126,20 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
             }
         });
     }
-
+    
+    @Override
+    public ContractDefinition findById(String definitionId) {
+        Objects.requireNonNull(definitionId);
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                return findById(connection, definitionId);
+            } catch (Exception exception) {
+                throw new EdcPersistenceException(exception);
+            }
+        });
+    }
+    
+    
     @Override
     public void save(Collection<ContractDefinition> definitions) {
         Objects.requireNonNull(definitions);
