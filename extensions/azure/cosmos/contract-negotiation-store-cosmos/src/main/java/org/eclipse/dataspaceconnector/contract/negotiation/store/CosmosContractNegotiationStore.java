@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - add functionalities
  *
  */
 
@@ -27,6 +28,7 @@ import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractN
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -37,6 +39,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -118,10 +122,46 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     @Override
     public Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
         var statement = new SqlStatement<>(ContractNegotiationDocument.class);
-        var query = statement.where(querySpec.getFilterExpression()).offset(querySpec.getOffset()).limit(querySpec.getLimit()).orderBy(querySpec.getSortField(), querySpec.getSortOrder() == SortOrder.ASC).getQueryAsSqlQuerySpec();
+        var query = statement.where(querySpec.getFilterExpression())
+                .offset(querySpec.getOffset())
+                .limit(querySpec.getLimit())
+                .orderBy(querySpec.getSortField(), querySpec.getSortOrder() == SortOrder.ASC)
+                .getQueryAsSqlQuerySpec();
 
         var objects = with(retryPolicy).get(() -> cosmosDbApi.queryItems(query));
         return objects.map(this::toNegotiation);
+    }
+
+    @Override
+    public @NotNull Stream<ContractAgreement> getAgreementsForDefinitionId(String definitionId) {
+        var query = "SELECT * FROM c WHERE c.wrappedInstance.contractAgreement.id LIKE @agreementId";
+        var param = new SqlParameter("@agreementId", definitionId + ":%");
+
+        var spec = new SqlQuerySpec(query, param);
+        return with(retryPolicy).get(() -> cosmosDbApi.queryItems(spec))
+                .map(this::toNegotiation)
+                .map(ContractNegotiation::getContractAgreement);
+    }
+
+    @Override
+    public @NotNull Stream<ContractAgreement> queryAgreements(QuerySpec querySpec) {
+        var criteria = querySpec.getFilterExpression().stream()
+                .map(it -> it.withLeftOperand(op -> "contractAgreement." + op))
+                .collect(Collectors.toList());
+
+        var sortField = Optional.ofNullable(querySpec.getSortField()).map(it -> "contractAgreement." + it).orElse(null);
+
+        var query = new SqlStatement<>(ContractNegotiationDocument.class)
+                .where(criteria)
+                .offset(querySpec.getOffset())
+                .limit(querySpec.getLimit())
+                .orderBy(sortField, querySpec.getSortOrder() == SortOrder.ASC)
+                .getQueryAsSqlQuerySpec();
+
+        return with(retryPolicy).get(() -> cosmosDbApi.queryItems(query))
+                .map(this::toNegotiation)
+                .map(ContractNegotiation::getContractAgreement)
+                .filter(Objects::nonNull);
     }
 
     @Override
@@ -140,7 +180,8 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
 
     private ContractNegotiation toNegotiation(Object object) {
         var json = typeManager.writeValueAsString(object);
-        return typeManager.readValue(json, ContractNegotiationDocument.class).getWrappedInstance();
+        var document = typeManager.readValue(json, ContractNegotiationDocument.class);
+        return document.getWrappedInstance();
     }
 }
 

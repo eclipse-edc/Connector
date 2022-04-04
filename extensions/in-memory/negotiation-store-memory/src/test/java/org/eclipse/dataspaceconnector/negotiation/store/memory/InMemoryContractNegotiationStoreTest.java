@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,13 +9,16 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - add functionalities
  *
  */
 
 package org.eclipse.dataspaceconnector.negotiation.store.memory;
 
+import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
@@ -27,10 +30,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.dataspaceconnector.negotiation.store.memory.TestFunctions.createAgreementBuilder;
 import static org.eclipse.dataspaceconnector.negotiation.store.memory.TestFunctions.createNegotiation;
+import static org.eclipse.dataspaceconnector.negotiation.store.memory.TestFunctions.createNegotiationBuilder;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.INITIAL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTING;
@@ -218,11 +224,102 @@ class InMemoryContractNegotiationStoreTest {
     @Test
     void findAll_verifySorting_invalidProperty() {
         IntStream.range(0, 10).forEach(i -> store.save(createNegotiation("test-neg-" + i)));
+        var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
+
+        var result = store.queryNegotiations(query);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void getAgreementsForDefinitionId() {
+        var contractAgreement = createAgreementBuilder().id(ContractId.createContractId("definitionId")).build();
+        var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
+        store.save(negotiation);
+
+        var result = store.getAgreementsForDefinitionId("definitionId");
+
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void getAgreementsForDefinitionId_notFound() {
+        var contractAgreement = createAgreementBuilder().id(ContractId.createContractId("otherDefinitionId")).build();
+        var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
+        store.save(negotiation);
+
+        var result = store.getAgreementsForDefinitionId("definitionId");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void queryAgreements_noQuerySpec() {
+        IntStream.range(0, 10).forEach(i -> {
+            var contractAgreement = createAgreementBuilder().id(ContractId.createContractId(UUID.randomUUID().toString())).build();
+            var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
+            store.save(negotiation);
+        });
+
+        var all = store.queryAgreements(QuerySpec.Builder.newInstance().build());
+
+        assertThat(all).hasSize(10);
+    }
+
+    @Test
+    void queryAgreements_verifyPaging() {
+        IntStream.range(0, 10).forEach(i -> {
+            var contractAgreement = createAgreementBuilder().id(ContractId.createContractId(UUID.randomUUID().toString())).build();
+            var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
+            store.save(negotiation);
+        });
+
+        // page size fits
+        assertThat(store.queryAgreements(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4);
+
+        // page size too large
+        assertThat(store.queryAgreements(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(5);
+    }
+
+    @Test
+    void queryAgreements_verifyFiltering() {
+        IntStream.range(0, 10).forEach(i -> {
+            var contractAgreement = createAgreementBuilder().id(i + ":" + i).build();
+            var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
+            store.save(negotiation);
+        });
+        var query = QuerySpec.Builder.newInstance().equalsAsContains(false).filter("id=3:3").build();
+
+        var result = store.queryAgreements(query);
+
+        assertThat(result).extracting(ContractAgreement::getId).containsOnly("3:3");
+    }
+
+    @Test
+    void queryAgreements_verifySorting() {
+        IntStream.range(0, 9).forEach(i -> {
+            var contractAgreement = createAgreementBuilder().id(i + ":" + i).build();
+            var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
+            store.save(negotiation);
+        });
+
+        var queryAsc = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build();
+        assertThat(store.queryAgreements(queryAsc)).hasSize(9).isSortedAccordingTo(Comparator.comparing(ContractAgreement::getId));
+        var queryDesc = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build();
+        assertThat(store.queryAgreements(queryDesc)).hasSize(9).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
+    }
+
+    @Test
+    void queryAgreements_verifySorting_invalidProperty() {
+        IntStream.range(0, 10).forEach(i -> {
+            var contractAgreement = createAgreementBuilder().id(i + ":" + i).build();
+            var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
+            store.save(negotiation);
+        });
 
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 
-        // must actually collect, otherwise the stream is not materialized
-        assertThat(store.queryNegotiations(query).collect(Collectors.toList())).isEmpty();
+        assertThat(store.queryAgreements(query)).isEmpty();
     }
 
     @NotNull
