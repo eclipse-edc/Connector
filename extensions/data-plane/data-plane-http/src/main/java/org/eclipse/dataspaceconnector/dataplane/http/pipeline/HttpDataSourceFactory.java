@@ -41,6 +41,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddre
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.NAME;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.OVERWRITE_BODY;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.SECRET_NAME;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
 
@@ -101,9 +102,10 @@ public class HttpDataSourceFactory implements DataSourceFactory {
                 .method(method)
                 .retryPolicy(retryPolicy)
                 .monitor(monitor);
+
         // map body
         var mediaType = request.getProperties().get(MEDIA_TYPE);
-        if (mediaType != null) {
+        if (mediaType != null && dataAddress.getProperty(OVERWRITE_BODY).equals("true")) {
             var parsed = MediaType.parse(mediaType);
             if (parsed == null) {
                 return Result.failure(format("Unhandled media type %s for request: %s", mediaType, request.getId()));

@@ -49,4 +49,6 @@ public interface HttpDataAddressSchema {
      */
     String SECRET_NAME = "secretName";
 
+    String OVERWRITE_BODY = "overwriteBody";
+
 }
