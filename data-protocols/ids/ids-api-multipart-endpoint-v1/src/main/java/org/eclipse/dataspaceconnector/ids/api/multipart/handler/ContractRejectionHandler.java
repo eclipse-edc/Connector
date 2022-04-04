@@ -77,11 +77,11 @@ public class ContractRejectionHandler implements Handler {
 
         // abort negotiation process (one of them can handle this process by id)
         var result = providerNegotiationManager.declined(claimToken, String.valueOf(correlationId));
-        if (result.failed() && result.status() == FATAL_ERROR) {
+        if (result.fatalError()) {
             result = consumerNegotiationManager.declined(claimToken, String.valueOf(correlationId));
         }
 
-        if (result.failed() && result.status() == FATAL_ERROR) {
+        if (result.fatalError()) {
             monitor.debug("ContractRejectionHandler: Could not process contract rejection");
         }
 

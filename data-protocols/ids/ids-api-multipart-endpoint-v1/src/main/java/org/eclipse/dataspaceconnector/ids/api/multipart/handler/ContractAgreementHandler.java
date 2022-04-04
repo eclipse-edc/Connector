@@ -123,7 +123,7 @@ public class ContractAgreementHandler implements Handler {
         var processId = message.getTransferContract();
         var negotiationResponse = negotiationManager.confirmed(claimToken,
                 String.valueOf(processId), agreement, null);
-        if (negotiationResponse.failed() && negotiationResponse.status() == FATAL_ERROR) {
+        if (negotiationResponse.fatalError()) {
             monitor.debug("ContractAgreementHandler: Could not process contract agreement");
             return createBadParametersErrorMultipartResponse(message);
         }

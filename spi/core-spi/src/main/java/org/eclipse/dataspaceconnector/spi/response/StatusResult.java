@@ -19,6 +19,8 @@ import org.eclipse.dataspaceconnector.spi.result.AbstractResult;
 import java.util.Collections;
 import java.util.List;
 
+import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
+
 
 public class StatusResult<T> extends AbstractResult<T, ResponseFailure> {
 
@@ -42,7 +44,7 @@ public class StatusResult<T> extends AbstractResult<T, ResponseFailure> {
         super(content, failure);
     }
 
-    public ResponseStatus status() {
-        return getFailure().status();
+    public boolean fatalError() {
+        return failed() && getFailure().status() == FATAL_ERROR;
     }
 }

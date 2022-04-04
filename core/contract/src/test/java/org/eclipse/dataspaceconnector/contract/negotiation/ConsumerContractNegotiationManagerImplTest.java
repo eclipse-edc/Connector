@@ -124,7 +124,7 @@ class ConsumerContractNegotiationManagerImplTest {
 
         var result = negotiationManager.offerReceived(token, "not a valid id", contractOffer, "hash");
 
-        assertThat(result.status()).isEqualTo(FATAL_ERROR);
+        assertThat(result.fatalError()).isTrue();
     }
 
     @Test
@@ -174,7 +174,7 @@ class ConsumerContractNegotiationManagerImplTest {
 
         var result = negotiationManager.confirmed(token, "not a valid id", contractAgreement, "hash");
 
-        assertThat(result.status()).isEqualTo(FATAL_ERROR);
+        assertThat(result.fatalError()).isTrue();
     }
 
     @Test
