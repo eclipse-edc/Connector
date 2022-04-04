@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       SAP SE - Minor fix
  *
  */
 
@@ -23,8 +24,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("web-spi") {
-            artifactId = "web-spi"
+        create<MavenPublication>("transport-spi") {
+            artifactId = "transport-spi"
             from(components["java"])
         }
     }

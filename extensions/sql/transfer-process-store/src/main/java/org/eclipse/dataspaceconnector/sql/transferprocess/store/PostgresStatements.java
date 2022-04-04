@@ -19,7 +19,7 @@ import static java.lang.String.format;
 /**
  * Postgres-specific variants and implementations of the statements required for the TransferProcessStore
  */
-class PostgresStatements implements TransferProcessStoreStatements {
+public class PostgresStatements implements TransferProcessStoreStatements {
     @Override
     public String getDeleteLeaseTemplate() {
         return format("DELETE FROM %s WHERE %s=?", getLeaseTableName(), getLeaseIdColumn());
@@ -34,6 +34,12 @@ class PostgresStatements implements TransferProcessStoreStatements {
     @Override
     public String getUpdateLeaseTemplate() {
         return format("UPDATE %s SET %s=? WHERE %s = ?;", getTableName(), getLeaseIdColumn(), getIdColumn());
+    }
+
+    @Override
+    public String getFindLeaseByEntityTemplate() {
+        return format("SELECT * FROM %s  WHERE %s = (SELECT lease_id FROM %s WHERE %s=? )",
+                getLeaseTableName(), getLeaseIdColumn(), getTableName(), getIdColumn());
     }
 
     @Override
@@ -58,12 +64,6 @@ class PostgresStatements implements TransferProcessStoreStatements {
     @Override
     public String getDeleteTransferProcessTemplate() {
         return format("DELETE FROM %s WHERE id = ?;", getTableName());
-    }
-
-    @Override
-    public String getFindLeaseByEntityTemplate() {
-        return format("SELECT * FROM %s  WHERE %s = (SELECT lease_id FROM %s WHERE %s=? )",
-                getLeaseTableName(), getLeaseIdColumn(), getTableName(), getIdColumn());
     }
 
     @Override

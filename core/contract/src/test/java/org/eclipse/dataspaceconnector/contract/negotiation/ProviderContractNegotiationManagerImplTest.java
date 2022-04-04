@@ -1,9 +1,5 @@
 /*
-<<<<<<< HEAD
- *  Copyright (c) 2021-2022 Fraunhofer Institute for Software and Systems Engineering
-=======
  *  Copyright (c) 2021 - 2022 Fraunhofer Institute for Software and Systems Engineering
->>>>>>> 9d998cb09 (core: add configuration setting to set state machine batch sizes)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -13,9 +9,10 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
+
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;

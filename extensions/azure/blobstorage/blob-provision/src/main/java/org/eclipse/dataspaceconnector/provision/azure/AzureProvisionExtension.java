@@ -20,7 +20,7 @@ import org.eclipse.dataspaceconnector.azure.blob.core.AzureSasToken;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectContainerProvisionedResource;
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectContainerStatusChecker;
-import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageDefinitionConsumerGenerator;
+import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageConsumerResourceDefinitionGenerator;
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageProvisioner;
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageResourceDefinition;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
@@ -55,7 +55,7 @@ public class AzureProvisionExtension implements ServiceExtension {
 
         // register the generator
         var manifestGenerator = context.getService(ResourceManifestGenerator.class);
-        manifestGenerator.registerConsumerGenerator(new ObjectStorageDefinitionConsumerGenerator());
+        manifestGenerator.registerGenerator(new ObjectStorageConsumerResourceDefinitionGenerator());
 
         var statusCheckerReg = context.getService(StatusCheckerRegistry.class);
         statusCheckerReg.register(AzureBlobStoreSchema.TYPE, new ObjectContainerStatusChecker(blobStoreApi, retryPolicy));

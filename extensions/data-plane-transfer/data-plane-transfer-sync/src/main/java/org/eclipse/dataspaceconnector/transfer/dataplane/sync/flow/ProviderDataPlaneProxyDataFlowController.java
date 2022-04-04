@@ -26,9 +26,9 @@ import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProx
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyManager;
 import org.jetbrains.annotations.NotNull;
 
-public class ProviderDataPlaneProxyDataFlowController implements DataFlowController {
+import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType.SYNC;
 
-    private static final String HTTP_PROXY_TYPE = "HttpProxy";
+public class ProviderDataPlaneProxyDataFlowController implements DataFlowController {
 
     private final String connectorId;
     private final RemoteMessageDispatcherRegistry dispatcherRegistry;
@@ -47,7 +47,7 @@ public class ProviderDataPlaneProxyDataFlowController implements DataFlowControl
 
     @Override
     public boolean canHandle(DataRequest dataRequest) {
-        return HTTP_PROXY_TYPE.equals(dataRequest.getDestinationType());
+        return SYNC.equals(dataRequest.getDestinationType());
     }
 
     @Override

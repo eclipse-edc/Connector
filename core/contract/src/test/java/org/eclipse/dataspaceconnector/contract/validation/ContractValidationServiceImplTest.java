@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021-2022 Microsoft Corporation
+ *  Copyright (c) 2021 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Daimler TSS GmbH - fixed contract dates to epoch seconds
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - refactor
  *
  */
 
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.time.Instant.MAX;
@@ -104,7 +106,7 @@ class ContractValidationServiceImplTest {
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
                 .policy(originalPolicy)
-                .asset(Asset.Builder.newInstance().build())
+                .assetId(UUID.randomUUID().toString())
                 .contractStartDate(Instant.now().getEpochSecond())
                 .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(Instant.now().getEpochSecond())
@@ -148,7 +150,7 @@ class ContractValidationServiceImplTest {
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
                 .policy(originalPolicy)
-                .asset(Asset.Builder.newInstance().build())
+                .assetId(UUID.randomUUID().toString())
                 .contractSigningDate(signingDate)
                 .contractStartDate(startDate)
                 .contractEndDate(endDate)

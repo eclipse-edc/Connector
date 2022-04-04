@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.ids.policy;
 
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;

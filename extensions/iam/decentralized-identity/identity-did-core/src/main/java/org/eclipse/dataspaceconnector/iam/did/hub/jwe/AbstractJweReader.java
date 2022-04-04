@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.iam.did.hub.jwe;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

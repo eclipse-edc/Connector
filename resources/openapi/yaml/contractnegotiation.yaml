@@ -152,8 +152,6 @@ components:
           type: string
         policyId:
           type: string
-        negotiationId:
-          type: string
     ContractNegotiationDto:
       type: object
       properties:

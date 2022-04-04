@@ -9,9 +9,10 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
+
 package org.eclipse.dataspaceconnector.iam.did.hub;
 
 import jakarta.ws.rs.Consumes;

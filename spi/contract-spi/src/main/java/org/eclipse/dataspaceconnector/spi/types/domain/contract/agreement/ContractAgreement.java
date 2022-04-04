@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Daimler TSS GmbH
+ *  Copyright (c) 2021 - 2022 Daimler TSS GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - refactor
  *
  */
 
@@ -35,7 +36,7 @@ public class ContractAgreement {
     private final long contractSigningDate;
     private final long contractStartDate;
     private final long contractEndDate;
-    private final Asset asset;
+    private final String assetId;
     private final Policy policy;
 
     private ContractAgreement(@NotNull String id,
@@ -44,15 +45,15 @@ public class ContractAgreement {
                               long contractSigningDate,
                               long contractStartDate,
                               long contractEndDate,
-                              @NotNull Asset asset,
-                              @NotNull Policy policy) {
+                              @NotNull Policy policy,
+                              @NotNull String assetId) {
         this.id = Objects.requireNonNull(id);
         this.providerAgentId = Objects.requireNonNull(providerAgentId);
         this.consumerAgentId = Objects.requireNonNull(consumerAgentId);
         this.contractSigningDate = contractSigningDate;
         this.contractStartDate = contractStartDate;
         this.contractEndDate = contractEndDate;
-        this.asset = Objects.requireNonNull(asset);
+        this.assetId = Objects.requireNonNull(assetId);
         this.policy = Objects.requireNonNull(policy);
     }
 
@@ -126,13 +127,13 @@ public class ContractAgreement {
     }
 
     /**
-     * The Asset that is covered by the {@link ContractAgreement}.
+     * The ID of the Asset that is covered by the {@link ContractAgreement}.
      *
-     * @return asset
+     * @return assetId
      */
     @NotNull
-    public Asset getAsset() {
-        return asset;
+    public String getAssetId() {
+        return assetId;
     }
 
     /**
@@ -147,7 +148,7 @@ public class ContractAgreement {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, providerAgentId, consumerAgentId, contractSigningDate, contractStartDate, contractEndDate, asset, policy);
+        return Objects.hash(id, providerAgentId, consumerAgentId, contractSigningDate, contractStartDate, contractEndDate, assetId, policy);
     }
 
     @Override
@@ -161,7 +162,7 @@ public class ContractAgreement {
         ContractAgreement that = (ContractAgreement) o;
         return contractSigningDate == that.contractSigningDate && contractStartDate == that.contractStartDate && contractEndDate == that.contractEndDate &&
                 Objects.equals(id, that.id) && Objects.equals(providerAgentId, that.providerAgentId) && Objects.equals(consumerAgentId, that.consumerAgentId) &&
-                Objects.equals(asset, that.asset) && Objects.equals(policy, that.policy);
+                Objects.equals(assetId, that.assetId) && Objects.equals(policy, that.policy);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -173,7 +174,7 @@ public class ContractAgreement {
         private long contractSigningDate;
         private long contractStartDate;
         private long contractEndDate;
-        private Asset asset;
+        private String assetId;
         private Policy policy;
 
         private Builder() {
@@ -214,8 +215,8 @@ public class ContractAgreement {
             return this;
         }
 
-        public Builder asset(Asset asset) {
-            this.asset = asset;
+        public Builder assetId(String assetId) {
+            this.assetId = assetId;
             return this;
         }
 
@@ -225,7 +226,7 @@ public class ContractAgreement {
         }
 
         public ContractAgreement build() {
-            return new ContractAgreement(id, providerAgentId, consumerAgentId, contractSigningDate, contractStartDate, contractEndDate, asset, policy);
+            return new ContractAgreement(id, providerAgentId, consumerAgentId, contractSigningDate, contractStartDate, contractEndDate, policy, assetId);
         }
 
     }

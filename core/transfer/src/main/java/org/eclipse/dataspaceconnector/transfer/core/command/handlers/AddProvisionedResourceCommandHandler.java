@@ -11,12 +11,14 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.transfer.core.command.handlers;
 
 import org.eclipse.dataspaceconnector.spi.command.CommandHandler;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
-import org.eclipse.dataspaceconnector.transfer.core.command.commands.AddProvisionedResourceCommand;
-import org.eclipse.dataspaceconnector.transfer.core.transfer.ProvisionCompletionDelegate;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.AddProvisionedResourceCommand;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.ProvisionCallbackDelegate;
 
 import java.util.List;
 
@@ -26,15 +28,15 @@ import java.util.List;
  * This class exists to avoid coupling the TPM to the command handler registry.
  */
 public class AddProvisionedResourceCommandHandler implements CommandHandler<AddProvisionedResourceCommand> {
-    private final ProvisionCompletionDelegate delegate;
+    private final ProvisionCallbackDelegate delegate;
 
-    public AddProvisionedResourceCommandHandler(ProvisionCompletionDelegate delegate) {
+    public AddProvisionedResourceCommandHandler(ProvisionCallbackDelegate delegate) {
         this.delegate = delegate;
     }
 
     @Override
     public void handle(AddProvisionedResourceCommand command) {
-        delegate.handleProvisionResult(command.getTransferProcessId(), List.of(command.getProvisionResponse()));
+        delegate.handleProvisionResult(command.getTransferProcessId(), List.of(ProvisionResult.success(command.getProvisionResponse())));
     }
 
     @Override

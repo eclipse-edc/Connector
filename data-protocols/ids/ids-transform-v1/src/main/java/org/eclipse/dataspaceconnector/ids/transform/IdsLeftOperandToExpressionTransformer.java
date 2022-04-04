@@ -9,12 +9,12 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial Implementation
+ *       Fraunhofer Insitute for Software and Systems Engineering
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import de.fraunhofer.iais.eis.LeftOperand;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.policy.model.Expression;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
@@ -24,11 +24,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public class IdsLeftOperandToExpressionTransformer implements IdsTypeTransformer<LeftOperand, Expression> {
+public class IdsLeftOperandToExpressionTransformer implements IdsTypeTransformer<String, Expression> {
 
     @Override
-    public Class<LeftOperand> getInputType() {
-        return LeftOperand.class;
+    public Class<String> getInputType() {
+        return String.class;
     }
 
     @Override
@@ -37,12 +37,12 @@ public class IdsLeftOperandToExpressionTransformer implements IdsTypeTransformer
     }
 
     @Override
-    public @Nullable Expression transform(@Nullable LeftOperand object, @NotNull TransformerContext context) {
+    public @Nullable Expression transform(@Nullable String object, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (object == null) {
             return null;
         }
 
-        return new LiteralExpression(object.name());
+        return new LiteralExpression(object);
     }
 }

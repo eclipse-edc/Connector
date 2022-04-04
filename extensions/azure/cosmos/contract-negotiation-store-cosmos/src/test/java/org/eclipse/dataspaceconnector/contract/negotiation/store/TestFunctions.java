@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020-2022 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -47,7 +47,7 @@ public class TestFunctions {
                 .contractAgreement(ContractAgreement.Builder.newInstance().id("1")
                         .providerAgentId("provider")
                         .consumerAgentId("consumer")
-                        .asset(Asset.Builder.newInstance().build())
+                        .assetId(UUID.randomUUID().toString())
                         .policy(Policy.Builder.newInstance().build())
                         .contractStartDate(Instant.now().getEpochSecond())
                         .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())

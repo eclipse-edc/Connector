@@ -11,10 +11,11 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import de.fraunhofer.iais.eis.ConstraintBuilder;
 import de.fraunhofer.iais.eis.LogicalConstraint;
+import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintBuilder;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.policy.model.AndConstraint;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
@@ -51,7 +52,7 @@ class ConstraintToIdsLogicalConstraintTransformerTest {
     void verifyAndConstraint() {
         when(context.transform(isA(IdsId.class), eq(URI.class))).thenReturn(URI.create("foo"));
         when(context.transform(isA(AtomicConstraint.class), eq(de.fraunhofer.iais.eis.Constraint.class)))
-                .thenReturn(new ConstraintBuilder().build());
+                .thenReturn(new IdsConstraintBuilder().build());
 
         var atomicConstraint = AtomicConstraint.Builder.newInstance()
                 .leftExpression(new LiteralExpression("1"))
@@ -70,7 +71,7 @@ class ConstraintToIdsLogicalConstraintTransformerTest {
     void verifyOrConstraint() {
         when(context.transform(isA(IdsId.class), eq(URI.class))).thenReturn(URI.create("foo"));
         when(context.transform(isA(AtomicConstraint.class), eq(de.fraunhofer.iais.eis.Constraint.class)))
-                .thenReturn(new ConstraintBuilder().build());
+                .thenReturn(new IdsConstraintBuilder().build());
 
         var atomicConstraint = AtomicConstraint.Builder.newInstance()
                 .leftExpression(new LiteralExpression("1"))
@@ -92,7 +93,7 @@ class ConstraintToIdsLogicalConstraintTransformerTest {
     void verifyXoneConstraint() {
         when(context.transform(isA(IdsId.class), eq(URI.class))).thenReturn(URI.create("foo"));
         when(context.transform(isA(AtomicConstraint.class), eq(de.fraunhofer.iais.eis.Constraint.class)))
-                .thenReturn(new ConstraintBuilder().build());
+                .thenReturn(new IdsConstraintBuilder().build());
 
         var atomicConstraint = AtomicConstraint.Builder.newInstance()
                 .leftExpression(new LiteralExpression("1"))

@@ -22,7 +22,8 @@ import java.util.concurrent.ScheduledExecutorService;
  * collect execution metrics when available.
  * <p>
  * The default implementation does not provide any instrumentation. Extension
- * modules can provide implementations, such as for collecting metrics.
+ * modules can provide implementations of the {@link ExecutorInstrumentationImplementation} sub-interface,
+ * such as for collecting metrics.
  */
 public interface ExecutorInstrumentation {
     /**

@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.transaction.atomikos;
 
 import org.jetbrains.annotations.NotNull;

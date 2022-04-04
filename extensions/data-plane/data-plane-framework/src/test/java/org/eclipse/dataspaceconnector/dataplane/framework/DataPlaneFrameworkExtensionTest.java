@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.dataplane.framework;
 
 import org.eclipse.dataspaceconnector.dataplane.framework.pipeline.PipelineServiceImpl;
@@ -20,6 +21,7 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.dataspaceconnector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.dataspaceconnector.junit.launcher.DependencyInjectionExtension;
+import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.injection.ObjectFactory;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
@@ -42,9 +44,10 @@ class DataPlaneFrameworkExtensionTest {
     DataFlowRequest request = createRequest("1").build();
 
     @BeforeEach
-    public void setUp() {
+    public void setUp(ServiceExtensionContext context) {
         when(transferService1.canHandle(request)).thenReturn(true);
         when(transferService2.canHandle(request)).thenReturn(true);
+        context.registerService(ExecutorInstrumentation.class, ExecutorInstrumentation.noop());
     }
 
     @Test

@@ -17,27 +17,22 @@ package org.eclipse.dataspaceconnector.spi.types.domain.transfer;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 
 /**
  * A provisioned resource that serves as a data destination.
  */
 @JsonTypeName("dataspaceconnector:provisioneddatadestinationresource")
 @JsonDeserialize(builder = ProvisionedDataDestinationResource.Builder.class)
-public abstract class ProvisionedDataDestinationResource extends ProvisionedResource {
+public abstract class ProvisionedDataDestinationResource extends ProvisionedDataAddressResource {
 
     protected ProvisionedDataDestinationResource() {
         super();
     }
 
-    public abstract DataAddress createDataDestination();
-
-    public abstract String getResourceName();
-
     @JsonPOJOBuilder(withPrefix = "")
-    protected static class Builder<PR extends ProvisionedResource, B extends ProvisionedResource.Builder<PR, B>> extends ProvisionedResource.Builder<PR, B> {
+    public static class Builder<T extends ProvisionedDataDestinationResource, B extends ProvisionedDataDestinationResource.Builder<T, B>> extends ProvisionedDataAddressResource.Builder<T, B> {
 
-        protected Builder(PR resource) {
+        protected Builder(T resource) {
             super(resource);
         }
 

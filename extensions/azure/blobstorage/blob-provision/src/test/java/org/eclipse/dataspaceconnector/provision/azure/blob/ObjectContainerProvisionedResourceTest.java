@@ -33,6 +33,7 @@ class ObjectContainerProvisionedResourceTest {
                 .accountName("test-account")
                 .transferProcessId("test-process-id")
                 .resourceDefinitionId("test-resdef-id")
+                .resourceName("test-container")
                 .id("test-id")
                 .build();
     }
@@ -40,7 +41,7 @@ class ObjectContainerProvisionedResourceTest {
     @Test
     void createDataDestination() {
 
-        DataAddress dest = resource.createDataDestination();
+        DataAddress dest = resource.getDataAddress();
         assertThat(dest.getType()).isEqualTo(AzureBlobStoreSchema.TYPE);
         assertThat(dest.getKeyName()).isEqualTo("test-container");
         assertThat(dest.getProperties())
