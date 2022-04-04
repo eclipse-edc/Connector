@@ -16,7 +16,6 @@
 package org.eclipse.dataspaceconnector.sql.contractnegotiation.store;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -243,7 +242,7 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                     agr.getContractStartDate(),
                     agr.getContractEndDate(),
                     agr.getAssetId(),
-                    agr.getPolicy().getUid());
+                    toJson(agr.getPolicy()));
         }
 
         var stmt = statements.getInsertNegotiationTemplate();
@@ -279,11 +278,11 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                 .providerAgentId(resultSet.getString(statements.getProviderAgentColumn()))
                 .consumerAgentId(resultSet.getString(statements.getConsumerAgentColumn()))
                 .assetId(resultSet.getString(statements.getAssetIdColumn()))
-                .policy(Policy.Builder.newInstance().id(resultSet.getString(statements.getPolicyIdColumn())).build())
+                .policy(fromJson(resultSet.getString(statements.getPolicyColumn()), new TypeReference<>() {
+                }))
                 .contractStartDate(resultSet.getLong(statements.getStartDateColumn()))
                 .contractEndDate(resultSet.getLong(statements.getEndDateColumn()))
                 .contractSigningDate(resultSet.getLong(statements.getSigningDateColumn()))
-                //todo
                 .build();
     }
 

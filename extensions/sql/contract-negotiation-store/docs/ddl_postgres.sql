@@ -31,8 +31,9 @@ CREATE TABLE IF NOT EXISTS edc_contract_agreement
     start_date        BIGINT,
     end_date          INTEGER,
     asset_id          VARCHAR NOT NULL,
-    policy_id         VARCHAR
+    policy            VARCHAR
 );
+COMMENT ON COLUMN edc_contract_agreement.policy IS 'JSON-serialized contract policy';
 
 
 CREATE TABLE IF NOT EXISTS edc_contract_negotiation

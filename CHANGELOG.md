@@ -73,6 +73,7 @@ the detailed section referring to by linking pull requests or issues.
 * Add SQL-AssetIndex to support `QuerySpec` (#1014)
 * Improve provision signalling and align deprovisioning to handle error conditions (#992)
 * Replace Asset with assetId on ContractAgreement (#1009)
+* Serialize entire Policy in an SQL based `ContractNegotiationStore` (#1068)
 
 #### Removed
 
