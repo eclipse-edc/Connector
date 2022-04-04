@@ -18,7 +18,6 @@ import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
@@ -32,6 +31,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason.CONFLICT;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -49,17 +49,16 @@ class ContractDefinitionServiceImplTest {
     @Test
     void findById_filtersById() {
         var definition = createContractDefinition();
-        when(store.findAll(isA(QuerySpec.class))).thenReturn(Stream.of(definition));
+        when(store.findById(definition.getId())).thenReturn(definition);
 
         var result = service.findById(definition.getId());
 
         assertThat(result).matches(hasId(definition.getId()));
-        verify(store).findAll(argThat(q -> q.getFilterExpression().contains(new Criterion("id", "=", definition.getId()))));
     }
 
     @Test
     void findById_returnsNullIfNotFound() {
-        when(store.findAll(isA(QuerySpec.class))).thenReturn(Stream.empty());
+        when(store.findById(anyString())).thenReturn(null);
 
         var result = service.findById("any");
 
@@ -92,7 +91,7 @@ class ContractDefinitionServiceImplTest {
     @Test
     void create_shouldNotCreateDefinitionIfItAlreadyExists() {
         var definition = createContractDefinition();
-        when(store.findAll(isA(QuerySpec.class))).thenReturn(Stream.of(definition));
+        when(store.findById(definition.getId())).thenReturn(definition);
 
         var inserted = service.create(definition);
 
