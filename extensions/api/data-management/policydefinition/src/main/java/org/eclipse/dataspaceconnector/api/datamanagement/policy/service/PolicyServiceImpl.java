@@ -50,7 +50,7 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     @Override
-    public ServiceResult<Policy> delete(String policyId) {
+    public ServiceResult<Policy> deleteById(String policyId) {
         return transactionContext.execute(() -> {
             var contractFilter = format("contractPolicy.uid = %s ", policyId);
             var queryContractPolicyFilter = QuerySpec.Builder.newInstance().filter(contractFilter).build();
