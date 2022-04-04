@@ -41,7 +41,8 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddre
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.NAME;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.OVERWRITE_BODY;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_BODY;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_PATH;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.SECRET_NAME;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
 
@@ -105,7 +106,7 @@ public class HttpDataSourceFactory implements DataSourceFactory {
 
         // map body
         var mediaType = request.getProperties().get(MEDIA_TYPE);
-        if (mediaType != null && dataAddress.getProperty(OVERWRITE_BODY).equals("true")) {
+        if (mediaType != null && Boolean.parseBoolean(dataAddress.getProperty(PROXY_BODY))) {
             var parsed = MediaType.parse(mediaType);
             if (parsed == null) {
                 return Result.failure(format("Unhandled media type %s for request: %s", mediaType, request.getId()));
@@ -123,8 +124,15 @@ public class HttpDataSourceFactory implements DataSourceFactory {
             builder.header(authKey, secretResult.getContent());
         }
 
-        Optional.ofNullable(request.getProperties().get(PATH))
-                .ifPresent(builder::name);
+        // map path
+        if (Boolean.parseBoolean(dataAddress.getProperty(PROXY_PATH)))
+        {
+            var path = request.getProperties().get(PATH);
+            if (path == null) {
+                return Result.failure(format("No path provided for request: %s", request.getId()));
+            }
+            builder.name(path);
+        }
 
         Optional.ofNullable(request.getProperties().get(QUERY_PARAMS))
                 .ifPresent(builder::queryParams);

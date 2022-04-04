@@ -49,6 +49,13 @@ public interface HttpDataAddressSchema {
      */
     String SECRET_NAME = "secretName";
 
-    String OVERWRITE_BODY = "overwriteBody";
+    /**
+     * Whether to use the body of the request in data source creation ("true" if yes, otherwise "false" or empty).
+     */
+    String PROXY_BODY = "proxyBody";
 
+    /**
+     * Whether to use the path of the request in data source creation ("true" if yes, otherwise "false" or empty).
+     */
+    String PROXY_PATH = "proxyPath";
 }
