@@ -6,17 +6,17 @@ public class TechnicalUserTokenRequestDto {
         this.userTenant = userTenant;
         this.appName = appName;
         this.appVersion = appVersion;
-        this.grant_type = "client_credentials";
+        this.grantType = "client_credentials";
     }
 
-    private String grant_type;
+    private String grantType;
     private String appName;
     private String appVersion;
     private String hostTenant;
     private String userTenant;
 
-    public String getGrant_type() {
-        return grant_type;
+    public String getGrantType() {
+        return grantType;
     }
 
     public String getAppName() {
@@ -38,7 +38,7 @@ public class TechnicalUserTokenRequestDto {
     @Override
     public String toString() {
         return "TechnicalUserTokenRequestDto{" +
-                "grant_type='" + grant_type + '\'' +
+                "grant_type='" + grantType + '\'' +
                 ", appName='" + appName + '\'' +
                 ", appVersion='" + appVersion + '\'' +
                 ", hostTenant='" + hostTenant + '\'' +

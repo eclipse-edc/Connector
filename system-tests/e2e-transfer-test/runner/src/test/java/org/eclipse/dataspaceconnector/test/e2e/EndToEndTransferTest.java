@@ -45,7 +45,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
-import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType.SYNC;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
@@ -55,17 +54,22 @@ class EndToEndTransferTest {
     private static final String API_KEY_CONTROL_AUTH = "password";
 
     private static final URI CONSUMER_CONTROL_PLANE = URI.create("http://localhost:" + getFreePort());
-    private static final URI CONSUMER_CONTROL_PLANE_VALIDATION = URI.create("http://localhost:" + getFreePort() + "/validation");
+    private static final URI CONSUMER_CONTROL_PLANE_VALIDATION = URI
+            .create("http://localhost:" + getFreePort() + "/validation");
     private static final URI CONSUMER_DATA_PLANE = URI.create("http://localhost:" + getFreePort());
-    private static final URI CONSUMER_DATA_PLANE_PUBLIC = URI.create("http://localhost:" + getFreePort() + "/public");
+    private static final URI CONSUMER_DATA_PLANE_PUBLIC = URI
+            .create("http://localhost:" + getFreePort() + "/public");
     private static final URI CONSUMER_BACKEND_SERVICE = URI.create("http://localhost:" + getFreePort());
     private static final URI CONSUMER_IDS_API = URI.create("http://localhost:" + getFreePort());
     private static final URI PROVIDER_CONTROL_PLANE = URI.create("http://localhost:" + getFreePort());
-    private static final URI PROVIDER_CONTROL_PLANE_VALIDATION = URI.create("http://localhost:" + getFreePort() + "/validation");
+    private static final URI PROVIDER_CONTROL_PLANE_VALIDATION = URI
+            .create("http://localhost:" + getFreePort() + "/validation");
     private static final URI PROVIDER_DATA_PLANE = URI.create("http://localhost:" + getFreePort());
-    private static final URI PROVIDER_DATA_PLANE_PUBLIC = URI.create("http://localhost:" + getFreePort() + "/public");
+    private static final URI PROVIDER_DATA_PLANE_PUBLIC = URI
+            .create("http://localhost:" + getFreePort() + "/public");
     private static final URI PROVIDER_BACKEND_SERVICE = URI.create("http://localhost:" + getFreePort());
     private static final URI PROVIDER_IDS_API = URI.create("http://localhost:" + getFreePort());
+    private static final String SYNC = null;
 
     @RegisterExtension
     static EdcRuntimeExtension consumerControlPlane = new EdcRuntimeExtension(
@@ -77,20 +81,22 @@ class EndToEndTransferTest {
                     put("web.http.path", "/api");
                     put("web.http.ids.port", String.valueOf(CONSUMER_IDS_API.getPort()));
                     put("web.http.ids.path", "/api/v1/ids");
-                    put("web.http.validation.port", String.valueOf(CONSUMER_CONTROL_PLANE_VALIDATION.getPort()));
+                    put("web.http.validation.port",
+                            String.valueOf(CONSUMER_CONTROL_PLANE_VALIDATION.getPort()));
                     put("web.http.validation.path", "/validation");
                     put("edc.vault", resourceAbsolutePath("consumer-vault.properties"));
                     put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                     put("edc.keystore.password", "123456");
                     put("edc.api.control.auth.apikey.value", API_KEY_CONTROL_AUTH);
                     put("ids.webhook.address", CONSUMER_IDS_API.toString());
-                    put("edc.receiver.http.endpoint", CONSUMER_BACKEND_SERVICE + "/api/service/pull");
+                    put("edc.receiver.http.endpoint",
+                            CONSUMER_BACKEND_SERVICE + "/api/service/pull");
                     put("edc.transfer.dataplane.token.signer.privatekey.alias", "1");
                     put("edc.public.key.alias", "public-key");
-                    put("edc.transfer.dataplane.sync.endpoint", CONSUMER_DATA_PLANE_PUBLIC.toString());
+                    put("edc.transfer.dataplane.sync.endpoint",
+                            CONSUMER_DATA_PLANE_PUBLIC.toString());
                 }
-            }
-    );
+            });
 
     @RegisterExtension
     static EdcRuntimeExtension consumerDataPlane = new EdcRuntimeExtension(
@@ -100,14 +106,15 @@ class EndToEndTransferTest {
                 {
                     put("web.http.port", String.valueOf(CONSUMER_DATA_PLANE.getPort()));
                     put("web.http.path", "/api");
-                    put("web.http.public.port", String.valueOf(CONSUMER_DATA_PLANE_PUBLIC.getPort()));
+                    put("web.http.public.port",
+                            String.valueOf(CONSUMER_DATA_PLANE_PUBLIC.getPort()));
                     put("web.http.public.path", "/public");
                     put("web.http.control.port", String.valueOf(getFreePort()));
                     put("web.http.control.path", "/control");
-                    put("edc.controlplane.validation-endpoint", CONSUMER_CONTROL_PLANE_VALIDATION + "/validation");
+                    put("edc.controlplane.validation-endpoint",
+                            CONSUMER_CONTROL_PLANE_VALIDATION + "/validation");
                 }
-            }
-    );
+            });
 
     @RegisterExtension
     static EdcRuntimeExtension consumerBackendService = new EdcRuntimeExtension(
@@ -117,8 +124,7 @@ class EndToEndTransferTest {
                 {
                     put("web.http.port", String.valueOf(CONSUMER_BACKEND_SERVICE.getPort()));
                 }
-            }
-    );
+            });
 
     @RegisterExtension
     static EdcRuntimeExtension providerDataPlane = new EdcRuntimeExtension(
@@ -128,14 +134,15 @@ class EndToEndTransferTest {
                 {
                     put("web.http.port", String.valueOf(PROVIDER_DATA_PLANE.getPort()));
                     put("web.http.path", "/api");
-                    put("web.http.public.port", String.valueOf(PROVIDER_DATA_PLANE_PUBLIC.getPort()));
+                    put("web.http.public.port",
+                            String.valueOf(PROVIDER_DATA_PLANE_PUBLIC.getPort()));
                     put("web.http.public.path", "/public");
                     put("web.http.control.port", String.valueOf(getFreePort()));
                     put("web.http.control.path", "/control");
-                    put("edc.controlplane.validation-endpoint", PROVIDER_CONTROL_PLANE_VALIDATION + "/validation");
+                    put("edc.controlplane.validation-endpoint",
+                            PROVIDER_CONTROL_PLANE_VALIDATION + "/validation");
                 }
-            }
-    );
+            });
 
     @RegisterExtension
     static EdcRuntimeExtension providerControlPlane = new EdcRuntimeExtension(
@@ -147,20 +154,22 @@ class EndToEndTransferTest {
                     put("web.http.path", "/api");
                     put("web.http.ids.port", String.valueOf(PROVIDER_IDS_API.getPort()));
                     put("web.http.ids.path", "/api/v1/ids");
-                    put("web.http.validation.port", String.valueOf(PROVIDER_CONTROL_PLANE_VALIDATION.getPort()));
+                    put("web.http.validation.port",
+                            String.valueOf(PROVIDER_CONTROL_PLANE_VALIDATION.getPort()));
                     put("web.http.validation.path", "/validation");
                     put("edc.vault", resourceAbsolutePath("provider-vault.properties"));
                     put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                     put("edc.keystore.password", "123456");
                     put("edc.api.control.auth.apikey.value", API_KEY_CONTROL_AUTH);
                     put("ids.webhook.address", PROVIDER_IDS_API.toString());
-                    put("edc.receiver.http.endpoint", PROVIDER_BACKEND_SERVICE + "/api/service/pull");
+                    put("edc.receiver.http.endpoint",
+                            PROVIDER_BACKEND_SERVICE + "/api/service/pull");
                     put("edc.transfer.dataplane.token.signer.privatekey.alias", "1");
                     put("edc.public.key.alias", "public-key");
-                    put("edc.transfer.dataplane.sync.endpoint", PROVIDER_DATA_PLANE_PUBLIC.toString());
+                    put("edc.transfer.dataplane.sync.endpoint",
+                            PROVIDER_DATA_PLANE_PUBLIC.toString());
                 }
-            }
-    );
+            });
 
     @RegisterExtension
     static EdcRuntimeExtension providerBackendService = new EdcRuntimeExtension(
@@ -170,8 +179,7 @@ class EndToEndTransferTest {
                 {
                     put("web.http.port", String.valueOf(PROVIDER_BACKEND_SERVICE.getPort()));
                 }
-            }
-    );
+            });
 
     @Test
     void httpPullDataTransfer() {
@@ -184,7 +192,8 @@ class EndToEndTransferTest {
 
         assertThat(contractAgreementId).isNotEmpty();
 
-        var transferProcessId = dataRequest(contractAgreementId, assetId, CONSUMER_CONTROL_PLANE, PROVIDER_IDS_API);
+        var transferProcessId = dataRequest(contractAgreementId, assetId, CONSUMER_CONTROL_PLANE,
+                PROVIDER_IDS_API);
 
         await().atMost(timeout).untilAsserted(() -> {
             var transferProcess = getTransferProcess(transferProcessId, CONSUMER_CONTROL_PLANE);
@@ -274,7 +283,8 @@ class EndToEndTransferTest {
                                 .id(UUID.randomUUID().toString())
                                 .permission(Permission.Builder.newInstance()
                                         .target(assetId)
-                                        .action(Action.Builder.newInstance().type("USE").build())
+                                        .action(Action.Builder.newInstance()
+                                                .type("USE").build())
                                         .build())
                                 .type(PolicyType.SET)
                                 .build())
@@ -301,13 +311,10 @@ class EndToEndTransferTest {
                         "asset:prop:id", "asset-id",
                         "asset:prop:name", "asset name",
                         "asset:prop:contenttype", "text/plain",
-                        "asset:prop:policy-id", "use-eu"
-                ),
+                        "asset:prop:policy-id", "use-eu"),
                 "dataAddress", Map.of(
                         "endpoint", PROVIDER_BACKEND_SERVICE + "/api/service/data",
-                        "type", "HttpData"
-                )
-        );
+                        "type", "HttpData"));
 
         return given()
                 .baseUri(instance.toString())
@@ -349,6 +356,7 @@ class EndToEndTransferTest {
 
     @NotNull
     private static String resourceAbsolutePath(String filename) {
-        return System.getProperty("user.dir") + separator + "src" + separator + "test" + separator + "resources" + separator + filename;
+        return System.getProperty("user.dir") + separator + "src" + separator + "test" + separator + "resources" +
+                separator + filename;
     }
 }

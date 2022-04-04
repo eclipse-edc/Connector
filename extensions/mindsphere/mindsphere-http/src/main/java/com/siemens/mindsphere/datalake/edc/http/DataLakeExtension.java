@@ -52,7 +52,7 @@ public class DataLakeExtension implements ServiceExtension {
 
         // register the URL resource definition generator
         var manifestGenerator = context.getService(ResourceManifestGenerator.class);
-        manifestGenerator.registerConsumerGenerator(new DestinationUrlResourceDefinitionGenerator(monitor));
+        manifestGenerator.registerGenerator(new DestinationUrlResourceDefinitionGenerator(monitor));
 
         // register status checker
         var statusCheckerReg = context.getService(StatusCheckerRegistry.class);

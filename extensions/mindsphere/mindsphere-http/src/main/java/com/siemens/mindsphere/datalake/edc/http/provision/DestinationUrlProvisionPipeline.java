@@ -4,6 +4,7 @@ import com.siemens.mindsphere.datalake.edc.http.DataLakeClient;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -57,5 +58,9 @@ public class DestinationUrlProvisionPipeline {
             Objects.requireNonNull(monitor);
             return new DestinationUrlProvisionPipeline(retryPolicy, monitor, dataLakeClient);
         }
+    }
+
+    public CompletableFuture<ProvisionResult> deprovision(DestinationUrlProvisionedResource provisionedResource) {
+        return null;
     }
 }

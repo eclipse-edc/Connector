@@ -6,8 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import com.siemens.mindsphere.datalake.edc.http.HttpSchema;
-import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 
 @JsonDeserialize(builder = DestinationUrlProvisionedResource.Builder.class)
@@ -23,14 +21,14 @@ public class DestinationUrlProvisionedResource extends ProvisionedDataDestinatio
     @JsonProperty
     private String path;
 
-    @Override
-    public DataAddress createDataDestination() {
-        return DataAddress.Builder.newInstance()
-                .keyName(path)
-                .property(HttpSchema.URL, url)
-                .type(HttpSchema.TYPE)
-                .build();
-    }
+    // @Override
+    // public DataAddress createDataDestination() {
+    //     return DataAddress.Builder.newInstance()
+    //             .keyName(path)
+    //             .property(HttpSchema.URL, url)
+    //             .type(HttpSchema.TYPE)
+    //             .build();
+    // }
 
     @JsonIgnore
     @Override
