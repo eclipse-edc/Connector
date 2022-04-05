@@ -213,3 +213,8 @@ include(":system-tests:e2e-transfer-test:data-plane")
 include(":system-tests:runtimes:file-transfer-provider")
 include(":system-tests:runtimes:file-transfer-consumer")
 include(":system-tests:tests")
+
+include(":samples:smart-sense-edc:consumer")
+include(":samples:smart-sense-edc:provider")
+include(":samples:smart-sense-edc:api")
+include(":samples:smart-sense-edc:provider-upload")
