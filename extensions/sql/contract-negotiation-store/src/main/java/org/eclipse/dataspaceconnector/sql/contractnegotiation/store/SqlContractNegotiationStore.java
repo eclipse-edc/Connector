@@ -209,7 +209,17 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
 
     @Override
     public Policy findPolicyById(String policyId) {
-        throw new UnsupportedOperationException();
+        var stmt = statements.getSelectByPolicyIdTemplate();
+
+        return transactionContext.execute(() -> {
+            try (var conn = getConnection()) {
+                TypeReference<Policy> tr = new TypeReference<>() {
+                };
+                return single(executeQuery(conn, (rs) -> fromJson(rs.getString(statements.getPolicyColumnSeralized()), tr), stmt, policyId));
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
     }
 
 
@@ -248,7 +258,8 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                     agr.getContractStartDate(),
                     agr.getContractEndDate(),
                     agr.getAssetId(),
-                    agr.getPolicy().getUid());
+                    agr.getPolicy().getUid(),
+                    toJson(agr.getPolicy()));
         }
 
         var stmt = statements.getInsertNegotiationTemplate();
@@ -284,7 +295,8 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                 .providerAgentId(resultSet.getString(statements.getProviderAgentColumn()))
                 .consumerAgentId(resultSet.getString(statements.getConsumerAgentColumn()))
                 .assetId(resultSet.getString(statements.getAssetIdColumn()))
-                .policy(Policy.Builder.newInstance().id(resultSet.getString(statements.getPolicyIdColumn())).build())
+                .policy(fromJson(resultSet.getString(statements.getPolicyColumnSeralized()), new TypeReference<>() {
+                }))
                 .contractStartDate(resultSet.getLong(statements.getStartDateColumn()))
                 .contractEndDate(resultSet.getLong(statements.getEndDateColumn()))
                 .contractSigningDate(resultSet.getLong(statements.getSigningDateColumn()))

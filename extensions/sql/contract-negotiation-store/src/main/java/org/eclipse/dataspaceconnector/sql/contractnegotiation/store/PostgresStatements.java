@@ -90,9 +90,14 @@ public final class PostgresStatements implements ContractNegotiationStatements {
 
     @Override
     public String getInsertAgreementTemplate() {
-        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?);", getContractAgreementTable(), getIdColumn(), getProviderAgentColumn(), getConsumerAgentColumn(),
-                getSigningDateColumn(), getStartDateColumn(), getEndDateColumn(), getAssetIdColumn(), getPolicyIdColumn());
+        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", getContractAgreementTable(), getIdColumn(), getProviderAgentColumn(), getConsumerAgentColumn(),
+                getSigningDateColumn(), getStartDateColumn(), getEndDateColumn(), getAssetIdColumn(), getPolicyIdColumn(), getPolicyColumnSeralized());
+    }
+
+    @Override
+    public String getSelectByPolicyIdTemplate() {
+        return format("SELECT %s FROM %s WHERE %s = ?", getPolicyColumnSeralized(), getContractAgreementTable(), getPolicyIdColumn());
     }
 
     @Override

@@ -15,8 +15,12 @@
 
 package org.eclipse.dataspaceconnector.sql.contractnegotiation;
 
+import org.eclipse.dataspaceconnector.policy.model.Action;
+import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
+import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
+import org.eclipse.dataspaceconnector.policy.model.Operator;
+import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
@@ -53,6 +57,11 @@ public class TestFunctions {
     }
 
     public static ContractAgreement createContract(String id) {
+        return createContractBuilder(id)
+                .build();
+    }
+
+    public static ContractAgreement.Builder createContractBuilder(String id) {
         return ContractAgreement.Builder.newInstance()
                 .id(id)
                 .providerAgentId("provider")
@@ -61,7 +70,23 @@ public class TestFunctions {
                 .policy(Policy.Builder.newInstance().build())
                 .contractStartDate(Instant.now().getEpochSecond())
                 .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
-                .contractSigningDate(Instant.now().getEpochSecond())
+                .contractSigningDate(Instant.now().getEpochSecond());
+    }
+
+    public static Policy createPolicy(String uid) {
+        return Policy.Builder.newInstance()
+                .id(uid)
+                .permission(Permission.Builder.newInstance()
+                        .target("")
+                        .action(Action.Builder.newInstance()
+                                .type("USE")
+                                .build())
+                        .constraint(AtomicConstraint.Builder.newInstance()
+                                .leftExpression(new LiteralExpression("foo"))
+                                .operator(Operator.EQ)
+                                .rightExpression(new LiteralExpression("bar"))
+                                .build())
+                        .build())
                 .build();
     }
 }

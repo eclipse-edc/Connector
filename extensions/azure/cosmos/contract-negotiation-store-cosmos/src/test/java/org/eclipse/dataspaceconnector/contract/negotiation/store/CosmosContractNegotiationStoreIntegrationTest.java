@@ -584,10 +584,11 @@ class CosmosContractNegotiationStoreIntegrationTest {
     }
 
     @Test
-    void findPolicy_whenAgreement_noPolicyAttached() {
+    void findPolicy_whenAgreement_policyWithRandomId() {
+        var expectedPolicy = Policy.Builder.newInstance().id(null).build();
         var negotiation = generateNegotiationBuilder("id1")
                 .state(ContractNegotiationStates.CONFIRMED.code())
-                .contractAgreement(generateAgreementBuilder().id("test-agreement").policy(null).build())
+                .contractAgreement(generateAgreementBuilder().id("test-agreement").policy(expectedPolicy).build())
                 .build();
 
         container.createItem(new ContractNegotiationDocument(negotiation, partitionKey));
@@ -596,7 +597,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
         var policy = store.findPolicyById("test-policy");
         assertThat(policy).isNull();
 
-        assertThat(store.findContractAgreement("test-agreement")).isNotNull().extracting(ContractAgreement::getPolicy).isNull();
+        assertThat(store.findContractAgreement("test-agreement")).isNotNull().extracting(ContractAgreement::getPolicy).isEqualTo(expectedPolicy);
     }
 
     private ContractNegotiationDocument toDocument(Object object) {
