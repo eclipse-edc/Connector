@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - Initial implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - add functionalities
  *
  */
 

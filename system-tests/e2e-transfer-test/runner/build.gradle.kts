@@ -35,9 +35,3 @@ dependencies {
     testCompileOnly(project(":system-tests:e2e-transfer-test:control-plane"))
     testCompileOnly(project(":system-tests:e2e-transfer-test:data-plane"))
 }
-
-tasks.getByName<Test>("test") {
-    testLogging {
-        showStandardStreams = true
-    }
-}

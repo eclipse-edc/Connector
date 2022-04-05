@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - add functionalities
  *
  */
 
@@ -24,7 +25,6 @@ import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegis
 import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.ContractNegotiationStatements;
 import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.PostgresStatements;
 import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.SqlContractNegotiationStore;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -55,7 +55,8 @@ class SqlContractNegotiationStoreExtensionTest {
     void initialize_withCustomSqlDialect(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(DataSourceRegistry.class, mock(DataSourceRegistry.class));
         context.registerService(TransactionContext.class, mock(TransactionContext.class));
-        context.registerService(ContractNegotiationStatements.class, new TestStatements());
+        var customSqlDialect = mock(ContractNegotiationStatements.class);
+        context.registerService(ContractNegotiationStatements.class, customSqlDialect);
 
         extension = factory.constructInstance(SqlContractNegotiationStoreExtension.class);
 
@@ -63,7 +64,7 @@ class SqlContractNegotiationStoreExtensionTest {
 
         var service = context.getService(ContractNegotiationStore.class);
         assertThat(service).isInstanceOf(SqlContractNegotiationStore.class);
-        assertThat(service).extracting("statements").isInstanceOf(TestStatements.class);
+        assertThat(service).extracting("statements").isSameAs(customSqlDialect);
     }
 
     @Test
@@ -83,70 +84,4 @@ class SqlContractNegotiationStoreExtensionTest {
 
     }
 
-    private static class TestStatements implements ContractNegotiationStatements {
-        @Override
-        public String getFindTemplate() {
-            return null;
-        }
-
-        @Override
-        public String getFindByCorrelationIdTemplate() {
-            return null;
-        }
-
-        @Override
-        public String getFindContractAgreementTemplate() {
-            return null;
-        }
-
-        @Override
-        public String getUpdateNegotiationTemplate() {
-            return null;
-        }
-
-        @Override
-        public String getInsertNegotiationTemplate() {
-            return null;
-        }
-
-        @Override
-        public String getDeleteTemplate() {
-            return null;
-        }
-
-        @Override
-        public String getNextForStateTemplate() {
-            return null;
-        }
-
-        @Override
-        public String getQueryTemplate() {
-            return null;
-        }
-
-        @Override
-        public String getInsertAgreementTemplate() {
-            return null;
-        }
-
-        @Override
-        public String getDeleteLeaseTemplate() {
-            return null;
-        }
-
-        @Override
-        public String getInsertLeaseTemplate() {
-            return null;
-        }
-
-        @Override
-        public String getUpdateLeaseTemplate() {
-            return null;
-        }
-
-        @Override
-        public String getFindLeaseByEntityTemplate() {
-            return null;
-        }
-    }
 }

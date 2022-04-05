@@ -47,8 +47,12 @@ the detailed section referring to by linking pull requests or issues.
 * Support for HTTP-based provisioning (#963)
 * Let Control Plane delegate data transfer to Data Plane (#988)
 * CosmosDb based `PolicyStore` (#826)
+* Implement SQL-based PolicyStore (#866)
 * Http Provisioner Webhook endpoint (#1039)
 * Add dependency checks (#1000)
+* Add `ContractAgreement` query methods on `ContractNegotiationStore` (#1044)
+* Add `findById` method to `ContractDefinitionStore` (#967)
+* Add `PolicyArchive` for foreign policies (#1072)
 
 #### Changed
 

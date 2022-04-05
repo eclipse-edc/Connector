@@ -31,6 +31,7 @@ dependencies {
 
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(project(":core:base"))
+    testImplementation(project(":core:contract"))
     testImplementation(project(":extensions:sql:pool:apache-commons-pool"))
     testImplementation(project(":extensions:transaction:transaction-local"))
     testImplementation(testFixtures(project(":extensions:sql:lease")))

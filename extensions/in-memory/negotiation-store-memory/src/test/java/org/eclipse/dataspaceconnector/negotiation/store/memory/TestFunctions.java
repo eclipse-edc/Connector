@@ -15,8 +15,12 @@
 
 package org.eclipse.dataspaceconnector.negotiation.store.memory;
 
+import org.eclipse.dataspaceconnector.policy.model.Action;
+import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
+import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
+import org.eclipse.dataspaceconnector.policy.model.Operator;
+import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -28,20 +32,29 @@ import java.util.UUID;
 
 public class TestFunctions {
 
-    public static ContractNegotiation createNegotiation(String name) {
-        return ContractNegotiation.Builder.newInstance()
-                .type(ContractNegotiation.Type.CONSUMER)
-                .id(name)
+    public static ContractNegotiation createNegotiation(String id) {
+        return createNegotiationBuilder(id)
                 .contractAgreement(createAgreement())
+                .build();
+    }
+
+    public static ContractNegotiation.Builder createNegotiationBuilder(String id) {
+        return ContractNegotiation.Builder.newInstance()
+                .id(id)
+                .type(ContractNegotiation.Type.CONSUMER)
                 .contractOffers(List.of(ContractOffer.Builder.newInstance().id("contractId")
                         .policy(Policy.Builder.newInstance().build()).build()))
                 .counterPartyAddress("consumer")
                 .counterPartyId("consumerId")
-                .protocol("ids-multipart")
-                .build();
+                .protocol("ids-multipart");
     }
 
     public static ContractAgreement createAgreement() {
+        return createAgreementBuilder()
+                .build();
+    }
+
+    public static ContractAgreement.Builder createAgreementBuilder() {
         return ContractAgreement.Builder.newInstance()
                 .id("agreementId")
                 .providerAgentId("provider")
@@ -50,7 +63,23 @@ public class TestFunctions {
                 .policy(Policy.Builder.newInstance().build())
                 .contractStartDate(Instant.now().getEpochSecond())
                 .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
-                .contractSigningDate(Instant.now().getEpochSecond())
+                .contractSigningDate(Instant.now().getEpochSecond());
+    }
+
+    public static Policy createPolicy(String uid) {
+        return Policy.Builder.newInstance()
+                .id(uid)
+                .permission(Permission.Builder.newInstance()
+                        .target("")
+                        .action(Action.Builder.newInstance()
+                                .type("USE")
+                                .build())
+                        .constraint(AtomicConstraint.Builder.newInstance()
+                                .leftExpression(new LiteralExpression("foo"))
+                                .operator(Operator.EQ)
+                                .rightExpression(new LiteralExpression("bar"))
+                                .build())
+                        .build())
                 .build();
     }
 }
