@@ -50,12 +50,22 @@ public interface HttpDataAddressSchema {
     String SECRET_NAME = "secretName";
 
     /**
-     * Whether to use the body of the request in data source creation ("true" if yes, otherwise "false" or empty).
+     * If set to true the body of the actual request will be used to retrieve data from this address
      */
     String PROXY_BODY = "proxyBody";
 
     /**
-     * Whether to use the path of the request in data source creation ("true" if yes, otherwise "false" or empty).
+     * If set to true the path of the actual request will be used to retrieve data from this address
      */
     String PROXY_PATH = "proxyPath";
+
+    /**
+     * If set to true the query params of the actual request will be used to retrieve data from this address
+     */
+    String PROXY_QUERY_PARAMS = "proxyQueryParams";
+
+    /**
+     * If set to true the http method of the actual request will be used to retrieve data from this address
+     */
+    String PROXY_METHOD = "proxyMethod";
 }
