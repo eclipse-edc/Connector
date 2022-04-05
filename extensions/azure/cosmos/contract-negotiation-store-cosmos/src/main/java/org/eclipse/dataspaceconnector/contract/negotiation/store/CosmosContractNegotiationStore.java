@@ -40,10 +40,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Optional.ofNullable;
 import static net.jodah.failsafe.Failsafe.with;
 
 /**
@@ -148,7 +148,7 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
                 .map(it -> it.withLeftOperand(op -> "contractAgreement." + op))
                 .collect(Collectors.toList());
 
-        var sortField = Optional.ofNullable(querySpec.getSortField()).map(it -> "contractAgreement." + it).orElse(null);
+        var sortField = ofNullable(querySpec.getSortField()).map(it -> "contractAgreement." + it).orElse(null);
 
         var query = new SqlStatement<>(ContractNegotiationDocument.class)
                 .where(criteria)
@@ -178,18 +178,8 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     }
 
     @Override
-    public Stream<Policy> findPolicyById(String policyId) {
-        var stmt = "SELECT * FROM PolicyDocument c WHERE c.wrappedInstance.contractAgreement.policy.uid = @policyId";
-        var param = new SqlParameter("@policyId", policyId);
-
-        var query = new SqlQuerySpec(stmt, param);
-
-        // there is no way to select the whole document, but DISTINCT on the policy-id, therefore we do this in memory using .distinct()
-        return with(retryPolicy).get(() -> cosmosDbApi.queryItems(query))
-                .map(this::toNegotiation)
-                .filter(n -> n.getContractAgreement() != null)
-                .map(n -> n.getContractAgreement().getPolicy())
-                .distinct();
+    public Policy findPolicyForContract(String contractId) {
+        return ofNullable(findContractAgreement(contractId)).map(ContractAgreement::getPolicy).orElse(null);
     }
 
     private ContractNegotiation toNegotiation(Object object) {

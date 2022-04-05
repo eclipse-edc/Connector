@@ -16,8 +16,6 @@ package org.eclipse.dataspaceconnector.spi.policy.store;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 
-import java.util.stream.Stream;
-
 /**
  * Resolves {@linkplain org.eclipse.dataspaceconnector.policy.model.Policy} objects, that are part of a contract agreement.
  * Thus, this archive only houses policies from "foreign" EDC instances.
@@ -27,6 +25,8 @@ import java.util.stream.Stream;
 public interface PolicyArchive {
     /**
      * Returns a stream of distinct policies for a given ID.
+     *
+     * @return
      */
-    Stream<Policy> findPolicyById(String policyId);
+    Policy findPolicyForContract(String contractId);
 }
