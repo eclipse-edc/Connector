@@ -56,6 +56,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.UNSAVED;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -75,6 +76,9 @@ class TransferProcessManagerImplIntegrationTest {
         var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
         when(manifestGenerator.generateConsumerResourceManifest(any(DataRequest.class), any(Policy.class))).thenReturn(resourceManifest);
 
+        var policyStore = mock(PolicyStore.class);
+        when(policyStore.findById(anyString())).thenReturn(Policy.Builder.newInstance().build());
+
         transferProcessManager = TransferProcessManagerImpl.Builder.newInstance()
                 .provisionManager(provisionManager)
                 .dataFlowManager(mock(DataFlowManager.class))
@@ -89,7 +93,7 @@ class TransferProcessManagerImplIntegrationTest {
                 .statusCheckerRegistry(mock(StatusCheckerRegistry.class))
                 .observable(mock(TransferProcessObservable.class))
                 .store(store)
-                .policyStore(mock(PolicyStore.class))
+                .policyStore(policyStore)
                 .addressResolver(mock(DataAddressResolver.class))
                 .build();
     }

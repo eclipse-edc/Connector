@@ -210,8 +210,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     @WithSpan
     private boolean processInitial(TransferProcess process) {
         var dataRequest = process.getDataRequest();
-        // TODO resolve contract agreement policy from the PolicyStore
-        var policy = Policy.Builder.newInstance().build();
+
+        // TODO handle consumer policy
+        var policy = process.getType() == PROVIDER ? policyStore.findById(dataRequest.getPolicyId()) : Policy.Builder.newInstance().build();
 
         ResourceManifest manifest;
         if (process.getType() == CONSUMER) {
@@ -245,8 +246,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
      */
     @WithSpan
     private boolean processProvisioning(TransferProcess process) {
-        // TODO resolve contract agreement policy from the PolicyStore
-        var policy = Policy.Builder.newInstance().build();
+        var dataRequest = process.getDataRequest();
+
+        // TODO handle consumer policy
+        var policy = process.getType() == PROVIDER ? policyStore.findById(dataRequest.getPolicyId()) : Policy.Builder.newInstance().build();
 
         var resources = process.getResourcesToProvision();
         provisionManager.provision(resources, policy)
@@ -275,7 +278,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             transferProcessStore.update(process);
             observable.invokeForEach(l -> l.preRequesting(process));
         } else {
-            processProviderRequest(process, process.getDataRequest());
+            processProviderRequest(process);
         }
         return true;
     }
@@ -364,9 +367,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
      */
     @WithSpan
     private boolean processDeprovisioning(TransferProcess process) {
-        // TODO resolve contract agreement policy from the PolicyStore
-        var policy = Policy.Builder.newInstance().build();
         observable.invokeForEach(l -> l.preDeprovisioning(process)); // TODO: this is called here since it's not callable from the command handler
+
+        var dataRequest = process.getDataRequest();
+
+        // TODO handle consumer policy
+        var policy = process.getType() == PROVIDER ? policyStore.findById(dataRequest.getPolicyId()) : Policy.Builder.newInstance().build();
 
         var resourcesToDeprovision = process.getResourcesToDeprovision();
 
@@ -554,12 +560,15 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         updateTransferProcess(transferProcess, l -> l.preError(transferProcess));
     }
 
-    private void processProviderRequest(TransferProcess process, DataRequest dataRequest) {
-        // TODO resolve contract agreement policy from the PolicyStore
+    private void processProviderRequest(TransferProcess process) {
+        var dataRequest = process.getDataRequest();
         var contentAddress = process.getContentDataAddress();
-        var policy = Policy.Builder.newInstance().build();
+
+        // TODO handle consumer policy
+        var policy = process.getType() == PROVIDER ? policyStore.findById(dataRequest.getPolicyId()) : Policy.Builder.newInstance().build();
 
         var response = dataFlowManager.initiate(dataRequest, contentAddress, policy);
+
         if (response.succeeded()) {
             process.transitionInProgressOrStreaming();
             updateTransferProcess(process, l -> l.preInProgress(process));
