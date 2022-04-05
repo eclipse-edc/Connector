@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitio
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
@@ -44,13 +45,13 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     @Override
-    public Collection<Policy> query(QuerySpec query) {
+    public @NotNull Collection<Policy> query(QuerySpec query) {
         return transactionContext.execute(() ->
                 policyStore.findAll(query).collect(toList()));
     }
 
     @Override
-    public ServiceResult<Policy> deleteById(String policyId) {
+    public @NotNull ServiceResult<Policy> deleteById(String policyId) {
         return transactionContext.execute(() -> {
             var contractFilter = format("contractPolicy.uid = %s ", policyId);
             var queryContractPolicyFilter = QuerySpec.Builder.newInstance().filter(contractFilter).build();
@@ -76,7 +77,7 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     @Override
-    public ServiceResult<Policy> create(Policy policy) {
+    public @NotNull ServiceResult<Policy> create(Policy policy) {
 
         return transactionContext.execute(() -> {
             if (policyStore.findById(policy.getUid()) == null) {
