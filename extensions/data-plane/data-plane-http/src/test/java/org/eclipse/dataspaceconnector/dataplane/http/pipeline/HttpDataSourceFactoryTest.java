@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *       Amadeus - test retrieval of auth code from vault
  *       Amadeus - add test for mapping of path segments
+ *       Mercedes Benz Tech Innovation - add toggles for proxy behavior
  *
  */
 
