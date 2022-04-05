@@ -33,6 +33,12 @@ jobs:
       - name: Azure Storage Tests
         run: ./gradlew -p extensions/azure test -DincludeTags="AzureStorageIntegrationTest"
 
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: "**/test-results/**/*.xml"
+
   Check-Cosmos-Key:
     runs-on: ubuntu-latest
     steps:
@@ -66,6 +72,12 @@ jobs:
       - name: Azure CosmosDB Tests
         run: ./gradlew -p extensions/azure/cosmos test -DincludeTags="AzureCosmosDbIntegrationTest"
 
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: "**/test-results/**/*.xml"
+
   Aws-Integration-Test:
     runs-on: ubuntu-latest
 
@@ -93,6 +105,12 @@ jobs:
           S3_SECRET_ACCESS_KEY: password
         run: ./gradlew -p extensions/aws/s3 test -DincludeTags="AwsS3IntegrationTest"
 
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: "**/test-results/**/*.xml"
+
       - name: AWS S3 StatusChecker Test
         env:
           S3_ACCESS_KEY_ID: root
@@ -118,6 +136,11 @@ jobs:
 
       - name: Daps Integration Tests
         run: ./gradlew -p extensions/iam/daps test -DincludeTags="DapsIntegrationTest"
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: "**/test-results/**/*.xml"
 
   End-To-End-Tests:
     runs-on: ubuntu-latest
@@ -132,6 +155,12 @@ jobs:
 
       - name: "End to End Integration Tests"
         run: ./gradlew test -DincludeTags="EndToEndTest"
+
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: "**/test-results/**/*.xml"
 
       - name: "Publish Gatling report"
         uses: actions/upload-artifact@v2
@@ -154,6 +183,12 @@ jobs:
       - name: "Component Tests"
         run: ./gradlew test -DincludeTags="ComponentTest"
 
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: "**/test-results/**/*.xml"
+
   Micrometer-Integration-Tests:
     runs-on: ubuntu-latest
     steps:
@@ -169,3 +204,8 @@ jobs:
         run: wget -q https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v1.12.0/opentelemetry-javaagent.jar
       - name: Micrometer Integration Tests.
         run: ./gradlew -p core/micrometer test -DincludeTags="OpenTelemetryIntegrationTest"
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: "**/test-results/**/*.xml"
