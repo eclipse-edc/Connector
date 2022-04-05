@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.spi.system.injection;
 
-import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -22,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
  * One way to implement this is to generate a new instance on demand using reflection and dependency injection.
  */
 @FunctionalInterface
-@Feature("edc:core:object-factory")
 public interface ObjectFactory {
     /**
      * Creates a new instance of a commandHandler

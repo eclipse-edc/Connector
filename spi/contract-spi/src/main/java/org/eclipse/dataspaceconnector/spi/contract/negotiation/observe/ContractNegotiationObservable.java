@@ -15,11 +15,9 @@
 package org.eclipse.dataspaceconnector.spi.contract.negotiation.observe;
 
 import org.eclipse.dataspaceconnector.spi.observe.Observable;
-import org.eclipse.dataspaceconnector.spi.system.Feature;
 
 /**
  * Manages and invokes {@link ContractNegotiationListener}s when an event related to a contract negotiation process is emitted.
  */
-@Feature("edc:core:contract:contractnegotiation:observable")
 public interface ContractNegotiationObservable extends Observable<ContractNegotiationListener> {
 }

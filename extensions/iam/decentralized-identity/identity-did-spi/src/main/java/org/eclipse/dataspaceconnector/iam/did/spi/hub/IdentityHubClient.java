@@ -17,17 +17,14 @@ package org.eclipse.dataspaceconnector.iam.did.spi.hub;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRequest;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.spi.system.Feature;
 
 import java.util.Map;
 
 /**
  * An interface to a foreign identity hub.
  */
-@Feature(IdentityHubClient.FEATURE)
 public interface IdentityHubClient {
 
-    String FEATURE = "edc:identity:hub:client";
 
     /**
      * Queries credentials from the hub.

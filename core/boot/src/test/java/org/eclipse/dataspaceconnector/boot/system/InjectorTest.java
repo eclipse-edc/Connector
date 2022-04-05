@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.boot.system;
 import org.eclipse.dataspaceconnector.boot.system.injection.InjectorImpl;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -83,11 +82,13 @@ class InjectorTest {
         var serviceExtension = new TestServiceExtension();
         var field = serviceExtension.getClass().getDeclaredField("someObject");
         var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field, "edc:test:feature:someobject")));
+        when(context.hasService(eq(SomeObject.class))).thenReturn(true);
         when(context.getService(eq(SomeObject.class), anyBoolean())).thenReturn(new SomeObject());
 
         injector.inject(template, context);
 
         assertThat(serviceExtension.someObject).isNotNull();
+        verify(context).hasService(eq(SomeObject.class));
         verify(context).getService(eq(SomeObject.class), anyBoolean());
     }
 
@@ -98,14 +99,14 @@ class InjectorTest {
         var field = serviceExtension.getClass().getDeclaredField("someObject");
         var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field, "edc:test:feature:someobject")));
         var rootCauseException = new EdcException("Service not found");
+        when(context.hasService(SomeObject.class)).thenReturn(false);
         when(context.getService(SomeObject.class, false)).thenThrow(rootCauseException);
 
-        assertThatThrownBy(() -> injector.inject(template, context)).isInstanceOf(EdcInjectionException.class).hasCause(rootCauseException);
+        assertThatThrownBy(() -> injector.inject(template, context)).isInstanceOf(EdcInjectionException.class).hasMessageStartingWith("No default provider for required service class ");
         assertThat(serviceExtension.someObject).isNull();
 
-        verify(context).getService(SomeObject.class, false);
-        verify(monitor).warning(anyString(), any());
-
+        verify(context).hasService(SomeObject.class);
+        verify(context, never()).getService(SomeObject.class, false);
     }
 
     @Test
@@ -117,12 +118,14 @@ class InjectorTest {
         var template = new InjectionContainer<>(serviceExtension, Set.of(injectionPoint));
 
         var value = new SomeObject();
+        when(context.hasService(eq(SomeObject.class))).thenReturn(true);
         when(context.getService(eq(SomeObject.class), anyBoolean())).thenReturn(value);
 
         doThrow(new IllegalAccessException("test")).when(injectionPoint).setTargetValue(value);
 
         assertThatThrownBy(() -> injector.inject(template, context)).isInstanceOf(EdcInjectionException.class).hasCauseInstanceOf(IllegalAccessException.class);
         assertThat(serviceExtension.someObject).isNull();
+        verify(context).hasService(eq(SomeObject.class));
         verify(context).getService(eq(SomeObject.class), anyBoolean());
         verify(monitor).warning(anyString(), any());
     }
@@ -132,7 +135,6 @@ class InjectorTest {
         private SomeObject someObject;
     }
 
-    @Feature("edc:test:feature:someobject")
     private static class SomeObject {
     }
 

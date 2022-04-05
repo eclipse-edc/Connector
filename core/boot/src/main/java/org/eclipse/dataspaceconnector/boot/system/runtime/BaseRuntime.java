@@ -57,24 +57,24 @@ import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadTel
  */
 public class BaseRuntime {
 
+    protected final ServiceLocator serviceLocator;
     private final AtomicReference<HealthCheckResult> startupStatus = new AtomicReference<>(HealthCheckResult.failed("Startup not complete"));
     private final ExtensionLoader extensionLoader;
-    protected final ServiceLocator serviceLocator;
     protected Monitor monitor;
-    private List<ServiceExtension> serviceExtensions = new ArrayList<>();
-
-    public static void main(String[] args) {
-        BaseRuntime runtime = new BaseRuntime();
-        runtime.boot();
-    }
+    private final List<ServiceExtension> serviceExtensions = new ArrayList<>();
 
     public BaseRuntime() {
         this(new ServiceLocatorImpl());
     }
 
     protected BaseRuntime(ServiceLocator serviceLocator) {
-        this.extensionLoader = new ExtensionLoader(serviceLocator);
+        extensionLoader = new ExtensionLoader(serviceLocator);
         this.serviceLocator = serviceLocator;
+    }
+
+    public static void main(String[] args) {
+        BaseRuntime runtime = new BaseRuntime();
+        runtime.boot();
     }
 
     protected Monitor getMonitor() {
@@ -94,33 +94,6 @@ public class BaseRuntime {
      */
     protected void bootWithoutShutdownHook() {
         boot(false);
-    }
-
-    private void boot(boolean addShutdownHook) {
-        ServiceExtensionContext context = createServiceExtensionContext();
-
-        var name = getRuntimeName(context);
-        try {
-            initializeVault(context);
-            List<InjectionContainer<ServiceExtension>> newExtensions = createExtensions();
-            bootExtensions(context, newExtensions);
-
-            newExtensions.stream().map(InjectionContainer::getInjectionTarget).forEach(serviceExtensions::add);
-            if (addShutdownHook) {
-                getRuntime().addShutdownHook(new Thread(() -> shutdown()));
-            }
-
-            var healthCheckService = context.getService(HealthCheckService.class);
-            healthCheckService.addStartupStatusProvider(this::getStartupStatus);
-
-            startupStatus.set(HealthCheckResult.success());
-
-            healthCheckService.refresh();
-        } catch (Exception e) {
-            onError(e);
-        }
-
-        monitor.info(format("%s ready", name));
     }
 
     @NotNull
@@ -165,7 +138,7 @@ public class BaseRuntime {
     /**
      * Starts all service extensions by invoking {@link ExtensionLoader#bootServiceExtensions(List, ServiceExtensionContext)}
      *
-     * @param context The {@code ServiceExtensionContext} that is used in this runtime.
+     * @param context           The {@code ServiceExtensionContext} that is used in this runtime.
      * @param serviceExtensions a list of extensions
      */
     protected void bootExtensions(ServiceExtensionContext context, List<InjectionContainer<ServiceExtension>> serviceExtensions) {
@@ -187,7 +160,7 @@ public class BaseRuntime {
      * this would likely need to be overridden.
      *
      * @param typeManager The TypeManager (for JSON de-/serialization)
-     * @param monitor a Monitor
+     * @param monitor     a Monitor
      * @return a {@code ServiceExtensionContext}
      */
     @NotNull
@@ -243,8 +216,35 @@ public class BaseRuntime {
      * Hook point to supply a (custom) TypeManager. By default a new TypeManager is created
      */
     @NotNull
-    private TypeManager createTypeManager() {
+    protected TypeManager createTypeManager() {
         return new TypeManager();
+    }
+
+    private void boot(boolean addShutdownHook) {
+        ServiceExtensionContext context = createServiceExtensionContext();
+
+        var name = getRuntimeName(context);
+        try {
+            initializeVault(context);
+            List<InjectionContainer<ServiceExtension>> newExtensions = createExtensions();
+            bootExtensions(context, newExtensions);
+
+            newExtensions.stream().map(InjectionContainer::getInjectionTarget).forEach(serviceExtensions::add);
+            if (addShutdownHook) {
+                getRuntime().addShutdownHook(new Thread(() -> shutdown()));
+            }
+
+            var healthCheckService = context.getService(HealthCheckService.class);
+            healthCheckService.addStartupStatusProvider(this::getStartupStatus);
+
+            startupStatus.set(HealthCheckResult.success());
+
+            healthCheckService.refresh();
+        } catch (Exception e) {
+            onError(e);
+        }
+
+        monitor.info(format("%s ready", name));
     }
 
     private HealthCheckResult getStartupStatus() {

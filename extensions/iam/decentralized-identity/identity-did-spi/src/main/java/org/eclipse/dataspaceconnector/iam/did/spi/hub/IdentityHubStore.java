@@ -18,17 +18,14 @@ import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.Commit;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQuery;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.HubObject;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQuery;
-import org.eclipse.dataspaceconnector.spi.system.Feature;
 
 import java.util.Collection;
 
 /**
  * Provides persistence and query capabilities for hub data.
  */
-@Feature(IdentityHubStore.FEATURE)
 public interface IdentityHubStore {
 
-    String FEATURE = "edc:identity:hub:store";
 
     /**
      * Persists a commit.

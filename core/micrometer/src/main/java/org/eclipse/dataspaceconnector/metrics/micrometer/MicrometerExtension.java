@@ -25,13 +25,13 @@ import io.micrometer.core.instrument.binder.system.ProcessorMetrics;
 import okhttp3.EventListener;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.system.BaseExtension;
-import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentationImplementation;
+import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 @BaseExtension
-@Provides({EventListener.class, ExecutorInstrumentationImplementation.class, MeterRegistry.class})
+@Provides({ EventListener.class, ExecutorInstrumentation.class, MeterRegistry.class })
 public class MicrometerExtension implements ServiceExtension {
 
     @EdcSetting
@@ -91,6 +91,6 @@ public class MicrometerExtension implements ServiceExtension {
     }
 
     private void enableExecutorMetrics(ServiceExtensionContext context, MeterRegistry registry) {
-        context.registerService(ExecutorInstrumentationImplementation.class, new MicrometerExecutorInstrumentation(registry));
+        context.registerService(ExecutorInstrumentation.class, new MicrometerExecutorInstrumentation(registry));
     }
 }

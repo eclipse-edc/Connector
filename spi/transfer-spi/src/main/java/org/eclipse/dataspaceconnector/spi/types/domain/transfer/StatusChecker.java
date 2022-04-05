@@ -14,8 +14,6 @@
 
 package org.eclipse.dataspaceconnector.spi.types.domain.transfer;
 
-import org.eclipse.dataspaceconnector.spi.system.Feature;
-
 import java.util.List;
 
 /**
@@ -24,7 +22,6 @@ import java.util.List;
  * For example, a data transfer type involving the copying of files to a folder may employ a completion check that verifies if a file with the "*.complete" extension exists.
  */
 @FunctionalInterface
-@Feature("edc:core:transfer:statuschecker")
 public interface StatusChecker {
 
     /**
