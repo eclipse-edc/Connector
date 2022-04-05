@@ -25,8 +25,6 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 public interface PolicyArchive {
     /**
      * Returns a stream of distinct policies for a given ID.
-     *
-     * @return
      */
     Policy findPolicyForContract(String contractId);
 }

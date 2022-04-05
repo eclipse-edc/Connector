@@ -329,7 +329,7 @@ class InMemoryContractNegotiationStoreTest {
 
         store.save(n);
 
-        var archivedPolicy = store.findPolicyForContract("test-policy");
+        var archivedPolicy = store.findPolicyForContract("test-contract");
         assertThat(archivedPolicy).isNull();
     }
 
