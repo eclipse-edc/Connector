@@ -18,13 +18,14 @@ import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractNegotiationDocument;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
-@Provides(ContractNegotiationStore.class)
+@Provides({ ContractNegotiationStore.class, PolicyArchive.class })
 public class CosmosContractNegotiationStoreExtension implements ServiceExtension {
 
     @Override
@@ -41,6 +42,7 @@ public class CosmosContractNegotiationStoreExtension implements ServiceExtension
         var cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
         var store = new CosmosContractNegotiationStore(cosmosDbApi, context.getTypeManager(), (RetryPolicy<Object>) context.getService(RetryPolicy.class), configuration.getPartitionKey());
         context.registerService(ContractNegotiationStore.class, store);
+        context.registerService(PolicyArchive.class, store);
 
         context.getTypeManager().registerTypes(ContractNegotiationDocument.class);
 

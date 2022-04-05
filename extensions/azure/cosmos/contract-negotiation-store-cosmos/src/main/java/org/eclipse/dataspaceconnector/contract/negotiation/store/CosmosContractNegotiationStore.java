@@ -25,10 +25,10 @@ import org.eclipse.dataspaceconnector.azure.cosmos.dialect.SqlStatement;
 import org.eclipse.dataspaceconnector.azure.cosmos.util.CosmosLeaseContext;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractNegotiationDocument;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -120,7 +120,7 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     }
 
     @Override
-    public Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
+    public @NotNull Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
         var statement = new SqlStatement<>(ContractNegotiationDocument.class);
         var query = statement.where(querySpec.getFilterExpression())
                 .offset(querySpec.getOffset())
@@ -176,6 +176,20 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
         };
         var list = typeManager.readValue(rawJson, typeRef);
         return list.stream().map(this::toNegotiation).collect(Collectors.toList());
+    }
+
+    @Override
+    public Policy findPolicyById(String policyId) {
+        var stmt = "SELECT * FROM c WHERE c.wrappedInstance.contractAgreement.policy.uid = @policyId";
+        var param = new SqlParameter("@policyId", policyId);
+
+        var query = new SqlQuerySpec(stmt, param);
+
+        return with(retryPolicy).get(() -> cosmosDbApi.queryItems(query))
+                .map(this::toNegotiation)
+                .filter(n -> n.getContractAgreement() != null)
+                .map(n -> n.getContractAgreement().getPolicy())
+                .findFirst().orElse(null);
     }
 
     private ContractNegotiation toNegotiation(Object object) {

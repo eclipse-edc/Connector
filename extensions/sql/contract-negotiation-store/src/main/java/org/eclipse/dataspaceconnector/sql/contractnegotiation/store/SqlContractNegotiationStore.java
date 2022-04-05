@@ -150,7 +150,7 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
     }
 
     @Override
-    public Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
+    public @NotNull Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var stmt = statements.getQueryTemplate();
@@ -205,6 +205,11 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                 throw new EdcPersistenceException(e);
             }
         });
+    }
+
+    @Override
+    public Policy findPolicyById(String policyId) {
+        throw new UnsupportedOperationException();
     }
 
 

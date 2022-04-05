@@ -16,6 +16,7 @@
 package org.eclipse.dataspaceconnector.negotiation.store.memory;
 
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.query.QueryResolver;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -109,6 +110,21 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
     }
 
     @Override
+    public @NotNull Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
+        return lockManager.readLock(() -> negotiationQueryResolver.query(processesById.values().stream(), querySpec));
+    }
+
+    @Override
+    public @NotNull Stream<ContractAgreement> getAgreementsForDefinitionId(String definitionId) {
+        return lockManager.readLock(() -> getAgreements().filter(it -> it.getId().startsWith(definitionId + ":")));
+    }
+
+    @Override
+    public @NotNull Stream<ContractAgreement> queryAgreements(QuerySpec querySpec) {
+        return lockManager.readLock(() -> agreementQueryResolver.query(getAgreements(), querySpec));
+    }
+
+    @Override
     public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
         return lockManager.readLock(() -> {
             var set = stateCache.get(state);
@@ -132,18 +148,8 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
     }
 
     @Override
-    public Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
-        return lockManager.readLock(() -> negotiationQueryResolver.query(processesById.values().stream(), querySpec));
-    }
-
-    @Override
-    public @NotNull Stream<ContractAgreement> getAgreementsForDefinitionId(String definitionId) {
-        return lockManager.readLock(() -> getAgreements().filter(it -> it.getId().startsWith(definitionId + ":")));
-    }
-
-    @Override
-    public @NotNull Stream<ContractAgreement> queryAgreements(QuerySpec querySpec) {
-        return lockManager.readLock(() -> agreementQueryResolver.query(getAgreements(), querySpec));
+    public Policy findPolicyById(String policyId) {
+        throw new UnsupportedOperationException();
     }
 
     @NotNull

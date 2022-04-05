@@ -552,6 +552,53 @@ class CosmosContractNegotiationStoreIntegrationTest {
         assertThat(store.queryAgreements(query)).isEmpty();
     }
 
+    @Test
+    void findPolicy_whenNoAgreement() {
+        var negotiation = generateNegotiationBuilder("id1")
+                .state(ContractNegotiationStates.CONFIRMED.code())
+                .contractAgreement(null)
+                .build();
+
+        container.createItem(new ContractNegotiationDocument(negotiation, partitionKey));
+
+
+        var policy = store.findPolicyById("test-policy");
+        assertThat(policy).isNull();
+
+    }
+
+    @Test
+    void findPolicy_whenAgreement() {
+        var negotiation = generateNegotiationBuilder("id1")
+                .state(ContractNegotiationStates.CONFIRMED.code())
+                .contractAgreement(generateAgreementBuilder().id("test-agreement").policy(Policy.Builder.newInstance().id("test-policy").build()).build())
+                .build();
+
+        container.createItem(new ContractNegotiationDocument(negotiation, partitionKey));
+
+
+        var policy = store.findPolicyById("test-policy");
+        assertThat(policy).isNotNull();
+
+        assertThat(store.findContractAgreement("test-agreement")).extracting(ContractAgreement::getPolicy).isEqualTo(policy);
+    }
+
+    @Test
+    void findPolicy_whenAgreement_noPolicyAttached() {
+        var negotiation = generateNegotiationBuilder("id1")
+                .state(ContractNegotiationStates.CONFIRMED.code())
+                .contractAgreement(generateAgreementBuilder().id("test-agreement").policy(null).build())
+                .build();
+
+        container.createItem(new ContractNegotiationDocument(negotiation, partitionKey));
+
+
+        var policy = store.findPolicyById("test-policy");
+        assertThat(policy).isNull();
+
+        assertThat(store.findContractAgreement("test-agreement")).isNotNull().extracting(ContractAgreement::getPolicy).isNull();
+    }
+
     private ContractNegotiationDocument toDocument(Object object) {
         var json = typeManager.writeValueAsString(object);
         return typeManager.readValue(json, ContractNegotiationDocument.class);
