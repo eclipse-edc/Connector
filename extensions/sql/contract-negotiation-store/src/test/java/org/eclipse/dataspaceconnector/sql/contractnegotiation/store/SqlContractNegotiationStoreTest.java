@@ -492,13 +492,12 @@ class SqlContractNegotiationStoreTest {
 
     @Test
     void findPolicy_whenNoAgreement() {
-        var policy = createPolicy("test-policy");
         var n = createNegotiation("id1");
 
         store.save(n);
 
         var archivedPolicy = store.findPolicyById("test-policy");
-        assertThat(archivedPolicy).isNull();
+        assertThat(archivedPolicy).isEmpty();
     }
 
     @Test
@@ -510,7 +509,22 @@ class SqlContractNegotiationStoreTest {
         store.save(n);
 
         var archivedPolicy = store.findPolicyById("test-policy");
-        assertThat(archivedPolicy).usingRecursiveComparison().isEqualTo(policy);
+        assertThat(archivedPolicy).usingRecursiveFieldByFieldElementComparator().containsExactly(policy);
+    }
+
+    @Test
+    void findPolicy_whenMultipleAgreements() {
+        var policy = createPolicy("test-policy");
+        var c1 = createContractBuilder("test-contract1").policy(policy).build();
+        var n1 = createNegotiation("id1", c1);
+        var c2 = createContractBuilder("test-contract2").policy(policy).build();
+        var n2 = createNegotiation("id2", c2);
+
+        store.save(n1);
+        store.save(n2);
+
+        var policies = store.findPolicyById("test-policy");
+        assertThat(policies).usingRecursiveFieldByFieldElementComparator().containsExactly(policy);
     }
 
     @Test
@@ -522,7 +536,7 @@ class SqlContractNegotiationStoreTest {
         store.save(n);
 
         var archivedPolicy = store.findPolicyById("test-policy");
-        assertThat(archivedPolicy).isNull();
+        assertThat(archivedPolicy).isEmpty();
         assertThat(store.findContractAgreement("test-contract")).isNotNull().extracting(ContractAgreement::getPolicy).isEqualTo(expectedPolicy);
     }
 

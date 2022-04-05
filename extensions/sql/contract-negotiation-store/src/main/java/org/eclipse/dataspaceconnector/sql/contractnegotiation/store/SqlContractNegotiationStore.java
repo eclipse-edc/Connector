@@ -208,14 +208,14 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
     }
 
     @Override
-    public Policy findPolicyById(String policyId) {
+    public Stream<Policy> findPolicyById(String policyId) {
         var stmt = statements.getSelectByPolicyIdTemplate();
 
         return transactionContext.execute(() -> {
             try (var conn = getConnection()) {
                 TypeReference<Policy> tr = new TypeReference<>() {
                 };
-                return single(executeQuery(conn, (rs) -> fromJson(rs.getString(statements.getPolicyColumnSeralized()), tr), stmt, policyId));
+                return executeQuery(conn, (rs) -> fromJson(rs.getString(statements.getPolicyColumnSeralized()), tr), stmt, policyId).stream();
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }

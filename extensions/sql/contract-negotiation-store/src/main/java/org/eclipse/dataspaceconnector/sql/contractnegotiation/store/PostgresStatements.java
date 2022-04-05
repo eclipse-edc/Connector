@@ -97,7 +97,7 @@ public final class PostgresStatements implements ContractNegotiationStatements {
 
     @Override
     public String getSelectByPolicyIdTemplate() {
-        return format("SELECT %s FROM %s WHERE %s = ?", getPolicyColumnSeralized(), getContractAgreementTable(), getPolicyIdColumn());
+        return format("SELECT DISTINCT %s FROM %s WHERE %s = ?", getPolicyColumnSeralized(), getContractAgreementTable(), getPolicyIdColumn());
     }
 
     @Override

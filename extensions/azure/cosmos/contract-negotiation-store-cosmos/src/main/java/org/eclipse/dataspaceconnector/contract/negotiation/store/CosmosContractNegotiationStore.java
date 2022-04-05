@@ -75,7 +75,6 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
         return object != null ? toNegotiation(object) : null;
     }
 
-
     @Override
     public @Nullable ContractNegotiation findForCorrelationId(String correlationId) {
         final String query = "SELECT * FROM c WHERE (c.wrappedInstance.correlationId = @corrId)";
@@ -179,17 +178,18 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     }
 
     @Override
-    public Policy findPolicyById(String policyId) {
-        var stmt = "SELECT * FROM c WHERE c.wrappedInstance.contractAgreement.policy.uid = @policyId";
+    public Stream<Policy> findPolicyById(String policyId) {
+        var stmt = "SELECT * FROM PolicyDocument c WHERE c.wrappedInstance.contractAgreement.policy.uid = @policyId";
         var param = new SqlParameter("@policyId", policyId);
 
         var query = new SqlQuerySpec(stmt, param);
 
+        // there is no way to select the whole document, but DISTINCT on the policy-id, therefore we do this in memory using .distinct()
         return with(retryPolicy).get(() -> cosmosDbApi.queryItems(query))
                 .map(this::toNegotiation)
                 .filter(n -> n.getContractAgreement() != null)
                 .map(n -> n.getContractAgreement().getPolicy())
-                .findFirst().orElse(null);
+                .distinct();
     }
 
     private ContractNegotiation toNegotiation(Object object) {

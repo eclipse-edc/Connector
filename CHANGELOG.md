@@ -51,6 +51,7 @@ the detailed section referring to by linking pull requests or issues.
 * Http Provisioner Webhook endpoint (#1039)
 * Add `ContractAgreement` query methods on `ContractNegotiationStore` (#1044)
 * Add `findById` method to `ContractDefinitionStore` (#967)
+* Add `PolicyArchive` for foreign policies (#1072)
 
 #### Changed
 

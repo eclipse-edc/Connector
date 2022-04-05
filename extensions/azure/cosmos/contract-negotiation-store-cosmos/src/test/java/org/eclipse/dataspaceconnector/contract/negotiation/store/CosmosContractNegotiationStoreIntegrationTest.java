@@ -563,24 +563,47 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
 
         var policy = store.findPolicyById("test-policy");
-        assertThat(policy).isNull();
+        assertThat(policy).isEmpty();
 
     }
 
     @Test
     void findPolicy_whenAgreement() {
+        var expectedPolicy = Policy.Builder.newInstance().id("test-policy").build();
         var negotiation = generateNegotiationBuilder("id1")
                 .state(ContractNegotiationStates.CONFIRMED.code())
-                .contractAgreement(generateAgreementBuilder().id("test-agreement").policy(Policy.Builder.newInstance().id("test-policy").build()).build())
+                .contractAgreement(generateAgreementBuilder().id("test-agreement").policy(expectedPolicy).build())
                 .build();
 
         container.createItem(new ContractNegotiationDocument(negotiation, partitionKey));
 
 
-        var policy = store.findPolicyById("test-policy");
-        assertThat(policy).isNotNull();
+        var stream = store.findPolicyById("test-policy");
+        assertThat(stream).isNotEmpty().usingRecursiveFieldByFieldElementComparator().containsExactly(expectedPolicy);
 
-        assertThat(store.findContractAgreement("test-agreement")).extracting(ContractAgreement::getPolicy).isEqualTo(policy);
+        assertThat(store.findContractAgreement("test-agreement")).extracting(ContractAgreement::getPolicy).isEqualTo(expectedPolicy);
+    }
+
+    @Test
+    void findPolicy_whenMultipleAgreements() {
+        var expectedPolicy = Policy.Builder.newInstance().id("test-policy").build();
+        var n1 = generateNegotiationBuilder("id1")
+                .state(ContractNegotiationStates.CONFIRMED.code())
+                .contractAgreement(generateAgreementBuilder().id("test-agreement1").policy(expectedPolicy).build())
+                .build();
+        var n2 = generateNegotiationBuilder("id2")
+                .state(ContractNegotiationStates.CONFIRMED.code())
+                .contractAgreement(generateAgreementBuilder().id("test-agreement2").policy(expectedPolicy).build())
+                .build();
+
+        container.createItem(new ContractNegotiationDocument(n1, partitionKey));
+        container.createItem(new ContractNegotiationDocument(n2, partitionKey));
+
+
+        var stream = store.findPolicyById("test-policy");
+        assertThat(stream).isNotEmpty().usingRecursiveFieldByFieldElementComparator().containsExactly(expectedPolicy);
+
+        assertThat(store.findContractAgreement("test-agreement1")).extracting(ContractAgreement::getPolicy).isEqualTo(expectedPolicy);
     }
 
     @Test
@@ -595,7 +618,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
 
         var policy = store.findPolicyById("test-policy");
-        assertThat(policy).isNull();
+        assertThat(policy).isEmpty();
 
         assertThat(store.findContractAgreement("test-agreement")).isNotNull().extracting(ContractAgreement::getPolicy).isEqualTo(expectedPolicy);
     }
