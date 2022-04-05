@@ -150,7 +150,7 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
     }
 
     @Override
-    public Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
+    public @NotNull Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var stmt = statements.getQueryTemplate();
@@ -207,6 +207,21 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
         });
     }
 
+    @Override
+    public Stream<Policy> findPolicyById(String policyId) {
+        var stmt = statements.getSelectByPolicyIdTemplate();
+
+        return transactionContext.execute(() -> {
+            try (var conn = getConnection()) {
+                TypeReference<Policy> tr = new TypeReference<>() {
+                };
+                return executeQuery(conn, (rs) -> fromJson(rs.getString(statements.getPolicyColumnSeralized()), tr), stmt, policyId).stream();
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
 
     private @Nullable ContractNegotiation findInternal(Connection connection, String id) {
         var stmt = statements.getFindTemplate();
@@ -243,7 +258,8 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                     agr.getContractStartDate(),
                     agr.getContractEndDate(),
                     agr.getAssetId(),
-                    agr.getPolicy().getUid());
+                    agr.getPolicy().getUid(),
+                    toJson(agr.getPolicy()));
         }
 
         var stmt = statements.getInsertNegotiationTemplate();
@@ -279,7 +295,8 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                 .providerAgentId(resultSet.getString(statements.getProviderAgentColumn()))
                 .consumerAgentId(resultSet.getString(statements.getConsumerAgentColumn()))
                 .assetId(resultSet.getString(statements.getAssetIdColumn()))
-                .policy(Policy.Builder.newInstance().id(resultSet.getString(statements.getPolicyIdColumn())).build())
+                .policy(fromJson(resultSet.getString(statements.getPolicyColumnSeralized()), new TypeReference<>() {
+                }))
                 .contractStartDate(resultSet.getLong(statements.getStartDateColumn()))
                 .contractEndDate(resultSet.getLong(statements.getEndDateColumn()))
                 .contractSigningDate(resultSet.getLong(statements.getSigningDateColumn()))

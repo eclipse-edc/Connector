@@ -16,6 +16,7 @@
 package org.eclipse.dataspaceconnector.negotiation.store.memory;
 
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.query.QueryResolver;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -44,8 +45,8 @@ import static java.util.stream.Collectors.toList;
  */
 public class InMemoryContractNegotiationStore implements ContractNegotiationStore {
     private final LockManager lockManager = new LockManager(new ReentrantReadWriteLock());
-    private final Map<String, ContractNegotiation> processesById = new HashMap<>();
-    private final Map<String, ContractNegotiation> processesByCorrelationId = new HashMap<>();
+    private final Map<String, ContractNegotiation> negotiationById = new HashMap<>();
+    private final Map<String, ContractNegotiation> negotiationByCorrelationId = new HashMap<>();
     private final Map<String, ContractNegotiation> contractAgreements = new HashMap<>();
     private final Map<Integer, List<ContractNegotiation>> stateCache = new HashMap<>();
     private final QueryResolver<ContractNegotiation> negotiationQueryResolver = new ReflectionBasedQueryResolver<>(ContractNegotiation.class);
@@ -53,12 +54,12 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
 
     @Override
     public ContractNegotiation find(String id) {
-        return lockManager.readLock(() -> processesById.get(id));
+        return lockManager.readLock(() -> negotiationById.get(id));
     }
 
     @Override
     public @Nullable ContractNegotiation findForCorrelationId(String correlationId) {
-        var process = processesByCorrelationId.get(correlationId);
+        var process = negotiationByCorrelationId.get(correlationId);
         var processId = process != null ? process.getId() : null;
         return find(processId);
     }
@@ -75,8 +76,8 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
             negotiation.updateStateTimestamp();
             delete(negotiation.getId());
             ContractNegotiation internalCopy = negotiation.copy();
-            processesById.put(negotiation.getId(), internalCopy);
-            processesByCorrelationId.put(negotiation.getCorrelationId(), internalCopy);
+            negotiationById.put(negotiation.getId(), internalCopy);
+            negotiationByCorrelationId.put(negotiation.getCorrelationId(), internalCopy);
             var agreement = internalCopy.getContractAgreement();
             if (agreement != null) {
                 contractAgreements.put(agreement.getId(), internalCopy);
@@ -89,7 +90,7 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
     @Override
     public void delete(String processId) {
         lockManager.writeLock(() -> {
-            ContractNegotiation process = processesById.remove(processId);
+            ContractNegotiation process = negotiationById.remove(processId);
             if (process != null) {
                 var tempCache = new HashMap<Integer, List<ContractNegotiation>>();
                 stateCache.forEach((key, value) -> {
@@ -98,7 +99,7 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
                 });
                 stateCache.clear();
                 stateCache.putAll(tempCache);
-                processesByCorrelationId.remove(process.getCorrelationId());
+                negotiationByCorrelationId.remove(process.getCorrelationId());
 
                 if (process.getContractAgreement() != null) {
                     contractAgreements.remove(process.getContractAgreement().getId());
@@ -106,6 +107,21 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
             }
             return null;
         });
+    }
+
+    @Override
+    public @NotNull Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
+        return lockManager.readLock(() -> negotiationQueryResolver.query(negotiationById.values().stream(), querySpec));
+    }
+
+    @Override
+    public @NotNull Stream<ContractAgreement> getAgreementsForDefinitionId(String definitionId) {
+        return lockManager.readLock(() -> getAgreements().filter(it -> it.getId().startsWith(definitionId + ":")));
+    }
+
+    @Override
+    public @NotNull Stream<ContractAgreement> queryAgreements(QuerySpec querySpec) {
+        return lockManager.readLock(() -> agreementQueryResolver.query(getAgreements(), querySpec));
     }
 
     @Override
@@ -132,23 +148,15 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
     }
 
     @Override
-    public Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
-        return lockManager.readLock(() -> negotiationQueryResolver.query(processesById.values().stream(), querySpec));
-    }
-
-    @Override
-    public @NotNull Stream<ContractAgreement> getAgreementsForDefinitionId(String definitionId) {
-        return lockManager.readLock(() -> getAgreements().filter(it -> it.getId().startsWith(definitionId + ":")));
-    }
-
-    @Override
-    public @NotNull Stream<ContractAgreement> queryAgreements(QuerySpec querySpec) {
-        return lockManager.readLock(() -> agreementQueryResolver.query(getAgreements(), querySpec));
+    public Stream<Policy> findPolicyById(String policyId) {
+        return lockManager.readLock(() -> contractAgreements.values().stream().map(n -> n.getContractAgreement().getPolicy())
+                .filter(p -> Objects.equals(p.getUid(), policyId))
+                .distinct());
     }
 
     @NotNull
     private Stream<ContractAgreement> getAgreements() {
-        return processesById.values().stream()
+        return negotiationById.values().stream()
                 .map(ContractNegotiation::getContractAgreement)
                 .filter(Objects::nonNull);
     }
