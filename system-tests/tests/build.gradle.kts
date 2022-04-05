@@ -39,8 +39,3 @@ dependencies {
     testCompileOnly(project(":system-tests:runtimes:file-transfer-consumer"))
 }
 
-tasks.getByName<Test>("test") {
-    testLogging {
-        showStandardStreams = true
-    }
-}
