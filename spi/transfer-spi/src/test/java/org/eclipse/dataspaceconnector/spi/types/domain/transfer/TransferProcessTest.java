@@ -23,6 +23,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.List;
 import java.util.UUID;
 
 import static java.util.Collections.emptyList;
@@ -40,20 +41,20 @@ class TransferProcessTest {
 
     @Test
     void verifyDeserialization() throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
+        var mapper = new ObjectMapper();
 
-        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).build();
-        StringWriter writer = new StringWriter();
+        var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).build();
+        var writer = new StringWriter();
         mapper.writeValue(writer, process);
 
-        TransferProcess deserialized = mapper.readValue(writer.toString(), TransferProcess.class);
+        var deserialized = mapper.readValue(writer.toString(), TransferProcess.class);
 
         assertEquals(process, deserialized);
     }
 
     @Test
     void verifyCopy() {
-        TransferProcess process = TransferProcess.Builder
+        var process = TransferProcess.Builder
                 .newInstance()
                 .id(UUID.randomUUID().toString())
                 .type(TransferProcess.Type.PROVIDER)
@@ -63,7 +64,7 @@ class TransferProcessTest {
                 .stateTimestamp(1)
                 .build();
 
-        TransferProcess copy = process.copy();
+        var copy = process.copy();
 
         assertEquals(process.getState(), copy.getState());
         assertEquals(process.getType(), copy.getType());
@@ -76,7 +77,7 @@ class TransferProcessTest {
 
     @Test
     void verifyConsumerTransitions() {
-        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.CONSUMER).build();
+        var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.CONSUMER).build();
 
         // test illegal transition
         assertThrows(IllegalStateException.class, () -> process.transitionProvisioning(ResourceManifest.Builder.newInstance().build()));
@@ -104,7 +105,7 @@ class TransferProcessTest {
 
     @Test
     void verifyProviderTransitions() {
-        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.PROVIDER).build();
+        var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.PROVIDER).build();
 
         process.transitionInitial();
 
@@ -122,7 +123,7 @@ class TransferProcessTest {
 
     @Test
     void verifyTransitionRollback() {
-        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).build();
+        var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).build();
         process.transitionInitial();
         process.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
 
@@ -134,12 +135,12 @@ class TransferProcessTest {
 
     @Test
     void verifyProvisioningComplete() {
-        TransferProcess.Builder builder = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
+        var builder = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
 
-        ResourceManifest manifest = ResourceManifest.Builder.newInstance().build();
+        var manifest = ResourceManifest.Builder.newInstance().build();
         manifest.addDefinition(TestResourceDefinition.Builder.newInstance().id("r1").build());
 
-        TransferProcess process = builder.resourceManifest(manifest).build();
+        var process = builder.resourceManifest(manifest).build();
 
         assertFalse(process.provisioningComplete());
 
@@ -154,10 +155,78 @@ class TransferProcessTest {
         assertTrue(process.provisioningComplete());
     }
 
+    @Test
+    void verifyResourceToProvisionWhenEmptyResources() {
+        var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).build();
+        assertThat(process.getResourcesToProvision()).isEmpty();
+    }
+
+    @Test
+    void verifyResourceToProvisionResultsHaveNotBeenReturned() {
+        var manifest = ResourceManifest.Builder.newInstance()
+                .definitions(List.of(TestResourceDefinition.Builder.newInstance().id("1").build()))
+                .build();
+
+        var process = TransferProcess.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .resourceManifest(manifest)
+                .build();
+
+        assertThat(process.getResourcesToProvision().size()).isEqualTo(1);
+    }
+
+    @Test
+    void verifyResourceToProvisionResultsHaveBeenReturned() {
+        var manifest = ResourceManifest.Builder.newInstance()
+                .definitions(List.of(TestResourceDefinition.Builder.newInstance().id("1").build()))
+                .definitions(List.of(TestResourceDefinition.Builder.newInstance().id("2").build()))
+                .build();
+
+        var provisionedResource = TestProvisionedResource.Builder.newInstance()
+                .id("123")
+                .transferProcessId("4")
+                .resourceDefinitionId("1")
+                .build();
+
+        var provisionedResourceSet = ProvisionedResourceSet.Builder.newInstance()
+                .resources(List.of(provisionedResource))
+                .build();
+
+        var process = TransferProcess.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .resourceManifest(manifest)
+                .provisionedResourceSet(provisionedResourceSet)
+                .build();
+
+        assertThat(process.getResourcesToProvision().size()).isEqualTo(1);
+    }
+
+    @Test
+    void verifyResourceToDeprovisionWhenEmptyResources() {
+        var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).build();
+        assertThat(process.getResourcesToDeprovision()).isEmpty();
+    }
+
+    @Test
+    void verifyResourceToDeprovisionResultsHaveBeenReturned() {
+        var set = ProvisionedResourceSet.Builder.newInstance()
+                .resources(List.of(TestProvisionedResource.Builder.newInstance().id("1").transferProcessId("2").resourceDefinitionId("3").build()))
+                .resources(List.of(TestProvisionedResource.Builder.newInstance().id("4").transferProcessId("5").resourceDefinitionId("6").build()))
+                .build();
+
+        var process = TransferProcess.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .provisionedResourceSet(set)
+                .deprovisionedResources(List.of(DeprovisionedResource.Builder.newInstance().provisionedResourceId("1").build()))
+                .build();
+
+        assertThat(process.getResourcesToDeprovision().size()).isEqualTo(1);
+    }
+
     @ParameterizedTest
     @EnumSource(value = TransferProcessStates.class, names = {"COMPLETED", "ENDED", "ERROR"}, mode = EnumSource.Mode.EXCLUDE)
     void verifyCancel_validStates(TransferProcessStates state) {
-        TransferProcess.Builder builder = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
+        var builder = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
         builder.state(state.code());
         var tp = builder.build();
         tp.transitionCancelled();
@@ -168,7 +237,7 @@ class TransferProcessTest {
     @ParameterizedTest
     @EnumSource(value = TransferProcessStates.class, names = {"COMPLETED", "ENDED", "ERROR"}, mode = EnumSource.Mode.INCLUDE)
     void verifyCancel_invalidStates(TransferProcessStates state) {
-        TransferProcess.Builder builder = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
+        var builder = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
         builder.state(state.code());
         var tp = builder.build();
         assertThatThrownBy(tp::transitionCancelled).isInstanceOf(IllegalStateException.class);
@@ -179,7 +248,7 @@ class TransferProcessTest {
     void provisionComplete_emptyManifestAndResources() {
         var emptyManifest = ResourceManifest.Builder.newInstance().definitions(emptyList()).build();
         var emptyResources = ProvisionedResourceSet.Builder.newInstance().resources(emptyList()).build();
-        TransferProcess process = TransferProcess.Builder.newInstance()
+        var process = TransferProcess.Builder.newInstance()
                 .id(UUID.randomUUID().toString()).resourceManifest(emptyManifest).provisionedResourceSet(emptyResources)
                 .build();
 
@@ -192,7 +261,7 @@ class TransferProcessTest {
     @DisplayName("Should considered provisioned when there are no definitions and provisioned resource set is null")
     void provisionComplete_noResources() {
         var emptyManifest = ResourceManifest.Builder.newInstance().definitions(emptyList()).build();
-        TransferProcess process = TransferProcess.Builder.newInstance()
+        var process = TransferProcess.Builder.newInstance()
                 .id(UUID.randomUUID().toString()).resourceManifest(emptyManifest).provisionedResourceSet(null)
                 .build();
 
@@ -200,4 +269,84 @@ class TransferProcessTest {
 
         assertThat(provisioningComplete).isTrue();
     }
+
+    @Test
+    void verifyGetProvisionedResource() {
+        var provisionedResource = TestProvisionedResource.Builder.newInstance()
+                .id("123")
+                .transferProcessId("4")
+                .resourceDefinitionId("1")
+                .build();
+
+        var provisionedResourceSet = ProvisionedResourceSet.Builder.newInstance()
+                .resources(List.of(provisionedResource))
+                .build();
+
+        var process = TransferProcess.Builder.newInstance()
+                .id("1")
+                .provisionedResourceSet(provisionedResourceSet)
+                .build();
+
+        assertThat(process.getProvisionedResource("123")).isNotNull();
+    }
+
+    @Test
+    void verifyDeprovisionNoResources() {
+        var process = TransferProcess.Builder.newInstance().id("1").build();
+        assertThat(process.deprovisionComplete()).isTrue();
+    }
+
+    @Test
+    void verifyDeprovisionComplete() {
+        var provisionedResource = TestProvisionedResource.Builder.newInstance()
+                .id("1")
+                .transferProcessId("2")
+                .resourceDefinitionId("3")
+                .build();
+
+        var provisionedResourceSet = ProvisionedResourceSet.Builder.newInstance()
+                .resources(List.of(provisionedResource))
+                .build();
+
+        var process = TransferProcess.Builder.newInstance()
+                .id("1")
+                .provisionedResourceSet(provisionedResourceSet)
+                .build();
+
+        process.addDeprovisionedResource(DeprovisionedResource.Builder.newInstance().provisionedResourceId("1").build());
+
+        assertThat(process.deprovisionComplete()).isTrue();
+    }
+
+
+    @Test
+    void verifyDeprovisionNotComplete() {
+        var provisionedResource1 = TestProvisionedResource.Builder.newInstance()
+                .id("1")
+                .transferProcessId("2")
+                .resourceDefinitionId("3")
+                .build();
+
+        var provisionedResource2 = TestProvisionedResource.Builder.newInstance()
+                .id("4")
+                .transferProcessId("5")
+                .resourceDefinitionId("6")
+                .build();
+
+        var provisionedResourceSet = ProvisionedResourceSet.Builder.newInstance()
+                .resources(List.of(provisionedResource1))
+                .resources(List.of(provisionedResource2))
+                .build();
+
+        var process = TransferProcess.Builder.newInstance()
+                .id("1")
+                .provisionedResourceSet(provisionedResourceSet)
+                .build();
+
+        process.addDeprovisionedResource(DeprovisionedResource.Builder.newInstance().provisionedResourceId("4").build());
+
+        assertThat(process.deprovisionComplete()).isFalse();
+    }
+
+
 }

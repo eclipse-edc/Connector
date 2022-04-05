@@ -9,9 +9,10 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Fraunhofer Institute for Software and Systems Engineering
+ *       Fraunhofer Institute for Software and Systems Engineering - Improvements
  *
  */
+
 package org.eclipse.dataspaceconnector.identity;
 
 import com.nimbusds.jwt.SignedJWT;

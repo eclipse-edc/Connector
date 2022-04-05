@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020-2022 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.policy.store.memory;
 
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
@@ -139,13 +140,13 @@ class InMemoryPolicyStoreTest {
         store.save(policy);
         assertThat(store.findById(policy.getUid())).isEqualTo(policy);
 
-        assertThat(store.delete(policy.getUid())).isEqualTo(policy);
+        assertThat(store.deleteById(policy.getUid())).isEqualTo(policy);
         assertThat(store.findById(policy.getUid())).isNull();
     }
 
     @Test
     void deleteById_whenNonexistent() {
-        assertThat(store.delete("nonexistent")).isNull();
+        assertThat(store.deleteById("nonexistent")).isNull();
     }
 
     @Test
@@ -173,6 +174,6 @@ class InMemoryPolicyStoreTest {
     void deleteById_exceptionThrown() {
         doThrow(new RuntimeException()).when(manager).writeLock(any());
 
-        assertThatExceptionOfType(EdcPersistenceException.class).isThrownBy(() -> store.delete("any-policy-id"));
+        assertThatExceptionOfType(EdcPersistenceException.class).isThrownBy(() -> store.deleteById("any-policy-id"));
     }
 }

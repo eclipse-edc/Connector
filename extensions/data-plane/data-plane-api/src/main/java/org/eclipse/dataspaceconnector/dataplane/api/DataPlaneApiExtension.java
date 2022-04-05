@@ -11,12 +11,13 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.dataplane.api;
 
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataplane.api.controller.ContainerRequestContextApiImpl;
+import org.eclipse.dataspaceconnector.dataplane.api.controller.DataPlaneControlApiController;
 import org.eclipse.dataspaceconnector.dataplane.api.controller.DataPlanePublicApiController;
-import org.eclipse.dataspaceconnector.dataplane.api.controller.DataPlaneTransferController;
 import org.eclipse.dataspaceconnector.dataplane.api.validation.RemoteTokenValidationService;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
@@ -60,7 +61,7 @@ public class DataPlaneApiExtension implements ServiceExtension {
         var executorService = context.getService(ExecutorInstrumentation.class)
                 .instrument(Executors.newSingleThreadExecutor(), DataPlanePublicApiController.class.getSimpleName());
 
-        webService.registerResource(CONTROL, new DataPlaneTransferController(dataPlaneManager));
+        webService.registerResource(CONTROL, new DataPlaneControlApiController(dataPlaneManager));
 
         var publicApiController = new DataPlanePublicApiController(dataPlaneManager, tokenValidationClient, context.getMonitor(), new ContainerRequestContextApiImpl(), context.getTypeManager(), executorService);
         webService.registerResource(PUBLIC, publicApiController);

@@ -10,6 +10,7 @@
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Microsoft Corporation - Refactoring
+ *
  */
 
 package org.eclipse.dataspaceconnector.spi.contract.offer;

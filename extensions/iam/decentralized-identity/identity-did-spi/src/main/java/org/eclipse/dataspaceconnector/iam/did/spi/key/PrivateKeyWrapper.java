@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.iam.did.spi.key;
 
 import com.nimbusds.jose.JWEDecrypter;

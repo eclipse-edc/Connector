@@ -10,8 +10,10 @@
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Microsoft Corporation - Refactoring
+ *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.contract.offer;
 
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
@@ -52,7 +54,7 @@ public class ContractOfferServiceImpl implements ContractOfferService {
             var assets = assetIndex.queryAssets(definition.getSelectorExpression());
             return assets.map(asset -> ContractOffer.Builder.newInstance()
                     .id(ContractId.createContractId(definition.getId()))
-                    .policy(definition.getContractPolicy())
+                    .policy(definition.getContractPolicy().withTarget(asset.getId()))
                     .asset(asset)
                     // TODO: this is a workaround for the bug described in https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/753
                     .provider(uri("urn:connector:provider"))

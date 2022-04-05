@@ -908,6 +908,19 @@ paths:
           description: default response
           content:
             application/json: {}
+  /callback:
+    post:
+      operationId: callWebhook
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProvisionerWebhookRequest'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
 components:
   schemas:
     Action:
@@ -970,8 +983,6 @@ components:
         assetId:
           type: string
         policyId:
-          type: string
-        negotiationId:
           type: string
     ContractDefinitionDto:
       type: object
@@ -1271,6 +1282,23 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Constraint'
+    ProvisionerWebhookRequest:
+      type: object
+      properties:
+        transferProcessId:
+          type: string
+        resourceDefinitionId:
+          type: string
+        assetId:
+          type: string
+        resourceName:
+          type: string
+        contentDataAddress:
+          $ref: '#/components/schemas/DataAddress'
+        apiToken:
+          type: string
+        hasToken:
+          type: boolean
     SelectionRequest:
       type: object
       properties:

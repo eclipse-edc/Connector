@@ -1,3 +1,19 @@
+/*
+ *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering
+ *       Microsoft Corporation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -52,6 +68,7 @@ class TransferProcessManagerImplIntegrationTest {
     private final TransferProcessStore store = new InMemoryTransferProcessStore();
     private TransferProcessManagerImpl transferProcessManager;
 
+    @SuppressWarnings("unchecked")
     @BeforeEach
     void setup() {
         var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
@@ -80,9 +97,9 @@ class TransferProcessManagerImplIntegrationTest {
     void verifyProvision_shouldNotStarve() throws InterruptedException {
         var numProcesses = TRANSFER_MANAGER_BATCHSIZE * 2;
         var processesToProvision = new CountDownLatch(numProcesses);
-        when(provisionManager.provision(any(TransferProcess.class), any(Policy.class))).thenAnswer(i -> {
+        when(provisionManager.provision(any(), any(Policy.class))).thenAnswer(i -> {
             processesToProvision.countDown();
-            return completedFuture(List.of(ProvisionResponse.Builder.newInstance().resource(new TestProvisionedDataDestinationResource("any")).build()));
+            return completedFuture(List.of(ProvisionResponse.Builder.newInstance().resource(new TestProvisionedDataDestinationResource("any", "1")).build()));
         });
 
         var manifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
@@ -108,7 +125,7 @@ class TransferProcessManagerImplIntegrationTest {
 
     private ProvisionedResourceSet provisionedResourceSet() {
         return ProvisionedResourceSet.Builder.newInstance()
-                .resources(List.of(new TestProvisionedDataDestinationResource("test-resource")))
+                .resources(List.of(new TestProvisionedDataDestinationResource("test-resource", "1")))
                 .build();
     }
 

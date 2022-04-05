@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.dataloader.cli;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

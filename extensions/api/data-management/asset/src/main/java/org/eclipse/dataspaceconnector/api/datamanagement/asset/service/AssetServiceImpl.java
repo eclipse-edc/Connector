@@ -55,7 +55,7 @@ public class AssetServiceImpl implements AssetService {
     @Override
     public ServiceResult<Asset> delete(String assetId) {
         return transactionContext.execute(() -> {
-            var filter = format("contractAgreement.asset.properties.%s = %s", PROPERTY_ID, assetId);
+            var filter = format("contractAgreement.assetId = %s", assetId);
             var query = QuerySpec.Builder.newInstance().filter(filter).build();
 
             var negotiationsOnAsset = contractNegotiationStore.queryNegotiations(query);

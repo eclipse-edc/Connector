@@ -10,6 +10,7 @@
  *  Contributors:
  *       Daimler TSS GmbH - Initial Tests
  *       Microsoft Corporation - Method signature change
+ *       Fraunhofer Institute for Software and Systems Engineering - added tests
  *
  */
 
@@ -18,7 +19,7 @@ package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
-import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
@@ -60,7 +61,9 @@ public class SqlContractDefinitionStoreTest {
 
     @BeforeEach
     void setUp() throws SQLException {
-        var monitor = new ConsoleMonitor();
+        var monitor = new Monitor() {
+
+        };
         var txManager = new LocalTransactionContext(monitor);
         dataSourceRegistry = new LocalDataSourceRegistry(txManager);
         var transactionContext = (TransactionContext) txManager;
@@ -236,6 +239,22 @@ public class SqlContractDefinitionStoreTest {
 
         assertThat(definitionsRetrieved).isNotNull();
         assertThat(definitionsRetrieved.size()).isEqualTo(limit);
+    }
+    
+    @Test
+    void findById() {
+        var id = "definitionId";
+        var definition = getContractDefinition(id, "contractId", "policyId");
+        sqlContractDefinitionStore.save(definition);
+    
+        var result = sqlContractDefinitionStore.findById(id);
+    
+        assertThat(result).isNotNull().isEqualTo(definition);
+    }
+    
+    @Test
+    void findById_invalidId() {
+        assertThat(sqlContractDefinitionStore.findById("invalid-id")).isNull();
     }
 
     @Test

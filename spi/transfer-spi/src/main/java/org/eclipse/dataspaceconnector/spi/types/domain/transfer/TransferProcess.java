@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
@@ -17,23 +17,28 @@ package org.eclipse.dataspaceconnector.spi.types.domain.transfer;
 
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.spi.telemetry.TraceCarrier;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.unmodifiableList;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.CANCELLED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
@@ -104,6 +109,7 @@ public class TransferProcess implements TraceCarrier {
     private DataAddress contentDataAddress;
     private ResourceManifest resourceManifest;
     private ProvisionedResourceSet provisionedResourceSet;
+    private List<DeprovisionedResource> deprovisionedResources = new ArrayList<>();
 
     private TransferProcess() {
     }
@@ -173,21 +179,58 @@ public class TransferProcess implements TraceCarrier {
         contentDataAddress = dataAddress;
     }
 
+    public void addDeprovisionedResource(DeprovisionedResource resource) {
+        deprovisionedResources.add(resource);
+    }
+
+    @Nullable
+    public ProvisionedResource getProvisionedResource(String id) {
+        if (provisionedResourceSet == null) {
+            return null;
+        }
+        return provisionedResourceSet.getResources().stream().filter(r -> r.getId().equals(id)).findFirst().orElse(null);
+    }
+
+    /**
+     * Returns the collection of resources that have not been provisioned.
+     */
+    @JsonIgnore
+    @NotNull
+    public List<ResourceDefinition> getResourcesToProvision() {
+        if (resourceManifest == null) {
+            return emptyList();
+        }
+        if (provisionedResourceSet == null) {
+            return unmodifiableList(resourceManifest.getDefinitions());
+        }
+        var provisionedResources = provisionedResourceSet.getResources().stream().map(ProvisionedResource::getResourceDefinitionId).collect(toSet());
+        return resourceManifest.getDefinitions().stream().filter(r -> !provisionedResources.contains(r.getId())).collect(toList());
+    }
+
     public boolean provisioningComplete() {
         if (resourceManifest == null) {
             return false;
         }
 
-        Set<String> definitions = resourceManifest.getDefinitions().stream()
-                .map(ResourceDefinition::getId)
-                .collect(toSet());
+        return getResourcesToProvision().isEmpty();
+    }
 
-        Set<String> resources = Optional.ofNullable(provisionedResourceSet).stream()
-                .flatMap(it -> it.getResources().stream())
-                .map(ProvisionedResource::getResourceDefinitionId)
-                .collect(toSet());
+    /**
+     * Returns the collection of resources that have not been deprovisioned.
+     */
+    @JsonIgnore
+    @NotNull
+    public List<ProvisionedResource> getResourcesToDeprovision() {
+        if (provisionedResourceSet == null) {
+            return emptyList();
+        }
 
-        return definitions.equals(resources);
+        var deprovisionedResources = this.deprovisionedResources.stream().map(DeprovisionedResource::getProvisionedResourceId).collect(toSet());
+        return provisionedResourceSet.getResources().stream().filter(r -> !deprovisionedResources.contains(r.getId())).collect(toList());
+    }
+
+    public boolean deprovisionComplete() {
+        return getResourcesToDeprovision().isEmpty();
     }
 
     public void transitionProvisioned() {
@@ -407,6 +450,11 @@ public class TransferProcess implements TraceCarrier {
 
         public Builder provisionedResourceSet(ProvisionedResourceSet set) {
             process.provisionedResourceSet = set;
+            return this;
+        }
+
+        public Builder deprovisionedResources(List<DeprovisionedResource> resources) {
+            process.deprovisionedResources = resources;
             return this;
         }
 

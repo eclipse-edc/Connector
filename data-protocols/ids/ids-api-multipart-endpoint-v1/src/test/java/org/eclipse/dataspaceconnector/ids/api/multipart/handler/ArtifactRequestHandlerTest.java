@@ -125,7 +125,7 @@ class ArtifactRequestHandlerTest {
                 .id(UUID.randomUUID().toString())
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
-                .asset(Asset.Builder.newInstance().build())
+                .assetId(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .build();
     }

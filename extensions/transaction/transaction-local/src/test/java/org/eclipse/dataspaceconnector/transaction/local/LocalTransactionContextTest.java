@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021-2022 Microsoft Corporation and others
+ *  Copyright (c) 2021 - 2022 Microsoft Corporation and others
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -10,7 +10,9 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Daimler TSS GmbH - verify exceptions are re-thrown
+ *
  */
+
 package org.eclipse.dataspaceconnector.transaction.local;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;

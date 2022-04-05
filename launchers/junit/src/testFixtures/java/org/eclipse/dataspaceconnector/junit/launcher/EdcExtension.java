@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,13 +9,13 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
 
 package org.eclipse.dataspaceconnector.junit.launcher;
 
 import org.eclipse.dataspaceconnector.boot.system.DefaultServiceExtensionContext;
-import org.eclipse.dataspaceconnector.boot.system.ExtensionLoader;
 import org.eclipse.dataspaceconnector.boot.system.ServiceLocator;
 import org.eclipse.dataspaceconnector.boot.system.ServiceLocatorImpl;
 import org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime;
@@ -54,9 +54,12 @@ import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
  */
 public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver {
     private final LinkedHashMap<Class<?>, Object> serviceMocks = new LinkedHashMap<>();
-    private final LinkedHashMap<Class<? extends SystemExtension>, List<SystemExtension>> systemExtensions = new LinkedHashMap<>();
     private List<ServiceExtension> runningServiceExtensions;
     private DefaultServiceExtensionContext context;
+
+    public EdcExtension() {
+        super(new MultiSourceServiceLocator());
+    }
 
     /**
      * Registers a mock service with the runtime.
@@ -71,7 +74,7 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
      * Registers a service extension with the runtime.
      */
     public <T extends SystemExtension> void registerSystemExtension(Class<T> type, SystemExtension extension) {
-        systemExtensions.computeIfAbsent(type, k -> new ArrayList<>()).add(extension);
+        ((MultiSourceServiceLocator) serviceLocator).registerSystemExtension(type, extension);
     }
 
     @Override
@@ -87,7 +90,7 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
         }
 
         // clear the systemExtensions map to prevent it from piling up between subsequent runs
-        systemExtensions.clear();
+        ((MultiSourceServiceLocator) serviceLocator).clearSystemExtensions();
     }
 
     @Override
@@ -98,7 +101,7 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
 
     @Override
     protected @NotNull ServiceExtensionContext createContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry) {
-        this.context = new DefaultServiceExtensionContext(typeManager, monitor, telemetry, new MultiSourceServiceLocator());
+        this.context = new DefaultServiceExtensionContext(typeManager, monitor, telemetry, loadConfigurationExtensions());
         return this.context;
     }
 
@@ -111,7 +114,7 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
     @Override
     protected void initializeVault(ServiceExtensionContext context) {
         if (!serviceMocks.containsKey(Vault.class)) {
-            ExtensionLoader.loadVault(context);
+            super.initializeVault(context);
         }
     }
 
@@ -145,8 +148,13 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
      * A service locator that allows additional extensions to be manually loaded by a test fixture. This locator return the union of registered extensions and extensions loaded
      * by the delegate.
      */
-    private class MultiSourceServiceLocator implements ServiceLocator {
+    private static class MultiSourceServiceLocator implements ServiceLocator {
         private final ServiceLocator delegate = new ServiceLocatorImpl();
+        private final LinkedHashMap<Class<? extends SystemExtension>, List<SystemExtension>> systemExtensions;
+
+        public MultiSourceServiceLocator() {
+            this.systemExtensions  = new LinkedHashMap<>();
+        }
 
         @Override
         public <T> List<T> loadImplementors(Class<T> type, boolean required) {
@@ -167,6 +175,14 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
                 throw new EdcException("Multiple extensions were registered for type: " + type.getName());
             }
             return type.cast(extensions.get(0));
+        }
+
+        public <T extends SystemExtension> void registerSystemExtension(Class<T> type, SystemExtension extension) {
+            systemExtensions.computeIfAbsent(type, k -> new ArrayList<>()).add(extension);
+        }
+
+        public void clearSystemExtensions() {
+            systemExtensions.clear();
         }
     }
 

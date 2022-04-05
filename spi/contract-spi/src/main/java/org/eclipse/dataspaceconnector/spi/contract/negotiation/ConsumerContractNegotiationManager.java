@@ -12,6 +12,7 @@
  *       Fraunhofer Institute for Software and Systems Engineering - minor modifications
  *
  */
+
 package org.eclipse.dataspaceconnector.spi.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;

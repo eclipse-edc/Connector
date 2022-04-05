@@ -14,61 +14,23 @@
 
 package org.eclipse.dataspaceconnector.spi.types.domain.transfer;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
-
-import java.util.Objects;
 
 /**
- * A provisioned resource that is a content data address.
+ * A provisioned resource that is asset content.
  *
  * This resource type is created when a provider's backend system provisions data as part of a data transfer.
  */
-@JsonTypeName("dataspaceconnector:provisioneddcontentresource")
-@JsonDeserialize(builder = ProvisionedContentResource.Builder.class)
-public class ProvisionedContentResource extends ProvisionedResource {
-    private String resourceName;
-    private DataAddress contentDataAddress;
+public abstract class ProvisionedContentResource extends ProvisionedDataAddressResource {
 
-    public String getResourceName() {
-        return resourceName;
-    }
-
-    public DataAddress getContentDataAddress() {
-        return contentDataAddress;
-    }
-
-    private ProvisionedContentResource() {
+    protected ProvisionedContentResource() {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends ProvisionedResource.Builder<ProvisionedContentResource, Builder> {
+    public static class Builder<T extends ProvisionedContentResource, B extends Builder<T, B>> extends ProvisionedDataAddressResource.Builder<T, B> {
 
-        @JsonCreator
-        public static Builder newInstance() {
-            return new Builder();
-        }
-
-        public Builder resourceName(String name) {
-            provisionedResource.resourceName = name;
-            return this;
-        }
-
-        public Builder contentDataAddress(DataAddress dataAddress) {
-            provisionedResource.contentDataAddress = dataAddress;
-            return this;
-        }
-
-        @Override
-        protected void verify() {
-            Objects.requireNonNull(provisionedResource.resourceName, "resourceName");
-        }
-
-        private Builder() {
-            super(new ProvisionedContentResource());
+        protected Builder(T resource) {
+            super(resource);
         }
 
     }

@@ -216,20 +216,8 @@ class ContractNegotiationServiceImplTest {
                 .id(agreementId)
                 .providerAgentId(UUID.randomUUID().toString())
                 .consumerAgentId(UUID.randomUUID().toString())
-                .asset(Asset.Builder.newInstance().build())
+                .assetId(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
-                .build();
-    }
-
-    private ContractOfferRequest createContractOfferRequest() {
-        return ContractOfferRequest.Builder.newInstance()
-                .protocol("protocol")
-                .connectorId("connectorId")
-                .connectorAddress("connectorAddress")
-                .contractOffer(ContractOffer.Builder.newInstance()
-                        .id(UUID.randomUUID().toString())
-                        .policy(Policy.Builder.newInstance().build())
-                        .build())
                 .build();
     }
 

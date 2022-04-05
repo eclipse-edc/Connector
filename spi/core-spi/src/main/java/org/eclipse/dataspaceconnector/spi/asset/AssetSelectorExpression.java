@@ -49,11 +49,6 @@ public final class AssetSelectorExpression {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(criteria);
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -63,6 +58,11 @@ public final class AssetSelectorExpression {
         }
         AssetSelectorExpression that = (AssetSelectorExpression) o;
         return criteria == that.criteria || criteria.equals(that.criteria);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(criteria);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -84,7 +84,7 @@ public final class AssetSelectorExpression {
         }
 
         @JsonIgnore
-        public Builder constraint(String left, String op, String right) {
+        public Builder constraint(String left, String op, Object right) {
             expression.criteria.add(new Criterion(left, op, right));
             return this;
         }

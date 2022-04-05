@@ -93,11 +93,9 @@ class S3BucketProvisionerTest {
         S3BucketResourceDefinition definition = S3BucketResourceDefinition.Builder.newInstance().id("test").regionId(Region.US_EAST_1.id()).bucketName("test").transferProcessId("test").build();
         var policy = Policy.Builder.newInstance().build();
 
-        var response = provisioner.provision(definition, policy).join();
+        var response = provisioner.provision(definition, policy).join().getContent();
 
-        assertThat(response.getResource()).isInstanceOfSatisfying(S3BucketProvisionedResource.class, resource -> {
-            assertThat(resource.getRole()).isEqualTo("roleName");
-        });
+        assertThat(response.getResource()).isInstanceOfSatisfying(S3BucketProvisionedResource.class, resource -> assertThat(resource.getRole()).isEqualTo("roleName"));
         assertThat(response.getSecretToken()).isInstanceOfSatisfying(AwsTemporarySecretToken.class, secretToken -> {
             assertThat(secretToken.getAccessKeyId()).isEqualTo("accessKeyId");
             assertThat(secretToken.getSecretAccessKey()).isEqualTo("secretAccessKey");

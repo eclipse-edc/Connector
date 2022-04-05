@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.iam.did.crypto;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;

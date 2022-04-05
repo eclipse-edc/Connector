@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -155,5 +156,25 @@ class ReflectionUtilTest {
     void getFieldRecursive_whenNotDeclared() {
         var to = new TestObjectSubclass("test-desc", 1, "foobar");
         assertThat(ReflectionUtil.getFieldRecursive(to.getClass(), "notExist")).isNull();
+    }
+
+    @Test
+    void getFieldValue_withArrayIndex() {
+        var to1 = new TestObject("to1", 420);
+        var o = new TestObjectWithList("test-desc", 0, List.of(to1, new TestObject("to2", 69)));
+        assertThat((TestObject) ReflectionUtil.getFieldValue("nestedObjects[0]", o)).isEqualTo(to1);
+    }
+
+    @Test
+    void getFieldValue_withArrayIndex_andDotAccess() {
+        var to1 = new TestObject("to1", 420);
+        var o = new TestObjectWithList("test-desc", 0, List.of(to1, new TestObject("to2", 69)));
+        assertThat((int) ReflectionUtil.getFieldValue("nestedObjects[0].priority", o)).isEqualTo(420);
+    }
+
+    @Test
+    void getFieldValue_withArrayIndex_outOfBounds() {
+        var o = new TestObjectWithList("test-desc", 0, List.of(new TestObject("to1", 420), new TestObject("to2", 69)));
+        assertThatThrownBy(() -> ReflectionUtil.getFieldValue("nestedObjects[3]", o)).isInstanceOf(IndexOutOfBoundsException.class);
     }
 }

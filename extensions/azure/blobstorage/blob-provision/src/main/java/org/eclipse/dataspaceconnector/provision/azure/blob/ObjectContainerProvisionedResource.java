@@ -15,52 +15,38 @@
 package org.eclipse.dataspaceconnector.provision.azure.blob;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
+
+import static org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema.ACCOUNT_NAME;
+import static org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema.CONTAINER_NAME;
 
 @JsonDeserialize(builder = ObjectContainerProvisionedResource.Builder.class)
 @JsonTypeName("dataspaceconnector:objectcontainerprovisionedresource")
 public class ObjectContainerProvisionedResource extends ProvisionedDataDestinationResource {
 
-    @JsonProperty
-    private String accountName;
-    @JsonProperty
-    private String containerName;
-
     public String getAccountName() {
-        return accountName;
+        return getDataAddress().getProperty(ACCOUNT_NAME);
     }
 
     public String getContainerName() {
-        return containerName;
+        return getDataAddress().getProperty(CONTAINER_NAME);
     }
 
-    @Override
-    public DataAddress createDataDestination() {
-        return DataAddress.Builder.newInstance()
-                .type(AzureBlobStoreSchema.TYPE)
-                .property(AzureBlobStoreSchema.CONTAINER_NAME, containerName)
-                .keyName(getResourceName())
-                .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)
-                .build();
-    }
-
-    @Override
-    public String getResourceName() {
-        return containerName;
+    private ObjectContainerProvisionedResource() {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends ProvisionedResource.Builder<ObjectContainerProvisionedResource, Builder> {
+    public static class Builder extends ProvisionedDataDestinationResource.Builder<ObjectContainerProvisionedResource, Builder> {
+        private DataAddress.Builder dataAddressBuilder;
 
         private Builder() {
             super(new ObjectContainerProvisionedResource());
+            dataAddressBuilder = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE);
         }
 
         @JsonCreator
@@ -69,14 +55,26 @@ public class ObjectContainerProvisionedResource extends ProvisionedDataDestinati
         }
 
         public Builder accountName(String accountName) {
-            provisionedResource.accountName = accountName;
+            this.dataAddressBuilder.property(ACCOUNT_NAME, accountName);
             return this;
         }
 
         public Builder containerName(String containerName) {
-            provisionedResource.containerName = containerName;
+            this.dataAddressBuilder.property(CONTAINER_NAME, containerName);
             return this;
         }
 
+        @Override
+        public Builder resourceName(String name) {
+            this.dataAddressBuilder.keyName(name);
+            super.resourceName(name);
+            return this;
+        }
+
+        @Override
+        public ObjectContainerProvisionedResource build() {
+            provisionedResource.dataAddress = dataAddressBuilder.build();
+            return super.build();
+        }
     }
 }

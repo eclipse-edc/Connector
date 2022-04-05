@@ -88,7 +88,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
                 .contractAgreement(ContractAgreement.Builder.newInstance().id("1")
                         .providerAgentId("provider")
                         .consumerAgentId("consumer")
-                        .asset(Asset.Builder.newInstance().build())
+                        .assetId(UUID.randomUUID().toString())
                         .policy(Policy.Builder.newInstance().build())
                         .contractSigningDate(Instant.now().getEpochSecond())
                         .contractStartDate(Instant.now().getEpochSecond())
@@ -246,7 +246,12 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
             throw new UnsupportedOperationException();
         }
-
+    
+        @Override
+        public ContractDefinition findById(String definitionId) {
+            throw new UnsupportedOperationException();
+        }
+    
         @Override
         public void save(Collection<ContractDefinition> definitions) {
             contractDefinitions.addAll(definitions);

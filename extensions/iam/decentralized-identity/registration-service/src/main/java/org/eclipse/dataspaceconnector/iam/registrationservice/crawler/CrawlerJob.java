@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.iam.registrationservice.crawler;
 
 import com.fasterxml.jackson.core.type.TypeReference;

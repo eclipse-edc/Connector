@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.common.configuration;
 
+import org.eclipse.dataspaceconnector.common.string.StringUtils;
+
 /**
  * Common configuration functions used by extensions.
  */
@@ -25,7 +27,7 @@ public class ConfigurationFunctions {
      */
     public static String propOrEnv(String key, String defaultValue) {
         String value = System.getProperty(key);
-        if (value != null) {
+        if (!StringUtils.isNullOrBlank(value)) {
             return value;
         }
         String upperKey = key.toUpperCase().replace('.', '_');

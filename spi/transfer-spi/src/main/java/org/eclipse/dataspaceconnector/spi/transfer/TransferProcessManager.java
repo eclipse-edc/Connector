@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2020-2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2021 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -20,8 +20,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.Transfer
 
 /**
  * Manages data transfer processes. Currently synchronous and asynchronous data transfers are supported.
- * <br/>
- * The {@link DataRequest#isSync()} flag indicates whether a data request should be processed synchronously or asynchronously.
  */
 @Feature("edc:core:transfer:transferprocessmanager")
 public interface TransferProcessManager {

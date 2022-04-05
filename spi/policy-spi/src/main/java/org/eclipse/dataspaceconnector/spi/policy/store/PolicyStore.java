@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.spi.policy.store;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -60,5 +61,12 @@ public interface PolicyStore {
      * @throws EdcPersistenceException if something goes wrong.
      */
     @Nullable
-    Policy delete(String policyId);
+    Policy deleteById(String policyId);
+
+    /**
+     * If the store implementation supports caching, this method triggers a cache-reload.
+     */
+    default void reload() {
+
+    }
 }

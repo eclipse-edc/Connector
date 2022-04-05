@@ -16,17 +16,17 @@ package org.eclipse.dataspaceconnector.metrics.micrometer;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics;
-import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
+import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentationImplementation;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 
 /**
- * {@link ExecutorInstrumentation} that decorates executors using wrappers
+ * {@link ExecutorInstrumentationImplementation} that decorates executors using wrappers
  * provided by Micrometer {@link ExecutorServiceMetrics} to report metrics such as thread pool
  * size and execution timings.
  */
-public class MicrometerExecutorInstrumentation implements ExecutorInstrumentation {
+public class MicrometerExecutorInstrumentation implements ExecutorInstrumentationImplementation {
     private final MeterRegistry registry;
 
     public MicrometerExecutorInstrumentation(MeterRegistry registry) {

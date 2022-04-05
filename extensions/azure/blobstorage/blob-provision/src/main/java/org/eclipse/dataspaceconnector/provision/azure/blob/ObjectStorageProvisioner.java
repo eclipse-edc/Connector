@@ -19,8 +19,10 @@ import org.eclipse.dataspaceconnector.azure.blob.core.AzureSasToken;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResult;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionResponse;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
@@ -53,7 +55,7 @@ public class ObjectStorageProvisioner implements Provisioner<ObjectStorageResour
     }
 
     @Override
-    public CompletableFuture<ProvisionResponse> provision(ObjectStorageResourceDefinition resourceDefinition, Policy policy) {
+    public CompletableFuture<ProvisionResult> provision(ObjectStorageResourceDefinition resourceDefinition, Policy policy) {
         String containerName = resourceDefinition.getContainerName();
         String accountName = resourceDefinition.getAccountName();
 
@@ -76,19 +78,23 @@ public class ObjectStorageProvisioner implements Provisioner<ObjectStorageResour
                             .accountName(accountName)
                             .containerName(containerName)
                             .resourceDefinitionId(resourceDefinition.getId())
-                            .transferProcessId(resourceDefinition.getTransferProcessId()).build();
+                            .transferProcessId(resourceDefinition.getTransferProcessId())
+                            .resourceName("resource")
+                            .hasToken(true)
+                            .build();
 
                     var secretToken = new AzureSasToken("?" + writeOnlySas, expiryTime.toInstant().toEpochMilli());
 
-                    return ProvisionResponse.Builder.newInstance().resource(resource).secretToken(secretToken).build();
+                    var response = ProvisionResponse.Builder.newInstance().resource(resource).secretToken(secretToken).build();
+                    return ProvisionResult.success(response);
                 });
     }
 
     @Override
-    public CompletableFuture<DeprovisionResponse> deprovision(ObjectContainerProvisionedResource provisionedResource, Policy policy) {
+    public CompletableFuture<DeprovisionResult> deprovision(ObjectContainerProvisionedResource provisionedResource, Policy policy) {
         return with(retryPolicy).runAsync(() -> blobStoreApi.deleteContainer(provisionedResource.getAccountName(), provisionedResource.getContainerName()))
                 //the sas token will expire automatically. there is no way of revoking them other than a stored access policy
-                .thenApply(empty -> DeprovisionResponse.Builder.newInstance().resource(provisionedResource).build());
+                .thenApply(empty -> DeprovisionResult.success(DeprovisionedResource.Builder.newInstance().provisionedResourceId(provisionedResource.getId()).build()));
     }
 
     @NotNull

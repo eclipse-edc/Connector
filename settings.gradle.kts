@@ -44,7 +44,8 @@ include(":data-protocols:ids:ids-token-validation")
 include(":data-protocols:ids:ids-api-configuration")
 
 include("extensions:sql:contract-definition:store")
-
+include("extensions:sql:contract-negotiation-store")
+include("extensions:sql:policy:store")
 
 // modules for technology- or cloud-provider extensions
 include(":extensions:aws")
@@ -75,6 +76,7 @@ include(":extensions:azure:azure-test")
 include(":extensions:azure:cosmos:transfer-process-store-cosmos")
 include(":extensions:azure:cosmos:fcc-node-directory-cosmos")
 include(":extensions:azure:cosmos:contract-definition-store-cosmos")
+include(":extensions:azure:cosmos:policy-store-cosmos")
 include(":extensions:azure:cosmos:contract-negotiation-store-cosmos")
 include(":extensions:azure:cosmos:cosmos-common")
 include(":extensions:azure:cosmos:assetindex-cosmos")
@@ -140,8 +142,10 @@ include(":extensions:data-plane:integration-tests")
 include(":extensions:sql:common")
 include(":extensions:sql:lease")
 include(":extensions:sql:pool:apache-commons-pool")
+include(":extensions:sql:asset:index")
 include(":extensions:sql:transfer-process-store")
 include(":extensions:http-receiver")
+include(":extensions:http-provisioner")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")

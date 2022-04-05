@@ -9,8 +9,10 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added method
  *
  */
+
 package org.eclipse.dataspaceconnector.spi.contract.offer.store;
 
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -43,6 +45,14 @@ public interface ContractDefinitionStore {
      */
     @NotNull
     Stream<ContractDefinition> findAll(QuerySpec spec);
+    
+    /**
+     * Returns the definition with the given id, if it exists.
+     *
+     * @param definitionId the id.
+     * @return the definition with with the given id, or null.
+     */
+    ContractDefinition findById(String definitionId);
 
     /**
      * Persists the definitions.

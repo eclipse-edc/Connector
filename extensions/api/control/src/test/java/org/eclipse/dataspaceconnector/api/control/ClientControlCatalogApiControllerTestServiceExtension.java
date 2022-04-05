@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2021 Daimler TSS GmbH
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Daimler TSS GmbH - Initial implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.api.control;
 
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
@@ -29,6 +43,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.mockito.Mockito.mock;
+
 class ClientControlCatalogApiControllerTestServiceExtension implements ServiceExtension {
 
     @Inject
@@ -46,7 +62,7 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
         assetLoader = context.getService(AssetLoader.class);
         contractDefinitionStore = context.getService(ContractDefinitionStore.class);
         context.registerService(ConsumerContractNegotiationManager.class, new FakeConsumerNegotiationManager());
-        context.registerService(ContractNegotiationStore.class, new FakeContractNegotiationStore());
+        context.registerService(ContractNegotiationStore.class, mock(ContractNegotiationStore.class));
     }
 
     @Override
@@ -121,44 +137,6 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
 
         contractDefinitionStore.save(contractDefinition1);
         contractDefinitionStore.save(contractDefinition2);
-    }
-
-    private static class FakeContractNegotiationStore implements ContractNegotiationStore {
-
-        @Override
-        public @Nullable ContractNegotiation find(String negotiationId) {
-            return null;
-        }
-
-        @Override
-        public @Nullable ContractNegotiation findForCorrelationId(String correlationId) {
-            return null;
-        }
-
-        @Override
-        public @Nullable ContractAgreement findContractAgreement(String contractId) {
-            return null;
-        }
-
-        @Override
-        public void save(ContractNegotiation negotiation) {
-
-        }
-
-        @Override
-        public void delete(String negotiationId) {
-
-        }
-
-        @Override
-        public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
-            return null;
-        }
-
-        @Override
-        public Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
-            throw new UnsupportedOperationException();
-        }
     }
 
     private static class FakeConsumerNegotiationManager implements ConsumerContractNegotiationManager {
