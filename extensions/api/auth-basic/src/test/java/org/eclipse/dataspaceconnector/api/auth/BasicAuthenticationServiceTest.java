@@ -15,6 +15,9 @@
 package org.eclipse.dataspaceconnector.api.auth;
 
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
+import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
+import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -25,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -96,6 +100,12 @@ class BasicAuthenticationServiceTest {
     @Test
     void isAuthorized_decoderError_notValidBearerToken() {
         var map = Map.of("authorization", List.of("Bearer invalid_token"));
+        assertThat(service.isAuthenticated(map)).isFalse();
+    }
+
+    @Test
+    void isAuthorized_decoderError_missingColon() {
+        var map = Map.of("authorization", List.of(generateBearerToken("missingcolon")));
         assertThat(service.isAuthenticated(map)).isFalse();
     }
 
