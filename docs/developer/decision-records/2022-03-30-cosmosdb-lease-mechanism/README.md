@@ -14,6 +14,10 @@ Cosmos document is extended with lease information: a lease holder, time when th
 
 Lease acts as an exclusive lock: a party leasing a document owns an exclusive lock until the lease expires or it has been explicitly broken. Any attempt to acquire or break the lease on a document that has been leased by someone else results in an exception. Currently, the lease expiration time is hardcoded to 60 seconds.
 
+Cosmos DB stores are using stored procedures written in JavaScript to guarantee ACID for the lease operations. Requests made within stored
+procedures execute in the same scope of a database session, because in Azure Cosmos DB, JavaScript is hosted in the same memory
+space as the database. More about stored procedures in Cosmos DB: [stored procedures doc](https://docs.microsoft.com/rest/api/cosmos-db/stored-procedures).
+
 Cosmos DB stores are using 2 stored procedures that handle the lease logic:
 
 1. [`lease.js`](/extensions/azure/cosmos/cosmos-common/src/main/resources/lease.js) - queries the database to look for an item and if an item is found applies a lease on it. It's used to acquire the lock on single item in the database before an update and to remove the lock after.
