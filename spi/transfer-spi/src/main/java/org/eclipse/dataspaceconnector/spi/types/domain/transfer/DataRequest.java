@@ -45,8 +45,6 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
     private String contractId;
 
-    private String policyId;
-
     private DataAddress dataDestination;
 
     private boolean managedResources = true;
@@ -117,13 +115,6 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     }
 
     /**
-     * Returns the policy id associated with the requested contract.
-     */
-    public String getPolicyId() {
-        return policyId;
-    }
-
-    /**
      * The type of destination the requested data should be routed to.
      */
     public String getDestinationType() {
@@ -156,7 +147,6 @@ public class DataRequest implements RemoteMessage, Polymorphic {
                 .protocol(protocol)
                 .connectorId(connectorId)
                 .assetId(assetId)
-                .policyId(policyId)
                 .contractId(contractId)
                 .dataAddress(dataDestination)
                 .transferType(transferType)
@@ -218,11 +208,6 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
         public Builder assetId(String assetId) {
             request.assetId = assetId;
-            return this;
-        }
-
-        public Builder policyId(String policyId) {
-            request.policyId = policyId;
             return this;
         }
 

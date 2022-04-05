@@ -18,7 +18,6 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 
 /**
  * Resolves {@linkplain org.eclipse.dataspaceconnector.policy.model.Policy} objects, that are part of a contract agreement.
- * Thus, this archive only houses policies from "foreign" EDC instances.
  */
 
 @FunctionalInterface

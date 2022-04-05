@@ -26,7 +26,7 @@ import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
@@ -111,7 +111,7 @@ class TransferProcessManagerImplTest {
     private final StatusCheckerRegistry statusCheckerRegistry = mock(StatusCheckerRegistry.class);
     private final ResourceManifestGenerator manifestGenerator = mock(ResourceManifestGenerator.class);
     private final TransferProcessStore transferProcessStore = mock(TransferProcessStore.class);
-    private final PolicyStore policyStore = mock(PolicyStore.class);
+    private final PolicyArchive policyArchive = mock(PolicyArchive.class);
     private final DataFlowManager dataFlowManager = mock(DataFlowManager.class);
     private final Vault vault = mock(Vault.class);
 
@@ -133,8 +133,8 @@ class TransferProcessManagerImplTest {
                 .typeManager(new TypeManager())
                 .statusCheckerRegistry(statusCheckerRegistry)
                 .observable(mock(TransferProcessObservable.class))
-                .store(transferProcessStore)
-                .policyStore(policyStore)
+                .transferProcessStore(transferProcessStore)
+                .policyArchive(policyArchive)
                 .vault(vault)
                 .addressResolver(mock(DataAddressResolver.class))
                 .build();
@@ -161,6 +161,8 @@ class TransferProcessManagerImplTest {
     void initial_shouldTransitionToProvisioning() throws InterruptedException {
         var process = createTransferProcess(INITIAL);
 
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+
         when(transferProcessStore.nextForState(eq(INITIAL.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
 
         var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
@@ -172,6 +174,7 @@ class TransferProcessManagerImplTest {
 
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
 
+        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
         verifyNoInteractions(provisionManager);
         verify(transferProcessStore).update(argThat(p -> p.getState() == PROVISIONING.code()));
     }
@@ -185,6 +188,7 @@ class TransferProcessManagerImplTest {
                 .resource(provisionedDataDestinationResource())
                 .build());
 
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
         when(transferProcessStore.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
@@ -194,6 +198,7 @@ class TransferProcessManagerImplTest {
 
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
 
+        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
         verify(transferProcessStore).update(argThat(p -> p.getState() == PROVISIONED.code()));
     }
 
@@ -221,6 +226,7 @@ class TransferProcessManagerImplTest {
 
         when(vault.storeSecret(any(), any())).thenReturn(Result.success());
 
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
         when(transferProcessStore.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
@@ -232,6 +238,7 @@ class TransferProcessManagerImplTest {
 
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
 
+        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
         verify(transferProcessStore).update(argThat(p -> p.getState() == PROVISIONED.code()));
         verify(vault).storeSecret(any(), any());
     }
@@ -242,6 +249,7 @@ class TransferProcessManagerImplTest {
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
 
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(failedFuture(new EdcException("provision failed")));
         when(transferProcessStore.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
@@ -251,6 +259,7 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
         verify(transferProcessStore).update(argThat(p -> p.getState() == ERROR.code()));
     }
 
@@ -261,6 +270,7 @@ class TransferProcessManagerImplTest {
                 .build();
         var provisionResult = ProvisionResult.failure(ResponseStatus.FATAL_ERROR, "test error");
 
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
         when(transferProcessStore.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
@@ -270,6 +280,7 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
         verify(transferProcessStore).update(argThat(p -> p.getState() == ERROR.code()));
     }
 
@@ -280,6 +291,7 @@ class TransferProcessManagerImplTest {
                 .build();
         var provisionResult = ProvisionResult.failure(ResponseStatus.ERROR_RETRY, "test error");
 
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
         when(transferProcessStore.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
@@ -288,6 +300,7 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
         verify(transferProcessStore).update(argThat(p -> p.getState() == PROVISIONING.code()));
     }
 
@@ -310,7 +323,8 @@ class TransferProcessManagerImplTest {
     void provisionedProvider_shouldTransitionToInProgress() throws InterruptedException {
         var process = createTransferProcess(PROVISIONED).toBuilder().type(PROVIDER).build();
 
-        when(policyStore.findById(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(transferProcessStore.nextForState(eq(PROVISIONED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(dataFlowManager.initiate(any(), any(), any())).thenReturn(DataFlowInitiateResult.success("any"));
 
@@ -319,7 +333,8 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(policyStore, atLeastOnce()).findById(anyString());
+        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
         verify(transferProcessStore).update(argThat(p -> p.getState() == IN_PROGRESS.code()));
     }
 
@@ -507,6 +522,7 @@ class TransferProcessManagerImplTest {
                 .provisionedResourceId(PROVISIONED_RESOURCE_ID)
                 .build());
 
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(vault.deleteSecret(any())).thenReturn(Result.success());
         when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(deprovisionResult)));
         when(transferProcessStore.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
@@ -517,6 +533,7 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
         verify(transferProcessStore).update(argThat(p -> p.getState() == DEPROVISIONED.code()));
         verify(vault).deleteSecret(any());
     }
@@ -538,6 +555,7 @@ class TransferProcessManagerImplTest {
 
         var deprovisionResult = DeprovisionResult.failure(ResponseStatus.FATAL_ERROR, "test error");
 
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(deprovisionResult)));
         when(transferProcessStore.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
@@ -546,6 +564,7 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
         verify(transferProcessStore).update(argThat(p -> p.getState() == ERROR.code()));
     }
 
@@ -566,6 +585,7 @@ class TransferProcessManagerImplTest {
 
         var deprovisionResult = DeprovisionResult.failure(ResponseStatus.ERROR_RETRY, "test error");
 
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(deprovisionResult)));
         when(transferProcessStore.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
@@ -575,6 +595,7 @@ class TransferProcessManagerImplTest {
 
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         verify(transferProcessStore).update(argThat(p -> p.getState() == DEPROVISIONING.code()));
+        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
     }
 
     @Test
@@ -582,6 +603,7 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(DEPROVISIONING).toBuilder()
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(failedFuture(new EdcException("provision failed")));
         when(transferProcessStore.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
@@ -590,6 +612,7 @@ class TransferProcessManagerImplTest {
         manager.start();
 
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
         verify(transferProcessStore).update(argThat(p -> p.getState() == ERROR.code()));
     }
 
@@ -615,7 +638,6 @@ class TransferProcessManagerImplTest {
                 .id(processId)
                 .contractId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
-                .policyId(UUID.randomUUID().toString())
                 .transferType(type)
                 .managedResources(managed)
                 .destinationType(DESTINATION_TYPE)

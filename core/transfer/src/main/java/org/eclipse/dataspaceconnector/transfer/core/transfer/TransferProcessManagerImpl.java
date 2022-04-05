@@ -18,7 +18,6 @@ package org.eclipse.dataspaceconnector.transfer.core.transfer;
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.common.statemachine.StateMachine;
 import org.eclipse.dataspaceconnector.common.statemachine.StateProcessorImpl;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
@@ -26,7 +25,7 @@ import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -114,7 +113,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private ExecutorInstrumentation executorInstrumentation;
     private StateMachine stateMachine;
     private DataAddressResolver addressResolver;
-    private PolicyStore policyStore;
+    private PolicyArchive policyArchive;
 
     private TransferProcessManagerImpl() {
     }
@@ -211,8 +210,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private boolean processInitial(TransferProcess process) {
         var dataRequest = process.getDataRequest();
 
-        // TODO handle consumer policy
-        var policy = process.getType() == PROVIDER ? policyStore.findById(dataRequest.getPolicyId()) : Policy.Builder.newInstance().build();
+        var policy = policyArchive.findPolicyForContract(dataRequest.getContractId());
 
         ResourceManifest manifest;
         if (process.getType() == CONSUMER) {
@@ -248,8 +246,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private boolean processProvisioning(TransferProcess process) {
         var dataRequest = process.getDataRequest();
 
-        // TODO handle consumer policy
-        var policy = process.getType() == PROVIDER ? policyStore.findById(dataRequest.getPolicyId()) : Policy.Builder.newInstance().build();
+        var policy = policyArchive.findPolicyForContract(dataRequest.getContractId());
 
         var resources = process.getResourcesToProvision();
         provisionManager.provision(resources, policy)
@@ -371,8 +368,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         var dataRequest = process.getDataRequest();
 
-        // TODO handle consumer policy
-        var policy = process.getType() == PROVIDER ? policyStore.findById(dataRequest.getPolicyId()) : Policy.Builder.newInstance().build();
+        var policy = policyArchive.findPolicyForContract(dataRequest.getContractId());
 
         var resourcesToDeprovision = process.getResourcesToDeprovision();
 
@@ -564,8 +560,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var dataRequest = process.getDataRequest();
         var contentAddress = process.getContentDataAddress();
 
-        // TODO handle consumer policy
-        var policy = process.getType() == PROVIDER ? policyStore.findById(dataRequest.getPolicyId()) : Policy.Builder.newInstance().build();
+        var policy = policyArchive.findPolicyForContract(dataRequest.getContractId());
 
         var response = dataFlowManager.initiate(dataRequest, contentAddress, policy);
 
@@ -709,13 +704,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return this;
         }
 
-        public Builder store(TransferProcessStore transferProcessStore) {
+        public Builder transferProcessStore(TransferProcessStore transferProcessStore) {
             manager.transferProcessStore = transferProcessStore;
             return this;
         }
 
-        public Builder policyStore(PolicyStore policyStore) {
-            manager.policyStore = policyStore;
+        public Builder policyArchive(PolicyArchive policyArchive) {
+            manager.policyArchive = policyArchive;
             return this;
         }
 
@@ -725,19 +720,20 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         }
 
         public TransferProcessManagerImpl build() {
-            Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator");
-            Objects.requireNonNull(manager.provisionManager, "provisionManager");
-            Objects.requireNonNull(manager.dataFlowManager, "dataFlowManager");
-            Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
-            Objects.requireNonNull(manager.monitor, "monitor");
-            Objects.requireNonNull(manager.executorInstrumentation, "executorInstrumentation");
+            Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator cannot be null");
+            Objects.requireNonNull(manager.provisionManager, "provisionManager cannot be null");
+            Objects.requireNonNull(manager.dataFlowManager, "dataFlowManager cannot be null");
+            Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry cannot be null");
+            Objects.requireNonNull(manager.monitor, "monitor cannot be null");
+            Objects.requireNonNull(manager.executorInstrumentation, "executorInstrumentation cannot be null");
             Objects.requireNonNull(manager.commandQueue, "commandQueue cannot be null");
             Objects.requireNonNull(manager.commandRunner, "commandRunner cannot be null");
-            Objects.requireNonNull(manager.statusCheckerRegistry, "StatusCheckerRegistry cannot be null!");
-            Objects.requireNonNull(manager.observable, "Observable cannot be null");
-            Objects.requireNonNull(manager.telemetry, "Telemetry cannot be null");
-            Objects.requireNonNull(manager.transferProcessStore, "Store cannot be null");
-            Objects.requireNonNull(manager.addressResolver, "DataAddressResolver cannot be null");
+            Objects.requireNonNull(manager.statusCheckerRegistry, "statusCheckerRegistry cannot be null!");
+            Objects.requireNonNull(manager.observable, "observable cannot be null");
+            Objects.requireNonNull(manager.telemetry, "telemetry cannot be null");
+            Objects.requireNonNull(manager.policyArchive, "policyArchive cannot be null");
+            Objects.requireNonNull(manager.transferProcessStore, "transferProcessStore cannot be null");
+            Objects.requireNonNull(manager.addressResolver, "addressResolver cannot be null");
             manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
 
             return manager;
