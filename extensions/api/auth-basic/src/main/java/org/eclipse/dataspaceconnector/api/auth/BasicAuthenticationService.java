@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.api.auth;
 
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.util.Base64;
 import java.util.List;
@@ -60,42 +61,53 @@ public class BasicAuthenticationService implements AuthenticationService {
      * @return Array with the encoded credentials. First is the username and the second the password. If there was a
      *         problem an array with 0 entries will be returned.
      */
-    private String[] decodeAuthHeader(String authHeader) {
+    private Result<BasicAuthCredentials> decodeAuthHeader(String authHeader) {
         String[] authCredentials;
         var separatedAuthHeader = authHeader.split(" ");
 
         if (separatedAuthHeader.length != 2) {
-            monitor.debug("Authorization header value is not a valid Bearer token");
-            return new String[0];
+            return Result.failure("Authorization header value is not a valid Bearer token");
         }
 
         try {
             authCredentials = new String(b64Decoder.decode(separatedAuthHeader[1])).split(":");
         } catch (IllegalArgumentException ex) {
-            monitor.debug("Authorization header could no base64 decoded");
-            return new String[0];
+            return Result.failure("Authorization header could no base64 decoded");
         }
 
         if (authCredentials.length != 2) {
-            monitor.debug("Authorization header could be base64 decoded but is not in format of 'username:password'");
-            return new String[0];
+            return Result.failure("Authorization header could be base64 decoded but is not in format of 'username:password'");
         }
 
-        return authCredentials;
+        return Result.success(new BasicAuthCredentials(authCredentials[0], authCredentials[1]));
     }
 
     /**
      * Checks if the provided credentials are in the internal registered once and if the password is correct.
      *
-     * @param authCredentials First element is the username and the second the password
+     * @param authCredentials {@link org.eclipse.dataspaceconnector.api.auth.BasicAuthenticationService.BasicAuthCredentials}
+     *                       used in the request.
      * @return True if credentials are correct
      */
-    private boolean checkBasicAuthValid(String[] authCredentials) {
-        if (authCredentials.length != 2) {
+    private boolean checkBasicAuthValid(Result<BasicAuthCredentials> authCredentials) {
+        if (authCredentials.failed()) {
+            authCredentials.getFailureMessages().forEach(monitor::debug);
             return false;
         }
 
-        var password4Username = credentials.get(authCredentials[0]);
-        return password4Username != null && password4Username.equals(authCredentials[1]);
+        var creds = authCredentials.getContent();
+
+        var password4Username = credentials.get(creds.username);
+        return password4Username != null && password4Username.equals(creds.password);
+    }
+
+    private static class BasicAuthCredentials {
+        String username;
+        String password;
+
+        public BasicAuthCredentials(String username, String password) {
+            this.username = username;
+            this.password = password;
+        }
     }
 }
