@@ -329,28 +329,28 @@ class InMemoryContractNegotiationStoreTest {
 
         store.save(n);
 
-        var archivedPolicy = store.findPolicyById("test-policy");
-        assertThat(archivedPolicy).isEmpty();
+        var archivedPolicy = store.findPolicyForContract("test-contract");
+        assertThat(archivedPolicy).isNull();
     }
 
     @Test
     void findPolicy_whenAgreement() {
         var policy = createPolicy("test-policy");
 
-        var contractAgreement = createAgreementBuilder().policy(policy).id(ContractId.createContractId(UUID.randomUUID().toString())).build();
+        var contractAgreement = createAgreementBuilder().policy(policy).id("test-contract").build();
         var n = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
 
         store.save(n);
 
-        var archivedPolicy = store.findPolicyById("test-policy");
-        assertThat(archivedPolicy).usingRecursiveFieldByFieldElementComparator().containsExactly(policy);
+        var archivedPolicy = store.findPolicyForContract("test-contract");
+        assertThat(archivedPolicy).usingRecursiveComparison().isEqualTo(policy);
     }
 
     @Test
     void findPolicy_whenMultipleAgreements() {
         var policy = createPolicy("test-policy");
 
-        var contractAgreement1 = createAgreementBuilder().policy(policy).id(ContractId.createContractId(UUID.randomUUID().toString())).build();
+        var contractAgreement1 = createAgreementBuilder().policy(policy).id("test-contract").build();
         var negotiation1 = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement1).build();
 
         var contractAgreement2 = createAgreementBuilder().policy(policy).id(ContractId.createContractId(UUID.randomUUID().toString())).build();
@@ -359,8 +359,8 @@ class InMemoryContractNegotiationStoreTest {
         store.save(negotiation1);
         store.save(negotiation2);
 
-        var policies = store.findPolicyById("test-policy");
-        assertThat(policies).usingRecursiveFieldByFieldElementComparator().containsExactly(policy);
+        var policies = store.findPolicyForContract("test-contract");
+        assertThat(policies).usingRecursiveComparison().isEqualTo(policy);
     }
 
     @Test
@@ -372,8 +372,8 @@ class InMemoryContractNegotiationStoreTest {
 
         store.save(n);
 
-        var archivedPolicy = store.findPolicyById("test-policy");
-        assertThat(archivedPolicy).isEmpty();
+        var archivedPolicy = store.findPolicyForContract("test-policy");
+        assertThat(archivedPolicy).isNull();
         assertThat(store.findContractAgreement("test-contract")).isNotNull().extracting(ContractAgreement::getPolicy).isEqualTo(expectedPolicy);
     }
 

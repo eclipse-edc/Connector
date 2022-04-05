@@ -37,6 +37,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -148,10 +149,8 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
     }
 
     @Override
-    public Stream<Policy> findPolicyById(String policyId) {
-        return lockManager.readLock(() -> contractAgreements.values().stream().map(n -> n.getContractAgreement().getPolicy())
-                .filter(p -> Objects.equals(p.getUid(), policyId))
-                .distinct());
+    public Policy findPolicyForContract(String contractId) {
+        return ofNullable(findContractAgreement(contractId)).map(ContractAgreement::getPolicy).orElse(null);
     }
 
     @NotNull

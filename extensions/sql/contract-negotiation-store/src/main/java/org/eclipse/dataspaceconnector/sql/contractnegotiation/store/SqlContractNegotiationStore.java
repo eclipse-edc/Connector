@@ -39,6 +39,7 @@ import java.util.stream.Stream;
 import javax.sql.DataSource;
 
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
 /**
@@ -208,18 +209,8 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
     }
 
     @Override
-    public Stream<Policy> findPolicyById(String policyId) {
-        var stmt = statements.getSelectByPolicyIdTemplate();
-
-        return transactionContext.execute(() -> {
-            try (var conn = getConnection()) {
-                TypeReference<Policy> tr = new TypeReference<>() {
-                };
-                return executeQuery(conn, (rs) -> fromJson(rs.getString(statements.getPolicyColumnSeralized()), tr), stmt, policyId).stream();
-            } catch (SQLException e) {
-                throw new EdcPersistenceException(e);
-            }
-        });
+    public Policy findPolicyForContract(String contractId) {
+        return ofNullable(findContractAgreement(contractId)).map(ContractAgreement::getPolicy).orElse(null);
     }
 
 

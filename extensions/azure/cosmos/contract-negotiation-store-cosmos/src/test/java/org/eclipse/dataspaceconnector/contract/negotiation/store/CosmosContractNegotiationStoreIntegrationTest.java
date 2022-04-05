@@ -562,8 +562,8 @@ class CosmosContractNegotiationStoreIntegrationTest {
         container.createItem(new ContractNegotiationDocument(negotiation, partitionKey));
 
 
-        var policy = store.findPolicyById("test-policy");
-        assertThat(policy).isEmpty();
+        var policy = store.findPolicyForContract("test-policy");
+        assertThat(policy).isNull();
 
     }
 
@@ -578,8 +578,8 @@ class CosmosContractNegotiationStoreIntegrationTest {
         container.createItem(new ContractNegotiationDocument(negotiation, partitionKey));
 
 
-        var stream = store.findPolicyById("test-policy");
-        assertThat(stream).isNotEmpty().usingRecursiveFieldByFieldElementComparator().containsExactly(expectedPolicy);
+        var stream = store.findPolicyForContract("test-agreement");
+        assertThat(stream).isNotNull().usingRecursiveComparison().isEqualTo(expectedPolicy);
 
         assertThat(store.findContractAgreement("test-agreement")).extracting(ContractAgreement::getPolicy).isEqualTo(expectedPolicy);
     }
@@ -600,8 +600,8 @@ class CosmosContractNegotiationStoreIntegrationTest {
         container.createItem(new ContractNegotiationDocument(n2, partitionKey));
 
 
-        var stream = store.findPolicyById("test-policy");
-        assertThat(stream).isNotEmpty().usingRecursiveFieldByFieldElementComparator().containsExactly(expectedPolicy);
+        var stream = store.findPolicyForContract("test-agreement1");
+        assertThat(stream).isNotNull().usingRecursiveComparison().isEqualTo(expectedPolicy);
 
         assertThat(store.findContractAgreement("test-agreement1")).extracting(ContractAgreement::getPolicy).isEqualTo(expectedPolicy);
     }
@@ -617,8 +617,8 @@ class CosmosContractNegotiationStoreIntegrationTest {
         container.createItem(new ContractNegotiationDocument(negotiation, partitionKey));
 
 
-        var policy = store.findPolicyById("test-policy");
-        assertThat(policy).isEmpty();
+        var policy = store.findPolicyForContract("test-policy");
+        assertThat(policy).isNull();
 
         assertThat(store.findContractAgreement("test-agreement")).isNotNull().extracting(ContractAgreement::getPolicy).isEqualTo(expectedPolicy);
     }
