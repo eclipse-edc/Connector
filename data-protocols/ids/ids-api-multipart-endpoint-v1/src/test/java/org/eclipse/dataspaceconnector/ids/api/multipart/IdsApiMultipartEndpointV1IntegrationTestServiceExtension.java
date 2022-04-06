@@ -26,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
@@ -38,7 +39,6 @@ import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -323,8 +323,8 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
     private static class FakeProviderContractNegotiationManager implements ProviderContractNegotiationManager {
 
         @Override
-        public StatusResult<ContractNegotiation> declined(ClaimToken token, String negotiationId) {
-            return StatusResult.success(fakeContractNegotiation());
+        public NegotiationResult declined(ClaimToken token, String negotiationId) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
@@ -332,41 +332,41 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         }
 
         @Override
-        public StatusResult<ContractNegotiation> requested(ClaimToken token, ContractOfferRequest request) {
-            return StatusResult.success(fakeContractNegotiation());
+        public NegotiationResult requested(ClaimToken token, ContractOfferRequest request) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public StatusResult<ContractNegotiation> offerReceived(ClaimToken token, String correlationId, ContractOffer offer, String hash) {
-            return StatusResult.success(fakeContractNegotiation());
+        public NegotiationResult offerReceived(ClaimToken token, String correlationId, ContractOffer offer, String hash) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public StatusResult<ContractNegotiation> consumerApproved(ClaimToken token, String correlationId, ContractAgreement agreement, String hash) {
-            return StatusResult.success(fakeContractNegotiation());
+        public NegotiationResult consumerApproved(ClaimToken token, String correlationId, ContractAgreement agreement, String hash) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
     }
 
     private static class FakeConsumerContractNegotiationManager implements ConsumerContractNegotiationManager {
 
         @Override
-        public StatusResult<ContractNegotiation> initiate(ContractOfferRequest contractOffer) {
-            return StatusResult.success(fakeContractNegotiation());
+        public NegotiationResult initiate(ContractOfferRequest contractOffer) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public StatusResult<ContractNegotiation> offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
-            return StatusResult.success(fakeContractNegotiation());
+        public NegotiationResult offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId, ContractAgreement contract, String hash) {
-            return StatusResult.success(fakeContractNegotiation());
+        public NegotiationResult confirmed(ClaimToken token, String negotiationId, ContractAgreement contract, String hash) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public StatusResult<ContractNegotiation> declined(ClaimToken token, String negotiationId) {
-            return StatusResult.success(fakeContractNegotiation());
+        public NegotiationResult declined(ClaimToken token, String negotiationId) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override

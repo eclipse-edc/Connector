@@ -24,7 +24,8 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
-import org.eclipse.dataspaceconnector.spi.response.StatusResult;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResult;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
@@ -87,7 +88,7 @@ public class HttpProviderProvisioner implements Provisioner<HttpProviderResource
     }
 
     @Override
-    public CompletableFuture<StatusResult<ProvisionResponse>> provision(HttpProviderResourceDefinition resourceDefinition, Policy policy) {
+    public CompletableFuture<ProvisionResult> provision(HttpProviderResourceDefinition resourceDefinition, Policy policy) {
         // TODO expose scope from PolicyEngine
         var scopedPolicy = policy;
 
@@ -96,27 +97,27 @@ public class HttpProviderProvisioner implements Provisioner<HttpProviderResource
             request = createRequest(PROVISION, resourceDefinition.getTransferProcessId(), resourceDefinition.getAssetId(), scopedPolicy);
         } catch (JsonProcessingException e) {
             monitor.severe("Error serializing provision request for provisioner: " + name, e);
-            return completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, "Fatal error serializing request: " + e.getMessage()));
+            return completedFuture(ProvisionResult.failure(ResponseStatus.FATAL_ERROR, "Fatal error serializing request: " + e.getMessage()));
         }
 
         try (var response = httpClient.newCall(request).execute()) {
             if (response.isSuccessful()) {
-                return completedFuture(StatusResult.success(new ProvisionResponse()));   // in-process
+                return completedFuture(ProvisionResult.success(new ProvisionResponse()));   // in-process
             } else if (response.code() >= 500 && response.code() <= 504) {
                 // retry
-                return completedFuture(StatusResult.failure(ResponseStatus.ERROR_RETRY, "Received error code: " + response.code()));
+                return completedFuture(ProvisionResult.failure(ResponseStatus.ERROR_RETRY, "Received error code: " + response.code()));
             } else {
                 // fatal error
-                return completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, "Received fatal error code: " + response.code()));
+                return completedFuture(ProvisionResult.failure(ResponseStatus.FATAL_ERROR, "Received fatal error code: " + response.code()));
             }
         } catch (IOException e) {
             monitor.severe("Error invoking provisioner: " + name, e);
-            return completedFuture(StatusResult.failure(ResponseStatus.ERROR_RETRY, "Received error: " + e.getMessage()));
+            return completedFuture(ProvisionResult.failure(ResponseStatus.ERROR_RETRY, "Received error: " + e.getMessage()));
         }
     }
 
     @Override
-    public CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(HttpProvisionedContentResource provisionedResource, Policy policy) {
+    public CompletableFuture<DeprovisionResult> deprovision(HttpProvisionedContentResource provisionedResource, Policy policy) {
         // TODO expose scope from PolicyEngine
         var scopedPolicy = policy;
 
@@ -125,7 +126,7 @@ public class HttpProviderProvisioner implements Provisioner<HttpProviderResource
             request = createRequest(DEPROVISION, provisionedResource.getTransferProcessId(), provisionedResource.getAssetId(), scopedPolicy);
         } catch (JsonProcessingException e) {
             monitor.severe("Error serializing deprovision request for provisioner: " + name, e);
-            return completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, "Fatal error serializing request: " + e.getMessage()));
+            return completedFuture(DeprovisionResult.failure(ResponseStatus.FATAL_ERROR, "Fatal error serializing request: " + e.getMessage()));
         }
 
         try (var response = httpClient.newCall(request).execute()) {
@@ -134,17 +135,17 @@ public class HttpProviderProvisioner implements Provisioner<HttpProviderResource
                         .provisionedResourceId(provisionedResource.getTransferProcessId())
                         .inProcess(true)
                         .build();
-                return completedFuture(StatusResult.success(deprovisionedResource));
+                return completedFuture(DeprovisionResult.success(deprovisionedResource));
             } else if (response.code() >= 500 && response.code() <= 504) {
                 // retry
-                return completedFuture(StatusResult.failure(ResponseStatus.ERROR_RETRY, "Received error code: " + response.code()));
+                return completedFuture(DeprovisionResult.failure(ResponseStatus.ERROR_RETRY, "Received error code: " + response.code()));
             } else {
                 // fatal error
-                return completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, "Received fatal error code: " + response.code()));
+                return completedFuture(DeprovisionResult.failure(ResponseStatus.FATAL_ERROR, "Received fatal error code: " + response.code()));
             }
         } catch (IOException e) {
             monitor.severe("Error invoking provisioner: " + name, e);
-            return completedFuture(StatusResult.failure(ResponseStatus.ERROR_RETRY, "Received error: " + e.getMessage()));
+            return completedFuture(DeprovisionResult.failure(ResponseStatus.ERROR_RETRY, "Received error: " + e.getMessage()));
         }
 
     }
