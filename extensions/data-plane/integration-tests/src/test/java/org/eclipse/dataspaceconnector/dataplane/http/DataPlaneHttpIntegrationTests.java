@@ -59,6 +59,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddre
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.NAME;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_QUERY_PARAMS;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
@@ -94,6 +95,7 @@ public class DataPlaneHttpIntegrationTests {
     private static final String EDC_TYPE = "edctype";
     private static final String DATA_FLOW_REQUEST_EDC_TYPE = "dataspaceconnector:dataflowrequest";
     private static final String DPF_HTTP_API_PART_NAME = "sample";
+    private static final String PROXY_QUERY_PARAMS_TOGGLE = "true";
     private static final String AUTH_HEADER_KEY = HttpHeaderNames.AUTHORIZATION.toString();
     private static final String SOURCE_AUTH_VALUE = FAKER.lorem().word();
     private static final String SINK_AUTH_VALUE = FAKER.lorem().word();
@@ -371,6 +373,7 @@ public class DataPlaneHttpIntegrationTests {
                 Map.of(
                         ENDPOINT, DPF_HTTP_SOURCE_API_HOST,
                         NAME, DPF_HTTP_API_PART_NAME,
+                        PROXY_QUERY_PARAMS, PROXY_QUERY_PARAMS_TOGGLE,
                         AUTHENTICATION_KEY, AUTH_HEADER_KEY,
                         AUTHENTICATION_CODE, SOURCE_AUTH_VALUE
                 )).build();
