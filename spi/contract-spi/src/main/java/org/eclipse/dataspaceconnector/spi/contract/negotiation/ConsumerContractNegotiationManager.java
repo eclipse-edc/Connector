@@ -15,10 +15,9 @@
 
 package org.eclipse.dataspaceconnector.spi.contract.negotiation;
 
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 
@@ -32,15 +31,15 @@ public interface ConsumerContractNegotiationManager extends ContractNegotiationM
     /**
      * Initiates a contract negotiation for the given provider offer. The offer will have been obtained from a previous contract offer request sent to the provider.
      */
-    StatusResult<ContractNegotiation> initiate(ContractOfferRequest contractOffer);
+    NegotiationResult initiate(ContractOfferRequest contractOffer);
 
     /**
      * An offer was received from the provider.
      */
-    StatusResult<ContractNegotiation> offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash);
+    NegotiationResult offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash);
 
     /**
      * The negotiation has been confirmed by the provider and the final contract received.
      */
-    StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId, ContractAgreement contract, String hash);
+    NegotiationResult confirmed(ClaimToken token, String negotiationId, ContractAgreement contract, String hash);
 }

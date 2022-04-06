@@ -25,13 +25,13 @@ import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -49,7 +49,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 
-import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -175,7 +174,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
         }
 
         public CompletableFuture<Object> send(RemoteMessage message) {
-            StatusResult<ContractNegotiation> result;
+            NegotiationResult result;
             if (message instanceof ContractOfferRequest) {
                 var request = (ContractOfferRequest) message;
                 result = consumerManager.offerReceived(token, request.getCorrelationId(), request.getContractOffer(), "hash");
@@ -217,12 +216,12 @@ public abstract class AbstractContractNegotiationIntegrationTest {
         }
 
         public CompletableFuture<Object> send(RemoteMessage message) {
-            StatusResult<ContractNegotiation> result;
+            NegotiationResult result;
             if (message instanceof ContractOfferRequest) {
                 var request = (ContractOfferRequest) message;
                 consumerNegotiationId = request.getCorrelationId();
                 result = providerManager.offerReceived(token, request.getCorrelationId(), request.getContractOffer(), "hash");
-                if (result.fatalError()) {
+                if (NegotiationResult.Status.FATAL_ERROR.equals(result.getFailure().getStatus())) {
                     result = providerManager.requested(token, request);
                 }
             } else if (message instanceof ContractAgreementRequest) {

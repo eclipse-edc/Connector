@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer;
 
-import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
@@ -28,12 +27,12 @@ public interface TransferProcessManager {
     /**
      * Initiates a data transfer process on the consumer.
      */
-    StatusResult<String> initiateConsumerRequest(DataRequest dataRequest);
+    TransferInitiateResult initiateConsumerRequest(DataRequest dataRequest);
 
     /**
      * Initiates a data transfer process on the provider.
      */
-    StatusResult<String> initiateProviderRequest(DataRequest dataRequest);
+    TransferInitiateResult initiateProviderRequest(DataRequest dataRequest);
 
     /**
      * Adds a single Command to the queue which is processed sequentially.

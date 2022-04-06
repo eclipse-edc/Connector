@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
@@ -79,7 +80,7 @@ public class ConsumerRunner {
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
             var usOrEuRequest = createRequestAws("us-eu-request-" + UUID.randomUUID(), Asset.Builder.newInstance().id(artifact).build());
 
-            var response = processManager.initiateConsumerRequest(usOrEuRequest);
+            TransferInitiateResult response = processManager.initiateConsumerRequest(usOrEuRequest);
             observable.registerListener(new TransferProcessListener() {
                 @Override
                 public void preCompleted(TransferProcess process) {
@@ -135,7 +136,7 @@ public class ConsumerRunner {
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
             var usOrEuRequest = createRequestAws("us-eu-request-" + UUID.randomUUID(), Asset.Builder.newInstance().id(artifact).build());
 
-            var response = processManager.initiateConsumerRequest(usOrEuRequest);
+            TransferInitiateResult response = processManager.initiateConsumerRequest(usOrEuRequest);
             observable.registerListener(new TransferProcessListener() {
                 @Override
                 public void preCompleted(TransferProcess process) {
@@ -188,7 +189,7 @@ public class ConsumerRunner {
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
             var usOrEuRequest = createRequestAzure("us-eu-request-" + UUID.randomUUID(), Asset.Builder.newInstance().id(artifact).build());
 
-            var response = processManager.initiateConsumerRequest(usOrEuRequest);
+            TransferInitiateResult response = processManager.initiateConsumerRequest(usOrEuRequest);
             observable.registerListener(new TransferProcessListener() {
                 @Override
                 public void preCompleted(TransferProcess process) {
