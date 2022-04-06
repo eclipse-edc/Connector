@@ -9,6 +9,7 @@
 #
 #  Contributors:
 #       ZF Friedrichshafen AG - Initial API and Implementation
+#       Dailer TSS GmbH - Correct ServiceExtension name
 #
 #
-org.eclipse.dataspaceconnector.sql.policy.store.SqlPolicyStoreServiceExtension
+org.eclipse.dataspaceconnector.sql.policy.SqlPolicyStoreExtension
