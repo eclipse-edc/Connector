@@ -417,5 +417,6 @@
       <metadata name="altname" value="TypeName"/>
     </module>
     <module name="TypecastParenPad"/>
+    <module name="InnerAssignment"/>
   </module>
 </module>
