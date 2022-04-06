@@ -40,13 +40,13 @@ public class PolicyServiceImplTest {
     private final ContractDefinitionStore contractDefinitionStore = mock(ContractDefinitionStore.class);
     private final TransactionContext dummyTransactionContext = new NoopTransactionContext();
 
-    private final PolicyServiceImpl policyService = new PolicyServiceImpl(dummyTransactionContext, policyStore, contractDefinitionStore);
+    private final PolicyServiceImpl policyServiceImpl = new PolicyServiceImpl(dummyTransactionContext, policyStore, contractDefinitionStore);
 
     @Test
     void findById_shouldRelyOnPolicyStore() {
         when(policyStore.findById("policyId")).thenReturn(createPolicy("policyId"));
 
-        var policy = policyService.findById("policyId");
+        var policy = policyServiceImpl.findById("policyId");
         var uidTest = policy.getUid();
 
         String assetId = "policyId";
@@ -57,7 +57,7 @@ public class PolicyServiceImplTest {
     void query_shouldRelyOnPolicyStore() {
         var policy = createPolicy("policyId");
         when(policyStore.findAll(any(QuerySpec.class))).thenReturn(Stream.of(policy));
-        var policies = policyService.query(QuerySpec.none());
+        var policies = policyServiceImpl.query(QuerySpec.none());
 
         assertThat(policies).containsExactly(policy);
     }
@@ -67,7 +67,7 @@ public class PolicyServiceImplTest {
         Policy policy = createPolicy("policyId");
         when(policyStore.findById("policyId")).thenReturn(null);
 
-        var inserted = policyService.create(policy);
+        var inserted = policyServiceImpl.create(policy);
 
         assertThat(inserted.succeeded()).isTrue();
         assertThat(inserted.getContent()).isEqualTo(policy);
@@ -78,7 +78,7 @@ public class PolicyServiceImplTest {
         var policy = createPolicy("policyId");
         when(policyStore.findById("policyId")).thenReturn(policy);
 
-        var inserted = policyService.create(policy);
+        var inserted = policyServiceImpl.create(policy);
 
         assertThat(inserted.succeeded()).isFalse();
     }
@@ -88,7 +88,7 @@ public class PolicyServiceImplTest {
         when(contractDefinitionStore.findAll(any())).thenReturn(Stream.empty(), Stream.empty());
         when(policyStore.deleteById("policyId")).thenReturn(createPolicy("policyId"));
 
-        var deleted = policyService.deleteById("policyId");
+        var deleted = policyServiceImpl.deleteById("policyId");
 
         assertThat(deleted.succeeded()).isTrue();
         assertThat(deleted.getContent()).matches(hasId("policyId"));
@@ -108,7 +108,7 @@ public class PolicyServiceImplTest {
 
         when(contractDefinitionStore.findAll(any())).thenReturn(Stream.of(contractDefinition));
 
-        var deleted = policyService.deleteById("policyId");
+        var deleted = policyServiceImpl.deleteById("policyId");
 
         assertThat(deleted.failed()).isTrue();
         assertThat(deleted.getFailure().getReason()).isEqualTo(CONFLICT);
@@ -118,7 +118,7 @@ public class PolicyServiceImplTest {
     void delete_shouldFailIfPolicyDoesNotExist() {
         when(policyStore.deleteById("assetId")).thenReturn(null);
 
-        var deleted = policyService.deleteById("policyId");
+        var deleted = policyServiceImpl.deleteById("policyId");
 
         assertThat(deleted.failed()).isTrue();
         assertThat(deleted.getFailure().getReason()).isEqualTo(NOT_FOUND);
