@@ -53,6 +53,11 @@ public class PolicyServiceImpl implements PolicyService {
     @Override
     public @NotNull ServiceResult<Policy> deleteById(String policyId) {
         return transactionContext.execute(() -> {
+
+            if (policyStore.findById(policyId) == null) {
+                return ServiceResult.notFound(format("Policy %s does not exist", policyId));
+            }
+
             var contractFilter = format("contractPolicy.uid = %s ", policyId);
             var queryContractPolicyFilter = QuerySpec.Builder.newInstance().filter(contractFilter).build();
             var contractDefinitionOnPolicy = contractDefinitionStore.findAll(queryContractPolicyFilter);
@@ -69,7 +74,7 @@ public class PolicyServiceImpl implements PolicyService {
 
             var deleted = policyStore.deleteById(policyId);
             if (deleted == null) {
-                return ServiceResult.notFound(format("Policy %s does not exist", policyId));
+                return ServiceResult.notFound(format("Policy %s cannot be deleted because it does not exist", policyId));
             }
 
             return ServiceResult.success(deleted);
