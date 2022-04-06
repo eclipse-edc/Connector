@@ -22,10 +22,10 @@ import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.response.TransferErrorResponse;
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -125,7 +125,7 @@ class DataPlanePublicApiControllerTest {
         when(requestContextWrapperMock.properties(any())).thenReturn(Map.of());
         when(dataPlaneManagerMock.validate(any())).thenReturn(Result.success(true));
         when(dataPlaneManagerMock.transfer(any(DataSink.class), any()))
-                .thenReturn(CompletableFuture.completedFuture(TransferResult.failure(ResponseStatus.FATAL_ERROR, errorMsg)));
+                .thenReturn(CompletableFuture.completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg)));
 
         var response = controller.post(null);
 
@@ -165,7 +165,7 @@ class DataPlanePublicApiControllerTest {
         when(requestContextWrapperMock.properties(any())).thenReturn(requestProperties);
         when(dataPlaneManagerMock.validate(any())).thenReturn(Result.success(true));
         when(dataPlaneManagerMock.transfer(any(DataSink.class), any()))
-                .thenReturn(CompletableFuture.completedFuture(TransferResult.success()));
+                .thenReturn(CompletableFuture.completedFuture(StatusResult.success()));
 
         var response = controller.post(null);
 

@@ -18,8 +18,8 @@ import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
-import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.dataplane.client.DataPlaneTransferClient;
@@ -28,8 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 import static java.lang.String.join;
-import static org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult.failure;
-import static org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult.success;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType.SYNC;
 
 /**
@@ -58,14 +56,14 @@ public class DataPlaneTransferFlowController implements DataFlowController {
     }
 
     @Override
-    public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest, Policy policy) {
+    public @NotNull StatusResult<String> initiateFlow(DataRequest dataRequest, Policy policy) {
         var dataFlowRequest = createRequest(dataRequest);
         var result = client.transfer(dataFlowRequest);
         if (result.failed()) {
-            return failure(ResponseStatus.FATAL_ERROR,
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR,
                     "Failed to delegate data transfer to Data Plane: " + join(", ", result.getFailureMessages()));
         }
-        return success("");
+        return StatusResult.success("");
     }
 
     private DataFlowRequest createRequest(DataRequest dataRequest) {

@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.spi.transfer.flow;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,5 +36,5 @@ public interface DataFlowManager {
      * @param policy the contract agreement usage policy for the asset being transferred
      */
     @NotNull
-    DataFlowInitiateResult initiate(DataRequest dataRequest, Policy policy);
+    StatusResult<String> initiate(DataRequest dataRequest, Policy policy);
 }

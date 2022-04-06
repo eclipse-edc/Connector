@@ -14,8 +14,9 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
-import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResult;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 
 import java.util.List;
 
@@ -23,10 +24,10 @@ public interface ProvisionCallbackDelegate {
     /**
      * Called when the {@link org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager} completes provisioning.
      */
-    void handleProvisionResult(String transferProcessId, List<ProvisionResult> provisionResponse);
+    void handleProvisionResult(String transferProcessId, List<StatusResult<ProvisionResponse>> provisionResponse);
 
     /**
      * Called when the {@link org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager} completes deprovisioning.
      */
-    void handleDeprovisionResult(String transferProcessId, List<DeprovisionResult> provisionResponse);
+    void handleDeprovisionResult(String transferProcessId, List<StatusResult<DeprovisionedResource>> provisionResponse);
 }

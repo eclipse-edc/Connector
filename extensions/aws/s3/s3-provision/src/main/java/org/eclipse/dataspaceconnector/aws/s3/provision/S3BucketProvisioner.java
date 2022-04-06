@@ -19,8 +19,7 @@ import org.eclipse.dataspaceconnector.aws.s3.core.AwsTemporarySecretToken;
 import org.eclipse.dataspaceconnector.aws.s3.core.ClientProvider;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResult;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
@@ -62,7 +61,7 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
     }
 
     @Override
-    public CompletableFuture<ProvisionResult> provision(S3BucketResourceDefinition resourceDefinition, Policy policy) {
+    public CompletableFuture<StatusResult<ProvisionResponse>> provision(S3BucketResourceDefinition resourceDefinition, Policy policy) {
         return S3ProvisionPipeline.Builder.newInstance(retryPolicy)
                 .clientProvider(clientProvider)
                 .roleMaxSessionDuration(configuration.getRoleMaxSessionDuration())
@@ -73,16 +72,16 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
     }
 
     @Override
-    public CompletableFuture<DeprovisionResult> deprovision(S3BucketProvisionedResource resource, Policy policy) {
+    public CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(S3BucketProvisionedResource resource, Policy policy) {
         return S3DeprovisionPipeline.Builder.newInstance(retryPolicy)
                 .clientProvider(clientProvider)
                 .monitor(monitor)
                 .build()
                 .deprovision(resource)
-                .thenApply(ignore -> DeprovisionResult.success(DeprovisionedResource.Builder.newInstance().provisionedResourceId(resource.getId()).build()));
+                .thenApply(ignore -> StatusResult.success(DeprovisionedResource.Builder.newInstance().provisionedResourceId(resource.getId()).build()));
     }
 
-    private ProvisionResult provisionSuccedeed(S3BucketResourceDefinition resourceDefinition, Role role, Credentials credentials) {
+    private StatusResult<ProvisionResponse> provisionSuccedeed(S3BucketResourceDefinition resourceDefinition, Role role, Credentials credentials) {
         var resource = S3BucketProvisionedResource.Builder.newInstance()
                 .id(resourceDefinition.getBucketName())
                 .resourceDefinitionId(resourceDefinition.getId())
@@ -98,7 +97,7 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
 
         monitor.debug("S3BucketProvisioner: Bucket request submitted: " + resourceDefinition.getBucketName());
         var response = ProvisionResponse.Builder.newInstance().resource(resource).secretToken(secretToken).build();
-        return ProvisionResult.success(response);
+        return StatusResult.success(response);
     }
 
 }

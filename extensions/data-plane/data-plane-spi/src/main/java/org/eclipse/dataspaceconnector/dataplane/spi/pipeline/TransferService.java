@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.dataplane.spi.pipeline;
 
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
@@ -38,5 +38,5 @@ public interface TransferService {
     /**
      * Transfers data from source to destination.
      */
-    CompletableFuture<TransferResult> transfer(DataFlowRequest request);
+    CompletableFuture<StatusResult<Void>> transfer(DataFlowRequest request);
 }

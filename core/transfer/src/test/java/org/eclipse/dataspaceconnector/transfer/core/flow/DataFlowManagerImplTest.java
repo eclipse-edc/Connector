@@ -16,8 +16,8 @@ package org.eclipse.dataspaceconnector.transfer.core.flow;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
-import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.junit.jupiter.api.Test;
 
@@ -37,7 +37,7 @@ class DataFlowManagerImplTest {
         var policy = Policy.Builder.newInstance().build();
 
         when(controller.canHandle(any())).thenReturn(true);
-        when(controller.initiateFlow(any(), any())).thenReturn(DataFlowInitiateResult.success("success"));
+        when(controller.initiateFlow(any(), any())).thenReturn(StatusResult.success("success"));
         manager.register(controller);
 
         var response = manager.initiate(dataRequest, policy);
