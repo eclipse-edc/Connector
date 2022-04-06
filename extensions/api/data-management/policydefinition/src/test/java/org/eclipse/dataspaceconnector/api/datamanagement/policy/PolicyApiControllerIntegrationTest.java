@@ -31,7 +31,6 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.api.datamanagement.policy.TestFunctions.createPolicy;
-import static org.eclipse.dataspaceconnector.api.datamanagement.policy.TestFunctions.createPolicyDefinitionDto;
 import static org.eclipse.dataspaceconnector.api.datamanagement.policy.TestFunctions.createSelectorExpression;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.is;
@@ -93,7 +92,7 @@ public class PolicyApiControllerIntegrationTest {
     void postPolicy(PolicyStore policyStore) {
 
         baseRequest()
-                .body(createPolicyDefinitionDto("id"))
+                .body(createPolicy("id"))
                 .contentType(JSON)
                 .post("/policies")
                 .then()
@@ -106,7 +105,7 @@ public class PolicyApiControllerIntegrationTest {
         policyStore.save(createPolicy("id"));
 
         baseRequest()
-                .body(createPolicyDefinitionDto("id"))
+                .body(createPolicy("id"))
                 .contentType(JSON)
                 .post("/policies")
                 .then()

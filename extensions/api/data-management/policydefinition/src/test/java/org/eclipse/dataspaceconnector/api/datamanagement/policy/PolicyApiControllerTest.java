@@ -14,17 +14,14 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.policy;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicyService;
 import org.eclipse.dataspaceconnector.api.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
-import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -35,7 +32,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -44,24 +40,21 @@ import static org.mockito.Mockito.when;
 class PolicyApiControllerTest {
 
     private final PolicyService policyService = mock(PolicyService.class);
-    private final DtoTransformerRegistry transformerRegistry = mock(DtoTransformerRegistry.class);
     private PolicyApiController controller;
 
     @BeforeEach
     void setup() {
         var monitor = mock(Monitor.class);
-        controller = new PolicyApiController(monitor, policyService, transformerRegistry);
+        controller = new PolicyApiController(monitor, policyService);
     }
 
     @Test
     void getPolicyById() {
         when(policyService.findById("id")).thenReturn(Policy.Builder.newInstance().build());
-        when(transformerRegistry.transform(isA(Policy.class), eq(PolicyDefinitionDto.class))).thenReturn(Result.success(PolicyDefinitionDto.Builder.newInstance().build()));
 
         var policyDto = controller.getPolicy("id");
 
         assertThat(policyDto).isNotNull();
-        verify(transformerRegistry).transform(isA(Policy.class), eq(PolicyDefinitionDto.class));
     }
 
     @Test
@@ -72,19 +65,13 @@ class PolicyApiControllerTest {
     }
 
     @Test
-    void getPolicyById_notExistsIfTransformFails() {
-        when(policyService.findById("id")).thenReturn(Policy.Builder.newInstance().build());
-        when(transformerRegistry.transform(isA(Policy.class), eq(PolicyDefinitionDto.class))).thenReturn(Result.failure("failure"));
-
-        assertThatThrownBy(() -> controller.getPolicy("id")).isInstanceOf(ObjectNotFoundException.class);
-    }
-
-    @Test
     void getAllPolicies() {
-        when(policyService.query(any())).thenReturn(List.of(Policy.Builder.newInstance().build()));
-        when(transformerRegistry.transform(isA(Policy.class), eq(PolicyDefinitionDto.class))).thenReturn(Result.success(PolicyDefinitionDto.Builder.newInstance().build()));
 
+        when(policyService.query(any())).thenReturn(List.of(Policy.Builder.newInstance().build()));
         var allPolicies = controller.getAllPolicies(1, 10, "field=value", SortOrder.ASC, "field");
+
+        var result = allPolicies.get(0);
+        var size = allPolicies.size();
 
         assertThat(allPolicies).hasSize(1);
         verify(policyService).query(argThat(s ->
@@ -97,18 +84,8 @@ class PolicyApiControllerTest {
     }
 
     @Test
-    void getAllPolicies_filtersOutFailedTransforms() {
-        when(policyService.query(any())).thenReturn(List.of(Policy.Builder.newInstance().build()));
-        when(transformerRegistry.transform(isA(Policy.class), eq(PolicyDefinitionDto.class))).thenReturn(Result.failure("failed to transform"));
-
-        var allPolicies = controller.getAllPolicies(1, 10, "field=value", SortOrder.ASC, "field");
-
-        assertThat(allPolicies).isEmpty();
-    }
-
-    @Test
     void createPolicy() {
-        var policyDefinition = PolicyDefinitionDto.Builder.newInstance()
+        var policyDefinition = Policy.Builder.newInstance()
                 .inheritsFrom("inheritant")
                 .assigner("the tester")
                 .assignee("the tested")
@@ -116,24 +93,22 @@ class PolicyApiControllerTest {
                 .extensibleProperties(Map.of("key", "value"))
                 .permissions(List.of())
                 .prohibitions(List.of())
-                .obligations(List.of())
+                .duties(List.of())
                 .id("an Id")
                 .build();
 
         var policy = Policy.Builder.newInstance().build();
 
-        when(transformerRegistry.transform(isA(PolicyDefinitionDto.class), eq(Policy.class))).thenReturn(Result.success(policy));
         when(policyService.create(any())).thenReturn(ServiceResult.success(policy));
 
         controller.createPolicy(policyDefinition);
 
-        verify(transformerRegistry).transform(any(), eq(Policy.class));
         verify(policyService).create(isA(Policy.class));
     }
 
     @Test
     void createPolicy_alreadyExists() {
-        var policyDefinition = PolicyDefinitionDto.Builder.newInstance()
+        var policyDefinition = Policy.Builder.newInstance()
                 .inheritsFrom("inheritant")
                 .assigner("the tester")
                 .assignee("the tested")
@@ -141,34 +116,16 @@ class PolicyApiControllerTest {
                 .extensibleProperties(Map.of("key", "value"))
                 .permissions(List.of())
                 .prohibitions(List.of())
-                .obligations(List.of())
+                .duties(List.of())
                 .id("an Id")
                 .build();
 
         var policy = Policy.Builder.newInstance().build();
-        when(transformerRegistry.transform(isA(PolicyDefinitionDto.class), eq(Policy.class))).thenReturn(Result.success(policy));
         when(policyService.create(any())).thenReturn(ServiceResult.conflict("already exists"));
 
         assertThatThrownBy(() -> controller.createPolicy(policyDefinition)).isInstanceOf(ObjectExistsException.class);
     }
 
-    @Test
-    void createPolicy_transformFails() {
-        var policyDefinition = PolicyDefinitionDto.Builder.newInstance()
-                .inheritsFrom("inheritant")
-                .assigner("the tester")
-                .assignee("the tested")
-                .target("the target")
-                .extensibleProperties(Map.of("key", "value"))
-                .permissions(List.of())
-                .prohibitions(List.of())
-                .obligations(List.of())
-                .id("an Id")
-                .build();
-
-        when(transformerRegistry.transform(isA(PolicyDefinitionDto.class), eq(Policy.class))).thenReturn(Result.failure("failed"));
-        when(policyService.create(any())).thenReturn(ServiceResult.conflict("alreadyExists"));
-    }
 
     @Test
     void deletePolicy() {

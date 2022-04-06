@@ -28,7 +28,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -86,16 +85,19 @@ public class PolicyServiceImplTest {
     @Test
     void delete_shouldDeletePolicyIfItsNotReferencedByAnyContractDefinition() {
         when(contractDefinitionStore.findAll(any())).thenReturn(Stream.empty(), Stream.empty());
+        when(policyStore.findById(any())).thenReturn(createPolicy("policyId"));
         when(policyStore.deleteById("policyId")).thenReturn(createPolicy("policyId"));
 
         var deleted = policyServiceImpl.deleteById("policyId");
+
+        var result = deleted.getContent().getUid();
 
         assertThat(deleted.succeeded()).isTrue();
         assertThat(deleted.getContent()).matches(hasId("policyId"));
     }
 
     @Test
-    void delete_shouldNotDeleteIfPolicyIsAlreadyPartOfAContractDefinition() {
+    void delete_shouldNotDeleteIfPolicyIsAlreadyPartOfAContractDefinitionButPolicyDoesNotExistInPolicyStore() {
         var policy = createPolicy("policyId");
         when(policyStore.deleteById("policyId")).thenReturn(policy);
 
@@ -111,7 +113,27 @@ public class PolicyServiceImplTest {
         var deleted = policyServiceImpl.deleteById("policyId");
 
         assertThat(deleted.failed()).isTrue();
-        assertThat(deleted.getFailure().getReason()).isEqualTo(CONFLICT);
+        assertThat(deleted.getFailure().getReason()).isEqualTo(NOT_FOUND);
+    }
+
+    @Test
+    void delete_shouldNotDeleteIfPolicyIsAlreadyPartOfAContractDefinitionButIsNotInContractDefinitionStore() {
+        var policy = createPolicy("policyId");
+        when(policyStore.deleteById("policyId")).thenReturn(policy);
+
+        ContractDefinition contractDefinition = ContractDefinition.Builder.newInstance()
+                .id("A found Contract Definition")
+                .accessPolicy(Policy.Builder.newInstance().build())
+                .contractPolicy(Policy.Builder.newInstance().build())
+                .selectorExpression(AssetSelectorExpression.Builder.newInstance().constraint("left", "op", "right").build())
+                .build();
+
+        when(contractDefinitionStore.findAll(any())).thenReturn(Stream.of(contractDefinition));
+
+        var deleted = policyServiceImpl.deleteById("policyId");
+
+        assertThat(deleted.failed()).isTrue();
+        assertThat(deleted.getFailure().getReason()).isEqualTo(NOT_FOUND);
     }
 
     @Test

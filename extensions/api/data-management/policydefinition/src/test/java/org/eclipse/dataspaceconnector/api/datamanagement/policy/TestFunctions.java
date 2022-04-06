@@ -13,7 +13,6 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.policy;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionDto;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 
@@ -32,20 +31,6 @@ public class TestFunctions {
                 .permissions(List.of())
                 .prohibitions(List.of())
                 .duties(List.of())
-                .id(id)
-                .build();
-    }
-
-    static PolicyDefinitionDto createPolicyDefinitionDto(String id) {
-        return PolicyDefinitionDto.Builder.newInstance()
-                .inheritsFrom("inheritant")
-                .assigner("the tester")
-                .assignee("the tested")
-                .target("the target")
-                .extensibleProperties(Map.of("key", "value"))
-                .permissions(List.of())
-                .prohibitions(List.of())
-                .obligations(List.of())
                 .id(id)
                 .build();
     }
