@@ -172,6 +172,15 @@ components:
           enum:
           - CONSUMER
           - PROVIDER
+    ContractOfferDescription:
+      type: object
+      properties:
+        offerId:
+          type: string
+        assetId:
+          type: string
+        policyId:
+          type: string
     NegotiationInitiateRequestDto:
       type: object
       properties:
@@ -181,5 +190,5 @@ components:
           type: string
         connectorId:
           type: string
-        offerId:
-          type: string
+        offer:
+          $ref: '#/components/schemas/ContractOfferDescription'

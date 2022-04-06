@@ -71,6 +71,7 @@ the detailed section referring to by linking pull requests or issues.
 * Call the listeners before the state transition is persisted. (#876)
 * Add an overload to `TransactionContext#execute()` (#968)
 * Run CosmosDB integration tests on cloud in CI (#964)
+* Updated the ContractNegotiation service for DataManagementApi (#985)
 * Set policy and rule target dynamically when generating contract offers (#609)
 * Add SQL-AssetIndex to support `QuerySpec` (#1014)
 * Improve provision signalling and align deprovisioning to handle error conditions (#992)

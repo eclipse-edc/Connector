@@ -40,6 +40,7 @@ import java.util.concurrent.CompletableFuture;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.TestFunctions.createOffer;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.hamcrest.Matchers.is;
@@ -147,7 +148,7 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .connectorId("connector")
                 .protocol(TestRemoteMessageDispatcher.TEST_PROTOCOL)
                 .connectorAddress("connectorAddress")
-                .offerId(UUID.randomUUID().toString())
+                .offerId(createOffer())
                 .build();
 
         var result = baseRequest()
