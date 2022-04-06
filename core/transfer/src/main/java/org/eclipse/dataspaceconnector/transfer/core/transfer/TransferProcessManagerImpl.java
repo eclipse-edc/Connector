@@ -27,21 +27,22 @@ import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
-import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedContentResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataAddressResource;
@@ -143,7 +144,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
      */
     @WithSpan
     @Override
-    public StatusResult<String> initiateConsumerRequest(DataRequest dataRequest) {
+    public TransferInitiateResult initiateConsumerRequest(DataRequest dataRequest) {
         return initiateRequest(CONSUMER, dataRequest);
 
     }
@@ -153,7 +154,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
      */
     @WithSpan
     @Override
-    public StatusResult<String> initiateProviderRequest(DataRequest dataRequest) {
+    public TransferInitiateResult initiateProviderRequest(DataRequest dataRequest) {
         return initiateRequest(PROVIDER, dataRequest);
     }
 
@@ -163,7 +164,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     @Override
-    public void handleProvisionResult(String processId, List<StatusResult<ProvisionResponse>> responses) {
+    public void handleProvisionResult(String processId, List<ProvisionResult> responses) {
         var transferProcess = transferProcessStore.find(processId);
         if (transferProcess == null) {
             monitor.severe("TransferProcessManager: no TransferProcess found for provisioned resources");
@@ -172,7 +173,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         handleProvisionResult(transferProcess, responses);
     }
 
-    public void handleDeprovisionResult(String processId, List<StatusResult<DeprovisionedResource>> responses) {
+    public void handleDeprovisionResult(String processId, List<DeprovisionResult> responses) {
         var transferProcess = transferProcessStore.find(processId);
         if (transferProcess == null) {
             monitor.severe("TransferProcessManager: no TransferProcess found for deprovisioned resources");
@@ -181,11 +182,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         handleDeprovisionResult(transferProcess, responses);
     }
 
-    private StatusResult<String> initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
+    private TransferInitiateResult initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
         // make the request idempotent: if the process exists, return
         var processId = transferProcessStore.processIdForTransferId(dataRequest.getId());
         if (processId != null) {
-            return StatusResult.success(processId);
+            return TransferInitiateResult.success(processId);
         }
         var id = randomUUID().toString();
         var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).type(type)
@@ -195,7 +196,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         }
         observable.invokeForEach(l -> l.preCreated(process));
         transferProcessStore.create(process);
-        return StatusResult.success(process.getId());
+        return TransferInitiateResult.success(process.getId());
     }
 
     /**
@@ -396,7 +397,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         return true;
     }
 
-    private void handleProvisionResult(TransferProcess transferProcess, List<StatusResult<ProvisionResponse>> responses) {
+    private void handleProvisionResult(TransferProcess transferProcess, List<ProvisionResult> responses) {
         if (transferProcess.getState() == ERROR.code()) {
             monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so provisioning could not be completed", transferProcess.getId()));
             return;
@@ -431,7 +432,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                     }
                     dataAddressResource.getDataAddress().setKeyName(keyName);
                 }
-                handleProvisionDataAddressResource(dataAddressResource, transferProcess);
+                handleProvisionDataAddressResource(dataAddressResource, response, transferProcess);
             }
             // update the transfer process with the provisioned resource
             transferProcess.addProvisionedResource(provisionedResource);
@@ -450,7 +451,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         }
     }
 
-    private void handleProvisionDataAddressResource(ProvisionedDataAddressResource resource, TransferProcess transferProcess) {
+    private void handleProvisionDataAddressResource(ProvisionedDataAddressResource resource, ProvisionResponse response, TransferProcess transferProcess) {
         var dataAddress = resource.getDataAddress();
         if (resource instanceof ProvisionedDataDestinationResource) {
             // a data destination was provisioned by a consumer
@@ -462,7 +463,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
 
-    private void handleDeprovisionResult(TransferProcess transferProcess, List<StatusResult<DeprovisionedResource>> results) {
+    private void handleDeprovisionResult(TransferProcess transferProcess, List<DeprovisionResult> results) {
         if (transferProcess.getState() == ERROR.code()) {
             monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so deprovisioning could not be processed", transferProcess.getId()));
             return;

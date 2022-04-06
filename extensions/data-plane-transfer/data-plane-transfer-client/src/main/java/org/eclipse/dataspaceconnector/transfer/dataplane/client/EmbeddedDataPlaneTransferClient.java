@@ -15,8 +15,8 @@
 package org.eclipse.dataspaceconnector.transfer.dataplane.client;
 
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
+import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
-import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
 /**
@@ -32,12 +32,12 @@ public class EmbeddedDataPlaneTransferClient implements DataPlaneTransferClient 
     }
 
     @Override
-    public StatusResult<Void> transfer(DataFlowRequest request) {
+    public TransferResult transfer(DataFlowRequest request) {
         var result = dataPlaneManager.validate(request);
         if (result.failed()) {
-            return StatusResult.failure(ResponseStatus.FATAL_ERROR, String.join(", ", result.getFailureMessages()));
+            return TransferResult.failure(ResponseStatus.FATAL_ERROR, String.join(", ", result.getFailureMessages()));
         }
         dataPlaneManager.initiateTransfer(request);
-        return StatusResult.success();
+        return TransferResult.success();
     }
 }
