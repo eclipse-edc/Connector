@@ -17,14 +17,12 @@ package org.eclipse.dataspaceconnector.spi.policy.store;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 
 /**
- * Resolves {@linkplain org.eclipse.dataspaceconnector.policy.model.Policy} objects, that are part of a contract agreement.
- * Thus, this archive only houses policies from "foreign" EDC instances.
+ * Resolves {@linkplain org.eclipse.dataspaceconnector.policy.model.Policy} objects that are part of a contract agreement.
  */
-
 @FunctionalInterface
 public interface PolicyArchive {
     /**
-     * Returns a stream of distinct policies for a given ID.
+     * Returns a policy for a given id.
      */
     Policy findPolicyForContract(String contractId);
 }

@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.spi.command.BoundedCommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.CoreExtension;
@@ -71,6 +72,9 @@ public class CoreTransferExtension implements ServiceExtension {
 
     @Inject
     private TransferProcessStore transferProcessStore;
+
+    @Inject
+    private PolicyArchive policyArchive;
 
     @Inject
     private CommandHandlerRegistry registry;
@@ -143,7 +147,8 @@ public class CoreTransferExtension implements ServiceExtension {
                 .commandQueue(commandQueue)
                 .commandRunner(new CommandRunner<>(registry, monitor))
                 .observable(observable)
-                .store(transferProcessStore)
+                .transferProcessStore(transferProcessStore)
+                .policyArchive(policyArchive)
                 .batchSize(context.getSetting(TRANSFER_STATE_MACHINE_BATCH_SIZE, 5))
                 .addressResolver(addressResolver)
                 .build();

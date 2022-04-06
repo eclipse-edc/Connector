@@ -55,6 +55,11 @@ public class PolicyEngineImpl implements PolicyEngine {
     }
 
     @Override
+    public Policy filter(Policy policy, String scope) {
+        return scopeFilter.applyScope(policy, scope);
+    }
+
+    @Override
     public Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent) {
         var context = new PolicyContextImpl(agent);
 

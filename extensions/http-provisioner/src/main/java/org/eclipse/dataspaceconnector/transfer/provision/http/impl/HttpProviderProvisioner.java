@@ -89,8 +89,7 @@ public class HttpProviderProvisioner implements Provisioner<HttpProviderResource
 
     @Override
     public CompletableFuture<ProvisionResult> provision(HttpProviderResourceDefinition resourceDefinition, Policy policy) {
-        // TODO expose scope from PolicyEngine
-        var scopedPolicy = policy;
+        var scopedPolicy = policyEngine.filter(policy, policyScope);
 
         Request request;
         try {

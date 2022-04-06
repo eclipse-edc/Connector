@@ -53,6 +53,8 @@ the detailed section referring to by linking pull requests or issues.
 * Add `ContractAgreement` query methods on `ContractNegotiationStore` (#1044)
 * Add `findById` method to `ContractDefinitionStore` (#967)
 * Add `PolicyArchive` for foreign policies (#1072)
+* Resolve policies using the `PolicyArchive` (#1089)
+* Resolve content addresses in the `TransferProcessManager` (#1090)
 
 #### Changed
 

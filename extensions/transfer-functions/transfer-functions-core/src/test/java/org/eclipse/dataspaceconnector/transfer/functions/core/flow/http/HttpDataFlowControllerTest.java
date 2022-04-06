@@ -20,7 +20,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -36,9 +35,7 @@ import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testO
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 
 class HttpDataFlowControllerTest {
@@ -54,9 +51,7 @@ class HttpDataFlowControllerTest {
                 .monitor(mock(Monitor.class))
                 .typeManager(typeManager)
                 .build();
-        var addressResolver = mock(DataAddressResolver.class);
-        when(addressResolver.resolveForAsset(any())).thenReturn(DataAddress.Builder.newInstance().type("test").build());
-        flowController = new HttpDataFlowController(configuration, addressResolver);
+        flowController = new HttpDataFlowController(configuration);
     }
 
     @Test
@@ -70,9 +65,10 @@ class HttpDataFlowControllerTest {
         httpClient = testOkHttpClient().newBuilder().addInterceptor(delegate).build();
 
         var dataRequest = createDataRequest();
+        var contentAddress = DataAddress.Builder.newInstance().type("test").build();
         var policy = Policy.Builder.newInstance().build();
 
-        assertThat(flowController.initiateFlow(dataRequest, policy).succeeded()).isTrue();
+        assertThat(flowController.initiateFlow(dataRequest, contentAddress, policy).succeeded()).isTrue();
     }
 
     @Test
@@ -86,9 +82,10 @@ class HttpDataFlowControllerTest {
         httpClient = testOkHttpClient().newBuilder().addInterceptor(delegate).build();
 
         var dataRequest = createDataRequest();
+        var contentAddress = DataAddress.Builder.newInstance().type("test").build();
         var policy = Policy.Builder.newInstance().build();
 
-        assertEquals(ERROR_RETRY, flowController.initiateFlow(dataRequest, policy).getFailure().status());
+        assertEquals(ERROR_RETRY, flowController.initiateFlow(dataRequest, contentAddress, policy).getFailure().status());
     }
 
     @Test
@@ -102,9 +99,10 @@ class HttpDataFlowControllerTest {
         httpClient = testOkHttpClient().newBuilder().addInterceptor(delegate).build();
 
         var dataRequest = createDataRequest();
+        var contentAddress = DataAddress.Builder.newInstance().type("test").build();
         var policy = Policy.Builder.newInstance().build();
 
-        assertEquals(FATAL_ERROR, flowController.initiateFlow(dataRequest, policy).getFailure().status());
+        assertEquals(FATAL_ERROR, flowController.initiateFlow(dataRequest, contentAddress, policy).getFailure().status());
     }
 
     private DataRequest createDataRequest() {

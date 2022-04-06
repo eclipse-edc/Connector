@@ -16,6 +16,8 @@ package org.eclipse.dataspaceconnector.transfer.provision.http.impl;
 import okhttp3.Interceptor;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -24,6 +26,8 @@ import org.eclipse.dataspaceconnector.spi.transfer.retry.TransferWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.provision.http.HttpProvisionerExtension;
 import org.eclipse.dataspaceconnector.transfer.provision.http.HttpProvisionerWebhookUrl;
@@ -33,6 +37,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -49,6 +54,9 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith({ EdcExtension.class })
 public class HttpProvisionerExtensionEndToEndTest {
+    private static final String ASSET_ID = "1";
+    private static final String CONTRACT_ID = "2";
+    private static final String POLICY_ID = "3";
 
     private Interceptor delegate;
 
@@ -56,7 +64,10 @@ public class HttpProvisionerExtensionEndToEndTest {
      * Tests the case where an initial request returns a retryable failure and the second request completes.
      */
     @Test
-    void processProviderRequestRetry(TransferProcessManager processManager, AssetLoader loader, TransferProcessStore store) throws Exception {
+    void processProviderRequestRetry(TransferProcessManager processManager,
+                                     ContractNegotiationStore negotiationStore,
+                                     AssetLoader loader,
+                                     TransferProcessStore store) throws Exception {
         var latch = new CountDownLatch(1);
 
         when(delegate.intercept(any()))
@@ -66,8 +77,9 @@ public class HttpProvisionerExtensionEndToEndTest {
                     return createResponse(200, invocation);
                 });
 
+        loadNegotiation(negotiationStore);
 
-        loadData(loader);
+        loadAsset(loader);
 
         var result = processManager.initiateProviderRequest(createRequest());
 
@@ -90,8 +102,27 @@ public class HttpProvisionerExtensionEndToEndTest {
         extension.setConfiguration(PROVISIONER_CONFIG);
     }
 
-    private void loadData(AssetLoader loader) {
-        var asset = Asset.Builder.newInstance().id("1").build();
+    private void loadNegotiation(ContractNegotiationStore negotiationStore) {
+        var contractAgreement = ContractAgreement.Builder.newInstance()
+                .assetId(ASSET_ID)
+                .id(CONTRACT_ID)
+                .policy(Policy.Builder.newInstance().id(POLICY_ID).build())
+                .consumerAgentId("consumer")
+                .providerAgentId("provider")
+                .build();
+
+        var contractNegotiation = ContractNegotiation.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .counterPartyId(UUID.randomUUID().toString())
+                .counterPartyAddress("test")
+                .protocol("test")
+                .contractAgreement(contractAgreement)
+                .build();
+        negotiationStore.save(contractNegotiation);
+    }
+
+    private void loadAsset(AssetLoader loader) {
+        var asset = Asset.Builder.newInstance().id(ASSET_ID).build();
         var dataAddress = DataAddress.Builder.newInstance().type(TEST_DATA_TYPE).build();
 
         // load the asset
@@ -99,7 +130,7 @@ public class HttpProvisionerExtensionEndToEndTest {
     }
 
     private DataRequest createRequest() {
-        return DataRequest.Builder.newInstance().destinationType("test").assetId("1").build();
+        return DataRequest.Builder.newInstance().destinationType("test").assetId(ASSET_ID).contractId(CONTRACT_ID).build();
     }
 
     @Provides(HttpProvisionerWebhookUrl.class)
