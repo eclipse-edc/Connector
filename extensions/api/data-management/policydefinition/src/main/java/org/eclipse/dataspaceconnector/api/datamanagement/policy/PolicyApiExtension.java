@@ -16,8 +16,6 @@ package org.eclipse.dataspaceconnector.api.datamanagement.policy;
 
 import org.eclipse.dataspaceconnector.api.datamanagement.configuration.DataManagementApiConfiguration;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicyServiceImpl;
-import org.eclipse.dataspaceconnector.api.datamanagement.policy.transform.PolicyDefinitionDtoToPolicyTransformer;
-import org.eclipse.dataspaceconnector.api.datamanagement.policy.transform.PolicyToPolicyDefinitionDtoTransformer;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
@@ -61,9 +59,6 @@ public class PolicyApiExtension implements ServiceExtension {
                 });
         var service = new PolicyServiceImpl(transactionContextImpl, policyStore, contractDefinitionStore);
 
-        transformerRegistry.register(new PolicyDefinitionDtoToPolicyTransformer());
-        transformerRegistry.register(new PolicyToPolicyDefinitionDtoTransformer());
-
-        webService.registerResource(configuration.getContextAlias(), new PolicyApiController(monitor, service, transformerRegistry));
+        webService.registerResource(configuration.getContextAlias(), new PolicyApiController(monitor, service));
     }
 }

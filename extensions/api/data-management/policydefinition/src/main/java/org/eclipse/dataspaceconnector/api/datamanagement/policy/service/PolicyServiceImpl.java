@@ -52,20 +52,22 @@ public class PolicyServiceImpl implements PolicyService {
 
     @Override
     public @NotNull ServiceResult<Policy> deleteById(String policyId) {
+
+        var contractFilter = format("contractPolicy.uid = %s ", policyId);
+        var accessFilter = format("accessPolicy.uid = %s ", policyId);
+
         return transactionContext.execute(() -> {
 
             if (policyStore.findById(policyId) == null) {
                 return ServiceResult.notFound(format("Policy %s does not exist", policyId));
             }
 
-            var contractFilter = format("contractPolicy.uid = %s ", policyId);
             var queryContractPolicyFilter = QuerySpec.Builder.newInstance().filter(contractFilter).build();
             var contractDefinitionOnPolicy = contractDefinitionStore.findAll(queryContractPolicyFilter);
             if (contractDefinitionOnPolicy.findAny().isPresent()) {
                 return ServiceResult.conflict(format("Policy %s cannot be deleted as it is referenced by at least one contract policy", policyId));
             }
 
-            var accessFilter = format("accessPolicy.uid = %s ", policyId);
             var queryAccessPolicyFilter = QuerySpec.Builder.newInstance().filter(accessFilter).build();
             var accessDefinitionOnPolicy = contractDefinitionStore.findAll(queryAccessPolicyFilter);
             if (accessDefinitionOnPolicy.findAny().isPresent()) {
