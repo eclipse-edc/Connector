@@ -41,7 +41,9 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id(object.getOffer().getOfferId())
                 .asset(Asset.Builder.newInstance().id(object.getOffer().getAssetId()).build())
-                .policy(Policy.Builder.newInstance().id(object.getOffer().getPolicyId()).build()).build();
+                .policyId(object.getOffer().getPolicyId())
+                .policy(object.getOffer().getPolicy())
+                .build();
         return ContractOfferRequest.Builder.newInstance()
                 .connectorId(object.getConnectorId())
                 .connectorAddress(object.getConnectorAddress())

@@ -131,7 +131,7 @@ public class ContractOffer {
         return asset;
     }
 
-    @NotNull
+    @Nullable
     public Policy getPolicy() {
         return policy;
     }
