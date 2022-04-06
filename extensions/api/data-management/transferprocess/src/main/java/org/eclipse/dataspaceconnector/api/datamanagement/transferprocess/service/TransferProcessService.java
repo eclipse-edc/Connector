@@ -64,7 +64,7 @@ public interface TransferProcessService {
      * @return a result that is successful if the transfer process was found and is in a state that can be canceled
      */
     @NotNull
-    ServiceResult<?> cancel(String transferProcessId);
+    ServiceResult<TransferProcess> cancel(String transferProcessId);
 
     /**
      * Asynchronously requests deprovisioning of the transfer process.
@@ -75,5 +75,5 @@ public interface TransferProcessService {
      * @return a result that is successful if the transfer process was found and is in a state that can be deprovisioned
      */
     @NotNull
-    ServiceResult<?> deprovision(String transferProcessId);
+    ServiceResult<TransferProcess> deprovision(String transferProcessId);
 }

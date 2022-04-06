@@ -16,6 +16,7 @@
 val infoModelVersion: String by project
 val rsApi: String by project
 val jerseyVersion: String by project
+val restAssured: String by project
 
 plugins {
     `java-library`
@@ -30,9 +31,14 @@ dependencies {
     implementation(project(":extensions:api:data-management:api-configuration"))
     implementation(project(":extensions:transaction:transaction-spi"))
 
+    testImplementation(project(":extensions:in-memory:transfer-store-memory"))
+    testImplementation(project(":core:transfer"))
+    testImplementation(project(":spi:core-spi"))
     testImplementation(project(":extensions:http"))
+    testImplementation(project(":extensions:in-memory:assetindex-memory"))
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(testFixtures(project(":common:util")))
+    testImplementation("io.rest-assured:rest-assured:${restAssured}")
 }
 
 publishing {
