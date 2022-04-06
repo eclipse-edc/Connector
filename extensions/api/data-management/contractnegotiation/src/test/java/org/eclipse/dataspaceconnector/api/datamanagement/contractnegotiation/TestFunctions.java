@@ -15,12 +15,17 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractOfferDescription;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 
 import java.util.UUID;
 
 public class TestFunctions {
     public static ContractOfferDescription createOffer(String offerId, String assetId, String policyId) {
-        return new ContractOfferDescription(offerId, assetId, policyId);
+        return new ContractOfferDescription(offerId, assetId, policyId, null);
+    }
+
+    public static ContractOfferDescription createOffer(Policy policy) {
+        return new ContractOfferDescription(UUID.randomUUID().toString(), UUID.randomUUID().toString(), null, policy);
     }
 
     public static ContractOfferDescription createOffer(String offerId) {
