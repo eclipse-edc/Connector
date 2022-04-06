@@ -52,12 +52,6 @@ class ContractOfferTest {
                 .hasMessage("either policy or policyId must be set");
 
         assertThatThrownBy(() -> ContractOffer.Builder.newInstance().id("some-id")
-                .policyId("test-policyId")
-                .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("either asset or assetId must be set");
-
-        assertThatThrownBy(() -> ContractOffer.Builder.newInstance().id("some-id")
                 .assetId("test-assetId")
                 .build())
                 .isInstanceOf(IllegalArgumentException.class)

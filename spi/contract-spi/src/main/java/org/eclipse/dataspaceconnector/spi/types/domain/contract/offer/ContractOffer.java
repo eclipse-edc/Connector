@@ -246,9 +246,6 @@ public class ContractOffer {
             if (policy == null && policyId == null) {
                 throw new IllegalArgumentException("either policy or policyId must be set");
             }
-            if (asset == null && assetId == null) {
-                throw new IllegalArgumentException("either asset or assetId must be set");
-            }
 
             ContractOffer offer = new ContractOffer();
             offer.id = id;
