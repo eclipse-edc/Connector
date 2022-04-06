@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
@@ -37,6 +38,8 @@ import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,12 +60,15 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(EdcExtension.class)
 public class EndToEndTest {
+    private static final String ASSET_ID = "test123";
+    private static final String CONTRACT_ID = "contract1";
+    private static final String POLICY_ID = "policy1";
 
     @Test
     void processConsumerRequest(TransferProcessManager processManager, RemoteMessageDispatcherRegistry dispatcherRegistry) throws InterruptedException {
-        CountDownLatch latch = new CountDownLatch(1);
+        var latch = new CountDownLatch(1);
 
-        RemoteMessageDispatcher dispatcher = mock(RemoteMessageDispatcher.class);
+        var dispatcher = mock(RemoteMessageDispatcher.class);
 
         when(dispatcher.protocol()).thenReturn(Protocols.IDS_MULTIPART);
 
@@ -73,10 +79,9 @@ public class EndToEndTest {
 
         dispatcherRegistry.register(dispatcher);
 
-        var artifactId = "test123";
         var connectorId = "https://test";
 
-        var entry = Asset.Builder.newInstance().id(artifactId).build();
+        var entry = Asset.Builder.newInstance().id(ASSET_ID).build();
         var request = DataRequest.Builder.newInstance().protocol(Protocols.IDS_MULTIPART).assetId(entry.getId())
                 .connectorId(connectorId).connectorAddress(connectorId).destinationType("S3").build();
 
@@ -88,41 +93,70 @@ public class EndToEndTest {
     }
 
     @Test
-    void processProviderRequest(TransferProcessManager processManager, DataFlowManager dataFlowManager, AssetLoader loader) throws InterruptedException {
-        CountDownLatch latch = new CountDownLatch(1);
+    void processProviderRequest(TransferProcessManager processManager,
+                                DataFlowManager dataFlowManager,
+                                ContractNegotiationStore negotiationStore,
+                                AssetLoader loader) throws InterruptedException {
+        var latch = new CountDownLatch(1);
 
-        DataFlowController controllerMock = mock(DataFlowController.class);
+        var controllerMock = mock(DataFlowController.class);
 
-        when(controllerMock.canHandle(isA(DataRequest.class))).thenReturn(true);
-        when(controllerMock.initiateFlow(isA(DataRequest.class), isA(Policy.class))).thenAnswer(i -> {
+        when(controllerMock.canHandle(isA(DataRequest.class), isA(DataAddress.class))).thenReturn(true);
+        when(controllerMock.initiateFlow(isA(DataRequest.class), isA(DataAddress.class), isA(Policy.class))).thenAnswer(i -> {
             latch.countDown();
             return DataFlowInitiateResult.success("");
         });
 
         dataFlowManager.register(controllerMock);
 
-        var artifactId = "test123";
         var connectorId = "https://test";
 
-        var asset = Asset.Builder.newInstance().id(artifactId).build();
+        var asset = Asset.Builder.newInstance().id(ASSET_ID).build();
 
         loader.accept(asset, DataAddress.Builder.newInstance().type("test").build());
 
+        loadNegotiation(negotiationStore);
 
-        var request = DataRequest.Builder.newInstance().protocol(Protocols.IDS_MULTIPART).assetId(asset.getId())
-                .connectorId(connectorId).connectorAddress(connectorId).destinationType("S3").id(UUID.randomUUID().toString()).build();
+        var request = DataRequest.Builder.newInstance()
+                .protocol(Protocols.IDS_MULTIPART)
+                .assetId(asset.getId())
+                .contractId(CONTRACT_ID)
+                .connectorId(connectorId)
+                .connectorAddress(connectorId)
+                .destinationType("S3")
+                .id(UUID.randomUUID().toString())
+                .build();
 
         processManager.initiateProviderRequest(request);
 
         assertThat(latch.await(1, TimeUnit.MINUTES)).isTrue();
-        verify(controllerMock).canHandle(isA(DataRequest.class));
-        verify(controllerMock).initiateFlow(isA(DataRequest.class), isA(Policy.class));
+        verify(controllerMock).canHandle(isA(DataRequest.class), isA(DataAddress.class));
+        verify(controllerMock).initiateFlow(isA(DataRequest.class), isA(DataAddress.class), isA(Policy.class));
     }
 
     @BeforeEach
     void before(EdcExtension extension) {
         extension.registerSystemExtension(VaultExtension.class, new NullVaultExtension());
         extension.registerSystemExtension(ServiceExtension.class, new TestServiceExtension());
+    }
+
+    private void loadNegotiation(ContractNegotiationStore negotiationStore) {
+        var contractAgreement = ContractAgreement.Builder.newInstance()
+                .assetId(ASSET_ID)
+                .id(CONTRACT_ID)
+                .policy(Policy.Builder.newInstance().id(POLICY_ID).build())
+                .consumerAgentId("consumer")
+                .providerAgentId("provider")
+                .build();
+
+        var contractNegotiation = ContractNegotiation.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .counterPartyId(UUID.randomUUID().toString())
+                .counterPartyAddress("test")
+                .protocol("test")
+                .contractAgreement(contractAgreement)
+                .build();
+        negotiationStore.save(contractNegotiation);
     }
 
     @Provides(IdentityService.class)

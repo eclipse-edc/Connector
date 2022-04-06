@@ -11,4 +11,4 @@
 #       Daimler TSS GmbH - Initial API and Implementation
 #
 #
-org.eclipse.dataspaceconnector.sql.contractdefinition.store.SqlAssetIndexServiceExtension
+org.eclipse.dataspaceconnector.sql.asset.index.SqlAssetIndexServiceExtension

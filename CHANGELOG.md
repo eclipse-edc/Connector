@@ -49,10 +49,14 @@ the detailed section referring to by linking pull requests or issues.
 * CosmosDb based `PolicyStore` (#826)
 * Implement SQL-based PolicyStore (#866)
 * Http Provisioner Webhook endpoint (#1039)
+* Add dependency checks (#1000)
 * Add `ContractAgreement` query methods on `ContractNegotiationStore` (#1044)
 * Add `findById` method to `ContractDefinitionStore` (#967)
 * Add `PolicyArchive` for foreign policies (#1072)
-* Data plane: don't overwrite values of data address in proxy mode (#882)
+* Data plane: control proxy mode with data address toggles (#882)
+* Resolve policies using the `PolicyArchive` (#1089)
+* Resolve content addresses in the `TransferProcessManager` (#1090)
+
 
 #### Changed
 
@@ -71,10 +75,12 @@ the detailed section referring to by linking pull requests or issues.
 * Call the listeners before the state transition is persisted. (#876)
 * Add an overload to `TransactionContext#execute()` (#968)
 * Run CosmosDB integration tests on cloud in CI (#964)
+* Updated the ContractNegotiation service for DataManagementApi (#985)
 * Set policy and rule target dynamically when generating contract offers (#609)
 * Add SQL-AssetIndex to support `QuerySpec` (#1014)
 * Improve provision signalling and align deprovisioning to handle error conditions (#992)
 * Replace Asset with assetId on ContractAgreement (#1009)
+* Adapt system-test to use Embedded DPF to perform file copy (#1060)
 
 #### Removed
 

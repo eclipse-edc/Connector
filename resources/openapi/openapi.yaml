@@ -1044,6 +1044,15 @@ components:
         contractEnd:
           type: string
           format: date-time
+    ContractOfferDescription:
+      type: object
+      properties:
+        offerId:
+          type: string
+        assetId:
+          type: string
+        policyId:
+          type: string
     ContractOfferRequest:
       type: object
       properties:
@@ -1178,8 +1187,8 @@ components:
           type: string
         connectorId:
           type: string
-        offerId:
-          type: string
+        offer:
+          $ref: '#/components/schemas/ContractOfferDescription'
     Permission:
       type: object
       properties:

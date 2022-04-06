@@ -35,24 +35,35 @@ public class ContractOffer {
 
     /**
      * The policy that describes the usage conditions of the assets
+     * Must be mutually exclusive with {@link ContractOffer#getPolicyId()}
      */
     private Policy policy;
 
     /**
      * The offered asset
+     * Must be mutually exclusive with {@link ContractOffer#getAssetId()} ()}
      */
     private Asset asset;
-
+    /**
+     * Refers to the policy which should be involved in the negotiation. This is only used when <em>initiating</em>
+     * a negotiation and indicates, that an existing policy is to be used.
+     * Must be mutually exclusive with {@link ContractOffer#getPolicy()}
+     */
+    private String policyId;
+    /**
+     * Refers to the asset that is offered. Note that this is only to be used during the actual negotiation and cannot be
+     * used in the initial offer from the provider to the consumer.
+     * Must be mutually exclusive with {@link ContractOffer#getAsset()}
+     */
+    private String assetId;
     /**
      * The participant who provides the offered data
      */
     private URI provider;
-
     /**
      * The participant consuming the offered data
      */
     private URI consumer;
-
     /**
      * Timestamp defining the start time when the offer becomes effective
      */
@@ -61,7 +72,6 @@ public class ContractOffer {
      * Timestamp defining the end date when the offer becomes ineffective
      */
     private ZonedDateTime offerEnd;
-
     /**
      * Timestamp defining the start date when the contract becomes effective
      */
@@ -70,6 +80,16 @@ public class ContractOffer {
      * Timestamp defining the end date when the contract becomes terminated
      */
     private ZonedDateTime contractEnd;
+
+    @Nullable
+    public String getPolicyId() {
+        return policyId;
+    }
+
+    @Nullable
+    public String getAssetId() {
+        return assetId;
+    }
 
     @NotNull
     public String getId() {
@@ -111,14 +131,9 @@ public class ContractOffer {
         return asset;
     }
 
-    @NotNull
+    @Nullable
     public Policy getPolicy() {
         return policy;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, policy, asset, provider, consumer, offerStart, offerEnd, contractStart, contractEnd);
     }
 
     @Override
@@ -135,6 +150,11 @@ public class ContractOffer {
                 Objects.equals(contractStart, that.contractStart) && Objects.equals(contractEnd, that.contractEnd);
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, policy, asset, provider, consumer, offerStart, offerEnd, contractStart, contractEnd);
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
         private Asset asset;
@@ -146,6 +166,8 @@ public class ContractOffer {
         private ZonedDateTime offerEnd;
         private ZonedDateTime contractStart;
         private ZonedDateTime contractEnd;
+        private String assetId;
+        private String policyId;
 
         private Builder() {
         }
@@ -200,20 +222,43 @@ public class ContractOffer {
             return this;
         }
 
+        public Builder policyId(String policyId) {
+            this.policyId = policyId;
+            return this;
+        }
+
+        public Builder assetId(String assetId) {
+            this.assetId = assetId;
+            return this;
+        }
+
         public ContractOffer build() {
-            Objects.requireNonNull(policy);
             Objects.requireNonNull(id);
 
+            // check mutual exclusivity
+            if (policyId != null && policy != null) {
+                throw new IllegalArgumentException("policy and policyId are mutually exclusive");
+            }
+            if (assetId != null && asset != null) {
+                throw new IllegalArgumentException("asset and assetId are mutually exclusive");
+            }
+
+            if (policy == null && policyId == null) {
+                throw new IllegalArgumentException("either policy or policyId must be set");
+            }
+
             ContractOffer offer = new ContractOffer();
-            offer.id = this.id;
-            offer.policy = this.policy;
-            offer.asset = this.asset;
-            offer.provider = this.provider;
-            offer.consumer = this.consumer;
-            offer.offerStart = this.offerStart;
-            offer.offerEnd = this.offerEnd;
-            offer.contractStart = this.contractStart;
-            offer.contractEnd = this.contractEnd;
+            offer.id = id;
+            offer.policy = policy;
+            offer.asset = asset;
+            offer.provider = provider;
+            offer.consumer = consumer;
+            offer.offerStart = offerStart;
+            offer.offerEnd = offerEnd;
+            offer.contractStart = contractStart;
+            offer.contractEnd = contractEnd;
+            offer.assetId = assetId;
+            offer.policyId = policyId;
             return offer;
         }
     }

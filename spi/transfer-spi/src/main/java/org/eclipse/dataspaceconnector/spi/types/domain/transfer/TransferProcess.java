@@ -482,7 +482,7 @@ public class TransferProcess implements TraceCarrier {
             }
 
             if (process.dataRequest != null) {
-                process.dataRequest.setProcessId(process.id);
+                process.dataRequest.associateWithProcessId(process.id);
             }
             return process;
         }

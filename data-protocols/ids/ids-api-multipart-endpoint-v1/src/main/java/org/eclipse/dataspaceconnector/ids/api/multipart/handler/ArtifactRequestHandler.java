@@ -100,13 +100,18 @@ public class ArtifactRequestHandler implements Handler {
 
         var contractAgreement = contractNegotiationStore.findContractAgreement(contractIdsId.getValue());
         if (contractAgreement == null) {
-            monitor.info(String.format("ArtifactRequestHandler: No Contract Agreement with Id %s found.", contractIdsId.getValue()));
+            monitor.info(String.format("ArtifactRequestHandler: No contract agreement with id %s found.", contractIdsId.getValue()));
             return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
         }
 
         var isContractValid = contractValidationService.validate(claimToken, contractAgreement);
         if (!isContractValid) {
-            monitor.info("ArtifactRequestHandler: Contract Validation Invalid");
+            monitor.info("ArtifactRequestHandler: Contract is invalid");
+            return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
+        }
+
+        if (!artifactIdsId.getValue().equals(contractAgreement.getAssetId())) {
+            monitor.info(String.format("ArtifactRequestHandler: invalid artifact id specified %s for contract: %s", artifactIdsId.getValue(), contractIdsId.getValue()));
             return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
         }
 
@@ -125,7 +130,7 @@ public class ArtifactRequestHandler implements Handler {
             artifactRequestMessage.getProperties().forEach((k, v) -> props.put(k, v.toString()));
         }
 
-        String idsWebhookAddress = Optional.ofNullable(props.remove(IDS_WEBHOOK_ADDRESS_PROPERTY))
+        var idsWebhookAddress = Optional.ofNullable(props.remove(IDS_WEBHOOK_ADDRESS_PROPERTY))
                 .map(Object::toString)
                 .orElse(null);
         if (StringUtils.isNullOrBlank(idsWebhookAddress)) {
@@ -134,13 +139,16 @@ public class ArtifactRequestHandler implements Handler {
             return createBadParametersErrorMultipartResponse(artifactRequestMessage, msg);
         }
 
+        // NB: DO NOT use the asset id provided by the client as that can open aan attack vector where a client references an artifact that
+        //     is different from the one specified by the contract
+
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(artifactRequestMessage.getId().toString())
                 .protocol(Protocols.IDS_MULTIPART)
                 .dataDestination(dataAddress)
                 .connectorId(connectorId)
-                .assetId(artifactIdsId.getValue())
-                .contractId(contractIdsId.getValue())
+                .assetId(contractAgreement.getAssetId())
+                .contractId(contractAgreement.getId())
                 .properties(props)
                 .connectorAddress(idsWebhookAddress)
                 .build();
