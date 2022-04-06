@@ -24,7 +24,16 @@ val rsApi: String by project
 dependencies {
     api(project(":spi"))
     implementation(project(":common:util"))
+
     implementation(project(":core:transfer"))
+    implementation(project(":extensions:data-plane-transfer:data-plane-transfer-client"))
+    implementation(project(":extensions:data-plane-selector:selector-client"))
+    implementation(project(":extensions:data-plane-selector:selector-core"))
+    implementation(project(":extensions:data-plane-selector:selector-store"))
+    implementation(project(":extensions:data-plane:data-plane-framework"))
+
+    implementation(project(":extensions:data-plane:data-plane-spi"))
+
     implementation(project(":extensions:in-memory:assetindex-memory"))
     api(project(":extensions:dataloading"))
 

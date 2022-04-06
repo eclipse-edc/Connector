@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_RETRY;
 
+@Deprecated
 public class InlineDataFlowController implements DataFlowController {
     private final Vault vault;
     private final Monitor monitor;

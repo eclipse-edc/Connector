@@ -77,6 +77,7 @@ the detailed section referring to by linking pull requests or issues.
 * Improve provision signalling and align deprovisioning to handle error conditions (#992)
 * Replace Asset with assetId on ContractAgreement (#1009)
 * Update CI workflow to use concurrency (#1092)
+* Adapt system-test to use Embedded DPF to perform file copy (#1060)
 
 #### Removed
 

@@ -140,7 +140,7 @@ public abstract class FileTransferSimulationUtils {
      * Saves the Transfer Process ID into the {@see TRANSFER_PROCESS_ID} session key.
      *
      * @param providerUrl     URL for the Provider API, as accessed from the Consumer runtime.
-     * @param destinationPath File copy destination path. If it includes the character sequence {@code %s}, that sequence is replaced with a random string in each iteration.
+     * @param destinationPath File copy destination path.
      */
     private static ChainBuilder startFileTransfer(String providerUrl, String destinationPath) {
         String connectorAddress = format("%s/api/v1/ids/data", providerUrl);
