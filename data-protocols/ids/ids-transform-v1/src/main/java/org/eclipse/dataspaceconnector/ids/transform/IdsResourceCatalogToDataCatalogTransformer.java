@@ -63,8 +63,8 @@ public class IdsResourceCatalogToDataCatalogTransformer implements IdsTypeTransf
 
         builder.id(catalogIdsId.getValue());
 
-        List<Resource> resources;
-        if ((resources = object.getOfferedResource()) != null) {
+        List<Resource> resources = object.getOfferedResource();
+        if (resources != null) {
             List<ContractOffer> contractOffers = new LinkedList<>();
 
             for (Resource resource : resources) {
