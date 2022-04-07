@@ -152,7 +152,7 @@ public class PolicyServiceImplTest {
         return it -> policyId.equals(it.getUid());
     }
 
-    private Policy createPolicy(String PolicyId) {
-        return Policy.Builder.newInstance().id(PolicyId).build();
+    private Policy createPolicy(String policyId) {
+        return Policy.Builder.newInstance().id(policyId).build();
     }
 }
