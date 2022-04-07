@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.spi.result;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.function.Function;
 
 public class Result<T> extends AbstractResult<T, Failure> {
 
@@ -38,6 +39,14 @@ public class Result<T> extends AbstractResult<T, Failure> {
 
     public static <T> Result<T> failure(List<String> failures) {
         return new Result<>(null, new Failure(failures));
+    }
+
+    public <R> Result<R> map(Function<T, R> mapFunction) {
+        if (this.succeeded()) {
+            return Result.success(mapFunction.apply(this.getContent()));
+        } else {
+            return Result.failure(this.getFailureMessages());
+        }
     }
 
 }

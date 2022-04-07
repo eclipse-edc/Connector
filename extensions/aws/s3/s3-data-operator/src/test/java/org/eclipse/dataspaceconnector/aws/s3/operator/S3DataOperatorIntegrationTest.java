@@ -19,22 +19,16 @@ import org.eclipse.dataspaceconnector.aws.s3.core.AwsTemporarySecretToken;
 import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
 import org.eclipse.dataspaceconnector.aws.s3.core.S3ClientProvider;
 import org.eclipse.dataspaceconnector.aws.testfixtures.AbstractS3Test;
+import org.eclipse.dataspaceconnector.aws.testfixtures.TestS3ClientProvider;
 import org.eclipse.dataspaceconnector.aws.testfixtures.annotations.AwsS3IntegrationTest;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.SecretToken;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.S3Configuration;
 
 import java.io.ByteArrayInputStream;
-import java.net.URI;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.TYPE;
@@ -73,26 +67,4 @@ public class S3DataOperatorIntegrationTest extends AbstractS3Test {
         assertThat(result.getContent()).hasBinaryContent("content".getBytes());
     }
 
-    private static class TestS3ClientProvider implements S3ClientProvider {
-
-        private final AwsCredentials credentials;
-        private final String s3Endpoint;
-
-        public TestS3ClientProvider(AwsCredentials credentials, String s3Endpoint) {
-            this.credentials = credentials;
-            this.s3Endpoint = s3Endpoint;
-        }
-
-        @Override
-        public S3Client provide(String region, SecretToken secretToken) {
-            return S3Client.builder()
-                    .serviceConfiguration(S3Configuration.builder()
-                            .pathStyleAccessEnabled(true)
-                            .build())
-                    .credentialsProvider(StaticCredentialsProvider.create(credentials))
-                    .region(Region.of("region"))
-                    .endpointOverride(URI.create(s3Endpoint))
-                    .build();
-        }
-    }
 }
