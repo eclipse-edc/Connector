@@ -51,7 +51,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class TransferProcessApiApiControllerTest {
+class TransferProcessApiControllerTest {
     public static final int OFFSET = 5;
     public static final int LIMIT = 10;
     private final TransferProcessService service = mock(TransferProcessService.class);
@@ -82,7 +82,7 @@ class TransferProcessApiApiControllerTest {
     }
 
     @Test
-    void getAll_getAll_filtersOutFailedTransforms() {
+    void getAll_filtersOutFailedTransforms() {
         TransferProcess transferProcess = transferProcess();
 
         when(transformerRegistry.transform(isA(TransferProcess.class), eq(TransferProcessDto.class))).thenReturn(Result.failure("failure"));

@@ -183,7 +183,7 @@ class TransferProcessApiControllerIntegrationTest {
     }
 
     @Test
-    void deprovision__notFound() {
+    void deprovision_notFound() {
         baseRequest()
                 .contentType(JSON)
                 .post("/transferprocess/nonExistingId/deprovision")
@@ -192,7 +192,7 @@ class TransferProcessApiControllerIntegrationTest {
     }
 
     @Test
-    void deprovision__conflict(TransferProcessStore store) {
+    void deprovision_conflict(TransferProcessStore store) {
         store.create(createTransferProcess(PROCESS_ID, INITIAL.code()));
         baseRequest()
                 .contentType(JSON)
