@@ -5,6 +5,10 @@ on:
     branches: [ main ]
     types: [opened, edited, synchronize, reopened, labeled, unlabeled]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check-for-changelog-modifications:
     runs-on: ubuntu-latest
