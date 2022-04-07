@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.transfer.core.command.handlers;
 
 import org.eclipse.dataspaceconnector.spi.command.CommandHandler;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResult;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.ProvisionCallbackDelegate;
 
 import java.util.List;
@@ -33,7 +33,7 @@ public class DeprovisionCompleteCommandHandler implements CommandHandler<Deprovi
 
     @Override
     public void handle(DeprovisionCompleteCommand command) {
-        delegate.handleDeprovisionResult(command.getTransferProcessId(), List.of(DeprovisionResult.success(command.getResource())));
+        delegate.handleDeprovisionResult(command.getTransferProcessId(), List.of(StatusResult.success(command.getResource())));
     }
 
     @Override

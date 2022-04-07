@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.dataplane.spi.pipeline;
 
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
@@ -38,17 +38,17 @@ public interface PipelineService {
     /**
      * Transfers data from source to destination.
      */
-    CompletableFuture<TransferResult> transfer(DataFlowRequest request);
+    CompletableFuture<StatusResult<Void>> transfer(DataFlowRequest request);
 
     /**
      * Transfers data using the supplied data source.
      */
-    CompletableFuture<TransferResult> transfer(DataSource source, DataFlowRequest request);
+    CompletableFuture<StatusResult<Void>> transfer(DataSource source, DataFlowRequest request);
 
     /**
      * Transfers data using the supplied data sink.
      */
-    CompletableFuture<TransferResult> transfer(DataSink sink, DataFlowRequest request);
+    CompletableFuture<StatusResult<Void>> transfer(DataSink sink, DataFlowRequest request);
 
     /**
      * Registers a factory for creating data sources.

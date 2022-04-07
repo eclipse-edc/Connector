@@ -161,7 +161,6 @@ public class ArtifactRequestHandler implements Handler {
 
         return MultipartResponse.Builder.newInstance()
                 .header(ResponseMessageUtil.createDummyResponse(connectorId, artifactRequestMessage)) // TODO Change this response so that it matches our UML pictures
-                .payload(result.getData())
                 .build();
     }
 

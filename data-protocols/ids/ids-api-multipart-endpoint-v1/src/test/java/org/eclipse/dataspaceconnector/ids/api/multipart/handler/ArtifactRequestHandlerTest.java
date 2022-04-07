@@ -29,8 +29,8 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNeg
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -84,7 +84,7 @@ class ArtifactRequestHandlerTest {
         var claimToken = ClaimToken.Builder.newInstance().build();
 
         var drCapture = ArgumentCaptor.forClass(DataRequest.class);
-        when(transferProcessManager.initiateProviderRequest(drCapture.capture())).thenReturn(TransferInitiateResult.success("Transfer success"));
+        when(transferProcessManager.initiateProviderRequest(drCapture.capture())).thenReturn(StatusResult.success("Transfer success"));
         when(contractNegotiationStore.findContractAgreement(contractId)).thenReturn(agreement);
         when(contractValidationService.validate(claimToken, agreement)).thenReturn(true);
 

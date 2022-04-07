@@ -17,10 +17,10 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.se
 import org.eclipse.dataspaceconnector.contract.negotiation.command.commands.CancelNegotiationCommand;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -39,7 +39,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason.NOT_FOUND;
-import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult.Status.FATAL_ERROR;
+import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -129,7 +129,7 @@ class ContractNegotiationServiceImplTest {
     @Test
     void initiateNegotiation_callsManager() {
         var contractNegotiation = createContractNegotiation("negotiationId");
-        when(manager.initiate(isA(ContractOfferRequest.class))).thenReturn(NegotiationResult.success(contractNegotiation));
+        when(manager.initiate(isA(ContractOfferRequest.class))).thenReturn(StatusResult.success(contractNegotiation));
         var request = ContractOfferRequest.Builder.newInstance()
                 .connectorId("connectorId")
                 .connectorAddress("address")
@@ -168,7 +168,7 @@ class ContractNegotiationServiceImplTest {
     @Test
     void decline_shouldSucceedIfManagerIsBeingAbleToDeclineIt() {
         var negotiation = createContractNegotiation("negotiationId");
-        when(manager.declined(any(), any())).thenReturn(NegotiationResult.success(negotiation));
+        when(manager.declined(any(), any())).thenReturn(StatusResult.success(negotiation));
 
         var result = service.decline("negotiationId");
 
@@ -180,7 +180,7 @@ class ContractNegotiationServiceImplTest {
     @Test
     void decline_shouldFailIfManagerIsNotBeingAbleToDeclineIt() {
         when(store.find("negotiationId")).thenReturn(null);
-        when(manager.declined(any(), any())).thenReturn(NegotiationResult.failure(FATAL_ERROR));
+        when(manager.declined(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
 
         var result = service.decline("negotiationId");
 

@@ -19,10 +19,10 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.dataplane.spi.registry.TransferServiceRegistry;
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore.State;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
@@ -94,12 +94,12 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
     }
 
     @Override
-    public CompletableFuture<TransferResult> transfer(DataSource source, DataFlowRequest request) {
+    public CompletableFuture<StatusResult<Void>> transfer(DataSource source, DataFlowRequest request) {
         return pipelineService.transfer(source, request);
     }
 
     @Override
-    public CompletableFuture<TransferResult> transfer(DataSink sink, DataFlowRequest request) {
+    public CompletableFuture<StatusResult<Void>> transfer(DataSink sink, DataFlowRequest request) {
         return pipelineService.transfer(sink, request);
     }
 

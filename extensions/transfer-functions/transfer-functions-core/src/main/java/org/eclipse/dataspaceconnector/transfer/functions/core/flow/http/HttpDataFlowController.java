@@ -20,8 +20,8 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
-import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
@@ -45,11 +45,11 @@ import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_E
 public class HttpDataFlowController implements DataFlowController {
     private static final MediaType JSON = MediaType.get("application/json");
 
-    private String transferEndpoint;
-    private Set<String> protocols;
-    private Supplier<OkHttpClient> clientSupplier;
-    private TypeManager typeManager;
-    private Monitor monitor;
+    private final String transferEndpoint;
+    private final Set<String> protocols;
+    private final Supplier<OkHttpClient> clientSupplier;
+    private final TypeManager typeManager;
+    private final Monitor monitor;
 
     public HttpDataFlowController(HttpDataFlowConfiguration configuration) {
         this.transferEndpoint = configuration.getTransferEndpoint();
@@ -65,23 +65,23 @@ public class HttpDataFlowController implements DataFlowController {
     }
 
     @Override
-    public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
+    public @NotNull StatusResult<String>  initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
         var dataFlowRequest = createRequest(dataRequest, contentAddress);
         var requestBody = RequestBody.create(typeManager.writeValueAsString(dataFlowRequest), JSON);
         var request = new Request.Builder().url(transferEndpoint).post(requestBody).build();
         try (var response = clientSupplier.get().newCall(request).execute()) {
             if (response.code() == 200) {
-                return DataFlowInitiateResult.success("");
+                return StatusResult.success("");
             } else if (response.code() >= 500 && response.code() <= 504) {
                 // retry
-                return DataFlowInitiateResult.failure(ERROR_RETRY, "Received error code: " + response.code());
+                return StatusResult.failure(ERROR_RETRY, "Received error code: " + response.code());
             } else {
                 // fatal error
-                return DataFlowInitiateResult.failure(FATAL_ERROR, "Received fatal error code: " + response.code());
+                return StatusResult.failure(FATAL_ERROR, "Received fatal error code: " + response.code());
             }
         } catch (IOException e) {
             monitor.severe("Error invoking transfer function", e);
-            return DataFlowInitiateResult.failure(ERROR_RETRY, e.getMessage());
+            return StatusResult.failure(ERROR_RETRY, e.getMessage());
         }
     }
 
