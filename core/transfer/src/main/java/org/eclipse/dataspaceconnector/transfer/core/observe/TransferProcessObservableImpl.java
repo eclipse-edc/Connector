@@ -18,5 +18,8 @@ import org.eclipse.dataspaceconnector.spi.observe.ObservableImpl;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
 
+/**
+ * Observes transfer process livecycle events.
+ */
 public class TransferProcessObservableImpl extends ObservableImpl<TransferProcessListener> implements TransferProcessObservable {
 }

@@ -20,6 +20,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.CancelTransferCommand;
 
+/**
+ * Cancels a transfer process and sends it to the {@link TransferProcessStates#ERROR} state.
+ */
 public class CancelTransferCommandHandler extends SingleTransferProcessCommandHandler<CancelTransferCommand> {
 
     public CancelTransferCommandHandler(TransferProcessStore store) {

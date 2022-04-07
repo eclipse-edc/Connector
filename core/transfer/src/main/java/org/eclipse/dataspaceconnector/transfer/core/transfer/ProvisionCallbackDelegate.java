@@ -19,6 +19,9 @@ import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
 
 import java.util.List;
 
+/**
+ * Receives provision callbacks.
+ */
 public interface ProvisionCallbackDelegate {
     /**
      * Called when the {@link org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager} completes provisioning.

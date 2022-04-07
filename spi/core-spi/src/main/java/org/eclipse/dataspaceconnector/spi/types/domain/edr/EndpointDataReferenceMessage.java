@@ -21,6 +21,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+/**
+ * Sends an endpoint reference to an external system.
+ */
 @JsonDeserialize(builder = EndpointDataReferenceMessage.Builder.class)
 public class EndpointDataReferenceMessage implements RemoteMessage {
 
