@@ -59,6 +59,7 @@ the detailed section referring to by linking pull requests or issues.
 * Resolve policies using the `PolicyArchive` (#1089)
 * Resolve content addresses in the `TransferProcessManager` (#1090)
 * Reliably send transfers from consumer to provider (#1007)
+* Http Deprovisioner Webhook endpoint (#1039)
 
 #### Changed
 

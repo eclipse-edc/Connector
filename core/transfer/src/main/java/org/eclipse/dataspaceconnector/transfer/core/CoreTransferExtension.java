@@ -47,6 +47,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedConte
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
 import org.eclipse.dataspaceconnector.transfer.core.command.handlers.AddProvisionedResourceCommandHandler;
+import org.eclipse.dataspaceconnector.transfer.core.command.handlers.DeprovisionCompleteCommandHandler;
 import org.eclipse.dataspaceconnector.transfer.core.edr.DefaultEndpointDataReferenceTransformer;
 import org.eclipse.dataspaceconnector.transfer.core.edr.EndpointDataReferenceReceiverRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.flow.DataFlowManagerImpl;
@@ -62,9 +63,9 @@ import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessSend
  * Provides core data transfer services to the system.
  */
 @CoreExtension
-@Provides({StatusCheckerRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class,
+@Provides({ StatusCheckerRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class,
         TransferProcessObservable.class, DataOperatorRegistry.class, DataFlowManager.class, ProvisionManager.class,
-        EndpointDataReferenceReceiverRegistry.class, EndpointDataReferenceTransformer.class})
+        EndpointDataReferenceReceiverRegistry.class, EndpointDataReferenceTransformer.class })
 public class CoreTransferExtension implements ServiceExtension {
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
 
@@ -166,6 +167,7 @@ public class CoreTransferExtension implements ServiceExtension {
         context.registerService(TransferProcessManager.class, processManager);
 
         registry.register(new AddProvisionedResourceCommandHandler(processManager));
+        registry.register(new DeprovisionCompleteCommandHandler(processManager));
     }
 
     @Override
