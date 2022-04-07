@@ -97,7 +97,7 @@ public class PolicyServiceImplTest {
     }
 
     @Test
-    void delete_shouldNotDeleteIfPolicyIsAlreadyPartOfAContractDefinitionButPolicyDoesNotExistInPolicyStore() {
+    void delete_shouldNotDeleteIfPolicyIsAlreadyPartOfContractDefinitionButPolicyDoesNotExistInPolicyStore() {
         var policy = createPolicy("policyId");
         when(policyStore.deleteById("policyId")).thenReturn(policy);
 
@@ -117,7 +117,7 @@ public class PolicyServiceImplTest {
     }
 
     @Test
-    void delete_shouldNotDeleteIfPolicyIsAlreadyPartOfAContractDefinitionButIsNotInContractDefinitionStore() {
+    void delete_shouldNotDeleteIfPolicyIsAlreadyPartOfContractDefinitionButIsNotInContractDefinitionStore() {
         var policy = createPolicy("policyId");
         when(policyStore.deleteById("policyId")).thenReturn(policy);
 
