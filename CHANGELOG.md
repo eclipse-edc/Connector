@@ -45,7 +45,7 @@ the detailed section referring to by linking pull requests or issues.
 * Implement TransferProcess service for Data Management API (#1005)
 * SQL-based ContractNegotiationStore (#864)
 * In-memory implementation of PolicyStore (#930)
-* Added ComponentTest and EndToEndTest annotation (#?)
+* Add ComponentTest and EndToEndTest annotation (#1034)
 * Implement AssetLoader, AssetIndex, DataAddressResolver for SQL (#863)
 * Support for HTTP-based provisioning (#963)
 * Let Control Plane delegate data transfer to Data Plane (#988)
