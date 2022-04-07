@@ -57,7 +57,7 @@ the detailed section referring to by linking pull requests or issues.
 * Data plane: control proxy mode with data address toggles (#882)
 * Resolve policies using the `PolicyArchive` (#1089)
 * Resolve content addresses in the `TransferProcessManager` (#1090)
-
+* Reliably send transfers from consumer to provider (#1007)
 
 #### Changed
 

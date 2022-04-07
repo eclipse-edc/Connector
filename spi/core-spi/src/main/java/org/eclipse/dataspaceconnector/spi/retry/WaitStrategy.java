@@ -21,11 +21,16 @@ public interface WaitStrategy {
      */
     long waitForMillis();
 
-
     /**
      * Marks the iteration as successful.
      */
     default void success() {
+    }
+
+    /**
+     * Registers that a number of previous attempts were unsuccessful.
+     */
+    default void failures(int numberOfFailures) {
     }
 
     /**
