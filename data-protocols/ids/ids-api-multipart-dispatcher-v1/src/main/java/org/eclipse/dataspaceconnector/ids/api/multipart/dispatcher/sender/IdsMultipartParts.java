@@ -12,7 +12,6 @@
  *
  */
 
-
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
 import org.jetbrains.annotations.NotNull;

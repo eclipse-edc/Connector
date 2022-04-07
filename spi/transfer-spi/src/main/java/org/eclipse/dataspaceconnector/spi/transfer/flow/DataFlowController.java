@@ -16,6 +16,8 @@ package org.eclipse.dataspaceconnector.spi.transfer.flow;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,8 +28,11 @@ public interface DataFlowController {
 
     /**
      * Returns true if the manager can handle the data type.
+     *
+     * @param dataRequest the request
+     * @param contentAddress the address to resolve the asset contents. This may be the original asset address or an address resolving to generated content.
      */
-    boolean canHandle(DataRequest dataRequest);
+    boolean canHandle(DataRequest dataRequest, DataAddress contentAddress);
 
     /**
      * Initiate a data flow.
@@ -36,9 +41,10 @@ public interface DataFlowController {
      * response. If an exception occurs and re-tries should not be re-attempted, set {@link ResponseStatus#FATAL_ERROR} in the response. </p>
      *
      * @param dataRequest the request
+     * @param contentAddress the address to resolve the asset contents. This may be the original asset address or an address resolving to generated content.
      * @param policy the contract agreement usage policy for the asset being transferred
      */
     @NotNull
-    DataFlowInitiateResult initiateFlow(DataRequest dataRequest, Policy policy);
+    StatusResult<String> initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy);
 
 }

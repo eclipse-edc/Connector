@@ -1,15 +1,16 @@
 /*
- * Copyright (c) 2022 ZF Friedrichshafen AG
+ *  Copyright (c) 2022 - 2022 ZF Friedrichshafen AG
  *
- * This program and the accompanying materials are made available under the
- * terms of the Apache License, Version 2.0 which is available at
- * https://www.apache.org/licenses/LICENSE-2.0
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ *  SPDX-License-Identifier: Apache-2.0
  *
- * Contributors:
- *    ZF Friedrichshafen AG - Initial API and Implementation
- *    Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *  Contributors:
+ *       ZF Friedrichshafen AG - Initial API and Implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
@@ -39,6 +40,7 @@ import java.util.concurrent.CompletableFuture;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.TestFunctions.createOffer;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.hamcrest.Matchers.is;
@@ -146,7 +148,7 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .connectorId("connector")
                 .protocol(TestRemoteMessageDispatcher.TEST_PROTOCOL)
                 .connectorAddress("connectorAddress")
-                .offerId(UUID.randomUUID().toString())
+                .offerId(createOffer())
                 .build();
 
         var result = baseRequest()
@@ -200,20 +202,8 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .id(negotiationId)
                 .providerAgentId(UUID.randomUUID().toString())
                 .consumerAgentId(UUID.randomUUID().toString())
-                .asset(Asset.Builder.newInstance().build())
+                .assetId(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
-                .build();
-    }
-
-    private ContractOfferRequest createContractOfferRequest() {
-        return ContractOfferRequest.Builder.newInstance()
-                .protocol("protocol")
-                .connectorId("connectorId")
-                .connectorAddress("connectorAddress")
-                .contractOffer(ContractOffer.Builder.newInstance()
-                        .id(UUID.randomUUID().toString())
-                        .policy(Policy.Builder.newInstance().build())
-                        .build())
                 .build();
     }
 

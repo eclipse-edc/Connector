@@ -11,12 +11,13 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.transfer.core.command.handlers;
 
 import org.eclipse.dataspaceconnector.spi.command.CommandHandler;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
-import org.eclipse.dataspaceconnector.transfer.core.command.commands.AddProvisionedResourceCommand;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.AddProvisionedResourceCommand;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.ProvisionCallbackDelegate;
 
 import java.util.List;
@@ -35,7 +36,7 @@ public class AddProvisionedResourceCommandHandler implements CommandHandler<AddP
 
     @Override
     public void handle(AddProvisionedResourceCommand command) {
-        delegate.handleProvisionResult(command.getTransferProcessId(), List.of(ProvisionResult.success(command.getProvisionResponse())));
+        delegate.handleProvisionResult(command.getTransferProcessId(), List.of(StatusResult.success(command.getProvisionResponse())));
     }
 
     @Override

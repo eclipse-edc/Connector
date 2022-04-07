@@ -24,9 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils.PROVIDER_ASSET_NAME;
 import static org.eclipse.dataspaceconnector.system.tests.utils.GatlingUtils.runGatling;
 
 public class FileTransferIntegrationTest extends FileTransferEdcRuntime {
@@ -42,7 +40,7 @@ public class FileTransferIntegrationTest extends FileTransferEdcRuntime {
         runGatling(FileTransferLocalSimulation.class, FileTransferSimulationUtils.DESCRIPTION);
 
         // Assert
-        var copiedFilePath = Path.of(format(CONSUMER_ASSET_PATH + "/%s.txt", PROVIDER_ASSET_NAME));
+        var copiedFilePath = Path.of(CONSUMER_ASSET_PATH);
         assertThat(copiedFilePath)
                 .withFailMessage("Destination file %s not created", copiedFilePath)
                 .exists();

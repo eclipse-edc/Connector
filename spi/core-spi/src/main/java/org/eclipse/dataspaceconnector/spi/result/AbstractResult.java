@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2022 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - Initial implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.spi.result;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -5,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 public abstract class AbstractResult<T, F extends Failure> {
 
@@ -18,7 +33,6 @@ public abstract class AbstractResult<T, F extends Failure> {
 
     @NotNull
     public T getContent() {
-        Objects.requireNonNull(content);
         return content;
     }
 
@@ -40,4 +54,5 @@ public abstract class AbstractResult<T, F extends Failure> {
     public boolean failed() {
         return !succeeded();
     }
+
 }

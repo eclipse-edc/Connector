@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.core.base.policy;
 
 import org.eclipse.dataspaceconnector.spi.policy.RuleBindingRegistry;

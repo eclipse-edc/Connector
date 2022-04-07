@@ -91,7 +91,7 @@ public class IdsContractAgreementToContractAgreementTransformer implements IdsTy
                 .policy(policyBuilder.build())
                 .consumerAgentId(String.valueOf(contractAgreement.getConsumer()))
                 .providerAgentId(String.valueOf(contractAgreement.getProvider()))
-                .asset(asset);
+                .assetId(asset.getId());
 
         var idsUri = contractAgreement.getId();
         if (idsUri != null) {

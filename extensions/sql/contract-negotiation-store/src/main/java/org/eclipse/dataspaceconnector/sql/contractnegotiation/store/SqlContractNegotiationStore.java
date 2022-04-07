@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - add functionalities
  *
  */
 
@@ -22,7 +23,6 @@ import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.sql.lease.SqlLeaseContextBuilder;
@@ -39,6 +39,7 @@ import java.util.stream.Stream;
 import javax.sql.DataSource;
 
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
 /**
@@ -150,13 +151,41 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
     }
 
     @Override
-    public Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
+    public @NotNull Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var stmt = statements.getQueryTemplate();
                 var offset = querySpec.getOffset();
                 var limit = querySpec.getLimit();
                 return executeQuery(connection, this::mapContractNegotiation, stmt, limit, offset).stream();
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
+    @Override
+    public @NotNull Stream<ContractAgreement> getAgreementsForDefinitionId(String definitionId) {
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                var stmt = statements.getFindContractAgreementByDefinitionIdTemplate();
+
+                var contractNegotiation = executeQuery(connection, this::mapContractAgreement, stmt, definitionId + ":%");
+                return contractNegotiation.stream();
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
+    @Override
+    public @NotNull Stream<ContractAgreement> queryAgreements(QuerySpec querySpec) {
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                var stmt = statements.getQueryAgreementsTemplate();
+                var offset = querySpec.getOffset();
+                var limit = querySpec.getLimit();
+                return executeQuery(connection, this::mapContractAgreement, stmt, limit, offset).stream();
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -177,6 +206,11 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                 throw new EdcPersistenceException(e);
             }
         });
+    }
+
+    @Override
+    public Policy findPolicyForContract(String contractId) {
+        return ofNullable(findContractAgreement(contractId)).map(ContractAgreement::getPolicy).orElse(null);
     }
 
 
@@ -214,8 +248,9 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                     agr.getContractSigningDate(),
                     agr.getContractStartDate(),
                     agr.getContractEndDate(),
-                    agr.getAsset().getId(),
-                    agr.getPolicy().getUid());
+                    agr.getAssetId(),
+                    agr.getPolicy().getUid(),
+                    toJson(agr.getPolicy()));
         }
 
         var stmt = statements.getInsertNegotiationTemplate();
@@ -250,8 +285,9 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                 .id(resultSet.getString(statements.getContractAgreementIdColumn()))
                 .providerAgentId(resultSet.getString(statements.getProviderAgentColumn()))
                 .consumerAgentId(resultSet.getString(statements.getConsumerAgentColumn()))
-                .asset(Asset.Builder.newInstance().id(resultSet.getString(statements.getAssetIdColumn())).build())
-                .policy(Policy.Builder.newInstance().id(resultSet.getString(statements.getPolicyIdColumn())).build())
+                .assetId(resultSet.getString(statements.getAssetIdColumn()))
+                .policy(fromJson(resultSet.getString(statements.getPolicyColumnSeralized()), new TypeReference<>() {
+                }))
                 .contractStartDate(resultSet.getLong(statements.getStartDateColumn()))
                 .contractEndDate(resultSet.getLong(statements.getEndDateColumn()))
                 .contractSigningDate(resultSet.getLong(statements.getSigningDateColumn()))

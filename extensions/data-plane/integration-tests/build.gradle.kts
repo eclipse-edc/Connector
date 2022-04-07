@@ -40,7 +40,3 @@ dependencies {
 
     testRuntimeOnly(project(":launchers:data-plane-server"))
 }
-
-tasks.getByName<Test>("test") {
-    useJUnitPlatform()
-}

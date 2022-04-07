@@ -14,12 +14,10 @@
 
 package org.eclipse.dataspaceconnector.aws.s3.core;
 
-public class S3BucketSchema {
-
-    private S3BucketSchema() {
-    }
-
-    public static final String TYPE = "AmazonS3";
-    public static final String REGION = "region";
-    public static final String BUCKET_NAME = "bucketName";
+public interface S3BucketSchema {
+    String TYPE = "AmazonS3";
+    String REGION = "region";
+    String BUCKET_NAME = "bucketName";
+    String ACCESS_KEY_ID = "accessKeyId";
+    String SECRET_ACCESS_KEY = "secretAccessKey";
 }

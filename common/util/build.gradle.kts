@@ -28,6 +28,7 @@ dependencies {
     testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
     testFixturesImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     testFixturesImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation("org.junit-pioneer:junit-pioneer:1.6.2")
 }
 
 publishing {

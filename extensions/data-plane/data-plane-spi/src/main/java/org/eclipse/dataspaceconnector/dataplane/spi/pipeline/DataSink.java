@@ -11,9 +11,10 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.dataplane.spi.pipeline;
 
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -25,5 +26,5 @@ public interface DataSink {
     /**
      * Transfers the data to the sink, returning a future to obtain the result. Implementations may be non-blocking.
      */
-    CompletableFuture<TransferResult> transfer(DataSource source);
+    CompletableFuture<StatusResult<Void>> transfer(DataSource source);
 }

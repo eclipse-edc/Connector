@@ -1,10 +1,24 @@
+/*
+ *  Copyright (c) 2022 Amadeus
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Amadeus - Initial implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.dataplane.framework.pipeline;
 
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSourceFactory;
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.Test;
@@ -46,7 +60,7 @@ class PipelineServiceImplTest {
         when(sourceFactory.createSource(request)).thenReturn(source);
         when(sinkFactory.canHandle(request)).thenReturn(true);
         when(sinkFactory.createSink(request)).thenReturn(sink);
-        when(sink.transfer(source)).thenReturn(completedFuture(TransferResult.success()));
+        when(sink.transfer(source)).thenReturn(completedFuture(StatusResult.success()));
 
         service.transfer(request);
 

@@ -12,27 +12,14 @@
  *       Microsoft Corporation
  *
  */
+
 package org.eclipse.dataspaceconnector.transfer.core;
 
-import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 
 public class TestProvisionedDataDestinationResource extends ProvisionedDataDestinationResource {
-    private final String resourceName;
-
     public TestProvisionedDataDestinationResource(String resourceName, String id) {
-        super();
         this.resourceName = resourceName;
         this.id = id;
-    }
-
-    @Override
-    public DataAddress createDataDestination() {
-        return null;
-    }
-
-    @Override
-    public String getResourceName() {
-        return resourceName;
     }
 }

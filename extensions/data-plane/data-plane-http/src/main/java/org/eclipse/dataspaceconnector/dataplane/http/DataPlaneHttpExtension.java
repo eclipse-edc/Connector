@@ -11,19 +11,19 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.dataplane.http;
 
 import net.jodah.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataplane.http.pipeline.HttpDataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.http.pipeline.HttpDataSourceFactory;
+import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-
-import java.util.concurrent.Executors;
 
 /**
  * Provides support for reading data from an HTTP endpoint and sending data to an HTTP endpoint.
@@ -40,6 +40,9 @@ public class DataPlaneHttpExtension implements ServiceExtension {
     @Inject
     private PipelineService pipelineService;
 
+    @Inject
+    private DataTransferExecutorServiceContainer executorContainer;
+
     @Override
     public String name() {
         return "Data Plane HTTP";
@@ -48,14 +51,12 @@ public class DataPlaneHttpExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var vault = context.getService(Vault.class);
-        var executorService = Executors.newFixedThreadPool(10); // TODO make configurable
-
         var monitor = context.getMonitor();
 
         @SuppressWarnings("unchecked") var sourceFactory = new HttpDataSourceFactory(httpClient, retryPolicy, monitor, vault);
         pipelineService.registerFactory(sourceFactory);
 
-        var sinkFactory = new HttpDataSinkFactory(httpClient, executorService, 5, monitor);
+        var sinkFactory = new HttpDataSinkFactory(httpClient, executorContainer.getExecutorService(), 5, monitor);
         pipelineService.registerFactory(sinkFactory);
     }
 }

@@ -1,9 +1,24 @@
+/*
+ *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - Initial implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.transfer.core.flow;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
-import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.junit.jupiter.api.Test;
 
@@ -21,12 +36,13 @@ class DataFlowManagerImplTest {
         var controller = mock(DataFlowController.class);
         var dataRequest = DataRequest.Builder.newInstance().destinationType("type").build();
         var policy = Policy.Builder.newInstance().build();
+        var dataAddress = DataAddress.Builder.newInstance().type("test").build();
 
-        when(controller.canHandle(any())).thenReturn(true);
-        when(controller.initiateFlow(any(), any())).thenReturn(DataFlowInitiateResult.success("success"));
+        when(controller.canHandle(any(), any())).thenReturn(true);
+        when(controller.initiateFlow(any(), any(), any())).thenReturn(StatusResult.success("success"));
         manager.register(controller);
 
-        var response = manager.initiate(dataRequest, policy);
+        var response = manager.initiate(dataRequest, dataAddress, policy);
 
         assertThat(response.succeeded()).isTrue();
     }
@@ -36,12 +52,13 @@ class DataFlowManagerImplTest {
         var manager = new DataFlowManagerImpl();
         var controller = mock(DataFlowController.class);
         var dataRequest = DataRequest.Builder.newInstance().destinationType("type").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("test").build();
         var policy = Policy.Builder.newInstance().build();
 
-        when(controller.canHandle(any())).thenReturn(false);
+        when(controller.canHandle(any(), any())).thenReturn(false);
         manager.register(controller);
 
-        var response = manager.initiate(dataRequest, policy);
+        var response = manager.initiate(dataRequest, dataAddress, policy);
 
         assertThat(response.succeeded()).isFalse();
         assertThat(response.getFailure().status()).isEqualTo(FATAL_ERROR);
@@ -52,13 +69,14 @@ class DataFlowManagerImplTest {
         var manager = new DataFlowManagerImpl();
         var controller = mock(DataFlowController.class);
         var dataRequest = DataRequest.Builder.newInstance().destinationType("type").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("test").build();
         var policy = Policy.Builder.newInstance().build();
 
-        when(controller.canHandle(any())).thenReturn(true);
-        when(controller.initiateFlow(any(), any())).thenThrow(new EdcException("error"));
+        when(controller.canHandle(any(), any())).thenReturn(true);
+        when(controller.initiateFlow(any(), any(), any())).thenThrow(new EdcException("error"));
         manager.register(controller);
 
-        var response = manager.initiate(dataRequest, policy);
+        var response = manager.initiate(dataRequest, dataAddress, policy);
 
         assertThat(response.succeeded()).isFalse();
         assertThat(response.getFailure().status()).isEqualTo(FATAL_ERROR);

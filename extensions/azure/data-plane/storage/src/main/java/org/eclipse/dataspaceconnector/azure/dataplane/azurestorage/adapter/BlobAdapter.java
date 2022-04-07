@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.adapter;
 
 import com.azure.storage.blob.specialized.BlockBlobClient;

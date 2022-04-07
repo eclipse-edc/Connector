@@ -1,5 +1,6 @@
 /*
  *  Copyright (c) 2022 Amadeus
+ *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
  *  https://www.apache.org/licenses/LICENSE-2.0
@@ -14,8 +15,8 @@
 package org.eclipse.dataspaceconnector.transfer.dataplane.client;
 
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
 /**
@@ -31,12 +32,12 @@ public class EmbeddedDataPlaneTransferClient implements DataPlaneTransferClient 
     }
 
     @Override
-    public TransferResult transfer(DataFlowRequest request) {
+    public StatusResult<Void> transfer(DataFlowRequest request) {
         var result = dataPlaneManager.validate(request);
         if (result.failed()) {
-            return TransferResult.failure(ResponseStatus.FATAL_ERROR, String.join(", ", result.getFailureMessages()));
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, String.join(", ", result.getFailureMessages()));
         }
         dataPlaneManager.initiateTransfer(request);
-        return TransferResult.success();
+        return StatusResult.success();
     }
 }

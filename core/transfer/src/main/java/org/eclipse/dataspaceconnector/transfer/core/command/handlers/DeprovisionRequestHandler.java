@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020-2022 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,11 +12,12 @@
  *       Fraunhofer Institute for Software and Systems Engineering - refactored
  *
  */
+
 package org.eclipse.dataspaceconnector.transfer.core.command.handlers;
 
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
-import org.eclipse.dataspaceconnector.transfer.core.command.commands.DeprovisionRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.DeprovisionRequest;
 
 public class DeprovisionRequestHandler extends SingleTransferProcessCommandHandler<DeprovisionRequest> {
 

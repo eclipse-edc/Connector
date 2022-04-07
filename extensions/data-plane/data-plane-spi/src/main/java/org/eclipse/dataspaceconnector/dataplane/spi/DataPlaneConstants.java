@@ -12,7 +12,6 @@
  *
  */
 
-
 package org.eclipse.dataspaceconnector.dataplane.spi;
 
 public interface DataPlaneConstants {

@@ -9,95 +9,120 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - add functionalities
  *
  */
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractagreement;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import org.eclipse.dataspaceconnector.common.testfixtures.TestUtils;
-import org.eclipse.dataspaceconnector.extension.jersey.CorsFilterConfiguration;
-import org.eclipse.dataspaceconnector.extension.jersey.JerseyRestService;
-import org.eclipse.dataspaceconnector.extension.jetty.JettyConfiguration;
-import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
-import org.eclipse.dataspaceconnector.extension.jetty.PortMapping;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeAll;
+import io.restassured.specification.RequestSpecification;
+import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
+import java.util.Map;
+import java.util.UUID;
 
+import static io.restassured.RestAssured.given;
+import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
+import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Mockito.mock;
 
+@ExtendWith(EdcExtension.class)
 public class ContractAgreementApiControllerIntegrationTest {
 
-    private static int port;
-    private OkHttpClient client;
-
-    @BeforeAll
-    static void prepareWebserver() {
-        port = TestUtils.getFreePort();
-        var monitor = mock(Monitor.class);
-        var config = new JettyConfiguration(null, null);
-        config.portMapping(new PortMapping("data", port, "/api/v1/data"));
-        var jetty = new JettyService(config, monitor);
-
-        var ctrl = new ContractAgreementApiController(monitor);
-        var jerseyService = new JerseyRestService(jetty, new TypeManager(), mock(CorsFilterConfiguration.class), monitor);
-        jetty.start();
-        jerseyService.registerResource("data", ctrl);
-        jerseyService.start();
-    }
+    private final int port = getFreePort();
+    private final String authKey = "123456";
 
     @BeforeEach
-    void setup() {
-        client = testOkHttpClient();
+    void setUp(EdcExtension extension) {
+        extension.setConfiguration(Map.of(
+                "web.http.data.port", String.valueOf(port),
+                "web.http.data.path", "/api/v1/data",
+                "edc.api.auth.key", authKey
+        ));
     }
 
     @Test
-    void getAllContractAgreements() throws IOException {
-        var response = get(basePath());
-        assertThat(response.code()).isEqualTo(200);
+    void getAllContractAgreements(ContractNegotiationStore store) {
+        store.save(createContractNegotiation(UUID.randomUUID().toString(), createContractAgreement("agreementId")));
+
+        baseRequest()
+                .get("/contractagreements")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(1));
     }
 
     @Test
-    void getAllContractAgreements_withPaging() throws IOException {
-        try (var response = get(basePath() + "?offset=10&limit=15&sort=ASC")) {
-            assertThat(response.code()).isEqualTo(200);
-        }
+    void getAllContractAgreements_withPaging(ContractNegotiationStore store) {
+        store.save(createContractNegotiation(UUID.randomUUID().toString(), createContractAgreement("agreementId")));
+
+        baseRequest()
+                .get("/contractagreements?offset=0&limit=15&sort=ASC")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", Matchers.is(1));
     }
 
     @Test
-    void getSingleContractAgreement() throws IOException {
-        var id = "test-id";
-        try (var response = get(basePath() + "/" + id)) {
-            //assertThat(response.code()).isEqualTo(200);
-        }
+    void getSingleContractAgreement(ContractNegotiationStore store) {
+        store.save(createContractNegotiation(UUID.randomUUID().toString(), createContractAgreement("agreementId")));
 
+        baseRequest()
+                .get("/contractagreements/agreementId")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("id", Matchers.is("agreementId"));
     }
 
     @Test
-    void getSingleContractAgreement_notFound() throws IOException {
-        try (var response = get(basePath() + "/not-exist")) {
-            // assertThat(response.code()).isEqualTo(404);
-        }
+    void getSingleContractAgreement_notFound() {
+        baseRequest()
+                .get("/contractagreements/nonExistingId")
+                .then()
+                .statusCode(404);
+    }
+
+    private RequestSpecification baseRequest() {
+        return given()
+                .baseUri("http://localhost:" + port)
+                .basePath("/api/v1/data")
+                .header("x-api-key", authKey)
+                .when();
     }
 
 
-    @NotNull
-    private String basePath() {
-        return "http://localhost:" + port + "/api/v1/data/contractagreements";
+    private ContractNegotiation createContractNegotiation(String negotiationId, ContractAgreement contractAgreement) {
+        return ContractNegotiation.Builder.newInstance()
+                .id(negotiationId)
+                .counterPartyId(UUID.randomUUID().toString())
+                .counterPartyAddress("address")
+                .protocol("protocol")
+                .contractAgreement(contractAgreement)
+                .build();
     }
 
-    @NotNull
-    private Response get(String url) throws IOException {
-        return client.newCall(new Request.Builder().get().url(url).build()).execute();
+    private ContractAgreement createContractAgreement(String agreementId) {
+        return ContractAgreement.Builder.newInstance()
+                .id(agreementId)
+                .providerAgentId(UUID.randomUUID().toString())
+                .consumerAgentId(UUID.randomUUID().toString())
+                .assetId(UUID.randomUUID().toString())
+                .policy(Policy.Builder.newInstance().build())
+                .build();
     }
+
+
 }

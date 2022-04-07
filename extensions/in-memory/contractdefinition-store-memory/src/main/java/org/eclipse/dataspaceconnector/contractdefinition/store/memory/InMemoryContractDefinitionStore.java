@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added method
  *
  */
 
@@ -44,7 +45,13 @@ public class InMemoryContractDefinitionStore implements ContractDefinitionStore 
         return queryResolver.query(cache.values().stream(), spec);
 
     }
-
+    
+    @Override
+    public ContractDefinition findById(String definitionId) {
+        return cache.get(definitionId);
+    }
+    
+    
     @Override
     public void save(Collection<ContractDefinition> definitions) {
         definitions.forEach(d -> cache.put(d.getId(), d));

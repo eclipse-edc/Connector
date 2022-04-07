@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.transfer.provision.http;
 
 import okhttp3.OkHttpClient;
@@ -20,34 +21,33 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
+import org.eclipse.dataspaceconnector.transfer.provision.http.impl.HttpProviderProvisioner;
+import org.eclipse.dataspaceconnector.transfer.provision.http.impl.HttpProviderResourceDefinition;
+import org.eclipse.dataspaceconnector.transfer.provision.http.impl.HttpProviderResourceDefinitionGenerator;
+import org.eclipse.dataspaceconnector.transfer.provision.http.impl.HttpProvisionedContentResource;
+import org.eclipse.dataspaceconnector.transfer.provision.http.impl.HttpProvisionerRequest;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.transfer.provision.http.ConfigParser.parseConfigurations;
-import static org.eclipse.dataspaceconnector.transfer.provision.http.ProvisionerConfiguration.ProvisionerType.PROVIDER;
+import static org.eclipse.dataspaceconnector.transfer.provision.http.config.ConfigParser.parseConfigurations;
+import static org.eclipse.dataspaceconnector.transfer.provision.http.config.ProvisionerConfiguration.ProvisionerType.PROVIDER;
 
 /**
  * The HTTP Provisioner extension delegates to HTTP endpoints to perform provision operations.
  */
 public class HttpProvisionerExtension implements ServiceExtension {
 
+    @Inject
+    protected ProvisionManager provisionManager;
+    @Inject
+    protected PolicyEngine policyEngine;
+    @Inject
+    protected OkHttpClient httpClient;
+    @Inject
+    private ResourceManifestGenerator manifestGenerator;
     private OkHttpClient overrideHttpClient;
 
     @Inject
-    ResourceManifestGenerator manifestGenerator;
-
-    @Inject
-    protected ProvisionManager provisionManager;
-
-    @Inject
-    protected PolicyEngine policyEngine;
-
-    @Inject
-    protected OkHttpClient httpClient;
-
-    @Override
-    public String name() {
-        return "HTTP Provisioning";
-    }
+    private HttpProvisionerWebhookUrl callbackUrl;
 
     /**
      * Default ctor.
@@ -60,7 +60,12 @@ public class HttpProvisionerExtension implements ServiceExtension {
      * Overrides the default HTTP client. Intended for testing.
      */
     public HttpProvisionerExtension(OkHttpClient httpClient) {
-        this.overrideHttpClient = httpClient;
+        overrideHttpClient = httpClient;
+    }
+
+    @Override
+    public String name() {
+        return "HTTP Provisioning";
     }
 
     @Override
@@ -74,7 +79,7 @@ public class HttpProvisionerExtension implements ServiceExtension {
 
         for (var configuration : configurations) {
 
-            var provisioner = new HttpProviderProvisioner(configuration, policyEngine, client, typeManager.getMapper(), monitor);
+            var provisioner = new HttpProviderProvisioner(configuration, callbackUrl.get(), policyEngine, client, typeManager.getMapper(), monitor);
 
             if (configuration.getProvisionerType() == PROVIDER) {
                 var generator = new HttpProviderResourceDefinitionGenerator(configuration.getDataAddressType());

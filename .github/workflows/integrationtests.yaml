@@ -8,6 +8,10 @@ on:
       - '**.md'
       - 'docs/**'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
 
   Azure-Storage-Integration-Test:
@@ -69,6 +73,11 @@ jobs:
   Aws-Integration-Test:
     runs-on: ubuntu-latest
 
+    env:
+      RUN_INTEGRATION_TEST: true
+      S3_ACCESS_KEY_ID: root
+      S3_SECRET_ACCESS_KEY: password
+
     services:
       minio:
         image: bitnami/minio:latest
@@ -88,16 +97,10 @@ jobs:
           cache: 'gradle'
 
       - name: AWS S3 Tests
-        env:
-          S3_ACCESS_KEY_ID: root
-          S3_SECRET_ACCESS_KEY: password
         run: ./gradlew -p extensions/aws/s3 test -DincludeTags="AwsS3IntegrationTest"
 
-      - name: AWS S3 StatusChecker Test
-        env:
-          S3_ACCESS_KEY_ID: root
-          S3_SECRET_ACCESS_KEY: password
-        run: ./gradlew extensions:aws:s3:s3-data-operator:check
+      - name: AWS Data Plane S3 Tests
+        run: ./gradlew -p extensions/aws/data-plane-s3 test -DincludeTags="AwsS3IntegrationTest"
 
   Daps-Integration-Test:
     runs-on: ubuntu-latest

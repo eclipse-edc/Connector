@@ -1,9 +1,23 @@
+/*
+ *  Copyright (c) 2022 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - Initial implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.dataplane.spi.pipeline;
 
 import com.github.javafaker.Faker;
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -61,7 +75,7 @@ class ParallelSinkTest {
 
     @Test
     void transfer_whenFailureDuringTransfer_fails() {
-        fakeSink.transferResultSupplier = () -> TransferResult.failure(ResponseStatus.FATAL_ERROR, errorMessage);
+        fakeSink.transferResultSupplier = () -> StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMessage);
 
         var dataSource = new InputStreamDataSource(dataSourceName, new ByteArrayInputStream(dataSourceContent.getBytes()));
 
@@ -92,10 +106,10 @@ class ParallelSinkTest {
     private static class FakeParallelSink extends ParallelSink {
 
         List<DataSource.Part> parts;
-        Supplier<TransferResult> transferResultSupplier = TransferResult::success;
+        Supplier<StatusResult<Void>> transferResultSupplier = StatusResult::success;
 
         @Override
-        protected TransferResult transferParts(List<DataSource.Part> parts) {
+        protected StatusResult<Void> transferParts(List<DataSource.Part> parts) {
             this.parts = parts;
             return transferResultSupplier.get();
         }

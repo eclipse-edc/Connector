@@ -19,6 +19,7 @@ package org.eclipse.dataspaceconnector.system.tests.local;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcRuntimeExtension;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import java.io.File;
 import java.util.Map;
 
 import static java.lang.String.format;
@@ -30,7 +31,7 @@ import static org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimu
  * Class providing a consumer and provider EdcRuntimeExtension used to test a file transfer.
  */
 public abstract class FileTransferEdcRuntime {
-    public static final String CONSUMER_ASSET_PATH = tempDirectory();
+    public static final String CONSUMER_ASSET_PATH = new File(tempDirectory(), "output.txt").getAbsolutePath();
     public static final int CONSUMER_CONNECTOR_PORT = getFreePort();
     public static final int CONSUMER_MANAGEMENT_PORT = getFreePort();
     public static final String CONSUMER_CONNECTOR_PATH = "/api";

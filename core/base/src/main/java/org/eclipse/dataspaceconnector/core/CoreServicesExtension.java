@@ -36,6 +36,7 @@ import org.eclipse.dataspaceconnector.spi.policy.RuleBindingRegistry;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.BaseExtension;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
+import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentationImplementation;
 import org.eclipse.dataspaceconnector.spi.system.Hostname;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
@@ -67,6 +68,7 @@ import static java.util.Optional.ofNullable;
         RemoteMessageDispatcherRegistry.class,
         RetryPolicy.class,
         RuleBindingRegistry.class,
+        ExecutorInstrumentation.class,
 })
 public class CoreServicesExtension implements ServiceExtension {
 
@@ -101,7 +103,7 @@ public class CoreServicesExtension implements ServiceExtension {
      * An optional instrumentor for {@link ExecutorService}. Used by the optional {@code micrometer} module.
      */
     @Inject(required = false)
-    private ExecutorInstrumentation executorInstrumentation;
+    private ExecutorInstrumentationImplementation executorInstrumentationImplementation;
 
     private HealthCheckServiceImpl healthCheckService;
 
@@ -214,10 +216,10 @@ public class CoreServicesExtension implements ServiceExtension {
     }
 
     private ExecutorInstrumentation registerExecutorInstrumentation(ServiceExtensionContext context) {
-        var executorInstrumentationImpl = ofNullable(this.executorInstrumentation).orElse(ExecutorInstrumentation.noop());
+        var executorInstrumentation = ofNullable((ExecutorInstrumentation) this.executorInstrumentationImplementation)
+                .orElse(ExecutorInstrumentation.noop());
         // Register ExecutorImplementation with default noop implementation if none available
-        context.registerService(ExecutorInstrumentation.class, executorInstrumentationImpl);
-        return executorInstrumentationImpl;
+        context.registerService(ExecutorInstrumentation.class, executorInstrumentation);
+        return executorInstrumentation;
     }
-
 }

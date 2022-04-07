@@ -1,10 +1,23 @@
+/*
+ *  Copyright (c) 2021 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - Initial implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.transfer.core.provision;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResult;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
@@ -43,7 +56,7 @@ class ProvisionManagerImplTest {
     @Test
     void provision_should_provision_all_the_transfer_process_definitions() {
         when(provisioner.canProvision(isA(TestResourceDefinition.class))).thenReturn(true);
-        var provisionResult = ProvisionResult.success(ProvisionResponse.Builder.newInstance()
+        var provisionResult = StatusResult.success(ProvisionResponse.Builder.newInstance()
                 .resource(new TestProvisionedDataDestinationResource("test-resource", "1"))
                 .build());
 
@@ -53,7 +66,7 @@ class ProvisionManagerImplTest {
 
         assertThat(result).succeedsWithin(1, SECONDS)
                 .extracting(responses -> responses.get(0))
-                .extracting(ProvisionResult::getContent)
+                .extracting(StatusResult::getContent)
                 .extracting(ProvisionResponse::getResource)
                 .extracting(ProvisionedDataDestinationResource.class::cast)
                 .extracting(ProvisionedDataDestinationResource::getResourceName)
@@ -88,7 +101,7 @@ class ProvisionManagerImplTest {
 
     @Test
     void deprovision_should_deprovision_all_the_transfer_process_provisioned_resources() {
-        var deprovisionResponse = DeprovisionResult.success(DeprovisionedResource.Builder.newInstance()
+        var deprovisionResponse = StatusResult.success(DeprovisionedResource.Builder.newInstance()
                 .provisionedResourceId("1")
                 .build());
         when(provisioner.canDeprovision(isA(ProvisionedResource.class))).thenReturn(true);
@@ -98,7 +111,7 @@ class ProvisionManagerImplTest {
 
         assertThat(result).succeedsWithin(1, SECONDS)
                 .extracting(responses -> responses.get(0))
-                .extracting(DeprovisionResult::getContent)
+                .extracting(StatusResult::getContent)
                 .extracting(DeprovisionedResource::getProvisionedResourceId)
                 .isEqualTo("1");
     }

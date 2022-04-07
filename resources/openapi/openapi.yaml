@@ -908,6 +908,48 @@ paths:
           description: default response
           content:
             application/json: {}
+  /callback/{processId}/deprovision:
+    post:
+      operationId: callDeprovisionWebhook
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeprovisionedResource'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /callback/{processId}/provision:
+    post:
+      operationId: callProvisionWebhook
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProvisionerWebhookRequest'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
 components:
   schemas:
     Action:
@@ -971,8 +1013,6 @@ components:
           type: string
         policyId:
           type: string
-        negotiationId:
-          type: string
     ContractDefinitionDto:
       type: object
       properties:
@@ -1015,6 +1055,10 @@ components:
           $ref: '#/components/schemas/Policy'
         asset:
           $ref: '#/components/schemas/Asset'
+        policyId:
+          type: string
+        assetId:
+          type: string
         provider:
           type: string
           format: uri
@@ -1033,6 +1077,17 @@ components:
         contractEnd:
           type: string
           format: date-time
+    ContractOfferDescription:
+      type: object
+      properties:
+        offerId:
+          type: string
+        assetId:
+          type: string
+        policyId:
+          type: string
+        policy:
+          $ref: '#/components/schemas/Policy'
     ContractOfferRequest:
       type: object
       properties:
@@ -1130,6 +1185,17 @@ components:
           type: string
         connectorId:
           type: string
+    DeprovisionedResource:
+      type: object
+      properties:
+        provisionedResourceId:
+          type: string
+        inProcess:
+          type: boolean
+        error:
+          type: boolean
+        errorMessage:
+          type: string
     Duty:
       type: object
       properties:
@@ -1167,8 +1233,8 @@ components:
           type: string
         connectorId:
           type: string
-        offerId:
-          type: string
+        offer:
+          $ref: '#/components/schemas/ContractOfferDescription'
     Permission:
       type: object
       properties:
@@ -1271,6 +1337,21 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Constraint'
+    ProvisionerWebhookRequest:
+      type: object
+      properties:
+        resourceDefinitionId:
+          type: string
+        assetId:
+          type: string
+        resourceName:
+          type: string
+        contentDataAddress:
+          $ref: '#/components/schemas/DataAddress'
+        apiToken:
+          type: string
+        hasToken:
+          type: boolean
     SelectionRequest:
       type: object
       properties:

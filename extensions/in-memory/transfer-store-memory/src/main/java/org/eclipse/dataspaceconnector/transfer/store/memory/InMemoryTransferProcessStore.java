@@ -93,7 +93,6 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     @Override
     public void update(TransferProcess process) {
         lockManager.writeLock(() -> {
-            process.updateStateTimestamp();
             delete(process.getId());
             TransferProcess internalCopy = process.copy();
             processesByExternalId.put(process.getDataRequest().getId(), internalCopy);

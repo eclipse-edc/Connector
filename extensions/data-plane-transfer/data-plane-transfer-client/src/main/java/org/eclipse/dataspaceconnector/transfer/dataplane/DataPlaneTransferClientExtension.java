@@ -1,5 +1,6 @@
 /*
  *  Copyright (c) 2022 Amadeus
+ *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
  *  https://www.apache.org/licenses/LICENSE-2.0
@@ -75,7 +76,7 @@ public class DataPlaneTransferClientExtension implements ServiceExtension {
             client = new RemoteDataPlaneTransferClient(okHttpClient, selectorClient, selectionStrategy, retryPolicy, context.getTypeManager().getMapper());
         }
 
-        var flowController = new DataPlaneTransferFlowController(addressResolver, client);
+        var flowController = new DataPlaneTransferFlowController(client);
         flowManager.register(flowController);
     }
 }

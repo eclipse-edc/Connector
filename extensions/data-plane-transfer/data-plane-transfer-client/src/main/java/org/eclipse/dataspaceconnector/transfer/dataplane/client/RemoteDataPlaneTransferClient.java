@@ -1,5 +1,6 @@
 /*
  *  Copyright (c) 2022 Amadeus
+ *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
  *  https://www.apache.org/licenses/LICENSE-2.0
@@ -25,9 +26,9 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.dataplane.selector.client.DataPlaneSelectorClient;
 import org.eclipse.dataspaceconnector.dataplane.spi.response.TransferErrorResponse;
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,10 +58,10 @@ public class RemoteDataPlaneTransferClient implements DataPlaneTransferClient {
     }
 
     @Override
-    public TransferResult transfer(DataFlowRequest request) {
+    public StatusResult<Void> transfer(DataFlowRequest request) {
         var instance = selectorClient.find(request.getSourceDataAddress(), request.getDestinationDataAddress(), selectorStrategy);
         if (instance == null) {
-            return TransferResult.failure(ResponseStatus.FATAL_ERROR, "Failed to find data plane instance supporting request: " + request.getId());
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, "Failed to find data plane instance supporting request: " + request.getId());
         }
 
         RequestBody body;
@@ -81,20 +82,19 @@ public class RemoteDataPlaneTransferClient implements DataPlaneTransferClient {
         return Failsafe.with(retryStrategy).get(() -> client.newCall(rq).execute());
     }
 
-    private TransferResult handleResponse(Response response, String requestId) {
+    private StatusResult<Void> handleResponse(Response response, String requestId) {
         if (response.isSuccessful()) {
-            return TransferResult.success();
+            return StatusResult.success();
         } else {
             return handleError(response, requestId);
         }
     }
 
-    private TransferResult handleError(Response response, String requestId) {
+    private StatusResult<Void> handleError(Response response, String requestId) {
         var errorMsg = Optional.ofNullable(response.body())
                 .map(this::formatErrorMessage)
                 .orElse("null response body");
-        return TransferResult.failure(ResponseStatus.FATAL_ERROR,
-                format("Transfer request failed with status code %s for request %s: %s", response.code(), requestId, errorMsg));
+        return StatusResult.failure(ResponseStatus.FATAL_ERROR, format("Transfer request failed with status code %s for request %s: %s", response.code(), requestId, errorMsg));
     }
 
     private String formatErrorMessage(ResponseBody body) {

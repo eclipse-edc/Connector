@@ -10,6 +10,8 @@
  *  Contributors:
  *       Daimler TSS GmbH - Initial Tests
  *       Microsoft Corporation - Method signature change
+ *       Microsoft Corporation - refactoring
+ *       Fraunhofer Institute for Software and Systems Engineering - added tests
  *
  */
 
@@ -19,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
@@ -42,12 +43,12 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
 public class SqlContractDefinitionStoreTest {
@@ -57,6 +58,7 @@ public class SqlContractDefinitionStoreTest {
     private DataSourceRegistry dataSourceRegistry;
     private SqlContractDefinitionStore sqlContractDefinitionStore;
     private ConnectionPool connectionPool;
+    private PostgresStatements statements;
 
     @BeforeEach
     void setUp() throws SQLException {
@@ -75,7 +77,8 @@ public class SqlContractDefinitionStoreTest {
         var poolDataSource = new ConnectionPoolDataSource(connectionPool);
         dataSourceRegistry.register(DATASOURCE_NAME, poolDataSource);
         txManager.registerResource(new DataSourceResource(poolDataSource));
-        sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper());
+        statements = new PostgresStatements();
+        sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, statements, new ObjectMapper());
 
         try (var inputStream = getClass().getClassLoader().getResourceAsStream("schema.sql")) {
             var schema = new String(Objects.requireNonNull(inputStream).readAllBytes(), StandardCharsets.UTF_8);
@@ -94,7 +97,7 @@ public class SqlContractDefinitionStoreTest {
     @Test
     @DisplayName("Context Loads, tables exist")
     void contextLoads() throws SQLException {
-        var query = String.format("SELECT 1 FROM %s", SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE);
+        var query = String.format("SELECT 1 FROM %s", statements.getContractDefinitionTable());
         var result = executeQuery(dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection(), query);
 
         assertThat(result).isNotNull();
@@ -114,11 +117,14 @@ public class SqlContractDefinitionStoreTest {
 
     @Test
     @DisplayName("Save a single Contract Definition that already exists")
-    void saveOne_alreadyExist() {
+    void saveOne_alreadyExist_shouldUpdate() {
         var definition = getContractDefinition("id", "contract", "policy");
         sqlContractDefinitionStore.save(definition);
 
-        assertThatThrownBy(() -> sqlContractDefinitionStore.save(definition)).isInstanceOf(EdcPersistenceException.class);
+
+        sqlContractDefinitionStore.save(definition);
+
+        assertThat(sqlContractDefinitionStore.findAll()).hasSize(1).containsExactly(definition);
     }
 
     @Test
@@ -150,15 +156,19 @@ public class SqlContractDefinitionStoreTest {
     @Test
     @DisplayName("Save multiple Contract Definitions with some preexisting Definitions")
     void saveMany_someExist() {
-        var definitionsCreated = getContractDefinitions(10);
-        sqlContractDefinitionStore.save(definitionsCreated.subList(0, 4));
+        var definitionsCreated = getContractDefinitions(3);
+        sqlContractDefinitionStore.save(definitionsCreated);
 
-        assertThatThrownBy(() -> sqlContractDefinitionStore.save(definitionsCreated)).isInstanceOf(EdcPersistenceException.class);
+        // create some anew, with some modified properties
+        var newDefs = getContractDefinitions(10).stream().peek(cd -> cd.getContractPolicy().getExtensibleProperties().put("somekey", "someval")).collect(Collectors.toList());
+        sqlContractDefinitionStore.save(newDefs);
+
+        //verify that all have the properties
 
         var definitionsRetrieved = sqlContractDefinitionStore.findAll();
 
         assertThat(definitionsRetrieved).isNotNull();
-        assertThat(definitionsRetrieved.size()).isEqualTo(4);
+        assertThat(definitionsRetrieved).allSatisfy(cd -> assertThat(cd.getContractPolicy().getExtensibleProperties()).containsEntry("somekey", "someval"));
     }
 
     @Test
@@ -167,7 +177,8 @@ public class SqlContractDefinitionStoreTest {
         var definitionsCreated = getContractDefinitions(10);
         sqlContractDefinitionStore.save(definitionsCreated);
 
-        assertThatThrownBy(() -> sqlContractDefinitionStore.save(definitionsCreated)).isInstanceOf(EdcPersistenceException.class);
+        //
+        sqlContractDefinitionStore.save(definitionsCreated);
 
         var definitionsRetrieved = sqlContractDefinitionStore.findAll();
 
@@ -177,12 +188,12 @@ public class SqlContractDefinitionStoreTest {
 
     @Test
     @DisplayName("Update a non-existing Contract Definition")
-    void updateOne_doesNotExist() {
+    void updateOne_doesNotExist_shouldCreate() {
         var definition = getContractDefinition("id", "contract1", "policy1");
 
-        assertThatThrownBy(() -> sqlContractDefinitionStore.update(definition))
-                .isInstanceOf(EdcPersistenceException.class)
-                .hasMessageContaining(String.format("Cannot update. Contract Definition with ID '%s' does not exist.", definition.getId()));
+        sqlContractDefinitionStore.update(definition);
+        var existing = sqlContractDefinitionStore.findAll();
+        assertThat(existing).hasSize(1).containsExactly(definition);
     }
 
     @Test
@@ -195,8 +206,8 @@ public class SqlContractDefinitionStoreTest {
         sqlContractDefinitionStore.update(definition2);
 
         var query = String.format("SELECT * FROM %s WHERE %s=?",
-                SqlContractDefinitionTables.CONTRACT_DEFINITION_TABLE,
-                SqlContractDefinitionTables.CONTRACT_DEFINITION_COLUMN_ID);
+                statements.getContractDefinitionTable(),
+                statements.getIdColumn());
 
         var definitions = executeQuery(dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection(),
                 ((SqlContractDefinitionStore) sqlContractDefinitionStore)::mapResultSet,
@@ -222,6 +233,17 @@ public class SqlContractDefinitionStoreTest {
     }
 
     @Test
+    void findAll_verifyQueryDefaults() {
+        var all = IntStream.range(0, 100).mapToObj(i -> getContractDefinition("id" + i, "contractId" + i, "policyId" + i))
+                .peek(cd -> sqlContractDefinitionStore.save(cd))
+                .collect(Collectors.toList());
+
+        assertThat(sqlContractDefinitionStore.findAll()).hasSize(50)
+                .usingRecursiveFieldByFieldElementComparator()
+                .isSubsetOf(all);
+    }
+
+    @Test
     @DisplayName("Find all contract definitions with limit and offset")
     void findAll_withSpec() {
         var limit = 20;
@@ -238,6 +260,22 @@ public class SqlContractDefinitionStoreTest {
 
         assertThat(definitionsRetrieved).isNotNull();
         assertThat(definitionsRetrieved.size()).isEqualTo(limit);
+    }
+
+    @Test
+    void findById() {
+        var id = "definitionId";
+        var definition = getContractDefinition(id, "contractId", "policyId");
+        sqlContractDefinitionStore.save(definition);
+
+        var result = sqlContractDefinitionStore.findById(id);
+
+        assertThat(result).isNotNull().isEqualTo(definition);
+    }
+
+    @Test
+    void findById_invalidId() {
+        assertThat(sqlContractDefinitionStore.findById("invalid-id")).isNull();
     }
 
     @Test
@@ -275,14 +313,10 @@ public class SqlContractDefinitionStoreTest {
                 .build();
     }
 
-    private ArrayList<ContractDefinition> getContractDefinitions(int count) {
-        var definitions = new ArrayList<ContractDefinition>();
-
-        for (int i = 0; i < count; i++) {
-            definitions.add(getContractDefinition("id" + i, "contract" + i, "policy" + i));
-        }
-
-        return definitions;
+    private Collection<ContractDefinition> getContractDefinitions(int count) {
+        return IntStream.range(0, count)
+                .mapToObj(i -> getContractDefinition("id" + i, "contract" + i, "policy" + i))
+                .collect(Collectors.toList());
     }
 
 }
