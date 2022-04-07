@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.transfer.provision.http.HttpWebhookExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +38,7 @@ import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFr
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.anything;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.lessThan;
 
@@ -49,11 +51,10 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
 
     public static Stream<Arguments> invalidRequestParams() {
         return Stream.of(
-                Arguments.of(null, DataAddress.Builder.newInstance().type("foo").build(), "resourcename", "transferprocess", "resourcedef"),
-                Arguments.of("assetid", null, "resourcename", "transferprocess", "resourcedef"),
-                Arguments.of("assetid", DataAddress.Builder.newInstance().type("foo").build(), null, "transferprocess", "resourcedef"),
-                Arguments.of("assetid", DataAddress.Builder.newInstance().type("foo").build(), "resourcename", null, "resourcedef"),
-                Arguments.of("assetid", DataAddress.Builder.newInstance().type("foo").build(), "resourcename", "transferprocess", null)
+                Arguments.of(null, DataAddress.Builder.newInstance().type("foo").build(), "resourcename", "resourcedef"),
+                Arguments.of("assetid", null, "resourcename", "resourcedef"),
+                Arguments.of("assetid", DataAddress.Builder.newInstance().type("foo").build(), null, "resourcedef"),
+                Arguments.of("assetid", DataAddress.Builder.newInstance().type("foo").build(), "resourcename", null)
         );
     }
 
@@ -71,38 +72,64 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
 
     @ParameterizedTest
     @MethodSource("invalidRequestParams")
-    void callWebhook_invalidRequest(String assetId, DataAddress cda, String resName, String tpId, String resDefId) {
+    void callProvisionWebhook_invalidBody(String assetId, DataAddress cda, String resName, String resDefId) {
+        var tpId = "tpId";
         var rq = ProvisionerWebhookRequest.Builder.newInstance()
                 .assetId(assetId)
                 .contentDataAddress(cda)
                 .resourceName(resName)
-                .transferProcessId(tpId)
                 .resourceDefinitionId(resDefId)
                 .build();
 
         baseRequest()
                 .body(rq)
                 .contentType("application/json")
-                .post("/callback")
+                .post("/callback/{processId}/provision", Map.of("processId", tpId))
                 .then()
                 .statusCode(400)
                 .body(containsString(""));
     }
 
     @Test
-    void callWebhook() {
+    void callProvisionWebhook() {
         var rq = ProvisionerWebhookRequest.Builder.newInstance()
                 .assetId("test-asset")
                 .contentDataAddress(DataAddress.Builder.newInstance().type("foo").build())
                 .resourceName("resource-name")
-                .transferProcessId("tp-id")
                 .resourceDefinitionId("resource-definition")
                 .build();
 
         baseRequest()
                 .body(rq)
                 .contentType("application/json")
-                .post("/callback")
+                .post("/callback/{processId}/provision", "tp-id")
+                .then()
+                .statusCode(allOf(greaterThanOrEqualTo(200), lessThan(300)))
+                .body(anything());
+    }
+
+    @Test
+    void callDeprovisionWebhook_invalidBody() {
+
+        baseRequest()
+                .contentType("application/json")
+                .post("/callback/{processId}/deprovision", "tp-id")
+                .then()
+                .statusCode(equalTo(400))
+                .body(anything());
+    }
+
+    @Test
+    void callDeprovisionWebhook() {
+        var rq = DeprovisionedResource.Builder.newInstance()
+                .provisionedResourceId("resource-id")
+                .errorMessage("some-error")
+                .build();
+
+        baseRequest()
+                .body(rq)
+                .contentType("application/json")
+                .post("/callback/{processId}/deprovision", "tp-id")
                 .then()
                 .statusCode(allOf(greaterThanOrEqualTo(200), lessThan(300)))
                 .body(anything());

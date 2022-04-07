@@ -15,11 +15,14 @@
 package org.eclipse.dataspaceconnector.transfer.provision.http.webhook;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 
 /**
  * Carrier for OpenAPI annotations
  */
 @OpenAPIDefinition
 public interface HttpProvisionerWebhookApi {
-    void callWebhook(ProvisionerWebhookRequest request);
+    void callProvisionWebhook(String transferProcessId, ProvisionerWebhookRequest request);
+
+    void callDeprovisionWebhook(String transferProcessId, DeprovisionedResource resource);
 }

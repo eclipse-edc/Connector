@@ -172,6 +172,24 @@ components:
           enum:
           - CONSUMER
           - PROVIDER
+    Action:
+      type: object
+      properties:
+        type:
+          type: string
+        includedIn:
+          type: string
+        constraint:
+          $ref: '#/components/schemas/Constraint'
+    Constraint:
+      required:
+      - edctype
+      type: object
+      properties:
+        edctype:
+          type: string
+      discriminator:
+        propertyName: edctype
     ContractOfferDescription:
       type: object
       properties:
@@ -181,6 +199,29 @@ components:
           type: string
         policyId:
           type: string
+        policy:
+          $ref: '#/components/schemas/Policy'
+    Duty:
+      type: object
+      properties:
+        uid:
+          type: string
+        target:
+          type: string
+        action:
+          $ref: '#/components/schemas/Action'
+        assignee:
+          type: string
+        assigner:
+          type: string
+        constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/Constraint'
+        parentPermission:
+          $ref: '#/components/schemas/Permission'
+        consequence:
+          $ref: '#/components/schemas/Duty'
     NegotiationInitiateRequestDto:
       type: object
       properties:
@@ -192,3 +233,76 @@ components:
           type: string
         offer:
           $ref: '#/components/schemas/ContractOfferDescription'
+    Permission:
+      type: object
+      properties:
+        uid:
+          type: string
+        target:
+          type: string
+        action:
+          $ref: '#/components/schemas/Action'
+        assignee:
+          type: string
+        assigner:
+          type: string
+        constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/Constraint'
+        duties:
+          type: array
+          items:
+            $ref: '#/components/schemas/Duty'
+    Policy:
+      type: object
+      properties:
+        uid:
+          type: string
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Permission'
+        prohibitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Prohibition'
+        obligations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Duty'
+        extensibleProperties:
+          type: object
+          additionalProperties:
+            type: object
+        inheritsFrom:
+          type: string
+        assigner:
+          type: string
+        assignee:
+          type: string
+        target:
+          type: string
+        '@type':
+          type: string
+          enum:
+          - SET
+          - OFFER
+          - CONTRACT
+    Prohibition:
+      type: object
+      properties:
+        uid:
+          type: string
+        target:
+          type: string
+        action:
+          $ref: '#/components/schemas/Action'
+        assignee:
+          type: string
+        assigner:
+          type: string
+        constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/Constraint'
