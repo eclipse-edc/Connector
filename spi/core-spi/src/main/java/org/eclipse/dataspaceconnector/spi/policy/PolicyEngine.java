@@ -47,6 +47,12 @@ public interface PolicyEngine {
     String DELIMITER = ".";
 
     /**
+     * Returns a filtered policy for the scope. This involves recursively removing rules and constraints not bound to the scope and returning a modified copy of the unfiltered
+     * policy.
+     */
+    Policy filter(Policy policy, String scope);
+
+    /**
      * Evaluates the given policy for an agent for the given scope.
      */
     Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent);

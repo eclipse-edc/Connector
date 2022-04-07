@@ -18,7 +18,6 @@ package org.eclipse.dataspaceconnector.transfer.core.transfer;
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.common.statemachine.StateMachine;
 import org.eclipse.dataspaceconnector.common.statemachine.StateProcessorImpl;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
@@ -26,7 +25,9 @@ import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
@@ -43,7 +44,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGen
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedContentResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataAddressResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
@@ -54,6 +54,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
 
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -114,6 +115,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private ExecutorInstrumentation executorInstrumentation;
     private StateMachine stateMachine;
     private DataAddressResolver addressResolver;
+    private PolicyArchive policyArchive;
+    private SendRetryManager<TransferProcess> sendRetryManager;
 
     private TransferProcessManagerImpl() {
     }
@@ -209,8 +212,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     @WithSpan
     private boolean processInitial(TransferProcess process) {
         var dataRequest = process.getDataRequest();
-        // TODO resolve contract agreement policy from the PolicyStore
-        var policy = Policy.Builder.newInstance().build();
+
+        var policy = policyArchive.findPolicyForContract(dataRequest.getContractId());
 
         ResourceManifest manifest;
         if (process.getType() == CONSUMER) {
@@ -244,8 +247,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
      */
     @WithSpan
     private boolean processProvisioning(TransferProcess process) {
-        // TODO resolve contract agreement policy from the PolicyStore
-        var policy = Policy.Builder.newInstance().build();
+        var dataRequest = process.getDataRequest();
+
+        var policy = policyArchive.findPolicyForContract(dataRequest.getContractId());
 
         var resources = process.getResourcesToProvision();
         provisionManager.provision(resources, policy)
@@ -274,7 +278,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             transferProcessStore.update(process);
             observable.invokeForEach(l -> l.preRequesting(process));
         } else {
-            processProviderRequest(process, process.getDataRequest());
+            processProviderRequest(process);
         }
         return true;
     }
@@ -290,8 +294,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private boolean processRequesting(TransferProcess process) {
         var dataRequest = process.getDataRequest();
         if (CONSUMER == process.getType()) {
-            sendConsumerRequest(process, dataRequest);
-            return true;
+            return processConsumerRequest(process, dataRequest);
         } else {
             // should never happen: a provider transfer cannot be REQUESTING
             return false;
@@ -363,9 +366,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
      */
     @WithSpan
     private boolean processDeprovisioning(TransferProcess process) {
-        // TODO resolve contract agreement policy from the PolicyStore
-        var policy = Policy.Builder.newInstance().build();
         observable.invokeForEach(l -> l.preDeprovisioning(process)); // TODO: this is called here since it's not callable from the command handler
+
+        var dataRequest = process.getDataRequest();
+
+        var policy = policyArchive.findPolicyForContract(dataRequest.getContractId());
 
         var resourcesToDeprovision = process.getResourcesToDeprovision();
 
@@ -432,7 +437,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                     }
                     dataAddressResource.getDataAddress().setKeyName(keyName);
                 }
-                handleProvisionDataAddressResource(dataAddressResource, response, transferProcess);
+                handleProvisionDataAddressResource(dataAddressResource, transferProcess);
             }
             // update the transfer process with the provisioned resource
             transferProcess.addProvisionedResource(provisionedResource);
@@ -451,7 +456,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         }
     }
 
-    private void handleProvisionDataAddressResource(ProvisionedDataAddressResource resource, ProvisionResponse response, TransferProcess transferProcess) {
+    private void handleProvisionDataAddressResource(ProvisionedDataAddressResource resource, TransferProcess transferProcess) {
         var dataAddress = resource.getDataAddress();
         if (resource instanceof ProvisionedDataDestinationResource) {
             // a data destination was provisioned by a consumer
@@ -553,11 +558,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         updateTransferProcess(transferProcess, l -> l.preError(transferProcess));
     }
 
-    private void processProviderRequest(TransferProcess process, DataRequest dataRequest) {
-        // TODO resolve contract agreement policy from the PolicyStore
-        var policy = Policy.Builder.newInstance().build();
+    private void processProviderRequest(TransferProcess process) {
+        var dataRequest = process.getDataRequest();
+        var contentAddress = process.getContentDataAddress();
 
-        var response = dataFlowManager.initiate(dataRequest, policy);
+        var policy = policyArchive.findPolicyForContract(dataRequest.getContractId());
+
+        var response = dataFlowManager.initiate(dataRequest, contentAddress, policy);
+
         if (response.succeeded()) {
             process.transitionInProgressOrStreaming();
             updateTransferProcess(process, l -> l.preInProgress(process));
@@ -574,40 +582,67 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         }
     }
 
+    private boolean processConsumerRequest(TransferProcess process, DataRequest dataRequest) {
+
+        if (sendRetryManager.shouldDelay(process)) {
+            // Break lease
+            transferProcessStore.update(process);
+            return false;
+        }
+
+        sendConsumerRequest(process, dataRequest);
+        return true;
+    }
+
     private void sendConsumerRequest(TransferProcess process, DataRequest dataRequest) {
+        monitor.debug(format("TransferProcessManager: Sending process %s request to %s", process.getId(), dataRequest.getConnectorAddress()));
         dispatcherRegistry.send(Object.class, dataRequest, process::getId)
                 .thenApply(result -> {
-                    var transferProcess = transferProcessStore.find(process.getId());
-
-                    if (transferProcess == null) {
-                        monitor.severe(format("TransferProcessManager: no TransferProcess found with id %s", process.getId()));
-                        throw new EdcException(format("TransferProcess %s not found", process.getId()));
-                    }
-
-                    transferProcess.transitionRequested();
-                    transferProcessStore.update(transferProcess);
-                    observable.invokeForEach(l -> l.preRequested(transferProcess));
+                    sendConsumerRequestSuccess(process);
                     return result;
                 })
-                .whenComplete((o, throwable) -> {
-                    if (throwable == null) {
-                        monitor.info("Object received: " + o);
-                        var transferProcess = transferProcessStore.find(process.getId());
-
-                        if (transferProcess == null) {
-                            monitor.severe(format("TransferProcessManager: no TransferProcess found with id %s", process.getId()));
-                            return;
-                        }
-
-                        transferProcess.transitionInProgressOrStreaming();
-                        updateTransferProcess(transferProcess, l -> l.preInProgress(transferProcess));
-                    }
+                .exceptionally(e -> {
+                    sendCustomerRequestFailure(process, e);
+                    return e;
                 });
+    }
+
+    private void sendConsumerRequestSuccess(TransferProcess transferProcess) {
+        transferProcess.transitionRequested();
+        updateTransferProcess(transferProcess, l -> l.preRequested(transferProcess));
+        monitor.debug("TransferProcessManager: Process " + transferProcess.getId() + " is now " + TransferProcessStates.from(transferProcess.getState()));
+    }
+
+    private void sendCustomerRequestFailure(TransferProcess transferProcess, Throwable e) {
+        if (sendRetryManager.retriesExhausted(transferProcess)) {
+            monitor.info(format("TransferProcessManager: attempt #%d failed to send transfer. Retry limit exceeded, TransferProcess %s moves to ERROR state.",
+                    transferProcess.getStateCount(),
+                    transferProcess.getId()), e);
+            transitionToError(transferProcess.getId(), e, "Retry limit exceeded");
+            return;
+        }
+        monitor.info(format("TransferProcessManager: attempt #%d failed to send transfer. TransferProcess %s stays in state %s.",
+                transferProcess.getStateCount(),
+                transferProcess.getId(),
+                TransferProcessStates.from(transferProcess.getState())), e);
+        // update state count and timestamp
+        transferProcess.transitionRequesting();
+        transferProcessStore.update(transferProcess);
     }
 
     private void updateTransferProcess(TransferProcess transferProcess, Consumer<TransferProcessListener> observe) {
         observable.invokeForEach(observe);
         transferProcessStore.update(transferProcess);
+    }
+
+    private TransferProcess getTransferProcess(String id) {
+        var transferProcess = transferProcessStore.find(id);
+
+        if (transferProcess == null) {
+            monitor.severe(format("TransferProcessManager: no TransferProcess found with id %s", id));
+            throw new EdcException(format("TransferProcess %s not found", id));
+        }
+        return transferProcess;
     }
 
     public static class Builder {
@@ -625,6 +660,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         public Builder batchSize(int size) {
             manager.batchSize = size;
+            return this;
+        }
+
+        public Builder sendRetryManager(SendRetryManager<TransferProcess> sendRetryManager) {
+            manager.sendRetryManager = sendRetryManager;
             return this;
         }
 
@@ -698,8 +738,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return this;
         }
 
-        public Builder store(TransferProcessStore transferProcessStore) {
+        public Builder transferProcessStore(TransferProcessStore transferProcessStore) {
             manager.transferProcessStore = transferProcessStore;
+            return this;
+        }
+
+        public Builder policyArchive(PolicyArchive policyArchive) {
+            manager.policyArchive = policyArchive;
             return this;
         }
 
@@ -709,19 +754,20 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         }
 
         public TransferProcessManagerImpl build() {
-            Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator");
-            Objects.requireNonNull(manager.provisionManager, "provisionManager");
-            Objects.requireNonNull(manager.dataFlowManager, "dataFlowManager");
-            Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
-            Objects.requireNonNull(manager.monitor, "monitor");
-            Objects.requireNonNull(manager.executorInstrumentation, "executorInstrumentation");
+            Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator cannot be null");
+            Objects.requireNonNull(manager.provisionManager, "provisionManager cannot be null");
+            Objects.requireNonNull(manager.dataFlowManager, "dataFlowManager cannot be null");
+            Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry cannot be null");
+            Objects.requireNonNull(manager.monitor, "monitor cannot be null");
+            Objects.requireNonNull(manager.executorInstrumentation, "executorInstrumentation cannot be null");
             Objects.requireNonNull(manager.commandQueue, "commandQueue cannot be null");
             Objects.requireNonNull(manager.commandRunner, "commandRunner cannot be null");
-            Objects.requireNonNull(manager.statusCheckerRegistry, "StatusCheckerRegistry cannot be null!");
-            Objects.requireNonNull(manager.observable, "Observable cannot be null");
-            Objects.requireNonNull(manager.telemetry, "Telemetry cannot be null");
-            Objects.requireNonNull(manager.transferProcessStore, "Store cannot be null");
-            Objects.requireNonNull(manager.addressResolver, "DataAddressResolver cannot be null");
+            Objects.requireNonNull(manager.statusCheckerRegistry, "statusCheckerRegistry cannot be null!");
+            Objects.requireNonNull(manager.observable, "observable cannot be null");
+            Objects.requireNonNull(manager.telemetry, "telemetry cannot be null");
+            Objects.requireNonNull(manager.policyArchive, "policyArchive cannot be null");
+            Objects.requireNonNull(manager.transferProcessStore, "transferProcessStore cannot be null");
+            Objects.requireNonNull(manager.addressResolver, "addressResolver cannot be null");
             manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
 
             return manager;

@@ -19,11 +19,11 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
@@ -50,25 +50,23 @@ public class HttpDataFlowController implements DataFlowController {
     private Supplier<OkHttpClient> clientSupplier;
     private TypeManager typeManager;
     private Monitor monitor;
-    private DataAddressResolver addressResolver;
 
-    public HttpDataFlowController(HttpDataFlowConfiguration configuration, DataAddressResolver addressResolver) {
+    public HttpDataFlowController(HttpDataFlowConfiguration configuration) {
         this.transferEndpoint = configuration.getTransferEndpoint();
         this.protocols = configuration.getProtocols();
         this.clientSupplier = configuration.getClientSupplier();
         this.typeManager = configuration.getTypeManager();
         this.monitor = configuration.getMonitor();
-        this.addressResolver = addressResolver;
     }
 
     @Override
-    public boolean canHandle(DataRequest dataRequest) {
+    public boolean canHandle(DataRequest dataRequest, DataAddress contentAddress) {
         return protocols.contains(dataRequest.getDestinationType());
     }
 
     @Override
-    public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest, Policy policy) {
-        var dataFlowRequest = createRequest(dataRequest);
+    public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
+        var dataFlowRequest = createRequest(dataRequest, contentAddress);
         var requestBody = RequestBody.create(typeManager.writeValueAsString(dataFlowRequest), JSON);
         var request = new Request.Builder().url(transferEndpoint).post(requestBody).build();
         try (var response = clientSupplier.get().newCall(request).execute()) {
@@ -87,8 +85,7 @@ public class HttpDataFlowController implements DataFlowController {
         }
     }
 
-    private DataFlowRequest createRequest(DataRequest dataRequest) {
-        var sourceAddress = addressResolver.resolveForAsset(dataRequest.getAssetId());
+    private DataFlowRequest createRequest(DataRequest dataRequest, DataAddress sourceAddress) {
         return DataFlowRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .processId(dataRequest.getProcessId())

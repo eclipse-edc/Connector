@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added tests
  *
  */
 
@@ -79,6 +80,27 @@ class CosmosContractDefinitionStoreTest {
 
         var all = store.findAll();
         assertThat(all).isEmpty();
+        verify(cosmosDbApiMock).queryAllItems();
+    }
+    
+    @Test
+    void findById() {
+        var doc = generateDocument(TEST_PART_KEY);
+        when(cosmosDbApiMock.queryAllItems()).thenReturn(List.of(doc));
+        
+        var result = store.findById(doc.getId());
+        
+        assertThat(result).isNotNull().isEqualTo(doc.getWrappedInstance());
+        verify(cosmosDbApiMock).queryAllItems();
+    }
+    
+    @Test
+    void findById_invalidId() {
+        when(cosmosDbApiMock.queryAllItems()).thenReturn(Collections.emptyList());
+        
+        var result = store.findById("invalid-id");
+        
+        assertThat(result).isNull();
         verify(cosmosDbApiMock).queryAllItems();
     }
 

@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.spi.command.BoundedCommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.CoreExtension;
@@ -55,6 +56,7 @@ import org.eclipse.dataspaceconnector.transfer.core.provision.ProvisionManagerIm
 import org.eclipse.dataspaceconnector.transfer.core.provision.ResourceManifestGeneratorImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.StatusCheckerRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessManagerImpl;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessSendRetryManager;
 
 /**
  * Provides core data transfer services to the system.
@@ -68,9 +70,16 @@ public class CoreTransferExtension implements ServiceExtension {
 
     @EdcSetting
     private static final String TRANSFER_STATE_MACHINE_BATCH_SIZE = "edc.transfer.state-machine.batch-size";
+    @EdcSetting
+    private static final String TRANSFER_SEND_RETRY_LIMIT = "edc.transfer.send.retry.limit";
+    @EdcSetting
+    private static final String TRANSFER_SEND_RETRY_BASE_DELAY_MS = "edc.transfer.send.retry.base-delay.ms";
 
     @Inject
     private TransferProcessStore transferProcessStore;
+
+    @Inject
+    private PolicyArchive policyArchive;
 
     @Inject
     private CommandHandlerRegistry registry;
@@ -128,6 +137,10 @@ public class CoreTransferExtension implements ServiceExtension {
         var observable = new TransferProcessObservableImpl();
         context.registerService(TransferProcessObservable.class, observable);
 
+        var retryLimit = context.getSetting(TRANSFER_SEND_RETRY_LIMIT, 7);
+        var retryBaseDelay = context.getSetting(TRANSFER_SEND_RETRY_BASE_DELAY_MS, 100L);
+        var sendRetryManager = new TransferProcessSendRetryManager(monitor, () -> new ExponentialWaitStrategy(retryBaseDelay), retryLimit);
+
         processManager = TransferProcessManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .manifestGenerator(manifestGenerator)
@@ -143,8 +156,10 @@ public class CoreTransferExtension implements ServiceExtension {
                 .commandQueue(commandQueue)
                 .commandRunner(new CommandRunner<>(registry, monitor))
                 .observable(observable)
-                .store(transferProcessStore)
+                .transferProcessStore(transferProcessStore)
+                .policyArchive(policyArchive)
                 .batchSize(context.getSetting(TRANSFER_STATE_MACHINE_BATCH_SIZE, 5))
+                .sendRetryManager(sendRetryManager)
                 .addressResolver(addressResolver)
                 .build();
 

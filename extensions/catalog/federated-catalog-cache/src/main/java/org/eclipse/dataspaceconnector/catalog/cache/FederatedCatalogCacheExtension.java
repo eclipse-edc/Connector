@@ -187,7 +187,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
             } else {
                 var random = new Random();
                 var to = 5 + random.nextInt(20);
-                context.getMonitor().info(format("The following work item has errored out. will re-queue after a small delay (%s)", to));
+                context.getMonitor().info(format("The following work item has errored out. Will re-queue after a small delay: [%s]", workItem));
                 Executors.newSingleThreadScheduledExecutor().schedule(() -> workItems.offer(workItem), to, TimeUnit.SECONDS);
             }
         };

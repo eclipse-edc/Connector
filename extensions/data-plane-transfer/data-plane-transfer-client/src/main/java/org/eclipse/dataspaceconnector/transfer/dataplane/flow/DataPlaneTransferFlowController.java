@@ -16,10 +16,10 @@ package org.eclipse.dataspaceconnector.transfer.dataplane.flow;
 
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.dataplane.client.DataPlaneTransferClient;
@@ -39,17 +39,14 @@ import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTra
  * {@link org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType#SYNC}, as this one is reserved for synchronous data transfers.
  */
 public class DataPlaneTransferFlowController implements DataFlowController {
-
-    private final DataAddressResolver addressResolver;
     private final DataPlaneTransferClient client;
 
-    public DataPlaneTransferFlowController(DataAddressResolver addressResolver, DataPlaneTransferClient client) {
-        this.addressResolver = addressResolver;
+    public DataPlaneTransferFlowController(DataPlaneTransferClient client) {
         this.client = client;
     }
 
     @Override
-    public boolean canHandle(DataRequest dataRequest) {
+    public boolean canHandle(DataRequest dataRequest, DataAddress contentAddress) {
         var type = dataRequest.getDestinationType();
         if (!StringUtils.isNullOrBlank(type)) {
             return !SYNC.equals(dataRequest.getDestinationType());
@@ -58,8 +55,8 @@ public class DataPlaneTransferFlowController implements DataFlowController {
     }
 
     @Override
-    public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest, Policy policy) {
-        var dataFlowRequest = createRequest(dataRequest);
+    public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
+        var dataFlowRequest = createRequest(dataRequest, contentAddress);
         var result = client.transfer(dataFlowRequest);
         if (result.failed()) {
             return failure(ResponseStatus.FATAL_ERROR,
@@ -68,8 +65,7 @@ public class DataPlaneTransferFlowController implements DataFlowController {
         return success("");
     }
 
-    private DataFlowRequest createRequest(DataRequest dataRequest) {
-        var sourceAddress = addressResolver.resolveForAsset(dataRequest.getAssetId());
+    private DataFlowRequest createRequest(DataRequest dataRequest, DataAddress sourceAddress) {
         return DataFlowRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .processId(dataRequest.getProcessId())

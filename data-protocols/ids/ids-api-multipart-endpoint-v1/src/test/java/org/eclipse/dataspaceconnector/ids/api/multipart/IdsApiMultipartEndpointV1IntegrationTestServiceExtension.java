@@ -70,6 +70,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
+import static org.mockito.Mockito.mock;
 
 @Provides({AssetIndex.class,
         DataAddressResolver.class,
@@ -119,7 +120,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         context.registerService(ContractOfferService.class, new FakeContractOfferService(assets));
         context.registerService(ContractDefinitionStore.class, new FakeContractDefinitionStore());
         context.registerService(ContractValidationService.class, new FakeContractValidationService());
-        context.registerService(ContractNegotiationStore.class, new FakeContractNegotiationStore());
+        context.registerService(ContractNegotiationStore.class, mock(ContractNegotiationStore.class));
         context.registerService(ProviderContractNegotiationManager.class, new FakeProviderContractNegotiationManager());
         context.registerService(ConsumerContractNegotiationManager.class, new FakeConsumerContractNegotiationManager());
     }
@@ -264,7 +265,12 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
             throw new UnsupportedOperationException();
         }
-
+    
+        @Override
+        public ContractDefinition findById(String definitionId) {
+            throw new UnsupportedOperationException();
+        }
+    
         @Override
         public void save(Collection<ContractDefinition> definitions) {
             contractDefinitions.addAll(definitions);
@@ -311,44 +317,6 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         @Override
         public boolean validate(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer) {
             return false;
-        }
-    }
-
-    private static class FakeContractNegotiationStore implements ContractNegotiationStore {
-
-        @Override
-        public @Nullable ContractNegotiation find(String negotiationId) {
-            return null;
-        }
-
-        @Override
-        public @Nullable ContractNegotiation findForCorrelationId(String correlationId) {
-            return null;
-        }
-
-        @Override
-        public @Nullable ContractAgreement findContractAgreement(String contractId) {
-            return null;
-        }
-
-        @Override
-        public void save(ContractNegotiation negotiation) {
-
-        }
-
-        @Override
-        public void delete(String negotiationId) {
-
-        }
-
-        @Override
-        public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
-            throw new UnsupportedOperationException();
         }
     }
 

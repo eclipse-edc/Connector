@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
- *
+ *       Mercedes Benz Tech Innovation - add toggles for proxy behavior
  */
 
 package org.eclipse.dataspaceconnector.dataplane.http;
@@ -268,6 +268,10 @@ public class DataPlaneHttpPullIntegrationTests {
             return DataAddress.Builder.newInstance()
                     .type(HttpDataAddressSchema.TYPE)
                     .property(HttpDataAddressSchema.ENDPOINT, HTTP_SOURCE_API_HOST)
+                    .property(HttpDataAddressSchema.PROXY_BODY, "true")
+                    .property(HttpDataAddressSchema.PROXY_METHOD, "true")
+                    .property(HttpDataAddressSchema.PROXY_PATH, "true")
+                    .property(HttpDataAddressSchema.PROXY_QUERY_PARAMS, "true")
                     .build();
         }
     }

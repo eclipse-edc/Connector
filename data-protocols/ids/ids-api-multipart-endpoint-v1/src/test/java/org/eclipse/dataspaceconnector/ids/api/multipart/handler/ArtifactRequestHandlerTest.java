@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
+import de.fraunhofer.iais.eis.RejectionMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
@@ -28,15 +29,14 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNeg
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -48,6 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class ArtifactRequestHandlerTest {
@@ -73,13 +74,13 @@ class ArtifactRequestHandlerTest {
 
     @Test
     void handleRequestOkTest() throws JsonProcessingException {
-        var artifactId = UUID.randomUUID().toString();
+        var assetId = UUID.randomUUID().toString();
         var artifactRequestId = UUID.randomUUID().toString();
         var contractId = UUID.randomUUID().toString();
         var destination = DataAddress.Builder.newInstance().keyName(UUID.randomUUID().toString()).type("test").build();
-        var multipartRequest = createMultipartRequest(destination, artifactRequestId, artifactId, contractId);
+        var multipartRequest = createMultipartRequest(destination, artifactRequestId, assetId, contractId);
         var header = (ArtifactRequestMessage) multipartRequest.getHeader();
-        var agreement = createContractAgreement();
+        var agreement = createContractAgreement(contractId, assetId);
         var claimToken = ClaimToken.Builder.newInstance().build();
 
         var drCapture = ArgumentCaptor.forClass(DataRequest.class);
@@ -94,10 +95,36 @@ class ArtifactRequestHandlerTest {
         assertThat(drCapture.getValue().getId()).hasToString(artifactRequestId);
         assertThat(drCapture.getValue().getDataDestination().getKeyName()).isEqualTo(destination.getKeyName());
         assertThat(drCapture.getValue().getConnectorId()).isEqualTo(connectorId);
-        assertThat(drCapture.getValue().getAssetId()).isEqualTo(artifactId);
-        assertThat(drCapture.getValue().getContractId()).isEqualTo(contractId);
+        assertThat(drCapture.getValue().getAssetId()).isEqualTo(agreement.getAssetId());
+        assertThat(drCapture.getValue().getContractId()).isEqualTo(agreement.getId());
         assertThat(drCapture.getValue().getConnectorAddress()).isEqualTo(header.getProperties().get(IDS_WEBHOOK_ADDRESS_PROPERTY).toString());
         assertThat(drCapture.getValue().getProperties()).containsExactlyEntriesOf(Map.of("foo", "bar"));
+    }
+
+
+    @Test
+    @DisplayName("Verifies that a contract is not passed with a separate id")
+    void verifyIllegalArtifactIdRequestTest() throws JsonProcessingException {
+        var artifactId = "assetIdNoSpecifiedInContract";
+        var artifactRequestId = UUID.randomUUID().toString();
+        var contractId = UUID.randomUUID().toString();
+        var destination = DataAddress.Builder.newInstance().keyName(UUID.randomUUID().toString()).type("test").build();
+        var multipartRequest = createMultipartRequest(destination, artifactRequestId, artifactId, contractId);
+
+        // Create the contract using a different asset id
+        var agreement = createContractAgreement(contractId, UUID.randomUUID().toString());
+        var claimToken = ClaimToken.Builder.newInstance().build();
+
+        when(contractNegotiationStore.findContractAgreement(contractId)).thenReturn(agreement);
+        when(contractValidationService.validate(claimToken, agreement)).thenReturn(true);
+
+        var response = handler.handleRequest(multipartRequest, claimToken);
+
+        // Verify the request is rejected as the client sent a contract id with a different asset id
+        verifyNoInteractions(transferProcessManager);
+        assertThat(response).isNotNull();
+        assertThat(response.getHeader()).isInstanceOf(RejectionMessage.class);
+
     }
 
     private MultipartRequest createMultipartRequest(DataAddress dataDestination, String artifactRequestId, String artifactId, String contractId) throws JsonProcessingException {
@@ -120,12 +147,12 @@ class ArtifactRequestHandlerTest {
         return URI.create("urn:" + type.getValue() + ":" + value);
     }
 
-    private static ContractAgreement createContractAgreement() {
+    private static ContractAgreement createContractAgreement(String contractId, String assetId) {
         return ContractAgreement.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
+                .id(contractId)
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
-                .assetId(UUID.randomUUID().toString())
+                .assetId(assetId)
                 .policy(Policy.Builder.newInstance().build())
                 .build();
     }

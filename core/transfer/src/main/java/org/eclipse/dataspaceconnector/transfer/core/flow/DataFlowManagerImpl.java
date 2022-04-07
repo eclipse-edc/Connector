@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,12 +43,12 @@ public class DataFlowManagerImpl implements DataFlowManager {
 
     @WithSpan
     @Override
-    public @NotNull DataFlowInitiateResult initiate(DataRequest dataRequest, Policy policy) {
+    public @NotNull DataFlowInitiateResult initiate(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
         try {
             return controllers.stream()
-                    .filter(controller -> controller.canHandle(dataRequest))
+                    .filter(controller -> controller.canHandle(dataRequest, contentAddress))
                     .findFirst()
-                    .map(controller -> controller.initiateFlow(dataRequest, policy))
+                    .map(controller -> controller.initiateFlow(dataRequest, contentAddress, policy))
                     .orElseGet(() -> failure(FATAL_ERROR, controllerNotFound(dataRequest.getId())));
         } catch (Exception e) {
             return failure(FATAL_ERROR, runtimeException(dataRequest.getId(), e.getLocalizedMessage()));
