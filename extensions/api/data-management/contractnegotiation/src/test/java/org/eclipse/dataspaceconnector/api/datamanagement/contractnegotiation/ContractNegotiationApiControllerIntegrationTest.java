@@ -207,18 +207,6 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .build();
     }
 
-    private ContractOfferRequest createContractOfferRequest() {
-        return ContractOfferRequest.Builder.newInstance()
-                .protocol("protocol")
-                .connectorId("connectorId")
-                .connectorAddress("connectorAddress")
-                .contractOffer(ContractOffer.Builder.newInstance()
-                        .id(UUID.randomUUID().toString())
-                        .policy(Policy.Builder.newInstance().build())
-                        .build())
-                .build();
-    }
-
     private ContractNegotiation.Builder createContractNegotiationBuilder(String negotiationId) {
         return ContractNegotiation.Builder.newInstance()
                 .id(negotiationId)
