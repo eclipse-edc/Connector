@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline;
 import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.adapter.BlobAdapterFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.ParallelSink;
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -38,7 +38,7 @@ public class AzureStorageDataSink extends ParallelSink {
     /**
      * Writes data into an Azure storage container.
      */
-    protected TransferResult transferParts(List<DataSource.Part> parts) {
+    protected StatusResult<Void> transferParts(List<DataSource.Part> parts) {
         for (DataSource.Part part : parts) {
             String blobName = part.name();
             try (var input = part.openStream()) {
@@ -56,14 +56,14 @@ public class AzureStorageDataSink extends ParallelSink {
                 return getTransferResult(e, "Error reading blob %s", blobName);
             }
         }
-        return TransferResult.success();
+        return StatusResult.success();
     }
 
     @NotNull
-    private TransferResult getTransferResult(Exception e, String logMessage, Object... args) {
+    private StatusResult<Void> getTransferResult(Exception e, String logMessage, Object... args) {
         String message = format(logMessage, args);
         monitor.severe(message, e);
-        return TransferResult.failure(ERROR_RETRY, message);
+        return StatusResult.failure(ERROR_RETRY, message);
     }
 
     private AzureStorageDataSink() {

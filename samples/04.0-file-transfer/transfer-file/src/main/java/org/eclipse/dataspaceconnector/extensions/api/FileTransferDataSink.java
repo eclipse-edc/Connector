@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.extensions.api;
 
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.ParallelSink;
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -30,7 +30,7 @@ class FileTransferDataSink extends ParallelSink {
     private File file;
 
     @Override
-    protected TransferResult transferParts(List<DataSource.Part> parts) {
+    protected StatusResult<Void> transferParts(List<DataSource.Part> parts) {
         for (DataSource.Part part : parts) {
             var fileName = part.name();
             try (var input = part.openStream()) {
@@ -47,13 +47,13 @@ class FileTransferDataSink extends ParallelSink {
                 return getTransferResult(e, "Error reading file %s", fileName);
             }
         }
-        return TransferResult.success();
+        return StatusResult.success();
     }
 
-    private TransferResult getTransferResult(Exception e, String logMessage, Object... args) {
+    private StatusResult<Void> getTransferResult(Exception e, String logMessage, Object... args) {
         var message = format(logMessage, args);
         monitor.severe(message, e);
-        return TransferResult.failure(ERROR_RETRY, message);
+        return StatusResult.failure(ERROR_RETRY, message);
     }
 
     public static class Builder extends ParallelSink.Builder<Builder, FileTransferDataSink> {

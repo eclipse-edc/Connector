@@ -15,9 +15,10 @@
 
 package org.eclipse.dataspaceconnector.spi.contract.negotiation;
 
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 
 /**
@@ -33,7 +34,7 @@ public interface ContractNegotiationManager {
     /**
      * A negotiation was declined by the counter-party represented by the claim token.
      */
-    NegotiationResult declined(ClaimToken token, String negotiationId);
+    StatusResult<ContractNegotiation> declined(ClaimToken token, String negotiationId);
 
     void enqueueCommand(ContractNegotiationCommand command);
 }

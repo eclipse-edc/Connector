@@ -19,7 +19,7 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSourceFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult.failure;
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
@@ -74,7 +73,7 @@ public class PipelineServiceImpl implements PipelineService {
     }
 
     @Override
-    public CompletableFuture<TransferResult> transfer(DataFlowRequest request) {
+    public CompletableFuture<StatusResult<Void>> transfer(DataFlowRequest request) {
         var sourceFactory = getSourceFactory(request);
         if (sourceFactory == null) {
             return noSourceFactory(request);
@@ -89,7 +88,7 @@ public class PipelineServiceImpl implements PipelineService {
     }
 
     @Override
-    public CompletableFuture<TransferResult> transfer(DataSource source, DataFlowRequest request) {
+    public CompletableFuture<StatusResult<Void>> transfer(DataSource source, DataFlowRequest request) {
         var sinkFactory = getSinkFactory(request);
         if (sinkFactory == null) {
             return noSinkFactory(request);
@@ -99,7 +98,7 @@ public class PipelineServiceImpl implements PipelineService {
     }
 
     @Override
-    public CompletableFuture<TransferResult> transfer(DataSink sink, DataFlowRequest request) {
+    public CompletableFuture<StatusResult<Void>> transfer(DataSink sink, DataFlowRequest request) {
         var sourceFactory = getSourceFactory(request);
         if (sourceFactory == null) {
             return noSourceFactory(request);
@@ -129,13 +128,13 @@ public class PipelineServiceImpl implements PipelineService {
     }
 
     @NotNull
-    private CompletableFuture<TransferResult> noSourceFactory(DataFlowRequest request) {
-        return completedFuture(failure(FATAL_ERROR, "Unknown data source type: " + request.getSourceDataAddress().getType()));
+    private CompletableFuture<StatusResult<Void>> noSourceFactory(DataFlowRequest request) {
+        return completedFuture(StatusResult.failure(FATAL_ERROR, "Unknown data source type: " + request.getSourceDataAddress().getType()));
     }
 
     @NotNull
-    private CompletableFuture<TransferResult> noSinkFactory(DataFlowRequest request) {
-        return completedFuture(failure(FATAL_ERROR, "Unknown data sink type: " + request.getDestinationDataAddress().getType()));
+    private CompletableFuture<StatusResult<Void>> noSinkFactory(DataFlowRequest request) {
+        return completedFuture(StatusResult.failure(FATAL_ERROR, "Unknown data sink type: " + request.getDestinationDataAddress().getType()));
     }
 
 

@@ -15,8 +15,8 @@ package org.eclipse.dataspaceconnector.aws.dataplane.s3;
 
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.ParallelSink;
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -33,7 +33,7 @@ class S3DataSink extends ParallelSink {
     private S3DataSink() { }
 
     @Override
-    protected TransferResult transferParts(List<DataSource.Part> parts) {
+    protected StatusResult<Void> transferParts(List<DataSource.Part> parts) {
         for (DataSource.Part part : parts) {
             try (var input = part.openStream()) {
                 PutObjectRequest request = PutObjectRequest.builder()
@@ -43,13 +43,13 @@ class S3DataSink extends ParallelSink {
                 client.putObject(request, RequestBody.fromBytes(input.readAllBytes()));
             } catch (IOException e) {
                 monitor.severe("Cannot open the input part");
-                return TransferResult.failure(ResponseStatus.FATAL_ERROR, "An error");
+                return StatusResult.failure(ResponseStatus.FATAL_ERROR, "An error");
             } catch (Exception e) {
                 monitor.severe("Error writing data to the bucket");
-                return TransferResult.failure(ResponseStatus.FATAL_ERROR, "An error");
+                return StatusResult.failure(ResponseStatus.FATAL_ERROR, "An error");
             }
         }
-        return TransferResult.success();
+        return StatusResult.success();
     }
 
     public static class Builder extends ParallelSink.Builder<Builder, S3DataSink> {

@@ -16,8 +16,8 @@ package org.eclipse.dataspaceconnector.transfer.core.flow;
 
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
-import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -28,7 +28,6 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
-import static org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult.failure;
 
 /**
  * The default data flow manager.
@@ -43,15 +42,15 @@ public class DataFlowManagerImpl implements DataFlowManager {
 
     @WithSpan
     @Override
-    public @NotNull DataFlowInitiateResult initiate(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
+    public @NotNull StatusResult<String> initiate(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
         try {
             return controllers.stream()
                     .filter(controller -> controller.canHandle(dataRequest, contentAddress))
                     .findFirst()
                     .map(controller -> controller.initiateFlow(dataRequest, contentAddress, policy))
-                    .orElseGet(() -> failure(FATAL_ERROR, controllerNotFound(dataRequest.getId())));
+                    .orElseGet(() -> StatusResult.failure(FATAL_ERROR, controllerNotFound(dataRequest.getId())));
         } catch (Exception e) {
-            return failure(FATAL_ERROR, runtimeException(dataRequest.getId(), e.getLocalizedMessage()));
+            return StatusResult.failure(FATAL_ERROR, runtimeException(dataRequest.getId(), e.getLocalizedMessage()));
         }
     }
 

@@ -14,17 +14,17 @@
 
 package org.eclipse.dataspaceconnector.dataplane.spi.pipeline;
 
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
+import org.eclipse.dataspaceconnector.spi.result.AbstractResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.io.OutputStream;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
-import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static java.util.stream.Collectors.toList;
+import static org.eclipse.dataspaceconnector.common.async.AsyncUtils.asyncAllOf;
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_RETRY;
 
 /**
@@ -42,18 +42,20 @@ public class OutputStreamDataSink implements DataSink {
     }
 
     @Override
-    public CompletableFuture<TransferResult> transfer(DataSource source) {
+    public CompletableFuture<StatusResult<Void>> transfer(DataSource source) {
         try (var partStream = source.openPartStream()) {
-            var futures = partStream.map(part -> supplyAsync(() -> transferData(part), executorService)).collect(toList());
-            return allOf(futures.toArray(CompletableFuture[]::new)).thenApply((s) -> {
-                if (futures.stream().anyMatch(future -> future.getNow(null).failed())) {
-                    return TransferResult.failure(ERROR_RETRY, "Error transferring data");
-                }
-                return TransferResult.success();
-            });
+            return partStream
+                    .map(part -> supplyAsync(() -> transferData(part), executorService))
+                    .collect(asyncAllOf())
+                    .thenApply(results -> {
+                        if (results.stream().anyMatch(AbstractResult::failed)) {
+                            return StatusResult.failure(ERROR_RETRY, "Error transferring data");
+                        }
+                        return StatusResult.success();
+                    });
         } catch (Exception e) {
             monitor.severe("Error processing data transfer request", e);
-            return CompletableFuture.completedFuture(TransferResult.failure(ERROR_RETRY, "Error processing data transfer request"));
+            return CompletableFuture.completedFuture(StatusResult.failure(ERROR_RETRY, "Error processing data transfer request"));
         }
     }
 
