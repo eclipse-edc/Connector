@@ -138,7 +138,7 @@ public class PolicyServiceImplTest {
 
     @Test
     void delete_shouldFailIfPolicyDoesNotExist() {
-        when(policyStore.deleteById("assetId")).thenReturn(null);
+        when(policyStore.deleteById("policyId")).thenReturn(null);
 
         var deleted = policyServiceImpl.deleteById("policyId");
 
@@ -152,7 +152,7 @@ public class PolicyServiceImplTest {
         return it -> policyId.equals(it.getUid());
     }
 
-    private Policy createPolicy(String assetID) {
-        return Policy.Builder.newInstance().id(assetID).build();
+    private Policy createPolicy(String PolicyId) {
+        return Policy.Builder.newInstance().id(PolicyId).build();
     }
 }
