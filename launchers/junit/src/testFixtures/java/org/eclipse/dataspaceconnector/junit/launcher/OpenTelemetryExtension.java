@@ -32,7 +32,7 @@ public class OpenTelemetryExtension implements BeforeTestExecutionCallback {
         checkForAgent();
     }
 
-    static void checkForAgent() {
+    private void checkForAgent() {
         RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
         assertThat(runtimeMxBean.getInputArguments())
                 .withFailMessage("OpenTelemetry Agent JAR should be attached to run the tests with the -javaagent JVM flag.")
