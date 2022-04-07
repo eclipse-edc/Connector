@@ -10,7 +10,9 @@
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *       Microsoft Corporation
+ *
  */
+
 package org.eclipse.dataspaceconnector.spi.types.domain.transfer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -27,11 +29,12 @@ import static java.util.Objects.requireNonNull;
 @JsonDeserialize(builder = DeprovisionedResource.Builder.class)
 public class DeprovisionedResource {
     private String provisionedResourceId;
-
     private boolean inProcess;
-
     private boolean error;
     private String errorMessage;
+
+    private DeprovisionedResource() {
+    }
 
     public String getProvisionedResourceId() {
         return provisionedResourceId;
@@ -45,16 +48,17 @@ public class DeprovisionedResource {
         return errorMessage;
     }
 
-    private DeprovisionedResource() {
-    }
-
     public boolean isInProcess() {
         return inProcess;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private DeprovisionedResource resource;
+        private final DeprovisionedResource resource;
+
+        private Builder() {
+            resource = new DeprovisionedResource();
+        }
 
         @JsonCreator
         public static Builder newInstance() {
@@ -88,10 +92,6 @@ public class DeprovisionedResource {
         public DeprovisionedResource build() {
             requireNonNull(resource.provisionedResourceId, "provisionedResourceId");
             return resource;
-        }
-
-        private Builder() {
-            resource = new DeprovisionedResource();
         }
 
     }

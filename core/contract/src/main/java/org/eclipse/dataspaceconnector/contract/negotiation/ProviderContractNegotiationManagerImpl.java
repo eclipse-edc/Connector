@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021-2022 Microsoft Corporation
+ *  Copyright (c) 2021 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -11,9 +11,10 @@
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
  *       Daimler TSS GmbH - fixed contract dates to epoch seconds
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - refactor
  *
  */
+
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import io.opentelemetry.extension.annotations.WithSpan;
@@ -22,8 +23,8 @@ import org.eclipse.dataspaceconnector.common.statemachine.StateProcessorImpl;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationListener;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
@@ -45,7 +46,7 @@ import java.util.function.Function;
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.parseContractId;
-import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult.Status.FATAL_ERROR;
+import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.DECLINING;
@@ -93,15 +94,15 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      *
      * @param token Claim token of the consumer that sent the rejection.
      * @param correlationId Id of the ContractNegotiation on consumer side.
-     * @return a {@link NegotiationResult}: OK, if successfully transitioned to declined;
+     * @return a {@link StatusResult}: OK, if successfully transitioned to declined;
      *         FATAL_ERROR, if no match found for Id.
      */
     @WithSpan
     @Override
-    public NegotiationResult declined(ClaimToken token, String correlationId) {
+    public StatusResult<ContractNegotiation> declined(ClaimToken token, String correlationId) {
         var negotiation = findContractNegotiationById(correlationId);
         if (negotiation == null) {
-            return NegotiationResult.failure(FATAL_ERROR);
+            return StatusResult.failure(FATAL_ERROR);
         }
 
         monitor.debug("[Provider] Contract rejection received. Abort negotiation process.");
@@ -115,7 +116,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
-        return NegotiationResult.success(negotiation);
+        return StatusResult.success(negotiation);
     }
 
     private ContractNegotiation findContractNegotiationById(String negotiationId) {
@@ -134,11 +135,11 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      *
      * @param token Claim token of the consumer that send the contract request.
      * @param request Container object containing all relevant request parameters.
-     * @return a {@link NegotiationResult}: OK
+     * @return a {@link StatusResult}: OK
      */
     @WithSpan
     @Override
-    public NegotiationResult requested(ClaimToken token, ContractOfferRequest request) {
+    public StatusResult<ContractNegotiation> requested(ClaimToken token, ContractOfferRequest request) {
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .correlationId(request.getCorrelationId())
@@ -168,14 +169,14 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * @param correlationId Id of the ContractNegotiation on consumer side.
      * @param offer The contract offer.
      * @param hash A hash of all previous contract offers.
-     * @return a {@link NegotiationResult}: FATAL_ERROR, if no match found for Id; OK otherwise
+     * @return a {@link StatusResult}: FATAL_ERROR, if no match found for Id; OK otherwise
      */
     @WithSpan
     @Override
-    public NegotiationResult offerReceived(ClaimToken token, String correlationId, ContractOffer offer, String hash) {
+    public StatusResult<ContractNegotiation> offerReceived(ClaimToken token, String correlationId, ContractOffer offer, String hash) {
         var negotiation = negotiationStore.findForCorrelationId(correlationId);
         if (negotiation == null) {
-            return NegotiationResult.failure(FATAL_ERROR);
+            return StatusResult.failure(FATAL_ERROR);
         }
 
         return processIncomingOffer(negotiation, token, offer);
@@ -189,9 +190,9 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * @param negotiation The ContractNegotiation.
      * @param token Claim token of the consumer that send the contract request.
      * @param offer The contract offer.
-     * @return a {@link NegotiationResult}: OK
+     * @return a {@link StatusResult}: OK
      */
-    private NegotiationResult processIncomingOffer(ContractNegotiation negotiation, ClaimToken token, ContractOffer offer) {
+    private StatusResult<ContractNegotiation> processIncomingOffer(ContractNegotiation negotiation, ClaimToken token, ContractOffer offer) {
         Result<ContractOffer> result;
         if (negotiation.getContractOffers().isEmpty()) {
             result = validationService.validate(token, offer);
@@ -210,7 +211,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
 
             monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-            return NegotiationResult.success(negotiation);
+            return StatusResult.success(negotiation);
         }
 
         monitor.debug("[Provider] Contract offer received. Will be approved.");
@@ -220,7 +221,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
-        return NegotiationResult.success(negotiation);
+        return StatusResult.success(negotiation);
     }
 
     /**
@@ -231,13 +232,13 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * @param correlationId Id of the ContractNegotiation on consumer side.
      * @param agreement Agreement sent by consumer.
      * @param hash A hash of all previous contract offers.
-     * @return a {@link NegotiationResult}: FATAL_ERROR, if no match found for Id; OK otherwise
+     * @return a {@link StatusResult}: FATAL_ERROR, if no match found for Id; OK otherwise
      */
     @Override
-    public NegotiationResult consumerApproved(ClaimToken token, String correlationId, ContractAgreement agreement, String hash) {
+    public StatusResult<ContractNegotiation> consumerApproved(ClaimToken token, String correlationId, ContractAgreement agreement, String hash) {
         var negotiation = negotiationStore.findForCorrelationId(correlationId);
         if (negotiation == null) {
-            return NegotiationResult.failure(FATAL_ERROR);
+            return StatusResult.failure(FATAL_ERROR);
         }
 
         monitor.debug("[Provider] Contract offer has been approved by consumer.");
@@ -245,7 +246,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         update(negotiation, l -> l.preConfirming(negotiation));
         monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-        return NegotiationResult.success(negotiation);
+        return StatusResult.success(negotiation);
     }
 
     private StateProcessorImpl<ContractNegotiation> processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
@@ -388,7 +389,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                     .providerAgentId(String.valueOf(lastOffer.getProvider()))
                     .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
                     .policy(lastOffer.getPolicy())
-                    .asset(lastOffer.getAsset())
+                    .assetId(lastOffer.getAsset().getId())
                     .build();
         } else {
             agreement = retrievedAgreement;

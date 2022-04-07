@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
@@ -482,7 +482,7 @@ public class TransferProcess implements TraceCarrier {
             }
 
             if (process.dataRequest != null) {
-                process.dataRequest.setProcessId(process.id);
+                process.dataRequest.associateWithProcessId(process.id);
             }
             return process;
         }

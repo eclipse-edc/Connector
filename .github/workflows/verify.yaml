@@ -8,8 +8,12 @@ on:
       - '**.md'
       - 'docs/**'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  Unit-Test:
+  Checkstyle:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -31,6 +35,32 @@ jobs:
           checkstyle_version: '9.0'
           reporter: 'github-check'
           filter_mode: 'nofilter'
+
+  Dependency-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Dependency rules report # possible severity values: <'fail'|'warn'|'ignore'>
+        run: ./gradlew buildHealth applyDependencyRules -Pdependency.analysis=warn -Pdependency.analysis.clear.artifacts=false
+
+      - name: Dependency analysis report
+        run: cat build/reports/dependency-analysis/build-health-report.txt
+
+  Unit-Test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
 
       - name: Gradle Test Core
         env:

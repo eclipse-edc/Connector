@@ -1,15 +1,16 @@
 /*
- * Copyright (c) 2022 ZF Friedrichshafen AG
+ *  Copyright (c) 2022 ZF Friedrichshafen AG
  *
- * This program and the accompanying materials are made available under the
- * terms of the Apache License, Version 2.0 which is available at
- * https://www.apache.org/licenses/LICENSE-2.0
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ *  SPDX-License-Identifier: Apache-2.0
  *
- * Contributors:
- *    ZF Friedrichshafen AG - Initial API and Implementation
- *    Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *  Contributors:
+ *       ZF Friedrichshafen AG - Initial API and Implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
@@ -34,22 +35,22 @@ import static java.util.Optional.ofNullable;
 public class ContractNegotiationApiExtension implements ServiceExtension {
 
     @Inject
-    WebService webService;
+    private WebService webService;
 
     @Inject
-    DataManagementApiConfiguration config;
+    private DataManagementApiConfiguration config;
 
     @Inject
-    DtoTransformerRegistry transformerRegistry;
+    private DtoTransformerRegistry transformerRegistry;
 
     @Inject
-    ContractNegotiationStore store;
+    private ContractNegotiationStore store;
 
     @Inject
-    ConsumerContractNegotiationManager manager;
+    private ConsumerContractNegotiationManager manager;
 
     @Inject(required = false)
-    TransactionContext transactionContext;
+    private TransactionContext transactionContext;
 
     @Override
     public void initialize(ServiceExtensionContext context) {

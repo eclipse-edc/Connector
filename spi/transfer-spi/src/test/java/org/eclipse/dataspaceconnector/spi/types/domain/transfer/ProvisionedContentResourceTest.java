@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.spi.types.domain.transfer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -31,7 +32,7 @@ class ProvisionedContentResourceTest {
         var dataAddress = DataAddress.Builder.newInstance().type("test").build();
         var resource = TestProvisionedContentResource.Builder.newInstance()
                 .resourceName("test")
-                .contentDataAddress(dataAddress)
+                .dataAddress(dataAddress)
                 .id("1")
                 .transferProcessId("2")
                 .resourceDefinitionId("12")
@@ -41,7 +42,7 @@ class ProvisionedContentResourceTest {
         var deserialized = mapper.readValue(serialized, TestProvisionedContentResource.class);
 
         assertThat(deserialized).isNotNull();
-        assertThat(deserialized.getContentDataAddress()).isNotNull();
+        assertThat(deserialized.getDataAddress()).isNotNull();
         assertThat(deserialized.getResourceName()).isEqualTo("test");
         assertThat(deserialized.getId()).isEqualTo("1");
         assertThat(deserialized.getTransferProcessId()).isEqualTo("2");

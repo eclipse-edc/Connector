@@ -21,9 +21,8 @@ plugins {
 
 dependencies {
     api(project(":spi:contract-spi"))
-    api(project(":common:state-machine-lib"))
-    api(project(":common:util"))
 
+    implementation(project(":common:state-machine-lib"))
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))

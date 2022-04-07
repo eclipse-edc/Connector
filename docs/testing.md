@@ -1,5 +1,13 @@
 # Writing Tests
 
+## Controlling test verbosity
+
+To run tests verbosely (displaying test events and output and error streams to the console), use the following system property:
+
+```shell
+./gradlew test -PverboseTest
+```
+
 ## Definition and distinction
 
 * _unit tests_ test one single class by stubbing or mocking dependencies.

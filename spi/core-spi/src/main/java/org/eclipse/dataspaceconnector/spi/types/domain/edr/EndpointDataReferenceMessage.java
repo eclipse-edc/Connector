@@ -12,7 +12,6 @@
  *
  */
 
-
 package org.eclipse.dataspaceconnector.spi.types.domain.edr;
 
 import com.fasterxml.jackson.annotation.JsonCreator;

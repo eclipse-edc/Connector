@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.core.base.policy;
 
 import org.eclipse.dataspaceconnector.policy.engine.PolicyEvaluator;
@@ -51,6 +52,11 @@ public class PolicyEngineImpl implements PolicyEngine {
 
     public PolicyEngineImpl(ScopeFilter scopeFilter) {
         this.scopeFilter = scopeFilter;
+    }
+
+    @Override
+    public Policy filter(Policy policy, String scope) {
+        return scopeFilter.applyScope(policy, scope);
     }
 
     @Override

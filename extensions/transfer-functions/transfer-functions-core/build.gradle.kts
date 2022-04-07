@@ -24,6 +24,8 @@ dependencies {
     // extensions needed for integration testing
     testImplementation(project(":core:transfer"))
     testImplementation(project(":extensions:in-memory:transfer-store-memory"))
+    testImplementation(project(":extensions:in-memory:policy-store-memory"))
+    testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(testFixtures(project(":common:util")))
 }

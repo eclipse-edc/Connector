@@ -11,6 +11,7 @@
  *       Daimler TSS GmbH - Initial API and Implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.contract;
 
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;

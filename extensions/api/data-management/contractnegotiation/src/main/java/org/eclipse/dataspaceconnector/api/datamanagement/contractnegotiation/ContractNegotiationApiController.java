@@ -1,16 +1,17 @@
 /*
- * Copyright (c) 2022 ZF Friedrichshafen AG
+ *  Copyright (c) 2022 ZF Friedrichshafen AG
  *
- * This program and the accompanying materials are made available under the
- * terms of the Apache License, Version 2.0 which is available at
- * https://www.apache.org/licenses/LICENSE-2.0
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ *  SPDX-License-Identifier: Apache-2.0
  *
- * Contributors:
- *    ZF Friedrichshafen AG - Initial API and Implementation
- *    Microsoft Corporation - Added initiate-negotiation endpoint
- *    Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Contributors:
+ *       ZF Friedrichshafen AG - Initial API and Implementation
+ *       Microsoft Corporation - Added initiate-negotiation endpoint
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - Improvements
+ *
  */
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
@@ -168,14 +169,18 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     }
 
     private boolean isValid(NegotiationInitiateRequestDto initiateDto) {
-        return StringUtils.isNoneBlank(initiateDto.getConnectorId(), initiateDto.getConnectorAddress(), initiateDto.getProtocol(), initiateDto.getOfferId());
+        return StringUtils.isNoneBlank(initiateDto.getConnectorId(), initiateDto.getConnectorAddress(), initiateDto.getProtocol(),
+                initiateDto.getOffer().getOfferId(), initiateDto.getOffer().getAssetId(), initiateDto.getOffer().getPolicyId());
     }
 
     private void handleFailedResult(ServiceResult<ContractNegotiation> result, String id) {
         switch (result.reason()) {
-            case NOT_FOUND: throw new ObjectNotFoundException(ContractNegotiation.class, id);
-            case CONFLICT: throw new ObjectExistsException(ContractNegotiation.class, id);
-            default: throw new EdcException("unexpected error");
+            case NOT_FOUND:
+                throw new ObjectNotFoundException(ContractNegotiation.class, id);
+            case CONFLICT:
+                throw new ObjectExistsException(ContractNegotiation.class, id);
+            default:
+                throw new EdcException("unexpected error");
         }
     }
 }

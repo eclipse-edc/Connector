@@ -18,7 +18,6 @@ import org.eclipse.dataspaceconnector.common.token.TokenValidationRulesRegistryI
 import org.eclipse.dataspaceconnector.common.token.TokenValidationServiceImpl;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.WebService;
-import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.iam.PublicKeyResolver;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -44,9 +43,6 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
 
     @EdcSetting
     private static final String PUBLIC_KEY_ALIAS = "edc.public.key.alias";
-
-    @Inject
-    private DataAddressResolver dataAddressResolver;
 
     @Inject
     private ContractNegotiationStore contractNegotiationStore;
@@ -75,7 +71,7 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         registerValidationApi(context);
 
-        var flowController = new ProviderDataPlaneProxyDataFlowController(context.getConnectorId(), dispatcherRegistry, dataAddressResolver, proxyManager);
+        var flowController = new ProviderDataPlaneProxyDataFlowController(context.getConnectorId(), dispatcherRegistry, proxyManager);
         dataFlowManager.register(flowController);
     }
 

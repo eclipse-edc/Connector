@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.core;
 
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;

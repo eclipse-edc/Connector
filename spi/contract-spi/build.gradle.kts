@@ -19,6 +19,7 @@ plugins {
 
 dependencies {
     api(project(":spi:core-spi"))
+    api(project(":spi:policy-spi"))
 }
 
 publishing {

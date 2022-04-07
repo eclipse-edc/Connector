@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added tests
  *
  */
 
@@ -120,6 +121,21 @@ public class CosmosContractDefinitionStoreIntegrationTest {
     @Test
     void findAll_emptyResult() {
         assertThat(store.findAll()).isNotNull().isEmpty();
+    }
+    
+    @Test
+    void findById() {
+        var doc = generateDocument(TEST_PARTITION_KEY);
+        container.createItem(doc);
+        
+        var result = store.findById(doc.getId());
+        
+        assertThat(result).isNotNull().isEqualTo(doc.getWrappedInstance());
+    }
+    
+    @Test
+    void findById_invalidId() {
+        assertThat(store.findById("invalid-id")).isNull();
     }
 
     @Test

@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.spi.query;
 
 import org.eclipse.dataspaceconnector.common.reflection.ReflectionUtil;

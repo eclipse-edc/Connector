@@ -12,6 +12,7 @@
  *       Fraunhofer Institute for Software and Systems Engineering - added test
  *
  */
+
 package org.eclipse.dataspaceconnector.policy.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;

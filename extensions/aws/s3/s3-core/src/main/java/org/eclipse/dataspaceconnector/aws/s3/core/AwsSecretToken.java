@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.SecretToken;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class AwsSecretToken implements SecretToken {
     private final String accessKeyId;
@@ -46,5 +47,18 @@ public class AwsSecretToken implements SecretToken {
 
     public String getSecretAccessKey() {
         return secretAccessKey;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AwsSecretToken that = (AwsSecretToken) o;
+        return Objects.equals(accessKeyId, that.accessKeyId) && Objects.equals(secretAccessKey, that.secretAccessKey);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(accessKeyId, secretAccessKey);
     }
 }

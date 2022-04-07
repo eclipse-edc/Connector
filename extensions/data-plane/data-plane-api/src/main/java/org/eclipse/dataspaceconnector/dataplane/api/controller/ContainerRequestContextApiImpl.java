@@ -50,11 +50,8 @@ public class ContainerRequestContextApiImpl implements ContainerRequestContextAp
         var props = new HashMap<String, String>();
         props.put(METHOD, context.getMethod());
         props.put(QUERY_PARAMS, convertQueryParamsToString(context.getUriInfo()));
+        props.put(PATH, context.getUriInfo().getPath());
 
-        var pathInfo = context.getUriInfo().getPath();
-        if (!pathInfo.isBlank()) {
-            props.put(PATH, pathInfo);
-        }
 
         var mediaType = context.getMediaType();
         Optional.ofNullable(mediaType).ifPresent(mt -> {

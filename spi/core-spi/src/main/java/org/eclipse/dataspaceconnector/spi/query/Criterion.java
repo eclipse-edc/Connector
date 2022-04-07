@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.spi.query;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Objects;
+import java.util.function.Function;
 
 import static java.lang.String.format;
 
@@ -60,6 +61,10 @@ public class Criterion {
 
     public Object getOperandRight() {
         return operandRight;
+    }
+
+    public Criterion withLeftOperand(Function<Object, Object> function) {
+        return new Criterion(function.apply(this.operandLeft), this.operator, this.getOperandRight());
     }
 
     @Override

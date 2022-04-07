@@ -1,6 +1,20 @@
+/*
+ *  Copyright (c) 2022 Amadeus
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Amadeus - Initial implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.dataplane.spi.pipeline;
 
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +43,6 @@ public class OutputStreamDataSinkFactory implements DataSinkFactory {
 
     @Override
     public DataSink createSink(DataFlowRequest request) {
-        return source -> CompletableFuture.completedFuture(TransferResult.success());
+        return source -> CompletableFuture.completedFuture(StatusResult.success());
     }
 }

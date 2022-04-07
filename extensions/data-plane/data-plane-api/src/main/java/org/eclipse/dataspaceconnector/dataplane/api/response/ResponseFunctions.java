@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.dataplane.api.response;
 
 import jakarta.ws.rs.core.Response;

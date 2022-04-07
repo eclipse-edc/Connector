@@ -71,7 +71,10 @@ public class DataRequest implements RemoteMessage, Polymorphic {
         return processId;
     }
 
-    void setProcessId(String processId) {
+    /**
+     * Associates the request with a process id.
+     */
+    void associateWithProcessId(String processId) {
         this.processId = processId;
     }
 
@@ -103,7 +106,6 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     public String getAssetId() {
         return assetId;
     }
-
 
     /**
      * The id of the requested contract.
@@ -199,13 +201,13 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             return this;
         }
 
-        public Builder assetId(String assetId) {
-            request.assetId = assetId;
+        public Builder contractId(String contractId) {
+            request.contractId = contractId;
             return this;
         }
 
-        public Builder contractId(String contractId) {
-            request.contractId = contractId;
+        public Builder assetId(String assetId) {
+            request.assetId = assetId;
             return this;
         }
 
