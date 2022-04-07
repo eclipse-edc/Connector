@@ -908,9 +908,38 @@ paths:
           description: default response
           content:
             application/json: {}
-  /callback:
+  /callback/{processId}/deprovision:
     post:
-      operationId: callWebhook
+      operationId: callDeprovisionWebhook
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeprovisionedResource'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /callback/{processId}/provision:
+    post:
+      operationId: callProvisionWebhook
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
       requestBody:
         content:
           application/json:
@@ -1026,6 +1055,10 @@ components:
           $ref: '#/components/schemas/Policy'
         asset:
           $ref: '#/components/schemas/Asset'
+        policyId:
+          type: string
+        assetId:
+          type: string
         provider:
           type: string
           format: uri
@@ -1053,6 +1086,8 @@ components:
           type: string
         policyId:
           type: string
+        policy:
+          $ref: '#/components/schemas/Policy'
     ContractOfferRequest:
       type: object
       properties:
@@ -1149,6 +1184,17 @@ components:
         contractId:
           type: string
         connectorId:
+          type: string
+    DeprovisionedResource:
+      type: object
+      properties:
+        provisionedResourceId:
+          type: string
+        inProcess:
+          type: boolean
+        error:
+          type: boolean
+        errorMessage:
           type: string
     Duty:
       type: object
@@ -1294,8 +1340,6 @@ components:
     ProvisionerWebhookRequest:
       type: object
       properties:
-        transferProcessId:
-          type: string
         resourceDefinitionId:
           type: string
         assetId:

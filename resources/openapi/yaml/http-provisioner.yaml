@@ -1,8 +1,33 @@
 openapi: 3.0.1
 paths:
-  /callback:
+  /callback/{processId}/deprovision:
     post:
-      operationId: callWebhook
+      operationId: callDeprovisionWebhook
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeprovisionedResource'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /callback/{processId}/provision:
+    post:
+      operationId: callProvisionWebhook
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        schema:
+          type: string
       requestBody:
         content:
           application/json:
@@ -15,6 +40,17 @@ paths:
             application/json: {}
 components:
   schemas:
+    DeprovisionedResource:
+      type: object
+      properties:
+        provisionedResourceId:
+          type: string
+        inProcess:
+          type: boolean
+        error:
+          type: boolean
+        errorMessage:
+          type: string
     DataAddress:
       type: object
       properties:
@@ -25,8 +61,6 @@ components:
     ProvisionerWebhookRequest:
       type: object
       properties:
-        transferProcessId:
-          type: string
         resourceDefinitionId:
           type: string
         assetId:
