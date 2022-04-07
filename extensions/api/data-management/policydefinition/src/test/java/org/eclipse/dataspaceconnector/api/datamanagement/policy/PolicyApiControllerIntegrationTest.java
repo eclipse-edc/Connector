@@ -69,7 +69,6 @@ public class PolicyApiControllerIntegrationTest {
     void getSinglePolicy(PolicyStore policyStore) {
         //Check
         var policy = createPolicy("id");
-
         policyStore.save(policy);
 
         baseRequest()
@@ -77,7 +76,7 @@ public class PolicyApiControllerIntegrationTest {
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
-                .body("target", is("the target"));
+                .body("uid", is("id"));
     }
 
     @Test
