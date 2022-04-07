@@ -35,7 +35,9 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
+import org.eclipse.dataspaceconnector.spi.result.AbstractResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 
 import java.util.List;
@@ -106,18 +108,28 @@ public class TransferProcessApiController implements TransferProcessApi {
     }
 
     @POST
-    @Path("/{id}/request")
+    @Path("/request")
     @Override
-    public String initiateTransfer(@PathParam("id") String assetId, TransferRequestDto transferRequest) {
-        if (StringUtils.isNullOrBlank(assetId)) {
-            throw new IllegalArgumentException("Asset ID not valid");
-        }
-
+    public String initiateTransfer(TransferRequestDto transferRequest) {
         if (!isValid(transferRequest)) {
             throw new IllegalArgumentException("Transfer request body not valid");
         }
-        monitor.debug("Starting transfer for asset " + assetId + "to " + transferRequest.getDataDestination());
-        return "not-implemented"; //will be the transfer process id
+        var dataRequest = Optional.ofNullable(transformerRegistry.transform(transferRequest, DataRequest.class))
+                .filter(AbstractResult::succeeded).map(AbstractResult::getContent);
+        if (dataRequest.isEmpty()) {
+            throw  new IllegalArgumentException("Error during transforming TransferRequestDto into DataRequest");
+        }
+        monitor.debug("Starting transfer for asset " + transferRequest.getAssetId());
+
+        ServiceResult<String> result = service.initiateTransfer(dataRequest.get());
+        if (result.succeeded()) {
+            monitor.debug(format("Transfer process initialised %s", result.getContent()));
+            return result.getContent();
+        } else {
+            String message = format("Error during initiating the transfer with assetId: %s", transferRequest.getAssetId());
+            monitor.severe(message);
+            throw new EdcException(message);
+        }
     }
 
     @POST
@@ -147,7 +159,8 @@ public class TransferProcessApiController implements TransferProcessApi {
     }
 
     private boolean isValid(TransferRequestDto transferRequest) {
-        return !StringUtils.isNullOrBlank(transferRequest.getConnectorAddress()) &&
+        return !StringUtils.isNullOrBlank(transferRequest.getAssetId()) &&
+                !StringUtils.isNullOrBlank(transferRequest.getConnectorAddress()) &&
                 !StringUtils.isNullOrBlank(transferRequest.getContractId()) &&
                 !StringUtils.isNullOrBlank(transferRequest.getProtocol()) &&
                 transferRequest.getDataDestination() != null;

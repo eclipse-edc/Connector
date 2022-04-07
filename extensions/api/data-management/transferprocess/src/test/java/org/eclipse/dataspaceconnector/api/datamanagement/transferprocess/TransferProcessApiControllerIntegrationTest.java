@@ -15,8 +15,10 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess;
 
 import io.restassured.specification.RequestSpecification;
+import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferRequestDto;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.junit.jupiter.api.BeforeEach;
@@ -197,6 +199,42 @@ class TransferProcessApiControllerIntegrationTest {
                 .post("/transferprocess/" + PROCESS_ID + "/deprovision")
                 .then()
                 .statusCode(409);
+    }
+
+    @Test
+    void initiateRequest(TransferProcessStore store) {
+        var request = TransferRequestDto.Builder.newInstance()
+                .connectorAddress("http://some-contract")
+                .contractId("some-contract")
+                .protocol("test-asset")
+                .assetId("assetId")
+                .dataDestination(DataAddress.Builder.newInstance().type("test-type").build())
+                .connectorId("connectorId")
+                .properties(Map.of("prop", "value"))
+                .build();
+
+        var result = baseRequest()
+                .contentType(JSON)
+                .body(request)
+                .post("/transferprocess/request")
+                .then()
+                .statusCode(200)
+                .extract().body().asString();
+
+        assertThat(result).isNotBlank();
+    }
+
+    @Test
+    void initiateRequest_badRequest() {
+
+        baseRequest()
+                .contentType(JSON)
+                .body("bad-request")
+                .post("/transferprocess/request")
+                .then()
+                .statusCode(400)
+                .extract().body().asString();
+
     }
 
     private TransferProcess createTransferProcess(String processId) {

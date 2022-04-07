@@ -15,11 +15,14 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.service;
 
 import com.github.javafaker.Faker;
+import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.CancelTransferCommand;
@@ -134,6 +137,17 @@ class TransferProcessServiceImplTest {
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).containsExactly("TransferProcess " + id + " does not exist");
+    }
+
+    @Test
+    void initiateTransfer() {
+        var dataRequest = DataRequest.Builder.newInstance().destinationType("type").build();
+        String processId = "processId";
+
+        when(manager.initiateConsumerRequest(dataRequest)).thenReturn(TransferInitiateResult.success(processId));
+        ServiceResult<String> result = service.initiateTransfer(dataRequest);
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent()).isEqualTo(processId);
     }
 
     public static List<TransferProcessStates> cancellableStates() {

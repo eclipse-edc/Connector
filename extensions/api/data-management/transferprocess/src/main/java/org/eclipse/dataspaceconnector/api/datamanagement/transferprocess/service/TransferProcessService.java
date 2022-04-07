@@ -14,9 +14,12 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.service;
 
+import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferProcessDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferRequestDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,4 +79,13 @@ public interface TransferProcessService {
      */
     @NotNull
     ServiceResult<TransferProcess> deprovision(String transferProcessId);
+
+    /**
+     * Initiate transfer request.
+     *
+     * @param request for the transfer.
+     * @return a result that is successful if the transfer process was initiated with id of created transferProcess.
+     */
+    @NotNull
+    ServiceResult<String> initiateTransfer(DataRequest request);
 }
