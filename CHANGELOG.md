@@ -47,7 +47,7 @@ the detailed section referring to by linking pull requests or issues.
 * Let Control Plane delegate data transfer to Data Plane (#988)
 * CosmosDb based `PolicyStore` (#826)
 * Http Provisioner Webhook endpoint (#1039)
-* Add PolicyService and PolicyTransformer (#1025)
+* Add `PolicyService` and Rest endpoints in Data Management API (#1025)
 
 #### Changed
 
