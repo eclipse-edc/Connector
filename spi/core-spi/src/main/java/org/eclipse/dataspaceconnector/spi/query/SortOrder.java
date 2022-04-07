@@ -14,6 +14,9 @@
 
 package org.eclipse.dataspaceconnector.spi.query;
 
+/**
+ * Defines the sort order for query results.
+ */
 public enum SortOrder {
     ASC, DESC
 }

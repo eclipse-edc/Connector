@@ -14,6 +14,9 @@
 
 package org.eclipse.dataspaceconnector.spi.retry;
 
+/**
+ * Provides a mechanism for clients to wait a given period before re-attempting an operation.
+ */
 public interface WaitStrategy {
 
     /**

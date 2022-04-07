@@ -19,8 +19,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 
+/**
+ * Base result type used by services to indicate success or failure.
+ *
+ * Service operations should generally never throw checked exceptions. Instead, they should return concrete result types and raise unchecked exceptions only when an
+ * unexpected event happens, such as a programming error.
+ */
 public abstract class AbstractResult<T, F extends Failure> {
 
     private final T content;

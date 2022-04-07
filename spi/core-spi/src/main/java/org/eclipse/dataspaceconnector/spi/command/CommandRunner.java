@@ -37,7 +37,7 @@ public class CommandRunner<C extends Command> {
 
     public <T extends C> Result<Void> runCommand(T command) {
 
-        Class<T> commandClass = (Class<T>) command.getClass();
+        @SuppressWarnings("unchecked") var commandClass = (Class<T>) command.getClass();
 
         var handler = commandHandlerRegistry.get(commandClass);
         if (handler == null) {

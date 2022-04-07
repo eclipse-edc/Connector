@@ -19,6 +19,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.function.Function;
 
+/**
+ * A generic result type.
+ */
 public class Result<T> extends AbstractResult<T, Failure> {
 
     private Result(T content, Failure failure) {

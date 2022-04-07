@@ -25,7 +25,12 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * An address such as a data source or destination.
+ * An address that can be used resolve a data location. Data addresses are used throughout the system. For example, an asset has a data address used to resolve its contents,
+ * which may be in an external store. A data address can also be used as a destination to send data during a transfer.
+ *
+ * This type is extensible as different properties may be required to resolve data. For example, an HTTP data address will require a URL. Data addresses may also contain
+ * references to information required to access the address, for example, the name of a shared token. Note, however, secrets should never be stored as properties as they may be
+ * compromised if the data address is serialized.
  */
 @JsonDeserialize(builder = DataAddress.Builder.class)
 public class DataAddress {
