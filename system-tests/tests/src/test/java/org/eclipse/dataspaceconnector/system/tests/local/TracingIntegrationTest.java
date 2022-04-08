@@ -83,22 +83,23 @@ public class TracingIntegrationTest extends FileTransferEdcRuntime {
 
         // Assert
         await().atMost(30, SECONDS).untilAsserted(() -> {
-             // Get exported spans.
-             var requests = traceCollectorServer.retrieveRecordedRequests(request());
-             var spans = extractSpansFromRequests(requests);
-             // Assert that expected spans are present.
-             List<Span> contractNegotiationSpans = filterSpansByName(spans, contractNegotiationSpanNames);
-             List<Span> transferProcessSpans = filterSpansByName(spans, transferProcessSpanNames);
+            // Get exported spans.
+            var requests = traceCollectorServer.retrieveRecordedRequests(request());
+            var spans = extractSpansFromRequests(requests);
+            // Assert that expected spans are present.
+            List<Span> contractNegotiationSpans = filterSpansByName(spans, contractNegotiationSpanNames);
+            List<Span> transferProcessSpans = filterSpansByName(spans, transferProcessSpanNames);
 
-             // Assert that spans are part of the right trace.
-             assertSpansHaveSameTrace(contractNegotiationSpans);
-             assertSpansHaveSameTrace(transferProcessSpans);
+            // Assert that spans are part of the right trace.
+            assertSpansHaveSameTrace(contractNegotiationSpans);
+            assertSpansHaveSameTrace(transferProcessSpans);
         }
         );
     }
 
     /**
      * Extract spans from http requests received by a trace collector.
+     *
      * @param requests Request received by an http server trace collector
      * @return spans extracted from the request body
      */
@@ -109,7 +110,8 @@ public class TracingIntegrationTest extends FileTransferEdcRuntime {
                     return ExportTraceServiceRequest.parseFrom(body.getRawBytes());
                 } catch (InvalidProtocolBufferException e) {
                     throw new UncheckedIOException(e);
-                }})
+                }
+            })
             .flatMap(r -> r.getResourceSpansList().stream())
             .flatMap(r -> r.getInstrumentationLibrarySpansList().stream())
             .flatMap(r -> r.getSpansList().stream())
