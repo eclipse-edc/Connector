@@ -1,3 +1,4 @@
+
 # Changelog
 
 All notable changes to this project will be documented in this file - formatted and maintained according to the rules
@@ -86,7 +87,7 @@ the detailed section referring to by linking pull requests or issues.
 * Reliably send transfers from consumer to provider (#1007)
 * Http Deprovisioner Webhook endpoint (#1039)
 * Add performance test example and scheduled workflow (#1029)
-
+* Add basic authentication mechanism for DataManagement API (#981)
 
 #### Changed
 
@@ -112,6 +113,7 @@ the detailed section referring to by linking pull requests or issues.
 * Replace Asset with assetId on ContractAgreement (#1009)
 * Update CI workflow to use concurrency (#1092)
 * Adapt system-test to use Embedded DPF to perform file copy (#1060)
+* Remove default token-based authentication at the DataManagement API (#981)
 
 #### Removed
 

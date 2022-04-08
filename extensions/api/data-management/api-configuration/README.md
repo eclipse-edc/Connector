@@ -1,7 +1,11 @@
+# DataManagement API Configuration
+
 This module provides central configuration for all DataManagement APIs, i.e. the `DataManagementApiConfiguration`, which
 currently only contains the context alias, which all the Data Management API controllers should be registered under.
 
 Further, this module registers an `AuthenticationRequestFilter` and an `EdcApiExceptionMapper` in the same context.
+
+## Configurations
 
 Exemplary configuration:
 
@@ -18,3 +22,8 @@ explicitly!
 _Caution: failing to provide a `web.http.data.port` and `web.http.data.path` configuration will cause
 the `AuthenticationRequestFilter` and `EdcApiExceptionMapper` to be registered in the _default_ context causing it to
 fire for EVERY request on that context including IDS communication._
+
+## Authentication
+
+If you want to secure the DataManagement API, you need to provide a module which implements the `AuthenticationService`
+interface (e.g. `:extensions:api:auth-tokenbased` or `:extensions:api:auth-basic`).
