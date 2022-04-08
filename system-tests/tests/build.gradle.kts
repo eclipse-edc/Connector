@@ -41,7 +41,6 @@ dependencies {
     testImplementation("io.opentelemetry.proto:opentelemetry-proto:0.14.0-alpha")
     testImplementation("org.awaitility:awaitility:${awaitility}")
     testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
-    testImplementation("org.mock-server:mockserver-client-java:${httpMockServer}:shaded")
 
     testCompileOnly(project(":system-tests:runtimes:file-transfer-provider"))
     testCompileOnly(project(":system-tests:runtimes:file-transfer-consumer"))
