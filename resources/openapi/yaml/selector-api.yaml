@@ -44,21 +44,21 @@ components:
     DataPlaneInstance:
       type: object
       properties:
-        id:
-          type: string
-        url:
-          type: string
-          format: url
-        turnCount:
-          type: integer
-          format: int32
         lastActive:
           type: integer
           format: int64
+        turnCount:
+          type: integer
+          format: int32
+        url:
+          type: string
+          format: url
         properties:
           type: object
           additionalProperties:
             type: object
+        id:
+          type: string
     DataAddress:
       type: object
       properties:
