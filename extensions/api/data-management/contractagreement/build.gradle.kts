@@ -32,7 +32,6 @@ dependencies {
 
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
     testImplementation(project(":extensions:http"))
-    testImplementation(project(":extensions:api:auth-tokenbased"))
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")

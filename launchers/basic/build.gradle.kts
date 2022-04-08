@@ -26,7 +26,6 @@ dependencies {
     implementation(project(":extensions:api:control"))
     implementation(project(":extensions:api:observability"))
 
-    implementation(project(":extensions:api:auth-tokenbased"))
     implementation(project(":extensions:api:data-management"))
 
     implementation(project(":extensions:in-memory:assetindex-memory"))

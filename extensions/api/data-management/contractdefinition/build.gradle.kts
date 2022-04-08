@@ -33,7 +33,6 @@ dependencies {
     testImplementation(project(":extensions:http"))
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":launchers:junit")))
-    testImplementation(project(":extensions:api:auth-tokenbased"))
     testImplementation(project(":extensions:in-memory:contractdefinition-store-memory"))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
 }

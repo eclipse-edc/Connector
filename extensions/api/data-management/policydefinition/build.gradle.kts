@@ -35,7 +35,6 @@ dependencies {
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
     testImplementation(project(":extensions:http"))
-    testImplementation(project(":extensions:api:auth-tokenbased"))
     testImplementation(project(":extensions:in-memory:contractdefinition-store-memory"))
     testImplementation(project(":extensions:in-memory:policy-store-memory"))
     testImplementation(project(":extensions:transaction:transaction-local"))

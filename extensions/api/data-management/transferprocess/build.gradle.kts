@@ -30,7 +30,6 @@ dependencies {
     implementation(project(":extensions:api:data-management:api-configuration"))
     implementation(project(":extensions:transaction:transaction-spi"))
 
-    testImplementation(project(":extensions:api:auth-tokenbased"))
     testImplementation(project(":extensions:http"))
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(testFixtures(project(":common:util")))
