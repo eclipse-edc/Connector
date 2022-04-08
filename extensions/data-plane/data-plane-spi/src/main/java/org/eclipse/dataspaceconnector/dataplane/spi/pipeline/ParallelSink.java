@@ -15,8 +15,8 @@
 package org.eclipse.dataspaceconnector.dataplane.spi.pipeline;
 
 import org.eclipse.dataspaceconnector.common.stream.PartitionIterator;
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.AbstractResult;
 
 import java.util.List;
@@ -39,7 +39,7 @@ public abstract class ParallelSink implements DataSink {
     protected Monitor monitor;
 
     @Override
-    public CompletableFuture<TransferResult> transfer(DataSource source) {
+    public CompletableFuture<StatusResult<Void>> transfer(DataSource source) {
         try (var partStream = source.openPartStream()) {
             var partitioned = PartitionIterator.streamOf(partStream, partitionSize);
             var futures = partitioned.map(parts -> supplyAsync(() -> transferParts(parts), executorService)).collect(toList());
@@ -48,16 +48,16 @@ public abstract class ParallelSink implements DataSink {
                     .thenApply(results -> results.stream()
                             .filter(AbstractResult::failed)
                             .findFirst()
-                            .map(r -> TransferResult.failure(ERROR_RETRY, String.join(",", r.getFailureMessages())))
-                            .orElse(TransferResult.success()))
-                    .exceptionally(throwable -> TransferResult.failure(ERROR_RETRY, "Unhandled exception raised when transferring data: " + throwable.getMessage()));
+                            .map(r -> StatusResult.<Void>failure(ERROR_RETRY, String.join(",", r.getFailureMessages())))
+                            .orElseGet(StatusResult::success))
+                    .exceptionally(throwable -> StatusResult.failure(ERROR_RETRY, "Unhandled exception raised when transferring data: " + throwable.getMessage()));
         } catch (Exception e) {
             monitor.severe("Error processing data transfer request: " + requestId, e);
-            return CompletableFuture.completedFuture(TransferResult.failure(ERROR_RETRY, "Error processing data transfer request"));
+            return CompletableFuture.completedFuture(StatusResult.failure(ERROR_RETRY, "Error processing data transfer request"));
         }
     }
 
-    protected abstract TransferResult transferParts(List<DataSource.Part> parts);
+    protected abstract StatusResult<Void> transferParts(List<DataSource.Part> parts);
 
     protected abstract static class Builder<B extends Builder<B, T>, T extends ParallelSink> {
         protected T sink;

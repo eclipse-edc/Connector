@@ -20,6 +20,9 @@ import java.util.Properties;
 import static java.util.Collections.emptyMap;
 import static org.eclipse.dataspaceconnector.spi.system.configuration.ConfigImpl.TO_MAP;
 
+/**
+ * Creates a {@link Config} from another data structure.
+ */
 public class ConfigFactory {
 
     public static Config empty() {

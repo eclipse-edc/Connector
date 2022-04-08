@@ -16,6 +16,9 @@ package org.eclipse.dataspaceconnector.spi.result;
 
 import java.util.List;
 
+/**
+ * Describes a failure related to an operation.
+ */
 public class Failure {
     private final List<String> messages;
 

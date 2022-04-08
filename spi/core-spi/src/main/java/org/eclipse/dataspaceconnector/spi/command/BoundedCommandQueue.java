@@ -22,6 +22,9 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+/**
+ * A command queue backed by a bounded data structure of fixed capacity.
+ */
 public class BoundedCommandQueue<C extends Command> implements CommandQueue<C> {
 
     private final BlockingQueue<C> queue;

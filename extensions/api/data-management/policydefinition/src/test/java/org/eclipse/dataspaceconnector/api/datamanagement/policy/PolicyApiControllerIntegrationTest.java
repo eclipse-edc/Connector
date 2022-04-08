@@ -14,90 +14,165 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.policy;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import org.eclipse.dataspaceconnector.common.testfixtures.TestUtils;
-import org.eclipse.dataspaceconnector.extension.jersey.CorsFilterConfiguration;
-import org.eclipse.dataspaceconnector.extension.jersey.JerseyRestService;
-import org.eclipse.dataspaceconnector.extension.jetty.JettyConfiguration;
-import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
-import org.eclipse.dataspaceconnector.extension.jetty.PortMapping;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeAll;
+import io.restassured.http.ContentType;
+import io.restassured.specification.RequestSpecification;
+import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
+import java.util.Map;
 
+import static io.restassured.RestAssured.given;
+import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
-import static org.mockito.Mockito.mock;
+import static org.eclipse.dataspaceconnector.api.datamanagement.policy.TestFunctions.createPolicy;
+import static org.eclipse.dataspaceconnector.api.datamanagement.policy.TestFunctions.createSelectorExpression;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
+import static org.hamcrest.Matchers.is;
 
+@ExtendWith(EdcExtension.class)
 public class PolicyApiControllerIntegrationTest {
 
-    private static int port;
-    private OkHttpClient client;
-
-    @BeforeAll
-    static void prepareWebserver() {
-        port = TestUtils.getFreePort();
-        var monitor = mock(Monitor.class);
-        var config = new JettyConfiguration(null, null);
-        config.portMapping(new PortMapping("data", port, "/api/v1/data"));
-        var jetty = new JettyService(config, monitor);
-
-        var ctrl = new PolicyApiController(monitor);
-        var jerseyService = new JerseyRestService(jetty, new TypeManager(), mock(CorsFilterConfiguration.class), monitor);
-        jetty.start();
-        jerseyService.registerResource("data", ctrl);
-        jerseyService.start();
-    }
+    private final int port = getFreePort();
+    private final String authKey = "123456";
 
     @BeforeEach
-    void setup() {
-        client = testOkHttpClient();
+    void setUp(EdcExtension extension) {
+        extension.setConfiguration(Map.of(
+                "web.http.data.port", String.valueOf(port),
+                "web.http.data.path", "/api/v1/data",
+                "edc.api.auth.key", authKey
+        ));
     }
 
     @Test
-    void getAllPolicies() throws IOException {
-        var response = get(basePath());
-        assertThat(response.code()).isEqualTo(200);
+    void getAllPolicies(PolicyStore policyStore) {
+
+        var policy = createPolicy("id");
+
+        policyStore.save(policy);
+
+        baseRequest()
+                .get("/policies")
+                .then()
+                .statusCode(200)
+                .contentType(ContentType.JSON)
+                .body("size()", is(1));
     }
 
     @Test
-    void getAllPolicies_withPaging() throws IOException {
-        try (var response = get(basePath() + "?offset=10&limit=15&sort=ASC")) {
-            assertThat(response.code()).isEqualTo(200);
-        }
+    void getSinglePolicy(PolicyStore policyStore) {
+        //Check
+        var policy = createPolicy("id");
+        policyStore.save(policy);
+
+        baseRequest()
+                .get("/policies/id")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("uid", is("id"));
     }
 
     @Test
-    void getSinglePolicy() throws IOException {
-        var id = "test-id";
-        try (var response = get(basePath() + "/" + id)) {
-            //assertThat(response.code()).isEqualTo(200);
-        }
-
+    void getSinglePolicy_notFound() {
+        baseRequest()
+                .get("/policies/not-existent-id")
+                .then()
+                .statusCode(404);
     }
 
     @Test
-    void getSinglePolicy_notFound() throws IOException {
-        try (var response = get(basePath() + "/not-exist")) {
-            // assertThat(response.code()).isEqualTo(404);
-        }
+    void postPolicy(PolicyStore policyStore) {
+
+        baseRequest()
+                .body(createPolicy("id"))
+                .contentType(JSON)
+                .post("/policies")
+                .then()
+                .statusCode(204);
+        assertThat(policyStore.findById("id")).isNotNull();
+    }
+
+    @Test
+    void postPolicyId_alreadyExists(PolicyStore policyStore) {
+        policyStore.save(createPolicy("id"));
+
+        baseRequest()
+                .body(createPolicy("id"))
+                .contentType(JSON)
+                .post("/policies")
+                .then()
+                .statusCode(409);
+    }
+
+    @Test
+    void deletePolicy(PolicyStore policyStore) {
+        var policy = createPolicy("id");
+
+        policyStore.save(policy);
+
+        baseRequest()
+                .contentType(JSON)
+                .delete("/policies/id")
+                .then()
+                .statusCode(204);
+        assertThat(policyStore.findById("id")).isNull();
+    }
+
+    @Test
+    void deletePolicy_notExists() {
+        baseRequest()
+                .contentType(JSON)
+                .delete("/policies/not-existent-id")
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    void deletePolicy_ExistsInContractDefinitionNotExistsInPolicyStore(ContractDefinitionStore contractDefinitionStore) {
+        var policy = createPolicy("access");
+        contractDefinitionStore.save(createContractDefinition(policy));
+        baseRequest()
+                .contentType(JSON)
+                .delete("/policies/access")
+                .then()
+                .statusCode(404);
+    }
+
+    @Test
+    void deletePolicy_alreadyReferencedInContractDefinition(ContractDefinitionStore contractDefinitionStore, PolicyStore policyStore) {
+
+        var policy = createPolicy("access");
+        policyStore.save(policy);
+        contractDefinitionStore.save(createContractDefinition(policy));
+        baseRequest()
+                .contentType(JSON)
+                .delete("/policies/access")
+                .then()
+                .statusCode(409);
     }
 
 
-    @NotNull
-    private String basePath() {
-        return "http://localhost:" + port + "/api/v1/data/policies";
+    private ContractDefinition createContractDefinition(Policy policy) {
+        return ContractDefinition.Builder.newInstance()
+                .id("definition")
+                .contractPolicy(createPolicy("contract"))
+                .accessPolicy(policy)
+                .selectorExpression(createSelectorExpression())
+                .build();
     }
 
-    @NotNull
-    private Response get(String url) throws IOException {
-        return client.newCall(new Request.Builder().get().url(url).build()).execute();
+    private RequestSpecification baseRequest() {
+        return given()
+                .baseUri("http://localhost:" + port)
+                .basePath("/api/v1/data")
+                .header("x-api-key", authKey)
+                .when();
     }
 }

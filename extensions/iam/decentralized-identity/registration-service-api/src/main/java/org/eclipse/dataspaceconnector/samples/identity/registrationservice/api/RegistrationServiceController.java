@@ -25,7 +25,6 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.store.DidStore;
-import org.eclipse.dataspaceconnector.spi.iam.RegistrationService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
 import java.util.List;
@@ -33,7 +32,7 @@ import java.util.List;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Path("/identity")
-public class RegistrationServiceController implements RegistrationService {
+public class RegistrationServiceController {
     private final Monitor monitor;
     private final DidStore didDocumentStore;
 

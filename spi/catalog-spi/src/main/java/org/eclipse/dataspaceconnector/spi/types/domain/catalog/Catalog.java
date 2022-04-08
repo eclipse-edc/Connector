@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * DTO representing IDS Data Catalog
+ * DTO representing catalog containing {@link ContractOffer}s.
  */
 @JsonDeserialize(builder = Catalog.Builder.class)
 public class Catalog {

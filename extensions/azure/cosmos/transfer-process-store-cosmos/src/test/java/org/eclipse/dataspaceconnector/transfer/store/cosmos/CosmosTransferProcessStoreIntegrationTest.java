@@ -16,10 +16,8 @@ package org.eclipse.dataspaceconnector.transfer.store.cosmos;
 
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
-import com.azure.cosmos.CosmosScripts;
 import com.azure.cosmos.implementation.BadRequestException;
 import com.azure.cosmos.models.CosmosItemResponse;
-import com.azure.cosmos.models.CosmosStoredProcedureProperties;
 import com.azure.cosmos.models.CosmosStoredProcedureRequestOptions;
 import com.azure.cosmos.models.CosmosStoredProcedureResponse;
 import com.azure.cosmos.models.PartitionKey;
@@ -44,17 +42,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Scanner;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
+import static org.eclipse.dataspaceconnector.azure.cosmos.util.StoredProcedureTestUtils.uploadStoredProcedure;
 import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.createTransferProcess;
 import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.createTransferProcessDocument;
 
@@ -85,22 +85,6 @@ class CosmosTransferProcessStoreIntegrationTest {
         if (database != null) {
             var databaseDelete = database.delete();
             assertThat(databaseDelete.getStatusCode()).isBetween(200, 400);
-        }
-    }
-
-    private static void uploadStoredProcedure(CosmosContainer container, String name) {
-        var is = Thread.currentThread().getContextClassLoader().getResourceAsStream(name + ".js");
-        if (is == null) {
-            throw new AssertionError("The input stream referring to the " + name + " file cannot be null!");
-        }
-
-        Scanner s = new Scanner(is).useDelimiter("\\A");
-        String body = s.hasNext() ? s.next() : "";
-        CosmosStoredProcedureProperties props = new CosmosStoredProcedureProperties(name, body);
-
-        CosmosScripts scripts = container.getScripts();
-        if (scripts.readAllStoredProcedures().stream().noneMatch(sp -> sp.getId().equals(name))) {
-            CosmosStoredProcedureResponse storedProcedure = scripts.createStoredProcedure(props);
         }
     }
 
@@ -156,7 +140,7 @@ class CosmosTransferProcessStoreIntegrationTest {
     }
 
     @Test
-    void nextForState() throws InterruptedException {
+    void nextForState_fetchMaxNewest() throws InterruptedException {
 
         String id1 = UUID.randomUUID().toString();
         var tp = createTransferProcess(id1, TransferProcessStates.UNSAVED);
@@ -181,6 +165,28 @@ class CosmosTransferProcessStoreIntegrationTest {
     }
 
     @Test
+    void nextForState_leaseByAnotherHolderExpired() {
+        String id1 = UUID.randomUUID().toString();
+        var tp = createTransferProcess(id1, TransferProcessStates.INITIAL);
+        TransferProcessDocument item = new TransferProcessDocument(tp, partitionKey);
+        Duration leaseDuration = Duration.ofSeconds(2);
+        item.acquireLease("another-connector", leaseDuration);
+        container.upsertItem(item);
+
+        List<TransferProcess> processesBeforeLeaseBreak = store.nextForState(TransferProcessStates.INITIAL.code(), 10);
+        assertThat(processesBeforeLeaseBreak).isEmpty();
+
+        await()
+                .atMost(Duration.ofSeconds(10))
+                .pollInterval(Duration.ofMillis(500))
+                .pollDelay(leaseDuration) //give the lease time to expire
+                .untilAsserted(() -> {
+                    List<TransferProcess> processesAfterLeaseBreak = store.nextForState(TransferProcessStates.INITIAL.code(), 10);
+                    assertThat(processesAfterLeaseBreak).hasSize(1).allSatisfy(transferProcess -> assertThat(transferProcess).usingRecursiveComparison().isEqualTo(tp));
+                });
+    }
+
+    @Test
     void nextForState_shouldOnlyReturnFreeItems() {
         String id1 = "process1";
         var tp = createTransferProcess(id1, TransferProcessStates.UNSAVED);
@@ -193,7 +199,6 @@ class CosmosTransferProcessStoreIntegrationTest {
         TransferProcessDocument item = readDocument(id2);
         item.acquireLease("test-leaser");
         container.upsertItem(item);
-
 
         //act - one should be ignored
         List<TransferProcess> processes = store.nextForState(TransferProcessStates.INITIAL.code(), 5);
@@ -480,7 +485,7 @@ class CosmosTransferProcessStoreIntegrationTest {
     }
 
     @Test
-    void invokeStoreProcedure() {
+    void invokeStoredProcedure() {
         //create one item
         var tp = createTransferProcess("proc1");
         store.create(tp);

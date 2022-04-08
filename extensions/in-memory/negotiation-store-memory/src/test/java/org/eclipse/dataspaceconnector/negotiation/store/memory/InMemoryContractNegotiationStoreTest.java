@@ -16,6 +16,7 @@
 package org.eclipse.dataspaceconnector.negotiation.store.memory;
 
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -28,15 +29,14 @@ import org.junit.jupiter.api.Test;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.negotiation.store.memory.TestFunctions.createAgreementBuilder;
 import static org.eclipse.dataspaceconnector.negotiation.store.memory.TestFunctions.createNegotiation;
 import static org.eclipse.dataspaceconnector.negotiation.store.memory.TestFunctions.createNegotiationBuilder;
+import static org.eclipse.dataspaceconnector.negotiation.store.memory.TestFunctions.createPolicy;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.INITIAL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTING;
@@ -320,6 +320,61 @@ class InMemoryContractNegotiationStoreTest {
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 
         assertThat(store.queryAgreements(query)).isEmpty();
+    }
+
+    @Test
+    void findPolicy_whenNoAgreement() {
+        var n = createNegotiationBuilder(UUID.randomUUID().toString()).build();
+        store.save(n);
+
+        store.save(n);
+
+        var archivedPolicy = store.findPolicyForContract("test-contract");
+        assertThat(archivedPolicy).isNull();
+    }
+
+    @Test
+    void findPolicy_whenAgreement() {
+        var policy = createPolicy("test-policy");
+
+        var contractAgreement = createAgreementBuilder().policy(policy).id("test-contract").build();
+        var n = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
+
+        store.save(n);
+
+        var archivedPolicy = store.findPolicyForContract("test-contract");
+        assertThat(archivedPolicy).usingRecursiveComparison().isEqualTo(policy);
+    }
+
+    @Test
+    void findPolicy_whenMultipleAgreements() {
+        var policy = createPolicy("test-policy");
+
+        var contractAgreement1 = createAgreementBuilder().policy(policy).id("test-contract").build();
+        var negotiation1 = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement1).build();
+
+        var contractAgreement2 = createAgreementBuilder().policy(policy).id(ContractId.createContractId(UUID.randomUUID().toString())).build();
+        var negotiation2 = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement2).build();
+
+        store.save(negotiation1);
+        store.save(negotiation2);
+
+        var policies = store.findPolicyForContract("test-contract");
+        assertThat(policies).usingRecursiveComparison().isEqualTo(policy);
+    }
+
+    @Test
+    void findPolicy_whenAgreement_policyWithRandomId() {
+        var expectedPolicy = Policy.Builder.newInstance().build();
+
+        var contractAgreement = createAgreementBuilder().policy(expectedPolicy).id("test-contract").build();
+        var n = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
+
+        store.save(n);
+
+        var archivedPolicy = store.findPolicyForContract("test-policy");
+        assertThat(archivedPolicy).isNull();
+        assertThat(store.findContractAgreement("test-contract")).isNotNull().extracting(ContractAgreement::getPolicy).isEqualTo(expectedPolicy);
     }
 
     @NotNull

@@ -16,6 +16,9 @@ package org.eclipse.dataspaceconnector.spi.system.injection;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
+/**
+ * Raised when an error performing service injection is encountered.
+ */
 public class EdcInjectionException extends EdcException {
     public EdcInjectionException(String s) {
         super(s);

@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.dataplane.framework.pipeline;
 
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.TransferService;
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
@@ -44,7 +44,7 @@ public class PipelineServiceTransferServiceImpl implements TransferService {
     }
 
     @Override
-    public CompletableFuture<TransferResult> transfer(DataFlowRequest request) {
+    public CompletableFuture<StatusResult<Void>> transfer(DataFlowRequest request) {
         return pipelineService.transfer(request);
     }
 }

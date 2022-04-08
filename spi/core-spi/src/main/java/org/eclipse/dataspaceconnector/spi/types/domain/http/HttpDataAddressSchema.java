@@ -49,4 +49,23 @@ public interface HttpDataAddressSchema {
      */
     String SECRET_NAME = "secretName";
 
+    /**
+     * If set to true the body of the actual request will be used to retrieve data from this address
+     */
+    String PROXY_BODY = "proxyBody";
+
+    /**
+     * If set to true the path of the actual request will be used to retrieve data from this address
+     */
+    String PROXY_PATH = "proxyPath";
+
+    /**
+     * If set to true the query params of the actual request will be used to retrieve data from this address
+     */
+    String PROXY_QUERY_PARAMS = "proxyQueryParams";
+
+    /**
+     * If set to true the http method of the actual request will be used to retrieve data from this address
+     */
+    String PROXY_METHOD = "proxyMethod";
 }

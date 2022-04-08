@@ -14,6 +14,9 @@
 
 package org.eclipse.dataspaceconnector.spi.retry;
 
+/**
+ * Provides a mechanism for clients to wait a given period before re-attempting an operation.
+ */
 public interface WaitStrategy {
 
     /**
@@ -21,11 +24,16 @@ public interface WaitStrategy {
      */
     long waitForMillis();
 
-
     /**
      * Marks the iteration as successful.
      */
     default void success() {
+    }
+
+    /**
+     * Registers that a number of previous attempts were unsuccessful.
+     */
+    default void failures(int numberOfFailures) {
     }
 
     /**

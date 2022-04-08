@@ -26,6 +26,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface EdcSetting {
 
+    /**
+     * Returns true if the setting is required.
+     */
     boolean required() default false;
 
 }

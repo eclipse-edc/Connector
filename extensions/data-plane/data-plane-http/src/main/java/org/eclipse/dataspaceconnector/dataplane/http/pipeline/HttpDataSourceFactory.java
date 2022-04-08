@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Mercedes Benz Tech Innovation - add toggles for proxy behavior
  *
  */
 
@@ -41,6 +42,10 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddre
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.NAME;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_BODY;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_METHOD;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_PATH;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_QUERY_PARAMS;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.SECRET_NAME;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
 
@@ -86,32 +91,49 @@ public class HttpDataSourceFactory implements DataSourceFactory {
         if (StringUtils.isNullOrBlank(endpoint)) {
             return Result.failure("Missing endpoint for request: " + request.getId());
         }
-        var method = request.getProperties().get(METHOD);
-        if (StringUtils.isNullOrBlank(method)) {
-            return Result.failure("Missing http method for request: " + request.getId());
+
+        var method = "GET";
+        if (Boolean.parseBoolean(dataAddress.getProperty(PROXY_METHOD))) {
+            method = request.getProperties().get(METHOD);
+            if (StringUtils.isNullOrBlank(method)) {
+                return Result.failure("Missing http method for request: " + request.getId());
+            }
         }
 
-        var name = dataAddress.getProperty(NAME);
+        var path = dataAddress.getProperty(NAME);
+        if (Boolean.parseBoolean(dataAddress.getProperty(PROXY_PATH))) {
+            path = request.getProperties().get(PATH);
+            if (path == null) {
+                return Result.failure(format("No path provided for request: %s", request.getId()));
+            }
+        }
+
+        String queryParams = null;
+        if (Boolean.parseBoolean(dataAddress.getProperty(PROXY_QUERY_PARAMS))) {
+            queryParams = request.getProperties().get(QUERY_PARAMS);
+        }
 
         var builder = HttpDataSource.Builder.newInstance()
                 .httpClient(httpClient)
                 .requestId(request.getId())
                 .sourceUrl(endpoint)
-                .name(name)
+                .name(path)
                 .method(method)
+                .queryParams(queryParams)
                 .retryPolicy(retryPolicy)
                 .monitor(monitor);
-        // map body
-        var mediaType = request.getProperties().get(MEDIA_TYPE);
-        if (mediaType != null) {
-            var parsed = MediaType.parse(mediaType);
-            if (parsed == null) {
-                return Result.failure(format("Unhandled media type %s for request: %s", mediaType, request.getId()));
+
+        if (Boolean.parseBoolean(dataAddress.getProperty(PROXY_BODY))) {
+            var mediaType = request.getProperties().get(MEDIA_TYPE);
+            if (mediaType != null) {
+                var parsed = MediaType.parse(mediaType);
+                if (parsed == null) {
+                    return Result.failure(format("Unhandled media type %s for request: %s", mediaType, request.getId()));
+                }
+                builder.requestBody(parsed, request.getProperties().get(BODY));
             }
-            builder.requestBody(parsed, request.getProperties().get(BODY));
         }
 
-        // map auth header
         var authKey = dataAddress.getProperty(AUTHENTICATION_KEY);
         if (authKey != null) {
             var secretResult = extractAuthCode(request.getId(), dataAddress);
@@ -121,11 +143,6 @@ public class HttpDataSourceFactory implements DataSourceFactory {
             builder.header(authKey, secretResult.getContent());
         }
 
-        Optional.ofNullable(request.getProperties().get(PATH))
-                .ifPresent(builder::name);
-
-        Optional.ofNullable(request.getProperties().get(QUERY_PARAMS))
-                .ifPresent(builder::queryParams);
 
         try {
             return Result.success(builder.build());

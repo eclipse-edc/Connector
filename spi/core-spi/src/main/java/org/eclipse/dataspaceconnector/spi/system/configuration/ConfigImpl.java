@@ -33,6 +33,9 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
 
+/**
+ * Default implementation.
+ */
 public class ConfigImpl implements Config {
 
     static final Collector<Map.Entry<String, String>, ?, Map<String, String>> TO_MAP = toMap(Map.Entry::getKey, Map.Entry::getValue);

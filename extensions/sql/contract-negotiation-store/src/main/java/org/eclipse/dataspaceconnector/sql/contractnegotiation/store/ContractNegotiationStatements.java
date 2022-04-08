@@ -43,6 +43,8 @@ public interface ContractNegotiationStatements extends LeaseStatements {
 
     String getInsertAgreementTemplate();
 
+    String getSelectByPolicyIdTemplate();
+
     @Override
     default String getLeasedByColumn() {
         return "leased_by";
@@ -61,6 +63,11 @@ public interface ContractNegotiationStatements extends LeaseStatements {
     @Override
     default String getLeaseIdColumn() {
         return "lease_id";
+    }
+
+
+    default String getPolicyColumnSeralized() {
+        return "serialized_policy";
     }
 
     default String getContractNegotiationTable() {

@@ -18,7 +18,7 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSourceFactory;
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.Test;
@@ -60,7 +60,7 @@ class PipelineServiceImplTest {
         when(sourceFactory.createSource(request)).thenReturn(source);
         when(sinkFactory.canHandle(request)).thenReturn(true);
         when(sinkFactory.createSink(request)).thenReturn(sink);
-        when(sink.transfer(source)).thenReturn(completedFuture(TransferResult.success()));
+        when(sink.transfer(source)).thenReturn(completedFuture(StatusResult.success()));
 
         service.transfer(request);
 

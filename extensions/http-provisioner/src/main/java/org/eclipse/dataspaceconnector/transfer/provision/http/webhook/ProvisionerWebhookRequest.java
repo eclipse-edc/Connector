@@ -25,7 +25,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.Polymorphic;
 @JsonDeserialize(builder = ProvisionerWebhookRequest.Builder.class)
 @JsonTypeName("dataspaceconnector:provisioner-callback-request")
 public class ProvisionerWebhookRequest implements Polymorphic {
-    private String transferProcessId;
     private String resourceDefinitionId;
     private boolean hasToken;
     private String assetId;
@@ -48,9 +47,6 @@ public class ProvisionerWebhookRequest implements Polymorphic {
         return assetId;
     }
 
-    public String getTransferProcessId() {
-        return transferProcessId;
-    }
 
     public String getResourceDefinitionId() {
         return resourceDefinitionId;
@@ -90,11 +86,6 @@ public class ProvisionerWebhookRequest implements Polymorphic {
 
         public Builder contentDataAddress(DataAddress contentDataAddress) {
             request.contentDataAddress = contentDataAddress;
-            return this;
-        }
-
-        public Builder transferProcessId(String transferProcessId) {
-            request.transferProcessId = transferProcessId;
             return this;
         }
 

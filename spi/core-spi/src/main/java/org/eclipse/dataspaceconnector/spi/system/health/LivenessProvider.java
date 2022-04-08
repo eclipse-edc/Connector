@@ -16,5 +16,8 @@ package org.eclipse.dataspaceconnector.spi.system.health;
 
 import java.util.function.Supplier;
 
+/**
+ * Implementations contribute to determine if a runtime is running.
+ */
 public interface LivenessProvider extends Supplier<HealthCheckResult> {
 }

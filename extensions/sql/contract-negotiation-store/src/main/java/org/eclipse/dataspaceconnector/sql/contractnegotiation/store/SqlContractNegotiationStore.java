@@ -39,6 +39,7 @@ import java.util.stream.Stream;
 import javax.sql.DataSource;
 
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
 /**
@@ -150,7 +151,7 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
     }
 
     @Override
-    public Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
+    public @NotNull Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var stmt = statements.getQueryTemplate();
@@ -207,6 +208,11 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
         });
     }
 
+    @Override
+    public Policy findPolicyForContract(String contractId) {
+        return ofNullable(findContractAgreement(contractId)).map(ContractAgreement::getPolicy).orElse(null);
+    }
+
 
     private @Nullable ContractNegotiation findInternal(Connection connection, String id) {
         var stmt = statements.getFindTemplate();
@@ -243,7 +249,8 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                     agr.getContractStartDate(),
                     agr.getContractEndDate(),
                     agr.getAssetId(),
-                    agr.getPolicy().getUid());
+                    agr.getPolicy().getUid(),
+                    toJson(agr.getPolicy()));
         }
 
         var stmt = statements.getInsertNegotiationTemplate();
@@ -279,7 +286,8 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                 .providerAgentId(resultSet.getString(statements.getProviderAgentColumn()))
                 .consumerAgentId(resultSet.getString(statements.getConsumerAgentColumn()))
                 .assetId(resultSet.getString(statements.getAssetIdColumn()))
-                .policy(Policy.Builder.newInstance().id(resultSet.getString(statements.getPolicyIdColumn())).build())
+                .policy(fromJson(resultSet.getString(statements.getPolicyColumnSeralized()), new TypeReference<>() {
+                }))
                 .contractStartDate(resultSet.getLong(statements.getStartDateColumn()))
                 .contractEndDate(resultSet.getLong(statements.getEndDateColumn()))
                 .contractSigningDate(resultSet.getLong(statements.getSigningDateColumn()))

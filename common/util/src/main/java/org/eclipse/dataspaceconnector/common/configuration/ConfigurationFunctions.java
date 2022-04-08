@@ -32,7 +32,10 @@ public class ConfigurationFunctions {
         }
         String upperKey = key.toUpperCase().replace('.', '_');
         value = System.getenv(upperKey);
-        return value != null ? value : defaultValue;
+        if (!StringUtils.isNullOrBlank(value)) {
+            return value;
+        }
+        return defaultValue;
     }
 
 }

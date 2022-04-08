@@ -21,6 +21,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+/**
+ * A request for a participant's {@link Catalog}.
+ */
 @JsonDeserialize(builder = CatalogRequest.Builder.class)
 public class CatalogRequest implements RemoteMessage {
 

@@ -16,6 +16,7 @@
 package org.eclipse.dataspaceconnector.spi.contract.negotiation.store;
 
 import org.eclipse.dataspaceconnector.spi.persistence.StateEntityStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -30,7 +31,7 @@ import java.util.stream.Stream;
  * <p>
  */
 @Feature(ContractNegotiationStore.FEATURE)
-public interface ContractNegotiationStore extends StateEntityStore<ContractNegotiation> {
+public interface ContractNegotiationStore extends StateEntityStore<ContractNegotiation>, PolicyArchive {
 
     String FEATURE = "edc:core:contract:contractnegotiation:store";
 

@@ -23,8 +23,8 @@ import org.eclipse.dataspaceconnector.common.statemachine.StateProcessorImpl;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationListener;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
@@ -48,7 +48,7 @@ import java.util.function.Function;
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.parseContractId;
-import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult.Status.FATAL_ERROR;
+import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONSUMER_APPROVING;
@@ -95,11 +95,11 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      * persisted, which moves it to state REQUESTING.
      *
      * @param contractOffer Container object containing all relevant request parameters.
-     * @return a {@link NegotiationResult}: OK
+     * @return a {@link StatusResult}: OK
      */
     @WithSpan
     @Override
-    public NegotiationResult initiate(ContractOfferRequest contractOffer) {
+    public StatusResult<ContractNegotiation> initiate(ContractOfferRequest contractOffer) {
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .protocol(contractOffer.getProtocol())
@@ -115,7 +115,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
 
         monitor.debug(String.format("[Consumer] ContractNegotiation initiated. %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-        return NegotiationResult.success(negotiation);
+        return StatusResult.success(negotiation);
     }
 
     /**
@@ -128,15 +128,15 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      * @param negotiationId Id of the ContractNegotiation.
      * @param contractOffer The contract offer.
      * @param hash A hash of all previous contract offers.
-     * @return a {@link NegotiationResult}: FATAL_ERROR, if no match found for Id or no last
+     * @return a {@link StatusResult}: FATAL_ERROR, if no match found for Id or no last
      *         offer found for negotiation; OK otherwise
      */
     @WithSpan
     @Override
-    public NegotiationResult offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
+    public StatusResult<ContractNegotiation> offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
         var negotiation = negotiationStore.find(negotiationId);
         if (negotiation == null) {
-            return NegotiationResult.failure(FATAL_ERROR);
+            return StatusResult.failure(FATAL_ERROR);
         }
 
         var latestOffer = negotiation.getLastContractOffer();
@@ -144,7 +144,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
             Objects.requireNonNull(latestOffer, "latestOffer");
         } catch (NullPointerException e) {
             monitor.severe("[Consumer] No offer found for validation. Process id: " + negotiation.getId());
-            return NegotiationResult.failure(FATAL_ERROR);
+            return StatusResult.failure(FATAL_ERROR);
         }
 
         Result<ContractOffer> result = validationService.validate(token, contractOffer, latestOffer);
@@ -164,7 +164,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
-        return NegotiationResult.success(negotiation);
+        return StatusResult.success(negotiation);
     }
 
     /**
@@ -176,15 +176,15 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      * @param negotiationId Id of the ContractNegotiation.
      * @param agreement Agreement sent by provider.
      * @param hash A hash of all previous contract offers.
-     * @return a {@link NegotiationResult}: FATAL_ERROR, if no match found for Id or no last
+     * @return a {@link StatusResult}: FATAL_ERROR, if no match found for Id or no last
      *         offer found for negotiation; OK otherwise
      */
     @WithSpan
     @Override
-    public NegotiationResult confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, String hash) {
+    public StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, String hash) {
         var negotiation = negotiationStore.find(negotiationId);
         if (negotiation == null) {
-            return NegotiationResult.failure(FATAL_ERROR);
+            return StatusResult.failure(FATAL_ERROR);
         }
 
         var latestOffer = negotiation.getLastContractOffer();
@@ -192,7 +192,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
             Objects.requireNonNull(latestOffer, "latestOffer");
         } catch (NullPointerException e) {
             monitor.severe("[Consumer] No offer found for validation. Process id: " + negotiation.getId());
-            return NegotiationResult.failure(FATAL_ERROR);
+            return StatusResult.failure(FATAL_ERROR);
         }
 
         var result = validationService.validate(token, agreement, latestOffer);
@@ -204,7 +204,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
             update(negotiation, l -> l.preDeclining(negotiation));
             monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-            return NegotiationResult.success(negotiation);
+            return StatusResult.success(negotiation);
         }
 
         // Agreement has been approved.
@@ -218,7 +218,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
-        return NegotiationResult.success(negotiation);
+        return StatusResult.success(negotiation);
     }
 
     /**
@@ -227,15 +227,15 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      *
      * @param token Claim token of the consumer that sent the rejection.
      * @param negotiationId Id of the ContractNegotiation.
-     * @return a {@link NegotiationResult}: OK, if successfully transitioned to declined;
+     * @return a {@link StatusResult}: OK, if successfully transitioned to declined;
      *         FATAL_ERROR, if no match found for Id.
      */
     @WithSpan
     @Override
-    public NegotiationResult declined(ClaimToken token, String negotiationId) {
+    public StatusResult<ContractNegotiation> declined(ClaimToken token, String negotiationId) {
         var negotiation = findContractNegotiationById(negotiationId);
         if (negotiation == null) {
-            return NegotiationResult.failure(FATAL_ERROR);
+            return StatusResult.failure(FATAL_ERROR);
         }
 
         monitor.debug("[Consumer] Contract rejection received. Abort negotiation process.");
@@ -243,7 +243,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         update(negotiation, l -> l.preDeclined(negotiation));
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-        return NegotiationResult.success(negotiation);
+        return StatusResult.success(negotiation);
     }
 
     private ContractNegotiation findContractNegotiationById(String negotiationId) {

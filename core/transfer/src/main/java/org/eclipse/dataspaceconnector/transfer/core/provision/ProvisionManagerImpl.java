@@ -18,10 +18,11 @@ import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResult;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +51,7 @@ public class ProvisionManagerImpl implements ProvisionManager {
 
     @WithSpan
     @Override
-    public CompletableFuture<List<ProvisionResult>> provision(List<ResourceDefinition> definitions, Policy policy) {
+    public CompletableFuture<List<StatusResult<ProvisionResponse>>> provision(List<ResourceDefinition> definitions, Policy policy) {
         return definitions.stream()
                 .map(definition -> provision(definition, policy).whenComplete(logOnError(definition)))
                 .collect(asyncAllOf());
@@ -58,7 +59,7 @@ public class ProvisionManagerImpl implements ProvisionManager {
 
     @WithSpan
     @Override
-    public CompletableFuture<List<DeprovisionResult>> deprovision(List<ProvisionedResource> resources, Policy policy) {
+    public CompletableFuture<List<StatusResult<DeprovisionedResource>>> deprovision(List<ProvisionedResource> resources, Policy policy) {
         return resources.stream()
                 .map(definition -> deprovision(definition, policy).whenComplete(logOnError(definition)))
                 .collect(asyncAllOf());
@@ -66,7 +67,7 @@ public class ProvisionManagerImpl implements ProvisionManager {
 
     @SuppressWarnings("unchecked")
     @NotNull
-    private CompletableFuture<ProvisionResult> provision(ResourceDefinition definition, Policy policy) {
+    private CompletableFuture<StatusResult<ProvisionResponse>> provision(ResourceDefinition definition, Policy policy) {
         try {
             return provisioners.stream()
                     .filter(it -> it.canProvision(definition))
@@ -81,7 +82,7 @@ public class ProvisionManagerImpl implements ProvisionManager {
 
     @SuppressWarnings("unchecked")
     @NotNull
-    private CompletableFuture<DeprovisionResult> deprovision(ProvisionedResource definition, Policy policy) {
+    private CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(ProvisionedResource definition, Policy policy) {
         try {
             return provisioners.stream()
                     .filter(it -> it.canDeprovision(definition))
@@ -95,7 +96,7 @@ public class ProvisionManagerImpl implements ProvisionManager {
     }
 
     @NotNull
-    private BiConsumer<ProvisionResult, Throwable> logOnError(ResourceDefinition definition) {
+    private BiConsumer<StatusResult<ProvisionResponse>, Throwable> logOnError(ResourceDefinition definition) {
         return (result, throwable) -> {
             if (throwable != null) {
                 monitor.severe(format("Error provisioning resource %s for process %s: %s", definition.getId(), definition.getTransferProcessId(), throwable.getMessage()));
@@ -104,7 +105,7 @@ public class ProvisionManagerImpl implements ProvisionManager {
     }
 
     @NotNull
-    private BiConsumer<DeprovisionResult, Throwable> logOnError(ProvisionedResource resource) {
+    private BiConsumer<StatusResult<DeprovisionedResource>, Throwable> logOnError(ProvisionedResource resource) {
         return (result, throwable) -> {
             if (throwable != null) {
                 monitor.severe(format("Error deprovisioning resource %s for process %s: %s", resource.getId(), resource.getTransferProcessId(), throwable.getMessage()));

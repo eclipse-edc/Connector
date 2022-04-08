@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
+/**
+ * Implementation that returns private keys stored in a vault.
+ */
 public class VaultPrivateKeyResolver implements PrivateKeyResolver {
 
     private final Vault vault;
@@ -72,6 +75,7 @@ public class VaultPrivateKeyResolver implements PrivateKeyResolver {
         addParser(p);
     }
 
+    @SuppressWarnings("unchecked")
     private <T> KeyParser<T> getParser(Class<T> keytype) {
         return (KeyParser<T>) parsers.stream().filter(p -> p.canParse(keytype))
                 .findFirst().orElseThrow(() -> {
