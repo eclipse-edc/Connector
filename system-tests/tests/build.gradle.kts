@@ -20,7 +20,6 @@ plugins {
 val gatlingVersion: String by project
 val openTelemetryVersion: String by project
 val awaitility: String by project
-val armeriaVersion: String by project
 val httpMockServer: String by project
 
 dependencies {
