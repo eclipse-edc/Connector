@@ -22,6 +22,9 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URI;
 import java.util.Objects;
 
+/**
+ * A request for asset metadata sent to a remote system.
+ */
 @JsonDeserialize(builder = MetadataRequest.Builder.class)
 public class MetadataRequest implements RemoteMessage {
 

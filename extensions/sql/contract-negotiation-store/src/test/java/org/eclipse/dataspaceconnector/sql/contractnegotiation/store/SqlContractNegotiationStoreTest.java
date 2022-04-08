@@ -9,16 +9,21 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - add functionalities
  *
  */
 
 package org.eclipse.dataspaceconnector.sql.contractnegotiation.store;
 
+import org.eclipse.dataspaceconnector.contract.common.ContractId;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.sql.datasource.ConnectionFactoryDataSource;
@@ -50,7 +55,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createContract;
+import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createContractBuilder;
 import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createNegotiation;
+import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createPolicy;
 
 class SqlContractNegotiationStoreTest {
 
@@ -78,7 +85,10 @@ class SqlContractNegotiationStoreTest {
         dataSourceRegistry.register(DATASOURCE_NAME, poolDataSource);
         txManager.registerResource(new DataSourceResource(poolDataSource));
         var statements = new PostgresStatements();
-        store = new SqlContractNegotiationStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new TypeManager(), statements, CONNECTOR_NAME);
+        TypeManager manager = new TypeManager();
+
+        manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
+        store = new SqlContractNegotiationStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, manager, statements, CONNECTOR_NAME);
 
         try (var inputStream = getClass().getClassLoader().getResourceAsStream("schema.sql")) {
             var schema = new String(Objects.requireNonNull(inputStream).readAllBytes(), StandardCharsets.UTF_8);
@@ -428,6 +438,106 @@ class SqlContractNegotiationStoreTest {
                 .containsAll(negotiations);
 
         assertThat(leasedNegotiations).allMatch(n -> leaseUtil.isLeased(n.getId(), CONNECTOR_NAME));
+    }
+
+    @Test
+    void getAgreementsForDefinitionId() {
+        var contractAgreement = createContract(ContractId.createContractId("definitionId"));
+        var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
+        store.save(negotiation);
+
+        var result = store.getAgreementsForDefinitionId("definitionId");
+
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void getAgreementsForDefinitionId_notFound() {
+        var contractAgreement = createContract(ContractId.createContractId("otherDefinitionId"));
+        var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
+        store.save(negotiation);
+
+        var result = store.getAgreementsForDefinitionId("definitionId");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void queryAgreements_noQuerySpec() {
+        IntStream.range(0, 10).forEach(i -> {
+            var contractAgreement = createContract(ContractId.createContractId(UUID.randomUUID().toString()));
+            var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
+            store.save(negotiation);
+        });
+
+        var all = store.queryAgreements(QuerySpec.Builder.newInstance().build());
+
+        assertThat(all).hasSize(10);
+    }
+
+    @Test
+    void queryAgreements_verifyPaging() {
+        IntStream.range(0, 10).forEach(i -> {
+            var contractAgreement = createContract(ContractId.createContractId(UUID.randomUUID().toString()));
+            var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
+            store.save(negotiation);
+        });
+
+        // page size fits
+        assertThat(store.queryAgreements(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4);
+
+        // page size too large
+        assertThat(store.queryAgreements(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(5);
+    }
+
+    @Test
+    void findPolicy_whenNoAgreement() {
+        var n = createNegotiation("id1");
+
+        store.save(n);
+
+        var archivedPolicy = store.findPolicyForContract("test-policy");
+        assertThat(archivedPolicy).isNull();
+    }
+
+    @Test
+    void findPolicy_whenAgreement() {
+        var policy = createPolicy("test-policy");
+        var c = createContractBuilder("test-contract").policy(policy).build();
+        var n = createNegotiation("id1", c);
+
+        store.save(n);
+
+        var archivedPolicy = store.findPolicyForContract("test-contract");
+        assertThat(archivedPolicy).usingRecursiveComparison().isEqualTo(policy);
+    }
+
+    @Test
+    void findPolicy_whenMultipleAgreements() {
+        var policy = createPolicy("test-policy");
+        var c1 = createContractBuilder("test-contract1").policy(policy).build();
+        var n1 = createNegotiation("id1", c1);
+        var c2 = createContractBuilder("test-contract2").policy(policy).build();
+        var n2 = createNegotiation("id2", c2);
+
+        store.save(n1);
+        store.save(n2);
+
+        var policies = store.findPolicyForContract("test-contract1");
+        assertThat(policies).usingRecursiveComparison().isEqualTo(policy);
+    }
+
+    @Test
+    void findPolicy_whenAgreement_policyWithRandomId() {
+        var expectedPolicy = Policy.Builder.newInstance().build();
+        var c = createContractBuilder("test-contract").policy(expectedPolicy).build();
+        var n = createNegotiation("id1", c);
+
+        store.save(n);
+
+        var archivedPolicy = store.findPolicyForContract("test-policy");
+        assertThat(archivedPolicy).isNull();
+        assertThat(store.findContractAgreement("test-contract")).isNotNull().extracting(ContractAgreement::getPolicy).isEqualTo(expectedPolicy);
     }
 
     private Connection getConnection() {

@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.test.e2e;
 
+import org.eclipse.dataspaceconnector.common.annotations.EndToEndTest;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcRuntimeExtension;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
@@ -49,6 +50,7 @@ import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTra
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
+@EndToEndTest
 class EndToEndTransferTest {
 
     private final Duration timeout = Duration.ofSeconds(30);

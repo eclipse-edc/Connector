@@ -14,12 +14,14 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model;
 
+import org.jetbrains.annotations.NotNull;
+
 public class NegotiationInitiateRequestDto {
 
     private String connectorAddress;
     private String protocol = "ids-multipart";
     private String connectorId;
-    private String offerId;
+    private ContractOfferDescription offer;
 
     private NegotiationInitiateRequestDto() {
 
@@ -37,8 +39,8 @@ public class NegotiationInitiateRequestDto {
         return connectorId;
     }
 
-    public String getOfferId() {
-        return offerId;
+    public @NotNull ContractOfferDescription getOffer() {
+        return offer;
     }
 
 
@@ -68,8 +70,8 @@ public class NegotiationInitiateRequestDto {
             return this;
         }
 
-        public Builder offerId(String offerId) {
-            dto.offerId = offerId;
+        public Builder offerId(ContractOfferDescription offerId) {
+            dto.offer = offerId;
             return this;
         }
 

@@ -33,6 +33,7 @@ dependencies {
     testImplementation(project(":extensions:in-memory:assetindex-memory"))
     testImplementation(project(":extensions:in-memory:transfer-store-memory"))
     testImplementation(project(":extensions:in-memory:contractdefinition-store-memory"))
+    testImplementation(project(":extensions:in-memory:policy-store-memory"))
     testImplementation(project(":extensions:in-memory:assetindex-memory"))
     testImplementation(project(":data-protocols:ids"))
     testImplementation(project(":extensions:iam:iam-mock"))

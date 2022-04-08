@@ -76,7 +76,7 @@ public class DataPlaneTransferClientExtension implements ServiceExtension {
             client = new RemoteDataPlaneTransferClient(okHttpClient, selectorClient, selectionStrategy, retryPolicy, context.getTypeManager().getMapper());
         }
 
-        var flowController = new DataPlaneTransferFlowController(addressResolver, client);
+        var flowController = new DataPlaneTransferFlowController(client);
         flowManager.register(flowController);
     }
 }

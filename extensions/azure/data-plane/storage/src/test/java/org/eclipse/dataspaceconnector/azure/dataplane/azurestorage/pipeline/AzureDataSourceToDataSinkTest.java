@@ -19,7 +19,6 @@ import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.adapter.BlobAdapter;
 import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.adapter.BlobAdapterFactory;
 import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.FakeBlobAdapter;
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.Test;
 
@@ -144,7 +143,7 @@ class AzureDataSourceToDataSinkTest {
                 .monitor(monitor)
                 .build();
 
-        TransferResult transferResult = dataSink.transfer(dataSource).get();
+        var transferResult = dataSink.transfer(dataSource).get();
         assertThat(transferResult.failed()).isTrue();
         assertThat(transferResult.getFailureMessages()).containsExactly(format("Error reading blob %s", fakeSource.name));
     }

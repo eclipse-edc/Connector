@@ -17,13 +17,11 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.ser
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 
 import java.util.Collection;
-import java.util.List;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -41,11 +39,7 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
 
     @Override
     public ContractDefinition findById(String contractDefinitionId) {
-        var querySpec = QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("id", "=", contractDefinitionId)))
-                .build();
-
-        return transactionContext.execute(() -> store.findAll(querySpec).findFirst().orElse(null));
+        return transactionContext.execute(() -> store.findById(contractDefinitionId));
     }
 
     @Override

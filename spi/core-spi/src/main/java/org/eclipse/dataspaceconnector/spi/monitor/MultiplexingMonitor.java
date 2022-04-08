@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+/**
+ * Delegates to multiple monitor implementations. This can be used to output messages to multiple destinations.
+ */
 public class MultiplexingMonitor implements Monitor {
 
     private Collection<Monitor> internalMonitors;

@@ -15,11 +15,21 @@
 
 package org.eclipse.dataspaceconnector.spi.command;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Links together a Command and its handler class
  */
 public interface CommandHandlerRegistry {
+
+    /**
+     * Registers the handler.
+     */
     <C extends Command> void register(CommandHandler<C> handlerClass);
-    
+
+    /**
+     * Returns a handler that can process the command.
+     */
+    @Nullable
     <C extends Command> CommandHandler<C> get(Class<C> commandClass);
 }

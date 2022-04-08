@@ -20,11 +20,11 @@ import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -43,6 +43,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.mockito.Mockito.mock;
+
 class ClientControlCatalogApiControllerTestServiceExtension implements ServiceExtension {
 
     @Inject
@@ -60,7 +62,7 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
         assetLoader = context.getService(AssetLoader.class);
         contractDefinitionStore = context.getService(ContractDefinitionStore.class);
         context.registerService(ConsumerContractNegotiationManager.class, new FakeConsumerNegotiationManager());
-        context.registerService(ContractNegotiationStore.class, new FakeContractNegotiationStore());
+        context.registerService(ContractNegotiationStore.class, mock(ContractNegotiationStore.class));
     }
 
     @Override
@@ -137,64 +139,26 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
         contractDefinitionStore.save(contractDefinition2);
     }
 
-    private static class FakeContractNegotiationStore implements ContractNegotiationStore {
-
-        @Override
-        public @Nullable ContractNegotiation find(String negotiationId) {
-            return null;
-        }
-
-        @Override
-        public @Nullable ContractNegotiation findForCorrelationId(String correlationId) {
-            return null;
-        }
-
-        @Override
-        public @Nullable ContractAgreement findContractAgreement(String contractId) {
-            return null;
-        }
-
-        @Override
-        public void save(ContractNegotiation negotiation) {
-
-        }
-
-        @Override
-        public void delete(String negotiationId) {
-
-        }
-
-        @Override
-        public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
-            return null;
-        }
-
-        @Override
-        public Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
-            throw new UnsupportedOperationException();
-        }
-    }
-
     private static class FakeConsumerNegotiationManager implements ConsumerContractNegotiationManager {
 
         @Override
-        public NegotiationResult initiate(ContractOfferRequest contractOffer) {
+        public StatusResult<ContractNegotiation> initiate(ContractOfferRequest contractOffer) {
             return null;
         }
 
         @Override
-        public NegotiationResult offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
+        public StatusResult<ContractNegotiation> offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
             return null;
         }
 
         @Override
-        public NegotiationResult confirmed(ClaimToken token, String negotiationId,
+        public StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId,
                                            ContractAgreement contract, String hash) {
             return null;
         }
 
         @Override
-        public NegotiationResult declined(ClaimToken token, String negotiationId) {
+        public StatusResult<ContractNegotiation> declined(ClaimToken token, String negotiationId) {
             return null;
         }
 

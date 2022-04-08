@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added tests
  *
  */
 
@@ -99,6 +100,22 @@ class InMemoryContractDefinitionStoreTest {
 
         // must actually collect, otherwise the stream is not materialized
         assertThat(store.findAll(query).collect(Collectors.toList())).isEmpty();
+    }
+    
+    @Test
+    void findById() {
+        var id = "id";
+        var definition = createContractDefinition(id);
+        store.save(definition);
+        
+        var result = store.findById(id);
+        
+        assertThat(result).isNotNull().isEqualTo(definition);
+    }
+    
+    @Test
+    void findById_invalidId() {
+        assertThat(store.findById("invalid-id")).isNull();
     }
 
     private ContractDefinition createContractDefinition(String id) {

@@ -35,22 +35,22 @@ import static java.util.Optional.ofNullable;
 public class ContractNegotiationApiExtension implements ServiceExtension {
 
     @Inject
-    WebService webService;
+    private WebService webService;
 
     @Inject
-    DataManagementApiConfiguration config;
+    private DataManagementApiConfiguration config;
 
     @Inject
-    DtoTransformerRegistry transformerRegistry;
+    private DtoTransformerRegistry transformerRegistry;
 
     @Inject
-    ContractNegotiationStore store;
+    private ContractNegotiationStore store;
 
     @Inject
-    ConsumerContractNegotiationManager manager;
+    private ConsumerContractNegotiationManager manager;
 
     @Inject(required = false)
-    TransactionContext transactionContext;
+    private TransactionContext transactionContext;
 
     @Override
     public void initialize(ServiceExtensionContext context) {

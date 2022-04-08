@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS edc_contract_agreement
     start_date        BIGINT,
     end_date          INTEGER,
     asset_id          VARCHAR NOT NULL,
-    policy_id         VARCHAR
+    policy_id         VARCHAR,
+    serialized_policy VARCHAR
 );
 
 
@@ -40,7 +41,7 @@ CREATE TABLE IF NOT EXISTS edc_contract_negotiation
     id                    VARCHAR                                            NOT NULL
         CONSTRAINT contract_negotiation_pk
             PRIMARY KEY,
-    correlation_id        VARCHAR                                            NOT NULL,
+    correlation_id        VARCHAR,
     counterparty_id       VARCHAR                                            NOT NULL,
     counterparty_address  VARCHAR                                            NOT NULL,
     protocol              VARCHAR DEFAULT 'ids-multipart'::CHARACTER VARYING NOT NULL,
@@ -57,7 +58,8 @@ CREATE TABLE IF NOT EXISTS edc_contract_negotiation
     lease_id              VARCHAR
         CONSTRAINT contract_negotiation_lease_lease_id_fk
             REFERENCES edc_lease
-            ON DELETE SET NULL
+            ON DELETE SET NULL,
+    CONSTRAINT provider_correlation_id CHECK (type = '0' OR correlation_id IS NOT NULL)
 );
 
 COMMENT ON COLUMN edc_contract_negotiation.contract_agreement_id IS 'ContractAgreement serialized as JSON';

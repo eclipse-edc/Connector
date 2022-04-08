@@ -114,11 +114,10 @@ public class DescriptionHandler implements Handler {
             idsId = result.getContent();
         }
 
-        IdsType type;
-        if (idsId == null || (type = idsId.getType()) == IdsType.CONNECTOR) {
+        if (idsId == null || (idsId.getType() == IdsType.CONNECTOR)) {
             return connectorDescriptionRequestHandler.handle(descriptionRequestMessage, claimToken, payload);
         }
-
+        var type = idsId.getType();
         switch (type) {
             case ARTIFACT:
                 return artifactDescriptionRequestHandler.handle(descriptionRequestMessage, claimToken, payload);

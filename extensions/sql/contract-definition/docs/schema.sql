@@ -9,14 +9,16 @@
 --
 --  Contributors:
 --       Daimler TSS GmbH - Initial SQL Query
+--       Microsoft Corporation - refactoring
 --
 
 -- table: edc_contract_definitions
+-- only intended for and tested with H2 and Postgres!
 CREATE TABLE IF NOT EXISTS edc_contract_definitions
 (
-    contract_definition_id VARCHAR(255) NOT NULL,
-    access_policy VARCHAR(MAX) NOT NULL,
-    contract_policy VARCHAR(MAX) NOT NULL,
-    selector_expression VARCHAR(MAX) NOT NULL,
+    contract_definition_id VARCHAR NOT NULL,
+    access_policy          VARCHAR NOT NULL,
+    contract_policy        VARCHAR NOT NULL,
+    selector_expression    VARCHAR NOT NULL,
     PRIMARY KEY (contract_definition_id)
 );

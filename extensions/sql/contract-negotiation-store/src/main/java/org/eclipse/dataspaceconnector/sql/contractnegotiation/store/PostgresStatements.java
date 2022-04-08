@@ -38,6 +38,11 @@ public final class PostgresStatements implements ContractNegotiationStatements {
     }
 
     @Override
+    public String getFindContractAgreementByDefinitionIdTemplate() {
+        return format("SELECT * FROM %s where %s LIKE ?", getContractAgreementTable(), getIdColumn());
+    }
+
+    @Override
     public String getUpdateNegotiationTemplate() {
         return format("UPDATE %s\n" +
                 "SET %s=?,\n" +
@@ -73,15 +78,26 @@ public final class PostgresStatements implements ContractNegotiationStatements {
 
     @Override
     public String getQueryTemplate() {
-        // todo: add WHERE ... AND ... statements here
+        // todo: add WHERE ... AND ... ORDER BY... statements here
         return format("SELECT * FROM %s LIMIT ? OFFSET ?;", getContractNegotiationTable());
     }
 
     @Override
+    public String getQueryAgreementsTemplate() {
+        // todo: add WHERE ... AND ... ORDER BY... statements here
+        return format("SELECT * FROM %s LIMIT ? OFFSET ?;", getContractAgreementTable());
+    }
+
+    @Override
     public String getInsertAgreementTemplate() {
-        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?);", getContractAgreementTable(), getIdColumn(), getProviderAgentColumn(), getConsumerAgentColumn(),
-                getSigningDateColumn(), getStartDateColumn(), getEndDateColumn(), getAssetIdColumn(), getPolicyIdColumn());
+        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", getContractAgreementTable(), getIdColumn(), getProviderAgentColumn(), getConsumerAgentColumn(),
+                getSigningDateColumn(), getStartDateColumn(), getEndDateColumn(), getAssetIdColumn(), getPolicyIdColumn(), getPolicyColumnSeralized());
+    }
+
+    @Override
+    public String getSelectByPolicyIdTemplate() {
+        return format("SELECT DISTINCT %s FROM %s WHERE %s = ?", getPolicyColumnSeralized(), getContractAgreementTable(), getPolicyIdColumn());
     }
 
     @Override

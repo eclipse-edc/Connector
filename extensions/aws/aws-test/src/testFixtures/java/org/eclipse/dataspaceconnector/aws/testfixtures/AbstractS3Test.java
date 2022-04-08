@@ -23,6 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
@@ -44,7 +45,9 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -149,6 +152,12 @@ public abstract class AbstractS3Test {
 
     protected CompletableFuture<PutObjectResponse> putTestFile(String key, File file, String bucketName) {
         return client.putObject(PutObjectRequest.builder().bucket(bucketName).key(key).build(), file.toPath());
+    }
+
+    protected void putStringOnBucket(String bucketName, String key, String content) {
+        var request = PutObjectRequest.builder().bucket(bucketName).key(key).build();
+        var response = client.putObject(request, AsyncRequestBody.fromString(content));
+        assertThat(response).succeedsWithin(10, TimeUnit.SECONDS);
     }
 
     protected @NotNull AwsCredentials getCredentials() {

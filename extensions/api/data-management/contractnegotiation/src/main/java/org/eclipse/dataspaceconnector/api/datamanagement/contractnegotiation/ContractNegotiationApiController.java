@@ -169,14 +169,18 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     }
 
     private boolean isValid(NegotiationInitiateRequestDto initiateDto) {
-        return StringUtils.isNoneBlank(initiateDto.getConnectorId(), initiateDto.getConnectorAddress(), initiateDto.getProtocol(), initiateDto.getOfferId());
+        return StringUtils.isNoneBlank(initiateDto.getConnectorId(), initiateDto.getConnectorAddress(), initiateDto.getProtocol(),
+                initiateDto.getOffer().getOfferId(), initiateDto.getOffer().getAssetId(), initiateDto.getOffer().getPolicyId());
     }
 
     private void handleFailedResult(ServiceResult<ContractNegotiation> result, String id) {
         switch (result.reason()) {
-            case NOT_FOUND: throw new ObjectNotFoundException(ContractNegotiation.class, id);
-            case CONFLICT: throw new ObjectExistsException(ContractNegotiation.class, id);
-            default: throw new EdcException("unexpected error");
+            case NOT_FOUND:
+                throw new ObjectNotFoundException(ContractNegotiation.class, id);
+            case CONFLICT:
+                throw new ObjectExistsException(ContractNegotiation.class, id);
+            default:
+                throw new EdcException("unexpected error");
         }
     }
 }
