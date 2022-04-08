@@ -21,6 +21,7 @@ val gatlingVersion: String by project
 val openTelemetryVersion: String by project
 val awaitility: String by project
 val armeriaVersion: String by project
+val httpMockServer: String by project
 
 dependencies {
     testImplementation("io.gatling.highcharts:gatling-charts-highcharts:${gatlingVersion}") {
@@ -37,12 +38,11 @@ dependencies {
 
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":launchers:junit")))
-
-    testImplementation("com.linecorp.armeria:armeria-grpc-protocol:${armeriaVersion}")
-    testImplementation("com.linecorp.armeria:armeria-junit5:${armeriaVersion}")
     testImplementation("io.opentelemetry:opentelemetry-api:${openTelemetryVersion}")
     testImplementation("io.opentelemetry.proto:opentelemetry-proto:0.14.0-alpha")
     testImplementation("org.awaitility:awaitility:${awaitility}")
+    testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
+    testImplementation("org.mock-server:mockserver-client-java:${httpMockServer}:shaded")
 
     testCompileOnly(project(":system-tests:runtimes:file-transfer-provider"))
     testCompileOnly(project(":system-tests:runtimes:file-transfer-consumer"))
@@ -51,7 +51,7 @@ dependencies {
 tasks.withType<Test> {
     val agent = rootDir.resolve("opentelemetry-javaagent.jar")
     if (agent.exists()) {
-        jvmArgs("-javaagent:${agent.absolutePath}")
+        jvmArgs("-javaagent:${agent.absolutePath}", "-Dotel.exporter.otlp.protocol=http/protobuf");
     }
 }
 
