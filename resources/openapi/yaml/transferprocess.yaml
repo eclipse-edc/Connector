@@ -68,12 +68,6 @@ paths:
                   $ref: '#/components/schemas/TransferProcessDto'
     post:
       operationId: initiateTransfer
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
       requestBody:
         content:
           application/json:
@@ -169,6 +163,8 @@ components:
         protocol:
           type: string
         connectorId:
+          type: string
+        assetId:
           type: string
     TransferType:
       type: object
