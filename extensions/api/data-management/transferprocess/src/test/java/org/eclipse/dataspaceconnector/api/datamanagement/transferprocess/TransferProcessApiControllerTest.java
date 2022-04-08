@@ -33,9 +33,11 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.mockito.ArgumentCaptor;
 
 import java.util.List;
@@ -56,11 +58,10 @@ class TransferProcessApiControllerTest {
     public static final int LIMIT = 10;
     private final TransferProcessService service = mock(TransferProcessService.class);
     private final DtoTransformerRegistry transformerRegistry = mock(DtoTransformerRegistry.class);
+    private final String filterExpression = "someField=value";
+    private final String someField = "someField";
+    private static final Faker FAKER = new Faker();
     private TransferProcessApiController controller;
-    private String filterExpression = "someField=value";
-    private String someField = "someField";
-    private static Faker faker = new Faker();
-
 
     @BeforeEach
     void setup() {
@@ -70,8 +71,7 @@ class TransferProcessApiControllerTest {
 
     @Test
     void getAll() {
-
-        TransferProcess transferProcess = transferProcess();
+        var transferProcess = transferProcess();
         var dto = transferProcessDto(transferProcess);
 
         when(transformerRegistry.transform(isA(TransferProcess.class), eq(TransferProcessDto.class))).thenReturn(Result.success(dto));
@@ -83,7 +83,7 @@ class TransferProcessApiControllerTest {
 
     @Test
     void getAll_filtersOutFailedTransforms() {
-        TransferProcess transferProcess = transferProcess();
+        var transferProcess = transferProcess();
 
         when(transformerRegistry.transform(isA(TransferProcess.class), eq(TransferProcessDto.class))).thenReturn(Result.failure("failure"));
         when(service.query(any())).thenReturn(List.of(transferProcess));
@@ -95,7 +95,7 @@ class TransferProcessApiControllerTest {
     @Test
     void getById() {
         String id = "tp-id";
-        TransferProcess transferProcess = transferProcess(id);
+        var transferProcess = transferProcess(id);
         TransferProcessDto dto = transferProcessDto(transferProcess);
 
         when(transformerRegistry.transform(isA(TransferProcess.class), eq(TransferProcessDto.class))).thenReturn(Result.success(dto));
@@ -132,7 +132,7 @@ class TransferProcessApiControllerTest {
 
     @Test
     void deprovision() {
-        TransferProcess transferProcess = transferProcess();
+        var transferProcess = transferProcess();
 
         when(service.deprovision(transferProcess.getId())).thenReturn(ServiceResult.success(transferProcess));
 
@@ -141,7 +141,7 @@ class TransferProcessApiControllerTest {
 
     @Test
     void deprovision_conflict() {
-        TransferProcess transferProcess = transferProcess();
+        var transferProcess = transferProcess();
 
         when(service.deprovision(transferProcess.getId())).thenReturn(ServiceResult.conflict("conflict"));
 
@@ -150,7 +150,7 @@ class TransferProcessApiControllerTest {
 
     @Test
     void deprovision_NotFound() {
-        TransferProcess transferProcess = transferProcess();
+        var transferProcess = transferProcess();
 
         when(service.deprovision(transferProcess.getId())).thenReturn(ServiceResult.notFound("not found"));
 
@@ -159,7 +159,7 @@ class TransferProcessApiControllerTest {
 
     @Test
     void cancelTransfer() {
-        TransferProcess transferProcess = transferProcess();
+        var transferProcess = transferProcess();
 
         when(service.cancel(transferProcess.getId())).thenReturn(ServiceResult.success(transferProcess));
 
@@ -168,7 +168,7 @@ class TransferProcessApiControllerTest {
 
     @Test
     void cancelTransfer_conflict() {
-        TransferProcess transferProcess = transferProcess();
+        var transferProcess = transferProcess();
 
         when(service.cancel(transferProcess.getId())).thenReturn(ServiceResult.conflict("conflict"));
 
@@ -177,7 +177,7 @@ class TransferProcessApiControllerTest {
 
     @Test
     void cancelTransfer_NotFound() {
-        TransferProcess transferProcess = transferProcess();
+        var transferProcess = transferProcess();
 
         when(service.cancel(transferProcess.getId())).thenReturn(ServiceResult.notFound("not found"));
 
@@ -228,7 +228,7 @@ class TransferProcessApiControllerTest {
     }
 
     @ParameterizedTest
-    @MethodSource("getInvalidRequestParams")
+    @ArgumentsSource(InvalidRequestParams.class)
     void initiateTransfer_invalidRequest(String connectorAddress, String contractId, String assetId, String protocol, DataAddress destination) {
         var rq = TransferRequestDto.Builder.newInstance()
                 .connectorAddress(connectorAddress)
@@ -258,23 +258,26 @@ class TransferProcessApiControllerTest {
                 .build();
     }
 
-    // provides invalid values for a TransferRequestDto
-    public static Stream<Arguments> getInvalidRequestParams() {
-        return Stream.of(
-                Arguments.of(null, "some-contract", "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
-                Arguments.of("", "some-contract", "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
-                Arguments.of("  ", "some-contract", "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
-                Arguments.of("http://someurl", null, "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
-                Arguments.of("http://someurl", "", "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
-                Arguments.of("http://someurl", "  ", "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
-                Arguments.of("http://someurl", "some-contract", "test-asset", null, DataAddress.Builder.newInstance().type("test-type").build()),
-                Arguments.of("http://someurl", "some-contract", "test-asset", "", DataAddress.Builder.newInstance().type("test-type").build()),
-                Arguments.of("http://someurl", "some-contract", "test-asset", "  ", DataAddress.Builder.newInstance().type("test-type").build()),
-                Arguments.of("http://someurl", "some-contract", "test-asset", "ids-multipart", null),
-                Arguments.of("http://someurl", "some-contract", null, "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
-                Arguments.of("http://someurl", "some-contract", "", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
-                Arguments.of("http://someurl", "some-contract", "  ", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build())
-        );
+    private static class InvalidRequestParams implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    Arguments.of(null, "some-contract", "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("", "some-contract", "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("  ", "some-contract", "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("http://someurl", null, "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("http://someurl", "", "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("http://someurl", "  ", "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("http://someurl", "some-contract", "test-asset", null, DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("http://someurl", "some-contract", "test-asset", "", DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("http://someurl", "some-contract", "test-asset", "  ", DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("http://someurl", "some-contract", "test-asset", "ids-multipart", null),
+                    Arguments.of("http://someurl", "some-contract", null, "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("http://someurl", "some-contract", "", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("http://someurl", "some-contract", "  ", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build())
+            );
+        }
     }
 
     private void assertQuerySpec(int limit, int offset, SortOrder sortOrder, String sortField, Criterion... criterions) {
@@ -293,7 +296,7 @@ class TransferProcessApiControllerTest {
     }
 
     private TransferProcess transferProcess() {
-        return transferProcess(faker.lorem().word());
+        return transferProcess(FAKER.lorem().word());
     }
 
     private TransferProcess transferProcess(String id) {

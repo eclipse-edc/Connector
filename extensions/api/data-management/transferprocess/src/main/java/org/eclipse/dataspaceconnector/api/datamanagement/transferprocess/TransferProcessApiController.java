@@ -108,7 +108,6 @@ public class TransferProcessApiController implements TransferProcessApi {
     }
 
     @POST
-    @Path("/request")
     @Override
     public String initiateTransfer(TransferRequestDto transferRequest) {
         if (!isValid(transferRequest)) {
@@ -117,11 +116,11 @@ public class TransferProcessApiController implements TransferProcessApi {
         var dataRequest = Optional.ofNullable(transformerRegistry.transform(transferRequest, DataRequest.class))
                 .filter(AbstractResult::succeeded).map(AbstractResult::getContent);
         if (dataRequest.isEmpty()) {
-            throw  new IllegalArgumentException("Error during transforming TransferRequestDto into DataRequest");
+            throw new IllegalArgumentException("Error during transforming TransferRequestDto into DataRequest");
         }
         monitor.debug("Starting transfer for asset " + transferRequest.getAssetId());
 
-        ServiceResult<String> result = service.initiateTransfer(dataRequest.get());
+        var result = service.initiateTransfer(dataRequest.get());
         if (result.succeeded()) {
             monitor.debug(format("Transfer process initialised %s", result.getContent()));
             return result.getContent();

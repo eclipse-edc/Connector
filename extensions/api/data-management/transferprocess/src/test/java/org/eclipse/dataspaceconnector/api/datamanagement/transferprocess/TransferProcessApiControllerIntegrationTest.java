@@ -65,40 +65,6 @@ class TransferProcessApiControllerIntegrationTest {
                 .body("size()", is(1));
     }
 
-    private RequestSpecification baseRequest() {
-        return given()
-                .baseUri("http://localhost:" + port)
-                .basePath("/api/v1/data")
-                .header("x-api-key", authKey)
-                .when();
-    }
-
-    @Test
-    void getTransferProcesses_withLimit(TransferProcessStore store) {
-        store.create(createTransferProcess("processId_1"));
-        store.create(createTransferProcess("processId_2"));
-
-        baseRequest()
-                .get("/transferprocess?offset=0&limit=15")
-                .then()
-                .statusCode(200)
-                .contentType(JSON)
-                .body("size()", is(2));
-    }
-
-    @Test
-    void getTransferProcesses_withLimitAndOffset(TransferProcessStore store) {
-        store.create(createTransferProcess("processId_1"));
-        store.create(createTransferProcess("processId_2"));
-
-        baseRequest()
-                .get("/transferprocess?offset=1&limit=1")
-                .then()
-                .statusCode(200)
-                .contentType(JSON)
-                .body("size()", is(1));
-    }
-
     @Test
     void getSingleTransferProcess(TransferProcessStore store) {
         store.create(createTransferProcess(PROCESS_ID));
@@ -202,7 +168,7 @@ class TransferProcessApiControllerIntegrationTest {
     }
 
     @Test
-    void initiateRequest(TransferProcessStore store) {
+    void initiateRequest() {
         var request = TransferRequestDto.Builder.newInstance()
                 .connectorAddress("http://some-contract")
                 .contractId("some-contract")
@@ -216,7 +182,7 @@ class TransferProcessApiControllerIntegrationTest {
         var result = baseRequest()
                 .contentType(JSON)
                 .body(request)
-                .post("/transferprocess/request")
+                .post("/transferprocess")
                 .then()
                 .statusCode(200)
                 .extract().body().asString();
@@ -226,15 +192,21 @@ class TransferProcessApiControllerIntegrationTest {
 
     @Test
     void initiateRequest_badRequest() {
-
         baseRequest()
                 .contentType(JSON)
                 .body("bad-request")
-                .post("/transferprocess/request")
+                .post("/transferprocess")
                 .then()
                 .statusCode(400)
                 .extract().body().asString();
+    }
 
+    private RequestSpecification baseRequest() {
+        return given()
+                .baseUri("http://localhost:" + port)
+                .basePath("/api/v1/data")
+                .header("x-api-key", authKey)
+                .when();
     }
 
     private TransferProcess createTransferProcess(String processId) {

@@ -9,65 +9,9 @@ info:
 servers:
 - url: /
 paths:
-  /catalog:
-    post:
-      operationId: getCatalog
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/FederatedCatalogCacheQuery'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ContractOffer'
-  /instances:
+  /assets:
     get:
-      operationId: getAll
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DataPlaneInstance'
-    post:
-      operationId: addEntry
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DataPlaneInstance'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /instances/select:
-    post:
-      operationId: find
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SelectionRequest'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DataPlaneInstance'
-  /policies:
-    get:
-      operationId: getAllPolicies
+      operationId: getAllAssets
       parameters:
       - name: offset
         in: query
@@ -117,22 +61,22 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PolicyDefinitionDto'
+                  $ref: '#/components/schemas/AssetDto'
     post:
-      operationId: createPolicy
+      operationId: createAsset
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyDefinitionDto'
+              $ref: '#/components/schemas/AssetEntryDto'
       responses:
         default:
           description: default response
           content:
             application/json: {}
-  /policies/{id}:
+  /assets/{id}:
     get:
-      operationId: getPolicy
+      operationId: getAsset
       parameters:
       - name: id
         in: path
@@ -147,9 +91,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PolicyDefinitionDto'
+                $ref: '#/components/schemas/AssetDto'
     delete:
-      operationId: deletePolicy
+      operationId: removeAsset
       parameters:
       - name: id
         in: path
@@ -158,6 +102,96 @@ paths:
         explode: false
         schema:
           type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /control/catalog:
+    get:
+      operationId: getDescription
+      parameters:
+      - name: provider
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /control/transfer:
+    post:
+      operationId: addTransfer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataRequest'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /control/agreement/{id}:
+    get:
+      operationId: getAgreementById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /control/negotiation/{id}:
+    get:
+      operationId: getNegotiationById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /control/negotiation/{id}/state:
+    get:
+      operationId: getNegotiationStateById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /control/negotiation:
+    post:
+      operationId: initiateNegotiation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContractOfferRequest'
       responses:
         default:
           description: default response
@@ -195,6 +229,45 @@ paths:
           description: default response
           content:
             application/json: {}
+  /instances:
+    get:
+      operationId: getAll
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataPlaneInstance'
+    post:
+      operationId: addEntry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataPlaneInstance'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /instances/select:
+    post:
+      operationId: find
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SelectionRequest'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataPlaneInstance'
   /contractnegotiations/{id}/cancel:
     post:
       operationId: cancelNegotiation
@@ -348,95 +421,11 @@ paths:
             application/json:
               schema:
                 type: string
-  /transferprocess/{id}/cancel:
+  /callback/{processId}/deprovision:
     post:
-      operationId: cancelTransferProcess
+      operationId: callDeprovisionWebhook
       parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /transferprocess/{id}/deprovision:
-    post:
-      operationId: deprovisionTransferProcess
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /transferprocess:
-    get:
-      operationId: getAllTransferProcesses
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TransferProcessDto'
-    post:
-      operationId: initiateTransfer
-      parameters:
-      - name: id
+      - name: processId
         in: path
         required: true
         style: simple
@@ -447,50 +436,33 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TransferRequestDto'
+              $ref: '#/components/schemas/DeprovisionedResource'
       responses:
         default:
           description: default response
           content:
-            application/json:
-              schema:
-                type: string
-  /transferprocess/{id}:
-    get:
-      operationId: getTransferProcess
+            application/json: {}
+  /callback/{processId}/provision:
+    post:
+      operationId: callProvisionWebhook
       parameters:
-      - name: id
+      - name: processId
         in: path
         required: true
         style: simple
         explode: false
         schema:
           type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProvisionerWebhookRequest'
       responses:
         default:
           description: default response
           content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TransferProcessDto'
-  /transferprocess/{id}/state:
-    get:
-      operationId: getTransferProcessState
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: string
+            application/json: {}
   /contractdefinitions:
     get:
       operationId: getAllContractDefinitions
@@ -649,9 +621,26 @@ paths:
           description: default response
           content:
             application/json: {}
-  /assets:
+  /catalog:
+    post:
+      operationId: getCatalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FederatedCatalogCacheQuery'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContractOffer'
+  /policies:
     get:
-      operationId: getAllAssets
+      operationId: getAllPolicies
       parameters:
       - name: offset
         in: query
@@ -701,22 +690,22 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AssetDto'
+                  $ref: '#/components/schemas/Policy'
     post:
-      operationId: createAsset
+      operationId: createPolicy
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AssetEntryDto'
+              $ref: '#/components/schemas/Policy'
       responses:
         default:
           description: default response
           content:
             application/json: {}
-  /assets/{id}:
+  /policies/{id}:
     get:
-      operationId: getAsset
+      operationId: getPolicy
       parameters:
       - name: id
         in: path
@@ -731,9 +720,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AssetDto'
+                $ref: '#/components/schemas/Policy'
     delete:
-      operationId: removeAsset
+      operationId: deletePolicy
       parameters:
       - name: id
         in: path
@@ -818,24 +807,76 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContractAgreementDto'
-  /callback:
+  /transferprocess/{id}/cancel:
     post:
-      operationId: callWebhook
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ProvisionerWebhookRequest'
+      operationId: cancelTransferProcess
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
       responses:
         default:
           description: default response
           content:
             application/json: {}
-  /control/catalog:
-    get:
-      operationId: getDescription
+  /transferprocess/{id}/deprovision:
+    post:
+      operationId: deprovisionTransferProcess
       parameters:
-      - name: provider
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /transferprocess:
+    get:
+      operationId: getAllTransferProcesses
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: limit
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: filter
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - name: sortField
         in: query
         required: false
         style: form
@@ -846,23 +887,28 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
-  /control/transfer:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransferProcessDto'
     post:
-      operationId: addTransfer
+      operationId: initiateTransfer
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DataRequest'
+              $ref: '#/components/schemas/TransferRequestDto'
       responses:
         default:
           description: default response
           content:
-            application/json: {}
-  /control/agreement/{id}:
+            application/json:
+              schema:
+                type: string
+  /transferprocess/{id}:
     get:
-      operationId: getAgreementById
+      operationId: getTransferProcess
       parameters:
       - name: id
         in: path
@@ -875,10 +921,12 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
-  /control/negotiation/{id}:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferProcessDto'
+  /transferprocess/{id}/state:
     get:
-      operationId: getNegotiationById
+      operationId: getTransferProcessState
       parameters:
       - name: id
         in: path
@@ -891,68 +939,9 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
-  /callback/{processId}/deprovision:
-    post:
-      operationId: callDeprovisionWebhook
-      parameters:
-      - name: processId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DeprovisionedResource'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /callback/{processId}/provision:
-    post:
-      operationId: callProvisionWebhook
-      parameters:
-      - name: processId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-  /control/negotiation/{id}/state:
-    get:
-      operationId: getNegotiationStateById
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /control/negotiation:
-    post:
-      operationId: initiateNegotiation
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ContractOfferRequest'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
+            application/json:
+              schema:
+                type: string
 components:
   schemas:
     Action:
@@ -1294,35 +1283,6 @@ components:
           - SET
           - OFFER
           - CONTRACT
-    PolicyDefinitionDto:
-      type: object
-      properties:
-        uid:
-          type: string
-        permissions:
-          type: array
-          items:
-            $ref: '#/components/schemas/Permission'
-        prohibitions:
-          type: array
-          items:
-            $ref: '#/components/schemas/Prohibition'
-        obligations:
-          type: array
-          items:
-            $ref: '#/components/schemas/Duty'
-        extensibleProperties:
-          type: object
-          additionalProperties:
-            type: object
-        inheritsFrom:
-          type: string
-        '@type':
-          type: string
-          enum:
-          - SET
-          - OFFER
-          - CONTRACT
     Prohibition:
       type: object
       properties:
@@ -1397,6 +1357,8 @@ components:
         protocol:
           type: string
         connectorId:
+          type: string
+        assetId:
           type: string
     TransferType:
       type: object

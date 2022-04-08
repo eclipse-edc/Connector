@@ -16,9 +16,9 @@ package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.servic
 
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.AbstractResult;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -78,7 +78,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     @Override
     public @NotNull ServiceResult<String> initiateTransfer(DataRequest request) {
         return transactionContext.execute(() -> {
-            TransferInitiateResult transferInitiateResult = manager.initiateConsumerRequest(request);
+            StatusResult<String> transferInitiateResult = manager.initiateConsumerRequest(request);
             return Optional.ofNullable(transferInitiateResult)
                     .filter(AbstractResult::succeeded)
                     .map(AbstractResult::getContent)

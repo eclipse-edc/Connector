@@ -17,9 +17,9 @@ package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.servic
 import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -143,9 +143,10 @@ class TransferProcessServiceImplTest {
     void initiateTransfer() {
         var dataRequest = DataRequest.Builder.newInstance().destinationType("type").build();
         String processId = "processId";
+        when(manager.initiateConsumerRequest(dataRequest)).thenReturn(StatusResult.success(processId));
 
-        when(manager.initiateConsumerRequest(dataRequest)).thenReturn(TransferInitiateResult.success(processId));
-        ServiceResult<String> result = service.initiateTransfer(dataRequest);
+        var result = service.initiateTransfer(dataRequest);
+
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).isEqualTo(processId);
     }
