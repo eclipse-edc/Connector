@@ -16,6 +16,7 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.client;
 
 import kotlin.NotImplementedError;
+import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -65,6 +66,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
+@ComponentTest
 @Provides({ AssetIndex.class, TransferProcessStore.class, ContractDefinitionStore.class, IdentityService.class, ContractNegotiationManager.class,
         ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class, ContractOfferService.class, ContractValidationService.class })
 class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements ServiceExtension {

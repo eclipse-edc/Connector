@@ -4,11 +4,35 @@
 All notable changes to this project will be documented in this file - formatted and maintained according to the rules
 documented on <http://keepachangelog.com>.
 
-This file will not cover changes about documentation, code clean-up, samples, or the CI pipeline. With each version (
-respectively milestone), the core features are highlighted. Relevant changes to existing implementations can be found in
+This file will not cover changes about documentation, code clean-up, samples, or the CI pipeline. With each version 
+(respectively milestone), the core features are highlighted. Relevant changes to existing implementations can be found in
 the detailed section referring to by linking pull requests or issues.
 
-## [Unreleased] - XXXX-XX-XX (Milestone 3)
+## [Unreleased]
+
+### Overview
+
+*
+
+### Detailed Changes
+
+#### Added
+
+*
+
+#### Changed
+
+*
+
+#### Removed
+
+*
+
+#### Fixed
+
+* Hande Jakarta exception correctly (#1102)
+
+## [milestone-3] - 2022-04-08
 
 ### Overview
 
@@ -45,6 +69,7 @@ the detailed section referring to by linking pull requests or issues.
 * Implement TransferProcess service for Data Management API (#1005)
 * SQL-based ContractNegotiationStore (#864)
 * In-memory implementation of PolicyStore (#930)
+* Add ComponentTest and EndToEndTest annotation (#1034)
 * Implement AssetLoader, AssetIndex, DataAddressResolver for SQL (#863)
 * Support for HTTP-based provisioning (#963)
 * Let Control Plane delegate data transfer to Data Plane (#988)
@@ -52,6 +77,7 @@ the detailed section referring to by linking pull requests or issues.
 * CosmosDb based `PolicyStore` (#826)
 * Implement SQL-based PolicyStore (#866)
 * Http Provisioner Webhook endpoint (#1039)
+* Add `PolicyService` and Rest endpoints in Data Management API (#1025)
 * Add dependency checks (#1000)
 * Add `ContractAgreement` query methods on `ContractNegotiationStore` (#1044)
 * Add `findById` method to `ContractDefinitionStore` (#967)
@@ -61,6 +87,8 @@ the detailed section referring to by linking pull requests or issues.
 * Resolve content addresses in the `TransferProcessManager` (#1090)
 * Reliably send transfers from consumer to provider (#1007)
 * Http Deprovisioner Webhook endpoint (#1039)
+* Add performance test example and scheduled workflow (#1029)
+* Add basic authentication mechanism for DataManagement API (#981)
 
 #### Changed
 
@@ -79,13 +107,14 @@ the detailed section referring to by linking pull requests or issues.
 * Call the listeners before the state transition is persisted. (#876)
 * Add an overload to `TransactionContext#execute()` (#968)
 * Run CosmosDB integration tests on cloud in CI (#964)
-* Updated the ContractNegotiation service for DataManagementApi (#985)
+* Update the ContractNegotiation service for DataManagementApi (#985)
 * Set policy and rule target dynamically when generating contract offers (#609)
 * Add SQL-AssetIndex to support `QuerySpec` (#1014)
 * Improve provision signalling and align deprovisioning to handle error conditions (#992)
 * Replace Asset with assetId on ContractAgreement (#1009)
 * Update CI workflow to use concurrency (#1092)
 * Adapt system-test to use Embedded DPF to perform file copy (#1060)
+* Remove default token-based authentication at the DataManagement API (#981)
 
 #### Removed
 
@@ -97,14 +126,14 @@ the detailed section referring to by linking pull requests or issues.
 #### Fixed
 
 * Flaky S3 StatusChecker Test (#794)
-* Added missing Data Management Asset controller openapi (#853)
+* Add missing Data Management Asset controller openapi (#853)
 * Policy deserialization (#898)
 * Fix extensions loading of EdcRuntimeExtension (#180)
 * Fix missing extension to register TPS (#1027)
 
 ---
 
-## [0.2.0] - 2021-02-21 (Milestone 2)
+## [milestone-2] - 2021-02-21
 
 ### Overview
 
@@ -151,6 +180,7 @@ the detailed section referring to by linking pull requests or issues.
 * Add public Api to DPF and make `HttpDataSource` more generic (#699)
 * Add an in-memory data plane store (#705)
 * Introduce extensions for synchronous data transfer using data plane (#711)
+* Added Policy services and policy Rest endpoints (1025)
 
 #### Changed
 
@@ -188,7 +218,7 @@ the detailed section referring to by linking pull requests or issues.
 
 ---
 
-## [0.1.0] - 2021-12-13 (Milestone 1)
+## [milestone-1] - 2021-12-13
 
 ### Overview
 

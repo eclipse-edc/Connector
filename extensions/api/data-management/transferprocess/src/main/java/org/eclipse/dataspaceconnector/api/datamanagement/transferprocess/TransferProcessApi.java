@@ -34,5 +34,5 @@ public interface TransferProcessApi {
 
     void deprovisionTransferProcess(String id);
 
-    String initiateTransfer(String assetId, TransferRequestDto transferRequest);
+    String initiateTransfer(TransferRequestDto transferRequest);
 }

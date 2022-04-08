@@ -9,11 +9,12 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  */
 
 package org.eclipse.dataspaceconnector.api.exception.mappers;
 
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import org.eclipse.dataspaceconnector.api.exception.AuthenticationFailedException;
@@ -24,33 +25,37 @@ import org.eclipse.dataspaceconnector.api.exception.ObjectNotModifiableException
 
 import java.util.Map;
 
+import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.CONFLICT;
+import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
+import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
+import static jakarta.ws.rs.core.Response.Status.NOT_IMPLEMENTED;
+import static jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
+import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
+
 public class EdcApiExceptionMapper implements ExceptionMapper<Throwable> {
-    private final Map<Class<? extends Throwable>, Integer> exceptionMap;
+    private final Map<Class<? extends Throwable>, Response.Status> exceptionMap;
 
     public EdcApiExceptionMapper() {
         exceptionMap = Map.of(
-                IllegalArgumentException.class, 400,
-                NullPointerException.class, 400,
-                AuthenticationFailedException.class, 401,
-                NotAuthorizedException.class, 403,
-                ObjectNotFoundException.class, 404,
-                ObjectExistsException.class, 409,
-                ObjectNotModifiableException.class, 423,
-                UnsupportedOperationException.class, 501
+                IllegalArgumentException.class, BAD_REQUEST,
+                NullPointerException.class, BAD_REQUEST,
+                AuthenticationFailedException.class, UNAUTHORIZED,
+                NotAuthorizedException.class, FORBIDDEN,
+                ObjectNotFoundException.class, NOT_FOUND,
+                ObjectExistsException.class, CONFLICT,
+                ObjectNotModifiableException.class, CONFLICT,
+                UnsupportedOperationException.class, NOT_IMPLEMENTED
         );
-    }
-
-    public EdcApiExceptionMapper(Map<Class<? extends Throwable>, Integer> exceptionMap) {
-        this.exceptionMap = exceptionMap;
     }
 
     @Override
     public Response toResponse(Throwable exception) {
-        var code = exceptionMap.get(exception.getClass());
-        if (code == null) {
-            return Response.status(503).build();
-        } else {
-            return Response.status(code).entity(exception.getMessage()).build();
+        if (exception instanceof WebApplicationException) {
+            return ((WebApplicationException) exception).getResponse();
         }
+
+        var status = exceptionMap.getOrDefault(exception.getClass(), SERVICE_UNAVAILABLE);
+        return Response.status(status).build();
     }
 }

@@ -16,6 +16,8 @@
 
 package org.eclipse.dataspaceconnector.system.tests.local;
 
+import org.eclipse.dataspaceconnector.common.annotations.EndToEndTest;
+import org.eclipse.dataspaceconnector.common.annotations.PerformanceTest;
 import org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils;
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +29,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.system.tests.utils.GatlingUtils.runGatling;
 
+@EndToEndTest
+@PerformanceTest
 public class FileTransferIntegrationTest extends FileTransferEdcRuntime {
 
     @Test

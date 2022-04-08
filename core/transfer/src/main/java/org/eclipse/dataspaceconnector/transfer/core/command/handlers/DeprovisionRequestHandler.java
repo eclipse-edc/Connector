@@ -17,8 +17,12 @@ package org.eclipse.dataspaceconnector.transfer.core.command.handlers;
 
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.DeprovisionRequest;
 
+/**
+ * Transitions a transfer process to the {@link TransferProcessStates#DEPROVISIONING DEPROVISIONING} state.
+ */
 public class DeprovisionRequestHandler extends SingleTransferProcessCommandHandler<DeprovisionRequest> {
 
     public DeprovisionRequestHandler(TransferProcessStore store) {

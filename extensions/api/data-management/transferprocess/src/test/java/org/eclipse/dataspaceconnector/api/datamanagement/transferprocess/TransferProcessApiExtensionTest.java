@@ -24,6 +24,8 @@ import org.eclipse.dataspaceconnector.junit.launcher.DependencyInjectionExtensio
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.injection.ObjectFactory;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
+import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -47,6 +49,8 @@ class TransferProcessApiExtensionTest {
         context.registerService(WebService.class, webServiceMock);
         var mockConfiguration = new DataManagementApiConfiguration(contextAlias);
         context.registerService(DataManagementApiConfiguration.class, mockConfiguration);
+        context.registerService(TransferProcessManager.class, mock(TransferProcessManager.class));
+        context.registerService(TransferProcessStore.class, mock(TransferProcessStore.class));
 
         var extension = factory.constructInstance(TransferProcessApiExtension.class);
         extension.initialize(context);

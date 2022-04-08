@@ -154,7 +154,7 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
     public @NotNull Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                var stmt = statements.getQueryTemplate();
+                var stmt = statements.getQueryNegotiationsTemplate();
                 var offset = querySpec.getOffset();
                 var limit = querySpec.getLimit();
                 return executeQuery(connection, this::mapContractNegotiation, stmt, limit, offset).stream();
@@ -223,6 +223,11 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
 
     private void update(Connection connection, String negotiationId, ContractNegotiation updatedValues) {
         var stmt = statements.getUpdateNegotiationTemplate();
+
+        if (updatedValues.getContractAgreement() != null) {
+            upsertAgreement(updatedValues.getContractAgreement());
+        }
+
         executeQuery(connection, stmt,
                 updatedValues.getState(),
                 updatedValues.getStateCount(),
@@ -230,27 +235,17 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                 updatedValues.getErrorDetail(),
                 toJson(updatedValues.getContractOffers()),
                 toJson(updatedValues.getTraceContext()),
+                ofNullable(updatedValues.getContractAgreement()).map(ContractAgreement::getId).orElse(null),
                 negotiationId);
     }
 
     private void insert(Connection connection, ContractNegotiation negotiation) {
         // store negotiation
         String agrId = null;
-        if (negotiation.getContractAgreement() != null) {
-            // store agreement
-            var agr = negotiation.getContractAgreement();
-
-            agrId = agr.getId();
-            var stmt2 = statements.getInsertAgreementTemplate();
-            executeQuery(connection, stmt2, agr.getId(),
-                    agr.getProviderAgentId(),
-                    agr.getConsumerAgentId(),
-                    agr.getContractSigningDate(),
-                    agr.getContractStartDate(),
-                    agr.getContractEndDate(),
-                    agr.getAssetId(),
-                    agr.getPolicy().getUid(),
-                    toJson(agr.getPolicy()));
+        var agreement = negotiation.getContractAgreement();
+        if (agreement != null) {
+            agrId = agreement.getId();
+            upsertAgreement(agreement);
         }
 
         var stmt = statements.getInsertNegotiationTemplate();
@@ -268,6 +263,44 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                 toJson(negotiation.getContractOffers()),
                 toJson(negotiation.getTraceContext()));
 
+
+    }
+
+    private void upsertAgreement(ContractAgreement contractAgreement) {
+        transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                var agrId = contractAgreement.getId();
+
+                if (findContractAgreement(agrId) == null) {
+                    // insert agreement
+                    var stmt2 = statements.getInsertAgreementTemplate();
+                    executeQuery(connection, stmt2, contractAgreement.getId(),
+                            contractAgreement.getProviderAgentId(),
+                            contractAgreement.getConsumerAgentId(),
+                            contractAgreement.getContractSigningDate(),
+                            contractAgreement.getContractStartDate(),
+                            contractAgreement.getContractEndDate(),
+                            contractAgreement.getAssetId(),
+                            contractAgreement.getPolicy().getUid(),
+                            toJson(contractAgreement.getPolicy()));
+                } else {
+                    // update agreement
+                    var stmt2 = statements.getUpdateAgreementTemplate();
+                    executeQuery(connection, stmt2, contractAgreement.getProviderAgentId(),
+                            contractAgreement.getConsumerAgentId(),
+                            contractAgreement.getContractSigningDate(),
+                            contractAgreement.getContractStartDate(),
+                            contractAgreement.getContractEndDate(),
+                            contractAgreement.getAssetId(),
+                            contractAgreement.getPolicy().getUid(),
+                            toJson(contractAgreement.getPolicy()),
+                            agrId);
+                }
+
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
 
     }
 
@@ -327,7 +360,7 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
     }
 
     private ContractAgreement extractContractAgreement(ResultSet resultSet) throws SQLException {
-        return resultSet.getString("contract_agreement_id") == null ? null : mapContractAgreement(resultSet);
+        return resultSet.getString(statements.getContractAgreementIdFkColumn()) == null ? null : mapContractAgreement(resultSet);
     }
 
     private DataSource getDataSource() {

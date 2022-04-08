@@ -12,7 +12,6 @@
  *
  */
 
-
 val infoModelVersion: String by project
 val rsApi: String by project
 val jerseyVersion: String by project
@@ -22,11 +21,8 @@ plugins {
 }
 
 dependencies {
-
     api(project(":extensions:api:auth-spi"))
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-
-
 }
 
 publishing {

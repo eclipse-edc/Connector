@@ -18,6 +18,9 @@ import org.eclipse.dataspaceconnector.spi.result.Failure;
 
 import java.util.List;
 
+/**
+ * Sent when an operation has not completed successfully. The failure type is defined by {@link ResponseStatus}.
+ */
 public class ResponseFailure extends Failure {
     private final ResponseStatus status;
 

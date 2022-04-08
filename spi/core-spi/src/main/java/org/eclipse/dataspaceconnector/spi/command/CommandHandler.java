@@ -22,7 +22,15 @@ package org.eclipse.dataspaceconnector.spi.command;
  * @param <T> The concrete type of {@link Command}
  */
 public interface CommandHandler<T extends Command> {
+
+    /**
+     * Returns the type of {@link Command} this handler processes.
+     */
+    Class<T> getType();
+
+    /**
+     * Processes the command.
+     */
     void handle(T command);
 
-    Class<T> getType();
 }
