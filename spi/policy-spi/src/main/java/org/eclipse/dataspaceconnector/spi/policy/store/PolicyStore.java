@@ -11,7 +11,6 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-
 package org.eclipse.dataspaceconnector.spi.policy.store;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;

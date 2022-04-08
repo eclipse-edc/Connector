@@ -1,4 +1,3 @@
-
 # Changelog
 
 All notable changes to this project will be documented in this file - formatted and maintained according to the rules
@@ -76,6 +75,7 @@ the detailed section referring to by linking pull requests or issues.
 * CosmosDb based `PolicyStore` (#826)
 * Implement SQL-based PolicyStore (#866)
 * Http Provisioner Webhook endpoint (#1039)
+* Add `PolicyService` and Rest endpoints in Data Management API (#1025)
 * Add dependency checks (#1000)
 * Add `ContractAgreement` query methods on `ContractNegotiationStore` (#1044)
 * Add `findById` method to `ContractDefinitionStore` (#967)
@@ -85,6 +85,7 @@ the detailed section referring to by linking pull requests or issues.
 * Resolve content addresses in the `TransferProcessManager` (#1090)
 * Reliably send transfers from consumer to provider (#1007)
 * Http Deprovisioner Webhook endpoint (#1039)
+
 
 #### Changed
 
@@ -175,6 +176,7 @@ the detailed section referring to by linking pull requests or issues.
 * Add public Api to DPF and make `HttpDataSource` more generic (#699)
 * Add an in-memory data plane store (#705)
 * Introduce extensions for synchronous data transfer using data plane (#711)
+* Added Policy services and policy Rest endpoints (1025)
 
 #### Changed
 
