@@ -15,6 +15,7 @@
 val infoModelVersion: String by project
 val rsApi: String by project
 val jerseyVersion: String by project
+val restAssured: String by project
 
 plugins {
     `java-library`
@@ -22,6 +23,7 @@ plugins {
 
 dependencies {
     api(project(":extensions:api:auth-spi"))
+    api(project(":spi:core-spi"))
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 }
 

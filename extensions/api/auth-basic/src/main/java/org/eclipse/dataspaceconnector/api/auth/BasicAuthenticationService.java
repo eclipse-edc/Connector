@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.api.auth;
 
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 
 import java.util.Base64;
 import java.util.List;
@@ -26,11 +27,16 @@ public class BasicAuthenticationService implements AuthenticationService {
 
     private static final String BASIC_AUTH_HEADER_NAME = "Authorization";
     private final Base64.Decoder b64Decoder;
-    private final Map<String, String> credentials;
+    private final Vault vault;
+    private final List<BasicAuthenticationExtension.ConfigCredentials> basicAuthUsersWithVaultKeyConfigs;
     private final Monitor monitor;
 
-    public BasicAuthenticationService(Map<String, String> credentials, Monitor monitor) {
-        this.credentials = credentials;
+    public BasicAuthenticationService(
+            Vault vault,
+            List<BasicAuthenticationExtension.ConfigCredentials> basicAuthUsersWithVaultKeyConfigs,
+            Monitor monitor) {
+        this.vault = vault;
+        this.basicAuthUsersWithVaultKeyConfigs = basicAuthUsersWithVaultKeyConfigs;
         this.monitor = monitor;
         b64Decoder = Base64.getDecoder();
     }
@@ -59,7 +65,7 @@ public class BasicAuthenticationService implements AuthenticationService {
      *
      * @param authHeader Base64 encoded credentials from the request header
      * @return Array with the encoded credentials. First is the username and the second the password. If there was a
-     *         problem an array with 0 entries will be returned.
+     *     problem an array with 0 entries will be returned.
      */
     private Result<BasicAuthCredentials> decodeAuthHeader(String authHeader) {
         String[] authCredentials;
@@ -86,7 +92,7 @@ public class BasicAuthenticationService implements AuthenticationService {
      * Checks if the provided credentials are in the internal registered once and if the password is correct.
      *
      * @param authCredentials {@link org.eclipse.dataspaceconnector.api.auth.BasicAuthenticationService.BasicAuthCredentials}
-     *                       used in the request.
+     *                        used in the request.
      * @return True if credentials are correct
      */
     private boolean checkBasicAuthValid(Result<BasicAuthCredentials> authCredentials) {
@@ -97,11 +103,11 @@ public class BasicAuthenticationService implements AuthenticationService {
 
         var creds = authCredentials.getContent();
 
-        var password4Username = credentials.get(creds.username);
-        return password4Username != null && password4Username.equals(creds.password);
+        return basicAuthUsersWithVaultKeyConfigs.stream()
+                .anyMatch(it -> it.getUsername().equals(creds.username) && Objects.equals(vault.resolveSecret(it.getVaultKey()), creds.password));
     }
 
-    private static class BasicAuthCredentials {
+    static class BasicAuthCredentials {
         String username;
         String password;
 

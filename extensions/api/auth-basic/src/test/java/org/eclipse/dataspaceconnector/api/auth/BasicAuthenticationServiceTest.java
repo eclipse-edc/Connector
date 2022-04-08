@@ -15,9 +15,7 @@
 package org.eclipse.dataspaceconnector.api.auth;
 
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
-import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
-import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigImpl;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -27,32 +25,36 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class BasicAuthenticationServiceTest {
 
-    private static final Map<String, String> TEST_CREDENTIALS = Map.of(
-            "first-user", "password1",
-            "second-user", "password2"
+    private static final List<BasicAuthenticationExtension.ConfigCredentials> TEST_CREDENTIALS = List.of(
+            new BasicAuthenticationExtension.ConfigCredentials("usera", "api-basic-auth-usera"),
+            new BasicAuthenticationExtension.ConfigCredentials("userb", "api-basic-auth-userb")
     );
     private static final Base64.Encoder BASE_64_ENCODER = Base64.getEncoder();
 
-    private final List<String> testCredentialsEncoded = TEST_CREDENTIALS.entrySet().stream()
-            .map(it -> format("%s:%s", it.getKey(), it.getValue()))
-            .map(this::generateBearerToken)
-            .collect(Collectors.toList());
-    
+    private final List<String> testCredentialsEncoded = List.of(
+            generateBearerToken(format("%s:%s", "usera", "password1")),
+            generateBearerToken(format("%s:%s", "userb", "password2"))
+    );
+
     private BasicAuthenticationService service;
+    private Vault vault;
 
     @BeforeEach
     void setUp() {
-        service = new BasicAuthenticationService(TEST_CREDENTIALS, mock(Monitor.class));
+        vault = mock(Vault.class);
+        when(vault.resolveSecret("api-basic-auth-usera")).thenReturn("password1");
+        when(vault.resolveSecret("api-basic-auth-userb")).thenReturn("password2");
+
+        service = new BasicAuthenticationService(vault, TEST_CREDENTIALS, mock(Monitor.class));
     }
 
     @ParameterizedTest
@@ -135,6 +137,17 @@ class BasicAuthenticationServiceTest {
                         generateBearerToken("invalid-user2:random2")
                 )
         );
+        assertThat(service.isAuthenticated(map)).isFalse();
+    }
+
+    @Test
+    void isAuthorized_wrongVaultKey() {
+        var wrongVaultKeyConfig = List.of(
+                new BasicAuthenticationExtension.ConfigCredentials("usera", "wrong.key")
+        );
+        var service = new BasicAuthenticationService(vault, wrongVaultKeyConfig, mock(Monitor.class));
+        var map = Map.of("authorization", List.of(testCredentialsEncoded.get(0)));
+
         assertThat(service.isAuthenticated(map)).isFalse();
     }
 
