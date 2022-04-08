@@ -34,7 +34,7 @@ CREATE UNIQUE INDEX lease_lease_id_uindex
 
 CREATE TABLE IF NOT EXISTS edc_contract_agreement
 (
-    id                VARCHAR NOT NULL
+    agreement_id      VARCHAR NOT NULL
         CONSTRAINT contract_agreement_pk
             PRIMARY KEY,
     provider_agent_id VARCHAR,
@@ -87,5 +87,5 @@ CREATE UNIQUE INDEX IF NOT EXISTS contract_negotiation_id_uindex
     ON edc_contract_negotiation (id);
 
 CREATE UNIQUE INDEX IF NOT EXISTS contract_agreement_id_uindex
-    ON edc_contract_agreement (id);
+    ON edc_contract_agreement (agreement_id);
 
