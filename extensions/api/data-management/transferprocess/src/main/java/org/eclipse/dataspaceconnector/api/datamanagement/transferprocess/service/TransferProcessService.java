@@ -14,11 +14,8 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.service;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferProcessDto;
-import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferRequestDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
