@@ -27,6 +27,8 @@ public interface ContractNegotiationStatements extends LeaseStatements {
 
     String getFindContractAgreementTemplate();
 
+    String getFindContractAgreementByDefinitionIdTemplate();
+
     String getUpdateNegotiationTemplate();
 
     String getInsertNegotiationTemplate();
@@ -37,7 +39,11 @@ public interface ContractNegotiationStatements extends LeaseStatements {
 
     String getQueryTemplate();
 
+    String getQueryAgreementsTemplate();
+
     String getInsertAgreementTemplate();
+
+    String getSelectByPolicyIdTemplate();
 
     @Override
     default String getLeasedByColumn() {
@@ -57,6 +63,11 @@ public interface ContractNegotiationStatements extends LeaseStatements {
     @Override
     default String getLeaseIdColumn() {
         return "lease_id";
+    }
+
+
+    default String getPolicyColumnSeralized() {
+        return "serialized_policy";
     }
 
     default String getContractNegotiationTable() {

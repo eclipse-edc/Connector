@@ -17,11 +17,14 @@ package org.eclipse.dataspaceconnector.transfer.provision.http.webhook;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.AddProvisionedResourceCommand;
+import org.eclipse.dataspaceconnector.transfer.core.command.handlers.DeprovisionCompleteCommand;
 import org.eclipse.dataspaceconnector.transfer.provision.http.impl.HttpProvisionedContentResource;
 
 import java.util.Objects;
@@ -40,13 +43,14 @@ public class HttpProvisionerWebhookApiController implements HttpProvisionerWebho
 
     @Override
     @POST
-    public void callWebhook(ProvisionerWebhookRequest request) {
+    @Path("/{processId}/provision")
+    public void callProvisionWebhook(@PathParam("processId") String transferProcessId, ProvisionerWebhookRequest request) {
 
         Objects.requireNonNull(request);
         Objects.requireNonNull(request.getAssetId());
         Objects.requireNonNull(request.getContentDataAddress());
         Objects.requireNonNull(request.getResourceName());
-        Objects.requireNonNull(request.getTransferProcessId());
+        Objects.requireNonNull(transferProcessId);
         Objects.requireNonNull(request.getResourceDefinitionId());
 
         var cr = HttpProvisionedContentResource.Builder.newInstance()
@@ -54,7 +58,7 @@ public class HttpProvisionerWebhookApiController implements HttpProvisionerWebho
                 .assetId(request.getAssetId())
                 .dataAddress(request.getContentDataAddress())
                 .resourceName(request.getResourceName())
-                .transferProcessId(request.getTransferProcessId())
+                .transferProcessId(transferProcessId)
                 .hasToken(request.hasToken())
                 .resourceDefinitionId(request.getResourceDefinitionId())
                 .build();
@@ -63,10 +67,24 @@ public class HttpProvisionerWebhookApiController implements HttpProvisionerWebho
                 .resource(cr)
                 .secretToken(new SimpleSecretToken(request.getApiToken()))
                 .build();
-        var cmd = new AddProvisionedResourceCommand(request.getTransferProcessId(), response);
+        var cmd = new AddProvisionedResourceCommand(transferProcessId, response);
 
         transferProcessManager.enqueueCommand(cmd);
 
     }
+
+    @Override
+    @POST
+    @Path("/{processId}/deprovision")
+    public void callDeprovisionWebhook(@PathParam("processId") String transferProcessId, DeprovisionedResource resource) {
+
+        Objects.requireNonNull(resource);
+        Objects.requireNonNull(resource.getProvisionedResourceId());
+
+        var cmd = new DeprovisionCompleteCommand(transferProcessId, resource);
+        transferProcessManager.enqueueCommand(cmd);
+
+    }
+
 
 }

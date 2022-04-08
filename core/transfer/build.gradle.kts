@@ -20,12 +20,14 @@ plugins {
 
 dependencies {
     api(project(":spi:transfer-spi"))
-    api(project(":common:state-machine-lib"))
-    api(project(":common:util"))
 
+    implementation(project(":spi:policy-spi"))
+    implementation(project(":common:state-machine-lib"))
+    implementation(project(":common:util"))
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 
     testImplementation(project(":extensions:in-memory:transfer-store-memory"))
+    testImplementation(testFixtures(project(":common:util")))
 }
 
 

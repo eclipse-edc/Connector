@@ -134,6 +134,13 @@ we would appreciate if your pull request applies to the following points:
   <http://keepachangelog.com>. Include more information via linking to existing pull requests,
   issues, or discussions.
 
+* If a new module has been added or a significant part of the code has been changed and you should 
+  or want to be seen as the contact person for any further changes, please add appropriate 
+  information to the [CODEOWNERS](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/CODEOWNERS) 
+  file. You can find instructions on how to do this at <https://help.github.com/articles/about-codeowners/>.
+  Please note that this file does not represent all contributions to the code. What persons and organizations
+  actually contributed to each file can be seen on GitHub and is documented in the license headers.
+
 * PR descriptions should use the current [PR template](.github/PULL_REQUEST_TEMPLATE.md)
 
 * Submit a draft pull request at early-stage and add people previously working on the same code as 

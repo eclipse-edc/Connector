@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.flow;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -44,7 +43,6 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
 
     private String connectorId;
     private RemoteMessageDispatcherRegistry dispatcherRegistryMock;
-    private DataAddressResolver dataAddressResolverMock;
     private DataPlaneProxyManager proxyManagerMock;
     private ProviderDataPlaneProxyDataFlowController controller;
 
@@ -52,15 +50,16 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
     void setUp() {
         connectorId = "connector-test";
         dispatcherRegistryMock = mock(RemoteMessageDispatcherRegistry.class);
-        dataAddressResolverMock = mock(DataAddressResolver.class);
         proxyManagerMock = mock(DataPlaneProxyManager.class);
-        controller = new ProviderDataPlaneProxyDataFlowController(connectorId, dispatcherRegistryMock, dataAddressResolverMock, proxyManagerMock);
+        controller = new ProviderDataPlaneProxyDataFlowController(connectorId, dispatcherRegistryMock, proxyManagerMock);
     }
 
     @Test
     void verifyCanHandle() {
-        assertThat(controller.canHandle(createDataRequest(SYNC))).isTrue();
-        assertThat(controller.canHandle(createDataRequest("dummy"))).isFalse();
+        var contentAddress = DataAddress.Builder.newInstance().type(SYNC).build();
+
+        assertThat(controller.canHandle(createDataRequest(SYNC), contentAddress)).isTrue();
+        assertThat(controller.canHandle(createDataRequest("dummy"), contentAddress)).isFalse();
     }
 
     @Test
@@ -75,12 +74,10 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
 
         when(dispatcherRegistryMock.send(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
         when(proxyManagerMock.createProxy(any())).thenReturn(Result.success(edr));
-        when(dataAddressResolverMock.resolveForAsset(request.getAssetId())).thenReturn(dataAddress);
 
-        var result = controller.initiateFlow(request, policy);
+        var result = controller.initiateFlow(request, dataAddress, policy);
 
         verify(proxyManagerMock, times(1)).createProxy(proxyCreationRequestCaptor.capture());
-        verify(dataAddressResolverMock, times(1)).resolveForAsset(request.getAssetId());
         verify(dispatcherRegistryMock, times(1))
                 .send(ArgumentCaptor.forClass(Class.class).capture(), edrRequestCaptor.capture(), ArgumentCaptor.forClass(MessageContext.class).capture());
 
@@ -105,10 +102,9 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
         var dataAddress = testDataAddress();
         var edr = createEndpointDataReference();
 
-        when(dataAddressResolverMock.resolveForAsset(request.getAssetId())).thenReturn(dataAddress);
         when(proxyManagerMock.createProxy(any())).thenReturn(Result.failure("error"));
 
-        var result = controller.initiateFlow(request, policy);
+        var result = controller.initiateFlow(request, dataAddress, policy);
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).containsExactly("Failed to generate proxy: error");

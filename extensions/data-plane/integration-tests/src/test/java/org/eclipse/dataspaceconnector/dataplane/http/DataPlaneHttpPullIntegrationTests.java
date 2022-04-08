@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
- *
+ *       Mercedes Benz Tech Innovation - add toggles for proxy behavior
  */
 
 package org.eclipse.dataspaceconnector.dataplane.http;
@@ -20,6 +20,7 @@ import com.github.javafaker.Faker;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.restassured.specification.RequestSpecification;
+import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -60,6 +61,7 @@ import static org.mockserver.stop.Stop.stopQuietly;
  * System Test for Data Plane HTTP extension.
  */
 @ExtendWith(EdcExtension.class)
+@ComponentTest
 public class DataPlaneHttpPullIntegrationTests {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -268,6 +270,10 @@ public class DataPlaneHttpPullIntegrationTests {
             return DataAddress.Builder.newInstance()
                     .type(HttpDataAddressSchema.TYPE)
                     .property(HttpDataAddressSchema.ENDPOINT, HTTP_SOURCE_API_HOST)
+                    .property(HttpDataAddressSchema.PROXY_BODY, "true")
+                    .property(HttpDataAddressSchema.PROXY_METHOD, "true")
+                    .property(HttpDataAddressSchema.PROXY_PATH, "true")
+                    .property(HttpDataAddressSchema.PROXY_QUERY_PARAMS, "true")
                     .build();
         }
     }

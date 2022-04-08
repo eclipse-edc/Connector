@@ -17,11 +17,12 @@ plugins {
 }
 
 val awsVersion: String by project
+val jodahFailsafeVersion: String by project
 
 
 dependencies {
     api(project(":spi"))
-    api(project(":core"))
+    api("net.jodah:failsafe:${jodahFailsafeVersion}")
 
     api("software.amazon.awssdk:sts:${awsVersion}")
     api("software.amazon.awssdk:iam:${awsVersion}")

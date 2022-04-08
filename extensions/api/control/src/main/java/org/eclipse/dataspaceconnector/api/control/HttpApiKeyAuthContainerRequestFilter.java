@@ -61,12 +61,11 @@ class HttpApiKeyAuthContainerRequestFilter implements ContainerRequestFilter {
         }
 
         MultivaluedMap<String, String> headers = containerRequestContext.getHeaders();
-
-        String apiKeyHeaderValue;
+        
         /*
          * No apiKey has be provided, so abort the request with HTTP status 401 UNAUTHORIZED
          */
-        if (!headers.containsKey(expectedHeaderName) || (apiKeyHeaderValue = headers.getFirst(expectedHeaderName)) == null) {
+        if (!headers.containsKey(expectedHeaderName) || (headers.getFirst(expectedHeaderName) == null)) {
             containerRequestContext.abortWith(unauthorized());
             return;
         }
@@ -74,7 +73,7 @@ class HttpApiKeyAuthContainerRequestFilter implements ContainerRequestFilter {
         /*
          * If the apiKey does not match the configured value abort the request with HTTP status 403 FORBIDDEN
          */
-        if (!expectedHeaderValue.equals(apiKeyHeaderValue)) {
+        if (!expectedHeaderValue.equals(headers.getFirst(expectedHeaderName))) {
             containerRequestContext.abortWith(forbidden());
         }
     }

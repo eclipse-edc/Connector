@@ -4,11 +4,35 @@
 All notable changes to this project will be documented in this file - formatted and maintained according to the rules
 documented on <http://keepachangelog.com>.
 
-This file will not cover changes about documentation, code clean-up, samples, or the CI pipeline. With each version (
-respectively milestone), the core features are highlighted. Relevant changes to existing implementations can be found in
+This file will not cover changes about documentation, code clean-up, samples, or the CI pipeline. With each version 
+(respectively milestone), the core features are highlighted. Relevant changes to existing implementations can be found in
 the detailed section referring to by linking pull requests or issues.
 
-## [Unreleased] - XXXX-XX-XX (Milestone 3)
+## [Unreleased]
+
+### Overview
+
+*
+
+### Detailed Changes
+
+#### Added
+
+*
+
+#### Changed
+
+*
+
+#### Removed
+
+*
+
+#### Fixed
+
+*
+
+## [milestone-3] - 2022-04-08
 
 ### Overview
 
@@ -31,6 +55,7 @@ the detailed section referring to by linking pull requests or issues.
 * Add configuration setting for state machine batch size (#872)
 * Add Jetty context alias for IDS API (#815)
 * Add `Hostname` service (#948)
+* Implement S3 data source and data sink for data-plane (#887)
 * Add embedded and remote DPF Selector (#832)
 * Pass path information into http data source through DPF public API (#929)
 * SQL-based TransferProcessStore (#865)
@@ -39,15 +64,27 @@ the detailed section referring to by linking pull requests or issues.
 * Add MicrometerExtension integration tests (#935)
 * Implement Asset service for Data Management API (#931)
 * Implement ContractDefinition service for Data Management API (#940)
-* SQL-based ContractNegotiationStore (#864)
 * Implement ContractNegotiation service for Data Management API (#957)
-* In-memory implementation of PolicyStore (#930)
-* Implement AssetLoader, AssetIndex, DataAddressResolver for SQL (#863)
+* Implement ContractAgreement service for Data Management API (#1048)
 * Implement TransferProcess service for Data Management API (#1005)
+* SQL-based ContractNegotiationStore (#864)
+* In-memory implementation of PolicyStore (#930)
+* Add ComponentTest and EndToEndTest annotation (#1034)
+* Implement AssetLoader, AssetIndex, DataAddressResolver for SQL (#863)
 * Support for HTTP-based provisioning (#963)
 * Let Control Plane delegate data transfer to Data Plane (#988)
 * CosmosDb based `PolicyStore` (#826)
+* Implement SQL-based PolicyStore (#866)
 * Http Provisioner Webhook endpoint (#1039)
+* Add dependency checks (#1000)
+* Add `ContractAgreement` query methods on `ContractNegotiationStore` (#1044)
+* Add `findById` method to `ContractDefinitionStore` (#967)
+* Add `PolicyArchive` for foreign policies (#1072)
+* Data plane: control proxy mode with data address toggles (#882)
+* Resolve policies using the `PolicyArchive` (#1089)
+* Resolve content addresses in the `TransferProcessManager` (#1090)
+* Reliably send transfers from consumer to provider (#1007)
+* Http Deprovisioner Webhook endpoint (#1039)
 
 #### Changed
 
@@ -66,10 +103,13 @@ the detailed section referring to by linking pull requests or issues.
 * Call the listeners before the state transition is persisted. (#876)
 * Add an overload to `TransactionContext#execute()` (#968)
 * Run CosmosDB integration tests on cloud in CI (#964)
+* Update the ContractNegotiation service for DataManagementApi (#985)
 * Set policy and rule target dynamically when generating contract offers (#609)
 * Add SQL-AssetIndex to support `QuerySpec` (#1014)
 * Improve provision signalling and align deprovisioning to handle error conditions (#992)
 * Replace Asset with assetId on ContractAgreement (#1009)
+* Update CI workflow to use concurrency (#1092)
+* Adapt system-test to use Embedded DPF to perform file copy (#1060)
 
 #### Removed
 
@@ -81,14 +121,14 @@ the detailed section referring to by linking pull requests or issues.
 #### Fixed
 
 * Flaky S3 StatusChecker Test (#794)
-* Added missing Data Management Asset controller openapi (#853)
+* Add missing Data Management Asset controller openapi (#853)
 * Policy deserialization (#898)
 * Fix extensions loading of EdcRuntimeExtension (#180)
 * Fix missing extension to register TPS (#1027)
 
 ---
 
-## [0.2.0] - 2021-02-21 (Milestone 2)
+## [milestone-2] - 2021-02-21
 
 ### Overview
 
@@ -172,7 +212,7 @@ the detailed section referring to by linking pull requests or issues.
 
 ---
 
-## [0.1.0] - 2021-12-13 (Milestone 1)
+## [milestone-1] - 2021-12-13
 
 ### Overview
 

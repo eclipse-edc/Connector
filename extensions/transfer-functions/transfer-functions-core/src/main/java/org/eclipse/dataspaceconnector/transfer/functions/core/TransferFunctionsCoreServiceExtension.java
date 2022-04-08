@@ -16,9 +16,7 @@ package org.eclipse.dataspaceconnector.transfer.functions.core;
 
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -57,9 +55,6 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
 
     protected Monitor monitor;
 
-    @Inject
-    protected DataAddressResolver addressResolver;
-
     private Set<String> protocols;
 
     @Override
@@ -92,7 +87,7 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
                 .monitor(monitor)
                 .build();
 
-        var flowController = new HttpDataFlowController(configuration, addressResolver);
+        var flowController = new HttpDataFlowController(configuration);
         var flowManager = context.getService(DataFlowManager.class);
         flowManager.register(flowController);
 

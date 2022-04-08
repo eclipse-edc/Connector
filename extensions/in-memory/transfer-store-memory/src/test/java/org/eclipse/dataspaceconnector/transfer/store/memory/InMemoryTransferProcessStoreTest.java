@@ -39,7 +39,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InMemoryTransferProcessStoreTest {
     private InMemoryTransferProcessStore store;
@@ -166,7 +165,10 @@ class InMemoryTransferProcessStoreTest {
 
         var list1 = store.nextForState(INITIAL.code(), 5);
         Thread.sleep(50); //simulate a short delay to generate different timestamps
-        list1.forEach(tp -> store.update(tp));
+        list1.forEach(tp -> {
+            tp.updateStateTimestamp();
+            store.update(tp);
+        });
         var list2 = store.nextForState(INITIAL.code(), 5);
         assertThat(list1).isNotEqualTo(list2).doesNotContainAnyElementsOf(list2);
     }

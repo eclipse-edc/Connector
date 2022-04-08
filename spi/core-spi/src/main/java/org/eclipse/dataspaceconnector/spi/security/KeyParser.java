@@ -14,9 +14,18 @@
 
 package org.eclipse.dataspaceconnector.spi.security;
 
+/**
+ * Handles the parsing of serialized security keys of a give type.
+ */
 public interface KeyParser<T> {
 
+    /**
+     * Returns true if this parser can deserialize the key type.
+     */
     boolean canParse(Class<?> keyType);
 
+    /**
+     * Deserialized the security key.
+     */
     T parse(String encoded);
 }

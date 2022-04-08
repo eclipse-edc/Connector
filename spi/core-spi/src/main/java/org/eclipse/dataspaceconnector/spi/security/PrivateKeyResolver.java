@@ -18,6 +18,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 
+/**
+ * Resolves security keys by type.
+ */
 @FunctionalInterface
 public interface PrivateKeyResolver {
 
@@ -26,9 +29,15 @@ public interface PrivateKeyResolver {
      */
     @Nullable <T> T resolvePrivateKey(String id, Class<T> keyType);
 
+    /**
+     * Registers a parser for the key type.
+     */
     default <T> void addParser(KeyParser<T> parser) {
     }
 
+    /**
+     * Registers a functional parser for the key type.
+     */
     default <T> void addParser(Class<T> forType, Function<String, T> parseFunction) {
     }
 }

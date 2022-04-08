@@ -48,8 +48,8 @@ public class CustomRuntime extends BaseRuntime {
     }
 
     @Override
-    protected void shutdown(List<ServiceExtension> serviceExtensions, Monitor monitor) {
-        super.shutdown(serviceExtensions, monitor);
+    protected void shutdown() {
+        super.shutdown();
 
         //this is the custom part here:
         monitor.info(" CUSTOM RUNTIME SHUTDOWN ! ");

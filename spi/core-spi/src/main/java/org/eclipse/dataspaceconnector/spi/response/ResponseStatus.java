@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
@@ -18,10 +19,6 @@ package org.eclipse.dataspaceconnector.spi.response;
  * An operation response status.
  */
 public enum ResponseStatus {
-    /**
-     * The operation completed successfully.
-     */
-    OK,
 
     /**
      * The operation errored and should be retried.

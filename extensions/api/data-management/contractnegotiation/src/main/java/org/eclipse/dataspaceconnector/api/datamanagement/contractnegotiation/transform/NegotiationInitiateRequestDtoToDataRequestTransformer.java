@@ -18,9 +18,9 @@ import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.mod
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformer;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +38,12 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
     @Override
     public @Nullable ContractOfferRequest transform(@Nullable NegotiationInitiateRequestDto object, @NotNull TransformerContext context) {
         // TODO: ContractOfferRequest should contain only the contractOfferId and the contract offer should be retrieved from the catalog. Ref #985
-        var contractOffer = ContractOffer.Builder.newInstance().id(object.getOfferId()).policy(Policy.Builder.newInstance().build()).build();
+        var contractOffer = ContractOffer.Builder.newInstance()
+                .id(object.getOffer().getOfferId())
+                .asset(Asset.Builder.newInstance().id(object.getOffer().getAssetId()).build())
+                .policyId(object.getOffer().getPolicyId())
+                .policy(object.getOffer().getPolicy())
+                .build();
         return ContractOfferRequest.Builder.newInstance()
                 .connectorId(object.getConnectorId())
                 .connectorAddress(object.getConnectorAddress())

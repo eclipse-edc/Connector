@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *       Amadeus - test retrieval of auth code from vault
  *       Amadeus - add test for mapping of path segments
+ *       Mercedes Benz Tech Innovation - add toggles for proxy behavior
  *
  */
 
@@ -48,6 +49,10 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddre
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.NAME;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_BODY;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_METHOD;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_PATH;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_QUERY_PARAMS;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.SECRET_NAME;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -122,24 +127,20 @@ class HttpDataSourceFactoryTest {
         var endpoint = "http://example.com";
         var authKey = "apikey-test";
 
-        var missingMethod = TestInstance.newInstance()
-                .endpoint(endpoint);
-
         var missingEndpoint = TestInstance.newInstance()
-                .method("GET");
+                .method("GET", true);
 
         var incompleteHeader = TestInstance.newInstance()
-                .method("GET")
+                .method("GET", true)
                 .authKey(authKey)
                 .endpoint(endpoint);
 
         var unknownMediaType = TestInstance.newInstance()
-                .method("POST")
-                .body("dummy", "hello world!")
+                .method("POST", true)
+                .body("dummy", "hello world!", true)
                 .endpoint(endpoint);
 
         return Stream.of(
-                Arguments.of("MISSING METHOD", missingMethod),
                 Arguments.of("MISSING ENDPOINT", missingEndpoint),
                 Arguments.of("INCOMPLETE HEADER", incompleteHeader),
                 Arguments.of("UNHANDLED MEDIA TYPE", unknownMediaType)
@@ -158,54 +159,79 @@ class HttpDataSourceFactoryTest {
         var queryParams = "?foo=bar";
 
         var get = TestInstance.newInstance()
-                .method("GET")
+                .method("GET", true)
                 .endpoint(endpoint);
 
         var getWithPath = TestInstance.newInstance()
-                .method("GET")
-                .basePath("hello/world")
+                .method("GET", true)
+                .basePath("hello/world", true)
+                .endpoint(endpoint);
+
+        var ignorePathIfProxyDisabled = TestInstance.newInstance()
+                .method("GET", true)
+                .name("some/name")
+                .basePath("hello/world", false)
                 .endpoint(endpoint);
 
         var getWithName = TestInstance.newInstance()
-                .method("GET")
+                .method("GET", true)
                 .name(name)
                 .endpoint(endpoint);
 
         var getWithQueryParams = TestInstance.newInstance()
-                .method("GET")
-                .queryParams(queryParams)
+                .method("GET", true)
+                .queryParams(queryParams, true)
+                .endpoint(endpoint);
+
+        var ignoreQueryParamsIfProxyDisabled = TestInstance.newInstance()
+                .method("GET", true)
+                .queryParams(queryParams, false)
                 .endpoint(endpoint);
 
         var getWithSecret = TestInstance.newInstance()
-                .method("GET")
+                .method("GET", true)
                 .authHeader(authKey, TEST_SECRET_NAME, TEST_SECRET_VALUE)
                 .endpoint(endpoint);
 
         var getWithAuthCode = TestInstance.newInstance()
-                .method("GET")
+                .method("GET", true)
                 .authHeader(authKey, TEST_SECRET_VALUE)
                 .endpoint(endpoint);
 
         var post = TestInstance.newInstance()
-                .method("POST")
-                .body(mediaType, body)
+                .method("POST", true)
+                .body(mediaType, body, true)
+                .endpoint(endpoint);
+
+        var ignoreMethodIfProxyDisabled = TestInstance.newInstance()
+                .method("POST", false)
+                .body(mediaType, body, true)
                 .endpoint(endpoint);
 
 
         var ignoreBodyWithoutMediaType = TestInstance.newInstance()
-                .method("POST")
-                .body(body)
+                .method("POST", true)
+                .body(body, true)
+                .endpoint(endpoint);
+
+        var ignoreBodyIfProxyDisabled = TestInstance.newInstance()
+                .method("POST", true)
+                .body(mediaType, body, false)
                 .endpoint(endpoint);
 
         return Stream.of(
                 Arguments.of("GET", get),
                 Arguments.of("GET WITH NAME", getWithName),
                 Arguments.of("GET WITH PATH", getWithPath),
+                Arguments.of("IGNORE PATH IF PROXY DISABLED", ignorePathIfProxyDisabled),
                 Arguments.of("GET WITH QUERY PARAMS", getWithQueryParams),
+                Arguments.of("IGNORE QUERY PARAMS IF PROXY DISABLED", ignoreQueryParamsIfProxyDisabled),
                 Arguments.of("GET WITH SECRET", getWithSecret),
                 Arguments.of("WITH AUTH CODE", getWithAuthCode),
                 Arguments.of("POST", post),
-                Arguments.of("IGNORE BODY WITHOUT MEDIA TYPE", ignoreBodyWithoutMediaType)
+                Arguments.of("IGNORE BODY WITHOUT MEDIA TYPE", ignoreBodyWithoutMediaType),
+                Arguments.of("IGNORE BODY IF PROXY DISABLED", ignoreBodyIfProxyDisabled),
+                Arguments.of("IGNORE METHOD IF PROXY DISABLED", ignoreMethodIfProxyDisabled)
         );
     }
 
@@ -249,9 +275,10 @@ class HttpDataSourceFactoryTest {
             return this;
         }
 
-        public TestInstance method(String method) {
+        public TestInstance method(String method, boolean proxy) {
             props.put(METHOD, method);
-            source.method(method);
+            address.property(PROXY_METHOD, Boolean.toString(proxy));
+            source.method(proxy ? method : "GET");
             return this;
         }
 
@@ -285,27 +312,35 @@ class HttpDataSourceFactoryTest {
             return this;
         }
 
-        public TestInstance body(String body) {
+        public TestInstance body(String body, boolean proxy) {
             props.put(BODY, body);
+            address.property(PROXY_BODY, Boolean.toString(proxy));
             return this;
         }
 
-        public TestInstance body(String mediaType, String body) {
+        public TestInstance body(String mediaType, String body, boolean proxy) {
             props.put(MEDIA_TYPE, mediaType);
             props.put(BODY, body);
-            source.requestBody(MediaType.parse(mediaType), body);
+            address.property(PROXY_BODY, Boolean.toString(proxy));
+            if (proxy) {
+                source.requestBody(MediaType.parse(mediaType), body);
+            }
             return this;
         }
 
-        public TestInstance basePath(String basePath) {
+        public TestInstance basePath(String basePath, boolean proxy) {
             props.put(PATH, "hello/world");
-            source.name(basePath);
+            address.property(PROXY_PATH, Boolean.toString(proxy));
+            if (proxy) {
+                source.name(basePath);
+            }
             return this;
         }
 
-        public TestInstance queryParams(String queryParams) {
+        public TestInstance queryParams(String queryParams, boolean proxy) {
             props.put(QUERY_PARAMS, queryParams);
-            source.queryParams(queryParams);
+            address.property(PROXY_QUERY_PARAMS, Boolean.toString(proxy));
+            source.queryParams(proxy ? queryParams : null);
             return this;
         }
 

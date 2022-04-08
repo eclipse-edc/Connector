@@ -30,10 +30,10 @@ import org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSinkFactory;
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
@@ -145,7 +145,7 @@ public class DataPlanePublicApiController {
         var stream = new ByteArrayOutputStream();
         var sink = new OutputStreamDataSink(stream, executorService, monitor);
         var transferResult = dataPlaneManager.transfer(sink, dataFlowRequest)
-                .exceptionally(throwable -> TransferResult.failure(ResponseStatus.FATAL_ERROR, "Unhandled exception: " + throwable.getMessage()))
+                .exceptionally(throwable -> StatusResult.failure(ResponseStatus.FATAL_ERROR, "Unhandled exception: " + throwable.getMessage()))
                 .join();
         if (transferResult.failed()) {
             return internalErrors(transferResult.getFailureMessages());
