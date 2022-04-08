@@ -19,6 +19,8 @@ import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import io.opentelemetry.proto.trace.v1.Span;
 import org.eclipse.dataspaceconnector.common.annotations.OpenTelemetryIntegrationTest;
 import org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpRequest;
@@ -41,6 +43,7 @@ import static org.eclipse.dataspaceconnector.system.tests.utils.GatlingUtils.run
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
+import static org.mockserver.stop.Stop.stopQuietly;
 
 /**
  * The role of this class is to test the opentelemetry traces.
@@ -56,7 +59,7 @@ public class TracingIntegrationTest extends FileTransferEdcRuntime {
     static final int EXPORTER_ENDPOINT_PORT = 4318;
     // Server running to collect traces. The opentelemetry java agent is configured to export traces with the
     // http/protobuf protocol.
-    static ClientAndServer traceCollectorServer = startClientAndServer(EXPORTER_ENDPOINT_PORT);
+    static ClientAndServer traceCollectorServer;
 
     List<String> contractNegotiationSpanNames = List.of(
             "ConsumerContractNegotiationManagerImpl.initiate",
@@ -68,6 +71,16 @@ public class TracingIntegrationTest extends FileTransferEdcRuntime {
             "TransferProcessManagerImpl.processInitial",
             "TransferProcessManagerImpl.processProvisioned",
             "TransferProcessManagerImpl.initiateProviderRequest");
+
+    @BeforeAll
+    public static void setUp() {
+        traceCollectorServer = startClientAndServer(EXPORTER_ENDPOINT_PORT);
+    }
+
+    @AfterAll
+    public static void tearDown() {
+        stopQuietly(traceCollectorServer);
+    }
 
     @Test
     void transferFile_testTraces() throws Exception {
