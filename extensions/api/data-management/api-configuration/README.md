@@ -25,5 +25,5 @@ fire for EVERY request on that context including IDS communication._
 
 ## Authentication
 
-This module requires that an additional module was loaded where the `AuthenticationService` was implemented (e.g.
-`:extensions:api:auth-tokenbased` or `:extensions:api:auth-basic`).
+If you want to secure the DataManagement API, you need to provide a module which implements the `AuthenticationService`
+interface (e.g. `:extensions:api:auth-tokenbased` or `:extensions:api:auth-basic`).
