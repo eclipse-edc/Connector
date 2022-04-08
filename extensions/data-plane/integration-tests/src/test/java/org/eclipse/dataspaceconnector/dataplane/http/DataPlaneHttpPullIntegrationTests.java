@@ -20,6 +20,7 @@ import com.github.javafaker.Faker;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.restassured.specification.RequestSpecification;
+import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -60,6 +61,7 @@ import static org.mockserver.stop.Stop.stopQuietly;
  * System Test for Data Plane HTTP extension.
  */
 @ExtendWith(EdcExtension.class)
+@ComponentTest
 public class DataPlaneHttpPullIntegrationTests {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();

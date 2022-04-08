@@ -40,6 +40,7 @@ dependencies {
     testImplementation(project(":extensions:in-memory:policy-store-memory"))
     testImplementation(project(":data-protocols:ids:ids-api-multipart-endpoint-v1"))
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
+    testImplementation(testFixtures(project(":common:util")))
 }
 
 publishing {

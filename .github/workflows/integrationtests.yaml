@@ -122,6 +122,41 @@ jobs:
       - name: Daps Integration Tests
         run: ./gradlew -p extensions/iam/daps test -DincludeTags="DapsIntegrationTest"
 
+  End-To-End-Tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: "End to End Integration Tests"
+        run: ./gradlew test -DincludeTags="EndToEndTest"
+
+      - name: "Publish Gatling report"
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: Gatling reports
+          path: '**/build/reports/gatling/**'
+
+  Component-Tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: "Component Tests"
+        run: ./gradlew test -DincludeTags="ComponentTest"
+
   Micrometer-Integration-Tests:
     runs-on: ubuntu-latest
     steps:

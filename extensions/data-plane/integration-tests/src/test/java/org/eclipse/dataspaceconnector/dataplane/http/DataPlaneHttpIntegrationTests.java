@@ -22,6 +22,7 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import org.apache.http.HttpStatus;
+import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore.State;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcRuntimeExtension;
@@ -76,6 +77,7 @@ import static org.mockserver.stop.Stop.stopQuietly;
 /**
  * System Test for Data Plane HTTP extension.
  */
+@ComponentTest
 public class DataPlaneHttpIntegrationTests {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();

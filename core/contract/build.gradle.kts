@@ -26,6 +26,7 @@ dependencies {
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
+    testImplementation(testFixtures(project(":common:util")))
 }
 
 publishing {
