@@ -232,7 +232,6 @@ class DataplaneSelectorApiControllerIntegrationTest {
         var body = RequestBody.create(objectMapper.writeValueAsString(rq), JSON_TYPE);
         try (var response = post(basePath() + "/select", body)) {
             assertThat(response.code()).isEqualTo(400);
-            assertThat(response.body().string()).isEqualTo("Strategy non-exist was not found"); //should be equal to the exception text
         }
     }
 
