@@ -76,7 +76,6 @@ class SqlContractNegotiationStoreTest {
         dataSourceRegistry = new LocalDataSourceRegistry(txManager);
         var transactionContext = (TransactionContext) txManager;
         var jdbcDataSource = new JdbcDataSource();
-//        jdbcDataSource.setURL("jdbc:h2:tcp://localhost:9092/default");
         jdbcDataSource.setURL("jdbc:h2:mem:");
 
         var connection = jdbcDataSource.getConnection();

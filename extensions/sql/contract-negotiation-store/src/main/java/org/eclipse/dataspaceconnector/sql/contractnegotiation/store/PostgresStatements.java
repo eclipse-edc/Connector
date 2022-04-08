@@ -81,7 +81,8 @@ public final class PostgresStatements implements ContractNegotiationStatements {
     @Override
     public String getQueryNegotiationsTemplate() {
         // todo: add WHERE ... AND ... ORDER BY... statements here
-        return format("SELECT * FROM %s LEFT OUTER JOIN %s ON %s.%s = %s.%s LIMIT ? OFFSET ?;", getContractNegotiationTable(), getContractAgreementTable(), getContractNegotiationTable(), getContractAgreementIdFkColumn(), getContractAgreementTable(), getIdColumn());
+        return format("SELECT * FROM %s LEFT OUTER JOIN %s ON %s.%s = %s.%s LIMIT ? OFFSET ?;", getContractNegotiationTable(), getContractAgreementTable(),
+                getContractNegotiationTable(), getContractAgreementIdFkColumn(), getContractAgreementTable(), getIdColumn());
     }
 
     @Override
