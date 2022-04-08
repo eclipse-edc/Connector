@@ -73,7 +73,6 @@ public class TransferProcessApiController implements TransferProcessApi {
                 .sortField(sortField)
                 .filter(filterExpression)
                 .sortOrder(sortOrder).build();
-        monitor.debug(format("Get all TransferProcesses %s", spec));
 
         return service.query(spec).stream()
                 .map(tp -> transformerRegistry.transform(tp, TransferProcessDto.class))
@@ -86,8 +85,6 @@ public class TransferProcessApiController implements TransferProcessApi {
     @Path("/{id}")
     @Override
     public TransferProcessDto getTransferProcess(@PathParam("id") String id) {
-        monitor.debug(format("Get TransferProcess with ID %s", id));
-
         return Optional.of(id)
                 .map(service::findById)
                 .map(it -> transformerRegistry.transform(it, TransferProcessDto.class))
@@ -100,8 +97,6 @@ public class TransferProcessApiController implements TransferProcessApi {
     @Path("/{id}/state")
     @Override
     public String getTransferProcessState(@PathParam("id") String id) {
-        monitor.debug(format("Get TransferProcess State with ID %s", id));
-
         return Optional.of(id)
                 .map(service::getState)
                 .orElseThrow(() -> new ObjectNotFoundException(TransferProcess.class, id));

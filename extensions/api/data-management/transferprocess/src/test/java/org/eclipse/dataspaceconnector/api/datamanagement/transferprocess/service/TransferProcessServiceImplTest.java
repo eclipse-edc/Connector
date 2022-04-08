@@ -31,6 +31,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.SingleTr
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 
@@ -47,6 +48,8 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.ENDED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.ERROR;
+import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
+import static org.junit.jupiter.params.provider.EnumSource.Mode.INCLUDE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -104,7 +107,7 @@ class TransferProcessServiceImplTest {
     }
 
     @ParameterizedTest
-    @MethodSource("cancellableStates")
+    @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "ERROR", "ENDED" })
     void cancel(TransferProcessStates state) {
         var process = transferProcess(state, id);
         when(store.find(id)).thenReturn(process);
@@ -119,7 +122,7 @@ class TransferProcessServiceImplTest {
     }
 
     @ParameterizedTest
-    @MethodSource("nonCancellableStates")
+    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "ERROR", "ENDED" })
     void cancel_whenNonCancellable(TransferProcessStates state) {
         var process = transferProcess(state, id);
         when(store.find(id)).thenReturn(process);
@@ -151,22 +154,8 @@ class TransferProcessServiceImplTest {
         assertThat(result.getContent()).isEqualTo(processId);
     }
 
-    public static List<TransferProcessStates> cancellableStates() {
-        var states = new ArrayList<>(Arrays.asList(TransferProcessStates.values()));
-        states.removeAll(nonCancellableStates());
-        return states;
-    }
-
-    public static List<TransferProcessStates> nonCancellableStates() {
-        return List.of(
-                COMPLETED,
-                ENDED,
-                ERROR
-        );
-    }
-
     @ParameterizedTest
-    @MethodSource("deprovisionableStates")
+    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "DEPROVISIONING", "DEPROVISIONED", "ENDED", "CANCELLED" })
     void deprovision(TransferProcessStates state) {
         var process = transferProcess(state, id);
         when(store.find(id)).thenReturn(process);
@@ -181,7 +170,7 @@ class TransferProcessServiceImplTest {
     }
 
     @ParameterizedTest
-    @MethodSource("nonDeprovisionableStates")
+    @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "DEPROVISIONING", "DEPROVISIONED", "ENDED", "CANCELLED" })
     void deprovision_whenNonDeprovisionable(TransferProcessStates state) {
         var process = transferProcess(state, id);
         when(store.find(id)).thenReturn(process);
@@ -199,22 +188,6 @@ class TransferProcessServiceImplTest {
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).containsExactly("TransferProcess " + id + " does not exist");
-    }
-
-    public static List<TransferProcessStates> nonDeprovisionableStates() {
-        var states = new ArrayList<>(Arrays.asList(TransferProcessStates.values()));
-        states.removeAll(deprovisionableStates());
-        return states;
-    }
-
-    public static List<TransferProcessStates> deprovisionableStates() {
-        return List.of(
-                COMPLETED,
-                DEPROVISIONING,
-                DEPROVISIONED,
-                ENDED,
-                CANCELLED
-        );
     }
 
     private TransferProcess transferProcess() {
