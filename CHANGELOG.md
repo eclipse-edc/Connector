@@ -30,7 +30,8 @@ the detailed section referring to by linking pull requests or issues.
 
 #### Fixed
 
-* Hande Jakarta exception correctly (#1102)
+* Handle Jakarta exception correctly (#1102)
+* Fix Postgres column name (#1108)
 
 ## [milestone-3] - 2022-04-08
 
