@@ -170,7 +170,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
 
     private boolean isValid(NegotiationInitiateRequestDto initiateDto) {
         return StringUtils.isNoneBlank(initiateDto.getConnectorId(), initiateDto.getConnectorAddress(), initiateDto.getProtocol(),
-                initiateDto.getOffer().getOfferId(), initiateDto.getOffer().getAssetId(), initiateDto.getOffer().getPolicyId());
+                initiateDto.getOffer().getOfferId(), initiateDto.getOffer().getAssetId());
     }
 
     private void handleFailedResult(ServiceResult<ContractNegotiation> result, String id) {

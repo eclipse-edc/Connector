@@ -22,7 +22,7 @@ dependencies {
     api(project(":extensions:filesystem:vault-fs"))
     api(project(":extensions:http"))
     api(project(":extensions:iam:iam-mock"))
-    api(project(":extensions:api:control"))
+    api(project(":extensions:api:data-management"))
     api(project(":extensions:in-memory:assetindex-memory"))
     api(project(":extensions:in-memory:transfer-store-memory"))
     api(project(":extensions:in-memory:negotiation-store-memory"))

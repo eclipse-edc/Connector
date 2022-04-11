@@ -160,6 +160,7 @@ class TransferProcessApiControllerIntegrationTest {
     @Test
     void deprovision_conflict(TransferProcessStore store) {
         store.create(createTransferProcess(PROCESS_ID, INITIAL.code()));
+
         baseRequest()
                 .contentType(JSON)
                 .post("/transferprocess/" + PROCESS_ID + "/deprovision")

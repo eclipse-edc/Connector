@@ -48,7 +48,7 @@ public class TransferProcessApiExtension implements ServiceExtension {
     private TransferProcessManager manager;
 
     @Inject(required = false)
-    TransactionContext transactionContext;
+    private TransactionContext transactionContext;
 
     @Override
     public void initialize(ServiceExtensionContext context) {

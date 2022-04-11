@@ -24,6 +24,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.URI;
+
 public class NegotiationInitiateRequestDtoToDataRequestTransformer implements DtoTransformer<NegotiationInitiateRequestDto, ContractOfferRequest> {
     @Override
     public Class<NegotiationInitiateRequestDto> getInputType() {
@@ -43,6 +45,8 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
                 .asset(Asset.Builder.newInstance().id(object.getOffer().getAssetId()).build())
                 .policyId(object.getOffer().getPolicyId())
                 .policy(object.getOffer().getPolicy())
+                .consumer(URI.create("http://localhost")) // TODO: this needs to be obtained
+                .provider(URI.create("http://localhost")) // TODO: this needs to be obtained
                 .build();
         return ContractOfferRequest.Builder.newInstance()
                 .connectorId(object.getConnectorId())
