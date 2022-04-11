@@ -1,10 +1,28 @@
+/*
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
+ */
+
 package org.eclipse.dataspaceconnector.boot.system.runtime;
 
 
 import org.eclipse.dataspaceconnector.boot.monitor.MonitorProvider;
 import org.eclipse.dataspaceconnector.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.dataspaceconnector.boot.system.ExtensionLoader;
+import org.eclipse.dataspaceconnector.boot.system.ServiceLocator;
+import org.eclipse.dataspaceconnector.boot.system.ServiceLocatorImpl;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
@@ -14,9 +32,10 @@ import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 import static java.lang.Runtime.getRuntime;
 import static java.lang.String.format;
@@ -31,7 +50,7 @@ import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadTel
  *     <li>{@link BaseRuntime#createContext(TypeManager, Monitor, Telemetry)}: creates a new {@link DefaultServiceExtensionContext} and invokes its {@link DefaultServiceExtensionContext#initialize()} method</li>
  *     <li>{@link BaseRuntime#initializeVault(ServiceExtensionContext)}: initializes the {@link org.eclipse.dataspaceconnector.spi.security.Vault} by
  *          calling {@link ExtensionLoader#loadVault(ServiceExtensionContext)} </li>
- *     <li>{@link BaseRuntime#createExtensions(ServiceExtensionContext)}: creates a list of {@code ServiceExtension} objects. By default, these are created through {@link ServiceExtensionContext#loadServiceExtensions()}</li>
+ *     <li>{@link BaseRuntime#createExtensions()}: creates a list of {@code ServiceExtension} objects. By default, these are created through {@link ServiceExtensionContext#loadServiceExtensions()}</li>
  *     <li>{@link BaseRuntime#bootExtensions(ServiceExtensionContext, List)}: initializes the service extensions by putting them through their lifecycle.
  *     By default this calls {@link ExtensionLoader#bootServiceExtensions(List, ServiceExtensionContext)} </li>
  *     <li>{@link BaseRuntime#onError(Exception)}: receives any Exception that was raised during initialization</li>
@@ -40,11 +59,23 @@ import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadTel
 public class BaseRuntime {
 
     private final AtomicReference<HealthCheckResult> startupStatus = new AtomicReference<>(HealthCheckResult.failed("Startup not complete"));
-    private Monitor monitor;
+    private final ExtensionLoader extensionLoader;
+    protected final ServiceLocator serviceLocator;
+    protected Monitor monitor;
+    private List<ServiceExtension> serviceExtensions = new ArrayList<>();
 
     public static void main(String[] args) {
         BaseRuntime runtime = new BaseRuntime();
         runtime.boot();
+    }
+
+    public BaseRuntime() {
+        this(new ServiceLocatorImpl());
+    }
+
+    protected BaseRuntime(ServiceLocator serviceLocator) {
+        this.extensionLoader = new ExtensionLoader(serviceLocator);
+        this.serviceLocator = serviceLocator;
     }
 
     protected Monitor getMonitor() {
@@ -52,18 +83,33 @@ public class BaseRuntime {
     }
 
     /**
-     * Main entry point to runtime initialization. Calls all methods.
+     * Main entry point to runtime initialization. Calls all methods
+     * and sets up a context shutdown hook at runtime shutdown.
      */
     protected void boot() {
+        boot(true);
+    }
+
+    /**
+     * Main entry point to runtime initialization. Calls all methods.
+     */
+    protected void bootWithoutShutdownHook() {
+        boot(false);
+    }
+
+    private void boot(boolean addShutdownHook) {
         ServiceExtensionContext context = createServiceExtensionContext();
 
         var name = getRuntimeName(context);
         try {
             initializeVault(context);
-            List<InjectionContainer<ServiceExtension>> serviceExtensions = createExtensions(context);
-            var seList = serviceExtensions.stream().map(InjectionContainer::getInjectionTarget).collect(Collectors.toList());
-            getRuntime().addShutdownHook(new Thread(() -> shutdown(seList, monitor)));
-            bootExtensions(context, serviceExtensions);
+            List<InjectionContainer<ServiceExtension>> newExtensions = createExtensions();
+            bootExtensions(context, newExtensions);
+
+            newExtensions.stream().map(InjectionContainer::getInjectionTarget).forEach(serviceExtensions::add);
+            if (addShutdownHook) {
+                getRuntime().addShutdownHook(new Thread(() -> shutdown()));
+            }
 
             var healthCheckService = context.getService(HealthCheckService.class);
             healthCheckService.addStartupStatusProvider(this::getStartupStatus);
@@ -76,7 +122,6 @@ public class BaseRuntime {
         }
 
         monitor.info(format("%s ready", name));
-
     }
 
     @NotNull
@@ -132,11 +177,10 @@ public class BaseRuntime {
      * Create a list of {@link ServiceExtension}s. By default this is done using the ServiceLoader mechanism. Override if
      * e.g. a custom DI mechanism should be used.
      *
-     * @param context A context to which all the service extensions should be registered
      * @return a list of {@code ServiceExtension}s
      */
-    protected List<InjectionContainer<ServiceExtension>> createExtensions(ServiceExtensionContext context) {
-        return context.loadServiceExtensions();
+    protected List<InjectionContainer<ServiceExtension>> createExtensions() {
+        return extensionLoader.loadServiceExtensions();
     }
 
     /**
@@ -149,22 +193,24 @@ public class BaseRuntime {
      */
     @NotNull
     protected ServiceExtensionContext createContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry) {
-        return new DefaultServiceExtensionContext(typeManager, monitor, telemetry);
+        return new DefaultServiceExtensionContext(typeManager, monitor, telemetry, loadConfigurationExtensions());
+    }
+
+    protected List<ConfigurationExtension> loadConfigurationExtensions() {
+        return extensionLoader.loadExtensions(ConfigurationExtension.class, false);
     }
 
     /**
      * Hook that is called when a runtime is shutdown (e.g. after a CTRL-C command on a command line). It is highly advisable to
      * forward this signal to all extensions through their {@link ServiceExtension#shutdown()} callback.
-     *
-     * @param serviceExtensions All extensions that should receive the shutdown signal.
-     * @param monitor A monitor - should you need one.
      */
-    protected void shutdown(List<ServiceExtension> serviceExtensions, Monitor monitor) {
+    protected void shutdown() {
         var iter = serviceExtensions.listIterator(serviceExtensions.size());
         while (iter.hasPrevious()) {
             var extension = iter.previous();
             extension.shutdown();
             monitor.info("Shutdown " + extension.name());
+            iter.remove();
         }
         monitor.info("Shutdown complete");
     }
@@ -180,7 +226,7 @@ public class BaseRuntime {
      * @param context An {@code ServiceExtensionContext} to resolve the {@code Vault} from.
      */
     protected void initializeVault(ServiceExtensionContext context) {
-        ExtensionLoader.loadVault(context);
+        ExtensionLoader.loadVault(context, extensionLoader);
     }
 
     /**

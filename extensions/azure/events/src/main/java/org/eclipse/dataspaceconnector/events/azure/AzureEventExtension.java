@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.events.azure;
 
 import com.azure.core.credential.AzureKeyCredential;

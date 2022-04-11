@@ -37,7 +37,7 @@ public class ContractAgreementToContractAgreementDtoTransformer implements DtoTr
     public @Nullable ContractAgreementDto transform(@Nullable ContractAgreement object, @NotNull TransformerContext context) {
         return ContractAgreementDto.Builder.newInstance()
                 .id(object.getId())
-                .assetId(object.getAsset().getId())
+                .assetId(object.getAssetId())
                 .policyId(object.getPolicy().getUid())
                 .consumerAgentId(object.getConsumerAgentId())
                 .providerAgentId(object.getProviderAgentId())

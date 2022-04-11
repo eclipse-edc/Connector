@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020-2022 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.policy.store.memory;
 
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
@@ -33,7 +34,7 @@ import java.util.stream.Stream;
 public class InMemoryPolicyStore implements PolicyStore {
 
     private final LockManager lockManager;
-    private final Map<String, Policy> policiesById =  new HashMap<>();
+    private final Map<String, Policy> policiesById = new HashMap<>();
     private final QueryResolver<Policy> queryResolver = new ReflectionBasedQueryResolver<>(Policy.class);
 
     public InMemoryPolicyStore(LockManager lockManager) {
@@ -68,7 +69,7 @@ public class InMemoryPolicyStore implements PolicyStore {
     }
 
     @Override
-    public Policy delete(String policyId) {
+    public Policy deleteById(String policyId) {
         try {
             return lockManager.writeLock(() -> policiesById.remove(policyId));
         } catch (Exception e) {

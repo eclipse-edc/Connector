@@ -20,6 +20,7 @@ plugins {
 dependencies {
     api(project(":spi:core-spi"))
     api(project(":spi:transfer-spi"))
+    api(project(":extensions:data-plane:data-plane-spi"))
 }
 
 publishing {

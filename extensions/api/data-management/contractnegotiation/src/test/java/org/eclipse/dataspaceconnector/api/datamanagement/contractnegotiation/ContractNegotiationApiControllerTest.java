@@ -1,18 +1,18 @@
 /*
- * Copyright (c) 2022 ZF Friedrichshafen AG
+ *  Copyright (c) 2022 - 2022 ZF Friedrichshafen AG
  *
- * This program and the accompanying materials are made available under the
- * terms of the Apache License, Version 2.0 which is available at
- * https://www.apache.org/licenses/LICENSE-2.0
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ *  SPDX-License-Identifier: Apache-2.0
  *
- * Contributors:
- *    ZF Friedrichshafen AG - Initial API and Implementation
- *    Microsoft Corporation - Added initiate-negotiation endpoint tests
- *    Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Contributors:
+ *       ZF Friedrichshafen AG - Initial API and Implementation
+ *       Microsoft Corporation - Added initiate-negotiation endpoint tests
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *
  */
-
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 
@@ -48,6 +48,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.TestFunctions.createOffer;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -177,7 +178,7 @@ class ContractNegotiationApiControllerTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .protocol("protocol")
-                .offerId("offerId")
+                .offerId(createOffer("offerId"))
                 .build();
 
         var negotiationId = controller.initiateContractNegotiation(request);
@@ -192,7 +193,7 @@ class ContractNegotiationApiControllerTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .protocol("protocol")
-                .offerId("offerId")
+                .offerId(createOffer("offerId"))
                 .build();
         when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("failure"));
 
@@ -254,7 +255,7 @@ class ContractNegotiationApiControllerTest {
                 .connectorAddress(connectorAddress)
                 .connectorId(connectorId)
                 .protocol(protocol)
-                .offerId(offerId)
+                .offerId(createOffer(offerId))
                 .build();
         assertThatThrownBy(() -> controller.initiateContractNegotiation(rq)).isInstanceOf(IllegalArgumentException.class);
     }
@@ -269,7 +270,7 @@ class ContractNegotiationApiControllerTest {
                 .id(negotiationId)
                 .providerAgentId(UUID.randomUUID().toString())
                 .consumerAgentId(UUID.randomUUID().toString())
-                .asset(Asset.Builder.newInstance().build())
+                .assetId(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
                 .build();
     }

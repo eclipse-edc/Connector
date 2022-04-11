@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.spi.policy;
 
 import org.eclipse.dataspaceconnector.policy.model.Action;
@@ -44,6 +45,12 @@ public interface PolicyEngine {
      * Scope delimiter.
      */
     String DELIMITER = ".";
+
+    /**
+     * Returns a filtered policy for the scope. This involves recursively removing rules and constraints not bound to the scope and returning a modified copy of the unfiltered
+     * policy.
+     */
+    Policy filter(Policy policy, String scope);
 
     /**
      * Evaluates the given policy for an agent for the given scope.

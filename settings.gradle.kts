@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020-2022 Microsoft Corporation
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -11,7 +11,6 @@
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering
  *       ZF Friedrichshafen AG - add dependency & reorder entries
- *       Daimler TSS GmbH - add entries
  *
  */
 
@@ -45,13 +44,15 @@ include(":data-protocols:ids:ids-token-validation")
 include(":data-protocols:ids:ids-api-configuration")
 
 include("extensions:sql:contract-definition:store")
-
+include("extensions:sql:contract-negotiation-store")
+include("extensions:sql:policy:store")
 
 // modules for technology- or cloud-provider extensions
 include(":extensions:aws")
 include(":extensions:api:control")
 include(":extensions:api:api-core")
 include(":extensions:api:auth-spi")
+include(":extensions:api:auth-basic")
 include(":extensions:api:auth-tokenbased")
 include(":extensions:api:data-management:api-configuration")
 include(":extensions:api:data-management:asset")
@@ -61,6 +62,7 @@ include(":extensions:api:data-management:contractagreement")
 include(":extensions:api:data-management:policydefinition")
 include(":extensions:api:data-management:transferprocess")
 include(":extensions:api:observability")
+include(":extensions:aws:data-plane-s3")
 include(":extensions:aws:s3:s3-core")
 include(":extensions:aws:s3:s3-provision")
 include(":extensions:aws:s3:s3-data-operator")
@@ -69,12 +71,15 @@ include(":extensions:azure:blobstorage")
 include(":extensions:azure:blobstorage:blob-core")
 include(":extensions:azure:blobstorage:blob-provision")
 include(":extensions:azure:blobstorage:blob-data-operator")
+include(":extensions:azure:data-plane:common")
+include(":extensions:azure:data-plane:storage")
 include(":extensions:azure:events")
 include(":extensions:azure:events-config")
 include(":extensions:azure:azure-test")
 include(":extensions:azure:cosmos:transfer-process-store-cosmos")
 include(":extensions:azure:cosmos:fcc-node-directory-cosmos")
 include(":extensions:azure:cosmos:contract-definition-store-cosmos")
+include(":extensions:azure:cosmos:policy-store-cosmos")
 include(":extensions:azure:cosmos:contract-negotiation-store-cosmos")
 include(":extensions:azure:cosmos:cosmos-common")
 include(":extensions:azure:cosmos:assetindex-cosmos")
@@ -124,6 +129,7 @@ include(":extensions:transaction:transaction-local")
 include(":extensions:data-plane-transfer:data-plane-transfer-spi")
 include(":extensions:data-plane-transfer:data-plane-transfer-core")
 include(":extensions:data-plane-transfer:data-plane-transfer-sync")
+include(":extensions:data-plane-transfer:data-plane-transfer-client")
 include(":extensions:data-plane:data-plane-spi")
 include(":extensions:data-plane:data-plane-framework")
 include(":extensions:data-plane:data-plane-http")
@@ -143,6 +149,7 @@ include(":extensions:sql:pool:apache-commons-pool")
 include(":extensions:sql:asset:index")
 include(":extensions:sql:transfer-process-store")
 include(":extensions:http-receiver")
+include(":extensions:http-provisioner")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")

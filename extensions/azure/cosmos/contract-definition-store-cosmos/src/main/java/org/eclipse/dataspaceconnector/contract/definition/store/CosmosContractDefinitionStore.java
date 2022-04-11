@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added method
  *
  */
 
@@ -18,11 +19,8 @@ import net.jodah.failsafe.RetryPolicy;
 import net.jodah.failsafe.function.CheckedSupplier;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
-import org.eclipse.dataspaceconnector.common.reflection.ReflectionUtil;
-import org.eclipse.dataspaceconnector.contract.definition.store.model.ContractDefinitionDocument;
+import org.eclipse.dataspaceconnector.cosmos.policy.store.model.ContractDefinitionDocument;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.query.BaseCriterionToPredicateConverter;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QueryResolver;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.ReflectionBasedQueryResolver;
@@ -36,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -74,7 +71,12 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
     public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
         return lockManager.readLock(() -> queryResolver.query(getCache().values().stream(), spec));
     }
-
+    
+    @Override
+    public ContractDefinition findById(String definitionId) {
+        return lockManager.readLock(() -> getCache().get(definitionId));
+    }
+    
     @Override
     public void save(Collection<ContractDefinition> definitions) {
         lockManager.writeLock(() -> {
@@ -147,17 +149,5 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
     private ContractDefinition convert(Object object) {
         var json = typeManager.writeValueAsString(object);
         return typeManager.readValue(json, ContractDefinitionDocument.class).getWrappedInstance();
-    }
-
-    private Predicate<ContractDefinition> toPredicate(Criterion criterion) {
-        return new ContractDefinitionPredicateConverter().convert(criterion);
-    }
-
-
-    private static class ContractDefinitionPredicateConverter extends BaseCriterionToPredicateConverter<ContractDefinition> {
-        @Override
-        protected <R> R property(String key, Object object) {
-            return ReflectionUtil.getFieldValueSilent(key, object);
-        }
     }
 }

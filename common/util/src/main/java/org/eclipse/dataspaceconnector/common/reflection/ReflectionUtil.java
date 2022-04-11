@@ -28,8 +28,16 @@ import java.util.stream.Collectors;
 
 public class ReflectionUtil {
 
+    private static final String ARRAY_INDEXER_REGEX = ".*\\[([0-9])+\\]";
+    private static final String OPENING_BRACKET = "[";
+    private static final String CLOSING_BRACKET = "]";
+
     /**
-     * Utility function to get value of a field from an object
+     * Utility function to get value of a field from an object. For field names currently the dot notation and array indexers are supported:
+     * <pre>
+     *     someObject.someValue
+     *     someObject[2].someValue //someObject must impement the List interface
+     * </pre>
      *
      * @param object       The object
      * @param propertyName The name of the field
@@ -46,6 +54,13 @@ public class ReflectionUtil {
             var rest = propertyName.substring(dotIx + 1);
             object = getFieldValue(field, object);
             return getFieldValue(rest, object);
+        } else if (propertyName.matches(ARRAY_INDEXER_REGEX)) { //array indexer
+            var openingBracketIx = propertyName.indexOf(OPENING_BRACKET);
+            var closingBracketIx = propertyName.indexOf(CLOSING_BRACKET);
+            var propName = propertyName.substring(0, openingBracketIx);
+            var arrayIndex = Integer.parseInt(propertyName.substring(openingBracketIx + 1, closingBracketIx));
+            var iterableObject = (List) getFieldValue(propName, object);
+            return (T) iterableObject.get(arrayIndex);
         } else {
             try {
                 if (object instanceof Map) {

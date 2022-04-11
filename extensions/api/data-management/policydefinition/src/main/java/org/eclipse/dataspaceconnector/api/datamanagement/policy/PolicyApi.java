@@ -8,14 +8,14 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
 package org.eclipse.dataspaceconnector.api.datamanagement.policy;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionDto;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 
 import java.util.List;
@@ -23,11 +23,11 @@ import java.util.List;
 @OpenAPIDefinition
 public interface PolicyApi {
 
-    List<PolicyDefinitionDto> getAllPolicies(Integer offset, Integer limit, String filterExpression, SortOrder sortOrder, String sortField);
+    List<Policy> getAllPolicies(Integer offset, Integer limit, String filterExpression, SortOrder sortOrder, String sortField);
 
-    PolicyDefinitionDto getPolicy(String id);
+    Policy getPolicy(String id);
 
-    void createPolicy(PolicyDefinitionDto dto);
+    void createPolicy(Policy policy);
 
     void deletePolicy(String id);
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022
+ *  Copyright (c) 2022 Fraunhofer Institute for Software and Systems Engineering
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,9 +8,10 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer Institute for Software and Systems Engineering
+ *       Fraunhofer Institute for Software and Systems Engineering - Initial Implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.spi.system.configuration;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;

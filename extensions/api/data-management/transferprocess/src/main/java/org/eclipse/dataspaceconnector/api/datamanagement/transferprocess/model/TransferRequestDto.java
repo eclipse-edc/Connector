@@ -34,6 +34,7 @@ public class TransferRequestDto {
     private TransferType transferType;
     private String protocol = "ids-multipart";
     private String connectorId;
+    private String assetId;
 
     public String getConnectorAddress() {
         return connectorAddress;
@@ -65,6 +66,10 @@ public class TransferRequestDto {
 
     public String getConnectorId() {
         return connectorId;
+    }
+
+    public String getAssetId() {
+        return assetId;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -117,6 +122,11 @@ public class TransferRequestDto {
 
         public Builder connectorId(String connectorId) {
             request.connectorId = connectorId;
+            return this;
+        }
+
+        public Builder assetId(String assetId) {
+            request.assetId = assetId;
             return this;
         }
 

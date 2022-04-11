@@ -15,14 +15,15 @@
 package org.eclipse.dataspaceconnector.aws.s3.provision;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
+
+import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.BUCKET_NAME;
+import static org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema.REGION;
 
 
 /**
@@ -31,51 +32,36 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataD
 @JsonDeserialize(builder = S3BucketProvisionedResource.Builder.class)
 @JsonTypeName("dataspaceconnector:s3bucketprovisionedresource")
 public class S3BucketProvisionedResource extends ProvisionedDataDestinationResource {
-    @JsonProperty
-    private String region;
-
-    @JsonProperty
-    private String bucketName;
-    @JsonProperty
     private String role;
 
-    private S3BucketProvisionedResource() {
-    }
-
     public String getRegion() {
-        return region;
+        return getDataAddress().getProperty(REGION);
     }
 
     public String getBucketName() {
-        return bucketName;
+        return getDataAddress().getProperty(BUCKET_NAME);
     }
 
-    @Override
-    public DataAddress createDataDestination() {
-        return DataAddress.Builder.newInstance()
-                .property(S3BucketSchema.REGION, region)
-                .type(S3BucketSchema.TYPE)
-                .property(S3BucketSchema.BUCKET_NAME, bucketName)
-                .keyName("s3-temp-" + bucketName)
-                .build();
-    }
-
-    @JsonIgnore
     @Override
     public String getResourceName() {
-        return bucketName;
+        return dataAddress.getProperty(BUCKET_NAME);
     }
 
     public String getRole() {
         return role;
     }
 
+    private S3BucketProvisionedResource() {
+    }
+
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends ProvisionedDataDestinationResource.Builder<S3BucketProvisionedResource, Builder> {
+        private DataAddress.Builder dataAddressBuilder;
 
         private Builder() {
             super(new S3BucketProvisionedResource());
+            dataAddressBuilder = DataAddress.Builder.newInstance().type(S3BucketSchema.TYPE);
         }
 
         @JsonCreator
@@ -84,18 +70,25 @@ public class S3BucketProvisionedResource extends ProvisionedDataDestinationResou
         }
 
         public Builder region(String region) {
-            provisionedResource.region = region;
+            dataAddressBuilder.property(REGION, region);
             return this;
         }
 
         public Builder bucketName(String bucketName) {
-            provisionedResource.bucketName = bucketName;
+            dataAddressBuilder.property(BUCKET_NAME, bucketName);
+            dataAddressBuilder.keyName("s3-temp-" + bucketName);
             return this;
         }
 
         public Builder role(String arn) {
             provisionedResource.role = arn;
             return this;
+        }
+
+        @Override
+        public S3BucketProvisionedResource build() {
+            provisionedResource.dataAddress = dataAddressBuilder.build();
+            return super.build();
         }
     }
 

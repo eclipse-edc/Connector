@@ -18,6 +18,8 @@ plugins {
     checkstyle
     jacoco
     id("com.rameshkp.openapi-merger-gradle-plugin") version "1.0.4"
+    id ("org.eclipse.dataspaceconnector.dependency-rules") apply(false)
+    id("com.autonomousapps.dependency-analysis") version "1.0.0-rc05" apply (false)
 }
 
 repositories {
@@ -56,6 +58,7 @@ subprojects {
     }
 
     tasks.register<DependencyReportTask>("allDependencies") {}
+
 }
 
 buildscript {
@@ -95,7 +98,7 @@ allprojects {
     // EdcRuntimeExtension uses this to determine the runtime classpath of the module to run.
     tasks.register("printClasspath") {
         doLast {
-            println(sourceSets["main"].runtimeClasspath.asPath);
+            println(sourceSets["main"].runtimeClasspath.asPath)
         }
     }
 
@@ -179,7 +182,11 @@ allprojects {
         }
 
         testLogging {
-            events("failed")
+            if (project.hasProperty("verboseTest")) {
+                events("started", "passed", "skipped", "failed", "standard_out", "standard_error")
+            } else {
+                events("failed")
+            }
             showStackTraces = true
             exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         }
@@ -228,6 +235,60 @@ openApiMerger {
             license {
                 name.set("Apache License v2.0")
                 url.set("http://apache.org/v2")
+            }
+        }
+    }
+}
+
+// Dependency analysis active if property "dependency.analysis" is set. Possible values are <'fail'|'warn'|'ignore'>.
+if (project.hasProperty("dependency.analysis")) {
+    apply(plugin = "org.eclipse.dataspaceconnector.dependency-rules")
+    configure<org.eclipse.dataspaceconnector.gradle.DependencyRulesPluginExtension> {
+        severity.set(project.property("dependency.analysis").toString())
+    }
+    apply(plugin = "com.autonomousapps.dependency-analysis")
+    configure<com.autonomousapps.DependencyAnalysisExtension> {
+        // See https://github.com/autonomousapps/dependency-analysis-android-gradle-plugin
+        issues {
+            all { // all projects
+                onAny {
+                    severity(project.property("dependency.analysis").toString())
+                    exclude(
+                        // dependencies declared at the root level for all modules
+                        "org.jetbrains:annotations",
+                        "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
+                        "com.fasterxml.jackson.core:jackson-core",
+                        "com.fasterxml.jackson.core:jackson-annotations",
+                        "com.fasterxml.jackson.core:jackson-databind",
+                    )
+                }
+                onUnusedDependencies {
+                    exclude(
+                        // dependencies declared at the root level for all modules
+                        "com.github.javafaker:javafaker",
+                        "org.assertj:assertj-core",
+                        "org.junit.jupiter:junit-jupiter-api",
+                        "org.junit.jupiter:junit-jupiter-params",
+                        "org.mockito:mockito-core",
+                    )
+                }
+                onIncorrectConfiguration {
+                    exclude(
+                        // some common dependencies are intentionally exported by core:base for simplicity
+                        "com.squareup.okhttp3:okhttp",
+                        "net.jodah:failsafe",
+                    )
+                }
+                onUsedTransitiveDependencies {
+                    severity("ignore")
+                }
+            }
+        }
+        abi {
+            exclusions {
+                excludeAnnotations(
+                        "io\\.opentelemetry\\.extension\\.annotations\\.WithSpan",
+                )
             }
         }
     }

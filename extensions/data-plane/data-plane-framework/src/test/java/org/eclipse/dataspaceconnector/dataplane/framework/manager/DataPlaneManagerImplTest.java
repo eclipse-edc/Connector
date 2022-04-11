@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.dataplane.framework.manager;
 
 import org.eclipse.dataspaceconnector.dataplane.framework.store.InMemoryDataPlaneStore;
@@ -19,6 +20,7 @@ import org.eclipse.dataspaceconnector.dataplane.spi.registry.TransferServiceRegi
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -126,6 +128,7 @@ class DataPlaneManagerImplTest {
         return DataPlaneManagerImpl.Builder.newInstance()
                 .queueCapacity(100)
                 .workers(1)
+                .executorInstrumentation(ExecutorInstrumentation.noop())
                 .waitTimeout(10)
                 .transferServiceRegistry(registry)
                 .store(store)

@@ -12,7 +12,6 @@
  *
  */
 
-
 package org.eclipse.dataspaceconnector.spi.types.domain.edr;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -22,6 +21,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+/**
+ * Sends an endpoint reference to an external system.
+ */
 @JsonDeserialize(builder = EndpointDataReferenceMessage.Builder.class)
 public class EndpointDataReferenceMessage implements RemoteMessage {
 

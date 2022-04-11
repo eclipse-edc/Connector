@@ -22,7 +22,7 @@ dependencies {
     api(project(":spi"))
     implementation(project(":common:util"))
 
-
+    testImplementation(project(":core:contract"))
 }
 publishing {
     publications {

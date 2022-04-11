@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.dataplane.api.controller;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.UriInfo;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.jetbrains.annotations.Nullable;
@@ -39,11 +40,9 @@ import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowReques
  */
 public class ContainerRequestContextApiImpl implements ContainerRequestContextApi {
 
-    private static final String AUTHORIZATION_HEADER = "Authorization";
-
     @Override
     public @Nullable String authHeader(ContainerRequestContext context) {
-        return context.getHeaderString(AUTHORIZATION_HEADER);
+        return context.getHeaderString(HttpHeaders.AUTHORIZATION);
     }
 
     @Override
@@ -51,11 +50,8 @@ public class ContainerRequestContextApiImpl implements ContainerRequestContextAp
         var props = new HashMap<String, String>();
         props.put(METHOD, context.getMethod());
         props.put(QUERY_PARAMS, convertQueryParamsToString(context.getUriInfo()));
+        props.put(PATH, context.getUriInfo().getPath());
 
-        var pathInfo = context.getUriInfo().getPath();
-        if (!pathInfo.isBlank()) {
-            props.put(PATH, pathInfo);
-        }
 
         var mediaType = context.getMediaType();
         Optional.ofNullable(mediaType).ifPresent(mt -> {

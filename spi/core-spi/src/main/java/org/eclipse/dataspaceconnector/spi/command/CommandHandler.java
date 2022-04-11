@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020-2022 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,6 +12,7 @@
  *       Fraunhofer Institute for Software and Systems Engineering - refactored
  *
  */
+
 package org.eclipse.dataspaceconnector.spi.command;
 
 /**
@@ -21,7 +22,15 @@ package org.eclipse.dataspaceconnector.spi.command;
  * @param <T> The concrete type of {@link Command}
  */
 public interface CommandHandler<T extends Command> {
+
+    /**
+     * Returns the type of {@link Command} this handler processes.
+     */
+    Class<T> getType();
+
+    /**
+     * Processes the command.
+     */
     void handle(T command);
 
-    Class<T> getType();
 }

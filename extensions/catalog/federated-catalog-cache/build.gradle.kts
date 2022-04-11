@@ -42,11 +42,6 @@ dependencies {
     testImplementation(project(":extensions:in-memory:fcc-store-memory"))
 }
 
-tasks.withType<Test> {
-    testLogging {
-        showStandardStreams = false
-    }
-}
 publishing {
     publications {
         create<MavenPublication>("catalog-cache") {

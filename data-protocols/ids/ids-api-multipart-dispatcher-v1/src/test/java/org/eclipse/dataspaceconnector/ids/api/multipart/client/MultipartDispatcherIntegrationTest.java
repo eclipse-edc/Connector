@@ -25,6 +25,7 @@ import de.fraunhofer.iais.eis.PermissionBuilder;
 import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RequestInProcessMessageImpl;
 import de.fraunhofer.iais.eis.ResponseMessage;
+import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.IdsMultipartRemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartDescriptionResponse;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
@@ -68,6 +69,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ComponentTest
 class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherIntegrationTest {
     private static final String CONNECTOR_ID = UUID.randomUUID().toString();
     private IdsTransformerRegistry transformerRegistry;
@@ -196,7 +198,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         var contractAgreement = ContractAgreement.Builder.newInstance()
                 .id("1:23456").consumerAgentId("consumer").providerAgentId("provider")
                 .policy(Policy.Builder.newInstance().build())
-                .asset(Asset.Builder.newInstance().build())
+                .assetId(UUID.randomUUID().toString())
                 .build();
 
         when(transformerRegistry.transform(any(), eq(de.fraunhofer.iais.eis.ContractAgreement.class)))

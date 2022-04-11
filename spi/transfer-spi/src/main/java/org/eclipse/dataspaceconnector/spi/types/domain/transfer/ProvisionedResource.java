@@ -31,6 +31,7 @@ public abstract class ProvisionedResource implements Polymorphic {
     protected String id;
     protected String transferProcessId;
     protected String resourceDefinitionId;
+    protected boolean hasToken;
 
     @NotNull
     public String getId() {
@@ -50,6 +51,10 @@ public abstract class ProvisionedResource implements Polymorphic {
         return resourceDefinitionId;
     }
 
+    public boolean hasToken() {
+        return hasToken;
+    }
+
     @JsonPOJOBuilder
     public static class Builder<PR extends ProvisionedResource, B extends Builder<PR, B>> {
         protected PR provisionedResource;
@@ -58,18 +63,27 @@ public abstract class ProvisionedResource implements Polymorphic {
             provisionedResource = resource;
         }
 
+        @SuppressWarnings("unchecked")
         public B id(String id) {
             provisionedResource.id = id;
             return (B) this;
         }
 
+        @SuppressWarnings("unchecked")
         public B transferProcessId(String id) {
             provisionedResource.transferProcessId = id;
             return (B) this;
         }
 
+        @SuppressWarnings("unchecked")
         public B resourceDefinitionId(String id) {
             provisionedResource.resourceDefinitionId = id;
+            return (B) this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public B hasToken(boolean value) {
+            provisionedResource.hasToken = value;
             return (B) this;
         }
 

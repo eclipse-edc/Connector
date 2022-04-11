@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - Initial implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.catalog.cache;
 
 import net.jodah.failsafe.RetryPolicy;
@@ -173,7 +187,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
             } else {
                 var random = new Random();
                 var to = 5 + random.nextInt(20);
-                context.getMonitor().info(format("The following work item has errored out. will re-queue after a small delay (%s)", to));
+                context.getMonitor().info(format("The following work item has errored out. Will re-queue after a small delay: [%s]", workItem));
                 Executors.newSingleThreadScheduledExecutor().schedule(() -> workItems.offer(workItem), to, TimeUnit.SECONDS);
             }
         };

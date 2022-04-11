@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.core.base.agent;
 
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;

@@ -9,9 +9,10 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
- *       Fraunhofer Institute for Software and Systems Engineering
+ *       Fraunhofer Institute for Software and Systems Engineering - Improvements
  *
  */
+
 package org.eclipse.dataspaceconnector.spi.system.configuration;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -32,6 +33,9 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
 
+/**
+ * Default implementation.
+ */
 public class ConfigImpl implements Config {
 
     static final Collector<Map.Entry<String, String>, ?, Map<String, String>> TO_MAP = toMap(Map.Entry::getKey, Map.Entry::getValue);

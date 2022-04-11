@@ -40,7 +40,7 @@ class ContractAgreementToContractAgreementDtoTransformerTest {
                 .id("agreementId")
                 .consumerAgentId("consumerAgentId")
                 .providerAgentId("providerAgentId")
-                .asset(Asset.Builder.newInstance().id("assetId").build())
+                .assetId("assetId")
                 .policy(Policy.Builder.newInstance().id("policyId").build())
                 .contractStartDate(1)
                 .contractSigningDate(2)

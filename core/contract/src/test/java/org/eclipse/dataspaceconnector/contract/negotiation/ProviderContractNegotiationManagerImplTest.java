@@ -1,9 +1,5 @@
 /*
-<<<<<<< HEAD
- *  Copyright (c) 2021-2022 Fraunhofer Institute for Software and Systems Engineering
-=======
  *  Copyright (c) 2021 - 2022 Fraunhofer Institute for Software and Systems Engineering
->>>>>>> 9d998cb09 (core: add configuration setting to set state machine batch sizes)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -13,9 +9,10 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
+
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -23,7 +20,6 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -53,6 +49,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.DECLINED;
@@ -193,7 +190,7 @@ class ProviderContractNegotiationManagerImplTest {
         var contractOffer = contractOffer();
 
         var result = negotiationManager.offerReceived(token, "not a valid id", contractOffer, "hash");
-        assertThat(result.getFailure().getStatus()).isEqualTo(NegotiationResult.Status.FATAL_ERROR);
+        assertThat(result.fatalError()).isTrue();
     }
 
     @Test
@@ -269,7 +266,7 @@ class ProviderContractNegotiationManagerImplTest {
 
         var result = negotiationManager.consumerApproved(token, "not a valid id", contractAgreement, "hash");
 
-        assertThat(result.getFailure().getStatus()).isEqualTo(NegotiationResult.Status.FATAL_ERROR);
+        assertThat(result.fatalError()).isTrue();
     }
 
     @Test

@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
@@ -34,5 +34,5 @@ public interface TransferProcessApi {
 
     void deprovisionTransferProcess(String id);
 
-    String initiateTransfer(String assetId, TransferRequestDto transferRequest);
+    String initiateTransfer(TransferRequestDto transferRequest);
 }

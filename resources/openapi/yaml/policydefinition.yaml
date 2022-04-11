@@ -37,14 +37,14 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PolicyDefinitionDto'
+                  $ref: '#/components/schemas/Policy'
     post:
       operationId: createPolicy
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyDefinitionDto'
+              $ref: '#/components/schemas/Policy'
       responses:
         default:
           description: default response
@@ -65,7 +65,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PolicyDefinitionDto'
+                $ref: '#/components/schemas/Policy'
     delete:
       operationId: deletePolicy
       parameters:
@@ -141,7 +141,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Duty'
-    PolicyDefinitionDto:
+    Policy:
       type: object
       properties:
         uid:
@@ -163,6 +163,12 @@ components:
           additionalProperties:
             type: object
         inheritsFrom:
+          type: string
+        assigner:
+          type: string
+        assignee:
+          type: string
+        target:
           type: string
         '@type':
           type: string

@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.dataloading;
 
 import com.fasterxml.jackson.annotation.JsonCreator;

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added tests
  *
  */
 
@@ -18,7 +19,7 @@ import com.azure.cosmos.models.SqlQuerySpec;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument;
-import org.eclipse.dataspaceconnector.contract.definition.store.model.ContractDefinitionDocument;
+import org.eclipse.dataspaceconnector.cosmos.policy.store.model.ContractDefinitionDocument;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
@@ -79,6 +80,27 @@ class CosmosContractDefinitionStoreTest {
 
         var all = store.findAll();
         assertThat(all).isEmpty();
+        verify(cosmosDbApiMock).queryAllItems();
+    }
+    
+    @Test
+    void findById() {
+        var doc = generateDocument(TEST_PART_KEY);
+        when(cosmosDbApiMock.queryAllItems()).thenReturn(List.of(doc));
+        
+        var result = store.findById(doc.getId());
+        
+        assertThat(result).isNotNull().isEqualTo(doc.getWrappedInstance());
+        verify(cosmosDbApiMock).queryAllItems();
+    }
+    
+    @Test
+    void findById_invalidId() {
+        when(cosmosDbApiMock.queryAllItems()).thenReturn(Collections.emptyList());
+        
+        var result = store.findById("invalid-id");
+        
+        assertThat(result).isNull();
         verify(cosmosDbApiMock).queryAllItems();
     }
 

@@ -11,13 +11,14 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.ParallelSink;
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 
 import java.util.List;
 import java.util.Objects;
@@ -38,7 +39,7 @@ public class HttpDataSink extends ParallelSink {
      * Sends the parts to the destination endpoint using an HTTP POST.
      */
     @Override
-    protected TransferResult transferParts(List<DataSource.Part> parts) {
+    protected StatusResult<Void> transferParts(List<DataSource.Part> parts) {
         for (DataSource.Part part : parts) {
             var requestBody = new StreamingRequestBody(part);
 
@@ -51,14 +52,14 @@ public class HttpDataSink extends ParallelSink {
             try (var response = httpClient.newCall(request).execute()) {
                 if (!response.isSuccessful()) {
                     monitor.severe(format("Error received writing HTTP data %s to endpoint %s for request: %s", part.name(), endpoint, request));
-                    return TransferResult.failure(ERROR_RETRY, "Error writing data");
+                    return StatusResult.failure(ERROR_RETRY, "Error writing data");
                 }
             } catch (Exception e) {
                 monitor.severe(format("Error writing HTTP data %s to endpoint %s for request: %s", part.name(), endpoint, request), e);
-                return TransferResult.failure(ERROR_RETRY, "Error writing data");
+                return StatusResult.failure(ERROR_RETRY, "Error writing data");
             }
         }
-        return TransferResult.success();
+        return StatusResult.success();
     }
 
     private HttpDataSink() {

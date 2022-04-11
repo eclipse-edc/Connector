@@ -19,7 +19,6 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:transfer-spi"))  // TODO remove this dependency once ResponseFailure and ResponseStatus are moved to core-spi
     api(project(":spi:core-spi"))
     implementation(project(":common:util"))
 }

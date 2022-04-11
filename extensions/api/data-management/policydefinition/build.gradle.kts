@@ -12,8 +12,11 @@
  *
  */
 
-
+val infoModelVersion: String by project
+val jerseyVersion: String by project
+val okHttpVersion: String by project
 val rsApi: String by project
+val restAssured: String by project
 
 plugins {
     `java-library`
@@ -25,12 +28,19 @@ dependencies {
     implementation(project(":common:util"))
     implementation(project(":extensions:api:api-core"))
     implementation(project(":extensions:api:data-management:api-configuration"))
+    implementation(project(":spi:policy-spi"))
+    implementation(project(":spi:contract-spi"))
+    implementation(project(":extensions:transaction:transaction-spi"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    testImplementation(testFixtures(project(":launchers:junit")))
-    testImplementation(project(":extensions:in-memory:contractdefinition-store-memory"))
+
     testImplementation(project(":extensions:http"))
+    testImplementation(project(":extensions:in-memory:contractdefinition-store-memory"))
+    testImplementation(project(":extensions:in-memory:policy-store-memory"))
+    testImplementation(project(":extensions:transaction:transaction-local"))
     testImplementation(testFixtures(project(":common:util")))
+    testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation("io.rest-assured:rest-assured:${restAssured}")
 }
 
 publishing {

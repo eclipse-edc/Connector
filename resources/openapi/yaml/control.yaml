@@ -160,6 +160,10 @@ components:
           $ref: '#/components/schemas/Policy'
         asset:
           $ref: '#/components/schemas/Asset'
+        policyId:
+          type: string
+        assetId:
+          type: string
         provider:
           type: string
           format: uri

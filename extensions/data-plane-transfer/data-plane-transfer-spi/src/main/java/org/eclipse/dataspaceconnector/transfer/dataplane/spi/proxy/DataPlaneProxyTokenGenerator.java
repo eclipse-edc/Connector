@@ -20,7 +20,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Interface for service building a bearer token used as input of Data Plane public API to retrievedata located at a specific address.
+ * Interface for service building a bearer token used as input of Data Plane public API to retrieve data located at a specific address.
  */
 @FunctionalInterface
 public interface DataPlaneProxyTokenGenerator {

@@ -15,14 +15,15 @@
 
 package org.eclipse.dataspaceconnector.spi.retry;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Implements an exponential backoff strategy for successive retries.
  */
 public class ExponentialWaitStrategy implements WaitStrategy {
 
     private final long successWaitPeriodMillis;
-    private int errorCount = 0;
-
+    private final AtomicInteger errorCount = new AtomicInteger(0);
 
     public ExponentialWaitStrategy(long successWaitPeriodMillis) {
         this.successWaitPeriodMillis = successWaitPeriodMillis;
@@ -35,15 +36,18 @@ public class ExponentialWaitStrategy implements WaitStrategy {
 
     @Override
     public void success() {
-        errorCount = 0;
+        errorCount.set(0);
+    }
+
+    @Override
+    public void failures(int numberOfFailures) {
+        errorCount.addAndGet(numberOfFailures);
     }
 
     @Override
     public long retryInMillis() {
-        errorCount++;
-        double exponentialMultiplier = Math.pow(2.0, errorCount - 1);
-        double result = exponentialMultiplier * successWaitPeriodMillis;
-        return (long) Math.min(result, Long.MAX_VALUE);
+        var retryCount = errorCount.getAndIncrement();
+        var exponentialMultiplier = 1L << retryCount; // = Math.pow(2, retryCount)
+        return exponentialMultiplier * successWaitPeriodMillis;
     }
-
 }

@@ -9,10 +9,11 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
- *
  */
+
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
@@ -30,6 +31,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ComponentTest
 class ContractNegotiationIntegrationTest extends AbstractContractNegotiationIntegrationTest {
 
     @Test
@@ -87,7 +89,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         ContractOffer offer = getContractOffer();
 
         when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
-    
+
         // Create and register listeners for provider and consumer
         providerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
         consumerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
@@ -136,7 +138,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
         when(validationService.validate(eq(token), any(ContractAgreement.class),
                 any(ContractOffer.class))).thenReturn(false);
-    
+
         // Create and register listeners for provider and consumer
         providerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
         consumerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
@@ -248,7 +250,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
 
         when(validationService.validate(token, initialOffer)).thenReturn(Result.success(null));
         when(validationService.validate(token, counterOffer, initialOffer)).thenReturn(Result.success(null));
-    
+
         // Create and register listeners for provider and consumer
         providerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
         consumerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
@@ -388,7 +390,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
 
         //Mock validation of second counter offer on provider side => decline
         when(validationService.validate(token, consumerCounterOffer, counterOffer)).thenReturn(Result.success(null));
-        
+
         // Create and register listeners for provider and consumer
         providerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
         consumerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));

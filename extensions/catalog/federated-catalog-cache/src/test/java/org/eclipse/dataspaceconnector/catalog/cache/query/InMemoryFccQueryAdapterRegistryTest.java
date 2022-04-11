@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.catalog.cache.query;
 
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapter;
