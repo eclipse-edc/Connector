@@ -16,6 +16,7 @@
 
 package org.eclipse.dataspaceconnector.api.observability;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -29,6 +30,7 @@ import org.eclipse.dataspaceconnector.spi.system.health.HealthStatus;
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/check")
+@Tag(name = "Application Observability")
 public class ObservabilityApiController implements ObservabilityApi {
 
     private final HealthCheckService healthCheckService;

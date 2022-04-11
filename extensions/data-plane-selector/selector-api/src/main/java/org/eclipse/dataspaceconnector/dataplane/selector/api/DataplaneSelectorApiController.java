@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.dataplane.selector.api;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -28,6 +29,7 @@ import java.util.List;
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/instances")
+@Tag(name = "Dataplane Selector")
 public class DataplaneSelectorApiController {
 
     private final DataPlaneSelectorService selectionService;

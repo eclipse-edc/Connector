@@ -15,12 +15,14 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.policy;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 
 import java.util.List;
 
 @OpenAPIDefinition
+@Tag(name = "Policy")
 public interface PolicyApi {
 
     List<Policy> getAllPolicies(Integer offset, Integer limit, String filterExpression, SortOrder sortOrder, String sortField);

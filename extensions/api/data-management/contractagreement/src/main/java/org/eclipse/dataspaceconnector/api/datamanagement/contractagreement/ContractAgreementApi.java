@@ -15,12 +15,14 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractagreement;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.model.ContractAgreementDto;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 
 import java.util.List;
 
 @OpenAPIDefinition
+@Tag(name = "Contract Agreement")
 public interface ContractAgreementApi {
 
     List<ContractAgreementDto> getAllAgreements(Integer offset, Integer limit, String filterExpression, SortOrder sortOrder, String sortField);

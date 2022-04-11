@@ -2,6 +2,8 @@ openapi: 3.0.1
 paths:
   /identity-hub/query-commits:
     post:
+      tags:
+      - Identity Hub
       operationId: queryCommits
       requestBody:
         content:
@@ -17,6 +19,8 @@ paths:
                 type: string
   /identity-hub/query-objects:
     post:
+      tags:
+      - Identity Hub
       operationId: queryObjects
       requestBody:
         content:
@@ -32,6 +36,8 @@ paths:
                 type: string
   /identity-hub/collections:
     post:
+      tags:
+      - Identity Hub
       operationId: write
       requestBody:
         content:
@@ -47,6 +53,8 @@ paths:
                 type: string
   /identity-hub/collections-commit:
     post:
+      tags:
+      - Identity Hub
       operationId: writeCommit
       requestBody:
         content:
