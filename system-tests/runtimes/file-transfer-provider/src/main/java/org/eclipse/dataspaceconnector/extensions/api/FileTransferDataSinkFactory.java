@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,11 +27,13 @@ import java.util.concurrent.ExecutorService;
 
 class FileTransferDataSinkFactory implements DataSinkFactory {
     private final Monitor monitor;
+    private final Telemetry telemetry;
     private final ExecutorService executorService;
     private final int partitionSize;
 
-    FileTransferDataSinkFactory(Monitor monitor, ExecutorService executorService, int partitionSize) {
+    FileTransferDataSinkFactory(Monitor monitor, Telemetry telemetry, ExecutorService executorService, int partitionSize) {
         this.monitor = monitor;
+        this.telemetry = telemetry;
         this.executorService = executorService;
         this.partitionSize = partitionSize;
     }
@@ -60,6 +63,7 @@ class FileTransferDataSinkFactory implements DataSinkFactory {
                 .partitionSize(partitionSize)
                 .executorService(executorService)
                 .monitor(monitor)
+                .telemetry(telemetry)
                 .build();
     }
 }

@@ -13,6 +13,8 @@
  *
  */
 
+val openTelemetryVersion: String by project
+
 plugins {
     `java-library`
     id("application")
@@ -38,6 +40,7 @@ dependencies {
     api(project(":extensions:dataloading"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+    implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 
     implementation(project(":core"))
 

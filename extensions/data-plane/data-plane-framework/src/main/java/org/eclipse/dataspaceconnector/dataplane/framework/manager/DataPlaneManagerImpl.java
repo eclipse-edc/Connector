@@ -25,6 +25,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
 import java.util.concurrent.ArrayBlockingQueue;
@@ -49,6 +50,7 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
     private PipelineService pipelineService;
     private ExecutorInstrumentation executorInstrumentation;
     private Monitor monitor;
+    private Telemetry telemetry;
 
     private BlockingQueue<DataFlowRequest> queue;
     private ExecutorService executorService;
@@ -89,8 +91,12 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
     }
 
     public void initiateTransfer(DataFlowRequest dataRequest) {
-        queue.add(dataRequest);
-        store.received(dataRequest.getProcessId());
+        // store current trace context in entity for request traceability
+        DataFlowRequest dataRequestWithTraceContext = dataRequest.toBuilder()
+                .traceContext(telemetry.getCurrentTraceContext())
+                .build();
+        queue.add(dataRequestWithTraceContext);
+        store.received(dataRequestWithTraceContext.getProcessId());
     }
 
     @Override
@@ -116,21 +122,9 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
                 if (request == null) {
                     continue;
                 }
-                final var polledRequest = request;
+                // propagate trace context for request into the current thread
+                telemetry.contextPropagationMiddleware(this::processDataFlowRequest).accept(request);
 
-                var transferService = transferServiceRegistry.resolveTransferService(polledRequest);
-                if (transferService == null) {
-                    // Should not happen since resolving a transferService is part of payload validation
-                    // TODO persist error details
-                    store.completed(polledRequest.getProcessId());
-                } else {
-                    transferService.transfer(request).whenComplete((result, exception) -> {
-                        if (polledRequest.isTrackable()) {
-                            // TODO persist TransferResult or error details
-                            store.completed(polledRequest.getProcessId());
-                        }
-                    });
-                }
             } catch (InterruptedException e) {
                 Thread.interrupted();
                 active.set(false);
@@ -144,6 +138,22 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
                     store.completed(request.getProcessId());
                 }
             }
+        }
+    }
+
+    private void processDataFlowRequest(DataFlowRequest request) {
+        var transferService = transferServiceRegistry.resolveTransferService(request);
+        if (transferService == null) {
+            // Should not happen since resolving a transferService is part of payload validation
+            // TODO persist error details
+            store.completed(request.getProcessId());
+        } else {
+            transferService.transfer(request).whenComplete((result, exception) -> {
+                if (request.isTrackable()) {
+                    // TODO persist TransferResult or error details
+                    store.completed(request.getProcessId());
+                }
+            });
         }
     }
 
@@ -174,6 +184,11 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
             return this;
         }
 
+        public Builder telemetry(Telemetry telemetry) {
+            manager.telemetry = telemetry;
+            return this;
+        }
+
         public Builder queueCapacity(int capacity) {
             manager.queueCapacity = capacity;
             return this;
@@ -200,6 +215,7 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
 
         private Builder() {
             manager = new DataPlaneManagerImpl();
+            this.manager.telemetry = new Telemetry(); // default noop implementation
         }
     }
 

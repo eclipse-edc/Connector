@@ -50,11 +50,12 @@ public class FileTransferExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
+        var telemetry = context.getTelemetry();
 
         var sourceFactory = new FileTransferDataSourceFactory();
         pipelineService.registerFactory(sourceFactory);
 
-        var sinkFactory = new FileTransferDataSinkFactory(monitor, executorContainer.getExecutorService(), 5);
+        var sinkFactory = new FileTransferDataSinkFactory(monitor, telemetry, executorContainer.getExecutorService(), 5);
         pipelineService.registerFactory(sinkFactory);
 
         var policy = createPolicy();
