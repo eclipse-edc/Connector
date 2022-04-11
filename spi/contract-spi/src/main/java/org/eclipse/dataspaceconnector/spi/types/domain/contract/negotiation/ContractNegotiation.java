@@ -317,7 +317,7 @@ public class ContractNegotiation implements TraceCarrier {
      */
     public void transitionConfirmed() {
         if (Type.CONSUMER == type) {
-            transition(CONFIRMED, CONSUMER_APPROVED, REQUESTED, CONSUMER_OFFERED, CONFIRMED);
+            transition(CONFIRMED, CONFIRMING, CONSUMER_APPROVED, REQUESTED, CONSUMER_OFFERED, CONFIRMED);
         } else {
             transition(CONFIRMED, CONFIRMING);
         }
@@ -367,11 +367,6 @@ public class ContractNegotiation implements TraceCarrier {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(id, correlationId, counterPartyId, protocol, traceContext, type, state, stateCount, stateTimestamp, contractAgreement, contractOffers);
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -384,6 +379,11 @@ public class ContractNegotiation implements TraceCarrier {
                 Objects.equals(correlationId, that.correlationId) && Objects.equals(counterPartyId, that.counterPartyId) &&
                 Objects.equals(protocol, that.protocol) && Objects.equals(traceContext, that.traceContext) &&
                 type == that.type && Objects.equals(contractAgreement, that.contractAgreement) && Objects.equals(contractOffers, that.contractOffers);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, correlationId, counterPartyId, protocol, traceContext, type, state, stateCount, stateTimestamp, contractAgreement, contractOffers);
     }
 
     private void checkState(int... legalStates) {

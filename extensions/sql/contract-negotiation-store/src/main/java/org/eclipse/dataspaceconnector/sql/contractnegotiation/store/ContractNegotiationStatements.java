@@ -37,13 +37,15 @@ public interface ContractNegotiationStatements extends LeaseStatements {
 
     String getNextForStateTemplate();
 
-    String getQueryTemplate();
+    String getQueryNegotiationsTemplate();
 
     String getQueryAgreementsTemplate();
 
     String getInsertAgreementTemplate();
 
     String getSelectByPolicyIdTemplate();
+
+    String getUpdateAgreementTemplate();
 
     @Override
     default String getLeasedByColumn() {
@@ -119,7 +121,7 @@ public interface ContractNegotiationStatements extends LeaseStatements {
     }
 
     default String getContractAgreementIdColumn() {
-        return "edc_contract_agreement.id";
+        return "agreement_id";
     }
 
     default String getAssetIdColumn() {

@@ -12,34 +12,6 @@
  *
  */
 
-/*
- *  Copyright (c) 2020 - 2022 Microsoft Corporation
- *
- *  This program and the accompanying materials are made available under the
- *  terms of the Apache License, Version 2.0 which is available at
- *  https://www.apache.org/licenses/LICENSE-2.0
- *
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Contributors:
- *       Microsoft Corporation - initial API and implementation
- *
- */
-
-/*
- *  Copyright (c) 2020 - 2022 Microsoft Corporation
- *
- *  This program and the accompanying materials are made available under the
- *  terms of the Apache License, Version 2.0 which is available at
- *  https://www.apache.org/licenses/LICENSE-2.0
- *
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Contributors:
- *       Microsoft Corporation - initial API and implementation
- *
- */
-
 CREATE TABLE IF NOT EXISTS edc_lease
 (
     leased_by      VARCHAR               NOT NULL,
@@ -62,7 +34,7 @@ CREATE UNIQUE INDEX lease_lease_id_uindex
 
 CREATE TABLE IF NOT EXISTS edc_contract_agreement
 (
-    id                VARCHAR NOT NULL
+    agreement_id      VARCHAR NOT NULL
         CONSTRAINT contract_agreement_pk
             PRIMARY KEY,
     provider_agent_id VARCHAR,
@@ -115,5 +87,5 @@ CREATE UNIQUE INDEX IF NOT EXISTS contract_negotiation_id_uindex
     ON edc_contract_negotiation (id);
 
 CREATE UNIQUE INDEX IF NOT EXISTS contract_agreement_id_uindex
-    ON edc_contract_agreement (id);
+    ON edc_contract_agreement (agreement_id);
 

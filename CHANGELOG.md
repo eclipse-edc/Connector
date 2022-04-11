@@ -30,7 +30,8 @@ the detailed section referring to by linking pull requests or issues.
 
 #### Fixed
 
-*
+* Handle Jakarta exception correctly (#1102)
+* Fix Postgres column name (#1108)
 
 ## [milestone-3] - 2022-04-08
 
@@ -76,6 +77,7 @@ the detailed section referring to by linking pull requests or issues.
 * CosmosDb based `PolicyStore` (#826)
 * Implement SQL-based PolicyStore (#866)
 * Http Provisioner Webhook endpoint (#1039)
+* Add `PolicyService` and Rest endpoints in Data Management API (#1025)
 * Add dependency checks (#1000)
 * Add `ContractAgreement` query methods on `ContractNegotiationStore` (#1044)
 * Add `findById` method to `ContractDefinitionStore` (#967)
@@ -85,6 +87,8 @@ the detailed section referring to by linking pull requests or issues.
 * Resolve content addresses in the `TransferProcessManager` (#1090)
 * Reliably send transfers from consumer to provider (#1007)
 * Http Deprovisioner Webhook endpoint (#1039)
+* Add performance test example and scheduled workflow (#1029)
+* Add basic authentication mechanism for DataManagement API (#981)
 
 #### Changed
 
@@ -110,6 +114,7 @@ the detailed section referring to by linking pull requests or issues.
 * Replace Asset with assetId on ContractAgreement (#1009)
 * Update CI workflow to use concurrency (#1092)
 * Adapt system-test to use Embedded DPF to perform file copy (#1060)
+* Remove default token-based authentication at the DataManagement API (#981)
 
 #### Removed
 
@@ -175,6 +180,7 @@ the detailed section referring to by linking pull requests or issues.
 * Add public Api to DPF and make `HttpDataSource` more generic (#699)
 * Add an in-memory data plane store (#705)
 * Introduce extensions for synchronous data transfer using data plane (#711)
+* Added Policy services and policy Rest endpoints (1025)
 
 #### Changed
 

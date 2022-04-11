@@ -23,7 +23,7 @@ public final class PostgresStatements implements ContractNegotiationStatements {
     @Override
     public String getFindTemplate() {
         return format("SELECT * FROM %s LEFT OUTER JOIN %s ON %s.%s = %s.%s WHERE %s.%s = ?;", getContractNegotiationTable(), getContractAgreementTable(),
-                getContractNegotiationTable(), getContractAgreementIdFkColumn(), getContractAgreementTable(), getIdColumn(), getContractNegotiationTable(), getIdColumn());
+                getContractNegotiationTable(), getContractAgreementIdFkColumn(), getContractAgreementTable(), getContractAgreementIdColumn(), getContractNegotiationTable(), getIdColumn());
     }
 
     @Override
@@ -34,24 +34,26 @@ public final class PostgresStatements implements ContractNegotiationStatements {
 
     @Override
     public String getFindContractAgreementTemplate() {
-        return format("SELECT * FROM %s where %s=?;", getContractAgreementTable(), getIdColumn());
+        return format("SELECT * FROM %s where %s=?;", getContractAgreementTable(), getContractAgreementIdColumn());
     }
 
     @Override
     public String getFindContractAgreementByDefinitionIdTemplate() {
-        return format("SELECT * FROM %s where %s LIKE ?", getContractAgreementTable(), getIdColumn());
+        return format("SELECT * FROM %s where %s LIKE ?", getContractAgreementTable(), getContractAgreementIdColumn());
     }
 
     @Override
     public String getUpdateNegotiationTemplate() {
         return format("UPDATE %s\n" +
-                "SET %s=?,\n" +
-                "    %s=?,\n" +
-                "    %s=?,\n" +
-                "    %s=?,\n" +
-                "    %s=?,\n" +
-                "    %s=?\n" +
-                "WHERE id = ?;", getContractNegotiationTable(), getStateColumn(), getStateCountColumn(), getStateTimestampColumn(), getErrorDetailColumn(), getContractOffersColumn(), getTraceContextColumn());
+                        "SET %s=?,\n" +
+                        "    %s=?,\n" +
+                        "    %s=?,\n" +
+                        "    %s=?,\n" +
+                        "    %s=?,\n" +
+                        "    %s=?,\n" +
+                        "    %s=?\n" +
+                        "WHERE id = ?;", getContractNegotiationTable(), getStateColumn(), getStateCountColumn(), getStateTimestampColumn(),
+                getErrorDetailColumn(), getContractOffersColumn(), getTraceContextColumn(), getContractAgreementIdFkColumn());
     }
 
     @Override
@@ -77,9 +79,10 @@ public final class PostgresStatements implements ContractNegotiationStatements {
     }
 
     @Override
-    public String getQueryTemplate() {
+    public String getQueryNegotiationsTemplate() {
         // todo: add WHERE ... AND ... ORDER BY... statements here
-        return format("SELECT * FROM %s LIMIT ? OFFSET ?;", getContractNegotiationTable());
+        return format("SELECT * FROM %s LEFT OUTER JOIN %s ON %s.%s = %s.%s LIMIT ? OFFSET ?;", getContractNegotiationTable(), getContractAgreementTable(),
+                getContractNegotiationTable(), getContractAgreementIdFkColumn(), getContractAgreementTable(), getContractAgreementIdColumn());
     }
 
     @Override
@@ -91,13 +94,19 @@ public final class PostgresStatements implements ContractNegotiationStatements {
     @Override
     public String getInsertAgreementTemplate() {
         return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", getContractAgreementTable(), getIdColumn(), getProviderAgentColumn(), getConsumerAgentColumn(),
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", getContractAgreementTable(), getContractAgreementIdColumn(), getProviderAgentColumn(), getConsumerAgentColumn(),
                 getSigningDateColumn(), getStartDateColumn(), getEndDateColumn(), getAssetIdColumn(), getPolicyIdColumn(), getPolicyColumnSeralized());
     }
 
     @Override
     public String getSelectByPolicyIdTemplate() {
         return format("SELECT DISTINCT %s FROM %s WHERE %s = ?", getPolicyColumnSeralized(), getContractAgreementTable(), getPolicyIdColumn());
+    }
+
+    @Override
+    public String getUpdateAgreementTemplate() {
+        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=? WHERE %s =?", getContractAgreementTable(), getProviderAgentColumn(), getConsumerAgentColumn(),
+                getSigningDateColumn(), getStartDateColumn(), getEndDateColumn(), getAssetIdColumn(), getPolicyIdColumn(), getPolicyColumnSeralized(), getContractAgreementIdColumn());
     }
 
     @Override

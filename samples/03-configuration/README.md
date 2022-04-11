@@ -147,12 +147,13 @@ There are a few things worth mentioning here:
 ## Management API
 
 Part of most connectors will be the management api defined in the
-[`:extensions:api:data-management`](../../extensions/api/data-management) module. Therefor, we need to add the module to
-the dependency list in our `build.gradle.kts`:
+[`:extensions:api:data-management`](../../extensions/api/data-management) module. Therefor, we need to add the following
+two modules to the dependency list in our `build.gradle.kts`:
 
 ```kotlin
 dependencies {
     // ...
+    implementation(project(":extensions:api:auth-tokenbased"))
     implementation(project(":extensions:api:data-management"))
     // ...
 }

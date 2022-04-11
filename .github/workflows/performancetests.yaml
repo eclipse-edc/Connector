@@ -1,0 +1,37 @@
+name: Performance Tests
+
+on:
+  # Runs daily at 1 AM UTC time.
+  schedule:
+    - cron: '0 1 * * *'
+  # For manual execution.
+  workflow_dispatch:
+
+jobs:
+
+  Performance-Test:
+    runs-on: ubuntu-latest
+
+    env:
+      REPEAT: 5
+      AT_ONCE_USERS: 10
+      MAX_RESPONSE_TIME: 5000
+      SUCCESS_PERCENTAGE: 100.0
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Performance Tests
+        run: ./gradlew -p system-tests/tests test -DincludeTags="PerformanceTest"
+
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: Gatling reports
+          path: '**/build/reports/gatling/**'

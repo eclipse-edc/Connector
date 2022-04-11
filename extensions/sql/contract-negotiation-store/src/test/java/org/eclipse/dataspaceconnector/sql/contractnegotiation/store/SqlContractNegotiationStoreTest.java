@@ -287,6 +287,49 @@ class SqlContractNegotiationStoreTest {
     }
 
     @Test
+    @DisplayName("Should persist the agreement when a negotiation is updated")
+    void update_addsAgreement_shouldPersist() {
+        var negotiationId = "test-cn1";
+        var negotiation = createNegotiation(negotiationId);
+        store.save(negotiation);
+
+        // now add the agreement
+        var agreement = createContract("test-ca1");
+        var updatedNegotiation = createNegotiation(negotiationId, agreement);
+
+        store.save(updatedNegotiation); //should perform an update + insert
+
+        assertThat(store.queryAgreements(QuerySpec.none()))
+                .hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsExactly(agreement);
+
+        assertThat(Objects.requireNonNull(store.find(negotiationId)).getContractAgreement()).isEqualTo(agreement);
+    }
+
+    @Test
+    @DisplayName("Should update the agreement when a negotiation is updated")
+    void update_whenAgreementExists_shouldUpdate() {
+        var negotiationId = "test-cn1";
+        var agreement = createContract("test-ca1");
+        var negotiation = createNegotiation(negotiationId, agreement);
+        store.save(negotiation);
+        var dbNegotiation = store.find(negotiationId);
+        assertThat(dbNegotiation.getContractAgreement().getPolicy().getExtensibleProperties()).isEmpty();
+
+        // now add the agreement
+        agreement.getPolicy().getExtensibleProperties().put("somekey", "someval");
+        store.save(negotiation); //should perform an update + insert
+
+
+        var updatedNegotiation = store.find(negotiationId);
+        assertThat(updatedNegotiation).isNotNull();
+        assertThat(updatedNegotiation.getContractAgreement()).isNotNull();
+        assertThat(updatedNegotiation.getContractAgreement().getPolicy().getExtensibleProperties()).containsEntry("somekey", "someval");
+
+    }
+
+    @Test
     @DisplayName("Verify that an entity can be deleted")
     void delete() {
         var id = UUID.randomUUID().toString();
@@ -362,6 +405,27 @@ class SqlContractNegotiationStoreTest {
         var result = store.queryNegotiations(querySpec);
 
         assertThat(result).hasSize(10)
+                .extracting(ContractNegotiation::getId)
+                .map(Integer::parseInt)
+                .allMatch(i -> i > 4 && i < 15);
+    }
+
+    @Test
+    @DisplayName("Verify that paging is used")
+    void queryNegotiations_withAgreement() {
+        var querySpec = QuerySpec.Builder.newInstance().limit(10).offset(5).build();
+
+        IntStream.range(0, 100)
+                .mapToObj(i -> {
+                    var agreement = createContract("contract" + i);
+                    return createNegotiation("" + i, agreement);
+                })
+                .forEach(cn -> store.save(cn));
+
+        var result = store.queryNegotiations(querySpec);
+
+        assertThat(result).hasSize(10)
+                .allMatch(c -> c.getContractAgreement() != null)
                 .extracting(ContractNegotiation::getId)
                 .map(Integer::parseInt)
                 .allMatch(i -> i > 4 && i < 15);
@@ -538,6 +602,10 @@ class SqlContractNegotiationStoreTest {
         var archivedPolicy = store.findPolicyForContract("test-policy");
         assertThat(archivedPolicy).isNull();
         assertThat(store.findContractAgreement("test-contract")).isNotNull().extracting(ContractAgreement::getPolicy).isEqualTo(expectedPolicy);
+    }
+
+    private int count(String tableName) {
+        return executeQuery(getConnection(), "SELECT COUNT(*) FROM " + tableName);
     }
 
     private Connection getConnection() {
