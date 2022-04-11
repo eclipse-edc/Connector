@@ -15,14 +15,15 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.TransferRequestDto;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 
 import java.util.List;
 
 @OpenAPIDefinition
+@Tag(name = "Asset")
 public interface AssetApi {
 
     void createAsset(AssetEntryDto assetEntryDto);

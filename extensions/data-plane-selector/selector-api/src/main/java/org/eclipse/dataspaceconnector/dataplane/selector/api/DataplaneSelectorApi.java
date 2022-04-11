@@ -12,19 +12,12 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.transfer.provision.http.webhook;
+package org.eclipse.dataspaceconnector.dataplane.selector.api;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 
-/**
- * Carrier for OpenAPI annotations
- */
 @OpenAPIDefinition
-@Tag(name = "HTTP Provisioner Webhook")
-public interface HttpProvisionerWebhookApi {
-    void callProvisionWebhook(String transferProcessId, ProvisionerWebhookRequest request);
-
-    void callDeprovisionWebhook(String transferProcessId, DeprovisionedResource resource);
+@Tag(name = "Dataplane Selector")
+public interface DataplaneSelectorApi {
 }

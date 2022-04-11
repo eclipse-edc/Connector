@@ -2,6 +2,8 @@ openapi: 3.0.1
 paths:
   /contractdefinitions:
     get:
+      tags:
+      - Contract Definition
       operationId: getAllContractDefinitions
       parameters:
       - name: offset
@@ -39,6 +41,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/ContractDefinitionDto'
     post:
+      tags:
+      - Contract Definition
       operationId: createContractDefinition
       requestBody:
         content:
@@ -52,6 +56,8 @@ paths:
             application/json: {}
   /contractdefinitions/{id}:
     get:
+      tags:
+      - Contract Definition
       operationId: getContractDefinition
       parameters:
       - name: id
@@ -67,6 +73,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ContractDefinitionDto'
     delete:
+      tags:
+      - Contract Definition
       operationId: deleteContractDefinition
       parameters:
       - name: id
