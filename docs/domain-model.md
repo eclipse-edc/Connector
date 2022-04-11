@@ -5,12 +5,12 @@
 
 ## Asset
 
-An asset is represented by the data (databases, files, cache information, etc.) to be published and shared between
-organizations. For each asset a [`DataAddress`](#data-address) needs to be resolvable.
+An asset represents data (databases, files, cache information, etc.) which should be published and shared between
+organizations. For each asset, a [`DataAddress`](#data-address) needs to be resolvable.
 
 ## Data address
 
-Pointer into the physical storage location where an asset will be stored
+A data address is a pointer into the physical storage location where an asset will be stored
 
 ## Contract
 
@@ -20,17 +20,18 @@ passes several stages which are explained below:
 
 * ### Contract definition
 
-  Contract definitions associate a policy with assets. A ContractDefinition object contains access policies, contract
+  Contract definitions associate a policy with assets. A `ContractDefinition` object contains access policies, contract
   policies, and an asset selector which links the contract to one or more assets.
 
 * ### Contract offer
 
   The contract offer is a dynamic representation of the [`ContractDefinition`](#contract-definition)
-  for a specific consumer and serves as protocol DTO for a particular contract negotiation. These contract offers are
-  not persisted and will be regenerated on every request. The provider connector will only generate contract offers for
-  those contract definitions where the inquiring organizations satisfy the policies established in the contract
-  definitions access policy. A contract offer is always related to a single asset of the contract definition object (e.g
-  for a `ContractDefinition` containing three `Asset` objects the provider will generate three `ContractOffer` objects )
+  for a specific consumer and serves as protocol's data transfer object (DTO) for a particular contract negotiation.
+  Contract offers are not persisted and will be regenerated on every request. The connector acting as data provider will
+  generate contract offers only for contract definitions dedicated to the organization or data space participant
+  operating the requesting connector acting as data consumer. A contract offer is always related to a single asset of
+  the `ContractDefinition` object (e.g. for a `ContractDefinition` containing three `Asset` objects, the connector will
+  generate three `ContractOffer` objects)
   .
 
 * ### Contract negotiation
@@ -41,7 +42,8 @@ passes several stages which are explained below:
 
 * ### Contract agreement
 
-  Represents the agreed-upon terms of usage of an asset between two parties including a start and an end date.
+  A contract agreement represents the agreed-upon terms of access and usage of an asset's data between two data space
+  participants, including a start and an end date and further relevant information.
 
 ## Policy
 
@@ -51,11 +53,11 @@ provided in a separate [section](Policies.md).
 
 ## Data request
 
-A `DataRequest` is sent from the consumer to the provider after a successful contract negotiation to initiate the data
-transfer. It references the [`Asset`](#asset) and [`Contract`](#contract-agreement) as well as information about
-the [data destination](#data-address).
+After a successful contract negotiation, a `DataRequest` is sent from a consumer connector to a provider connector to
+initiate the data transfer. It references the requested [`Asset`](#asset) and [`ContractAgreement`](#contract-agreement)
+as well as information about the [data destination](#data-address).
 
 ## Transfer process
 
-Analogous to the `ContractNegotiation` this object captures the current state of a data transfer. This process is
+Similar to the `ContractNegotiation`, this object captures the current state of a data transfer. This process is
 inherently asynchronous, so the `TransferProcess` objects are stored in a backing data store (`TransferProcessStore`).

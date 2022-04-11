@@ -30,7 +30,7 @@ TBD
 
 [Architecture Principles](architecture-principles.md)
 
-[Sequence diagrams](architecture/README.md)
+[Sequence Diagrams](architecture/README.md)
 
 [Domain Model](domain-model.md)
 
