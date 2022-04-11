@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.transfer.provision.http.webhook;
 
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -35,7 +34,6 @@ import java.util.UUID;
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/callback")
-@Tag(name = "HTTP Provisioner Webhook")
 public class HttpProvisionerWebhookApiController implements HttpProvisionerWebhookApi {
     private final TransferProcessManager transferProcessManager;
 

@@ -3,7 +3,7 @@ paths:
   /assets:
     get:
       tags:
-      - Assets
+      - Asset
       operationId: getAllAssets
       parameters:
       - name: offset
@@ -42,7 +42,7 @@ paths:
                   $ref: '#/components/schemas/AssetDto'
     post:
       tags:
-      - Assets
+      - Asset
       operationId: createAsset
       requestBody:
         content:
@@ -57,7 +57,7 @@ paths:
   /assets/{id}:
     get:
       tags:
-      - Assets
+      - Asset
       operationId: getAsset
       parameters:
       - name: id
@@ -74,7 +74,7 @@ paths:
                 $ref: '#/components/schemas/AssetDto'
     delete:
       tags:
-      - Assets
+      - Asset
       operationId: removeAsset
       parameters:
       - name: id

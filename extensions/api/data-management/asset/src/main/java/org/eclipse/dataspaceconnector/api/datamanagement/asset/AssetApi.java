@@ -23,7 +23,7 @@ import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import java.util.List;
 
 @OpenAPIDefinition
-@Tag(name = "Assets")
+@Tag(name = "Asset")
 public interface AssetApi {
 
     void createAsset(AssetEntryDto assetEntryDto);
