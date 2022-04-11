@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.extensions.api;
 
 import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -23,22 +22,15 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
-import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
-import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
@@ -47,39 +39,10 @@ public class ConsumerApiController {
 
     private final Monitor monitor;
     private final TransferProcessManager processManager;
-    private final ConsumerContractNegotiationManager consumerNegotiationManager;
-    private final TransferProcessStore transferProcessStore;
 
-    public ConsumerApiController(Monitor monitor, TransferProcessManager processManager,
-                                 ConsumerContractNegotiationManager consumerNegotiationManager, TransferProcessStore transferProcessStore) {
+    public ConsumerApiController(Monitor monitor, TransferProcessManager processManager) {
         this.monitor = monitor;
         this.processManager = processManager;
-        this.consumerNegotiationManager = consumerNegotiationManager;
-        this.transferProcessStore = transferProcessStore;
-    }
-
-    @POST
-    @Path("negotiation")
-    public Response initiateNegotiation(@QueryParam("connectorAddress") String connectorAddress,
-                                        ContractOffer contractOffer) {
-        if (contractOffer == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-
-        var contractOfferRequest = ContractOfferRequest.Builder.newInstance()
-                .contractOffer(contractOffer)
-                .protocol("ids-multipart")
-                .connectorId("urn:connector:provider") // counter party id matching the address !!
-                .connectorAddress(connectorAddress)
-                .type(ContractOfferRequest.Type.INITIAL)
-                .build();
-
-        var result = consumerNegotiationManager.initiate(contractOfferRequest);
-        if (result.fatalError()) {
-            return Response.serverError().build();
-        }
-
-        return Response.ok(result.getContent().getId()).build();
     }
 
     @POST
@@ -112,14 +75,4 @@ public class ConsumerApiController {
         return result.failed() ? Response.status(400).build() : Response.ok(result.getContent()).build();
     }
 
-    @GET
-    @Path("transfer/{id}")
-    public Response getTransferById(@PathParam("id") String id) {
-        return Optional.ofNullable(transferProcessStore.find(id))
-                .map(
-                        v -> Response.ok(v).build()
-                ).orElse(
-                        Response.status(NOT_FOUND).build()
-                );
-    }
 }

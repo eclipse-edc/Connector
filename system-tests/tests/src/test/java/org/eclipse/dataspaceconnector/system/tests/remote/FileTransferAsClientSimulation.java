@@ -23,6 +23,7 @@ import static io.gatling.javaapi.core.CoreDsl.atOnceUsers;
 import static io.gatling.javaapi.core.CoreDsl.global;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.http;
+import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.CONSUMER_MANAGEMENT_PATH;
 import static org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils.DESCRIPTION;
 import static org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils.contractNegotiationAndFileTransfer;
 
@@ -42,7 +43,7 @@ public class FileTransferAsClientSimulation extends Simulation {
                 )
                 .injectOpen(atOnceUsers(1)))
                 .protocols(http
-                        .baseUrl(getFromEnv("CONSUMER_URL")))
+                        .baseUrl(getFromEnv("CONSUMER_URL") + "/" + CONSUMER_MANAGEMENT_PATH))
                 .assertions(
                         global().responseTime().max().lt(2000),
                         global().successfulRequests().percent().is(100.0)

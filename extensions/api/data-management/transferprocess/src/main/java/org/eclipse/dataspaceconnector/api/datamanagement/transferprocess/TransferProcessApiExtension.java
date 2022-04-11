@@ -50,6 +50,12 @@ public class TransferProcessApiExtension implements ServiceExtension {
     @Inject(required = false)
     private TransactionContext transactionContext;
 
+
+    @Override
+    public String name() {
+        return "Data Management API: Transfer Process";
+    }
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
