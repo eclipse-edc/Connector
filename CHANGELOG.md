@@ -9,8 +9,6 @@ in the detailed section referring to by linking pull requests or issues.
 
 ## [Unreleased]
 
-* Add domain model documentation (#1158)
-
 ### Overview
 
 *
@@ -19,7 +17,7 @@ in the detailed section referring to by linking pull requests or issues.
 
 #### Added
 
-*
+* Add domain model documentation (#1158)
 
 #### Changed
 
