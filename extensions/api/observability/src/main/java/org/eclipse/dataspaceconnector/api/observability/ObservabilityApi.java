@@ -15,9 +15,11 @@
 package org.eclipse.dataspaceconnector.api.observability;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.core.Response;
 
 @OpenAPIDefinition
+@Tag(name = "Application Observability")
 public interface ObservabilityApi {
 
     Response checkHealth();

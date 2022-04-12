@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractAgreementDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractNegotiationDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
@@ -23,6 +24,7 @@ import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import java.util.List;
 
 @OpenAPIDefinition
+@Tag(name = "Contract Negotiation")
 public interface ContractNegotiationApi {
 
     List<ContractNegotiationDto> getNegotiations(Integer offset, Integer limit, String filterExpression, SortOrder sortOrder, String sortField);

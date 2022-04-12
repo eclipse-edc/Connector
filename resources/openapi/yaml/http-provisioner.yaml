@@ -2,6 +2,8 @@ openapi: 3.0.1
 paths:
   /callback/{processId}/deprovision:
     post:
+      tags:
+      - HTTP Provisioner Webhook
       operationId: callDeprovisionWebhook
       parameters:
       - name: processId
@@ -21,6 +23,8 @@ paths:
             application/json: {}
   /callback/{processId}/provision:
     post:
+      tags:
+      - HTTP Provisioner Webhook
       operationId: callProvisionWebhook
       parameters:
       - name: processId

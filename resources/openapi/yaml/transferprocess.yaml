@@ -2,6 +2,8 @@ openapi: 3.0.1
 paths:
   /transferprocess/{id}/cancel:
     post:
+      tags:
+      - Transfer Process
       operationId: cancelTransferProcess
       parameters:
       - name: id
@@ -16,6 +18,8 @@ paths:
             application/json: {}
   /transferprocess/{id}/deprovision:
     post:
+      tags:
+      - Transfer Process
       operationId: deprovisionTransferProcess
       parameters:
       - name: id
@@ -30,6 +34,8 @@ paths:
             application/json: {}
   /transferprocess:
     get:
+      tags:
+      - Transfer Process
       operationId: getAllTransferProcesses
       parameters:
       - name: offset
@@ -67,6 +73,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/TransferProcessDto'
     post:
+      tags:
+      - Transfer Process
       operationId: initiateTransfer
       requestBody:
         content:
@@ -82,6 +90,8 @@ paths:
                 type: string
   /transferprocess/{id}:
     get:
+      tags:
+      - Transfer Process
       operationId: getTransferProcess
       parameters:
       - name: id
@@ -98,6 +108,8 @@ paths:
                 $ref: '#/components/schemas/TransferProcessDto'
   /transferprocess/{id}/state:
     get:
+      tags:
+      - Transfer Process
       operationId: getTransferProcessState
       parameters:
       - name: id

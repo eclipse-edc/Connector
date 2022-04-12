@@ -76,6 +76,6 @@ A pointer on how to expose the YAML file and the Swagger UI using Jetty can be f
 To just take a quick look at the generated API documentation with Swagger UI, you can run it in a Docker container:
 
 ```shell
-docker run -p 80:8080 -e SWAGGER_JSON=/openapi.yaml -v $(pwd)resources/openapi/openapi.yaml:/openapi.yaml swaggerapi/swagger-ui
+docker run -p 80:8080 -e SWAGGER_JSON=/openapi.yaml -v $(pwd)/resources/openapi/openapi.yaml:/openapi.yaml swaggerapi/swagger-ui
 ```
 
