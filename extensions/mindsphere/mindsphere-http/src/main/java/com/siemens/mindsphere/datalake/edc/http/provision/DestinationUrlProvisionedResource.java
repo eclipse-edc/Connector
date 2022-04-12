@@ -23,11 +23,11 @@ public class DestinationUrlProvisionedResource extends ProvisionedDataDestinatio
 
     // @Override
     // public DataAddress createDataDestination() {
-    //     return DataAddress.Builder.newInstance()
-    //             .keyName(path)
-    //             .property(HttpSchema.URL, url)
-    //             .type(HttpSchema.TYPE)
-    //             .build();
+    // return DataAddress.Builder.newInstance()
+    // .keyName(path)
+    // .property(HttpSchema.URL, url)
+    // .type(HttpSchema.TYPE)
+    // .build();
     // }
 
     @JsonIgnore
@@ -45,7 +45,8 @@ public class DestinationUrlProvisionedResource extends ProvisionedDataDestinatio
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends ProvisionedDataDestinationResource.Builder<DestinationUrlProvisionedResource, Builder> {
+    public static class Builder
+            extends ProvisionedDataDestinationResource.Builder<DestinationUrlProvisionedResource, Builder> {
 
         private Builder() {
             super(new DestinationUrlProvisionedResource());

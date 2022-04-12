@@ -41,7 +41,7 @@ public class TransferExtension implements ServiceExtension {
         dataOperatorRegistry.registerWriter(new HttpWriter(monitor));
         dataOperatorRegistry.registerReader(new HttpReader(monitor));
 
-        dataFlowMgr.register(new InlineDataFlowController(vault, context.getMonitor(), dataOperatorRegistry, dataAddressResolver));
+        dataFlowMgr.register(new InlineDataFlowController(vault, context.getMonitor(), dataOperatorRegistry));
 
         final String assetUrl = context.getSetting(STUB_URL, "missing");
 

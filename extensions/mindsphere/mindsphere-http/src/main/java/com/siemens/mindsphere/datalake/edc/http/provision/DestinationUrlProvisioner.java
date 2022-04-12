@@ -4,8 +4,7 @@ import com.siemens.mindsphere.datalake.edc.http.DataLakeClient;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResult;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResult;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
@@ -37,7 +36,7 @@ public class DestinationUrlProvisioner
     }
 
     @Override
-    public CompletableFuture<ProvisionResult> provision(DestinationUrlResourceDefinition resourceDefinition,
+    public CompletableFuture<StatusResult<ProvisionResponse>> provision(DestinationUrlResourceDefinition resourceDefinition,
             Policy policy) {
         return DestinationUrlProvisionPipeline.Builder.newInstance(retryPolicy)
                 .client(dataLakeClient)
@@ -48,7 +47,7 @@ public class DestinationUrlProvisioner
     }
 
     @Override
-    public CompletableFuture<DeprovisionResult> deprovision(DestinationUrlProvisionedResource provisionedResource,
+    public CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(DestinationUrlProvisionedResource provisionedResource,
             Policy policy) {
         // NOTE: there is nothing to de-provision
 
@@ -57,12 +56,10 @@ public class DestinationUrlProvisioner
                 .monitor(monitor)
                 .build()
                 .deprovision(provisionedResource)
-                .thenApply(ignore -> DeprovisionResult.success(DeprovisionedResource.Builder.newInstance()
-                        .provisionedResourceId(provisionedResource.getId()).build()));
-
+                .thenApply(ignore -> StatusResult.success(DeprovisionedResource.Builder.newInstance().provisionedResourceId(provisionedResource.getId()).build()));
     }
 
-    private ProvisionResult provisionSuccedeed(DestinationUrlResourceDefinition resourceDefinition, String url) {
+    private StatusResult<ProvisionResponse> provisionSuccedeed(DestinationUrlResourceDefinition resourceDefinition, String url) {
         var resource = DestinationUrlProvisionedResource.Builder.newInstance()
                 .id(resourceDefinition.getPath())
                 .resourceDefinitionId(resourceDefinition.getId())
@@ -73,6 +70,6 @@ public class DestinationUrlProvisioner
 
         monitor.debug("DestinationUrlProvisioner: Url created for path: " + resourceDefinition.getPath());
         var response = ProvisionResponse.Builder.newInstance().resource(resource).build();
-        return ProvisionResult.success(response);
+        return StatusResult.success(response);
     }
 }
