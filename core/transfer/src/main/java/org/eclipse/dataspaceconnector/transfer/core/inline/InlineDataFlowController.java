@@ -50,7 +50,7 @@ public class InlineDataFlowController implements DataFlowController {
     }
 
     @Override
-    public @NotNull StatusResult<String> initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
+    public @NotNull StatusResult<Void> initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
         var destinationType = dataRequest.getDestinationType();
         monitor.info(format("Copying data from %s to %s", contentAddress.getType(), destinationType));
 
@@ -83,6 +83,6 @@ public class InlineDataFlowController implements DataFlowController {
             }
         }
 
-        return StatusResult.success("Inline data flow successful");
+        return StatusResult.success();
     }
 }

@@ -18,13 +18,14 @@ plugins {
 
 
 dependencies {
-    api(project(":spi:core-spi"))
+    api(project(":extensions:data-plane-transfer:data-plane-transfer-sync"))
+    api(project(":extensions:data-plane-transfer:data-plane-transfer-client"))
 }
 
 publishing {
     publications {
-        create<MavenPublication>("data-plane-transfer-spi") {
-            artifactId = "data-plane-transfer-spi"
+        create<MavenPublication>("data-plane-transfer") {
+            artifactId = "data-plane-transfer"
             from(components["java"])
         }
     }

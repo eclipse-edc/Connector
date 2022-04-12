@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.transfer.dataplane.client;
 import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.client.DataPlaneTransferClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -26,7 +27,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -52,7 +52,7 @@ class EmbeddedDataPlaneTransferClientTest {
 
         var result = client.transfer(request);
 
-        verify(dataPlaneManagerMock, times(1)).validate(request);
+        verify(dataPlaneManagerMock).validate(request);
         verify(dataPlaneManagerMock, never()).initiateTransfer(any());
 
         assertThat(result.failed()).isTrue();
@@ -69,8 +69,8 @@ class EmbeddedDataPlaneTransferClientTest {
 
         var result = client.transfer(request);
 
-        verify(dataPlaneManagerMock, times(1)).validate(request);
-        verify(dataPlaneManagerMock, times(1)).initiateTransfer(request);
+        verify(dataPlaneManagerMock).validate(request);
+        verify(dataPlaneManagerMock).initiateTransfer(request);
 
         assertThat(result.succeeded()).isTrue();
     }

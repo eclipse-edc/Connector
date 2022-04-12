@@ -42,7 +42,7 @@ public class DataFlowManagerImpl implements DataFlowManager {
 
     @WithSpan
     @Override
-    public @NotNull StatusResult<String> initiate(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
+    public @NotNull StatusResult<Void> initiate(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
         try {
             return controllers.stream()
                     .filter(controller -> controller.canHandle(dataRequest, contentAddress))

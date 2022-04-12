@@ -31,7 +31,6 @@ dependencies {
     implementation(project(":extensions:in-memory:policy-store-memory"))
 
     implementation(project(":extensions:data-plane-transfer:data-plane-transfer-spi"))
-    implementation(project(":extensions:data-plane-transfer:data-plane-transfer-core"))
     implementation(project(":extensions:data-plane-transfer:data-plane-transfer-client"))
     implementation(project(":extensions:data-plane-transfer:data-plane-transfer-sync"))
     implementation(project(":extensions:data-plane-selector"))
