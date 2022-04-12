@@ -20,6 +20,8 @@ plugins {
 dependencies {
     api(project(":spi:core-spi"))
     api(project(":spi:transfer-spi"))
+    api(project(":common:token-generation-lib"))
+    api(project(":common:token-validation-lib"))
     api(project(":extensions:data-plane:data-plane-spi"))
 }
 

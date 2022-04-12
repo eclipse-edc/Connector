@@ -22,8 +22,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyAccessManager;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyCreationRequest;
-import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -43,14 +43,14 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
 
     private String connectorId;
     private RemoteMessageDispatcherRegistry dispatcherRegistryMock;
-    private DataPlaneProxyManager proxyManagerMock;
+    private DataPlaneProxyAccessManager proxyManagerMock;
     private ProviderDataPlaneProxyDataFlowController controller;
 
     @BeforeEach
     void setUp() {
         connectorId = "connector-test";
         dispatcherRegistryMock = mock(RemoteMessageDispatcherRegistry.class);
-        proxyManagerMock = mock(DataPlaneProxyManager.class);
+        proxyManagerMock = mock(DataPlaneProxyAccessManager.class);
         controller = new ProviderDataPlaneProxyDataFlowController(connectorId, dispatcherRegistryMock, proxyManagerMock);
     }
 

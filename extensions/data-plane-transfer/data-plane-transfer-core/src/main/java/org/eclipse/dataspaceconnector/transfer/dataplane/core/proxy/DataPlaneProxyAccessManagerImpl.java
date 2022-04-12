@@ -14,13 +14,20 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.core.proxy;
 
+import org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants;
+import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyAccessManager;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyCreationRequest;
-import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyManager;
-import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyTokenGenerator;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.security.DataEncrypter;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.token.DataPlaneTransferTokenGenerator;
 import org.jetbrains.annotations.NotNull;
+
+import java.time.Instant;
+import java.util.Date;
 
 import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.CONTRACT_ID;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
@@ -31,16 +38,20 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddre
 /**
  * Uses the public API exposed by a Data Plane instance to proxy the access to the actual data.
  */
-public class DataPlaneProxyManagerImpl implements DataPlaneProxyManager {
-
-    private static final String DATA_PLANE_PUBLIC_API_AUTH_HEADER = "Authorization";
+public class DataPlaneProxyAccessManagerImpl implements DataPlaneProxyAccessManager {
 
     private final String endpoint;
-    private final DataPlaneProxyTokenGenerator tokenGenerator;
+    private final DataPlaneTransferTokenGenerator tokenGenerator;
+    private final TypeManager typeManager;
+    private final DataEncrypter dataEncrypter;
+    private final long tokenValiditySeconds;
 
-    public DataPlaneProxyManagerImpl(String endpoint, DataPlaneProxyTokenGenerator tokenGenerator) {
+    public DataPlaneProxyAccessManagerImpl(String endpoint, DataPlaneTransferTokenGenerator tokenGenerator, TypeManager typeManager, DataEncrypter dataEncrypter, long tokenValiditySeconds) {
         this.endpoint = endpoint;
         this.tokenGenerator = tokenGenerator;
+        this.typeManager = typeManager;
+        this.dataEncrypter = dataEncrypter;
+        this.tokenValiditySeconds = tokenValiditySeconds;
     }
 
     /**
@@ -65,7 +76,7 @@ public class DataPlaneProxyManagerImpl implements DataPlaneProxyManager {
 
     @Override
     public Result<EndpointDataReference> createProxy(@NotNull DataPlaneProxyCreationRequest request) {
-        var tokenGenerationResult = tokenGenerator.generate(request.getAddress(), request.getContractId());
+        var tokenGenerationResult = createToken(request.getAddress(), request.getContractId());
         if (tokenGenerationResult.failed()) {
             return Result.failure(tokenGenerationResult.getFailureMessages());
         }
@@ -73,10 +84,16 @@ public class DataPlaneProxyManagerImpl implements DataPlaneProxyManager {
         var builder = EndpointDataReference.Builder.newInstance()
                 .id(request.getId())
                 .endpoint(endpoint)
-                .authKey(DATA_PLANE_PUBLIC_API_AUTH_HEADER)
+                .authKey(DataPlaneConstants.PUBLIC_API_AUTH_HEADER)
                 .authCode(tokenGenerationResult.getContent().getToken())
                 .properties(request.getProperties());
         return Result.success(builder.build());
+    }
+
+    private Result<TokenRepresentation> createToken(DataAddress dataAddress, String contractId) {
+        var expirationDate = Date.from(Instant.now().plusSeconds(tokenValiditySeconds));
+        var encryptedDataAddress = dataEncrypter.encrypt(typeManager.writeValueAsString(dataAddress));
+        return tokenGenerator.generate(new DataPlaneProxyTokenDecorator(expirationDate, contractId, encryptedDataAddress));
     }
 
     private static DataAddress toHttpDataAddress(EndpointDataReference edr) {

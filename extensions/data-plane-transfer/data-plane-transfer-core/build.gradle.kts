@@ -17,6 +17,7 @@ plugins {
 }
 
 val nimbusVersion: String by project
+val bouncycastleVersion: String by project
 
 dependencies {
     api(project(":spi:core-spi"))
@@ -25,6 +26,10 @@ dependencies {
     api(project(":common:token-generation-lib"))
 
     api("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
+    // Note: nimbus requires bouncycastle as mentioned in documentation:
+    // https://www.javadoc.io/doc/com.nimbusds/nimbus-jose-jwt/7.2.1/com/nimbusds/jose/jwk/JWK.html#parseFromPEMEncodedObjects-java.lang.String-
+    api("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
+    testImplementation(testFixtures(project(":launchers:junit")))
 }
 
 publishing {

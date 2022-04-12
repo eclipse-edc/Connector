@@ -18,7 +18,6 @@ plugins {
 
 val rsApi: String by project
 val nimbusVersion: String by project
-val bouncycastleVersion: String by project
 val jerseyVersion: String by project
 
 dependencies {
@@ -30,9 +29,6 @@ dependencies {
     api(project(":common:token-validation-lib"))
     api("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     api("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
-    // Note: nimbus requires bouncycastle as mentioned in documentation:
-    // https://www.javadoc.io/doc/com.nimbusds/nimbus-jose-jwt/7.2.1/com/nimbusds/jose/jwk/JWK.html#parseFromPEMEncodedObjects-java.lang.String-
-    api("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
 
     testImplementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
 }

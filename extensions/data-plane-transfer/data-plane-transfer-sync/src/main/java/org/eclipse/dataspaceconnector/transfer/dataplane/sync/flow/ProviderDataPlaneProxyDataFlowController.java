@@ -22,8 +22,8 @@ import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyAccessManager;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyCreationRequest;
-import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyManager;
 import org.jetbrains.annotations.NotNull;
 
 import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType.SYNC;
@@ -32,9 +32,9 @@ public class ProviderDataPlaneProxyDataFlowController implements DataFlowControl
 
     private final String connectorId;
     private final RemoteMessageDispatcherRegistry dispatcherRegistry;
-    private final DataPlaneProxyManager proxyManager;
+    private final DataPlaneProxyAccessManager proxyManager;
 
-    public ProviderDataPlaneProxyDataFlowController(String connectorId, RemoteMessageDispatcherRegistry dispatcherRegistry, DataPlaneProxyManager proxyManager) {
+    public ProviderDataPlaneProxyDataFlowController(String connectorId, RemoteMessageDispatcherRegistry dispatcherRegistry, DataPlaneProxyAccessManager proxyManager) {
         this.connectorId = connectorId;
         this.dispatcherRegistry = dispatcherRegistry;
         this.proxyManager = proxyManager;

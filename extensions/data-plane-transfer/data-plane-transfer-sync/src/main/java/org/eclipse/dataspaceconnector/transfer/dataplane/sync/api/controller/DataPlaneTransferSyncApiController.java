@@ -21,35 +21,36 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.security.DataEncrypter;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.token.DataPlaneTransferTokenValidator;
 
+import static java.lang.String.join;
 import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.DATA_ADDRESS;
 import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.PUBLIC_API_AUTH_HEADER;
 
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
-@Path("/validation")
+@Path("/token")
 public class DataPlaneTransferSyncApiController {
 
     private final Monitor monitor;
-    private final TokenValidationService tokenValidationService;
+    private final DataPlaneTransferTokenValidator tokenValidator;
     private final DataEncrypter dataEncrypter;
 
-    public DataPlaneTransferSyncApiController(Monitor monitor, TokenValidationService tokenValidationService, DataEncrypter dataEncrypter) {
+    public DataPlaneTransferSyncApiController(Monitor monitor, DataPlaneTransferTokenValidator tokenValidator, DataEncrypter dataEncrypter) {
         this.monitor = monitor;
-        this.tokenValidationService = tokenValidationService;
+        this.tokenValidator = tokenValidator;
         this.dataEncrypter = dataEncrypter;
     }
 
     @GET
     public Response validate(@HeaderParam(PUBLIC_API_AUTH_HEADER) String token) {
-        monitor.info("Received request for validToken validation");
-        var validationResult = tokenValidationService.validate(token);
+        monitor.debug("Received token for validation");
+        var validationResult = tokenValidator.validate(token);
         if (validationResult.failed()) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Token validation failed: " + String.join(", ", validationResult.getFailureMessages()))
+                    .entity("Token validation failed: " + join(", ", validationResult.getFailureMessages()))
                     .build();
         }
 

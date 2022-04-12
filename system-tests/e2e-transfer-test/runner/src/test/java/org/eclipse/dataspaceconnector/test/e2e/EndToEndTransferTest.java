@@ -80,9 +80,9 @@ class EndToEndTransferTest {
                     put("edc.keystore.password", "123456");
                     put("ids.webhook.address", CONSUMER_IDS_API.toString());
                     put("edc.receiver.http.endpoint", CONSUMER_BACKEND_SERVICE + "/api/service/pull");
-                    put("edc.transfer.dataplane.token.signer.privatekey.alias", "1");
-                    put("edc.public.key.alias", "public-key");
-                    put("edc.transfer.dataplane.sync.endpoint", CONSUMER_DATA_PLANE_PUBLIC.toString());
+                    put("edc.transfer.proxy.token.signer.privatekey.alias", "private-key");
+                    put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
+                    put("edc.transfer.proxy.endpoint", CONSUMER_DATA_PLANE_PUBLIC.toString());
                 }
             }
     );
@@ -99,7 +99,7 @@ class EndToEndTransferTest {
                     put("web.http.public.path", "/public");
                     put("web.http.control.port", String.valueOf(getFreePort()));
                     put("web.http.control.path", "/control");
-                    put("edc.controlplane.validation-endpoint", CONSUMER_CONTROL_PLANE_VALIDATION + "/validation");
+                    put("edc.controlplane.validation-endpoint", CONSUMER_CONTROL_PLANE_VALIDATION + "/token");
                 }
             }
     );
@@ -127,7 +127,7 @@ class EndToEndTransferTest {
                     put("web.http.public.path", "/public");
                     put("web.http.control.port", String.valueOf(getFreePort()));
                     put("web.http.control.path", "/control");
-                    put("edc.controlplane.validation-endpoint", PROVIDER_CONTROL_PLANE_VALIDATION + "/validation");
+                    put("edc.controlplane.validation-endpoint", PROVIDER_CONTROL_PLANE_VALIDATION + "/token");
                 }
             }
     );
@@ -149,9 +149,9 @@ class EndToEndTransferTest {
                     put("edc.keystore.password", "123456");
                     put("ids.webhook.address", PROVIDER_IDS_API.toString());
                     put("edc.receiver.http.endpoint", PROVIDER_BACKEND_SERVICE + "/api/service/pull");
-                    put("edc.transfer.dataplane.token.signer.privatekey.alias", "1");
-                    put("edc.public.key.alias", "public-key");
-                    put("edc.transfer.dataplane.sync.endpoint", PROVIDER_DATA_PLANE_PUBLIC.toString());
+                    put("edc.transfer.proxy.token.signer.privatekey.alias", "private-key");
+                    put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
+                    put("edc.transfer.proxy.endpoint", PROVIDER_DATA_PLANE_PUBLIC.toString());
                 }
             }
     );

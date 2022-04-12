@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Interface for service enabling to use the Data Plane public API as proxy around a data source.
  */
-public interface DataPlaneProxyManager extends EndpointDataReferenceTransformer {
+public interface DataPlaneProxyAccessManager extends EndpointDataReferenceTransformer {
 
     Result<EndpointDataReference> createProxy(@NotNull DataPlaneProxyCreationRequest request);
 }

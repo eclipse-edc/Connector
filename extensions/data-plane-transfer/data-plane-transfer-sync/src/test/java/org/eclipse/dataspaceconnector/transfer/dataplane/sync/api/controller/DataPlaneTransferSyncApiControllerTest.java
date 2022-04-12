@@ -14,11 +14,12 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.api.controller;
 
-import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
+import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.security.DataEncrypter;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.token.DataPlaneTransferTokenValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,24 +32,28 @@ import static org.mockito.Mockito.when;
 
 class DataPlaneTransferSyncApiControllerTest {
 
+    private static final Faker FAKER = new Faker();
+
     private DataEncrypter encrypterMock;
-    private TokenValidationService tokenValidationServiceMock;
+    private DataPlaneTransferTokenValidator tokenValidationServiceMock;
     private DataPlaneTransferSyncApiController controller;
 
     @BeforeEach
     void setUp() {
         encrypterMock = mock(DataEncrypter.class);
-        tokenValidationServiceMock = mock(TokenValidationService.class);
+        tokenValidationServiceMock = mock(DataPlaneTransferTokenValidator.class);
         var monitor = mock(Monitor.class);
         controller = new DataPlaneTransferSyncApiController(monitor, tokenValidationServiceMock, encrypterMock);
     }
 
     @Test
     void verifyValidateSuccess() {
-        var token = "token-test";
-        var claims = createClaims();
+        var token = FAKER.internet().uuid();
+        var encryptedDataAddress = FAKER.internet().uuid();
+        var decryptedDataAddress = FAKER.internet().uuid();
+        var claims = createClaims(encryptedDataAddress);
         when(tokenValidationServiceMock.validate(token)).thenReturn(Result.success(claims));
-        when(encrypterMock.decrypt("encrypted-data-address")).thenReturn("decrypted-data-address");
+        when(encrypterMock.decrypt(encryptedDataAddress)).thenReturn(decryptedDataAddress);
 
         var response = controller.validate(token);
 
@@ -58,22 +63,24 @@ class DataPlaneTransferSyncApiControllerTest {
         assertThat(claimsResult.getClaims())
                 .containsEntry("foo", "bar")
                 .containsEntry("hello", "world")
-                .containsEntry(DATA_ADDRESS, "decrypted-data-address");
+                .containsEntry(DATA_ADDRESS, decryptedDataAddress);
     }
 
     @Test
     void verifyValidateFailure() {
-        var token = "token-test";
-        when(tokenValidationServiceMock.validate(token)).thenReturn(Result.failure("error"));
+        var token = FAKER.internet().uuid();
+        var errorMsg = FAKER.internet().uuid();
+        when(tokenValidationServiceMock.validate(token)).thenReturn(Result.failure(errorMsg));
 
         var response = controller.validate(token);
 
         assertThat(response.getStatus()).isEqualTo(400);
+        assertThat(response.getEntity()).asString().isEqualTo("Token validation failed: " + errorMsg);
     }
 
-    private static ClaimToken createClaims() {
+    private static ClaimToken createClaims(String encryptedDataAddress) {
         return ClaimToken.Builder.newInstance()
-                .claims(Map.of("foo", "bar", "hello", "world", DATA_ADDRESS, "encrypted-data-address"))
+                .claims(Map.of("foo", "bar", "hello", "world", DATA_ADDRESS, encryptedDataAddress))
                 .build();
     }
 }
