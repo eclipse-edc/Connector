@@ -38,8 +38,7 @@ public class FileTransferAsClientSimulation extends Simulation {
                 .on(
                         contractNegotiationAndFileTransfer(
                                 getFromEnv("PROVIDER_URL"),
-                                getFromEnv("DESTINATION_PATH"),
-                                getFromEnv("API_KEY"))
+                                getFromEnv("DESTINATION_PATH"))
                 )
                 .injectOpen(atOnceUsers(1)))
                 .protocols(http

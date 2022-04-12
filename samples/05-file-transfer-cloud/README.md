@@ -157,7 +157,7 @@ curl --location --request POST 'http://localhost:9192/api/v1/data/contractnegoti
   "offer": {
     "offerId": "1:3a75736e-001d-4364-8bd4-9888490edb58",
     "assetId": "1",
-    "policy": { <Copy one of the policy from Step 2> }
+    "policy": { <Copy one of the policy from contractoffer.json file in samples/04.0-file-transfer> }
   }
 }'
 ```

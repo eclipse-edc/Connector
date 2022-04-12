@@ -58,8 +58,6 @@ public class FileTransferIntegrationTest {
     public static final int PROVIDER_IDS_API_PORT = getFreePort();
     public static final String PROVIDER_IDS_API = "http://localhost:" + PROVIDER_IDS_API_PORT;
 
-    public static final String API_KEY_CONTROL_AUTH = "password";
-
     @RegisterExtension
     static EdcRuntimeExtension consumer = new EdcRuntimeExtension(
             ":system-tests:runtimes:file-transfer-consumer",
@@ -71,7 +69,6 @@ public class FileTransferIntegrationTest {
                     "web.http.data.path", CONSUMER_MANAGEMENT_PATH,
                     "web.http.ids.port", String.valueOf(CONSUMER_IDS_API_PORT),
                     "web.http.ids.path", "/api/v1/ids",
-                    "edc.api.control.auth.apikey.value", API_KEY_CONTROL_AUTH,
                     "ids.webhook.address", CONSUMER_IDS_API));
 
     @RegisterExtension

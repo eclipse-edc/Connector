@@ -49,7 +49,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 class EndToEndTransferTest {
 
     private final Duration timeout = Duration.ofSeconds(30);
-    private static final String API_KEY_CONTROL_AUTH = "password";
 
     private static final URI CONSUMER_CONTROL_PLANE = URI.create("http://localhost:" + getFreePort());
     private static final URI CONSUMER_CONTROL_PLANE_VALIDATION = URI.create("http://localhost:" + getFreePort() + "/validation");
@@ -79,7 +78,6 @@ class EndToEndTransferTest {
                     put("edc.vault", resourceAbsolutePath("consumer-vault.properties"));
                     put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                     put("edc.keystore.password", "123456");
-                    put("edc.api.auth.key", API_KEY_CONTROL_AUTH);
                     put("ids.webhook.address", CONSUMER_IDS_API.toString());
                     put("edc.receiver.http.endpoint", CONSUMER_BACKEND_SERVICE + "/api/service/pull");
                     put("edc.transfer.dataplane.token.signer.privatekey.alias", "1");
@@ -149,7 +147,6 @@ class EndToEndTransferTest {
                     put("edc.vault", resourceAbsolutePath("provider-vault.properties"));
                     put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                     put("edc.keystore.password", "123456");
-                    put("edc.api.auth.key", API_KEY_CONTROL_AUTH);
                     put("ids.webhook.address", PROVIDER_IDS_API.toString());
                     put("edc.receiver.http.endpoint", PROVIDER_BACKEND_SERVICE + "/api/service/pull");
                     put("edc.transfer.dataplane.token.signer.privatekey.alias", "1");
@@ -205,7 +202,6 @@ class EndToEndTransferTest {
         return given()
                 .baseUri(instance.toString())
                 .contentType(JSON)
-                .header("X-Api-Key", API_KEY_CONTROL_AUTH)
                 .when()
                 .get("/api/transferprocess/{id}/state", transferProcessId)
                 .then()
@@ -231,7 +227,6 @@ class EndToEndTransferTest {
         return given()
                 .baseUri(instance.toString())
                 .contentType(JSON)
-                .header("X-Api-Key", API_KEY_CONTROL_AUTH)
                 .body(request)
                 .when()
                 .post("/api/transferprocess")
@@ -247,7 +242,6 @@ class EndToEndTransferTest {
             var result = given()
                     .baseUri(instance.toString())
                     .contentType(JSON)
-                    .header("X-Api-Key", API_KEY_CONTROL_AUTH)
                     .when()
                     .get("/api/contractnegotiations/{id}", negotiationId)
                     .then()
@@ -284,7 +278,6 @@ class EndToEndTransferTest {
         return given()
                 .baseUri(instance.toString())
                 .contentType(JSON)
-                .header("X-Api-Key", API_KEY_CONTROL_AUTH)
                 .body(request)
                 .when()
                 .post("/api/contractnegotiations")
@@ -314,7 +307,6 @@ class EndToEndTransferTest {
         given()
                 .baseUri(instance.toString())
                 .contentType(JSON)
-                .header("X-Api-Key", API_KEY_CONTROL_AUTH)
                 .body(asset)
                 .when()
                 .post("/api/assets")
@@ -333,7 +325,6 @@ class EndToEndTransferTest {
         given()
                 .baseUri(instance.toString())
                 .contentType(JSON)
-                .header("X-Api-Key", API_KEY_CONTROL_AUTH)
                 .body(contractDefinition)
                 .when()
                 .post("/api/contractdefinitions")
@@ -353,7 +344,6 @@ class EndToEndTransferTest {
         given()
                 .baseUri(instance.toString())
                 .contentType(JSON)
-                .header("X-Api-Key", API_KEY_CONTROL_AUTH)
                 .body(policy)
                 .when()
                 .post("/api/policies")

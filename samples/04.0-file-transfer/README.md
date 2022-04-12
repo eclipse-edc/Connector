@@ -153,7 +153,7 @@ implementation(project(":samples:04.0-file-transfer:api"))
 
 It is good practice to explicitly configure the consumer's API port in `consumer/config.properties` like we learned in
 previous chapters. In the config file, we also need to configure the API key authentication, as we're going to use an
-endpoint from the EDC's control API in this sample. Therefore, we add the property `edc.api.control.auth.apikey.value`
+endpoint from the EDC's control API in this sample. Therefore, we add the property `edc.api.auth.key`
 and set it to e.g. `password`. And last, we also need to configure the consumer's API contexts and webhook address.
 We expose the IDS API endpoints on a different port and path than other endpoints. The property `ids.webhook.address`
 is adjusted to match the IDS API port.
