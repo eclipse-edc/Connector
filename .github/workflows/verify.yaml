@@ -375,7 +375,7 @@ jobs:
       - Daps-Integration-Tests
       - End-To-End-Tests
       - Component-Tests
-      - Micrometer-Integration-Tests
+      - OpenTelemetry-Integration-Tests
     runs-on: ubuntu-latest
     if: always()
     steps:
