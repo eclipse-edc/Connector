@@ -22,11 +22,6 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -54,7 +49,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 class EndToEndTransferTest {
 
     private final Duration timeout = Duration.ofSeconds(30);
-    private static final String API_KEY_CONTROL_AUTH = "password";
 
     private static final URI CONSUMER_CONTROL_PLANE = URI.create("http://localhost:" + getFreePort());
     private static final URI CONSUMER_CONTROL_PLANE_VALIDATION = URI.create("http://localhost:" + getFreePort() + "/validation");
@@ -84,7 +78,6 @@ class EndToEndTransferTest {
                     put("edc.vault", resourceAbsolutePath("consumer-vault.properties"));
                     put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                     put("edc.keystore.password", "123456");
-                    put("edc.api.control.auth.apikey.value", API_KEY_CONTROL_AUTH);
                     put("ids.webhook.address", CONSUMER_IDS_API.toString());
                     put("edc.receiver.http.endpoint", CONSUMER_BACKEND_SERVICE + "/api/service/pull");
                     put("edc.transfer.dataplane.token.signer.privatekey.alias", "1");
@@ -154,7 +147,6 @@ class EndToEndTransferTest {
                     put("edc.vault", resourceAbsolutePath("provider-vault.properties"));
                     put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                     put("edc.keystore.password", "123456");
-                    put("edc.api.control.auth.apikey.value", API_KEY_CONTROL_AUTH);
                     put("ids.webhook.address", PROVIDER_IDS_API.toString());
                     put("edc.receiver.http.endpoint", PROVIDER_BACKEND_SERVICE + "/api/service/pull");
                     put("edc.transfer.dataplane.token.signer.privatekey.alias", "1");
@@ -177,8 +169,10 @@ class EndToEndTransferTest {
 
     @Test
     void httpPullDataTransfer() {
-        var assetId = createAsset(PROVIDER_CONTROL_PLANE);
-        createContractDefinition(assetId, PROVIDER_CONTROL_PLANE);
+        var assetId = "asset-id";
+        createAsset(PROVIDER_CONTROL_PLANE, assetId);
+        var policyId = createPolicy(assetId, PROVIDER_CONTROL_PLANE);
+        createContractDefinition(policyId, PROVIDER_CONTROL_PLANE);
 
         var negotiationId = negotiateContractFor(assetId, CONSUMER_CONTROL_PLANE, PROVIDER_IDS_API);
 
@@ -189,8 +183,8 @@ class EndToEndTransferTest {
         var transferProcessId = dataRequest(contractAgreementId, assetId, CONSUMER_CONTROL_PLANE, PROVIDER_IDS_API);
 
         await().atMost(timeout).untilAsserted(() -> {
-            var transferProcess = getTransferProcess(transferProcessId, CONSUMER_CONTROL_PLANE);
-            assertThat(transferProcess.getState()).isEqualTo(COMPLETED.code());
+            var state = getTransferProcessState(transferProcessId, CONSUMER_CONTROL_PLANE);
+            assertThat(state).isEqualTo(COMPLETED.name());
         });
 
         await().atMost(timeout).untilAsserted(() -> {
@@ -204,41 +198,38 @@ class EndToEndTransferTest {
         });
     }
 
-    private TransferProcess getTransferProcess(String transferProcessId, URI instance) {
+    private String getTransferProcessState(String transferProcessId, URI instance) {
         return given()
                 .baseUri(instance.toString())
                 .contentType(JSON)
-                .header("X-Api-Key", API_KEY_CONTROL_AUTH)
                 .when()
-                .get("/api/transfers/{id}", transferProcessId)
+                .get("/api/transferprocess/{id}/state", transferProcessId)
                 .then()
                 .statusCode(200)
-                .extract().body().as(TransferProcess.class);
+                .extract().body().asString();
     }
 
     private String dataRequest(String contractAgreementId, String assetId, URI instance, URI provider) {
-        var dataRequest = DataRequest.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .contractId(contractAgreementId)
-                .connectorId("provider")
-                .connectorAddress(provider + "/api/v1/ids/data")
-                .protocol("ids-multipart")
-                .assetId(assetId)
-                .dataDestination(DataAddress.Builder.newInstance().type(SYNC).build())
-                .managedResources(false)
-                .transferType(TransferType.Builder.transferType()
+        var request = Map.of(
+                "contractId", contractAgreementId,
+                "assetId", assetId,
+                "connectorId", "provider",
+                "connectorAddress", provider + "/api/v1/ids/data",
+                "protocol", "ids-multipart",
+                "dataDestination", DataAddress.Builder.newInstance().type(SYNC).build(),
+                "managedResources", false,
+                "transferType", TransferType.Builder.transferType()
                         .contentType("application/octet-stream")
                         .isFinite(true)
-                        .build())
-                .build();
+                        .build()
+        );
 
         return given()
                 .baseUri(instance.toString())
                 .contentType(JSON)
-                .header("X-Api-Key", API_KEY_CONTROL_AUTH)
-                .body(dataRequest)
+                .body(request)
                 .when()
-                .post("/api/control/transfer")
+                .post("/api/transferprocess")
                 .then()
                 .statusCode(200)
                 .extract().body().asString();
@@ -251,9 +242,8 @@ class EndToEndTransferTest {
             var result = given()
                     .baseUri(instance.toString())
                     .contentType(JSON)
-                    .header("X-Api-Key", API_KEY_CONTROL_AUTH)
                     .when()
-                    .get("/api/control/negotiation/{id}/state", negotiationId)
+                    .get("/api/contractnegotiations/{id}", negotiationId)
                     .then()
                     .statusCode(200)
                     .body("contractAgreementId", notNullValue())
@@ -266,87 +256,101 @@ class EndToEndTransferTest {
     }
 
     private String negotiateContractFor(String assetId, URI instance, URI provider) {
-        var request = ContractOfferRequest.Builder.newInstance()
-                .connectorId("provider")
-                .connectorAddress(provider + "/api/v1/ids/data")
-                .protocol("ids-multipart")
-                .contractOffer(ContractOffer.Builder.newInstance()
-                        .id("1:1")
-                        .policy(Policy.Builder.newInstance()
-                                .id(UUID.randomUUID().toString())
-                                .permission(Permission.Builder.newInstance()
-                                        .target(assetId)
-                                        .action(Action.Builder.newInstance().type("USE").build())
-                                        .build())
-                                .type(PolicyType.SET)
-                                .build())
-                        .provider(provider)
-                        .consumer(instance)
-                        .build())
-                .build();
-
-        return given()
-                .baseUri(instance.toString())
-                .contentType(JSON)
-                .header("X-Api-Key", API_KEY_CONTROL_AUTH)
-                .body(request)
-                .when()
-                .post("/api/control/negotiation")
-                .then()
-                .statusCode(200)
-                .extract().body().asString();
-    }
-
-    private String createAsset(URI instance) {
-        var asset = Map.of(
-                "asset", Map.of(
-                        "asset:prop:id", "asset-id",
-                        "asset:prop:name", "asset name",
-                        "asset:prop:contenttype", "text/plain",
-                        "asset:prop:policy-id", "use-eu"
-                ),
-                "dataAddress", Map.of(
-                        "endpoint", PROVIDER_BACKEND_SERVICE + "/api/service/data",
-                        "type", "HttpData"
-                )
-        );
-
-        return given()
-                .baseUri(instance.toString())
-                .contentType(JSON)
-                .header("X-Api-Key", API_KEY_CONTROL_AUTH)
-                .body(asset)
-                .when()
-                .post("/api/assets")
-                .then()
-                .statusCode(200)
-                .extract().body().asString();
-    }
-
-    private void createContractDefinition(String assetId, URI instance) {
-        var accessPolicy = Policy.Builder.newInstance()
+        var policy = Policy.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
                 .permission(Permission.Builder.newInstance()
                         .target(assetId)
                         .action(Action.Builder.newInstance().type("USE").build())
                         .build())
                 .type(PolicyType.SET)
                 .build();
-        var contractDefinition = ContractDefinition.Builder.newInstance()
-                .id("1")
-                .accessPolicy(accessPolicy)
-                .contractPolicy(accessPolicy)
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
-                .build();
+        var request = Map.of(
+                "connectorId", "provider",
+                "connectorAddress", provider + "/api/v1/ids/data",
+                "protocol", "ids-multipart",
+                "offer", Map.of(
+                        "offerId", "1:1",
+                        "assetId", assetId,
+                        "policy", policy
+                )
+        );
+
+        return given()
+                .baseUri(instance.toString())
+                .contentType(JSON)
+                .body(request)
+                .when()
+                .post("/api/contractnegotiations")
+                .then()
+                .statusCode(200)
+                .extract().body().asString();
+    }
+
+    private void createAsset(URI instance, String assetId) {
+        var asset = Map.of(
+                "asset", Map.of(
+                        "properties", Map.of(
+                                "asset:prop:id", assetId,
+                                "asset:prop:name", "asset name",
+                                "asset:prop:contenttype", "text/plain",
+                                "asset:prop:policy-id", "use-eu"
+                        )
+                ),
+                "dataAddress", Map.of(
+                        "properties", Map.of(
+                                "endpoint", PROVIDER_BACKEND_SERVICE + "/api/service/data",
+                                "type", "HttpData"
+                        )
+                )
+        );
 
         given()
                 .baseUri(instance.toString())
                 .contentType(JSON)
-                .header("X-Api-Key", API_KEY_CONTROL_AUTH)
+                .body(asset)
+                .when()
+                .post("/api/assets")
+                .then()
+                .statusCode(204);
+    }
+
+    private void createContractDefinition(String policyId, URI instance) {
+        var contractDefinition = Map.of(
+                "id", "1",
+                "accessPolicyId", policyId,
+                "contractPolicyId", policyId,
+                "criteria", AssetSelectorExpression.SELECT_ALL.getCriteria()
+        );
+
+        given()
+                .baseUri(instance.toString())
+                .contentType(JSON)
                 .body(contractDefinition)
                 .when()
                 .post("/api/contractdefinitions")
                 .then()
                 .statusCode(204);
+    }
+
+    private String createPolicy(String assetId, URI instance) {
+        var policy = Policy.Builder.newInstance()
+                .permission(Permission.Builder.newInstance()
+                        .target(assetId)
+                        .action(Action.Builder.newInstance().type("USE").build())
+                        .build())
+                .type(PolicyType.SET)
+                .build();
+
+        given()
+                .baseUri(instance.toString())
+                .contentType(JSON)
+                .body(policy)
+                .when()
+                .post("/api/policies")
+                .then()
+                .statusCode(204);
+
+        return policy.getUid();
     }
 
     @NotNull

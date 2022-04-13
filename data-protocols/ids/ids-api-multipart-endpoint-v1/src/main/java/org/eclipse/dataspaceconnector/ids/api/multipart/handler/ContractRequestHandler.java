@@ -104,7 +104,7 @@ public class ContractRequestHandler implements Handler {
         }
 
         // extract target from contract request
-        var permission = contractRequest.getPermission().get(0);
+        var permission = contractRequest.getPermission().stream().findFirst().orElse(null);
         if (permission == null) {
             monitor.debug("ContractRequestHandler: Contract Request is invalid");
             return createBadParametersErrorMultipartResponse(message);

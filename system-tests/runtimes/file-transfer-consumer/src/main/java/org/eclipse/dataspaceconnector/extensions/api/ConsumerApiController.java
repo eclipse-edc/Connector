@@ -59,30 +59,6 @@ public class ConsumerApiController {
     }
 
     @POST
-    @Path("negotiation")
-    public Response initiateNegotiation(@QueryParam("connectorAddress") String connectorAddress,
-                                        ContractOffer contractOffer) {
-        if (contractOffer == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-
-        var contractOfferRequest = ContractOfferRequest.Builder.newInstance()
-                .contractOffer(contractOffer)
-                .protocol("ids-multipart")
-                .connectorId("urn:connector:provider") // counter party id matching the address !!
-                .connectorAddress(connectorAddress)
-                .type(ContractOfferRequest.Type.INITIAL)
-                .build();
-
-        var result = consumerNegotiationManager.initiate(contractOfferRequest);
-        if (result.fatalError()) {
-            return Response.serverError().build();
-        }
-
-        return Response.ok(result.getContent().getId()).build();
-    }
-
-    @POST
     @Path("file/{filename}")
     public Response initiateTransfer(@PathParam("filename") String filename, @QueryParam("connectorAddress") String connectorAddress,
                                      @QueryParam("destination") String destinationPath, @QueryParam("contractId") String contractId) {
@@ -112,14 +88,4 @@ public class ConsumerApiController {
         return result.failed() ? Response.status(400).build() : Response.ok(result.getContent()).build();
     }
 
-    @GET
-    @Path("transfer/{id}")
-    public Response getTransferById(@PathParam("id") String id) {
-        return Optional.ofNullable(transferProcessStore.find(id))
-                .map(
-                        v -> Response.ok(v).build()
-                ).orElse(
-                        Response.status(NOT_FOUND).build()
-                );
-    }
 }

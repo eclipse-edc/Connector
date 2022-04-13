@@ -153,7 +153,7 @@ implementation(project(":samples:04.0-file-transfer:api"))
 
 It is good practice to explicitly configure the consumer's API port in `consumer/config.properties` like we learned in
 previous chapters. In the config file, we also need to configure the API key authentication, as we're going to use an
-endpoint from the EDC's control API in this sample. Therefore, we add the property `edc.api.control.auth.apikey.value`
+endpoint from the EDC's control API in this sample. Therefore, we add the property `edc.api.auth.key`
 and set it to e.g. `password`. And last, we also need to configure the consumer's API contexts and webhook address.
 We expose the IDS API endpoints on a different port and path than other endpoints. The property `ids.webhook.address`
 is adjusted to match the IDS API port.
@@ -202,7 +202,7 @@ and can be used as is. In a real scenario, a potential consumer would first need
 provider's offers in order to get the provider's contract offer.
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://localhost:8282/api/v1/ids/data"
+curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9192/api/v1/data/contractnegotiations"
 ```
 
 In the response we'll get a UUID that we can use to get the contract agreement negotiated between provider and consumer.
@@ -218,7 +218,7 @@ sample's API but of the actual control API, we need to authenticate ourselves to
 we use the `X-Api-Key` header with the same value that's set in our consumer's `config.properties`.
 
 ```bash
-curl -X GET -H 'X-Api-Key: password' "http://localhost:9191/api/control/negotiation/{UUID}/state"
+curl -X GET -H 'X-Api-Key: password' "http://localhost:9192/api/v1/data/contractnegotiations/{UUID}"
 ```
 
 This will return the current status of the negotiation and, if the negotiation has been completed successfully,
@@ -229,8 +229,10 @@ Sample output:
 
 ```json
 {
-  "status": "CONFIRMED",
-  "contractAgreementId": "<AGREEMENT_ID>"
+  ...
+  "contractAgreementId":"1:45d5b9d2-97b6-4073-8e11-e0e0f44a3538",
+  "state":"CONFIRMED",
+  ...
 }
 ```
 
@@ -239,8 +241,10 @@ just wait for a moment and call the endpoint again.
 
 ```json
 {
-    "status": "REQUESTED",
-    "contractAgreementId": null
+  ...
+  "state": "REQUESTED",
+  "contractAgreementId": null,
+  ...
 }
 ```
 

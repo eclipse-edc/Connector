@@ -13,6 +13,7 @@ paths:
           description: default response
           content:
             application/json: {}
+      deprecated: true
   /control/transfer:
     post:
       operationId: addTransfer
@@ -26,6 +27,7 @@ paths:
           description: default response
           content:
             application/json: {}
+      deprecated: true
   /control/agreement/{id}:
     get:
       operationId: getAgreementById
@@ -40,6 +42,7 @@ paths:
           description: default response
           content:
             application/json: {}
+      deprecated: true
   /control/negotiation/{id}:
     get:
       operationId: getNegotiationById
@@ -54,6 +57,7 @@ paths:
           description: default response
           content:
             application/json: {}
+      deprecated: true
   /control/negotiation/{id}/state:
     get:
       operationId: getNegotiationStateById
@@ -68,6 +72,7 @@ paths:
           description: default response
           content:
             application/json: {}
+      deprecated: true
   /control/negotiation:
     post:
       operationId: initiateNegotiation
@@ -81,6 +86,7 @@ paths:
           description: default response
           content:
             application/json: {}
+      deprecated: true
 components:
   schemas:
     DataAddress:
