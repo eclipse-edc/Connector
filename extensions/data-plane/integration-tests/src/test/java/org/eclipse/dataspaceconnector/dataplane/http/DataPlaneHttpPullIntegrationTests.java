@@ -10,6 +10,7 @@
  *  Contributors:
  *       Amadeus - initial API and implementation
  *       Mercedes Benz Tech Innovation - add toggles for proxy behavior
+ *
  */
 
 package org.eclipse.dataspaceconnector.dataplane.http;

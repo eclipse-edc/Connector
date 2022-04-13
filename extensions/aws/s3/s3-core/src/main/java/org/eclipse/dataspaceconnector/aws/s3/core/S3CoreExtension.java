@@ -11,6 +11,7 @@
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
+
 package org.eclipse.dataspaceconnector.aws.s3.core;
 
 import org.eclipse.dataspaceconnector.spi.system.Provides;

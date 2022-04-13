@@ -11,7 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *       Daimler TSS GmbH - fixed contract dates to epoch seconds
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - add functionalities
-  *
+ *
  */
 
 package org.eclipse.dataspaceconnector.contract.negotiation.store;
