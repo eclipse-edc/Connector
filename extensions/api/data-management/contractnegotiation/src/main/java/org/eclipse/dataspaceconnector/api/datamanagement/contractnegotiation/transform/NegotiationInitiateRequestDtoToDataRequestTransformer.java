@@ -25,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
-
 import java.net.URISyntaxException;
 
 public class NegotiationInitiateRequestDtoToDataRequestTransformer implements DtoTransformer<NegotiationInitiateRequestDto, ContractOfferRequest> {
@@ -46,6 +45,7 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
                 .id(object.getOffer().getOfferId())
                 .asset(Asset.Builder.newInstance().id(object.getOffer().getAssetId()).build())
                 .policyId(object.getOffer().getPolicyId())
+                // TODO: this is a workaround for the bug described in https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/753
                 .consumer(uri("urn:connector:consumer"))
                 .provider(uri("urn:connector:provider"))
                 .policy(object.getOffer().getPolicy())
