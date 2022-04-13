@@ -48,8 +48,8 @@ import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadTel
  *     <li>{@link BaseRuntime#createMonitor()} : instantiates a new {@link Monitor}</li>
  *     <li>{@link BaseRuntime#createContext(TypeManager, Monitor, Telemetry)}: creates a new {@link DefaultServiceExtensionContext} and invokes its {@link DefaultServiceExtensionContext#initialize()} method</li>
  *     <li>{@link BaseRuntime#initializeVault(ServiceExtensionContext)}: initializes the {@link org.eclipse.dataspaceconnector.spi.security.Vault} by
- *          calling {@link ExtensionLoader#loadVault(ServiceExtensionContext)} </li>
- *     <li>{@link BaseRuntime#createExtensions()}: creates a list of {@code ServiceExtension} objects. By default, these are created through {@link ServiceExtensionContext#loadServiceExtensions()}</li>
+ *          calling {@link ExtensionLoader#loadVault(ServiceExtensionContext, ExtensionLoader)} </li>
+ *     <li>{@link BaseRuntime#createExtensions()}: creates a list of {@code ServiceExtension} objects. By default, these are created through {@link ExtensionLoader#loadServiceExtensions()}</li>
  *     <li>{@link BaseRuntime#bootExtensions(ServiceExtensionContext, List)}: initializes the service extensions by putting them through their lifecycle.
  *     By default this calls {@link ExtensionLoader#bootServiceExtensions(List, ServiceExtensionContext)} </li>
  *     <li>{@link BaseRuntime#onError(Exception)}: receives any Exception that was raised during initialization</li>
@@ -190,7 +190,7 @@ public class BaseRuntime {
     /**
      * Hook point to initialize the vault. It can be assumed that a {@link org.eclipse.dataspaceconnector.spi.security.Vault} instance exists prior to this method being called.
      * By default, the {@code Vault} is loaded using the Service Loader mechanism ({@link org.eclipse.dataspaceconnector.spi.system.VaultExtension}) and
-     * a call to {@link ExtensionLoader#loadVault(ServiceExtensionContext)} is made.
+     * a call to {@link ExtensionLoader#loadVault(ServiceExtensionContext, ExtensionLoader)} is made.
      * <p>
      * In order to provide a custom {@code Vault} implementation, please consider using the extension mechanism ({@link org.eclipse.dataspaceconnector.spi.system.VaultExtension}) rather than overriding this method.
      * However, for development/testing scenarios it might be an easy solution to just override this method.
@@ -231,7 +231,7 @@ public class BaseRuntime {
 
             newExtensions.stream().map(InjectionContainer::getInjectionTarget).forEach(serviceExtensions::add);
             if (addShutdownHook) {
-                getRuntime().addShutdownHook(new Thread(() -> shutdown()));
+                getRuntime().addShutdownHook(new Thread(this::shutdown));
             }
 
             var healthCheckService = context.getService(HealthCheckService.class);

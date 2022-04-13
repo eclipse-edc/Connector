@@ -44,7 +44,7 @@ public interface CommandQueue<C extends Command> {
      *
      * @param amount The maximum number of items. If the queue holds fewer items than specified in {@code amount}, all items are returned.
      * @return A list of items, maybe empty, never null.
-     * @throws IllegalArgumentException if {@code amount} is < zero.
+     * @throws IllegalArgumentException if {@code amount} is &lt; zero.
      */
     List<C> dequeue(int amount);
 

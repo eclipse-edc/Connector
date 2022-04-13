@@ -34,21 +34,21 @@ import static java.util.stream.Collectors.toList;
 
 /**
  * Filters a policy for a scope. This involves recursively removing rules and constraints not bound to the scope and returning a modified copy of the unfiltered policy.
- *
+ * <p>
  * The following filtering rules are implemented:
  *
  * <ul>
  *     <li>If root rule (i.e. directly contained in the {@link Policy} is processed and it rule action is not bound to a scope, the rule will be removed.</li>
  *     <li>If a root rule's action is bound but the action of a contained child rule is not, the root rule will be included but the child will be removed.</li>
- *     <li>If an {@link AtomicConstraint}'s left-operand </li> is not bound, it will be removed from the containing {@link Rule} or {@link MultiplicityConstraint}.
+ *     <li>If an {@link AtomicConstraint}'s left-operand is not bound, it will be removed from the containing {@link Rule} or {@link MultiplicityConstraint}.</li>
  * </ul>
- *
+ * <p>
  * It is possible that all constraints in a rule are filtered. In this case, the rule will always evaluate to true. Filtering also has the potential to alter the semantics of
  * {@link MultiplicityConstraint}s if only some contained constraints are filtered. For example, removing constraints from {@link XoneConstraint} may evaluate to false if
  * child constraints are removed. Care should therefore be taken when defining rule bindings.
  */
 public class ScopeFilter {
-    private RuleBindingRegistry registry;
+    private final RuleBindingRegistry registry;
 
     public ScopeFilter(RuleBindingRegistry registry) {
         this.registry = registry;

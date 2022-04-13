@@ -33,6 +33,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Add Blob transfer Architectural Decision Record (#1259)
 * Add component tests coverage to the codecov coverage report (#1246)
 * Postgresql end to end test (#1278)
+* * Add signing/publishing config (#1147)
 
 #### Changed
 

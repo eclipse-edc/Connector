@@ -19,7 +19,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 
 /**
  * Implements a wait strategy for the {@link TransferProcessManager}.
- * <br/>
+ * <p>
  * Implementations may choose to enforce an incremental backoff period when successive errors are encountered.
  */
 @FunctionalInterface

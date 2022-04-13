@@ -18,7 +18,7 @@ import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 
 /**
  * Implements a wait strategy for the {@link ContractNegotiationManager}.
- * <br/>
+ * <p>
  * Implementations may choose to enforce an incremental backoff period when successive errors are encountered.
  */
 @FunctionalInterface
