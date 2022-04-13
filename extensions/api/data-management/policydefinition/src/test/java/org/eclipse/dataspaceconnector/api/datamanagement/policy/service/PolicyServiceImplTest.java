@@ -102,10 +102,10 @@ public class PolicyServiceImplTest {
         var policy = createPolicy("policyId");
         when(policyStore.deleteById("policyId")).thenReturn(policy);
 
-        ContractDefinition contractDefinition = ContractDefinition.Builder.newInstance()
+        var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("A found Contract Definition")
-                .accessPolicy(Policy.Builder.newInstance().build())
-                .contractPolicy(Policy.Builder.newInstance().build())
+                .accessPolicyId(policy.getUid())
+                .contractPolicyId(policy.getUid())
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().constraint("left", "op", "right").build())
                 .build();
 
@@ -124,8 +124,8 @@ public class PolicyServiceImplTest {
 
         ContractDefinition contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("A found Contract Definition")
-                .accessPolicy(Policy.Builder.newInstance().build())
-                .contractPolicy(Policy.Builder.newInstance().build())
+                .accessPolicyId(policy.getUid())
+                .contractPolicyId(policy.getUid())
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().constraint("left", "op", "right").build())
                 .build();
 

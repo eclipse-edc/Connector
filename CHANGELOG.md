@@ -23,6 +23,7 @@ Bugfixing DataManagementApi
 
 * Restructure sql extension folder tree (#1154)
 * Extract single `PolicyArchive` implementation (#1158)
+* Replace `accessPolicy` and `contractPolicy` with `accessPolicyId` and `contractPolicyId` on `ContractDefinition` (#1144)
 
 #### Removed
 

@@ -38,8 +38,8 @@ class PostgresStatements implements ContractDefinitionStatements {
         return String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)",
                 getContractDefinitionTable(),
                 getIdColumn(),
-                getAccessPolicyColumn(),
-                getContractPolicyColumn(),
+                getAccessPolicyIdColumn(),
+                getContractPolicyIdColumn(),
                 getSelectorExpressionColumn());
     }
 
@@ -57,8 +57,8 @@ class PostgresStatements implements ContractDefinitionStatements {
         return String.format("UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = ? WHERE %s = ?",
                 getContractDefinitionTable(),
                 getIdColumn(),
-                getAccessPolicyColumn(),
-                getContractPolicyColumn(),
+                getAccessPolicyIdColumn(),
+                getContractPolicyIdColumn(),
                 getSelectorExpressionColumn(),
                 getIdColumn());
     }

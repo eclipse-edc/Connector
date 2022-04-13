@@ -36,6 +36,7 @@ dependencies {
     testImplementation(project(":extensions:in-memory:assetindex-memory"))
     testImplementation(project(":extensions:in-memory:contractdefinition-store-memory"))
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
+    testImplementation(project(":extensions:in-memory:policy-store-memory"))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
 }
 

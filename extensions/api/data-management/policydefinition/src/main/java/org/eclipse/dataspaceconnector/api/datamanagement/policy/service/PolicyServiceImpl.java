@@ -54,8 +54,8 @@ public class PolicyServiceImpl implements PolicyService {
     @Override
     public @NotNull ServiceResult<Policy> deleteById(String policyId) {
 
-        var contractFilter = format("contractPolicy.uid = %s ", policyId);
-        var accessFilter = format("accessPolicy.uid = %s ", policyId);
+        var contractFilter = format("contractPolicyId = %s ", policyId);
+        var accessFilter = format("accessPolicyId = %s ", policyId);
 
         return transactionContext.execute(() -> {
 

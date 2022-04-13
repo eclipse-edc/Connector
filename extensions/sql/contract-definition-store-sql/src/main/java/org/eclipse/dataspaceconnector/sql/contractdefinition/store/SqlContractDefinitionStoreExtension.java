@@ -48,7 +48,7 @@ public class SqlContractDefinitionStoreExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var dataSourceName = context.getConfig().getString(DATASOURCE_SETTING_NAME);
 
-        var sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, dataSourceName, transactionContext, getStatementImpl(), context.getTypeManager().getMapper());
+        var sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, dataSourceName, transactionContext, getStatementImpl(), context.getTypeManager());
 
         context.registerService(ContractDefinitionLoader.class, sqlContractDefinitionStore::save);
         context.registerService(ContractDefinitionStore.class, sqlContractDefinitionStore);

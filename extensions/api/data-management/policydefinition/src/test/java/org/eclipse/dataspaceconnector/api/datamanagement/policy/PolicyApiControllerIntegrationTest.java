@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.api.datamanagement.policy;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
@@ -67,7 +66,6 @@ public class PolicyApiControllerIntegrationTest {
 
     @Test
     void getSinglePolicy(PolicyStore policyStore) {
-        //Check
         var policy = createPolicy("id");
         policyStore.save(policy);
 
@@ -137,7 +135,7 @@ public class PolicyApiControllerIntegrationTest {
     @Test
     void deletePolicy_ExistsInContractDefinitionNotExistsInPolicyStore(ContractDefinitionStore contractDefinitionStore) {
         var policy = createPolicy("access");
-        contractDefinitionStore.save(createContractDefinition(policy));
+        contractDefinitionStore.save(createContractDefinition(policy.getUid()));
         baseRequest()
                 .contentType(JSON)
                 .delete("/policies/access")
@@ -147,10 +145,10 @@ public class PolicyApiControllerIntegrationTest {
 
     @Test
     void deletePolicy_alreadyReferencedInContractDefinition(ContractDefinitionStore contractDefinitionStore, PolicyStore policyStore) {
-
         var policy = createPolicy("access");
         policyStore.save(policy);
-        contractDefinitionStore.save(createContractDefinition(policy));
+        contractDefinitionStore.save(createContractDefinition(policy.getUid()));
+
         baseRequest()
                 .contentType(JSON)
                 .delete("/policies/access")
@@ -159,11 +157,11 @@ public class PolicyApiControllerIntegrationTest {
     }
 
 
-    private ContractDefinition createContractDefinition(Policy policy) {
+    private ContractDefinition createContractDefinition(String accessPolicyId) {
         return ContractDefinition.Builder.newInstance()
                 .id("definition")
-                .contractPolicy(createPolicy("contract"))
-                .accessPolicy(policy)
+                .contractPolicyId("contract")
+                .accessPolicyId(accessPolicyId)
                 .selectorExpression(createSelectorExpression())
                 .build();
     }

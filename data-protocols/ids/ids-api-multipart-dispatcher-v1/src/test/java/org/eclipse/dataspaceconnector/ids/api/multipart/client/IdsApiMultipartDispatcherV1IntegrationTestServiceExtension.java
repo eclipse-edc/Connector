@@ -238,8 +238,8 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
 
             ContractDefinition contractDefinition = ContractDefinition.Builder.newInstance()
                     .id("1")
-                    .accessPolicy(publicPolicy)
-                    .contractPolicy(publicPolicy)
+                    .accessPolicyId(publicPolicy.getUid())
+                    .contractPolicyId(publicPolicy.getUid())
                     .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals("id", "1").build())
                     .build();
 
