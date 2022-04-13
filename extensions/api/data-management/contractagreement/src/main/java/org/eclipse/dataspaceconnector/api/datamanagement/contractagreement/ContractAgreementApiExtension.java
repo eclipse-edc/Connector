@@ -46,6 +46,12 @@ public class ContractAgreementApiExtension implements ServiceExtension {
     @Inject
     ContractNegotiationStore store;
 
+
+    @Override
+    public String name() {
+        return "Data Management API: Contract Agreement";
+    }
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         transformerRegistry.register(new ContractAgreementToContractAgreementDtoTransformer());

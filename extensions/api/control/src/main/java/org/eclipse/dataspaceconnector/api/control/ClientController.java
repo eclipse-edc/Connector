@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-
+@Deprecated
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
 @Path("/control")

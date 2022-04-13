@@ -2,6 +2,8 @@ openapi: 3.0.1
 paths:
   /contractagreements:
     get:
+      tags:
+      - Contract Agreement
       operationId: getAllAgreements
       parameters:
       - name: offset
@@ -40,6 +42,8 @@ paths:
                   $ref: '#/components/schemas/ContractAgreementDto'
   /contractagreements/{id}:
     get:
+      tags:
+      - Contract Agreement
       operationId: getContractAgreement
       parameters:
       - name: id

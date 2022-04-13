@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 /**
  * Response for requesting the status of a {@link ContractNegotiation}.
  */
+@Deprecated
 public class NegotiationStatusResponse {
     
     /**

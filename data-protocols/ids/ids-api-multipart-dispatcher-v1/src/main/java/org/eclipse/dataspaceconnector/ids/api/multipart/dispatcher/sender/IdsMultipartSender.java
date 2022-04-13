@@ -49,6 +49,7 @@ import java.net.http.HttpHeaders;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 
 /**
@@ -183,7 +184,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
                 .build();
 
         // Execute call
-        CompletableFuture<R> future = new CompletableFuture<>();
+        var future = new CompletableFuture<R>();
 
         httpClient.newCall(httpRequest).enqueue(new FutureCallback<>(future, r -> {
             try (r) {
@@ -200,12 +201,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
                         future.completeExceptionally(e);
                     }
                 } else {
-                    if (r.code() == 403) {
-                        // forbidden
-                        future.completeExceptionally(new EdcException("Received not authorized from connector"));
-                    } else {
-                        future.completeExceptionally(new EdcException("Received an error from connector:" + r.code()));
-                    }
+                    future.completeExceptionally(new EdcException(format("Received an error from connector (%s): %s %s", requestUrl, r.code(), r.message())));
                 }
                 return null;
             }

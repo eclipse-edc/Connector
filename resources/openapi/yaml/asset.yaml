@@ -2,6 +2,8 @@ openapi: 3.0.1
 paths:
   /assets:
     get:
+      tags:
+      - Asset
       operationId: getAllAssets
       parameters:
       - name: offset
@@ -39,6 +41,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/AssetDto'
     post:
+      tags:
+      - Asset
       operationId: createAsset
       requestBody:
         content:
@@ -52,6 +56,8 @@ paths:
             application/json: {}
   /assets/{id}:
     get:
+      tags:
+      - Asset
       operationId: getAsset
       parameters:
       - name: id
@@ -67,6 +73,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/AssetDto'
     delete:
+      tags:
+      - Asset
       operationId: removeAsset
       parameters:
       - name: id

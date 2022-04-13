@@ -53,7 +53,7 @@ public class ApiEndpointExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        webService.registerResource(new ConsumerApiController(context.getMonitor(), processManager, negotiationManager, transferProcessStore));
+        webService.registerResource("data", new ConsumerApiController(context.getMonitor(), processManager, negotiationManager, transferProcessStore));
         statusCheckerRegistry.register("File", (transferProcess, resources) -> {
             var file = new File(transferProcess.getDataRequest().getDataDestination().getProperty("path"));
             return file.exists() && file.isDirectory() && file.listFiles().length > 0;

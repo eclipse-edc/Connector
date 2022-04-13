@@ -121,7 +121,7 @@ public interface ContractNegotiationStatements extends LeaseStatements {
     }
 
     default String getContractAgreementIdColumn() {
-        return "edc_contract_agreement.id";
+        return "agreement_id";
     }
 
     default String getAssetIdColumn() {

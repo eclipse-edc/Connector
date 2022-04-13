@@ -52,12 +52,13 @@ java -Dedc.fs.config=samples/04.1-file-transfer-listener/consumer/config.propert
 java -Dedc.fs.config=samples/04.0-file-transfer/provider/config.properties -jar samples/04.0-file-transfer/provider/build/libs/provider.jar
 ````
 
-Assuming you didn't change the config files, the consumer will listen on port `9191` and the provider will listen on port `8181`.
+Assuming you didn't change the config files, the consumer will expose data-management api on port `9192` and the custom 
+api endpoints on port `9191` and the provider will listen on port `8181`.
 Open another terminal window (or any REST client of your choice) and execute the following REST requests like in the previous sample:
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -d @samples/04.0-file-transfer/client/src/main/resources/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://localhost:8181/api/v1/ids/data"
-curl -X GET -H 'X-Api-Key: password' "http://localhost:9191/api/control/negotiation/{negotiation ID}/state"
+curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9192/api/v1/data/contractnegotiations"
+curl -X GET -H 'X-Api-Key: password' "http://localhost:9192/api/v1/data/contractnegotiations/{UUID}"
 curl -X POST "http://localhost:9191/api/file/test-document?connectorAddress=http://localhost:8181/api/v1/ids/data/&destination=/path/on/yourmachine&contractId={agreement ID}"
 ```
 

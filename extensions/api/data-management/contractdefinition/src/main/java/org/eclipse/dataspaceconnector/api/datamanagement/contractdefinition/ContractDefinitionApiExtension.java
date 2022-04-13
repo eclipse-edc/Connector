@@ -51,6 +51,11 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
     TransactionContext transactionContext;
 
     @Override
+    public String name() {
+        return "Data Management API: Contract Definition";
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
         transformerRegistry.register(new ContractDefinitionToContractDefinitionDtoTransformer());
         transformerRegistry.register(new ContractDefinitionDtoToContractDefinitionTransformer());

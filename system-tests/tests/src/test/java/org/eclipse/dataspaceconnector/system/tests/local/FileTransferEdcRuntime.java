@@ -36,7 +36,7 @@ public abstract class FileTransferEdcRuntime {
     public static final int CONSUMER_MANAGEMENT_PORT = getFreePort();
     public static final String CONSUMER_CONNECTOR_PATH = "/api";
     public static final String CONSUMER_MANAGEMENT_PATH = "/api/v1/data";
-    public static final String CONSUMER_CONNECTOR_HOST = "http://localhost:" + CONSUMER_CONNECTOR_PORT;
+    public static final String CONSUMER_CONNECTOR_MANAGEMENT_URL = "http://localhost:" + CONSUMER_MANAGEMENT_PORT;
     public static final int CONSUMER_IDS_API_PORT = getFreePort();
     public static final String CONSUMER_IDS_API = "http://localhost:" + CONSUMER_IDS_API_PORT;
 
@@ -47,8 +47,6 @@ public abstract class FileTransferEdcRuntime {
     public static final String PROVIDER_MANAGEMENT_PATH = "/api/v1/data";
     public static final int PROVIDER_IDS_API_PORT = getFreePort();
     public static final String PROVIDER_IDS_API = "http://localhost:" + PROVIDER_IDS_API_PORT;
-
-    public static final String API_KEY_CONTROL_AUTH = "password";
 
     @RegisterExtension
     protected static EdcRuntimeExtension consumer = new EdcRuntimeExtension(
@@ -61,7 +59,6 @@ public abstract class FileTransferEdcRuntime {
                     "web.http.data.path", CONSUMER_MANAGEMENT_PATH,
                     "web.http.ids.port", String.valueOf(CONSUMER_IDS_API_PORT),
                     "web.http.ids.path", "/api/v1/ids",
-                    "edc.api.control.auth.apikey.value", API_KEY_CONTROL_AUTH,
                     "ids.webhook.address", CONSUMER_IDS_API));
 
     @RegisterExtension
@@ -78,5 +75,4 @@ public abstract class FileTransferEdcRuntime {
                     "web.http.ids.path", "/api/v1/ids",
                     "edc.samples.04.asset.path", PROVIDER_ASSET_PATH,
                     "ids.webhook.address", PROVIDER_IDS_API));
-
 }

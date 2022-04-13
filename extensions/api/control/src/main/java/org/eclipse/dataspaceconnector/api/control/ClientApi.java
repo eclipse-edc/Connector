@@ -19,6 +19,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 
+@Deprecated
 @OpenAPIDefinition
 public interface ClientApi {
 

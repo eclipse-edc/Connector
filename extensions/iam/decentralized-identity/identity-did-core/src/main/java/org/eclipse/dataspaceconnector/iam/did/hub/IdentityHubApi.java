@@ -15,11 +15,13 @@
 package org.eclipse.dataspaceconnector.iam.did.hub;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.core.Response;
 
 import java.util.Map;
 
 @OpenAPIDefinition
+@Tag(name = "Identity Hub")
 public interface IdentityHubApi {
 
     Response writeCommit(Map<String, String> credential);
