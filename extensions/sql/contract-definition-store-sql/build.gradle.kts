@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":extensions:transaction:transaction-datasource-spi"))
     implementation(project(":extensions:sql:common-sql"))
 
+    testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(project(":core:base"))
     testImplementation(project(":extensions:sql:pool:apache-commons-pool-sql"))

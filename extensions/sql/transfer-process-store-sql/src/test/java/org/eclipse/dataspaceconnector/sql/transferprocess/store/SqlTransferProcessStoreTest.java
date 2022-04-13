@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.sql.transferprocess.store;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
@@ -52,6 +53,7 @@ import static org.eclipse.dataspaceconnector.sql.transferprocess.store.TestFunct
 import static org.eclipse.dataspaceconnector.sql.transferprocess.store.TestFunctions.createTransferProcess;
 import static org.hamcrest.Matchers.hasSize;
 
+@ComponentTest
 class SqlTransferProcessStoreTest {
     private static final String DATASOURCE_NAME = "transferprocess";
     private static final String CONNECTOR_NAME = "test-connector";

@@ -18,6 +18,7 @@
 package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -51,6 +52,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
+@ComponentTest
 public class SqlContractDefinitionStoreTest {
 
     private static final String DATASOURCE_NAME = "contractdefinition";

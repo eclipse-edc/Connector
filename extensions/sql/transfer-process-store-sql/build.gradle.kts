@@ -31,6 +31,7 @@ dependencies {
     implementation(project(":extensions:sql:common-sql"))
     implementation(project(":extensions:sql:lease-sql"))
 
+    testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(testFixtures(project(":extensions:sql:lease-sql")))
     testImplementation(project(":core:base"))

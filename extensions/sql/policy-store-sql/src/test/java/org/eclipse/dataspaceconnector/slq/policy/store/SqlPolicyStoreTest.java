@@ -14,13 +14,13 @@
 
 package org.eclipse.dataspaceconnector.slq.policy.store;
 
+import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
@@ -52,8 +52,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@ComponentTest
 class SqlPolicyStoreTest {
 
     private static final String DATASOURCE_NAME = "policy";
@@ -63,7 +63,8 @@ class SqlPolicyStoreTest {
 
     @BeforeEach
     void setUp() throws SQLException {
-        var monitor = new Monitor() {};
+        var monitor = new Monitor() {
+        };
         var txManager = new LocalTransactionContext(monitor);
         DataSourceRegistry dataSourceRegistry;
         dataSourceRegistry = new LocalDataSourceRegistry(txManager);
@@ -129,7 +130,7 @@ class SqlPolicyStoreTest {
     @Test
     @DisplayName("Find policy by ID that exists")
     void findById_whenPresent() {
-        Policy policy =  getDummyPolicy(getRandomId());
+        Policy policy = getDummyPolicy(getRandomId());
         sqlPolicyStore.save(policy);
 
         var policyFromDb = sqlPolicyStore.findById(policy.getUid());
