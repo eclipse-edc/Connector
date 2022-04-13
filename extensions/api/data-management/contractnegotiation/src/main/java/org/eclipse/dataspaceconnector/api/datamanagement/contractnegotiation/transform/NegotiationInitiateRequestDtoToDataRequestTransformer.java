@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.tr
 
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformer;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
@@ -25,6 +25,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
+
+import java.net.URISyntaxException;
 
 public class NegotiationInitiateRequestDtoToDataRequestTransformer implements DtoTransformer<NegotiationInitiateRequestDto, ContractOfferRequest> {
     @Override
@@ -44,9 +46,9 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
                 .id(object.getOffer().getOfferId())
                 .asset(Asset.Builder.newInstance().id(object.getOffer().getAssetId()).build())
                 .policyId(object.getOffer().getPolicyId())
+                .consumer(uri("urn:connector:consumer"))
+                .provider(uri("urn:connector:provider"))
                 .policy(object.getOffer().getPolicy())
-                .consumer(URI.create("http://localhost")) // TODO: this needs to be obtained
-                .provider(URI.create("http://localhost")) // TODO: this needs to be obtained
                 .build();
         return ContractOfferRequest.Builder.newInstance()
                 .connectorId(object.getConnectorId())
@@ -55,5 +57,13 @@ public class NegotiationInitiateRequestDtoToDataRequestTransformer implements Dt
                 .contractOffer(contractOffer)
                 .type(ContractOfferRequest.Type.INITIAL)
                 .build();
+    }
+
+    private URI uri(String s) {
+        try {
+            return new URI(s);
+        } catch (URISyntaxException e) {
+            throw new EdcException(e);
+        }
     }
 }

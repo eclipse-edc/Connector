@@ -46,8 +46,6 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
-@Consumes({ MediaType.APPLICATION_JSON })
-@Produces({ MediaType.APPLICATION_JSON })
 @Path("/assets")
 public class AssetApiController implements AssetApi {
 
@@ -62,6 +60,7 @@ public class AssetApiController implements AssetApi {
     }
 
     @POST
+    @Consumes({ MediaType.APPLICATION_JSON })
     @Override
     public void createAsset(AssetEntryDto assetEntryDto) {
         var assetResult = transformerRegistry.transform(assetEntryDto.getAsset(), Asset.class);
@@ -84,6 +83,7 @@ public class AssetApiController implements AssetApi {
     }
 
     @GET
+    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public List<AssetDto> getAllAssets(@QueryParam("offset") Integer offset,
                                        @QueryParam("limit") Integer limit,
@@ -109,6 +109,7 @@ public class AssetApiController implements AssetApi {
 
     @GET
     @Path("{id}")
+    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public AssetDto getAsset(@PathParam("id") String id) {
         monitor.debug(format("Attempting to return Asset with id %s", id));
@@ -135,9 +136,12 @@ public class AssetApiController implements AssetApi {
 
     private void handleFailedResult(ServiceResult<Asset> result, String id) {
         switch (result.reason()) {
-            case NOT_FOUND: throw new ObjectNotFoundException(Asset.class, id);
-            case CONFLICT: throw new ObjectExistsException(Asset.class, id);
-            default: throw new EdcException("unexpected error");
+            case NOT_FOUND:
+                throw new ObjectNotFoundException(Asset.class, id);
+            case CONFLICT:
+                throw new ObjectExistsException(Asset.class, id);
+            default:
+                throw new EdcException("unexpected error");
         }
     }
 

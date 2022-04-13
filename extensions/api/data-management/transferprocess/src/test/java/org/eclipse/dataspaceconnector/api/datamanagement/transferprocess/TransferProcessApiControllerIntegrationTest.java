@@ -29,6 +29,7 @@ import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static io.restassured.http.ContentType.TEXT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
@@ -93,7 +94,7 @@ class TransferProcessApiControllerIntegrationTest {
                 .get("/transferprocess/" + PROCESS_ID + "/state")
                 .then()
                 .statusCode(200)
-                .contentType(JSON)
+                .contentType(TEXT)
                 .extract().asString();
 
         assertThat(state).isEqualTo("PROVISIONING");
