@@ -27,10 +27,13 @@ TBD
 TBD
 
 ## Architecture
-[Architecture Principles](docs/architecture-principles.md)
 
-[Sequence diagrams](architecture/README.md)
+[Architecture Principles](architecture-principles.md)
+
+[Sequence Diagrams](architecture/README.md)
+
+[Domain Model](domain-model.md)
 
 ## Terminology
 
-TBD
+see [Terminology](Terminology.md)

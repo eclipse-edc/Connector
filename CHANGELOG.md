@@ -1,12 +1,11 @@
-
 # Changelog
 
 All notable changes to this project will be documented in this file - formatted and maintained according to the rules
 documented on <http://keepachangelog.com>.
 
-This file will not cover changes about documentation, code clean-up, samples, or the CI pipeline. With each version 
-(respectively milestone), the core features are highlighted. Relevant changes to existing implementations can be found in
-the detailed section referring to by linking pull requests or issues.
+This file will not cover changes about documentation, code clean-up, samples, or the CI pipeline. With each version
+(respectively milestone), the core features are highlighted. Relevant changes to existing implementations can be found
+in the detailed section referring to by linking pull requests or issues.
 
 ## [Unreleased]
 
@@ -18,7 +17,7 @@ the detailed section referring to by linking pull requests or issues.
 
 #### Added
 
-*
+* Add domain model documentation (#1158)
 
 #### Changed
 
@@ -115,6 +114,7 @@ the detailed section referring to by linking pull requests or issues.
 * Update CI workflow to use concurrency (#1092)
 * Adapt system-test to use Embedded DPF to perform file copy (#1060)
 * Remove default token-based authentication at the DataManagement API (#981)
+*
 
 #### Removed
 
