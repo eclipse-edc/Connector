@@ -71,8 +71,7 @@ public class StateMachine {
     /**
      * Stop the loop gracefully
      *
-     * @return a future that will complete when the loop is fully stopped.
-     * The content of the future will be true if stop happened before the timeout, false elsewhere.
+     * @return a future that will complete when the loop is fully stopped. The content of the future will be true if stop happened before the timeout, false elsewhere.
      */
     public CompletableFuture<Boolean> stop() {
         active.set(false);
@@ -98,7 +97,6 @@ public class StateMachine {
 
     @NotNull
     private Future<?> submit(long delayMillis) {
-//        monitor.debug(format("StateMachine [%s] delaying for %d ms", name, delayMillis));
         return executor.schedule(loop(), delayMillis, MILLISECONDS);
     }
 
