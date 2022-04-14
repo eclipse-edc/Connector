@@ -169,7 +169,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         // create contract message handlers
         var responseMessageFactory = new IdsResponseMessageFactory(connectorId, identityService);
         handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager, responseMessageFactory, transformerRegistry, assetIndex));
-        handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager, transformerRegistry, assetIndex));
+        handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager, transformerRegistry));
         handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper, providerNegotiationManager, consumerNegotiationManager, responseMessageFactory));
         handlers.add(new ContractRejectionHandler(monitor, connectorId, providerNegotiationManager, consumerNegotiationManager));
 

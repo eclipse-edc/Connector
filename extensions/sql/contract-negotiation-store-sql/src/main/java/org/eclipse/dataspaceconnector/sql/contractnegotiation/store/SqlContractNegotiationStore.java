@@ -16,7 +16,6 @@
 package org.eclipse.dataspaceconnector.sql.contractnegotiation.store;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -207,12 +206,6 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
             }
         });
     }
-
-    @Override
-    public Policy findPolicyForContract(String contractId) {
-        return ofNullable(findContractAgreement(contractId)).map(ContractAgreement::getPolicy).orElse(null);
-    }
-
 
     private @Nullable ContractNegotiation findInternal(Connection connection, String id) {
         var stmt = statements.getFindTemplate();

@@ -32,9 +32,11 @@ dependencies {
     implementation(project(":extensions:transaction:transaction-spi"))
 
     testImplementation(project(":spi:core-spi"))
+    testImplementation(project(":core:contract"))
     testImplementation(project(":core:transfer"))
     testImplementation(project(":extensions:http"))
     testImplementation(project(":extensions:in-memory:assetindex-memory"))
+    testImplementation(project(":extensions:in-memory:contractdefinition-store-memory"))
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
     testImplementation(project(":extensions:in-memory:transfer-store-memory"))
     testImplementation(testFixtures(project(":launchers:junit")))

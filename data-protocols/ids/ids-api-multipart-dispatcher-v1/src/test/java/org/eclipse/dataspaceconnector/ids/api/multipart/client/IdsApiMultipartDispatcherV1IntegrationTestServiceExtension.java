@@ -35,6 +35,7 @@ import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -66,9 +67,14 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
+import static org.mockito.Mockito.mock;
+
 @ComponentTest
-@Provides({ AssetIndex.class, TransferProcessStore.class, ContractDefinitionStore.class, IdentityService.class, ContractNegotiationManager.class,
-        ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class, ContractOfferService.class, ContractValidationService.class })
+@Provides({
+        AssetIndex.class, TransferProcessStore.class, ContractDefinitionStore.class, IdentityService.class,
+        ContractNegotiationManager.class, ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class,
+        ContractOfferService.class, ContractValidationService.class, PolicyArchive.class
+})
 class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements ServiceExtension {
     private final List<Asset> assets;
 
@@ -111,6 +117,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         context.registerService(ContractValidationService.class, new FakeContractValidationService());
         context.registerService(ProviderContractNegotiationManager.class, new FakeProviderContractNegotiationManager());
         context.registerService(ConsumerContractNegotiationManager.class, new FakeConsumerContractNegotiationManager());
+        context.registerService(PolicyArchive.class, mock(PolicyArchive.class));
     }
 
     private static class FakeAssetIndex implements AssetIndex {
