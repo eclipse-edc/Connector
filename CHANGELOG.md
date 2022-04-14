@@ -33,6 +33,7 @@ Bugfixing DataManagementApi
 * Handle Jakarta exception correctly (#1102)
 * Fix Postgres column name (#1108)
 * Fixed DMgmtApi content types (#1126)
+* Fix HTTPS termination in Jetty (#1133)
 
 ## [milestone-3] - 2022-04-08
 
