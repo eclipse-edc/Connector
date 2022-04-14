@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
@@ -58,13 +59,13 @@ public class DecentralizedIdentityServiceExtension implements ServiceExtension {
         ServiceExtension.super.start();
     }
 
-    Supplier<SignedJWT> createSupplier(ServiceExtensionContext context) {
+    Function<String, SignedJWT> createSupplier(ServiceExtensionContext context) {
         var didUrl = context.getSetting(DID_URL_SETTING, null);
         if (didUrl == null) {
             throw new EdcException(format("The DID Url setting '(%s)' was null!", DID_URL_SETTING));
         }
 
-        return () -> {
+        return (audience) -> {
             // we'll use the connector name to restore the Private Key
             var connectorName = context.getConnectorId();
             var resolver = context.getService(PrivateKeyResolver.class);
@@ -72,7 +73,7 @@ public class DecentralizedIdentityServiceExtension implements ServiceExtension {
 
             // we cannot store the VerifiableCredential in the Vault, because it has an expiry date
             // the Issuer claim must contain the DID URL
-            return VerifiableCredentialFactory.create(privateKeyString, Map.of(VerifiableCredentialFactory.OWNER_CLAIM, connectorName), didUrl);
+            return VerifiableCredentialFactory.create(privateKeyString, Map.of(VerifiableCredentialFactory.OWNER_CLAIM, connectorName), didUrl, audience);
         };
     }
 }

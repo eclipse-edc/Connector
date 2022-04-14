@@ -55,6 +55,12 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
     }
 
     @Override
+    protected String retrieveRemoteConnectorId(MetadataRequest request) {
+        // TODO: get remote connector id
+        return null;
+    }
+
+    @Override
     public Class<MetadataRequest> messageType() {
         return MetadataRequest.class;
     }

@@ -57,10 +57,10 @@ public class VerifiableCredentialFactory {
      * @param issuer the "owner" of the VC, in most cases this will be the connector ID. The VC will store this in the "iss" claim
      * @return a {@code SignedJWT} that is signed with the private key and contains all claims listed
      */
-    public static SignedJWT create(String privateKeyPemContent, Map<String, String> claims, String issuer) {
+    public static SignedJWT create(String privateKeyPemContent, Map<String, String> claims, String issuer, String audience) {
         try {
             var key = ECKey.parseFromPEMEncodedObjects(privateKeyPemContent);
-            return create((ECKey) key, claims, issuer);
+            return create((ECKey) key, claims, issuer, audience);
         } catch (JOSEException e) {
             throw new CryptoException(e);
         }
@@ -75,8 +75,8 @@ public class VerifiableCredentialFactory {
      * @param issuer the "owner" of the VC, in most cases this will be the DID ID. The VC will store this in the "iss" claim
      * @return a {@code SignedJWT} that is signed with the private key and contains all claims listed
      */
-    public static SignedJWT create(ECKey privateKey, Map<String, String> claims, String issuer) {
-        return create(new EcPrivateKeyWrapper(privateKey), claims, issuer);
+    public static SignedJWT create(ECKey privateKey, Map<String, String> claims, String issuer, String audience) {
+        return create(new EcPrivateKeyWrapper(privateKey), claims, issuer, audience);
     }
 
     /**
@@ -88,12 +88,13 @@ public class VerifiableCredentialFactory {
      * @param issuer the "owner" of the VC, in most cases this will be the DID ID. The VC will store this in the "iss" claim
      * @return a {@code SignedJWT} that is signed with the private key and contains all claims listed
      */
-    public static SignedJWT create(PrivateKeyWrapper privateKey, Map<String, String> claims, String issuer) {
+    public static SignedJWT create(PrivateKeyWrapper privateKey, Map<String, String> claims, String issuer, String audience) {
         var claimssetBuilder = new JWTClaimsSet.Builder();
 
         claims.forEach(claimssetBuilder::claim);
         var claimsSet = claimssetBuilder.issuer(issuer)
                 .subject("verifiable-credential")
+                .audience(audience)
                 .expirationTime(Date.from(Instant.now().plus(10, ChronoUnit.MINUTES)))
                 .jwtID(UUID.randomUUID().toString())
                 .build();
@@ -122,7 +123,7 @@ public class VerifiableCredentialFactory {
      * @param publicKey The claiming party's public key
      * @return true if verified, false otherwise
      */
-    public static boolean verify(SignedJWT verifiableCredential, ECKey publicKey) {
+    public static boolean verify(SignedJWT verifiableCredential, ECKey publicKey, String audience) {
         try {
             return verifiableCredential.verify(new ECDSAVerifier(publicKey));
         } catch (JOSEException e) {
@@ -137,7 +138,7 @@ public class VerifiableCredentialFactory {
      * @param publicKey The claiming party's public key, passed as a {@link PublicKeyWrapper}
      * @return true if verified, false otherwise
      */
-    public static boolean verify(SignedJWT verifiableCredential, PublicKeyWrapper publicKey) {
+    public static boolean verify(SignedJWT verifiableCredential, PublicKeyWrapper publicKey, String audience) {
         try {
             return verifiableCredential.verify(publicKey.verifier());
         } catch (JOSEException e) {
@@ -152,10 +153,10 @@ public class VerifiableCredentialFactory {
      * @param publicKeyPemContent The claiming party's public key, i.e. the contents of the public key PEM file.
      * @return true if verified, false otherwise
      */
-    public static boolean verify(SignedJWT verifiableCredential, String publicKeyPemContent) {
+    public static boolean verify(SignedJWT verifiableCredential, String publicKeyPemContent, String audience) {
         try {
             var key = ECKey.parseFromPEMEncodedObjects(publicKeyPemContent);
-            return verify(verifiableCredential, (ECKey) key);
+            return verify(verifiableCredential, (ECKey) key, audience);
         } catch (JOSEException e) {
             throw new CryptoException(e);
         }

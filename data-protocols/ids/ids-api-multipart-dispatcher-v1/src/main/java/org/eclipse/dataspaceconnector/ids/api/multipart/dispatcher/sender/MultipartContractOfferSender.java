@@ -66,6 +66,12 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
     }
 
     @Override
+    protected String retrieveRemoteConnectorId(ContractOfferRequest request) {
+        // TODO: get remote connector id
+        return null;
+    }
+
+    @Override
     protected String retrieveRemoteConnectorAddress(ContractOfferRequest request) {
         return request.getConnectorAddress();
     }

@@ -71,6 +71,12 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
     }
 
     @Override
+    protected String retrieveRemoteConnectorId(DataRequest request) {
+        // TODO: get remote connector id
+        return null;
+    }
+
+    @Override
     protected String retrieveRemoteConnectorAddress(DataRequest request) {
         return request.getConnectorAddress();
     }

@@ -99,8 +99,11 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
      */
     @Override
     public CompletableFuture<R> send(M request, MessageContext context) {
+        var remoteConnectorId = retrieveRemoteConnectorId(request);
+        var remoteConnectorAddress = retrieveRemoteConnectorAddress(request);
+
         // Get Dynamic Attribute Token
-        var tokenResult = identityService.obtainClientCredentials(TOKEN_SCOPE);
+        var tokenResult = identityService.obtainClientCredentials(TOKEN_SCOPE, remoteConnectorId);
         if (tokenResult.failed()) {
             String message = "Failed to obtain token: " + String.join(",", tokenResult.getFailureMessages());
             monitor.severe(message);
@@ -114,8 +117,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
 
 
         // Get recipient address
-        var connectorAddress = retrieveRemoteConnectorAddress(request);
-        var requestUrl = HttpUrl.parse(connectorAddress);
+        var requestUrl = HttpUrl.parse(remoteConnectorAddress);
         if (requestUrl == null) {
             return failedFuture(new IllegalArgumentException("Connector address not specified"));
         }
@@ -226,6 +228,15 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
     }
 
     /**
+     * Returns the id of the recipient connector, which is the destination for the multipart
+     * message.
+     *
+     * @param request the request.
+     * @return the recipient connector's address.
+     */
+    protected abstract String retrieveRemoteConnectorId(M request);
+
+    /**
      * Returns the address of the recipient connector, which is the destination for the multipart
      * message.
      *
@@ -233,6 +244,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
      * @return the recipient connector's address.
      */
     protected abstract String retrieveRemoteConnectorAddress(M request);
+
 
     /**
      * Builds the IDS multipart header for the request.

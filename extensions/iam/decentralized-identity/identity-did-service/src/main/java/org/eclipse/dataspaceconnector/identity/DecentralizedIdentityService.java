@@ -37,15 +37,16 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class DecentralizedIdentityService implements IdentityService {
-    private final Supplier<SignedJWT> verifiableCredentialProvider;
+    private final Function<String, SignedJWT> verifiableCredentialProvider;
     private final DidResolverRegistry resolverRegistry;
     private final CredentialsVerifier credentialsVerifier;
     private final Monitor monitor;
 
-    public DecentralizedIdentityService(Supplier<SignedJWT> vcProvider, DidResolverRegistry resolverRegistry, CredentialsVerifier credentialsVerifier, Monitor monitor) {
+    public DecentralizedIdentityService(Function<String, SignedJWT> vcProvider, DidResolverRegistry resolverRegistry, CredentialsVerifier credentialsVerifier, Monitor monitor) {
         verifiableCredentialProvider = vcProvider;
         this.resolverRegistry = resolverRegistry;
         this.credentialsVerifier = credentialsVerifier;
@@ -53,9 +54,8 @@ public class DecentralizedIdentityService implements IdentityService {
     }
 
     @Override
-    public Result<TokenRepresentation> obtainClientCredentials(String scope) {
-
-        var jwt = verifiableCredentialProvider.get();
+    public Result<TokenRepresentation> obtainClientCredentials(String scope, String audience) {
+        var jwt = verifiableCredentialProvider.apply(audience);
         var token = jwt.serialize();
         var expiration = new Date().getTime() + TimeUnit.MINUTES.toMillis(10);
 
@@ -63,7 +63,7 @@ public class DecentralizedIdentityService implements IdentityService {
     }
 
     @Override
-    public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation) {
+    public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, String audience) {
         try {
             var jwt = SignedJWT.parse(tokenRepresentation.getToken());
             monitor.debug("Starting verification...");
@@ -86,7 +86,7 @@ public class DecentralizedIdentityService implements IdentityService {
             PublicKeyWrapper publicKeyWrapper = KeyConverter.toPublicKeyWrapper(publicKeyJwk, publicKey.get().getId());
 
             monitor.debug("Verifying JWT with public key...");
-            if (!VerifiableCredentialFactory.verify(jwt, publicKeyWrapper)) {
+            if (!VerifiableCredentialFactory.verify(jwt, publicKeyWrapper, audience)) {
                 return Result.failure("Token could not be verified!");
             }
             monitor.debug("verification successful! Fetching data from IdentityHub");

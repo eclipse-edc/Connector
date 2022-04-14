@@ -60,6 +60,12 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
     }
 
     @Override
+    protected String retrieveRemoteConnectorId(CatalogRequest request) {
+        // TODO: get remote connector id
+        return null;
+    }
+
+    @Override
     public Class<CatalogRequest> messageType() {
         return CatalogRequest.class;
     }

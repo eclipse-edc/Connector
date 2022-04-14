@@ -47,6 +47,12 @@ public class MultipartContractRejectionSender extends IdsMultipartSender<Contrac
     }
 
     @Override
+    protected String retrieveRemoteConnectorId(ContractRejection request) {
+        // TODO: get remote connector id
+        return null;
+    }
+
+    @Override
     public Class<ContractRejection> messageType() {
         return ContractRejection.class;
     }

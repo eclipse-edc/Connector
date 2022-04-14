@@ -46,6 +46,12 @@ public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSen
     }
 
     @Override
+    protected String retrieveRemoteConnectorId(EndpointDataReferenceMessage request) {
+        // TODO: get remote connector id
+        return null;
+    }
+
+    @Override
     public Class<EndpointDataReferenceMessage> messageType() {
         return EndpointDataReferenceMessage.class;
     }

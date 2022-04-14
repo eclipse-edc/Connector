@@ -117,7 +117,7 @@ public class MultipartController {
                 .additional(additional)
                 .build();
 
-        Result<ClaimToken> verificationResult = identityService.verifyJwtToken(tokenRepresentation);
+        Result<ClaimToken> verificationResult = identityService.verifyJwtToken(tokenRepresentation, connectorId);
 
         if (verificationResult.failed()) {
             monitor.warning(format("MultipartController: Token validation failed %s", verificationResult.getFailure().getMessages()));
