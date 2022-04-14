@@ -27,12 +27,7 @@ public class DataLakeClientImpl implements DataLakeClient {
     private static final String DATA_LAKE_SIGN_REQ_URL = "/generateUploadObjectUrls";
 
     @Override
-    public URL getDownloadUrl(String path) {
-        throw new UnsupportedOperationException("TODO");
-    }
-
-    @Override
-    public URL getUploadUrl(String path) throws DataLakeException {
+    public URL getUrl(String path) throws DataLakeException {
         try {
             final SignUrlRequestContainerDto requestContainerDto = SignUrlRequestContainerDto.composeForSinglePath(path);
             final String payloadString = objectMapper.writeValueAsString(requestContainerDto);

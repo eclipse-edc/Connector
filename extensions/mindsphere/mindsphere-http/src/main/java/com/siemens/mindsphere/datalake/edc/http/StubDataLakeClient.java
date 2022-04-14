@@ -3,23 +3,16 @@ package com.siemens.mindsphere.datalake.edc.http;
 import java.net.URL;
 
 public class StubDataLakeClient implements DataLakeClient {
-    public StubDataLakeClient(URL downloadUrl, URL uploadUrl) {
-        this.downloadUrl = downloadUrl;
-        this.uploadUrl = uploadUrl;
-    }
 
-    private URL downloadUrl;
+    private URL url;
 
-    private URL uploadUrl;
-
-    @Override
-    public URL getDownloadUrl(String path) {
-        return downloadUrl;
+    public StubDataLakeClient(URL url) {
+        this.url = url;
     }
 
     @Override
-    public URL getUploadUrl(String path) {
-        return uploadUrl;
+    public URL getUrl(String path) {
+        return url;
     }
 
     @Override

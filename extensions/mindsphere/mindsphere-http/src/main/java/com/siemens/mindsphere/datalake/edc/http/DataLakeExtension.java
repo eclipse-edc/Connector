@@ -36,7 +36,7 @@ public class DataLakeExtension implements ServiceExtension {
             throw new RuntimeException(e);
         }
 
-        final DataLakeClient dataLakeClient = new StubDataLakeClient(null, url);
+        final DataLakeClient dataLakeClient = new StubDataLakeClient(url);
         // create Data Lake Reader
         final DataLakeReader dataLakeReader = new DataLakeReader(dataLakeClient, monitor);
         // register Data Lake Reader
