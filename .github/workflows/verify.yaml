@@ -342,7 +342,7 @@ jobs:
         with:
           command: ./gradlew test -DincludeTags="ComponentTest"
 
-  Micrometer-Integration-Tests:
+  OpenTelemetry-Integration-Tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -352,12 +352,14 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Download opentelemetry javaagent.
+      - name: Download opentelemetry javaagent
         run: wget -q https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v1.12.0/opentelemetry-javaagent.jar
-      - name: Micrometer Integration Tests
+      - name: OpenTelemetry Integration Tests
         uses: ./.github/actions/run-tests
         with:
-          command: ./gradlew -p core/micrometer test -DincludeTags="OpenTelemetryIntegrationTest"
+          command: |
+            ./gradlew -p core/micrometer test -DincludeTags="OpenTelemetryIntegrationTest"
+            ./gradlew -p system-tests/tests test -DincludeTags="OpenTelemetryIntegrationTest"
 
   Upload-Test-Report:
     needs:
@@ -368,7 +370,7 @@ jobs:
       - Daps-Integration-Tests
       - End-To-End-Tests
       - Component-Tests
-      - Micrometer-Integration-Tests
+      - OpenTelemetry-Integration-Tests
     runs-on: ubuntu-latest
     if: always()
     steps:
