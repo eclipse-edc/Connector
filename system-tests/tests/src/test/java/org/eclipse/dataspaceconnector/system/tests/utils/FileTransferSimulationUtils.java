@@ -21,8 +21,10 @@ import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
@@ -52,10 +54,6 @@ public abstract class FileTransferSimulationUtils {
     public static final String DESCRIPTION = "[Contract negotiation and file transfer]";
 
     public static final String PROVIDER_ASSET_NAME = "test-document";
-
-    private static final String CONNECTOR_ADDRESS_PARAM = "connectorAddress";
-    private static final String DESTINATION_PARAM = "destination";
-    private static final String CONTRACT_ID_PARAM = "contractId";
 
     private FileTransferSimulationUtils() {
     }
@@ -149,15 +147,38 @@ public abstract class FileTransferSimulationUtils {
 
     @NotNull
     private static HttpRequestActionBuilder initiateFileTransfer(String destinationPath, String connectorAddress) {
+
         return http("Initiate file transfer")
-                .post(format("/file/%s", PROVIDER_ASSET_NAME))
-                .queryParam(CONNECTOR_ADDRESS_PARAM, connectorAddress)
-                .queryParam(DESTINATION_PARAM, destinationPath)
-                .queryParam(CONTRACT_ID_PARAM, s -> s.getString(CONTRACT_AGREEMENT_ID))
+                .post("/transferprocess")
+                .body(StringBody(session -> transferRequest(session.getString(CONTRACT_AGREEMENT_ID), destinationPath, connectorAddress)))
+                .header(CONTENT_TYPE, "application/json")
                 .check(status().is(200))
                 .check(bodyString()
                         .notNull()
                         .saveAs(TRANSFER_PROCESS_ID));
+    }
+
+    private static String transferRequest(String contractAgreementId, String destinationPath, String connectorAddress) {
+        var request = Map.of(
+                "contractId", contractAgreementId,
+                "assetId", PROVIDER_ASSET_NAME,
+                "connectorId", "consumer",
+                "connectorAddress", connectorAddress,
+                "protocol", "ids-multipart",
+                "dataDestination", DataAddress.Builder.newInstance()
+                        .keyName("keyName")
+                        .type("File")
+                        .property("path", destinationPath)
+                        .build(),
+                "managedResources", false,
+                "transferType", TransferType.Builder.transferType()
+                        .contentType("application/octet-stream")
+                        .isFinite(true)
+                        .build()
+        );
+
+        return new TypeManager().writeValueAsString(request);
+
     }
 
     /**
@@ -201,7 +222,7 @@ public abstract class FileTransferSimulationUtils {
                 "protocol", "ids-multipart",
                 "offer", Map.of(
                         "offerId", "1:1",
-                        "assetId", "test-document",
+                        "assetId", PROVIDER_ASSET_NAME,
                         "policy", policy
                 )
         );
