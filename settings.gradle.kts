@@ -43,10 +43,6 @@ include(":data-protocols:ids:ids-transform-v1")
 include(":data-protocols:ids:ids-token-validation")
 include(":data-protocols:ids:ids-api-configuration")
 
-include("extensions:sql:contract-definition:store")
-include("extensions:sql:contract-negotiation-store")
-include("extensions:sql:policy:store")
-
 // modules for technology- or cloud-provider extensions
 include(":extensions:aws")
 include(":extensions:api:control")
@@ -143,13 +139,17 @@ include(":extensions:azure:data-plane:common")
 include(":extensions:azure:data-plane:storage")
 include(":extensions:data-plane:data-plane-api")
 include(":extensions:data-plane:integration-tests")
-include(":extensions:sql:common")
-include(":extensions:sql:lease")
-include(":extensions:sql:pool:apache-commons-pool")
-include(":extensions:sql:asset:index")
-include(":extensions:sql:transfer-process-store")
 include(":extensions:http-receiver")
 include(":extensions:http-provisioner")
+
+include(":extensions:sql:asset-index-sql")
+include(":extensions:sql:common-sql")
+include(":extensions:sql:contract-definition-store-sql")
+include(":extensions:sql:contract-negotiation-store-sql")
+include(":extensions:sql:lease-sql")
+include(":extensions:sql:policy-store-sql")
+include(":extensions:sql:pool:apache-commons-pool-sql")
+include(":extensions:sql:transfer-process-store-sql")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")

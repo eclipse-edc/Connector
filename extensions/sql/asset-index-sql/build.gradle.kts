@@ -22,27 +22,23 @@ val assertj: String by project
 
 dependencies {
     implementation(project(":spi:core-spi"))
-    implementation(project(":spi:contract-spi"))
     implementation(project(":extensions:dataloading"))
     implementation(project(":extensions:transaction:transaction-spi"))
     implementation(project(":extensions:transaction:transaction-datasource-spi"))
-    implementation(project(":extensions:sql:common"))
-    implementation(project(":extensions:sql:lease"))
+    implementation(project(":extensions:sql:common-sql"))
 
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(project(":core:base"))
-    testImplementation(project(":core:contract"))
-    testImplementation(project(":extensions:sql:pool:apache-commons-pool"))
+    testImplementation(project(":extensions:sql:pool:apache-commons-pool-sql"))
     testImplementation(project(":extensions:transaction:transaction-local"))
-    testImplementation(testFixtures(project(":extensions:sql:lease")))
     testImplementation("com.h2database:h2:${h2Version}")
     testImplementation("org.assertj:assertj-core:${assertj}")
 }
 
 publishing {
     publications {
-        create<MavenPublication>("sql-contractnegotiation-store") {
-            artifactId = "sql-contractnegotiation-store"
+        create<MavenPublication>("asset-index-sql") {
+            artifactId = "asset-index-sql"
             from(components["java"])
         }
     }

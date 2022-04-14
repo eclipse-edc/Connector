@@ -27,8 +27,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("sql-common") {
-            artifactId = "sql-common"
+        create<MavenPublication>("common-sql") {
+            artifactId = "common-sql"
             from(components["java"])
         }
     }
