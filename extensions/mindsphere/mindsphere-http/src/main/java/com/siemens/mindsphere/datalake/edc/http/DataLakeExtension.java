@@ -36,7 +36,7 @@ public class DataLakeExtension implements ServiceExtension {
             throw new RuntimeException(e);
         }
 
-        final DataLakeClient dataLakeClient = new StubDataLakeClient(url);
+        final DataLakeClient dataLakeClient = new DataLakeClientImpl(url);
         // create Data Lake Reader
         final DataLakeReader dataLakeReader = new DataLakeReader(dataLakeClient, monitor);
         // register Data Lake Reader
@@ -56,7 +56,7 @@ public class DataLakeExtension implements ServiceExtension {
 
         // register status checker
         var statusCheckerReg = context.getService(StatusCheckerRegistry.class);
-        statusCheckerReg.register(HttpSchema.TYPE, new DataLakeStatusChecker(dataLakeClient, retryPolicy, monitor));
+        //statusCheckerReg.register(HttpSchema.TYPE, new DataLakeStatusChecker(dataLakeClient, retryPolicy, monitor));
     }
 
     @Override

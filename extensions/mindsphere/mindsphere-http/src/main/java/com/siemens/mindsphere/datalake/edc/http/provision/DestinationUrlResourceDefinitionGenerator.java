@@ -15,6 +15,8 @@ public class DestinationUrlResourceDefinitionGenerator implements ConsumerResour
         this.monitor = monitor;
     }
 
+    private static final String PATH = "path";
+
     private Monitor monitor;
 
     @Override
@@ -30,7 +32,7 @@ public class DestinationUrlResourceDefinitionGenerator implements ConsumerResour
 
         monitor.info("Generating destination URL resource definition for dataRequest: " + dataRequest.getId());
 
-        final String destinationPath = dataRequest.getDataDestination().getKeyName();
+        final String destinationPath = dataRequest.getDataDestination().getProperty(PATH);
 
         return DestinationUrlResourceDefinition.Builder.newInstance()
                 .id(randomUUID().toString())
