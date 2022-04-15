@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -47,6 +48,9 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
     @Inject
     ContractDefinitionLoader contractDefinitionLoader;
 
+    @Inject
+    private PolicyStore policyStore;
+
     @Inject(required = false)
     TransactionContext transactionContext;
 
@@ -58,11 +62,14 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
         var monitor = context.getMonitor();
         var transactionContextImpl = ofNullable(transactionContext)
                 .orElseGet(() -> {
-                    monitor.warning("No TransactionContext registered, a no-op implementation will be used, not suitable for production environments");
+                    monitor.warning(
+                            "No TransactionContext registered, a no-op implementation will be used, not suitable for production environments");
                     return new NoopTransactionContext();
                 });
 
-        var service = new ContractDefinitionServiceImpl(contractDefinitionStore, contractDefinitionLoader, transactionContextImpl);
-        webService.registerResource(config.getContextAlias(), new ContractDefinitionApiController(monitor, service, transformerRegistry));
+        var service = new ContractDefinitionServiceImpl(contractDefinitionStore, contractDefinitionLoader,
+                transactionContextImpl);
+        webService.registerResource(config.getContextAlias(),
+                new ContractDefinitionApiController(monitor, service, policyStore, transformerRegistry));
     }
 }

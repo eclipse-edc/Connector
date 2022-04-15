@@ -1,9 +1,10 @@
 package com.siemens.mindsphere.datalake.edc.http;
 
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
+import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
-import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -23,7 +24,9 @@ public class TransferExtension implements ServiceExtension {
     @Inject
     private DataOperatorRegistry dataOperatorRegistry;
     @Inject
-    private ContractDefinitionStore contractDefinitionStore;
+    private ContractDefinitionLoader contractDefinitionLoader;
+    @Inject
+    private PolicyStore policyStore;
 
     private FakeSetup fakeSetup;
 
@@ -45,7 +48,7 @@ public class TransferExtension implements ServiceExtension {
 
         final String assetUrl = context.getSetting(STUB_URL, "missing");
 
-        fakeSetup = new FakeSetup(monitor, assetLoader, contractDefinitionStore, assetUrl);
+        fakeSetup = new FakeSetup(monitor, assetLoader, contractDefinitionLoader, policyStore, assetUrl);
     }
 
     @Override

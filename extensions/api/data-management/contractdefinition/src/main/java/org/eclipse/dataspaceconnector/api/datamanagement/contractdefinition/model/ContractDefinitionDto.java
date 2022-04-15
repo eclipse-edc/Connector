@@ -50,6 +50,10 @@ public class ContractDefinitionDto {
         return id;
     }
 
+    @Override
+    public String toString() {
+        return "accessPolicyId: " + accessPolicyId + "; contractPolicyId: " + contractPolicyId + "; id: " + id;
+    }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
