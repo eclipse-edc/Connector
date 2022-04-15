@@ -14,6 +14,8 @@ import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGen
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 public class DataLakeExtension implements ServiceExtension {
@@ -29,14 +31,17 @@ public class DataLakeExtension implements ServiceExtension {
         // create Data Lake client
         final String destinationUrl = context.getSetting(STUB_URL, "http://missing");
 
-        final URL url;
+        final URI uri;
         try {
-            url = new URL(destinationUrl);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
+            uri = new URL(destinationUrl).toURI();
+        } catch (MalformedURLException | URISyntaxException e) {
+            throw new IllegalArgumentException("Bad destination url given", e);
         }
 
-        final DataLakeClient dataLakeClient = new DataLakeClientImpl(url);
+        final DataLakeClient dataLakeClient;
+        dataLakeClient = new DataLakeClientImpl(uri);
+
+
         // create Data Lake Reader
         final DataLakeReader dataLakeReader = new DataLakeReader(dataLakeClient, monitor);
         // register Data Lake Reader

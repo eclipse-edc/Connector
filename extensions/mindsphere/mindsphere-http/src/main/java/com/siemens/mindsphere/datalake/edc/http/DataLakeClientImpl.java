@@ -18,6 +18,10 @@ public class DataLakeClientImpl implements DataLakeClient {
         this.objectMapper = objectMapper;
     }
 
+    public DataLakeClientImpl(URI dataLakeBaseUrl) {
+        this(dataLakeBaseUrl, new OkHttpClient(), new ObjectMapper());
+    }
+
     private final URI dataLakeBaseUrl;
 
     private final OkHttpClient client;
