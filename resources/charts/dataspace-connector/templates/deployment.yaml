@@ -61,7 +61,7 @@ spec:
             initialDelaySeconds: 10
           startupProbe:
             httpGet:
-              path: /api/check/liveness
+              path: /api/check/startup
               port: http
             failureThreshold: 60
             initialDelaySeconds: 10
