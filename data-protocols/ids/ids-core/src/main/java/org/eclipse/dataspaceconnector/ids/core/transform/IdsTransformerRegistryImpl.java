@@ -84,7 +84,7 @@ public class IdsTransformerRegistryImpl implements IdsTransformerRegistry {
         private final Class<?> input;
         private final Class<?> output;
 
-        public TransformKey(Class<?> input, Class<?> output) {
+        TransformKey(Class<?> input, Class<?> output) {
             Objects.requireNonNull(input);
             Objects.requireNonNull(output);
             this.input = input;
@@ -121,7 +121,7 @@ public class IdsTransformerRegistryImpl implements IdsTransformerRegistry {
         private final List<String> problems = new ArrayList<>();
         private final IdsTransformerRegistryImpl registry;
 
-        public TransformerContextImpl(IdsTransformerRegistryImpl registry) {
+        TransformerContextImpl(IdsTransformerRegistryImpl registry) {
             this.registry = registry;
         }
 

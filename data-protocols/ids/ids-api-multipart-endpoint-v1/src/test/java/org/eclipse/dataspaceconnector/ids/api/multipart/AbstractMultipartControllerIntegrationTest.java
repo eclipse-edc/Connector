@@ -321,7 +321,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
         private final String name;
         private final byte[] content;
 
-        public NamedMultipartContent(String name, byte[] content) {
+        NamedMultipartContent(String name, byte[] content) {
             this.name = name;
             this.content = content;
         }

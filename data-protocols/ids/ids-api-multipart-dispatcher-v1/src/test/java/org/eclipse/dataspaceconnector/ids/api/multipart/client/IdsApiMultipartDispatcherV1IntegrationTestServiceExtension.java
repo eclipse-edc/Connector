@@ -80,7 +80,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
 
     private final IdentityService identityService;
 
-    public IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(List<Asset> assets, IdentityService identityService) {
+    IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(List<Asset> assets, IdentityService identityService) {
         this.assets = Objects.requireNonNull(assets);
         this.identityService = identityService;
     }
@@ -226,7 +226,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
 
         private final List<ContractDefinition> contractDefinitions = new ArrayList<>();
 
-        public FakeContractDefinitionStore() {
+        FakeContractDefinitionStore() {
             Policy publicPolicy = Policy.Builder.newInstance()
                     .permission(Permission.Builder.newInstance()
                             .target("2")

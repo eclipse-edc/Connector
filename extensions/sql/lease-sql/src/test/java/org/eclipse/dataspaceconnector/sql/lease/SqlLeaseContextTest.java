@@ -183,7 +183,7 @@ class SqlLeaseContextTest {
         private final String id;
         private final String leaseId;
 
-        public TestEntity(String id, String leaseId) {
+        TestEntity(String id, String leaseId) {
             this.id = id;
             this.leaseId = leaseId;
         }

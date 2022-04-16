@@ -38,7 +38,7 @@ class SqlConditionExpression {
     private static final String PREPARED_STATEMENT_PLACEHOLDER = "?";
     private final Criterion criterion;
 
-    public SqlConditionExpression(Criterion criterion) {
+    SqlConditionExpression(Criterion criterion) {
 
         this.criterion = criterion;
     }

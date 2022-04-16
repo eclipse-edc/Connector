@@ -142,7 +142,7 @@ public class PolicyEngineImpl implements PolicyEngine {
         String key;
         AtomicConstraintFunction<R> function;
 
-        public ConstraintFunctionEntry(Class<R> type, String key, AtomicConstraintFunction<R> function) {
+        ConstraintFunctionEntry(Class<R> type, String key, AtomicConstraintFunction<R> function) {
             this.type = type;
             this.key = key;
             this.function = function;
@@ -153,7 +153,7 @@ public class PolicyEngineImpl implements PolicyEngine {
         Class<R> type;
         RuleFunction<R> function;
 
-        public RuleFunctionEntry(Class<R> type, RuleFunction<R> function) {
+        RuleFunctionEntry(Class<R> type, RuleFunction<R> function) {
             this.type = type;
             this.function = function;
         }

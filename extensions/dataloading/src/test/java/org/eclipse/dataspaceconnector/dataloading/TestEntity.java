@@ -18,7 +18,7 @@ class TestEntity {
     private final String description;
     private final int index;
 
-    public TestEntity(String description, int index) {
+    TestEntity(String description, int index) {
         this.description = description;
         this.index = index;
     }

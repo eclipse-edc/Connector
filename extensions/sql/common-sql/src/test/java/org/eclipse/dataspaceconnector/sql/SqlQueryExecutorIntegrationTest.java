@@ -110,7 +110,7 @@ public class SqlQueryExecutorIntegrationTest {
         final String key;
         final String value;
 
-        public Kv(String key, String value) {
+        Kv(String key, String value) {
             this.key = key;
             this.value = value;
         }

@@ -24,7 +24,7 @@ class OffsetClause implements Clause {
 
     private final Integer offset;
 
-    public OffsetClause(Integer offset) {
+    OffsetClause(Integer offset) {
         this.offset = offset;
     }
 

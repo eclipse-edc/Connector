@@ -89,7 +89,7 @@ import static org.mockito.Mockito.mock;
 class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements ServiceExtension {
     private final List<Asset> assets;
 
-    public IdsApiMultipartEndpointV1IntegrationTestServiceExtension(List<Asset> assets) {
+    IdsApiMultipartEndpointV1IntegrationTestServiceExtension(List<Asset> assets) {
         this.assets = Objects.requireNonNull(assets);
     }
 

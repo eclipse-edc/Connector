@@ -447,13 +447,13 @@ class SqlAssetIndexTest {
         private int someNumber;
         private boolean someBoolean;
 
-        public TestObject(String text, int number, boolean bool) {
+        TestObject(String text, int number, boolean bool) {
             someText = text;
             someNumber = number;
             someBoolean = bool;
         }
 
-        public TestObject() {
+        TestObject() {
         }
 
         public String getSomeText() {

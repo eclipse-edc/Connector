@@ -75,7 +75,7 @@ class ReflectiveObjectFactoryTest {
         @Inject
         private SomeService obj;
 
-        public NoDefaultCtor(String id) {
+        NoDefaultCtor(String id) {
             this.id = id;
         }
 
