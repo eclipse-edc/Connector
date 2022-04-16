@@ -427,5 +427,6 @@
     </module>
     <module name="TypecastParenPad"/>
     <module name="InnerAssignment"/>
+    <module name="StaticVariableName"/>
   </module>
 </module>
