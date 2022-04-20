@@ -21,7 +21,7 @@ in the detailed section referring to by linking pull requests or issues.
 
 #### Changed
 
-*
+* Restructure sql extension folder tree (#1154)
 
 #### Removed
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) ZF-Group - initial API and implementation
+ *  Copyright (c) 2022 Daimler TSS GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       ZF-Group - initial API and implementation
+ *       Daimler TSS GmbH - initial API and implementation
  *
  */
 
@@ -26,17 +26,20 @@ dependencies {
     implementation(project(":extensions:dataloading"))
     implementation(project(":extensions:transaction:transaction-spi"))
     implementation(project(":extensions:transaction:transaction-datasource-spi"))
-    implementation(project(":extensions:sql:common"))
+    implementation(project(":extensions:sql:common-sql"))
 
-    testImplementation(project(":extensions:sql:pool:apache-commons-pool"))
+    testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(project(":core:base"))
+    testImplementation(project(":extensions:sql:pool:apache-commons-pool-sql"))
     testImplementation(project(":extensions:transaction:transaction-local"))
     testImplementation("com.h2database:h2:${h2Version}")
+    testImplementation("org.assertj:assertj-core:${assertj}")
 }
 
 publishing {
     publications {
-        create<MavenPublication>("sql-policy-store") {
-            artifactId = "sql-policy-store"
+        create<MavenPublication>("contractdefinition-store-sql") {
+            artifactId = "contractdefinition-store-sql"
             from(components["java"])
         }
     }

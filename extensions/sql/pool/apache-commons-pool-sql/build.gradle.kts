@@ -24,7 +24,7 @@ val mockitoVersion: String by project
 dependencies {
     api(project((":spi")))
     api(project(":extensions:transaction:transaction-datasource-spi"))
-    api(project(":extensions:sql:common"))
+    api(project(":extensions:sql:common-sql"))
 
     implementation("org.apache.commons:commons-pool2:${apacheCommonsPool2Version}")
 
@@ -38,8 +38,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("sql-pool-apache-commons-pool") {
-            artifactId = "sql-pool-apache-commons-pool"
+        create<MavenPublication>("apache-commons-pool-sql") {
+            artifactId = "apache-commons-pool-sql"
             from(components["java"])
         }
     }

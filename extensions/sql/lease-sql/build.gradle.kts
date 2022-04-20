@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Daimler TSS GmbH
+ *  Copyright (c) 2021 Daimler TSS GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,37 +8,39 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Daimler TSS GmbH - initial API and implementation
+ *       Daimler TSS GmbH - Initial build file
  *
  */
 
 plugins {
     `java-library`
+    `java-test-fixtures`
     `maven-publish`
 }
 
+val apacheCommonsPool2Version: String by project
+val mockitoVersion: String by project
 val h2Version: String by project
 val assertj: String by project
 
 dependencies {
-    implementation(project(":spi:core-spi"))
-    implementation(project(":extensions:dataloading"))
-    implementation(project(":extensions:transaction:transaction-spi"))
-    implementation(project(":extensions:transaction:transaction-datasource-spi"))
-    implementation(project(":extensions:sql:common"))
+    api(project(":extensions:transaction:transaction-datasource-spi"))
+    api(project(":extensions:transaction:transaction-spi"))
+    api(project(":extensions:sql:common-sql"))
+
 
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(project(":core:base"))
-    testImplementation(project(":extensions:sql:pool:apache-commons-pool"))
     testImplementation(project(":extensions:transaction:transaction-local"))
+    testImplementation(testFixtures(project(":extensions:sql:lease-sql")))
     testImplementation("com.h2database:h2:${h2Version}")
     testImplementation("org.assertj:assertj-core:${assertj}")
 }
 
 publishing {
     publications {
-        create<MavenPublication>("sql-asset-index") {
-            artifactId = "sql-asset-index"
+        create<MavenPublication>("lease-sql") {
+            artifactId = "lease-sql"
             from(components["java"])
         }
     }
