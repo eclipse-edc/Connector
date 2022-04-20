@@ -25,8 +25,8 @@ import org.eclipse.dataspaceconnector.core.base.policy.RuleBindingRegistryImpl;
 import org.eclipse.dataspaceconnector.core.base.policy.ScopeFilter;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceConfiguration;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceImpl;
+import org.eclipse.dataspaceconnector.core.security.DefaultPrivateKeyParseFunction;
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
@@ -44,14 +44,9 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.Base64;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -179,14 +174,7 @@ public class CoreServicesExtension implements ServiceExtension {
 
     private void registerParser(ServiceExtensionContext context) {
         var resolver = context.getService(PrivateKeyResolver.class);
-        resolver.addParser(PrivateKey.class, encoded -> {
-            try {
-                KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-                return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(Base64.getDecoder().decode(encoded.getBytes())));
-            } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-                throw new EdcException(e);
-            }
-        });
+        resolver.addParser(PrivateKey.class, new DefaultPrivateKeyParseFunction());
     }
 
     private void addRetryPolicy(ServiceExtensionContext context) {
