@@ -20,3 +20,12 @@ dependencies {
     api(project(":extensions:data-plane:data-plane-spi"))
     implementation(project(":common:util"))
 }
+
+publishing {
+    publications {
+        create<MavenPublication>("data-plane-azure-common") {
+            artifactId = "data-plane-azure-common"
+            from(components["java"])
+        }
+    }
+}
