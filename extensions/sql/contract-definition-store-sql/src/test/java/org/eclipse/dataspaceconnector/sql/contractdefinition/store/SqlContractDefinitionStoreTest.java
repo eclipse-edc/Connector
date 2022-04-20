@@ -120,13 +120,12 @@ public class SqlContractDefinitionStoreTest {
     @Test
     @DisplayName("Save a single Contract Definition that already exists")
     void saveOne_alreadyExist_shouldUpdate() {
-        var definition = getContractDefinition("id", "policy", "contract");
-        sqlContractDefinitionStore.save(definition);
+        sqlContractDefinitionStore.save(getContractDefinition("id", "policy", "contract"));
+        sqlContractDefinitionStore.save(getContractDefinition("id", "updatedAccess", "updatedContract"));
 
+        var result = sqlContractDefinitionStore.findAll();
 
-        sqlContractDefinitionStore.save(definition);
-
-        assertThat(sqlContractDefinitionStore.findAll()).hasSize(1).containsExactly(definition);
+        assertThat(result).hasSize(1).containsExactly(getContractDefinition("id", "updatedAccess", "updatedContract"));
     }
 
     @Test
