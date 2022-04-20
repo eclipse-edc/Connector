@@ -11,6 +11,7 @@
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Microsoft Corporation - Refactoring
  *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
@@ -45,9 +46,9 @@ public class ContractOfferServiceImpl implements ContractOfferService {
     private final PolicyStore policyStore;
 
     public ContractOfferServiceImpl(ParticipantAgentService agentService, ContractDefinitionService definitionService, AssetIndex assetIndex, PolicyStore policyStore) {
-        this.agentService = Objects.requireNonNull(agentService, "ParticipantAgentService must not be null");
-        this.definitionService = Objects.requireNonNull(definitionService, "ContractDefinitionService must not be null");
-        this.assetIndex = Objects.requireNonNull(assetIndex, "AssetIndex must not be null");
+        this.agentService = agentService;
+        this.definitionService = definitionService;
+        this.assetIndex = assetIndex;
         this.policyStore = policyStore;
     }
 

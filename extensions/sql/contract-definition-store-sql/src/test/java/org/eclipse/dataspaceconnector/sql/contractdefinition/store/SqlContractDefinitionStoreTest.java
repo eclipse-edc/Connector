@@ -158,8 +158,7 @@ public class SqlContractDefinitionStoreTest {
     @Test
     @DisplayName("Save multiple Contract Definitions with some preexisting Definitions")
     void saveMany_someExist() {
-        var definitionsCreated = getContractDefinitions(3);
-        sqlContractDefinitionStore.save(definitionsCreated);
+        sqlContractDefinitionStore.save(getContractDefinitions(3));
         sqlContractDefinitionStore.save(getContractDefinitions(10));
 
         var definitionsRetrieved = sqlContractDefinitionStore.findAll();
