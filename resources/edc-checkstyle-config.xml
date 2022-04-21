@@ -427,5 +427,7 @@
     </module>
     <module name="TypecastParenPad"/>
     <module name="InnerAssignment"/>
+    <!-- Require both @deprecated Javadoc tag and @Deprecated annotation -->
+    <module name="MissingDeprecated"/>
   </module>
 </module>

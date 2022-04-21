@@ -19,6 +19,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 
 /**
  * Response for requesting the status of a {@link ContractNegotiation}.
+ *
+ * @deprecated Control API is deprecated, use Data Management API instead.
  */
 @Deprecated
 public class NegotiationStatusResponse {
