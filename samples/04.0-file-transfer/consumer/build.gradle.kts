@@ -41,8 +41,6 @@ dependencies {
     implementation(project(":extensions:api:data-management"))
 
     implementation(project(":data-protocols:ids"))
-
-    implementation(project(":samples:04.0-file-transfer:api"))
 }
 
 application {

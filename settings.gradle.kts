@@ -189,7 +189,6 @@ include(":samples:03-configuration")
 
 include(":samples:04.0-file-transfer:consumer")
 include(":samples:04.0-file-transfer:provider")
-include(":samples:04.0-file-transfer:api")
 include(":samples:04.0-file-transfer:transfer-file")
 
 include(":samples:04.1-file-transfer-listener:consumer")
