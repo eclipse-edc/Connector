@@ -35,6 +35,7 @@ Bugfixing DataManagementApi
 * Fix Postgres column name (#1108)
 * Fix problem with interpreting contractId/negotiationId (#1140)
 * Fixed DMgmtApi content types (#1126)
+* Fix HTTPS termination in Jetty (#1133)
 
 ## [milestone-3] - 2022-04-08
 
