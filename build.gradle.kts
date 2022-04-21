@@ -191,30 +191,30 @@ allprojects {
         }
     }
 
-tasks.withType<Checkstyle> {
-    reports {
-        // lets not generate any reports because that is done from within the Github Actions workflow
-        html.required.set(false)
-        xml.required.set(false)
+    tasks.withType<Checkstyle> {
+        reports {
+            // lets not generate any reports because that is done from within the Github Actions workflow
+            html.required.set(false)
+            xml.required.set(false)
+        }
     }
-}
 
-tasks.jar {
-    metaInf {
-        from("${rootProject.projectDir.path}/LICENSE")
-        from("${rootProject.projectDir.path}/NOTICE.md")
+    tasks.jar {
+        metaInf {
+            from("${rootProject.projectDir.path}/LICENSE")
+            from("${rootProject.projectDir.path}/NOTICE.md")
+        }
     }
-}
 
 // Generate XML reports for Codecov
-if (System.getenv("JACOCO") == "true") {
-    tasks.jacocoTestReport {
-        reports {
-            xml.required.set(true)
+    if (System.getenv("JACOCO") == "true") {
+        tasks.jacocoTestReport {
+            reports {
+                xml.required.set(true)
+            }
         }
     }
 }
-
 openApiMerger {
     val yamlDirectory = file("${rootProject.projectDir.path}/resources/openapi/yaml")
 
@@ -285,9 +285,10 @@ if (project.hasProperty("dependency.analysis")) {
         abi {
             exclusions {
                 excludeAnnotations(
-                        "io\\.opentelemetry\\.extension\\.annotations\\.WithSpan",
+                    "io\\.opentelemetry\\.extension\\.annotations\\.WithSpan",
                 )
             }
         }
     }
 }
+
