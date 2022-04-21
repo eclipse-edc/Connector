@@ -30,7 +30,9 @@ import static java.util.stream.Collectors.toMap;
 /**
  * Custom grade plugin to avoid module name duplications.
  * Checks between modules with a gradle build file that their names are unique in the whole project.
- * `samples` and `system-tests` modules are excluded
+ * `samples` and `system-tests` modules are excluded.
+ *
+ * Ref: https://github.com/gradle/gradle/issues/847
  */
 public class ModuleNamesPlugin implements Plugin<Project> {
 
