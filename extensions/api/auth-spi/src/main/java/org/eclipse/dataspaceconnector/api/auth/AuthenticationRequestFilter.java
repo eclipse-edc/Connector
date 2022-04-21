@@ -21,6 +21,8 @@ import org.eclipse.dataspaceconnector.api.exception.NotAuthorizedException;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static jakarta.ws.rs.HttpMethod.OPTIONS;
+
 public class AuthenticationRequestFilter implements ContainerRequestFilter {
     private final AuthenticationService authenticationService;
 
@@ -32,10 +34,11 @@ public class AuthenticationRequestFilter implements ContainerRequestFilter {
     public void filter(ContainerRequestContext requestContext) {
         var headers = requestContext.getHeaders();
 
-        var isAuthenticated = authenticationService.isAuthenticated(headers.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-
-        if (!isAuthenticated) {
-            throw new NotAuthorizedException();
+        if (!OPTIONS.equalsIgnoreCase(requestContext.getMethod())) {
+            var isAuthenticated = authenticationService.isAuthenticated(headers.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            if (!isAuthenticated) {
+                throw new NotAuthorizedException();
+            }
         }
     }
 }
