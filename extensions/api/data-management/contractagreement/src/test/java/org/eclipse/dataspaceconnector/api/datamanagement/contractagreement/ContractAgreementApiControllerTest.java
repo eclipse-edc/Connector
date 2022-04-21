@@ -19,7 +19,6 @@ import org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.model
 import org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.service.ContractAgreementService;
 import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
@@ -123,7 +122,7 @@ class ContractAgreementApiControllerTest {
                 .consumerAgentId(UUID.randomUUID().toString())
                 .providerAgentId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
+                .policyId("policyId")
                 .build();
     }
 

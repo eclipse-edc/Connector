@@ -30,7 +30,9 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
@@ -69,6 +71,8 @@ public abstract class AbstractContractNegotiationIntegrationTest {
 
     protected ContractValidationService validationService;
 
+    protected final PolicyStore policyStore = mock(PolicyStore.class);
+
     protected String consumerNegotiationId;
 
     protected ClaimToken token;
@@ -84,7 +88,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
         validationService = mock(ContractValidationService.class);
 
         // Create a monitor that logs to the console
-        Monitor monitor = new FakeConsoleMonitor();
+        Monitor monitor = new ConsoleMonitor();
     
         // Create CommandQueue mock
         CommandQueue<ContractNegotiationCommand> queue = (CommandQueue<ContractNegotiationCommand>) mock(CommandQueue.class);
@@ -105,6 +109,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .commandRunner(runner)
                 .observable(providerObservable)
                 .store(providerStore)
+                .policyStore(policyStore)
                 .build();
 
         consumerManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
@@ -116,6 +121,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .commandRunner(runner)
                 .observable(consumerObservable)
                 .store(consumerStore)
+                .policyStore(policyStore)
                 .build();
 
         countDownLatch = new CountDownLatch(2);
@@ -125,7 +131,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
      * Implementation of the ContractNegotiationListener that signals a CountDownLatch when the
      * confirmed state has been reached.
      */
-    protected class ConfirmedContractNegotiationListener implements ContractNegotiationListener {
+    protected static class ConfirmedContractNegotiationListener implements ContractNegotiationListener {
         
         private final CountDownLatch countDownLatch;
         
@@ -143,7 +149,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
      * Implementation of the ContractNegotiationListener that signals a CountDownLatch when the
      * declined state has been reached.
      */
-    protected class DeclinedContractNegotiationListener implements ContractNegotiationListener {
+    protected static class DeclinedContractNegotiationListener implements ContractNegotiationListener {
         
         private final CountDownLatch countDownLatch;
         
@@ -180,7 +186,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 result = consumerManager.offerReceived(token, request.getCorrelationId(), request.getContractOffer(), "hash");
             } else if (message instanceof ContractAgreementRequest) {
                 var request = (ContractAgreementRequest) message;
-                result = consumerManager.confirmed(token, request.getCorrelationId(), request.getContractAgreement(), "hash");
+                result = consumerManager.confirmed(token, request.getCorrelationId(), request.getContractAgreement(), request.getPolicy());
             } else if (message instanceof ContractRejection) {
                 var request = (ContractRejection) message;
                 result = consumerManager.declined(token, request.getCorrelationId());
@@ -242,51 +248,6 @@ public abstract class AbstractContractNegotiationIntegrationTest {
             }
 
             return future;
-        }
-    }
-
-    /**
-     * Monitor implementation that prints to the console.
-     */
-    protected class FakeConsoleMonitor implements Monitor {
-        @Override
-        public void debug(String message, Throwable... errors) {
-            System.out.println("\u001B[34mDEBUG\u001B[0m - " + message);
-            if (errors != null && errors.length > 0) {
-                for (Throwable error : errors) {
-                    error.printStackTrace();
-                }
-            }
-        }
-
-        @Override
-        public void info(String message, Throwable... errors) {
-            System.out.println("\u001B[32mINFO\u001B[0m - " + message);
-            if (errors != null && errors.length > 0) {
-                for (Throwable error : errors) {
-                    error.printStackTrace();
-                }
-            }
-        }
-
-        @Override
-        public void warning(String message, Throwable... errors) {
-            System.out.println("\u001B[33mWARNING\u001B[0m - " + message);
-            if (errors != null && errors.length > 0) {
-                for (Throwable error : errors) {
-                    error.printStackTrace();
-                }
-            }
-        }
-
-        @Override
-        public void severe(String message, Throwable... errors) {
-            System.out.println("\u001B[31mSEVERE\u001B[0m - " + message);
-            if (errors != null && errors.length > 0) {
-                for (Throwable error : errors) {
-                    error.printStackTrace();
-                }
-            }
         }
     }
 

@@ -270,7 +270,7 @@ class ContractNegotiationApiControllerTest {
                 .providerAgentId(UUID.randomUUID().toString())
                 .consumerAgentId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
+                .policyId(UUID.randomUUID().toString())
                 .build();
     }
 

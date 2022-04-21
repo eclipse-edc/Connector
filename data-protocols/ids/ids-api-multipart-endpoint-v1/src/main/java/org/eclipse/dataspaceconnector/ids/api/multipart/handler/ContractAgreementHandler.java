@@ -20,14 +20,13 @@ import de.fraunhofer.iais.eis.ContractAgreementMessage;
 import de.fraunhofer.iais.eis.Message;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.spi.transform.ContractAgreementTransformerOutput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -105,8 +104,7 @@ public class ContractAgreementHandler implements Handler {
                 .asset(asset)
                 .build();
 
-        // Create contract agreement
-        Result<ContractAgreement> result = transformerRegistry.transform(input, ContractAgreement.class);
+        var result = transformerRegistry.transform(input, ContractAgreementTransformerOutput.class);
         if (result.failed()) {
             monitor.debug(String.format("Could not transform contract agreement: [%s]",
                     String.join(", ", result.getFailureMessages())));
@@ -114,10 +112,10 @@ public class ContractAgreementHandler implements Handler {
         }
 
         // TODO get hash from message
-        var agreement = result.getContent();
+        var output = result.getContent();
         var processId = message.getTransferContract();
         var negotiationResponse = negotiationManager.confirmed(claimToken,
-                String.valueOf(processId), agreement, null);
+                String.valueOf(processId), output.getContractAgreement(), output.getPolicy());
         if (negotiationResponse.fatalError()) {
             monitor.debug("ContractAgreementHandler: Could not process contract agreement " + negotiationResponse.getFailureMessages());
             return createBadParametersErrorMultipartResponse(message);

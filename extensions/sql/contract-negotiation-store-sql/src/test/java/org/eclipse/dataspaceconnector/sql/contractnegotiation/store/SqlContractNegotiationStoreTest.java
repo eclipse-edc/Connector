@@ -310,21 +310,19 @@ class SqlContractNegotiationStoreTest {
     void update_whenAgreementExists_shouldUpdate() {
         var negotiationId = "test-cn1";
         var agreement = createContract("test-ca1");
-        var negotiation = createNegotiation(negotiationId, agreement);
+        var negotiation = createNegotiation(negotiationId, null);
         store.save(negotiation);
         var dbNegotiation = store.find(negotiationId);
-        assertThat(dbNegotiation.getContractAgreement().getPolicy().getExtensibleProperties()).isEmpty();
+        assertThat(dbNegotiation).isNotNull().satisfies(n ->
+                assertThat(n.getContractAgreement()).isNull()
+        );
 
-        // now add the agreement
-        agreement.getPolicy().getExtensibleProperties().put("somekey", "someval");
-        store.save(negotiation); //should perform an update + insert
-
+        dbNegotiation.setContractAgreement(agreement);
+        store.save(dbNegotiation);
 
         var updatedNegotiation = store.find(negotiationId);
         assertThat(updatedNegotiation).isNotNull();
         assertThat(updatedNegotiation.getContractAgreement()).isNotNull();
-        assertThat(updatedNegotiation.getContractAgreement().getPolicy().getExtensibleProperties()).containsEntry("somekey", "someval");
-
     }
 
     @Test

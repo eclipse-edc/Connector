@@ -99,7 +99,6 @@ class ContractValidationServiceImplTest {
 
     @Test
     void verifyContractAgreementValidation() {
-        var originalPolicy = Policy.Builder.newInstance().build();
         var newPolicy = Policy.Builder.newInstance().build();
 
         var contractDefinition = ContractDefinition.Builder.newInstance()
@@ -118,7 +117,7 @@ class ContractValidationServiceImplTest {
         var agreement = ContractAgreement.Builder.newInstance().id("1")
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
-                .policy(originalPolicy)
+                .policyId("policy")
                 .assetId(UUID.randomUUID().toString())
                 .contractStartDate(Instant.now().getEpochSecond())
                 .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
@@ -177,13 +176,11 @@ class ContractValidationServiceImplTest {
     private boolean validateAgreementDate(long signingDate, long startDate, long endDate) {
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
 
-        var originalPolicy = Policy.Builder.newInstance().build();
-
         var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = ContractAgreement.Builder.newInstance().id("1")
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
-                .policy(originalPolicy)
+                .policyId("policy")
                 .assetId(UUID.randomUUID().toString())
                 .contractSigningDate(signingDate)
                 .contractStartDate(startDate)

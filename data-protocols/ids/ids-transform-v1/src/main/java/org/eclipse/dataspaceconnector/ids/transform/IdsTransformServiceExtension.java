@@ -33,11 +33,6 @@ public class IdsTransformServiceExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext serviceExtensionContext) {
-        registerTransformers(serviceExtensionContext);
-    }
-
-    private void registerTransformers(ServiceExtensionContext serviceExtensionContext) {
-
         Arrays.asList(
                 new ActionToIdsActionTransformer(),
                 new AssetToIdsArtifactTransformer(),
@@ -47,7 +42,7 @@ public class IdsTransformServiceExtension implements ServiceExtension {
                 new ConstraintToIdsConstraintTransformer(),
                 new ConstraintToIdsLogicalConstraintTransformer(),
                 new ContractOfferToIdsContractOfferTransformer(),
-                new ContractAgreementToIdsContractAgreementTransformer(),
+                new ContractAgreementRequestToIdsContractAgreementTransformer(),
                 new CatalogToIdsResourceCatalogTransformer(),
                 new DutyToIdsDutyTransformer(),
                 new ExpressionToIdsLeftOperandTransformer(),
