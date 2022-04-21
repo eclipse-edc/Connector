@@ -427,6 +427,7 @@
     </module>
     <module name="TypecastParenPad"/>
     <module name="InnerAssignment"/>
+    <module name="StaticVariableName"/>
     <!-- Require both @deprecated Javadoc tag and @Deprecated annotation -->
     <module name="MissingDeprecated"/>
   </module>
