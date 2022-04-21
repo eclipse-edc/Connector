@@ -26,7 +26,7 @@ import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.ContractNego
 import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.PostgresStatements;
 import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.SqlContractNegotiationStore;
 
-@Provides({ ContractNegotiationStore.class, PolicyArchive.class })
+@Provides({ ContractNegotiationStore.class })
 public class SqlContractNegotiationStoreExtension implements ServiceExtension {
 
     private static final String DATASOURCE_NAME_SETTING = "edc.datasource.contractnegotiation.name";
@@ -45,7 +45,6 @@ public class SqlContractNegotiationStoreExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var sqlStore = new SqlContractNegotiationStore(dataSourceRegistry, getDataSourceName(context), trxContext, context.getTypeManager(), getStatementImpl(), context.getConnectorId());
         context.registerService(ContractNegotiationStore.class, sqlStore);
-        context.registerService(PolicyArchive.class, sqlStore);
     }
 
     /**

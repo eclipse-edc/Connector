@@ -149,11 +149,6 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
         });
     }
 
-    @Override
-    public Policy findPolicyForContract(String contractId) {
-        return ofNullable(findContractAgreement(contractId)).map(ContractAgreement::getPolicy).orElse(null);
-    }
-
     @NotNull
     private Stream<ContractAgreement> getAgreements() {
         return negotiationById.values().stream()

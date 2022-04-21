@@ -23,7 +23,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 /**
  * Provides an in-memory implementation of the {@link ContractNegotiationStore} for testing.
  */
-@Provides({ ContractNegotiationStore.class, PolicyArchive.class })
+@Provides({ ContractNegotiationStore.class })
 public class InMemoryContractNegotiationStoreExtension implements ServiceExtension {
 
     @Override
@@ -35,7 +35,6 @@ public class InMemoryContractNegotiationStoreExtension implements ServiceExtensi
     public void initialize(ServiceExtensionContext context) {
         var store = new InMemoryContractNegotiationStore();
         context.registerService(ContractNegotiationStore.class, store);
-        context.registerService(PolicyArchive.class, store);
     }
 
 }

@@ -22,6 +22,7 @@ Bugfixing DataManagementApi
 #### Changed
 
 * Restructure sql extension folder tree (#1154)
+* Extract single `PolicyArchive` implementation (#1158)
 
 #### Removed
 

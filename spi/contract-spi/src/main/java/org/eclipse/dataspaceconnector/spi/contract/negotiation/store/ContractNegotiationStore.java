@@ -31,7 +31,7 @@ import java.util.stream.Stream;
  * <p>
  */
 @Feature(ContractNegotiationStore.FEATURE)
-public interface ContractNegotiationStore extends StateEntityStore<ContractNegotiation>, PolicyArchive {
+public interface ContractNegotiationStore extends StateEntityStore<ContractNegotiation> {
 
     String FEATURE = "edc:core:contract:contractnegotiation:store";
 
