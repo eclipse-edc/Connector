@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service;
 
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;

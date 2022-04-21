@@ -16,7 +16,6 @@
 package org.eclipse.dataspaceconnector.spi.contract.negotiation.store;
 
 import org.eclipse.dataspaceconnector.spi.persistence.StateEntityStore;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;

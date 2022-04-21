@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.spi.types.domain.contract.offer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.junit.jupiter.api.Test;
 

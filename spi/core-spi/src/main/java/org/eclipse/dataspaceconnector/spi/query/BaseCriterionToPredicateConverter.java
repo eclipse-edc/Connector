@@ -20,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Predicate;
-import java.util.regex.Pattern;
 
 /**
  * Converts a {@link Criterion} into a {@link Predicate} of any given type.

@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.contract.definition.store;
 
 import org.eclipse.dataspaceconnector.cosmos.policy.store.model.ContractDefinitionDocument;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 
