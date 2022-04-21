@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
@@ -33,11 +34,13 @@ public class FakeSetup {
     private final Monitor monitor;
     private final AssetLoader assetIndexLoader;
     private final ContractDefinitionStore contractDefinitionStore;
+    private final PolicyStore policyStore;
 
-    public FakeSetup(@NotNull Monitor monitor, @NotNull AssetLoader assetIndexLoader, @NotNull ContractDefinitionStore contractDefinitionStore) {
+    public FakeSetup(@NotNull Monitor monitor, @NotNull AssetLoader assetIndexLoader, @NotNull ContractDefinitionStore contractDefinitionStore, PolicyStore policyStore) {
         this.monitor = Objects.requireNonNull(monitor);
         this.assetIndexLoader = Objects.requireNonNull(assetIndexLoader);
         this.contractDefinitionStore = Objects.requireNonNull(contractDefinitionStore);
+        this.policyStore = policyStore;
     }
 
     public void setupAssets() {
@@ -73,25 +76,19 @@ public class FakeSetup {
                         .build())
                 .build();
 
-        Policy publicPolicy2 = Policy.Builder.newInstance()
-                .permission(Permission.Builder.newInstance()
-                        .action(Action.Builder.newInstance()
-                                .type("USE")
-                                .build())
-                        .build())
-                .build();
+        policyStore.save(publicPolicy);
 
         ContractDefinition contractDefinition1 = ContractDefinition.Builder.newInstance()
                 .id("1")
-                .accessPolicy(publicPolicy)
-                .contractPolicy(publicPolicy)
+                .accessPolicyId(publicPolicy.getUid())
+                .contractPolicyId(publicPolicy.getUid())
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "1").build())
                 .build();
 
         ContractDefinition contractDefinition2 = ContractDefinition.Builder.newInstance()
                 .id("2")
-                .accessPolicy(publicPolicy2)
-                .contractPolicy(publicPolicy2)
+                .accessPolicyId(publicPolicy.getUid())
+                .contractPolicyId(publicPolicy.getUid())
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "2").build())
                 .build();
 

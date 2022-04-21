@@ -19,16 +19,16 @@ package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
  * Defines all statements that are needed for the ContractDefinition store
  */
 public interface ContractDefinitionStatements {
-    default String getContractPolicyColumn() {
-        return "contract_policy";
+    default String getContractPolicyIdColumn() {
+        return "contract_policy_id";
     }
 
     default String getSelectorExpressionColumn() {
         return "selector_expression";
     }
 
-    default String getAccessPolicyColumn() {
-        return "access_policy";
+    default String getAccessPolicyIdColumn() {
+        return "access_policy_id";
     }
 
     default String getContractDefinitionTable() {

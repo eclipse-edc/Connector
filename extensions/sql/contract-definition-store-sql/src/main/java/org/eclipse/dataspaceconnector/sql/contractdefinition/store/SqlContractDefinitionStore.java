@@ -11,22 +11,20 @@
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Microsoft Corporation - refactoring
  *       Fraunhofer Institute for Software and Systems Engineering - added method
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
 package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,26 +43,26 @@ import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
 public class SqlContractDefinitionStore implements ContractDefinitionStore {
 
-    private final ObjectMapper objectMapper;
+    private final TypeManager typeManager;
     private final DataSourceRegistry dataSourceRegistry;
     private final String dataSourceName;
     private final TransactionContext transactionContext;
     private final ContractDefinitionStatements statements;
 
-    public SqlContractDefinitionStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, ContractDefinitionStatements statements, ObjectMapper objectMapper) {
+    public SqlContractDefinitionStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, ContractDefinitionStatements statements, TypeManager typeManager) {
         this.dataSourceRegistry = Objects.requireNonNull(dataSourceRegistry);
         this.dataSourceName = Objects.requireNonNull(dataSourceName);
         this.transactionContext = Objects.requireNonNull(transactionContext);
         this.statements = statements;
-        this.objectMapper = Objects.requireNonNull(objectMapper);
+        this.typeManager = Objects.requireNonNull(typeManager);
     }
 
     ContractDefinition mapResultSet(ResultSet resultSet) throws Exception {
         return ContractDefinition.Builder.newInstance()
                 .id(resultSet.getString(statements.getIdColumn()))
-                .accessPolicy(fromJson(resultSet.getString(statements.getAccessPolicyColumn()), Policy.class))
-                .contractPolicy(fromJson(resultSet.getString(statements.getContractPolicyColumn()), Policy.class))
-                .selectorExpression(fromJson(resultSet.getString(statements.getSelectorExpressionColumn()), AssetSelectorExpression.class))
+                .accessPolicyId(resultSet.getString(statements.getAccessPolicyIdColumn()))
+                .contractPolicyId(resultSet.getString(statements.getContractPolicyIdColumn()))
+                .selectorExpression(typeManager.readValue(resultSet.getString(statements.getSelectorExpressionColumn()), AssetSelectorExpression.class))
                 .build();
     }
 
@@ -151,8 +149,8 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
         transactionContext.execute(() -> {
             executeQuery(connection, statements.getInsertTemplate(),
                     definition.getId(),
-                    toJson(definition.getAccessPolicy()),
-                    toJson(definition.getContractPolicy()),
+                    definition.getAccessPolicyId(),
+                    definition.getContractPolicyId(),
                     toJson(definition.getSelectorExpression()));
         });
     }
@@ -166,28 +164,16 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
 
             executeQuery(connection, statements.getUpdateTemplate(),
                     definition.getId(),
-                    toJson(definition.getAccessPolicy()),
-                    toJson(definition.getContractPolicy()),
+                    definition.getAccessPolicyId(),
+                    definition.getContractPolicyId(),
                     toJson(definition.getSelectorExpression()),
                     definition.getId());
 
         });
     }
 
-    private <T> T fromJson(String json, Class<T> clazz) {
-        try {
-            return objectMapper.readValue(json, clazz);
-        } catch (JsonProcessingException e) {
-            throw new EdcException(e);
-        }
-    }
-
     private String toJson(Object object) {
-        try {
-            return objectMapper.writeValueAsString(object);
-        } catch (JsonProcessingException e) {
-            throw new EdcException(e);
-        }
+        return typeManager.writeValueAsString(object);
     }
 
     private boolean existsById(Connection connection, String definitionId) {

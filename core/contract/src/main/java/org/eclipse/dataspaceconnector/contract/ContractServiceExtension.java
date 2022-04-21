@@ -44,6 +44,7 @@ import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistr
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.system.CoreExtension;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
@@ -93,6 +94,9 @@ public class ContractServiceExtension implements ServiceExtension {
     @Inject
     private PolicyEngine policyEngine;
 
+    @Inject
+    private PolicyStore policyStore;
+
     @Override
     public String name() {
         return "Core Contract Service";
@@ -124,18 +128,13 @@ public class ContractServiceExtension implements ServiceExtension {
     }
 
     private void registerServices(ServiceExtensionContext context) {
-        if (assetIndex == null) {
-            monitor.warning("No AssetIndex registered. Register one to create Contract Offers.");
-            assetIndex = new NullAssetIndex();
-        }
-
-        var definitionService = new ContractDefinitionServiceImpl(monitor, contractDefinitionStore, policyEngine);
-        var contractOfferService = new ContractOfferServiceImpl(agentService, definitionService, assetIndex);
+        var definitionService = new ContractDefinitionServiceImpl(monitor, contractDefinitionStore, policyEngine, policyStore);
         context.registerService(ContractDefinitionService.class, definitionService);
 
+        var contractOfferService = new ContractOfferServiceImpl(agentService, definitionService, assetIndex, policyStore);
         context.registerService(ContractOfferService.class, contractOfferService);
 
-        var validationService = new ContractValidationServiceImpl(agentService, () -> definitionService, assetIndex);
+        var validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore);
         context.registerService(ContractValidationService.class, validationService);
 
         var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);

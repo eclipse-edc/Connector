@@ -175,8 +175,8 @@ class ContractDefinitionApiControllerTest {
     private ContractDefinition createContractDefinition() {
         return ContractDefinition.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .accessPolicy(Policy.Builder.newInstance().build())
-                .contractPolicy(Policy.Builder.newInstance().build())
+                .accessPolicyId(UUID.randomUUID().toString())
+                .contractPolicyId(UUID.randomUUID().toString())
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
                 .build();
     }

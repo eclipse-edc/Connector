@@ -29,8 +29,8 @@ public class TestFunctions {
     public static ContractDefinition generateDefinition() {
         return ContractDefinition.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .contractPolicy(Policy.Builder.newInstance().id(CONTRACT_POLICY_ID).build())
-                .accessPolicy(Policy.Builder.newInstance().id(ACCESS_POLICY_ID).build())
+                .contractPolicyId(CONTRACT_POLICY_ID)
+                .accessPolicyId(ACCESS_POLICY_ID)
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals("somekey", "someval").build())
                 .build();
     }
