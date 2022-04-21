@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":extensions:sql:common-sql"))
 
     testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(testFixtures(project(":common:util")))
     testImplementation(project(":core:base"))
     testImplementation(project(":extensions:sql:pool:apache-commons-pool-sql"))
     testImplementation(project(":extensions:transaction:transaction-local"))

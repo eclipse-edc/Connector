@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.sql.contractnegotiation.store;
 
+import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
@@ -59,6 +60,7 @@ import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctio
 import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createNegotiation;
 import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createPolicy;
 
+@ComponentTest
 class SqlContractNegotiationStoreTest {
 
     private static final String DATASOURCE_NAME = "contractnegotiation";
