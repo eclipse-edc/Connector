@@ -177,11 +177,6 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
         return list.stream().map(this::toNegotiation).collect(Collectors.toList());
     }
 
-    @Override
-    public Policy findPolicyForContract(String contractId) {
-        return ofNullable(findContractAgreement(contractId)).map(ContractAgreement::getPolicy).orElse(null);
-    }
-
     private ContractNegotiation toNegotiation(Object object) {
         var json = typeManager.writeValueAsString(object);
         var document = typeManager.readValue(json, ContractNegotiationDocument.class);

@@ -32,6 +32,8 @@ public interface IdentityHub {
 
     /**
      * Workaround for Hackathon .NET client
+     *
+     * @deprecated use {@link #write(String)}
      */
     @Deprecated
     void write(Commit commit);

@@ -49,21 +49,18 @@ public class ContractAgreementHandler implements Handler {
     private final String connectorId;
     private final ConsumerContractNegotiationManager negotiationManager;
     private final IdsTransformerRegistry transformerRegistry;
-    private final AssetIndex assetIndex;
 
     public ContractAgreementHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
             @NotNull ObjectMapper objectMapper,
             @NotNull ConsumerContractNegotiationManager negotiationManager,
-            @NotNull IdsTransformerRegistry transformerRegistry,
-            @NotNull AssetIndex assetIndex) {
+            @NotNull IdsTransformerRegistry transformerRegistry) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
         this.objectMapper = Objects.requireNonNull(objectMapper);
         this.negotiationManager = Objects.requireNonNull(negotiationManager);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
-        this.assetIndex = Objects.requireNonNull(assetIndex);
     }
 
     @Override
@@ -124,7 +121,7 @@ public class ContractAgreementHandler implements Handler {
         var negotiationResponse = negotiationManager.confirmed(claimToken,
                 String.valueOf(processId), agreement, null);
         if (negotiationResponse.fatalError()) {
-            monitor.debug("ContractAgreementHandler: Could not process contract agreement");
+            monitor.debug("ContractAgreementHandler: Could not process contract agreement " + negotiationResponse.getFailureMessages());
             return createBadParametersErrorMultipartResponse(message);
         }
 

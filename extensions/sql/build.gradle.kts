@@ -18,11 +18,13 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":extensions:sql:contract-definition"))
-    implementation(project(":extensions:sql:contract-negotiation-store"))
-    implementation(project(":extensions:sql:lease"))
-    implementation(project(":extensions:sql:pool"))
-    implementation(project(":extensions:sql:transfer-process-store"))
+    implementation(project(":extensions:sql:asset-index-sql"))
+    implementation(project(":extensions:sql:common-sql"))
+    implementation(project(":extensions:sql:contract-definition-store-sql"))
+    implementation(project(":extensions:sql:contract-negotiation-store-sql"))
+    implementation(project(":extensions:sql:lease-sql"))
+    implementation(project(":extensions:sql:policy-store-sql"))
+    implementation(project(":extensions:sql:transfer-process-store-sql"))
 }
 
 publishing {

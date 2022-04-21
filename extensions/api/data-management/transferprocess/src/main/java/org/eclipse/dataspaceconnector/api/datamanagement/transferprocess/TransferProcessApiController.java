@@ -46,8 +46,6 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
-@Consumes({ MediaType.APPLICATION_JSON })
-@Produces({ MediaType.APPLICATION_JSON })
 @Path("/transferprocess")
 public class TransferProcessApiController implements TransferProcessApi {
     private final Monitor monitor;
@@ -61,6 +59,7 @@ public class TransferProcessApiController implements TransferProcessApi {
     }
 
     @GET
+    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public List<TransferProcessDto> getAllTransferProcesses(@QueryParam("offset") Integer offset,
                                                             @QueryParam("limit") Integer limit,
@@ -83,6 +82,7 @@ public class TransferProcessApiController implements TransferProcessApi {
 
     @GET
     @Path("/{id}")
+    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public TransferProcessDto getTransferProcess(@PathParam("id") String id) {
         return Optional.of(id)
@@ -95,35 +95,12 @@ public class TransferProcessApiController implements TransferProcessApi {
 
     @GET
     @Path("/{id}/state")
+    @Produces({ MediaType.TEXT_PLAIN })
     @Override
     public String getTransferProcessState(@PathParam("id") String id) {
         return Optional.of(id)
                 .map(service::getState)
                 .orElseThrow(() -> new ObjectNotFoundException(TransferProcess.class, id));
-    }
-
-    @POST
-    @Override
-    public String initiateTransfer(TransferRequestDto transferRequest) {
-        if (!isValid(transferRequest)) {
-            throw new IllegalArgumentException("Transfer request body not valid");
-        }
-        var dataRequest = Optional.ofNullable(transformerRegistry.transform(transferRequest, DataRequest.class))
-                .filter(AbstractResult::succeeded).map(AbstractResult::getContent);
-        if (dataRequest.isEmpty()) {
-            throw new IllegalArgumentException("Error during transforming TransferRequestDto into DataRequest");
-        }
-        monitor.debug("Starting transfer for asset " + transferRequest.getAssetId());
-
-        var result = service.initiateTransfer(dataRequest.get());
-        if (result.succeeded()) {
-            monitor.debug(format("Transfer process initialised %s", result.getContent()));
-            return result.getContent();
-        } else {
-            String message = format("Error during initiating the transfer with assetId: %s", transferRequest.getAssetId());
-            monitor.severe(message);
-            throw new EdcException(message);
-        }
     }
 
     @POST
@@ -152,6 +129,32 @@ public class TransferProcessApiController implements TransferProcessApi {
         }
     }
 
+    @POST
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.TEXT_PLAIN })
+    @Override
+    public String initiateTransfer(TransferRequestDto transferRequest) {
+        if (!isValid(transferRequest)) {
+            throw new IllegalArgumentException("Transfer request body not valid");
+        }
+        var dataRequest = Optional.ofNullable(transformerRegistry.transform(transferRequest, DataRequest.class))
+                .filter(AbstractResult::succeeded).map(AbstractResult::getContent);
+        if (dataRequest.isEmpty()) {
+            throw new IllegalArgumentException("Error during transforming TransferRequestDto into DataRequest");
+        }
+        monitor.debug("Starting transfer for asset " + transferRequest.getAssetId());
+
+        var result = service.initiateTransfer(dataRequest.get());
+        if (result.succeeded()) {
+            monitor.debug(format("Transfer process initialised %s", result.getContent()));
+            return result.getContent();
+        } else {
+            String message = format("Error during initiating the transfer with assetId: %s", transferRequest.getAssetId());
+            monitor.severe(message);
+            throw new EdcException(message);
+        }
+    }
+
     private boolean isValid(TransferRequestDto transferRequest) {
         return !StringUtils.isNullOrBlank(transferRequest.getAssetId()) &&
                 !StringUtils.isNullOrBlank(transferRequest.getConnectorAddress()) &&
@@ -162,9 +165,12 @@ public class TransferProcessApiController implements TransferProcessApi {
 
     private void handleFailedResult(ServiceResult<TransferProcess> result, String id) {
         switch (result.reason()) {
-            case NOT_FOUND: throw new ObjectNotFoundException(TransferProcess.class, id);
-            case CONFLICT: throw new ObjectExistsException(TransferProcess.class, id);
-            default: throw new EdcException("unexpected error");
+            case NOT_FOUND:
+                throw new ObjectNotFoundException(TransferProcess.class, id);
+            case CONFLICT:
+                throw new ObjectExistsException(TransferProcess.class, id);
+            default:
+                throw new EdcException("unexpected error");
         }
     }
 }

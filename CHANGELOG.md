@@ -10,7 +10,7 @@ in the detailed section referring to by linking pull requests or issues.
 ## [Unreleased]
 
 ### Overview
-
+Bugfixing DataManagementApi
 *
 
 ### Detailed Changes
@@ -21,7 +21,8 @@ in the detailed section referring to by linking pull requests or issues.
 
 #### Changed
 
-*
+* Restructure sql extension folder tree (#1154)
+* Extract single `PolicyArchive` implementation (#1158)
 
 #### Removed
 
@@ -31,6 +32,7 @@ in the detailed section referring to by linking pull requests or issues.
 
 * Handle Jakarta exception correctly (#1102)
 * Fix Postgres column name (#1108)
+* Fixed DMgmtApi content types (#1126)
 
 ## [milestone-3] - 2022-04-08
 

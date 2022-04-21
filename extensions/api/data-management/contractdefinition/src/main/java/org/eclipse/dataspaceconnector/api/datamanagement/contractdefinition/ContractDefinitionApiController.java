@@ -43,8 +43,6 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
-@Consumes({ MediaType.APPLICATION_JSON })
-@Produces({ MediaType.APPLICATION_JSON })
 @Path("/contractdefinitions")
 public class ContractDefinitionApiController implements ContractDefinitionApi {
     private final Monitor monitor;
@@ -58,6 +56,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
     }
 
     @GET
+    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public List<ContractDefinitionDto> getAllContractDefinitions(@QueryParam("offset") Integer offset,
                                                                  @QueryParam("limit") Integer limit,
@@ -81,6 +80,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
     @GET
     @Path("{id}")
+    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public ContractDefinitionDto getContractDefinition(@PathParam("id") String id) {
         monitor.debug(format("get contract definition with ID %s", id));
@@ -94,6 +94,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
     }
 
     @POST
+    @Consumes({ MediaType.APPLICATION_JSON })
     @Override
     public void createContractDefinition(ContractDefinitionDto dto) {
         monitor.debug("create new contract definition");
@@ -127,9 +128,12 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
     private void handleFailedResult(ServiceResult<ContractDefinition> result, String id) {
         switch (result.reason()) {
-            case NOT_FOUND: throw new ObjectNotFoundException(ContractDefinition.class, id);
-            case CONFLICT: throw new ObjectExistsException(ContractDefinition.class, id);
-            default: throw new EdcException("unexpected error");
+            case NOT_FOUND:
+                throw new ObjectNotFoundException(ContractDefinition.class, id);
+            case CONFLICT:
+                throw new ObjectExistsException(ContractDefinition.class, id);
+            default:
+                throw new EdcException("unexpected error");
         }
     }
 

@@ -15,7 +15,7 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            '*/*': {}
   /contractnegotiations/{id}/decline:
     post:
       tags:
@@ -31,7 +31,7 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            '*/*': {}
   /contractnegotiations/{id}/agreement:
     get:
       tags:
@@ -83,7 +83,7 @@ paths:
         default:
           description: default response
           content:
-            application/json:
+            text/plain:
               schema:
                 type: string
   /contractnegotiations:
@@ -139,7 +139,7 @@ paths:
         default:
           description: default response
           content:
-            application/json:
+            text/plain:
               schema:
                 type: string
 components:

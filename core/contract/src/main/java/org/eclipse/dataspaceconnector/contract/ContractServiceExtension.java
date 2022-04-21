@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.contract.negotiation.ProviderContractNegot
 import org.eclipse.dataspaceconnector.contract.observe.ContractNegotiationObservableImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractDefinitionServiceImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractOfferServiceImpl;
+import org.eclipse.dataspaceconnector.contract.policy.PolicyArchiveImpl;
 import org.eclipse.dataspaceconnector.contract.validation.ContractValidationServiceImpl;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
@@ -42,6 +43,7 @@ import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidation
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.system.CoreExtension;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
@@ -52,7 +54,10 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 
-@Provides({ContractOfferService.class, ContractValidationService.class, ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class})
+@Provides({
+        ContractOfferService.class, ContractValidationService.class, ConsumerContractNegotiationManager.class,
+        PolicyArchive.class, ProviderContractNegotiationManager.class
+})
 @CoreExtension
 public class ContractServiceExtension implements ServiceExtension {
 
@@ -124,7 +129,6 @@ public class ContractServiceExtension implements ServiceExtension {
             assetIndex = new NullAssetIndex();
         }
 
-
         var definitionService = new ContractDefinitionServiceImpl(monitor, contractDefinitionStore, policyEngine);
         var contractOfferService = new ContractOfferServiceImpl(agentService, definitionService, assetIndex);
         context.registerService(ContractDefinitionService.class, definitionService);
@@ -142,6 +146,8 @@ public class ContractServiceExtension implements ServiceExtension {
         var telemetry = context.getTelemetry();
         var observable = new ContractNegotiationObservableImpl();
         context.registerService(ContractNegotiationObservable.class, observable);
+
+        context.registerService(PolicyArchive.class, new PolicyArchiveImpl(store));
 
         consumerNegotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
