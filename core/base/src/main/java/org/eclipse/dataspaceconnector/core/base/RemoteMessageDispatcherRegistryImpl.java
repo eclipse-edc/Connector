@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import static java.util.concurrent.CompletableFuture.failedFuture;
+
 public class RemoteMessageDispatcherRegistryImpl implements RemoteMessageDispatcherRegistry {
 
     private final Map<String, RemoteMessageDispatcher> dispatchers = new HashMap<>();
@@ -39,12 +41,10 @@ public class RemoteMessageDispatcherRegistryImpl implements RemoteMessageDispatc
     @Override
     public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {
         Objects.requireNonNull(message, "Message was null");
-        String protocol = message.getProtocol();
-        RemoteMessageDispatcher dispatcher = getDispatcher(protocol);
+        var protocol = message.getProtocol();
+        var dispatcher = getDispatcher(protocol);
         if (dispatcher == null) {
-            var future = new CompletableFuture<T>();
-            future.completeExceptionally(new EdcException("No provider dispatcher registered for protocol: " + protocol));
-            return future;
+            return failedFuture(new EdcException("No provider dispatcher registered for protocol: " + protocol));
         }
         return dispatcher.send(responseType, message, context);
     }

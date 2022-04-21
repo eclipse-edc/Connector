@@ -9,74 +9,112 @@ info:
 servers:
 - url: /
 paths:
-  /identity-hub/query-commits:
-    post:
+  /assets:
+    get:
       tags:
-      - Identity Hub
-      operationId: queryCommits
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
+      - Asset
+      operationId: getAllAssets
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: limit
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: filter
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - name: sortField
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
       responses:
         default:
           description: default response
           content:
             application/json:
               schema:
-                type: string
-  /identity-hub/query-objects:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AssetDto'
     post:
       tags:
-      - Identity Hub
-      operationId: queryObjects
+      - Asset
+      operationId: createAsset
       requestBody:
         content:
           application/json:
             schema:
-              type: string
+              $ref: '#/components/schemas/AssetEntryDto'
+      responses:
+        default:
+          description: default response
+          content:
+            '*/*': {}
+  /assets/{id}:
+    get:
+      tags:
+      - Asset
+      operationId: getAsset
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
       responses:
         default:
           description: default response
           content:
             application/json:
               schema:
-                type: string
-  /identity-hub/collections:
-    post:
+                $ref: '#/components/schemas/AssetDto'
+    delete:
       tags:
-      - Identity Hub
-      operationId: write
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
+      - Asset
+      operationId: removeAsset
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
       responses:
         default:
           description: default response
           content:
-            application/json:
-              schema:
-                type: string
-  /identity-hub/collections-commit:
-    post:
-      tags:
-      - Identity Hub
-      operationId: writeCommit
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              additionalProperties:
-                type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
+            '*/*': {}
   /control/catalog:
     get:
       operationId: getDescription
@@ -173,6 +211,110 @@ paths:
           content:
             application/json: {}
       deprecated: true
+  /check/health:
+    get:
+      tags:
+      - Application Observability
+      operationId: checkHealth
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /check/liveness:
+    get:
+      tags:
+      - Application Observability
+      operationId: getLiveness
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /check/readiness:
+    get:
+      tags:
+      - Application Observability
+      operationId: getReadiness
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /check/startup:
+    get:
+      tags:
+      - Application Observability
+      operationId: getStartup
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /instances:
+    get:
+      tags:
+      - Dataplane Selector
+      operationId: getAll
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataPlaneInstance'
+    post:
+      tags:
+      - Dataplane Selector
+      operationId: addEntry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataPlaneInstance'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /instances/select:
+    post:
+      tags:
+      - Dataplane Selector
+      operationId: find
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SelectionRequest'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataPlaneInstance'
+  /catalog:
+    get:
+      tags:
+      - Catalog
+      operationId: getCatalog
+      parameters:
+      - name: providerUrl
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalog'
   /contractnegotiations/{id}/cancel:
     post:
       tags:
@@ -340,56 +482,57 @@ paths:
             text/plain:
               schema:
                 type: string
-  /instances:
-    get:
-      tags:
-      - Dataplane Selector
-      operationId: getAll
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DataPlaneInstance'
+  /callback/{processId}/deprovision:
     post:
       tags:
-      - Dataplane Selector
-      operationId: addEntry
+      - HTTP Provisioner Webhook
+      operationId: callDeprovisionWebhook
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DataPlaneInstance'
+              $ref: '#/components/schemas/DeprovisionedResource'
       responses:
         default:
           description: default response
           content:
             application/json: {}
-  /instances/select:
+  /callback/{processId}/provision:
     post:
       tags:
-      - Dataplane Selector
-      operationId: find
+      - HTTP Provisioner Webhook
+      operationId: callProvisionWebhook
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SelectionRequest'
+              $ref: '#/components/schemas/ProvisionerWebhookRequest'
       responses:
         default:
           description: default response
           content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DataPlaneInstance'
-  /assets:
+            application/json: {}
+  /contractdefinitions:
     get:
       tags:
-      - Asset
-      operationId: getAllAssets
+      - Contract Definition
+      operationId: getAllContractDefinitions
       parameters:
       - name: offset
         in: query
@@ -439,26 +582,26 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AssetDto'
+                  $ref: '#/components/schemas/ContractDefinitionDto'
     post:
       tags:
-      - Asset
-      operationId: createAsset
+      - Contract Definition
+      operationId: createContractDefinition
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AssetEntryDto'
+              $ref: '#/components/schemas/ContractDefinitionDto'
       responses:
         default:
           description: default response
           content:
             '*/*': {}
-  /assets/{id}:
+  /contractdefinitions/{id}:
     get:
       tags:
-      - Asset
-      operationId: getAsset
+      - Contract Definition
+      operationId: getContractDefinition
       parameters:
       - name: id
         in: path
@@ -473,11 +616,185 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AssetDto'
+                $ref: '#/components/schemas/ContractDefinitionDto'
     delete:
       tags:
-      - Asset
-      operationId: removeAsset
+      - Contract Definition
+      operationId: deleteContractDefinition
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            '*/*': {}
+  /identity-hub/query-commits:
+    post:
+      tags:
+      - Identity Hub
+      operationId: queryCommits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: string
+  /identity-hub/query-objects:
+    post:
+      tags:
+      - Identity Hub
+      operationId: queryObjects
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: string
+  /identity-hub/collections:
+    post:
+      tags:
+      - Identity Hub
+      operationId: write
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: string
+  /identity-hub/collections-commit:
+    post:
+      tags:
+      - Identity Hub
+      operationId: writeCommit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /policies:
+    get:
+      tags:
+      - Policy
+      operationId: getAllPolicies
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: limit
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: filter
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - name: sortField
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Policy'
+    post:
+      tags:
+      - Policy
+      operationId: createPolicy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Policy'
+      responses:
+        default:
+          description: default response
+          content:
+            '*/*': {}
+  /policies/{id}:
+    get:
+      tags:
+      - Policy
+      operationId: getPolicy
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+    delete:
+      tags:
+      - Policy
+      operationId: deletePolicy
       parameters:
       - name: id
         in: path
@@ -566,46 +883,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContractAgreementDto'
-  /check/health:
-    get:
-      tags:
-      - Application Observability
-      operationId: checkHealth
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /check/liveness:
-    get:
-      tags:
-      - Application Observability
-      operationId: getLiveness
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /check/readiness:
-    get:
-      tags:
-      - Application Observability
-      operationId: getReadiness
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /check/startup:
-    get:
-      tags:
-      - Application Observability
-      operationId: getStartup
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
   /transferprocess/{id}/cancel:
     post:
       tags:
@@ -753,281 +1030,6 @@ paths:
             text/plain:
               schema:
                 type: string
-  /policies:
-    get:
-      tags:
-      - Policy
-      operationId: getAllPolicies
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Policy'
-    post:
-      tags:
-      - Policy
-      operationId: createPolicy
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Policy'
-      responses:
-        default:
-          description: default response
-          content:
-            '*/*': {}
-  /policies/{id}:
-    get:
-      tags:
-      - Policy
-      operationId: getPolicy
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Policy'
-    delete:
-      tags:
-      - Policy
-      operationId: deletePolicy
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            '*/*': {}
-  /catalog:
-    post:
-      operationId: getCatalog
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/FederatedCatalogCacheQuery'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ContractOffer'
-  /contractdefinitions:
-    get:
-      tags:
-      - Contract Definition
-      operationId: getAllContractDefinitions
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ContractDefinitionDto'
-    post:
-      tags:
-      - Contract Definition
-      operationId: createContractDefinition
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ContractDefinitionDto'
-      responses:
-        default:
-          description: default response
-          content:
-            '*/*': {}
-  /contractdefinitions/{id}:
-    get:
-      tags:
-      - Contract Definition
-      operationId: getContractDefinition
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContractDefinitionDto'
-    delete:
-      tags:
-      - Contract Definition
-      operationId: deleteContractDefinition
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            '*/*': {}
-  /callback/{processId}/deprovision:
-    post:
-      tags:
-      - HTTP Provisioner Webhook
-      operationId: callDeprovisionWebhook
-      parameters:
-      - name: processId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DeprovisionedResource'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /callback/{processId}/provision:
-    post:
-      tags:
-      - HTTP Provisioner Webhook
-      operationId: callProvisionWebhook
-      parameters:
-      - name: processId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ProvisionerWebhookRequest'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
 components:
   schemas:
     Action:
@@ -1060,6 +1062,15 @@ components:
           $ref: '#/components/schemas/AssetDto'
         dataAddress:
           $ref: '#/components/schemas/DataAddressDto'
+    Catalog:
+      type: object
+      properties:
+        id:
+          type: string
+        contractOffers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContractOffer'
     Constraint:
       required:
       - edctype

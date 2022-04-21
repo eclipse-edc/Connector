@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -62,6 +63,7 @@ class EndToEndTransferTest {
     private static final URI PROVIDER_DATA_PLANE_PUBLIC = URI.create("http://localhost:" + getFreePort() + "/public");
     private static final URI PROVIDER_BACKEND_SERVICE = URI.create("http://localhost:" + getFreePort());
     private static final URI PROVIDER_IDS_API = URI.create("http://localhost:" + getFreePort());
+    private static final String IDS_PATH = "/api/v1/ids";
 
     @RegisterExtension
     static EdcRuntimeExtension consumerControlPlane = new EdcRuntimeExtension(
@@ -72,7 +74,7 @@ class EndToEndTransferTest {
                     put("web.http.port", String.valueOf(CONSUMER_CONTROL_PLANE.getPort()));
                     put("web.http.path", "/api");
                     put("web.http.ids.port", String.valueOf(CONSUMER_IDS_API.getPort()));
-                    put("web.http.ids.path", "/api/v1/ids");
+                    put("web.http.ids.path", IDS_PATH);
                     put("web.http.validation.port", String.valueOf(CONSUMER_CONTROL_PLANE_VALIDATION.getPort()));
                     put("web.http.validation.path", "/validation");
                     put("edc.vault", resourceAbsolutePath("consumer-vault.properties"));
@@ -141,7 +143,7 @@ class EndToEndTransferTest {
                     put("web.http.port", String.valueOf(PROVIDER_CONTROL_PLANE.getPort()));
                     put("web.http.path", "/api");
                     put("web.http.ids.port", String.valueOf(PROVIDER_IDS_API.getPort()));
-                    put("web.http.ids.path", "/api/v1/ids");
+                    put("web.http.ids.path", IDS_PATH);
                     put("web.http.validation.port", String.valueOf(PROVIDER_CONTROL_PLANE_VALIDATION.getPort()));
                     put("web.http.validation.path", "/validation");
                     put("edc.vault", resourceAbsolutePath("provider-vault.properties"));
@@ -169,10 +171,12 @@ class EndToEndTransferTest {
 
     @Test
     void httpPullDataTransfer() {
-        var assetId = "asset-id";
-        createAsset(PROVIDER_CONTROL_PLANE, assetId);
-        var policyId = createPolicy(assetId, PROVIDER_CONTROL_PLANE);
-        createContractDefinition(policyId, PROVIDER_CONTROL_PLANE);
+        createAssetAndContractDefinitionOnProvider();
+
+        var catalog = getCatalog(PROVIDER_IDS_API, CONSUMER_CONTROL_PLANE);
+        assertThat(catalog.getContractOffers()).hasSize(1);
+
+        var assetId = catalog.getContractOffers().get(0).getAsset().getId();
 
         var negotiationId = negotiateContractFor(assetId, CONSUMER_CONTROL_PLANE, PROVIDER_IDS_API);
 
@@ -196,6 +200,25 @@ class EndToEndTransferTest {
                     .statusCode(200)
                     .body("message", equalTo("some information"));
         });
+    }
+
+    private void createAssetAndContractDefinitionOnProvider() {
+        var assetId = "asset-id";
+        createAsset(PROVIDER_CONTROL_PLANE, assetId);
+        var policyId = createPolicy(assetId, PROVIDER_CONTROL_PLANE);
+        createContractDefinition(policyId, PROVIDER_CONTROL_PLANE);
+    }
+
+    private Catalog getCatalog(URI provider, URI instance) {
+        return given()
+                .baseUri(instance.toString())
+                .contentType(JSON)
+                .when()
+                .queryParam("providerUrl", provider + IDS_PATH + "/data")
+                .get("/api/catalog")
+                .then()
+                .statusCode(200)
+                .extract().body().as(Catalog.class);
     }
 
     private String getTransferProcessState(String transferProcessId, URI instance) {
