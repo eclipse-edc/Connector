@@ -32,6 +32,7 @@ Bugfixing DataManagementApi
 
 * Handle Jakarta exception correctly (#1102)
 * Fix Postgres column name (#1108)
+* Fix problem with interpreting contractId/negotiationId (#1140)
 * Fixed DMgmtApi content types (#1126)
 
 ## [milestone-3] - 2022-04-08

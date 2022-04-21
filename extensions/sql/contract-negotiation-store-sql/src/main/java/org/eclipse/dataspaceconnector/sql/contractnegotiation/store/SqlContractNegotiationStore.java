@@ -93,8 +93,8 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
             try (var connection = getConnection()) {
                 var stmt = statements.getFindContractAgreementTemplate();
 
-                var contractNegotiation = executeQuery(connection, this::mapContractAgreement, stmt, contractId);
-                return single(contractNegotiation);
+                var contractAgreements = executeQuery(connection, this::mapContractAgreement, stmt, contractId);
+                return single(contractAgreements);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }

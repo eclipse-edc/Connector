@@ -48,7 +48,7 @@ public interface ContractNegotiationStore extends StateEntityStore<ContractNegot
     ContractNegotiation findForCorrelationId(String correlationId);
 
     /**
-     * Returns the contract agreement for the id or null.
+     * Returns the contract agreement for the contract id or null.
      */
     @Nullable
     ContractAgreement findContractAgreement(String contractId);
