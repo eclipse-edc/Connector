@@ -15,14 +15,13 @@
 package org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy;
 
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformer;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Interface for service enabling to use the Data Plane public API as proxy around a data source.
+ * Uses Data Plane as a proxy for querying data from the data source.
  */
-public interface DataPlaneProxyManager extends EndpointDataReferenceTransformer {
-
-    Result<EndpointDataReference> createProxy(@NotNull DataPlaneProxyCreationRequest request);
+@FunctionalInterface
+public interface DataPlaneTransferProxyCreator {
+    Result<EndpointDataReference> createProxy(@NotNull DataPlaneTransferProxyCreationRequest request);
 }

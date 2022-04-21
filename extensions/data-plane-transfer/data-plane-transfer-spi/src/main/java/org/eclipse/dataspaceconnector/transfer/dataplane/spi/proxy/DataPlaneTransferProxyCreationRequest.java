@@ -28,12 +28,12 @@ import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.CO
 /**
  * POJO class for requesting creation of a proxy using Data Plane Public API that wraps a data source.
  */
-public class DataPlaneProxyCreationRequest {
+public class DataPlaneTransferProxyCreationRequest {
     private final String id;
     private final DataAddress address;
     private final Map<String, String> properties;
 
-    private DataPlaneProxyCreationRequest(String id, DataAddress address, Map<String, String> properties) {
+    private DataPlaneTransferProxyCreationRequest(String id, DataAddress address, Map<String, String> properties) {
         this.id = id;
         this.address = address;
         this.properties = properties;
@@ -69,35 +69,35 @@ public class DataPlaneProxyCreationRequest {
         }
 
         @JsonCreator
-        public static DataPlaneProxyCreationRequest.Builder newInstance() {
-            return new DataPlaneProxyCreationRequest.Builder();
+        public static DataPlaneTransferProxyCreationRequest.Builder newInstance() {
+            return new DataPlaneTransferProxyCreationRequest.Builder();
         }
 
-        public DataPlaneProxyCreationRequest.Builder id(String id) {
+        public DataPlaneTransferProxyCreationRequest.Builder id(String id) {
             this.id = id;
             return this;
         }
 
-        public DataPlaneProxyCreationRequest.Builder address(DataAddress address) {
+        public DataPlaneTransferProxyCreationRequest.Builder address(DataAddress address) {
             this.address = address;
             return this;
         }
 
-        public DataPlaneProxyCreationRequest.Builder contractId(String contractId) {
+        public DataPlaneTransferProxyCreationRequest.Builder contractId(String contractId) {
             this.contractId = contractId;
             return this;
         }
 
-        public DataPlaneProxyCreationRequest.Builder property(String key, String value) {
+        public DataPlaneTransferProxyCreationRequest.Builder property(String key, String value) {
             this.properties.put(key, value);
             return this;
         }
 
-        public DataPlaneProxyCreationRequest build() {
+        public DataPlaneTransferProxyCreationRequest build() {
             Objects.requireNonNull(address, "address");
             Objects.requireNonNull(contractId, "contractId");
             properties.put(CONTRACT_ID, contractId);
-            return new DataPlaneProxyCreationRequest(id, address, properties);
+            return new DataPlaneTransferProxyCreationRequest(id, address, properties);
         }
     }
 }

@@ -15,11 +15,11 @@
 package org.eclipse.dataspaceconnector.transfer.dataplane.core.proxy;
 
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformer;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
-import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyCreationRequest;
-import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyManager;
-import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyTokenGenerator;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTransferProxyCreationRequest;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTransferProxyCreator;
 import org.jetbrains.annotations.NotNull;
 
 import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.CONTRACT_ID;
@@ -29,18 +29,22 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddre
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
 
 /**
- * Uses the public API exposed by a Data Plane instance to proxy the access to the actual data.
+ * Transforms {@link EndpointDataReference} returned by the provider Control Plane in such a way that
+ * the consumer Data Plane becomes a Data Proxy to query data.
+ * This implies that the data query should first hit the consumer Data Plane, which then forward the
+ * call to the provider Data Plane, which finally reach the actual data source.
  */
-public class DataPlaneProxyManagerImpl implements DataPlaneProxyManager {
+public class DataPlaneTransferConsumerProxyTransformer implements EndpointDataReferenceTransformer {
 
-    private static final String DATA_PLANE_PUBLIC_API_AUTH_HEADER = "Authorization";
+    private final DataPlaneTransferProxyCreator proxyCreator;
 
-    private final String endpoint;
-    private final DataPlaneProxyTokenGenerator tokenGenerator;
+    public DataPlaneTransferConsumerProxyTransformer(DataPlaneTransferProxyCreator proxyCreator) {
+        this.proxyCreator = proxyCreator;
+    }
 
-    public DataPlaneProxyManagerImpl(String endpoint, DataPlaneProxyTokenGenerator tokenGenerator) {
-        this.endpoint = endpoint;
-        this.tokenGenerator = tokenGenerator;
+    @Override
+    public boolean canHandle(@NotNull EndpointDataReference edr) {
+        return true;
     }
 
     /**
@@ -54,29 +58,12 @@ public class DataPlaneProxyManagerImpl implements DataPlaneProxyManager {
             return Result.failure(String.format("Cannot transform endpoint data reference with id %s as contract id is missing", edr.getId()));
         }
 
-        var builder = DataPlaneProxyCreationRequest.Builder.newInstance()
+        var builder = DataPlaneTransferProxyCreationRequest.Builder.newInstance()
                 .id(edr.getId())
                 .address(address)
                 .contractId(contractId);
         edr.getProperties().forEach(builder::property);
-        return createProxy(builder.build());
-    }
-
-
-    @Override
-    public Result<EndpointDataReference> createProxy(@NotNull DataPlaneProxyCreationRequest request) {
-        var tokenGenerationResult = tokenGenerator.generate(request.getAddress(), request.getContractId());
-        if (tokenGenerationResult.failed()) {
-            return Result.failure(tokenGenerationResult.getFailureMessages());
-        }
-
-        var builder = EndpointDataReference.Builder.newInstance()
-                .id(request.getId())
-                .endpoint(endpoint)
-                .authKey(DATA_PLANE_PUBLIC_API_AUTH_HEADER)
-                .authCode(tokenGenerationResult.getContent().getToken())
-                .properties(request.getProperties());
-        return Result.success(builder.build());
+        return proxyCreator.createProxy(builder.build());
     }
 
     private static DataAddress toHttpDataAddress(EndpointDataReference edr) {

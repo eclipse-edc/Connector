@@ -64,7 +64,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceReceiverRegistry;
-import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformer;
+import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
@@ -108,7 +108,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     @Inject
     private EndpointDataReferenceReceiverRegistry endpointDataReferenceReceiverRegistry;
     @Inject
-    private EndpointDataReferenceTransformer endpointDataReferenceTransformer;
+    private EndpointDataReferenceTransformerRegistry endpointDataReferenceTransformerRegistry;
     @Inject
     private IdsApiConfiguration idsApiConfiguration;
 
@@ -175,7 +175,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
         // add notification handler and sub-handlers
         var notificationHandlersRegistry = new NotificationMessageHandlerRegistry();
-        var endpointDataReferenceHandler = new EndpointDataReferenceHandler(monitor, connectorId, endpointDataReferenceReceiverRegistry, endpointDataReferenceTransformer, serviceExtensionContext.getTypeManager());
+        var endpointDataReferenceHandler = new EndpointDataReferenceHandler(monitor, connectorId, endpointDataReferenceReceiverRegistry, endpointDataReferenceTransformerRegistry, serviceExtensionContext.getTypeManager());
         notificationHandlersRegistry.addHandler(ParticipantUpdateMessage.class, endpointDataReferenceHandler);
         handlers.add(new NotificationMessageHandler(connectorId, notificationHandlersRegistry));
 
