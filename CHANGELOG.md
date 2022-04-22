@@ -19,6 +19,7 @@ in the detailed section referring to by linking pull requests or issues.
 
 * Add domain model documentation (#1158)
 * Add gradle test summary (#1148)
+* Check to avoid duplicated module names (#1190)
 
 #### Changed
 

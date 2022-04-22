@@ -18,6 +18,7 @@ plugins {
     checkstyle
     jacoco
     id("com.rameshkp.openapi-merger-gradle-plugin") version "1.0.4"
+    id("org.eclipse.dataspaceconnector.module-names")
     id("com.autonomousapps.dependency-analysis") version "1.0.0-rc05" apply (false)
 }
 
