@@ -177,7 +177,7 @@ class ContractNegotiationApiControllerTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .protocol("protocol")
-                .offerId(createOffer("offerId"))
+                .offer(createOffer("offerId"))
                 .build();
 
         var negotiationId = controller.initiateContractNegotiation(request);
@@ -192,7 +192,7 @@ class ContractNegotiationApiControllerTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .protocol("protocol")
-                .offerId(createOffer("offerId"))
+                .offer(createOffer("offerId"))
                 .build();
         when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("failure"));
 
@@ -254,7 +254,7 @@ class ContractNegotiationApiControllerTest {
                 .connectorAddress(connectorAddress)
                 .connectorId(connectorId)
                 .protocol(protocol)
-                .offerId(createOffer(offerId))
+                .offer(createOffer(offerId))
                 .build();
         assertThatThrownBy(() -> controller.initiateContractNegotiation(rq)).isInstanceOf(IllegalArgumentException.class);
     }

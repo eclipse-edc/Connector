@@ -21,6 +21,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Add gradle test summary (#1148)
 * Check to avoid duplicated module names (#1190)
 * Implement Catalog service for Data Management API (#1195)
+* Add strict body validation for REST endpoints (#1128)
 
 #### Changed
 

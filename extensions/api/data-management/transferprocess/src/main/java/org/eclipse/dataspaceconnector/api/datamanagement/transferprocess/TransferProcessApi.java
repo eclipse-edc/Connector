@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferProcessDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferRequestDto;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
@@ -36,5 +37,5 @@ public interface TransferProcessApi {
 
     void deprovisionTransferProcess(String id);
 
-    String initiateTransfer(TransferRequestDto transferRequest);
+    String initiateTransfer(@Valid TransferRequestDto transferRequest);
 }

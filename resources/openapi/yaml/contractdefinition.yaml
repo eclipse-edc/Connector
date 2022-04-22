@@ -90,6 +90,11 @@ paths:
 components:
   schemas:
     ContractDefinitionDto:
+      required:
+      - accessPolicyId
+      - contractPolicyId
+      - criteria
+      - id
       type: object
       properties:
         accessPolicyId:

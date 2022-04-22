@@ -63,6 +63,11 @@ components:
           additionalProperties:
             type: string
     ProvisionerWebhookRequest:
+      required:
+      - assetId
+      - contentDataAddress
+      - resourceDefinitionId
+      - resourceName
       type: object
       properties:
         resourceDefinitionId:

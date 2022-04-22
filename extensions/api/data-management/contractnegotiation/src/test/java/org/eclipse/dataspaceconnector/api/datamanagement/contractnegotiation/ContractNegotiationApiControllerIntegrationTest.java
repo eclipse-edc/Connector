@@ -146,7 +146,7 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .connectorId("connector")
                 .protocol(TestRemoteMessageDispatcher.TEST_PROTOCOL)
                 .connectorAddress("connectorAddress")
-                .offerId(createOffer())
+                .offer(createOffer())
                 .build();
 
         var result = baseRequest()
@@ -155,6 +155,27 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .post("/contractnegotiations")
                 .then()
                 .statusCode(200)
+                .extract().body().asString();
+
+        assertThat(result).isNotBlank();
+    }
+
+    @Test
+    void initiateContractNegotiation_invalidBody(RemoteMessageDispatcherRegistry registry) {
+        registry.register(new TestRemoteMessageDispatcher());
+        var request = NegotiationInitiateRequestDto.Builder.newInstance()
+                .connectorId("connector")
+                .protocol(TestRemoteMessageDispatcher.TEST_PROTOCOL)
+                .connectorAddress(null) // breaks validation
+                .offer(createOffer())
+                .build();
+
+        var result = baseRequest()
+                .contentType(JSON)
+                .body(request)
+                .post("/contractnegotiations")
+                .then()
+                .statusCode(400)
                 .extract().body().asString();
 
         assertThat(result).isNotBlank();
