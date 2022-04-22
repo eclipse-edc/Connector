@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.catalog.service;
 
+import com.github.javafaker.Faker;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
@@ -22,7 +23,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.UUID;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -36,20 +36,21 @@ import static org.mockito.Mockito.when;
 
 class CatalogServiceImplTest {
 
+    private static final Faker FAKER = Faker.instance();
     private final RemoteMessageDispatcherRegistry dispatcher = mock(RemoteMessageDispatcherRegistry.class);
 
     @Test
     void shouldSendCatalogRequestToDispatcher() {
         var service = new CatalogServiceImpl(dispatcher);
         var contractOffer = ContractOffer.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .policyId(UUID.randomUUID().toString())
-                .assetId(UUID.randomUUID().toString())
+                .id(FAKER.internet().uuid())
+                .policyId(FAKER.internet().uuid())
+                .assetId(FAKER.internet().uuid())
                 .build();
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
         when(dispatcher.send(any(), any(), any())).thenReturn(completedFuture(catalog));
 
-        var future = service.getByProviderUrl("http://provider.url");
+        var future = service.getByProviderUrl(FAKER.internet().url());
 
         assertThat(future).succeedsWithin(1, SECONDS).extracting(Catalog::getContractOffers, InstanceOfAssertFactories.list(ContractOffer.class)).hasSize(1);
         verify(dispatcher).send(eq(Catalog.class), isA(CatalogRequest.class), any());

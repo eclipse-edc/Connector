@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.catalog;
 
+import com.github.javafaker.Faker;
 import jakarta.ws.rs.container.AsyncResponse;
 import org.eclipse.dataspaceconnector.api.datamanagement.catalog.service.CatalogService;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -34,6 +35,7 @@ import static org.mockito.Mockito.when;
 
 class CatalogApiControllerTest {
 
+    private static final Faker FAKER = Faker.instance();
     private final CatalogService service = mock(CatalogService.class);
 
     @Test
@@ -46,9 +48,10 @@ class CatalogApiControllerTest {
                 .assetId(UUID.randomUUID().toString())
                 .build();
         var catalog = Catalog.Builder.newInstance().id("any").contractOffers(List.of(offer)).build();
-        when(service.getByProviderUrl("http://provider.url")).thenReturn(completedFuture(catalog));
+        var url = FAKER.internet().url();
+        when(service.getByProviderUrl(url)).thenReturn(completedFuture(catalog));
 
-        controller.getCatalog("http://provider.url", response);
+        controller.getCatalog(url, response);
 
         verify(response).resume(Mockito.<Catalog>argThat(c -> c.getContractOffers().equals(List.of(offer))));
     }
@@ -57,9 +60,10 @@ class CatalogApiControllerTest {
     void shouldResumeWithExceptionIfGetCatalogFails() {
         var controller = new CatalogApiController(service);
         var response = mock(AsyncResponse.class);
-        when(service.getByProviderUrl("http://provider.url")).thenReturn(failedFuture(new EdcException("error")));
+        var url = FAKER.internet().url();
+        when(service.getByProviderUrl(url)).thenReturn(failedFuture(new EdcException("error")));
 
-        controller.getCatalog("http://provider.url", response);
+        controller.getCatalog(url, response);
 
         verify(response).resume(isA(EdcException.class));
     }

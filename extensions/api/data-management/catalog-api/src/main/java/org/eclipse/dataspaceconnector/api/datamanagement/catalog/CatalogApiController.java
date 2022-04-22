@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.catalog;
 
-import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -25,7 +24,6 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.api.datamanagement.catalog.service.CatalogService;
 
 @Path("/catalog")
-@Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 public class CatalogApiController implements CatalogApi {
 

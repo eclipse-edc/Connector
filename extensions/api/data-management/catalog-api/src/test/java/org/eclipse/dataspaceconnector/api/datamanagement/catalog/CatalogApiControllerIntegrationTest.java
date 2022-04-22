@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.catalog;
 
+import com.github.javafaker.Faker;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
@@ -46,6 +47,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(EdcExtension.class)
 public class CatalogApiControllerIntegrationTest {
 
+    private static final Faker FAKER = Faker.instance();
     private final int port = getFreePort();
     private final String authKey = "123456";
     private final RemoteMessageDispatcher dispatcher = mock(RemoteMessageDispatcher.class);
@@ -73,7 +75,7 @@ public class CatalogApiControllerIntegrationTest {
         when(dispatcher.send(any(), any(), any())).thenReturn(completedFuture(catalog));
 
         baseRequest()
-                .queryParam("providerUrl", "http://localhost:31245")
+                .queryParam("providerUrl", FAKER.internet().url())
                 .get("/catalog")
                 .then()
                 .statusCode(200)
