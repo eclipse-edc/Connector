@@ -18,7 +18,6 @@ plugins {
     checkstyle
     jacoco
     id("com.rameshkp.openapi-merger-gradle-plugin") version "1.0.4"
-    id("org.eclipse.dataspaceconnector.dependency-rules") apply (false)
     id("com.autonomousapps.dependency-analysis") version "1.0.0-rc05" apply (false)
 }
 
@@ -71,6 +70,7 @@ allprojects {
     apply(plugin = "maven-publish")
     apply(plugin = "checkstyle")
     apply(plugin = "java")
+    apply(plugin = "org.eclipse.dataspaceconnector.test-summary")
 
     if (System.getenv("JACOCO") == "true") {
         apply(plugin = "jacoco")
@@ -189,57 +189,32 @@ allprojects {
             showStackTraces = true
             exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         }
-
-        // this is the kotlin equivalent of a Groovy's "afterSuite" Closure to
-        // print a quick test summary.
-        // inspirations taken from https://stackoverflow.com/a/36130467/7079724 and
-        // https://github.com/gradle/kotlin-dsl-samples/issues/836#issuecomment-384206237
-        addTestListener(object : TestListener {
-            override fun beforeSuite(suite: TestDescriptor) {}
-            override fun beforeTest(testDescriptor: TestDescriptor) {}
-            override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {}
-            override fun afterSuite(suite: TestDescriptor, result: TestResult) {
-                if (suite.parent == null) { // will match the outermost suite
-                    val output =
-                        "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} passed, ${result.failedTestCount} failed, ${result.skippedTestCount} skipped)"
-                    val startItem = "|  ";
-                    val endItem = "  |";
-                    val repeatLength = startItem.length + output.length + endItem.length
-                    println(
-                        '\n' + ("-".repeat(repeatLength)) + "\n" + startItem + output + endItem + "\n" + ("-".repeat(
-                            repeatLength
-                        ))
-                    )
-                }
-            }
-        })
     }
-}
 
-tasks.withType<Checkstyle> {
-    reports {
-        // lets not generate any reports because that is done from within the Github Actions workflow
-        html.required.set(false)
-        xml.required.set(false)
+    tasks.withType<Checkstyle> {
+        reports {
+            // lets not generate any reports because that is done from within the Github Actions workflow
+            html.required.set(false)
+            xml.required.set(false)
+        }
     }
-}
 
-tasks.jar {
-    metaInf {
-        from("${rootProject.projectDir.path}/LICENSE")
-        from("${rootProject.projectDir.path}/NOTICE.md")
+    tasks.jar {
+        metaInf {
+            from("${rootProject.projectDir.path}/LICENSE")
+            from("${rootProject.projectDir.path}/NOTICE.md")
+        }
     }
-}
 
 // Generate XML reports for Codecov
-if (System.getenv("JACOCO") == "true") {
-    tasks.jacocoTestReport {
-        reports {
-            xml.required.set(true)
+    if (System.getenv("JACOCO") == "true") {
+        tasks.jacocoTestReport {
+            reports {
+                xml.required.set(true)
+            }
         }
     }
 }
-
 openApiMerger {
     val yamlDirectory = file("${rootProject.projectDir.path}/resources/openapi/yaml")
 
@@ -271,13 +246,13 @@ if (project.hasProperty("dependency.analysis")) {
     }
     apply(plugin = "com.autonomousapps.dependency-analysis")
     configure<com.autonomousapps.DependencyAnalysisExtension> {
-// See https://github.com/autonomousapps/dependency-analysis-android-gradle-plugin
+        // See https://github.com/autonomousapps/dependency-analysis-android-gradle-plugin
         issues {
             all { // all projects
                 onAny {
                     severity(project.property("dependency.analysis").toString())
                     exclude(
-// dependencies declared at the root level for all modules
+                        // dependencies declared at the root level for all modules
                         "org.jetbrains:annotations",
                         "com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
                         "com.fasterxml.jackson.core:jackson-core",
@@ -287,7 +262,7 @@ if (project.hasProperty("dependency.analysis")) {
                 }
                 onUnusedDependencies {
                     exclude(
-// dependencies declared at the root level for all modules
+                        // dependencies declared at the root level for all modules
                         "com.github.javafaker:javafaker",
                         "org.assertj:assertj-core",
                         "org.junit.jupiter:junit-jupiter-api",
@@ -297,7 +272,7 @@ if (project.hasProperty("dependency.analysis")) {
                 }
                 onIncorrectConfiguration {
                     exclude(
-// some common dependencies are intentionally exported by core:base for simplicity
+                        // some common dependencies are intentionally exported by core:base for simplicity
                         "com.squareup.okhttp3:okhttp",
                         "net.jodah:failsafe",
                     )
@@ -316,3 +291,4 @@ if (project.hasProperty("dependency.analysis")) {
         }
     }
 }
+
