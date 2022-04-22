@@ -104,9 +104,9 @@ public class ConfigImpl implements Config {
 
     @Override
     public Config getConfig(String path) {
-        String absolutePath = absolutePathOf(path);
+        var absolutePath = absolutePathOf(path);
         var filteredEntries = entries.entrySet().stream()
-                .filter(entry -> entry.getKey().startsWith(absolutePath))
+                .filter(entry -> absolutePath.isEmpty() || entry.getKey().startsWith(absolutePath + ".") || entry.getKey().equals(absolutePath))
                 .collect(TO_MAP);
 
         return new ConfigImpl(absolutePath, filteredEntries);

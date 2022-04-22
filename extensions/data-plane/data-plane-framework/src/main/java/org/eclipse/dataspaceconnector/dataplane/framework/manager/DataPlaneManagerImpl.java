@@ -35,6 +35,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.lang.String.format;
+
 /**
  * Default data manager implementation.
  * <p>
@@ -85,7 +87,7 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
         var transferService = transferServiceRegistry.resolveTransferService(dataRequest);
         return transferService != null ?
                 transferService.validate(dataRequest) :
-                Result.failure("Cannot handle this request");
+                Result.failure(format("Cannot find a transfer Service that can handle %s source and %s destination", dataRequest.getSourceDataAddress().getType(), dataRequest.getDestinationDataAddress().getType()));
     }
 
     public void initiateTransfer(DataFlowRequest dataRequest) {

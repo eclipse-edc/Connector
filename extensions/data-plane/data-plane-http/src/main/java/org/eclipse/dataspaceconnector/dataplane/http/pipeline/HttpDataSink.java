@@ -51,7 +51,7 @@ public class HttpDataSink extends ParallelSink {
             var request = requestBuilder.url(endpoint + "/" + part.name()).post(requestBody).build();
             try (var response = httpClient.newCall(request).execute()) {
                 if (!response.isSuccessful()) {
-                    monitor.severe(format("Error received writing HTTP data %s to endpoint %s for request: %s", part.name(), endpoint, request));
+                    monitor.severe(format("Error {%s: %s} received writing HTTP data %s to endpoint %s for request: %s", response.code(), response.message(), part.name(), endpoint, request));
                     return StatusResult.failure(ERROR_RETRY, "Error writing data");
                 }
             } catch (Exception e) {

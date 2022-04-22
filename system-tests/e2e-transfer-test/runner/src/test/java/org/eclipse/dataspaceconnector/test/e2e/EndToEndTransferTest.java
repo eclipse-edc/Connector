@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.test.e2e;
 
-import org.eclipse.dataspaceconnector.common.annotations.EndToEndTest;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcRuntimeExtension;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
@@ -31,6 +30,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import java.net.URI;
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -41,25 +41,30 @@ import static java.io.File.separator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.NAME;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
-import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType.SYNC;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
-@EndToEndTest
+//@EndToEndTest
 class EndToEndTransferTest {
 
     private final Duration timeout = Duration.ofSeconds(30);
 
     private static final URI CONSUMER_CONTROL_PLANE = URI.create("http://localhost:" + getFreePort());
     private static final URI CONSUMER_CONTROL_PLANE_VALIDATION = URI.create("http://localhost:" + getFreePort() + "/validation");
+    private static final URI CONSUMER_CONTROL_PLANE_DATAPLANE = URI.create("http://localhost:" + getFreePort() + "/dataplane");
     private static final URI CONSUMER_DATA_PLANE = URI.create("http://localhost:" + getFreePort());
+    private static final URI CONSUMER_DATA_PLANE_CONTROL = URI.create("http://localhost:" + getFreePort() + "/control");
     private static final URI CONSUMER_DATA_PLANE_PUBLIC = URI.create("http://localhost:" + getFreePort() + "/public");
     private static final URI CONSUMER_BACKEND_SERVICE = URI.create("http://localhost:" + getFreePort());
     private static final URI CONSUMER_IDS_API = URI.create("http://localhost:" + getFreePort());
     private static final URI PROVIDER_CONTROL_PLANE = URI.create("http://localhost:" + getFreePort());
     private static final URI PROVIDER_CONTROL_PLANE_VALIDATION = URI.create("http://localhost:" + getFreePort() + "/validation");
+    private static final URI PROVIDER_CONTROL_PLANE_DATAPLANE = URI.create("http://localhost:" + getFreePort() + "/dataplane");
     private static final URI PROVIDER_DATA_PLANE = URI.create("http://localhost:" + getFreePort());
+    private static final URI PROVIDER_DATA_PLANE_CONTROL = URI.create("http://localhost:" + getFreePort() + "/control");
     private static final URI PROVIDER_DATA_PLANE_PUBLIC = URI.create("http://localhost:" + getFreePort() + "/public");
     private static final URI PROVIDER_BACKEND_SERVICE = URI.create("http://localhost:" + getFreePort());
     private static final URI PROVIDER_IDS_API = URI.create("http://localhost:" + getFreePort());
@@ -75,6 +80,8 @@ class EndToEndTransferTest {
                     put("web.http.path", "/api");
                     put("web.http.ids.port", String.valueOf(CONSUMER_IDS_API.getPort()));
                     put("web.http.ids.path", IDS_PATH);
+                    put("web.http.dataplane.port", String.valueOf(CONSUMER_CONTROL_PLANE_DATAPLANE.getPort()));
+                    put("web.http.dataplane.path", CONSUMER_CONTROL_PLANE_DATAPLANE.getPath());
                     put("web.http.validation.port", String.valueOf(CONSUMER_CONTROL_PLANE_VALIDATION.getPort()));
                     put("web.http.validation.path", "/validation");
                     put("edc.vault", resourceAbsolutePath("consumer-vault.properties"));
@@ -99,8 +106,8 @@ class EndToEndTransferTest {
                     put("web.http.path", "/api");
                     put("web.http.public.port", String.valueOf(CONSUMER_DATA_PLANE_PUBLIC.getPort()));
                     put("web.http.public.path", "/public");
-                    put("web.http.control.port", String.valueOf(getFreePort()));
-                    put("web.http.control.path", "/control");
+                    put("web.http.control.port", String.valueOf(CONSUMER_DATA_PLANE_CONTROL.getPort()));
+                    put("web.http.control.path", CONSUMER_DATA_PLANE_CONTROL.getPath());
                     put("edc.controlplane.validation-endpoint", CONSUMER_CONTROL_PLANE_VALIDATION + "/validation");
                 }
             }
@@ -127,8 +134,8 @@ class EndToEndTransferTest {
                     put("web.http.path", "/api");
                     put("web.http.public.port", String.valueOf(PROVIDER_DATA_PLANE_PUBLIC.getPort()));
                     put("web.http.public.path", "/public");
-                    put("web.http.control.port", String.valueOf(getFreePort()));
-                    put("web.http.control.path", "/control");
+                    put("web.http.control.port", String.valueOf(PROVIDER_DATA_PLANE_CONTROL.getPort()));
+                    put("web.http.control.path", PROVIDER_DATA_PLANE_CONTROL.getPath());
                     put("edc.controlplane.validation-endpoint", PROVIDER_CONTROL_PLANE_VALIDATION + "/validation");
                 }
             }
@@ -144,6 +151,8 @@ class EndToEndTransferTest {
                     put("web.http.path", "/api");
                     put("web.http.ids.port", String.valueOf(PROVIDER_IDS_API.getPort()));
                     put("web.http.ids.path", IDS_PATH);
+                    put("web.http.dataplane.port", String.valueOf(PROVIDER_CONTROL_PLANE_DATAPLANE.getPort()));
+                    put("web.http.dataplane.path", PROVIDER_CONTROL_PLANE_DATAPLANE.getPath());
                     put("web.http.validation.port", String.valueOf(PROVIDER_CONTROL_PLANE_VALIDATION.getPort()));
                     put("web.http.validation.path", "/validation");
                     put("edc.vault", resourceAbsolutePath("provider-vault.properties"));
@@ -184,7 +193,7 @@ class EndToEndTransferTest {
 
         assertThat(contractAgreementId).isNotEmpty();
 
-        var transferProcessId = dataRequest(contractAgreementId, assetId, CONSUMER_CONTROL_PLANE, PROVIDER_IDS_API);
+        var transferProcessId = dataRequest(contractAgreementId, assetId, CONSUMER_CONTROL_PLANE, PROVIDER_IDS_API, sync());
 
         await().atMost(timeout).untilAsserted(() -> {
             var state = getTransferProcessState(transferProcessId, CONSUMER_CONTROL_PLANE);
@@ -221,6 +230,66 @@ class EndToEndTransferTest {
                 .extract().body().as(Catalog.class);
     }
 
+    @Test
+    void httpPushDataTransfer() {
+        var assetId = "asset-id";
+        createAsset(PROVIDER_CONTROL_PLANE, assetId);
+        var policyId = createPolicy(assetId, PROVIDER_CONTROL_PLANE);
+        createContractDefinition(policyId, PROVIDER_CONTROL_PLANE);
+
+        registerDataPlane(PROVIDER_CONTROL_PLANE_DATAPLANE, PROVIDER_DATA_PLANE_CONTROL);
+        var negotiationId = negotiateContractFor(assetId, CONSUMER_CONTROL_PLANE, PROVIDER_IDS_API);
+
+        var contractAgreementId = getContractAgreementId(negotiationId, CONSUMER_CONTROL_PLANE);
+
+        assertThat(contractAgreementId).isNotEmpty();
+
+        var destination = DataAddress.Builder.newInstance()
+                .type("HttpData")
+                .property(NAME, "data")
+                .property(ENDPOINT, CONSUMER_BACKEND_SERVICE + "/api/service")
+                .build();
+        var transferProcessId = dataRequest(contractAgreementId, assetId, CONSUMER_CONTROL_PLANE, PROVIDER_IDS_API, destination);
+
+        await().atMost(timeout).untilAsserted(() -> {
+            var state = getTransferProcessState(transferProcessId, CONSUMER_CONTROL_PLANE);
+            assertThat(state).isEqualTo(COMPLETED.name());
+        });
+
+        await().atMost(timeout).untilAsserted(() -> {
+            given()
+                    .baseUri(CONSUMER_BACKEND_SERVICE.toString())
+                    .when()
+                    .get("/api/service/providerData")
+                    .then()
+                    .statusCode(200)
+                    .body("message", equalTo("some information"));
+        });
+    }
+
+    private DataAddress sync() {
+        return DataAddress.Builder.newInstance().type("HttpProxy").build();
+    }
+
+    private void registerDataPlane(URI controlPlane, URI dataPlane) {
+        var body = Map.of(
+                "edctype", "dataspaceconnector:dataplaneinstance",
+                "id", UUID.randomUUID().toString(),
+                "url", dataPlane.toString() + "/transfer",
+                "allowedSourceTypes", List.of("HttpData"),
+                "allowedDestTypes", List.of("HttpData")
+        );
+
+        given()
+                .baseUri(controlPlane.toString())
+                .contentType(JSON)
+                .body(body)
+                .when()
+                .post("/instances")
+                .then()
+                .statusCode(204);
+    }
+
     private String getTransferProcessState(String transferProcessId, URI instance) {
         return given()
                 .baseUri(instance.toString())
@@ -232,14 +301,14 @@ class EndToEndTransferTest {
                 .extract().body().asString();
     }
 
-    private String dataRequest(String contractAgreementId, String assetId, URI instance, URI provider) {
+    private String dataRequest(String contractAgreementId, String assetId, URI instance, URI provider, DataAddress destination) {
         var request = Map.of(
                 "contractId", contractAgreementId,
                 "assetId", assetId,
                 "connectorId", "provider",
                 "connectorAddress", provider + "/api/v1/ids/data",
                 "protocol", "ids-multipart",
-                "dataDestination", DataAddress.Builder.newInstance().type(SYNC).build(),
+                "dataDestination", destination,
                 "managedResources", false,
                 "transferType", TransferType.Builder.transferType()
                         .contentType("application/octet-stream")
@@ -321,7 +390,8 @@ class EndToEndTransferTest {
                 ),
                 "dataAddress", Map.of(
                         "properties", Map.of(
-                                "endpoint", PROVIDER_BACKEND_SERVICE + "/api/service/data",
+                                "endpoint", PROVIDER_BACKEND_SERVICE + "/api/service",
+                                "name", "data",
                                 "type", "HttpData"
                         )
                 )
