@@ -18,20 +18,18 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.CompletableFuture;
-
 /**
- * Registry for {@link EndpointDataReferenceReceiver}.
+ * Registry for {@link EndpointDataReferenceTransformer}.
  */
-public interface EndpointDataReferenceReceiverRegistry {
+public interface EndpointDataReferenceTransformerRegistry {
     /**
-     * Adds a new {@link EndpointDataReferenceReceiver} into the registry.
+     * Adds a new {@link EndpointDataReferenceTransformer} into the registry.
      */
-    void registerReceiver(@NotNull EndpointDataReferenceReceiver receiver);
+    void registerTransformer(@NotNull EndpointDataReferenceTransformer transformer);
 
     /**
-     * Apply all {@link EndpointDataReferenceReceiver} to the provided {@link EndpointDataReference}.
+     * Browse the registry and apply first applicable {@link EndpointDataReferenceTransformer}.
      */
     @NotNull
-    CompletableFuture<Result<Void>> receiveAll(@NotNull EndpointDataReference edr);
+    Result<EndpointDataReference> transform(@NotNull EndpointDataReference edr);
 }

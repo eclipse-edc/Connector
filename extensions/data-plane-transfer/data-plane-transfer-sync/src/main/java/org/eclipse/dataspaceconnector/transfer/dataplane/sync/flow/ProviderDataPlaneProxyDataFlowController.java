@@ -22,8 +22,8 @@ import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyCreationRequest;
-import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyManager;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTransferProxyCreationRequest;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTransferProxyCreator;
 import org.jetbrains.annotations.NotNull;
 
 import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType.SYNC;
@@ -32,9 +32,9 @@ public class ProviderDataPlaneProxyDataFlowController implements DataFlowControl
 
     private final String connectorId;
     private final RemoteMessageDispatcherRegistry dispatcherRegistry;
-    private final DataPlaneProxyManager proxyManager;
+    private final DataPlaneTransferProxyCreator proxyManager;
 
-    public ProviderDataPlaneProxyDataFlowController(String connectorId, RemoteMessageDispatcherRegistry dispatcherRegistry, DataPlaneProxyManager proxyManager) {
+    public ProviderDataPlaneProxyDataFlowController(String connectorId, RemoteMessageDispatcherRegistry dispatcherRegistry, DataPlaneTransferProxyCreator proxyManager) {
         this.connectorId = connectorId;
         this.dispatcherRegistry = dispatcherRegistry;
         this.proxyManager = proxyManager;
@@ -47,7 +47,7 @@ public class ProviderDataPlaneProxyDataFlowController implements DataFlowControl
 
     @Override
     public @NotNull StatusResult<String> initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
-        var proxyCreationRequest = DataPlaneProxyCreationRequest.Builder.newInstance()
+        var proxyCreationRequest = DataPlaneTransferProxyCreationRequest.Builder.newInstance()
                 .id(dataRequest.getId())
                 .address(contentAddress)
                 .contractId(dataRequest.getContractId())

@@ -22,8 +22,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyCreationRequest;
-import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyManager;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTransferProxyCreationRequest;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTransferProxyCreator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -43,14 +43,14 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
 
     private String connectorId;
     private RemoteMessageDispatcherRegistry dispatcherRegistryMock;
-    private DataPlaneProxyManager proxyManagerMock;
+    private DataPlaneTransferProxyCreator proxyManagerMock;
     private ProviderDataPlaneProxyDataFlowController controller;
 
     @BeforeEach
     void setUp() {
         connectorId = "connector-test";
         dispatcherRegistryMock = mock(RemoteMessageDispatcherRegistry.class);
-        proxyManagerMock = mock(DataPlaneProxyManager.class);
+        proxyManagerMock = mock(DataPlaneTransferProxyCreator.class);
         controller = new ProviderDataPlaneProxyDataFlowController(connectorId, dispatcherRegistryMock, proxyManagerMock);
     }
 
@@ -70,7 +70,7 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
         var edr = createEndpointDataReference();
 
         var edrRequestCaptor = ArgumentCaptor.forClass(EndpointDataReferenceMessage.class);
-        var proxyCreationRequestCaptor = ArgumentCaptor.forClass(DataPlaneProxyCreationRequest.class);
+        var proxyCreationRequestCaptor = ArgumentCaptor.forClass(DataPlaneTransferProxyCreationRequest.class);
 
         when(dispatcherRegistryMock.send(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
         when(proxyManagerMock.createProxy(any())).thenReturn(Result.success(edr));

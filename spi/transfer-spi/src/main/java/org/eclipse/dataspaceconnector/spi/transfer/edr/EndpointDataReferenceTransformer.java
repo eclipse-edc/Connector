@@ -18,7 +18,17 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
 import org.jetbrains.annotations.NotNull;
 
-@FunctionalInterface
+/**
+ * Defines a transformation operation for a {@link EndpointDataReference}.
+ */
 public interface EndpointDataReferenceTransformer {
+    /**
+     * Returns true if current {@link EndpointDataReferenceTransformer} can operate on this {@link EndpointDataReference}.
+     */
+    boolean canHandle(@NotNull EndpointDataReference edr);
+
+    /**
+     * Apply transformation on {@link EndpointDataReference} if it can handle it.
+     */
     Result<EndpointDataReference> transform(@NotNull EndpointDataReference edr);
 }

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2022 Amadeus
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -21,13 +21,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Defines what to do when an {@link EndpointDataReference} is received by the consumer Control Plane (consecutive to the Artifact Request).
+ * Defines actions to perform on {@link EndpointDataReference} when it is received by the consumer Control Plane.
  */
 @FunctionalInterface
 public interface EndpointDataReferenceReceiver {
-
-    /**
-     * Tells what to do when an {@link EndpointDataReference} is received, e.g. storing it into a database, send it to a http endpoint...
-     */
     CompletableFuture<Result<Void>> send(@NotNull EndpointDataReference edr);
 }
