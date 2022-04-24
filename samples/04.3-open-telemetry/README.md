@@ -29,14 +29,30 @@ docker-compose -f samples/04.3-open-telemetry/docker-compose.yaml up --abort-on-
 Once the consumer and provider are up, start a contract negotiation by executing:
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9192/api/v1/data/contractnegotiations"
+curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.3-open-telemetry/contractoffer.json "http://localhost:9192/api/v1/data/contractnegotiations"
 ```
 
-The contract negotiation causes an HTTP request sent from the consumer to the provider connector, followed by another message from the provider to the consumer connector.
+The contract negotiation causes an HTTP request sent from the consumer to the provider connector, followed by another message from the provider to the consumer connector. Query the status of the contract negotiation by executing the following command. Wait until the negotiation is in CONFIRMED state and note down the contract agreement id.
+
+```bash
+curl -X GET -H 'X-Api-Key: password' "http://localhost:9192/api/v1/data/contractnegotiations/{UUID}"
+```
+
+Finally, update the contract agreement id in the `filetransfer.json` file and execute a file transfer with the following command:
+
+```bash
+curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.3-open-telemetry/filetransfer.json "http://localhost:9192/api/v1/data/transferprocess"
+```
 
 You can access the Jaeger UI on your browser at `http://localhost:16686`.
 In the search tool, we can select the service `consumer` and click on `Find traces`.
 A trace represents an event and is composed of several spans. You can inspect details on the spans contained in a trace by clicking on it in the Jaeger UI.
+
+Example contract negotiation trace:
+![Contract negotiation](./attachments/contract-negotiation-trace.png)
+
+Example file transfer trace:
+![File transfer](./attachments/file-transfer-trace.png)
 
 OkHttp and Jetty are part of the [libraries and frameworks](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation) that OpenTelemetry can capture telemetry from. We can observe spans related to OkHttp and Jetty as EDC uses both frameworks internally. The `otel.library.name` tag of the different spans indicates the framework each span is coming from.
 

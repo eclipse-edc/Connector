@@ -29,7 +29,6 @@ dependencies {
     implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:in-memory:policy-store-memory"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))
-    implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:in-memory:negotiation-store-memory"))
     implementation(project(":extensions:in-memory:contractdefinition-store-memory"))
 
@@ -43,7 +42,6 @@ dependencies {
     runtimeOnly(project(":extensions:http:jersey-micrometer"))
     runtimeOnly(project(":extensions:http:jetty-micrometer"))
     runtimeOnly(project(":extensions:jdk-logger-monitor"))
-    implementation(project(":samples:04.0-file-transfer:api"))
 }
 
 application {

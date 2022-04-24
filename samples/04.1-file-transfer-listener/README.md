@@ -9,8 +9,6 @@ Also, in order to keep things organized, the code in this example has been separ
 - `consumer`: this is where the extension definition and dependencies reside for the consumer connector
 - `listener`: contains the `TransferProcessListener` implementation
 
-The consumer also uses the `api` module (REST API) from the [file transfer sample](../04-file-transfer).
-
 ## Create the listener
 
 A TransferProcessListener may define methods that are invoked after a transfer changes state, for example, to notify an external application on the consumer side after data has been produced (i.e. the transfer moves to the completed state).
@@ -59,28 +57,25 @@ Open another terminal window (or any REST client of your choice) and execute the
 ```bash
 curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9192/api/v1/data/contractnegotiations"
 curl -X GET -H 'X-Api-Key: password' "http://localhost:9192/api/v1/data/contractnegotiations/{UUID}"
-curl -X POST "http://localhost:9191/api/file/test-document?connectorAddress=http://localhost:8181/api/v1/ids/data/&destination=/path/on/yourmachine&contractId={agreement ID}"
+curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/filetransfer.json "http://localhost:9192/api/v1/data/transferprocess"
 ```
 
 > **Replace `{negotiation ID}` in the second request with the UUID received as the response to the first request!**
 >
-> **Copy the contract agreement's ID from the second response, substitute it for `{agreement ID}` in the last request and adjust the `destination` to match your local dev machine!**
+> **Copy the contract agreement's ID from the second response, substitute it for `{agreement ID}` in the last request json body and adjust the `dataDestination.properties.path` to match your local dev machine!**
 
-- the last path item, `test-document`, matches the ID of the `Asset` that we created earlier in
-  `FileTransferExtension.java`, thus referencing the _data source_
-- the first query parameter (`connectorAddress`) is the address of the provider connector
-- the last query parameter (`destination`) indicates the desired _destination_ directory on you local machine.
 - `curl` will return the ID of the transfer process on the consumer connector.
 
 The consumer should spew out logs similar to:
 
 ```bash
-INFO 2021-09-07T17:24:42.128363 Received request for file test-document against provider http://localhost:8181/
-DEBUG 2021-09-07T17:24:42.592422 Request approved and acknowledged for process: 2b0a9ab8-78db-4753-8b95-77678cdd9fc8
-DEBUG 2021-09-07T17:24:47.425729 Process 2b0a9ab8-78db-4753-8b95-77678cdd9fc8 is now IN_PROGRESS
-DEBUG 2021-09-07T17:24:47.426115 Process 2b0a9ab8-78db-4753-8b95-77678cdd9fc8 is now COMPLETED
-DEBUG 2021-09-07T17:24:47.426531 Transfer listener successfully wrote file /path/on/yourmachine/marker.txt
-
+DEBUG 2022-04-14T16:23:13.4042547 Starting transfer for asset test-document
+DEBUG 2022-04-14T16:23:13.4072776 Transfer process initialised 6804ed96-298e-4992-b72d-2366d97cf7a6
+DEBUG 2022-04-14T16:23:13.8801678 TransferProcessManager: Sending process 6804ed96-298e-4992-b72d-2366d97cf7a6 request to http://localhost:8282/api/v1/ids/data
+DEBUG 2022-04-14T16:23:13.9341802 TransferProcessManager: Process 6804ed96-298e-4992-b72d-2366d97cf7a6 is now REQUESTED
+DEBUG 2022-04-14T16:23:18.9048494 Process 6804ed96-298e-4992-b72d-2366d97cf7a6 is now IN_PROGRESS
+DEBUG 2022-04-14T16:23:18.9048494 Process 6804ed96-298e-4992-b72d-2366d97cf7a6 is now COMPLETED
+INFO 2022-04-14T16:23:18.9048494 Transfer Listener successfully wrote file C:\Users\pechande\dev\coding\EDC\marker.txt
 ```
 
 then check `/path/on/yourmachine`, which should now contain a file named `marker.txt` in addition to the file named `test-document.txt`.

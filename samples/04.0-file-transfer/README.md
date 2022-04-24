@@ -10,34 +10,16 @@ This is quite a big step up from the previous sample, where we ran only one conn
 
 * Creating an additional connector, so that in the end we have two connectors, a consumer and a provider
 * Providing communication between provider and consumer using IDS multipart messages
-* Exposing a REST API on the consumer side that external systems (e.g. users) can interact with
+* Utilize Data management API to interact with connector system.
 * Performing a contract negotiation between provider and consumer
 * Performing a file transfer
-    * The consumer will initiate a file transfer
-    * The provider will fulfill that request and copy a file to the desired location
+  * The consumer will initiate a file transfer
+  * The provider will fulfill that request and copy a file to the desired location
 
 Also, in order to keep things organized, the code in this example has been separated into several Java modules:
 
 * `[consumer|provider]`: contains the configuration and build files for both the consumer and the provider connector
-* `api`: contains the REST API extension for the consumer connector (previously named `HealthApiExtension`)
 * `transfer-file`: contains all the code necessary for the file transfer, integrated on provider side
-
-## Create the control REST API
-
-We will need some way to interact with the consumer, a communication protocol of sorts. That is what we call
-outward-facing communication. In this example, we will communicate with the consumer via simple command line tools
-like `cURL`, but it is easy to imagine some other much more complicated control system to interact with the (consumer)
-connector. Thus, using Jakarta, we must create an API controller the same way we created our health endpoint a few
-chapters back. In fact, we can re-use and improve
-[that controller](api/src/main/java/org/eclipse/dataspaceconnector/extensions/api/ConsumerApiController.java)
-(code omitted here for brevity). Namely, we add two additional endpoints to the controller: one for initiating the
-contract negotiation and one for initiating the file transfer. Both actions can also be performed via endpoints in the
-[existing control API extension](../../extensions/api/control/src/main/java/org/eclipse/dataspaceconnector/api/control/ClientController.java)
-, but we intentionally do **not** use that here, because it requires a more complex JSON body. By using a custom API we
-can minimize the required user input and thus reduce complexity.
-
-Again, like before, the controller is instantiated and registered in an extension which we aptly
-name `ApiEndpointExtension.java`.
 
 ## Create the file transfer extension
 
@@ -106,8 +88,8 @@ restrictions on the data usage. The `ContractDefinition` also has an
 the created asset.
 
 Next to offering the file, the provider also needs to be able to transfer the file. Therefore, the `transfer-file`
-extension also provides the
-[FileTransferDataSteamPublisher](transfer-file/src/main/java/org/eclipse/dataspaceconnector/extensions/api/FileTransferDataStreamPublisher.java)
+also provides the
+[FileTransferExtension](transfer-file/src/main/java/org/eclipse/dataspaceconnector/extensions/api/FileTransferExtension.java)
 , which contains the code for copying the file to a specified location (code omitted here for brevity).
 
 ## Create the connectors
@@ -143,13 +125,6 @@ the webhook address to `http://localhost:8282` accordingly.
 
 The consumer is the one "requesting" the data and providing a destination for it, i.e. a directory into which the
 provider can copy the requested file.
-
-While the consumer does not need the `transfer-file` module, it does indeed need the `api` module, which implements the
-REST API:
-
-```kotlin
-implementation(project(":samples:04.0-file-transfer:api"))
-```
 
 It is good practice to explicitly configure the consumer's API port in `consumer/config.properties` like we learned in
 previous chapters. In the config file, we also need to configure the API key authentication, as we're going to use an
@@ -195,8 +170,7 @@ The consumer now needs to initiate a contract negotiation sequence with the prov
 Of course, this is the simplest possible negotiation sequence. Later on, both connectors can also send counter offers in
 addition to just confirming or declining an offer.
 
-In order to trigger the negotiation, we use the endpoint previously created in the `api` extension. We specify the
-address of the provider connector as a query parameter and set our contract offer in the request body. The contract
+In order to trigger the negotiation, we use Data management api endpoints. We set our contract offer in the request body. The contract
 offer is prepared in [contractoffer.json](contractoffer.json)
 and can be used as is. In a real scenario, a potential consumer would first need to request a description of the
 provider's offers in order to get the provider's contract offer.
@@ -250,13 +224,13 @@ just wait for a moment and call the endpoint again.
 
 ### 4. Request the file
 
-Now that we have a contract agreement, we can finally request the file. For this, we use the new endpoint provided in
-the `api` extension of this sample. We specify the name of the file we want to have transferred as a path variable and
+Now that we have a contract agreement, we can finally request the file. In request body we specify the name of the file
+we want to have transferred and
 provide the address of the provider connector, the path where we want the file copied, and the contract agreement ID as
 query parameters:
 
 ```bash
-curl -X POST "http://localhost:9191/api/file/test-document?connectorAddress=http://localhost:8282/api/v1/ids/data&destination=/path/on/yourmachine&contractId={agreement ID}"
+curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/filetransfer.json "http://localhost:9192/api/v1/data/transferprocess"
 ```
 
 Again, we will get a UUID in the response. This time, this is the ID of the `TransferProcess`
@@ -266,30 +240,18 @@ performed asynchronously.
 Since transferring a file does not require any resource provisioning on either side, the transfer will be very quick and
 most likely already done by the time you read the UUID.
 
---- 
+---
 
 You can also check the logs of the connectors to see that the transfer has been completed:
 
 Consumer side:
 
 ```bash
-INFO 2021-12-08T10:54:46.55678709 Received request for file test-document against provider http://localhost:8181/api/v1/ids/data
-DEBUG 2021-12-08T10:54:47.454351767 Request approved and acknowledged for process: 98512dc2-3985-4696-937e-2c12c5ef77e3
-DEBUG 2021-12-08T10:54:52.123863179 Process 98512dc2-3985-4696-937e-2c12c5ef77e3 is now IN_PROGRESS
-DEBUG 2021-12-08T10:54:52.124975956 Process 98512dc2-3985-4696-937e-2c12c5ef77e3 is now COMPLETED
+DEBUG 2022-04-14T15:07:48.6106399 Starting transfer for asset test-document
+DEBUG 2022-04-14T15:07:48.613652 Transfer process initialised 5ca43915-9bbf-4cb8-8764-2c0142709f3c
+DEBUG 2022-04-14T15:07:56.3573442 Process 5ca43915-9bbf-4cb8-8764-2c0142709f3c is now IN_PROGRESS
+DEBUG 2022-04-14T15:07:56.3583484 Process 5ca43915-9bbf-4cb8-8764-2c0142709f3c is now COMPLETED
 ```
-
-Provider side:
-
-```bash
-DEBUG 2021-12-08T10:54:47.383011288 Received artifact request for: test-document
-INFO 2021-12-08T10:54:47.399136285 Data transfer request initiated
-DEBUG 2021-12-08T10:54:51.147997198 Destination path /path/on/yourmachine does not exist, will attempt to create
-DEBUG 2021-12-08T10:54:51.148164749 Successfully created destination path /path/on/yourmachine
-INFO 2021-12-08T10:54:51.151692641 Successfully copied file to /path/on/yourmachine
-```
-
-Note, that the second and third `DEBUG` logs will only appear, if the destination file did not previously exist.
 
 ### 5. See transferred file
 
