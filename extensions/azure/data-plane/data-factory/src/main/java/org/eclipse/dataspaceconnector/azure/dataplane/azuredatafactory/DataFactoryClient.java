@@ -29,7 +29,7 @@ class DataFactoryClient {
     private final String resourceGroupName;
     private final String factoryName;
 
-    public DataFactoryClient(DataFactoryManager dataFactoryManager, String resourceGroupName, String factoryName) {
+    DataFactoryClient(DataFactoryManager dataFactoryManager, String resourceGroupName, String factoryName) {
         this.dataFactoryManager = dataFactoryManager;
         this.resourceGroupName = resourceGroupName;
         this.factoryName = factoryName;
