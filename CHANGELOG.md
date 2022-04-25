@@ -39,6 +39,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Fix problem with interpreting contractId/negotiationId (#1140)
 * Fixed DMgmtApi content types (#1126)
 * Fix HTTPS termination in Jetty (#1133)
+* Break lease after TransferProcessManager status check (#1214)
 
 ## [milestone-3] - 2022-04-08
 
