@@ -85,7 +85,7 @@ public final class CommonsConnectionPool implements ConnectionPool, AutoCloseabl
         private final String testQuery;
         private final DataSource dataSource;
 
-        public PooledConnectionObjectFactory(@NotNull DataSource dataSource, @NotNull String testQuery) {
+        PooledConnectionObjectFactory(@NotNull DataSource dataSource, @NotNull String testQuery) {
             this.dataSource = Objects.requireNonNull(dataSource);
             this.testQuery = Objects.requireNonNull(testQuery);
         }

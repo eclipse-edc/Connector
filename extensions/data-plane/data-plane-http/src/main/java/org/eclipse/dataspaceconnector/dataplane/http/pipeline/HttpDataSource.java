@@ -177,7 +177,7 @@ public class HttpDataSource implements DataSource {
         private final String name;
         private final byte[] content;
 
-        public HttpPart(String name, byte[] content) {
+        HttpPart(String name, byte[] content) {
             this.name = name;
             this.content = content;
         }

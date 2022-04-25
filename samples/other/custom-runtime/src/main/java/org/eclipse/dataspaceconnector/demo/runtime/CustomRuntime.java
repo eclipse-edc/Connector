@@ -55,7 +55,7 @@ public class CustomRuntime extends BaseRuntime {
     }
 
     private static class SuperCustomExtensionContext extends DefaultServiceExtensionContext {
-        public SuperCustomExtensionContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry, List<ConfigurationExtension> configurationExtensions) {
+        SuperCustomExtensionContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry, List<ConfigurationExtension> configurationExtensions) {
             super(typeManager, monitor, telemetry, configurationExtensions);
         }
     }

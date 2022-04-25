@@ -733,7 +733,7 @@ class TransferProcessManagerImplTest {
     }
 
     private static class TokenTestProvisionResource extends TestProvisionedDataDestinationResource {
-        public TokenTestProvisionResource(String resourceName, String id) {
+        TokenTestProvisionResource(String resourceName, String id) {
             super(resourceName, id);
             this.hasToken = true;
         }

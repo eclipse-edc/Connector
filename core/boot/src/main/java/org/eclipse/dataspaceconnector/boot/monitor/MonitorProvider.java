@@ -64,7 +64,7 @@ public class MonitorProvider implements SLF4JServiceProvider {
     }
 
     private static class MonitorLogger extends AbstractLogger {
-        public MonitorLogger() {
+        MonitorLogger() {
             name = getClass().getSimpleName();
         }
 

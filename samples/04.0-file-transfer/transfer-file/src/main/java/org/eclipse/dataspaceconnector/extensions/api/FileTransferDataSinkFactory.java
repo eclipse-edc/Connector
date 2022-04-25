@@ -29,7 +29,7 @@ class FileTransferDataSinkFactory implements DataSinkFactory {
     private final ExecutorService executorService;
     private final int partitionSize;
 
-    public FileTransferDataSinkFactory(Monitor monitor, ExecutorService executorService, int partitionSize) {
+    FileTransferDataSinkFactory(Monitor monitor, ExecutorService executorService, int partitionSize) {
         this.monitor = monitor;
         this.executorService = executorService;
         this.partitionSize = partitionSize;

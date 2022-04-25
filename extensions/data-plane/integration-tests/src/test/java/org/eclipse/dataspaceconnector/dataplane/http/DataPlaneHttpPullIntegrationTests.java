@@ -173,7 +173,7 @@ public class DataPlaneHttpPullIntegrationTests {
         private final RequestSpecification dataplaneRequest;
         private final HttpRequest expectedSourceRequest;
 
-        public TestInstance(String method) {
+        TestInstance(String method) {
             this.method = method;
             dataplaneRequest = givenDpfRequest(token);
             expectedSourceRequest = new HttpRequest();

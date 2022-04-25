@@ -40,7 +40,7 @@ class S3DataSource implements DataSource {
         private final String keyName;
         private final String bucketName;
 
-        public S3Part(S3Client client, String keyName, String bucketName) {
+        S3Part(S3Client client, String keyName, String bucketName) {
             this.client = client;
             this.keyName = keyName;
             this.bucketName = bucketName;

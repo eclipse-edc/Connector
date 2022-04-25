@@ -46,7 +46,7 @@ class PooledDataSourceConnection implements Connection {
     private final Connection connection;
     private final ConnectionPool connectionPool;
 
-    public PooledDataSourceConnection(Connection connection, ConnectionPool connectionPool) {
+    PooledDataSourceConnection(Connection connection, ConnectionPool connectionPool) {
         this.connectionPool = Objects.requireNonNull(connectionPool);
         this.connection = Objects.requireNonNull(connection);
     }
