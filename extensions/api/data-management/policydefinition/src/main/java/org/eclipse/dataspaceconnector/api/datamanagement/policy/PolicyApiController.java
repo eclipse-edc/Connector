@@ -40,6 +40,8 @@ import java.util.Optional;
 
 import static java.lang.String.format;
 
+@Produces({ MediaType.APPLICATION_JSON })
+@Consumes({ MediaType.APPLICATION_JSON })
 @Path("/policies")
 public class PolicyApiController implements PolicyApi {
 
@@ -52,7 +54,6 @@ public class PolicyApiController implements PolicyApi {
     }
 
     @GET
-    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public List<Policy> getAllPolicies(@QueryParam("offset") Integer offset,
                                        @QueryParam("limit") Integer limit,
@@ -73,7 +74,6 @@ public class PolicyApiController implements PolicyApi {
 
     @GET
     @Path("{id}")
-    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public Policy getPolicy(@PathParam("id") String id) {
         monitor.debug(format("Attempting to return policy with ID %s", id));
@@ -83,7 +83,6 @@ public class PolicyApiController implements PolicyApi {
     }
 
     @POST
-    @Consumes({ MediaType.APPLICATION_JSON })
     @Override
     public void createPolicy(Policy policy) {
 

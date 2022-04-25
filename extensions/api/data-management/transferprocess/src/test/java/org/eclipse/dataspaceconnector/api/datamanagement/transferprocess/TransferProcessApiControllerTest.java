@@ -56,11 +56,11 @@ import static org.mockito.Mockito.when;
 class TransferProcessApiControllerTest {
     public static final int OFFSET = 5;
     public static final int LIMIT = 10;
+    private static final Faker FAKER = new Faker();
     private final TransferProcessService service = mock(TransferProcessService.class);
     private final DtoTransformerRegistry transformerRegistry = mock(DtoTransformerRegistry.class);
     private final String filterExpression = "someField=value";
     private final String someField = "someField";
-    private static final Faker FAKER = new Faker();
     private TransferProcessApiController controller;
 
     @BeforeEach
@@ -118,7 +118,7 @@ class TransferProcessApiControllerTest {
 
         when(service.getState(id)).thenReturn("PROVISIONING");
 
-        assertThat(controller.getTransferProcessState(id)).isEqualTo("PROVISIONING");
+        assertThat(controller.getTransferProcessState(id).getState()).isEqualTo("PROVISIONING");
     }
 
     @Test
@@ -192,7 +192,7 @@ class TransferProcessApiControllerTest {
         when(transformerRegistry.transform(isA(TransferRequestDto.class), eq(DataRequest.class))).thenReturn(Result.success(request));
         when(service.initiateTransfer(any())).thenReturn(ServiceResult.success(processId));
 
-        String result = controller.initiateTransfer(transferReq);
+        String result = controller.initiateTransfer(transferReq).getId();
 
         var dataRequestCaptor = ArgumentCaptor.forClass(DataRequest.class);
         verify(service).initiateTransfer(dataRequestCaptor.capture());
@@ -258,28 +258,6 @@ class TransferProcessApiControllerTest {
                 .build();
     }
 
-    private static class InvalidRequestParams implements ArgumentsProvider {
-
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                    Arguments.of(null, "some-contract", "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
-                    Arguments.of("", "some-contract", "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
-                    Arguments.of("  ", "some-contract", "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
-                    Arguments.of("http://someurl", null, "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
-                    Arguments.of("http://someurl", "", "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
-                    Arguments.of("http://someurl", "  ", "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
-                    Arguments.of("http://someurl", "some-contract", "test-asset", null, DataAddress.Builder.newInstance().type("test-type").build()),
-                    Arguments.of("http://someurl", "some-contract", "test-asset", "", DataAddress.Builder.newInstance().type("test-type").build()),
-                    Arguments.of("http://someurl", "some-contract", "test-asset", "  ", DataAddress.Builder.newInstance().type("test-type").build()),
-                    Arguments.of("http://someurl", "some-contract", "test-asset", "ids-multipart", null),
-                    Arguments.of("http://someurl", "some-contract", null, "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
-                    Arguments.of("http://someurl", "some-contract", "", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
-                    Arguments.of("http://someurl", "some-contract", "  ", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build())
-            );
-        }
-    }
-
     private void assertQuerySpec(int limit, int offset, SortOrder sortOrder, String sortField, Criterion... criterions) {
         ArgumentCaptor<QuerySpec> captor = ArgumentCaptor.forClass(QuerySpec.class);
         verify(service).query(captor.capture());
@@ -317,5 +295,27 @@ class TransferProcessApiControllerTest {
                 .protocol(dto.getProtocol())
                 .dataDestination(dto.getDataDestination())
                 .build();
+    }
+
+    private static class InvalidRequestParams implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    Arguments.of(null, "some-contract", "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("", "some-contract", "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("  ", "some-contract", "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("http://someurl", null, "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("http://someurl", "", "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("http://someurl", "  ", "test-asset", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("http://someurl", "some-contract", "test-asset", null, DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("http://someurl", "some-contract", "test-asset", "", DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("http://someurl", "some-contract", "test-asset", "  ", DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("http://someurl", "some-contract", "test-asset", "ids-multipart", null),
+                    Arguments.of("http://someurl", "some-contract", null, "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("http://someurl", "some-contract", "", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build()),
+                    Arguments.of("http://someurl", "some-contract", "  ", "ids-multipart", DataAddress.Builder.newInstance().type("test-type").build())
+            );
+        }
     }
 }

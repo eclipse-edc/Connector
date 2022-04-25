@@ -17,8 +17,10 @@ package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferId;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferProcessDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferRequestDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferState;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 
 import java.util.List;
@@ -31,11 +33,11 @@ public interface TransferProcessApi {
 
     TransferProcessDto getTransferProcess(String id);
 
-    String getTransferProcessState(String id);
+    TransferState getTransferProcessState(String id);
 
     void cancelTransferProcess(String id);
 
     void deprovisionTransferProcess(String id);
 
-    String initiateTransfer(@Valid TransferRequestDto transferRequest);
+    TransferId initiateTransfer(@Valid TransferRequestDto transferRequest);
 }
