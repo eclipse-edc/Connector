@@ -27,6 +27,7 @@ import java.util.Map;
 public class TransferRequestDto {
 
     private String connectorAddress;
+    private String id;
     private String contractId;
     private DataAddress dataDestination;
     private boolean managedResources = true;
@@ -38,6 +39,10 @@ public class TransferRequestDto {
 
     public String getConnectorAddress() {
         return connectorAddress;
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getContractId() {
@@ -87,6 +92,11 @@ public class TransferRequestDto {
 
         public Builder connectorAddress(String connectorAddress) {
             request.connectorAddress = connectorAddress;
+            return this;
+        }
+
+        public Builder id(String id) {
+            request.id = id;
             return this;
         }
 
