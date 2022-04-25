@@ -15,8 +15,8 @@
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline;
 
 import net.jodah.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.adapter.BlobAdapterFactory;
-import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.schema.AzureBlobStoreSchema;
+import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
+import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSourceFactory;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -29,21 +29,21 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.validator.AzureStorageValidator.validateAccountName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.validator.AzureStorageValidator.validateBlobName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.validator.AzureStorageValidator.validateContainerName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.validator.AzureStorageValidator.validateSharedKey;
+import static org.eclipse.dataspaceconnector.azure.blob.core.validator.AzureStorageValidator.validateAccountName;
+import static org.eclipse.dataspaceconnector.azure.blob.core.validator.AzureStorageValidator.validateBlobName;
+import static org.eclipse.dataspaceconnector.azure.blob.core.validator.AzureStorageValidator.validateContainerName;
+import static org.eclipse.dataspaceconnector.azure.blob.core.validator.AzureStorageValidator.validateSharedKey;
 
 /**
  * Instantiates {@link AzureStorageDataSource}s for requests whose source data type is {@link AzureBlobStoreSchema#TYPE}.
  */
 public class AzureStorageDataSourceFactory implements DataSourceFactory {
-    private final BlobAdapterFactory blobAdapterFactory;
+    private final BlobStoreApi blobStoreApi;
     private final RetryPolicy<Object> retryPolicy;
     private final Monitor monitor;
 
-    public AzureStorageDataSourceFactory(BlobAdapterFactory blobAdapterFactory, RetryPolicy<Object> retryPolicy, Monitor monitor) {
-        this.blobAdapterFactory = blobAdapterFactory;
+    public AzureStorageDataSourceFactory(BlobStoreApi blobStoreApi, RetryPolicy<Object> retryPolicy, Monitor monitor) {
+        this.blobStoreApi = blobStoreApi;
         this.retryPolicy = retryPolicy;
         this.monitor = monitor;
     }
@@ -83,7 +83,7 @@ public class AzureStorageDataSourceFactory implements DataSourceFactory {
                 .accountName(dataAddress.getProperty(AzureBlobStoreSchema.ACCOUNT_NAME))
                 .containerName(dataAddress.getProperty(AzureBlobStoreSchema.CONTAINER_NAME))
                 .sharedKey(dataAddress.getProperty(AzureBlobStoreSchema.SHARED_KEY))
-                .blobAdapterFactory(blobAdapterFactory)
+                .blobStoreApi(blobStoreApi)
                 .blobName(dataAddress.getProperty(AzureBlobStoreSchema.BLOB_NAME))
                 .requestId(request.getId())
                 .retryPolicy(retryPolicy)

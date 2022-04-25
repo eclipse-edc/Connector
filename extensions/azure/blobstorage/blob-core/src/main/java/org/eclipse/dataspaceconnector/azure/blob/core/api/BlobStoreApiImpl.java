@@ -25,6 +25,8 @@ import com.azure.storage.common.sas.AccountSasPermission;
 import com.azure.storage.common.sas.AccountSasResourceType;
 import com.azure.storage.common.sas.AccountSasService;
 import com.azure.storage.common.sas.AccountSasSignatureValues;
+import org.eclipse.dataspaceconnector.azure.blob.core.adapter.BlobAdapter;
+import org.eclipse.dataspaceconnector.azure.blob.core.adapter.DefaultBlobAdapter;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 
 import java.time.OffsetDateTime;
@@ -37,14 +39,13 @@ import java.util.stream.Collectors;
 public class BlobStoreApiImpl implements BlobStoreApi {
 
     private final Vault vault;
-    private final String blobstoreEndpoint;
+    private final String blobstoreEndpointTemplate;
     private final Map<String, BlobServiceClient> cache = new HashMap<>();
 
-    public BlobStoreApiImpl(Vault vault, String blobstoreEndpoint) {
+    public BlobStoreApiImpl(Vault vault, String blobstoreEndpointTemplate) {
         this.vault = vault;
-        this.blobstoreEndpoint = blobstoreEndpoint;
+        this.blobstoreEndpointTemplate = blobstoreEndpointTemplate;
     }
-
 
     @Override
     public void createContainer(String accountName, String containerName) {
@@ -102,7 +103,6 @@ public class BlobStoreApiImpl implements BlobStoreApi {
             return cache.get(accountName);
         }
 
-
         var accountKey = vault.resolveSecret(accountName + "-key1");
 
         if (accountKey == null) {
@@ -117,14 +117,30 @@ public class BlobStoreApiImpl implements BlobStoreApi {
         return blobServiceClient;
     }
 
-
-    private String createEndpoint(String accountName) {
-        return Objects.requireNonNullElseGet(blobstoreEndpoint, () -> "https://" + accountName + ".blob.core.windows.net");
-    }
-
     private StorageSharedKeyCredential createCredential(String accountKey, String accountName) {
         return new StorageSharedKeyCredential(accountName, accountKey);
     }
 
+    @Override
+    public BlobAdapter getBlobAdapter(String accountName, String containerName, String blobName, String sharedKey) {
+        BlobServiceClientBuilder builder = new BlobServiceClientBuilder().credential(new StorageSharedKeyCredential(accountName, sharedKey));
+        return getBlobAdapter(accountName, containerName, blobName, builder);
+    }
 
+    private BlobAdapter getBlobAdapter(String accountName, String containerName, String blobName, BlobServiceClientBuilder builder) {
+        var blobServiceClient = builder
+                .endpoint(createEndpoint(accountName))
+                .buildClient();
+
+        var blockBlobClient = blobServiceClient
+                .getBlobContainerClient(containerName)
+                .getBlobClient(blobName)
+                .getBlockBlobClient();
+
+        return new DefaultBlobAdapter(blockBlobClient);
+    }
+
+    private String createEndpoint(String accountName) {
+        return String.format(blobstoreEndpointTemplate, accountName);
+    }
 }
