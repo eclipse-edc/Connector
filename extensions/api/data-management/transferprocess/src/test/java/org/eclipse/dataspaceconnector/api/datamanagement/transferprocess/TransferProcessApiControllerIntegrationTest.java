@@ -172,6 +172,7 @@ class TransferProcessApiControllerIntegrationTest {
     @Test
     void initiateRequest() {
         var request = TransferRequestDto.Builder.newInstance()
+                .id("id")
                 .connectorAddress("http://some-contract")
                 .contractId("some-contract")
                 .protocol("test-asset")

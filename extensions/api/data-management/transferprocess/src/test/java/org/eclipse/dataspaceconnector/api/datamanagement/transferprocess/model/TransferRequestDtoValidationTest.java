@@ -50,8 +50,9 @@ class TransferRequestDtoValidationTest {
 
     @ParameterizedTest
     @ArgumentsSource(InvalidPropertiesProvider.class)
-    void validate_invalidProperties(String address, String contract, DataAddress destination, TransferType type, String protocol, String connectorId, String assetId) {
+    void validate_invalidProperties(String id, String address, String contract, DataAddress destination, TransferType type, String protocol, String connectorId, String assetId) {
         var dto = TransferRequestDto.Builder.newInstance()
+                .id(id)
                 .assetId(assetId)
                 .connectorAddress(address)
                 .connectorId(connectorId)
@@ -66,15 +67,16 @@ class TransferRequestDtoValidationTest {
 
     private static class InvalidPropertiesProvider implements ArgumentsProvider {
         @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    Arguments.of(null, "contractId", destination(), transferType(), "ids-multipart", "connectorId", "assetId"),
-                    Arguments.of("connectorAddress", null, destination(), transferType(), "ids-multipart", "connectorId", "assetId"),
-                    Arguments.of("connectorAddress", "contractId", null, transferType(), "ids-multipart", "connectorId", "assetId"),
-                    Arguments.of("connectorAddress", "contractId", destination(), null, "ids-multipart", "connectorId", "assetId"),
-                    Arguments.of("connectorAddress", "contractId", destination(), transferType(), null, "connectorId", "assetId"),
-                    Arguments.of("connectorAddress", "contractId", destination(), transferType(), "ids-multipart", null, "assetId"),
-                    Arguments.of("connectorAddress", "contractId", destination(), transferType(), "ids-multipart", "connectorId", null)
+                    Arguments.of(null, "connectorAddress", "contractId", destination(), transferType(), "ids-multipart", "connectorId", "assetId"),
+                    Arguments.of("id", null, "contractId", destination(), transferType(), "ids-multipart", "connectorId", "assetId"),
+                    Arguments.of("id", "connectorAddress", null, destination(), transferType(), "ids-multipart", "connectorId", "assetId"),
+                    Arguments.of("id", "connectorAddress", "contractId", null, transferType(), "ids-multipart", "connectorId", "assetId"),
+                    Arguments.of("id", "connectorAddress", "contractId", destination(), null, "ids-multipart", "connectorId", "assetId"),
+                    Arguments.of("id", "connectorAddress", "contractId", destination(), transferType(), null, "connectorId", "assetId"),
+                    Arguments.of("id", "connectorAddress", "contractId", destination(), transferType(), "ids-multipart", null, "assetId"),
+                    Arguments.of("id", "connectorAddress", "contractId", destination(), transferType(), "ids-multipart", "connectorId", null)
             );
         }
     }
