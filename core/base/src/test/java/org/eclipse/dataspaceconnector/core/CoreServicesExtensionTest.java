@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.core;
 
+import org.eclipse.dataspaceconnector.core.security.DefaultPrivateKeyParseFunction;
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -21,6 +22,9 @@ import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.security.PrivateKey;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -32,6 +36,7 @@ class CoreServicesExtensionTest {
     private CoreServicesExtension extension;
     private ServiceExtensionContext context;
     private TypeManager typeManager;
+    private PrivateKeyResolver privateKeyResolverMock;
 
     @Test
     void verifyPolicyTypesAreRegistered() {
@@ -39,15 +44,22 @@ class CoreServicesExtensionTest {
         PolicyRegistrationTypes.TYPES.forEach(t -> verify(typeManager).registerTypes(t));
     }
 
+    @Test
+    void verifyDefaultPrivateKeyParserIsRegistered() {
+        extension.initialize(context);
+        verify(privateKeyResolverMock).addParser(eq(PrivateKey.class), any(DefaultPrivateKeyParseFunction.class));
+    }
+
     @BeforeEach
     void setUp() {
         extension = new CoreServicesExtension();
         typeManager = spy(new TypeManager());
         context = mock(ServiceExtensionContext.class);
+        privateKeyResolverMock = mock(PrivateKeyResolver.class);
         when(context.getSetting(eq(CoreServicesExtension.MAX_RETRIES), anyInt())).thenReturn(1);
         when(context.getSetting(eq(CoreServicesExtension.BACKOFF_MIN_MILLIS), anyInt())).thenReturn(1);
         when(context.getSetting(eq(CoreServicesExtension.BACKOFF_MAX_MILLIS), anyInt())).thenReturn(2);
-        when(context.getService(eq(PrivateKeyResolver.class))).thenReturn(mock(PrivateKeyResolver.class));
+        when(context.getService(PrivateKeyResolver.class)).thenReturn(privateKeyResolverMock);
         when(context.getTypeManager()).thenReturn(typeManager);
     }
 }
