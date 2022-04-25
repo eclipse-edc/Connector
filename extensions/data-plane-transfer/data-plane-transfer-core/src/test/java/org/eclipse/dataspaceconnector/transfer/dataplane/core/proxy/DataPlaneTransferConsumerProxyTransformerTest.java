@@ -30,6 +30,10 @@ import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.CO
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_BODY;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_METHOD;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_PATH;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_QUERY_PARAMS;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -77,6 +81,10 @@ class DataPlaneTransferConsumerProxyTransformerTest {
             assertThat(address.getProperty(ENDPOINT)).isEqualTo(inputEdr.getEndpoint());
             assertThat(address.getProperty(AUTHENTICATION_KEY)).isEqualTo(inputEdr.getAuthKey());
             assertThat(address.getProperty(AUTHENTICATION_CODE)).isEqualTo(inputEdr.getAuthCode());
+            assertThat(address.getProperty(PROXY_QUERY_PARAMS)).isEqualTo(Boolean.TRUE.toString());
+            assertThat(address.getProperty(PROXY_PATH)).isEqualTo(Boolean.TRUE.toString());
+            assertThat(address.getProperty(PROXY_METHOD)).isEqualTo(Boolean.TRUE.toString());
+            assertThat(address.getProperty(PROXY_BODY)).isEqualTo(Boolean.TRUE.toString());
         });
     }
 
