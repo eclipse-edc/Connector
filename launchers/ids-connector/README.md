@@ -32,6 +32,7 @@ The following modules are used for this launcher:
 | extensions:in-memory:assetindex-memory               | store for persisting `Assets`                                                      | 
 | extensions:in-memory:negotiation-store-memory        | store for persisting `ContractNegotiations`                                        | 
 | extensions:in-memory:contractdefinition-store-memory | store for persisting `ContractDefinitions`                                         | 
+| extensions:in-memory:policy-store-memory             | store for persisting `Policies`                                         | 
 | extensions:data-protocols:ids                        | contains all IDS modules, e.g. for dispatching and handling IDS multipart messages | 
 | extensions:filesystem:configuration-fs               | reads configuration properties from a file in the file-system                      | 
 | extensions:filesystem:vault-fs                       | file-system based vault, required for using a certificate from the file-system     | 
@@ -57,10 +58,8 @@ this launcher's directory. Please adjust this for your setup as follows:
 * `ids.webhook.address`: Set this to the address at which another connector can reach your connector, 
   as it is used as a callback address during the contract negotiation, where messages are exchanged 
   asynchronously. If you change the IDS API port, make sure to adjust the webhook address accordingly.
-* `edc.api.control.auth.apikey.key`: Name of the header used for authentication when calling 
-  endpoints of the control API.
-* `edc.api.control.auth.apikey.value`: Value of the header used for authentication when calling 
-  endpoints of the control API.
+* `edc.api.auth.key`: Value of the header used for authentication when calling 
+  endpoints of the data management API.
 * `edc.oauth.token.url`: Set this to the URL of the DAPS you want to use followed by `/token` or 
   `/v2/token`, depending on the DAPS used.
 * `edc.oauth.client.id`: Identifier from the certificate for the DAPS. You can find instructions on 
