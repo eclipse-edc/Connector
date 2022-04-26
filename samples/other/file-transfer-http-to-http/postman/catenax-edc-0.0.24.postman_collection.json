@@ -980,6 +980,53 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "5. [EDC] get asset",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Api-Key",
+								"type": "text",
+								"value": "VvW#xA5]KQUt"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\t\"dataAddress\": {\r\n\t\t\"properties\": {\r\n\t\t\t\"path\": \"/data/ten=castidev/sample.txt\",\r\n\t\t\t\"keyName\": \"/data/ten=castidev/sample.txt\",\r\n\t\t\t\"type\": \"http\"\r\n\t\t}\r\n\t},\r\n\t\"asset\": {\r\n\t\t\"properties\": {\r\n\t\t\t\"asset:prop:name\": \"/data/ten=castidev/sample.txt\",\r\n\t\t\t\"asset:prop:description\": \"\",\r\n\t\t\t\"asset:prop:contenttype\": \"http\",\r\n\t\t\t\"asset:prop:version\": \"0.1\",\r\n\t\t\t\"asset:prop:id\": \"d0b85147-01d1-4c8b-8cea-b13100d05283\"\r\n\t\t}\r\n\t}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8181/api/assets/d0b85147-01d1-4c8b-8cea-b13100d05283",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8181",
+							"path": [
+								"api",
+								"assets",
+								"d0b85147-01d1-4c8b-8cea-b13100d05283"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}
