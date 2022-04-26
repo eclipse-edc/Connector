@@ -16,6 +16,8 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
 import io.restassured.specification.RequestSpecification;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -103,6 +105,20 @@ public class AssetApiControllerIntegrationTest {
                 .then()
                 .statusCode(204);
         assertThat(assetIndex.findById("assetId")).isNotNull();
+    }
+
+    @Test
+    void postAsset_invalidBody(AssetIndex assetIndex) {
+        var assetDto = AssetDto.Builder.newInstance().properties(Map.of(Asset.PROPERTY_ID, "testId", "Asset-1", "An Asset")).build();
+        var assetEntryDto = AssetEntryDto.Builder.newInstance().asset(assetDto).dataAddress(null).build();
+
+        baseRequest()
+                .body(assetEntryDto)
+                .contentType(JSON)
+                .post("/assets")
+                .then()
+                .statusCode(400);
+        assertThat(assetIndex.findById("assetId")).isNull();
     }
 
     @Test

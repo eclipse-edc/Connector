@@ -19,20 +19,34 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import jakarta.validation.constraints.NotNull;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.Polymorphic;
 
 @JsonDeserialize(builder = ProvisionerWebhookRequest.Builder.class)
 @JsonTypeName("dataspaceconnector:provisioner-callback-request")
 public class ProvisionerWebhookRequest implements Polymorphic {
+    @NotNull
     private String resourceDefinitionId;
     private boolean hasToken;
+    @NotNull
     private String assetId;
+    @NotNull
     private String resourceName;
+    @NotNull
     private DataAddress contentDataAddress;
+    @NotNull
     private String apiKeyJwt;
 
     private ProvisionerWebhookRequest() {
+    }
+
+    public String getResourceDefinitionId() {
+        return resourceDefinitionId;
+    }
+
+    public String getAssetId() {
+        return assetId;
     }
 
     public String getResourceName() {
@@ -41,15 +55,6 @@ public class ProvisionerWebhookRequest implements Polymorphic {
 
     public DataAddress getContentDataAddress() {
         return contentDataAddress;
-    }
-
-    public String getAssetId() {
-        return assetId;
-    }
-
-
-    public String getResourceDefinitionId() {
-        return resourceDefinitionId;
     }
 
     @JsonProperty("hasToken")

@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess;
 
+import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -30,7 +31,6 @@ import org.eclipse.dataspaceconnector.api.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
-import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -133,10 +133,7 @@ public class TransferProcessApiController implements TransferProcessApi {
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.TEXT_PLAIN })
     @Override
-    public String initiateTransfer(TransferRequestDto transferRequest) {
-        if (!isValid(transferRequest)) {
-            throw new IllegalArgumentException("Transfer request body not valid");
-        }
+    public String initiateTransfer(@Valid TransferRequestDto transferRequest) {
         var dataRequest = Optional.ofNullable(transformerRegistry.transform(transferRequest, DataRequest.class))
                 .filter(AbstractResult::succeeded).map(AbstractResult::getContent);
         if (dataRequest.isEmpty()) {
@@ -153,14 +150,6 @@ public class TransferProcessApiController implements TransferProcessApi {
             monitor.severe(message);
             throw new EdcException(message);
         }
-    }
-
-    private boolean isValid(TransferRequestDto transferRequest) {
-        return !StringUtils.isNullOrBlank(transferRequest.getAssetId()) &&
-                !StringUtils.isNullOrBlank(transferRequest.getConnectorAddress()) &&
-                !StringUtils.isNullOrBlank(transferRequest.getContractId()) &&
-                !StringUtils.isNullOrBlank(transferRequest.getProtocol()) &&
-                transferRequest.getDataDestination() != null;
     }
 
     private void handleFailedResult(ServiceResult<TransferProcess> result, String id) {

@@ -90,6 +90,8 @@ paths:
 components:
   schemas:
     AssetDto:
+      required:
+      - properties
       type: object
       properties:
         properties:
@@ -97,6 +99,9 @@ components:
           additionalProperties:
             type: object
     AssetEntryDto:
+      required:
+      - asset
+      - dataAddress
       type: object
       properties:
         asset:

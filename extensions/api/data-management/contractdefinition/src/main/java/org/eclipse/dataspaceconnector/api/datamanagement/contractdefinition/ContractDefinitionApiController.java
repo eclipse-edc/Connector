@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition;
 
+import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -96,7 +97,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
     @POST
     @Consumes({ MediaType.APPLICATION_JSON })
     @Override
-    public void createContractDefinition(ContractDefinitionDto dto) {
+    public void createContractDefinition(@Valid ContractDefinitionDto dto) {
         monitor.debug("create new contract definition");
         var transformResult = transformerRegistry.transform(dto, ContractDefinition.class);
         if (transformResult.failed()) {

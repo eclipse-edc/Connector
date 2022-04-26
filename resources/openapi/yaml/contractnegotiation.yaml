@@ -205,6 +205,9 @@ components:
       discriminator:
         propertyName: edctype
     ContractOfferDescription:
+      required:
+      - assetId
+      - offerId
       type: object
       properties:
         offerId:
@@ -237,6 +240,11 @@ components:
         consequence:
           $ref: '#/components/schemas/Duty'
     NegotiationInitiateRequestDto:
+      required:
+      - connectorAddress
+      - connectorId
+      - offer
+      - protocol
       type: object
       properties:
         connectorAddress:
@@ -269,6 +277,10 @@ components:
           items:
             $ref: '#/components/schemas/Duty'
     Policy:
+      required:
+      - obligations
+      - permissions
+      - prohibitions
       type: object
       properties:
         uid:

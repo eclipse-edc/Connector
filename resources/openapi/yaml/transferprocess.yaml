@@ -156,6 +156,14 @@ components:
           additionalProperties:
             type: string
     TransferRequestDto:
+      required:
+      - assetId
+      - connectorAddress
+      - connectorId
+      - contractId
+      - dataDestination
+      - protocol
+      - transferType
       type: object
       properties:
         connectorAddress:

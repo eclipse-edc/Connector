@@ -172,6 +172,7 @@ class TransferProcessApiControllerIntegrationTest {
     @Test
     void initiateRequest() {
         var request = TransferRequestDto.Builder.newInstance()
+                .id("id")
                 .connectorAddress("http://some-contract")
                 .contractId("some-contract")
                 .protocol("test-asset")
@@ -187,6 +188,29 @@ class TransferProcessApiControllerIntegrationTest {
                 .post("/transferprocess")
                 .then()
                 .statusCode(200)
+                .extract().body().asString();
+
+        assertThat(result).isNotBlank();
+    }
+
+    @Test
+    void initiateRequest_invalidBody() {
+        var request = TransferRequestDto.Builder.newInstance()
+                .connectorAddress("http://some-contract")
+                .contractId(null) //violation
+                .protocol("test-asset")
+                .assetId("assetId")
+                .dataDestination(DataAddress.Builder.newInstance().type("test-type").build())
+                .connectorId("connectorId")
+                .properties(Map.of("prop", "value"))
+                .build();
+
+        var result = baseRequest()
+                .contentType(JSON)
+                .body(request)
+                .post("/transferprocess")
+                .then()
+                .statusCode(400)
                 .extract().body().asString();
 
         assertThat(result).isNotBlank();

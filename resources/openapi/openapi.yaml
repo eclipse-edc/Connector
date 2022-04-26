@@ -1049,6 +1049,8 @@ components:
           additionalProperties:
             type: object
     AssetDto:
+      required:
+      - properties
       type: object
       properties:
         properties:
@@ -1056,6 +1058,9 @@ components:
           additionalProperties:
             type: object
     AssetEntryDto:
+      required:
+      - asset
+      - dataAddress
       type: object
       properties:
         asset:
@@ -1103,6 +1108,11 @@ components:
         policyId:
           type: string
     ContractDefinitionDto:
+      required:
+      - accessPolicyId
+      - contractPolicyId
+      - criteria
+      - id
       type: object
       properties:
         accessPolicyId:
@@ -1167,6 +1177,9 @@ components:
           type: string
           format: date-time
     ContractOfferDescription:
+      required:
+      - assetId
+      - offerId
       type: object
       properties:
         offerId:
@@ -1314,6 +1327,11 @@ components:
           items:
             $ref: '#/components/schemas/Criterion'
     NegotiationInitiateRequestDto:
+      required:
+      - connectorAddress
+      - connectorId
+      - offer
+      - protocol
       type: object
       properties:
         connectorAddress:
@@ -1346,6 +1364,10 @@ components:
           items:
             $ref: '#/components/schemas/Duty'
     Policy:
+      required:
+      - obligations
+      - permissions
+      - prohibitions
       type: object
       properties:
         uid:
@@ -1398,6 +1420,11 @@ components:
           items:
             $ref: '#/components/schemas/Constraint'
     ProvisionerWebhookRequest:
+      required:
+      - assetId
+      - contentDataAddress
+      - resourceDefinitionId
+      - resourceName
       type: object
       properties:
         resourceDefinitionId:
@@ -1435,6 +1462,14 @@ components:
         dataRequest:
           $ref: '#/components/schemas/DataRequestDto'
     TransferRequestDto:
+      required:
+      - assetId
+      - connectorAddress
+      - connectorId
+      - contractId
+      - dataDestination
+      - protocol
+      - transferType
       type: object
       properties:
         connectorAddress:

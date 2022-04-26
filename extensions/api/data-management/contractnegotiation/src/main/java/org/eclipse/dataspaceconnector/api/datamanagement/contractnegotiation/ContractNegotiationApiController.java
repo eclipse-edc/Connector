@@ -16,6 +16,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 
+import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -130,7 +131,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.TEXT_PLAIN })
     @Override
-    public String initiateContractNegotiation(NegotiationInitiateRequestDto initiateDto) {
+    public String initiateContractNegotiation(@Valid NegotiationInitiateRequestDto initiateDto) {
         if (!isValid(initiateDto)) {
             throw new IllegalArgumentException("Negotiation request is invalid");
         }

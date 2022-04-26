@@ -108,6 +108,23 @@ public class ContractDefinitionApiControllerIntegrationTest {
     }
 
     @Test
+    void postContractDefinition_invalidBody(ContractDefinitionStore store) {
+        var dto = ContractDefinitionDto.Builder.newInstance()
+                .id("test-id")
+                .contractPolicyId(null)
+                .accessPolicyId(UUID.randomUUID().toString())
+                .build();
+
+        baseRequest()
+                .body(dto)
+                .contentType(JSON)
+                .post("/contractdefinitions")
+                .then()
+                .statusCode(400);
+        assertThat(store.findAll()).isEmpty();
+    }
+
+    @Test
     void postContractDefinition_alreadyExists(ContractDefinitionLoader loader, ContractDefinitionStore store) {
         loader.accept(createContractDefinition("definitionId"));
         var dto = createDto("definitionId");

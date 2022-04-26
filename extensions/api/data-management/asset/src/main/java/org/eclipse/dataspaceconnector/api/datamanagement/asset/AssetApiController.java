@@ -16,6 +16,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
+import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -62,7 +63,7 @@ public class AssetApiController implements AssetApi {
     @POST
     @Consumes({ MediaType.APPLICATION_JSON })
     @Override
-    public void createAsset(AssetEntryDto assetEntryDto) {
+    public void createAsset(@Valid AssetEntryDto assetEntryDto) {
         var assetResult = transformerRegistry.transform(assetEntryDto.getAsset(), Asset.class);
         var dataAddressResult = transformerRegistry.transform(assetEntryDto.getDataAddress(), DataAddress.class);
 

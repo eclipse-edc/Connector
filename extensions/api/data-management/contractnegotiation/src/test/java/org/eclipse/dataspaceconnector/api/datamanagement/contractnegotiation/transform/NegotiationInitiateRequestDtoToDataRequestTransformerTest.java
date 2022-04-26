@@ -44,7 +44,7 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
                 .connectorId("connectorId")
                 .connectorAddress("address")
                 .protocol("protocol")
-                .offerId(createOffer("offerId", "assetId", "policyId"))
+                .offer(createOffer("offerId", "assetId", "policyId"))
                 .build();
 
         var request = transformer.transform(dto, context);
@@ -65,7 +65,7 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
                 .connectorId("connectorId")
                 .connectorAddress("address")
                 .protocol("protocol")
-                .offerId(createOffer(policy))
+                .offer(createOffer(policy))
                 .build();
 
         var request = transformer.transform(dto, context);
