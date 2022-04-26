@@ -16,7 +16,6 @@
 package org.eclipse.dataspaceconnector.spi.contract.offer.store;
 
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,10 +25,8 @@ import java.util.stream.Stream;
 /**
  * Persists {@link ContractDefinition}s.
  */
-@Feature(ContractDefinitionStore.FEATURE)
 public interface ContractDefinitionStore {
 
-    String FEATURE = "edc:core:contract:contractdefinition:store";
 
     /**
      * Returns all the definitions in the store.
@@ -45,7 +42,7 @@ public interface ContractDefinitionStore {
      */
     @NotNull
     Stream<ContractDefinition> findAll(QuerySpec spec);
-    
+
     /**
      * Returns the definition with the given id, if it exists.
      *
@@ -77,6 +74,7 @@ public interface ContractDefinitionStore {
     /**
      * Signals the store should reload its internal cache if updates were made. If the implementation does not implement caching, this method will do nothing.
      */
-    default void reload() {}
+    default void reload() {
+    }
 
 }

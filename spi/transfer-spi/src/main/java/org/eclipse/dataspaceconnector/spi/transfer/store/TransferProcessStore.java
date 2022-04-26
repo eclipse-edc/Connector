@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.spi.transfer.store;
 
 import org.eclipse.dataspaceconnector.spi.persistence.StateEntityStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,9 +24,7 @@ import java.util.stream.Stream;
 /**
  * Manages persistent storage of {@link TransferProcess} state.
  */
-@Feature(TransferProcessStore.FEATURE)
 public interface TransferProcessStore extends StateEntityStore<TransferProcess> {
-    String FEATURE = "edc:core:transfer:transferprocessstore";
 
     /**
      * Returns the transfer process for the id or null if not found.
