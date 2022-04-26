@@ -27,7 +27,9 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -40,6 +42,14 @@ import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFix
 import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createContainerName;
 import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createRequest;
 import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createSharedKey;
+import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.TestCustomException;
+import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createAccountName;
+import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createBlobName;
+import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createContainerName;
+import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createRequest;
+import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createSharedKey;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -70,8 +80,10 @@ class AzureStorageDataSinkTest {
             .monitor(monitor)
             .build();
     BlobAdapter destination = mock(BlobAdapter.class);
+    BlobAdapter completionMarker = mock(BlobAdapter.class);
     InputStreamDataSource part = new InputStreamDataSource(blobName, new ByteArrayInputStream(content.getBytes(UTF_8)));
     ByteArrayOutputStream output = new ByteArrayOutputStream();
+    OutputStream completionMarkerOutput = mock(OutputStream.class);
 
     @BeforeEach
     void setUp() {
@@ -82,6 +94,14 @@ class AzureStorageDataSinkTest {
                 blobName,
                 sharedKey))
                 .thenReturn(destination);
+
+        when(completionMarker.getOutputStream()).thenReturn(completionMarkerOutput);
+        when(blobAdapterFactory.getBlobAdapter(
+                eq(accountName),
+                eq(containerName),
+                argThat(s -> s.endsWith(".complete")),
+                eq(sharedKey)))
+                .thenReturn(completionMarker);
     }
 
     @Test
@@ -107,7 +127,6 @@ class AzureStorageDataSinkTest {
         when(destination.getOutputStream()).thenThrow(exception);
     }
 
-
     @Test
     void transferParts_whenReadFails_fails() {
         when(destination.getOutputStream()).thenThrow(exception);
@@ -125,6 +144,17 @@ class AzureStorageDataSinkTest {
         when(part.openStream()).thenReturn(input);
         when(part.name()).thenReturn(blobName);
         assertThatTransferPartsFails(part, "Error transferring blob for %s on account %s", blobName, accountName);
+    }
+
+    @Test
+    void complete() throws IOException {
+        dataSink.complete();
+        verify(blobAdapterFactory).getBlobAdapter(
+                eq(accountName),
+                eq(containerName),
+                argThat(s -> s.endsWith(".complete")),
+                eq(sharedKey));
+        verify(completionMarkerOutput).close();
     }
 
     private void assertThatTransferPartsFails(Part part, String logMessage, Object... args) {
