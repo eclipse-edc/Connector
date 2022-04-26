@@ -21,7 +21,9 @@ import io.opentelemetry.context.propagation.TextMapGetter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * System observability interface for tracing and metrics
@@ -51,6 +53,15 @@ public class Telemetry {
     }
 
     /**
+     * Returns a trace carrier object containing the trace context from the current thread
+     *
+     * @return The trace carrier
+     */
+    public TraceCarrier getTraceCarrierWithCurrentContext() {
+        return new InMemoryTraceCarrier(getCurrentTraceContext());
+    }
+
+    /**
      * Wraps a function with a middleware to propagate the trace context present in the carrier to the executing thread
      *
      * @param delegate The wrapped function
@@ -60,6 +71,35 @@ public class Telemetry {
         return (t) -> {
             try (Scope scope = propagateTraceContext(t)) {
                 return delegate.apply(t);
+            }
+        };
+    }
+
+    /**
+     * Wraps a consumer with a middleware to propagate the trace context present in the carrier to the executing thread
+     *
+     * @param delegate The wrapped consumer
+     * @return The resulting function with the context propagation middleware
+     */
+    public <T extends TraceCarrier> Consumer<T> contextPropagationMiddleware(Consumer<T> delegate) {
+        return (t) -> {
+            try (Scope scope = propagateTraceContext(t)) {
+                delegate.accept(t);
+            }
+        };
+    }
+
+    /**
+     * Wraps a supplier with a middleware to propagate the trace context present in the carrier to the executing thread
+     *
+     * @param delegate The wrapped supplier
+     * @param traceCarrier The trace carrier
+     * @return The resulting function with the context propagation middleware
+     */
+    public <T> Supplier<T> contextPropagationMiddleware(Supplier<T> delegate, TraceCarrier traceCarrier) {
+        return () -> {
+            try (Scope scope = propagateTraceContext(traceCarrier)) {
+                return delegate.get();
             }
         };
     }

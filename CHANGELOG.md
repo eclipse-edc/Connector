@@ -98,6 +98,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Http Deprovisioner Webhook endpoint (#1039)
 * Add performance test example and scheduled workflow (#1029)
 * Add basic authentication mechanism for DataManagement API (#981)
+* Trace context propagation in DPF (#1162)
 
 #### Changed
 
