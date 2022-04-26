@@ -45,6 +45,7 @@ public class TransferProcessToTransferProcessDtoTransformer implements DtoTransf
                 .type(object.getType().name())
                 .state(getState(object.getState(), context))
                 .errorDetail(object.getErrorDetail())
+                .dataDestination(object.getDataRequest().getDataDestination().getProperties())
                 .dataRequest(context.transform(object.getDataRequest(), DataRequestDto.class))
                 .build();
     }
