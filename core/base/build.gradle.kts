@@ -30,6 +30,7 @@ dependencies {
     api("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     api("net.jodah:failsafe:${jodahFailsafeVersion}")
     api("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
+    api(project(":core:defaults"))
 
     implementation(project(":core:policy:policy-engine"))
 

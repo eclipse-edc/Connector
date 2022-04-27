@@ -34,6 +34,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Replace `policy` with `policyId` on `ContractAgreement` (#1220)
 * All DMgmt Api methods now produce and consume `APPLICATION_JSON` (#1175)
 * Make data-plane public api controller asynchronous (#1228)
+* Provide In-mem implementations by default (#1130)
 
 #### Removed
 

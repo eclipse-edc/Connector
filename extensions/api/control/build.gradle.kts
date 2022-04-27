@@ -31,11 +31,9 @@ dependencies {
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
     testImplementation(project(":core:"))
-    testImplementation(project(":extensions:in-memory:assetindex-memory"))
-    testImplementation(project(":extensions:in-memory:transfer-store-memory"))
-    testImplementation(project(":extensions:in-memory:contractdefinition-store-memory"))
-    testImplementation(project(":extensions:in-memory:policy-store-memory"))
-    testImplementation(project(":extensions:in-memory:assetindex-memory"))
+    testImplementation(project(":core:defaults"))
+
+    testImplementation(project(":core:defaults"))
     testImplementation(project(":data-protocols:ids"))
     testImplementation(project(":extensions:iam:iam-mock"))
     testImplementation(project(":extensions:filesystem:configuration-fs"))
@@ -43,9 +41,6 @@ dependencies {
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(testFixtures(project(":common:util")))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
-
-    testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
-
 }
 
 publishing {

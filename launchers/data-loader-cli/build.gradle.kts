@@ -29,9 +29,6 @@ dependencies {
     implementation(project(":extensions:filesystem:configuration-fs"))
     implementation(project(":extensions:azure:vault"))
 
-    // alternatively uncomment the following line to use the in-memory AssetIndex
-    //
-    // implementation(project(":extensions:in-memory:assetindex-memory"))
 
     // the following line enables the Cosmos-DB based ContractDefinitionStore
     implementation(project(":extensions:azure:cosmos:contract-definition-store-cosmos"))

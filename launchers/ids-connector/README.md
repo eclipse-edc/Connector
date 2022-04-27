@@ -29,7 +29,7 @@ The following modules are used for this launcher:
 | Name                                                 | Description                                                                        |
 |------------------------------------------------------|------------------------------------------------------------------------------------|
 | extensions:in-memory:transfer-store-memory           | store for persisting `TransferProcesses`                                           |
-| extensions:in-memory:assetindex-memory               | store for persisting `Assets`                                                      | 
+| core:defaults               | store for persisting `Assets`                                                      | 
 | extensions:in-memory:negotiation-store-memory        | store for persisting `ContractNegotiations`                                        | 
 | extensions:in-memory:contractdefinition-store-memory | store for persisting `ContractDefinitions`                                         | 
 | extensions:in-memory:policy-store-memory             | store for persisting `Policies`                                         | 

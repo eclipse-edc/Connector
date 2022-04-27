@@ -32,8 +32,7 @@ dependencies {
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 
     implementation(project(":extensions:data-plane:data-plane-spi"))
-    implementation(project(":extensions:in-memory:assetindex-memory"))
-    implementation(project(":extensions:in-memory:policy-store-memory"))
+
     api(project(":extensions:dataloading"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
