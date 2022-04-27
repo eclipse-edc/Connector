@@ -18,9 +18,9 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Custom Jackson serializer for objects of type XMLGregorianCalendar. Serves as a workaround

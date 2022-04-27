@@ -14,11 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.core.serialization;
 
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import de.fraunhofer.iais.eis.ContractAgreement;
@@ -27,9 +22,13 @@ import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
-class XmlGregorianCalendarTest {
+class XmlGregorianCalendarModuleTest {
     
     private ObjectMapper objectMapper;
     
