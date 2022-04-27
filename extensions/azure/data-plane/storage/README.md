@@ -33,7 +33,7 @@ curl 'http://localhost:8181/control/transfer' \
     "processId": "6593E90E-DD13-4132-A6D0-ADEB02C32ECB",
     "sourceDataAddress": {
         "properties": {
-            "type": "AzureStorageBlobData",
+            "type": "AzureStorage",
             "account": "ACCOUNT1",
             "container": "src",
             "blob": "file.txt",
@@ -42,7 +42,7 @@ curl 'http://localhost:8181/control/transfer' \
     },
     "destinationDataAddress": {
         "properties": {
-            "type": "AzureStorageBlobData",
+            "type": "AzureStorage",
             "account": "ACCOUNT2",
             "container": "dest",
             "sharedKey": "KEY2"
