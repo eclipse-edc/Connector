@@ -31,6 +31,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Extract single `PolicyArchive` implementation (#1158)
 * Replace `accessPolicy` and `contractPolicy` with `accessPolicyId` and `contractPolicyId` on `ContractDefinition` (#1144)
 * All DMgmt Api methods now produce and consume `APPLICATION_JSON` (#1175)
+* Make data-plane public api controller asynchronous (#1228)
 
 #### Removed
 
