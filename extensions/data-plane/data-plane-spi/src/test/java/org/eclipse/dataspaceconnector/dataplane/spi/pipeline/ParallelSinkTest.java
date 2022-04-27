@@ -89,8 +89,6 @@ class ParallelSinkTest {
     void transfer_whenFailureDuringTransfer_fails() {
         fakeSink.transferResultSupplier = () -> StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMessage);
 
-        var dataSource = new InputStreamDataSource(dataSourceName, new ByteArrayInputStream(dataSourceContent.getBytes()));
-
         assertThat(fakeSink.transfer(dataSource)).succeedsWithin(500, TimeUnit.MILLISECONDS)
                 .satisfies(transferResult -> assertThat(transferResult.failed()).isTrue())
                 .satisfies(transferResult -> assertThat(transferResult.getFailure().status()).isEqualTo(ResponseStatus.ERROR_RETRY))
@@ -105,7 +103,6 @@ class ParallelSinkTest {
         fakeSink.transferResultSupplier = () -> {
             throw new RuntimeException(errorMessage);
         };
-        var dataSource = new InputStreamDataSource(dataSourceName, new ByteArrayInputStream(dataSourceContent.getBytes()));
 
         assertThat(fakeSink.transfer(dataSource)).succeedsWithin(500, TimeUnit.MILLISECONDS)
                 .satisfies(transferResult -> assertThat(transferResult.failed()).isTrue())
