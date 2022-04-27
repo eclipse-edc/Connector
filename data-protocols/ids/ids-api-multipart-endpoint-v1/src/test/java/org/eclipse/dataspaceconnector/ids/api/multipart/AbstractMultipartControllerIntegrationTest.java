@@ -46,6 +46,7 @@ import okhttp3.Response;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintImpl;
+import org.eclipse.dataspaceconnector.ids.core.serialization.XmlGregorianCalendarModule;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
@@ -87,6 +88,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
         OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         OBJECT_MAPPER.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
         OBJECT_MAPPER.registerSubtypes(IdsConstraintImpl.class);
+        OBJECT_MAPPER.registerModule(new XmlGregorianCalendarModule());
     }
 
     @AfterEach
