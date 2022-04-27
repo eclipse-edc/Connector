@@ -1,0 +1,179 @@
+openapi: 3.0.1
+paths:
+  /catalog:
+    get:
+      tags:
+      - Catalog
+      operationId: getCatalog
+      parameters:
+      - name: providerUrl
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalog'
+components:
+  schemas:
+    Action:
+      type: object
+      properties:
+        type:
+          type: string
+        includedIn:
+          type: string
+        constraint:
+          $ref: '#/components/schemas/Constraint'
+    Asset:
+      type: object
+      properties:
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+    Catalog:
+      type: object
+      properties:
+        id:
+          type: string
+        contractOffers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContractOffer'
+    Constraint:
+      required:
+      - edctype
+      type: object
+      properties:
+        edctype:
+          type: string
+      discriminator:
+        propertyName: edctype
+    ContractOffer:
+      type: object
+      properties:
+        id:
+          type: string
+        policy:
+          $ref: '#/components/schemas/Policy'
+        asset:
+          $ref: '#/components/schemas/Asset'
+        policyId:
+          type: string
+        assetId:
+          type: string
+        provider:
+          type: string
+          format: uri
+        consumer:
+          type: string
+          format: uri
+        offerStart:
+          type: string
+          format: date-time
+        offerEnd:
+          type: string
+          format: date-time
+        contractStart:
+          type: string
+          format: date-time
+        contractEnd:
+          type: string
+          format: date-time
+    Duty:
+      type: object
+      properties:
+        uid:
+          type: string
+        target:
+          type: string
+        action:
+          $ref: '#/components/schemas/Action'
+        assignee:
+          type: string
+        assigner:
+          type: string
+        constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/Constraint'
+        parentPermission:
+          $ref: '#/components/schemas/Permission'
+        consequence:
+          $ref: '#/components/schemas/Duty'
+    Permission:
+      type: object
+      properties:
+        uid:
+          type: string
+        target:
+          type: string
+        action:
+          $ref: '#/components/schemas/Action'
+        assignee:
+          type: string
+        assigner:
+          type: string
+        constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/Constraint'
+        duties:
+          type: array
+          items:
+            $ref: '#/components/schemas/Duty'
+    Policy:
+      type: object
+      properties:
+        uid:
+          type: string
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Permission'
+        prohibitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Prohibition'
+        obligations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Duty'
+        extensibleProperties:
+          type: object
+          additionalProperties:
+            type: object
+        inheritsFrom:
+          type: string
+        assigner:
+          type: string
+        assignee:
+          type: string
+        target:
+          type: string
+        '@type':
+          type: string
+          enum:
+          - SET
+          - OFFER
+          - CONTRACT
+    Prohibition:
+      type: object
+      properties:
+        uid:
+          type: string
+        target:
+          type: string
+        action:
+          $ref: '#/components/schemas/Action'
+        assignee:
+          type: string
+        assigner:
+          type: string
+        constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/Constraint'

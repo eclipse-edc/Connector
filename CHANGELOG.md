@@ -30,6 +30,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Restructure sql extension folder tree (#1154)
 * Extract single `PolicyArchive` implementation (#1158)
 * Replace `accessPolicy` and `contractPolicy` with `accessPolicyId` and `contractPolicyId` on `ContractDefinition` (#1144)
+* All DMgmt Api methods now produce and consume `APPLICATION_JSON` (#1175)
 
 #### Removed
 
@@ -42,6 +43,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Fix problem with interpreting contractId/negotiationId (#1140)
 * Fixed DMgmtApi content types (#1126)
 * Fix HTTPS termination in Jetty (#1133)
+* Break lease after TransferProcessManager status check (#1214)
 
 ## [milestone-3] - 2022-04-08
 

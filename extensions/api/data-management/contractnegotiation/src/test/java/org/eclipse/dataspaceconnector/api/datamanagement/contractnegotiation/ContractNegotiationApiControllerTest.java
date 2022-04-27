@@ -137,7 +137,7 @@ class ContractNegotiationApiControllerTest {
 
         var state = controller.getNegotiationState("negotiationId");
 
-        assertThat(state).isEqualTo(REQUESTED.name());
+        assertThat(state.getState()).isEqualTo(REQUESTED.name());
     }
 
     @Test
@@ -182,7 +182,7 @@ class ContractNegotiationApiControllerTest {
 
         var negotiationId = controller.initiateContractNegotiation(request);
 
-        assertThat(negotiationId).isEqualTo("negotiationId");
+        assertThat(negotiationId.getId()).isEqualTo("negotiationId");
     }
 
     @Test

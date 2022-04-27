@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline;
 
-import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.adapter.BlobAdapterFactory;
-import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.schema.AzureBlobStoreSchema;
+import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
+import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -29,21 +29,21 @@ import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.validator.AzureStorageValidator.validateAccountName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.validator.AzureStorageValidator.validateContainerName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.validator.AzureStorageValidator.validateSharedKey;
+import static org.eclipse.dataspaceconnector.azure.blob.core.validator.AzureStorageValidator.validateAccountName;
+import static org.eclipse.dataspaceconnector.azure.blob.core.validator.AzureStorageValidator.validateContainerName;
+import static org.eclipse.dataspaceconnector.azure.blob.core.validator.AzureStorageValidator.validateSharedKey;
 
 /**
  * Instantiates {@link AzureStorageDataSink}s for requests whose source data type is {@link AzureBlobStoreSchema#TYPE}.
  */
 public class AzureStorageDataSinkFactory implements DataSinkFactory {
-    private final BlobAdapterFactory blobAdapterFactory;
+    private final BlobStoreApi blobStoreApi;
     private final ExecutorService executorService;
     private final int partitionSize;
     private final Monitor monitor;
 
-    public AzureStorageDataSinkFactory(BlobAdapterFactory blobAdapterFactory, ExecutorService executorService, int partitionSize, Monitor monitor) {
-        this.blobAdapterFactory = blobAdapterFactory;
+    public AzureStorageDataSinkFactory(BlobStoreApi blobStoreApi, ExecutorService executorService, int partitionSize, Monitor monitor) {
+        this.blobStoreApi = blobStoreApi;
         this.executorService = executorService;
         this.partitionSize = partitionSize;
         this.monitor = monitor;
@@ -87,7 +87,7 @@ public class AzureStorageDataSinkFactory implements DataSinkFactory {
                 .sharedKey(dataAddress.getProperty(AzureBlobStoreSchema.SHARED_KEY))
                 .requestId(requestId)
                 .partitionSize(partitionSize)
-                .blobAdapterFactory(blobAdapterFactory)
+                .blobStoreApi(blobStoreApi)
                 .executorService(executorService)
                 .monitor(monitor)
                 .build();

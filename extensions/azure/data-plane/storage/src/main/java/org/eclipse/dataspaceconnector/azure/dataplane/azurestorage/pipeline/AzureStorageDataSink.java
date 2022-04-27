@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline;
 
-import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.adapter.BlobAdapterFactory;
+import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.ParallelSink;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
@@ -33,7 +33,7 @@ public class AzureStorageDataSink extends ParallelSink {
     private String accountName;
     private String containerName;
     private String sharedKey;
-    private BlobAdapterFactory blobAdapterFactory;
+    private BlobStoreApi blobStoreApi;
 
     /**
      * Writes data into an Azure storage container.
@@ -42,7 +42,7 @@ public class AzureStorageDataSink extends ParallelSink {
         for (DataSource.Part part : parts) {
             String blobName = part.name();
             try (var input = part.openStream()) {
-                try (var output = blobAdapterFactory.getBlobAdapter(accountName, containerName, blobName, sharedKey)
+                try (var output = blobStoreApi.getBlobAdapter(accountName, containerName, blobName, sharedKey)
                         .getOutputStream()) {
                     try {
                         input.transferTo(output);
@@ -90,8 +90,8 @@ public class AzureStorageDataSink extends ParallelSink {
             return this;
         }
 
-        public Builder blobAdapterFactory(BlobAdapterFactory blobAdapterFactory) {
-            sink.blobAdapterFactory = blobAdapterFactory;
+        public Builder blobStoreApi(BlobStoreApi blobStoreApi) {
+            sink.blobStoreApi = blobStoreApi;
             return this;
         }
 
@@ -99,7 +99,7 @@ public class AzureStorageDataSink extends ParallelSink {
             Objects.requireNonNull(sink.accountName, "accountName");
             Objects.requireNonNull(sink.containerName, "containerName");
             Objects.requireNonNull(sink.sharedKey, "sharedKey");
-            Objects.requireNonNull(sink.blobAdapterFactory, "blobAdapterFactory");
+            Objects.requireNonNull(sink.blobStoreApi, "blobStoreApi");
         }
 
         private Builder() {
