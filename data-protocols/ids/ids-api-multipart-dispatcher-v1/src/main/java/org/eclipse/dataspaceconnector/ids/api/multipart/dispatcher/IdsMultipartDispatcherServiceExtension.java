@@ -29,6 +29,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.Multip
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartEndpointDataReferenceRequestSender;
 import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintImpl;
+import org.eclipse.dataspaceconnector.ids.core.serialization.XmlGregorianCalendarModule;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
@@ -89,6 +90,7 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
         objectMapper.registerSubtypes(IdsConstraintImpl.class);
+        objectMapper.registerModule(new XmlGregorianCalendarModule());
 
         String idsWebhookAddress = getSetting(context, IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS);
         String idsApiPath = idsApiConfiguration.getPath();
