@@ -24,8 +24,10 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferId;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferProcessDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferRequestDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferState;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.service.TransferProcessService;
 import org.eclipse.dataspaceconnector.api.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
@@ -46,6 +48,8 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
+@Produces({ MediaType.APPLICATION_JSON })
+@Consumes({ MediaType.APPLICATION_JSON })
 @Path("/transferprocess")
 public class TransferProcessApiController implements TransferProcessApi {
     private final Monitor monitor;
@@ -59,7 +63,6 @@ public class TransferProcessApiController implements TransferProcessApi {
     }
 
     @GET
-    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public List<TransferProcessDto> getAllTransferProcesses(@QueryParam("offset") Integer offset,
                                                             @QueryParam("limit") Integer limit,
@@ -82,7 +85,6 @@ public class TransferProcessApiController implements TransferProcessApi {
 
     @GET
     @Path("/{id}")
-    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public TransferProcessDto getTransferProcess(@PathParam("id") String id) {
         return Optional.of(id)
@@ -95,11 +97,11 @@ public class TransferProcessApiController implements TransferProcessApi {
 
     @GET
     @Path("/{id}/state")
-    @Produces({ MediaType.TEXT_PLAIN })
     @Override
-    public String getTransferProcessState(@PathParam("id") String id) {
+    public TransferState getTransferProcessState(@PathParam("id") String id) {
         return Optional.of(id)
                 .map(service::getState)
+                .map(TransferState::new)
                 .orElseThrow(() -> new ObjectNotFoundException(TransferProcess.class, id));
     }
 
@@ -130,10 +132,8 @@ public class TransferProcessApiController implements TransferProcessApi {
     }
 
     @POST
-    @Consumes({ MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.TEXT_PLAIN })
     @Override
-    public String initiateTransfer(@Valid TransferRequestDto transferRequest) {
+    public TransferId initiateTransfer(@Valid TransferRequestDto transferRequest) {
         var dataRequest = Optional.ofNullable(transformerRegistry.transform(transferRequest, DataRequest.class))
                 .filter(AbstractResult::succeeded).map(AbstractResult::getContent);
         if (dataRequest.isEmpty()) {
@@ -144,7 +144,7 @@ public class TransferProcessApiController implements TransferProcessApi {
         var result = service.initiateTransfer(dataRequest.get());
         if (result.succeeded()) {
             monitor.debug(format("Transfer process initialised %s", result.getContent()));
-            return result.getContent();
+            return new TransferId(result.getContent());
         } else {
             String message = format("Error during initiating the transfer with assetId: %s", transferRequest.getAssetId());
             monitor.severe(message);

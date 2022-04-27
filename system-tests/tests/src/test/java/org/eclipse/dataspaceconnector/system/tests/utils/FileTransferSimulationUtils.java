@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import static io.gatling.javaapi.core.CoreDsl.StringBody;
-import static io.gatling.javaapi.core.CoreDsl.bodyString;
 import static io.gatling.javaapi.core.CoreDsl.doWhileDuring;
 import static io.gatling.javaapi.core.CoreDsl.exec;
 import static io.gatling.javaapi.core.CoreDsl.group;
@@ -76,7 +75,7 @@ public abstract class FileTransferSimulationUtils {
      * <p>
      * Saves the Contract Negotiation Request ID into the {@see CONTRACT_NEGOTIATION_REQUEST_ID} session key.
      *
-     * @param providerUrl       URL for the Provider API, as accessed from the Consumer runtime.
+     * @param providerUrl URL for the Provider API, as accessed from the Consumer runtime.
      */
     private static ChainBuilder startContractAgreement(String providerUrl) {
         var connectorAddress = format("%s/api/v1/ids/data", providerUrl);
@@ -91,7 +90,7 @@ public abstract class FileTransferSimulationUtils {
                 .body(StringBody(loadContractAgreement(connectorAddress)))
                 .header(CONTENT_TYPE, "application/json")
                 .check(status().is(200))
-                .check(bodyString()
+                .check(jmesPath("id")
                         .notNull()
                         .saveAs(CONTRACT_NEGOTIATION_REQUEST_ID));
     }
@@ -103,7 +102,6 @@ public abstract class FileTransferSimulationUtils {
      * Expects the Contract Negotiation Request ID to be provided in the {@see CONTRACT_NEGOTIATION_REQUEST_ID} session key.
      * <p>
      * Saves the Contract Agreement ID into the {@see CONTRACT_AGREEMENT_ID} session key.
-     *
      */
     private static ChainBuilder waitForContractAgreement() {
         return exec(session -> session.set("status", -1))
@@ -153,7 +151,7 @@ public abstract class FileTransferSimulationUtils {
                 .body(StringBody(session -> transferRequest(session.getString(CONTRACT_AGREEMENT_ID), destinationPath, connectorAddress)))
                 .header(CONTENT_TYPE, "application/json")
                 .check(status().is(200))
-                .check(bodyString()
+                .check(jmesPath("id")
                         .notNull()
                         .saveAs(TRANSFER_PROCESS_ID));
     }

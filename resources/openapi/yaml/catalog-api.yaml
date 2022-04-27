@@ -1,92 +1,21 @@
 openapi: 3.0.1
 paths:
-  /policies:
+  /catalog:
     get:
       tags:
-      - Policy
-      operationId: getAllPolicies
+      - Catalog
+      operationId: getCatalog
       parameters:
-      - name: offset
-        in: query
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        schema:
-          type: integer
-          format: int32
-      - name: filter
-        in: query
-        schema:
-          type: string
-      - name: sort
-        in: query
-        schema:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
+      - name: providerUrl
         in: query
         schema:
           type: string
       responses:
         default:
-          description: default response
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Policy'
-    post:
-      tags:
-      - Policy
-      operationId: createPolicy
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Policy'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /policies/{id}:
-    get:
-      tags:
-      - Policy
-      operationId: getPolicy
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Policy'
-    delete:
-      tags:
-      - Policy
-      operationId: deletePolicy
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
+                $ref: '#/components/schemas/Catalog'
 components:
   schemas:
     Action:
@@ -98,6 +27,22 @@ components:
           type: string
         constraint:
           $ref: '#/components/schemas/Constraint'
+    Asset:
+      type: object
+      properties:
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+    Catalog:
+      type: object
+      properties:
+        id:
+          type: string
+        contractOffers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContractOffer'
     Constraint:
       required:
       - edctype
@@ -107,6 +52,37 @@ components:
           type: string
       discriminator:
         propertyName: edctype
+    ContractOffer:
+      type: object
+      properties:
+        id:
+          type: string
+        policy:
+          $ref: '#/components/schemas/Policy'
+        asset:
+          $ref: '#/components/schemas/Asset'
+        policyId:
+          type: string
+        assetId:
+          type: string
+        provider:
+          type: string
+          format: uri
+        consumer:
+          type: string
+          format: uri
+        offerStart:
+          type: string
+          format: date-time
+        offerEnd:
+          type: string
+          format: date-time
+        contractStart:
+          type: string
+          format: date-time
+        contractEnd:
+          type: string
+          format: date-time
     Duty:
       type: object
       properties:
@@ -150,10 +126,6 @@ components:
           items:
             $ref: '#/components/schemas/Duty'
     Policy:
-      required:
-      - obligations
-      - permissions
-      - prohibitions
       type: object
       properties:
         uid:
