@@ -79,7 +79,7 @@ class FederatedCatalogCacheEndToEndTest {
         // here the content of the catalog cache store can be queried through http://localhost:8181/api/catalog
         RequestBody body = RequestBody.create("{}", MediaType.parse("application/json"));
         Request request = new Request.Builder()
-                .url("http://localhost:" + PORT + "/api/catalog")
+                .url("http://localhost:" + PORT + "/api/federatedcatalog")
                 .post(body)
                 .build();
 

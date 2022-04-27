@@ -44,6 +44,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Fixed DMgmtApi content types (#1126)
 * Fix HTTPS termination in Jetty (#1133)
 * Break lease after TransferProcessManager status check (#1214)
+* Fix path conflicts between `CatalogApiController` and `FederatedCatalogApiController` (#1225)
 
 ## [milestone-3] - 2022-04-08
 
