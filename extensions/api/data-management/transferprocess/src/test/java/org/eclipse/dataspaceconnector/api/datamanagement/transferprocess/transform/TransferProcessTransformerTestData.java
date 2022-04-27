@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.transform;
 
 import com.github.javafaker.Faker;
+import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.DataAddressInformationDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.DataRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferProcessDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
@@ -61,7 +62,10 @@ public class TransferProcessTransformerTestData {
             .state(state.name())
             .errorDetail(errorDetail)
             .dataRequest(dataRequestDto)
-            .dataDestination(mapWith(dataDestinationProperties, "type", dataDestinationType));
+            .dataDestination(
+                    DataAddressInformationDto.Builder.newInstance()
+                            .properties(mapWith(dataDestinationProperties, "type", dataDestinationType))
+                            .build());
 
     private Map<String, String> mapWith(Map<String, String> sourceMap, String key, String value) {
         var newMap = new HashMap<>(sourceMap);

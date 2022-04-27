@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.transform;
 
+import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.DataAddressInformationDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.DataRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferProcessDto;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -74,7 +75,10 @@ class TransferProcessToTransferProcessDtoTransformerTest {
                 .type(data.type)
                 .dataRequest(data.dataRequest);
         data.dto
-                .dataDestination(Map.of("type", data.dataDestinationType))
+                .dataDestination(
+                        DataAddressInformationDto.Builder.newInstance()
+                                .properties(Map.of("type", data.dataDestinationType))
+                                .build())
                 .errorDetail(null);
 
         assertThatEntityTransformsToDto();

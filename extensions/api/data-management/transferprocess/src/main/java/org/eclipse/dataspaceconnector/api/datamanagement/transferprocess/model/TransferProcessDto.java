@@ -18,8 +18,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
-import java.util.Map;
-
 @JsonDeserialize(builder = TransferProcessDto.Builder.class)
 public class TransferProcessDto {
     private String id;
@@ -27,7 +25,7 @@ public class TransferProcessDto {
     private String state;
     private String errorDetail;
     private DataRequestDto dataRequest;
-    private Map<String, String> dataDestination = Map.of();
+    private DataAddressInformationDto dataDestination;
 
     private TransferProcessDto() {
     }
@@ -52,7 +50,7 @@ public class TransferProcessDto {
         return dataRequest;
     }
 
-    public Map<String, String> getDataDestination() {
+    public DataAddressInformationDto getDataDestination() {
         return dataDestination;
     }
 
@@ -94,8 +92,8 @@ public class TransferProcessDto {
             return this;
         }
 
-        public Builder dataDestination(Map<String, String> dataDestination) {
-            transferProcessDto.dataDestination = Map.copyOf(dataDestination);
+        public Builder dataDestination(DataAddressInformationDto dataDestination) {
+            transferProcessDto.dataDestination = dataDestination;
             return this;
         }
 
