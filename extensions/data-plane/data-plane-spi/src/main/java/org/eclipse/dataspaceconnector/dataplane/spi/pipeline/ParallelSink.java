@@ -74,6 +74,13 @@ public abstract class ParallelSink implements DataSink {
 
     protected abstract StatusResult<Void> transferParts(List<DataSource.Part> parts);
 
+    /**
+     * Called after all parallel parts are transferred, only if all parts were successfully transferred.
+     * <p>
+     * Implementations may override this method to perform completion logic, such as writing a completion marker.
+     *
+     * @return status result to be returned to caller.
+     */
     protected StatusResult<Void> complete() {
         return StatusResult.success();
     }
