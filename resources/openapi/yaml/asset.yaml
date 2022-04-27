@@ -53,7 +53,7 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            '*/*': {}
   /assets/{id}:
     get:
       tags:
@@ -86,10 +86,12 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            '*/*': {}
 components:
   schemas:
     AssetDto:
+      required:
+      - properties
       type: object
       properties:
         properties:
@@ -97,6 +99,9 @@ components:
           additionalProperties:
             type: object
     AssetEntryDto:
+      required:
+      - asset
+      - dataAddress
       type: object
       properties:
         asset:

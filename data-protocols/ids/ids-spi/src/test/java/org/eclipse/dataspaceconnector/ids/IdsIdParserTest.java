@@ -71,7 +71,7 @@ class IdsIdParserTest {
     }
 
     static class IllegalIdsArgumentsProvider implements ArgumentsProvider {
-        public IllegalIdsArgumentsProvider() {
+        IllegalIdsArgumentsProvider() {
         }
 
         @Override
@@ -82,7 +82,7 @@ class IdsIdParserTest {
     }
 
     static class LegalIdsArgumentsProvider implements ArgumentsProvider {
-        public LegalIdsArgumentsProvider() {
+        LegalIdsArgumentsProvider() {
         }
 
         @Override

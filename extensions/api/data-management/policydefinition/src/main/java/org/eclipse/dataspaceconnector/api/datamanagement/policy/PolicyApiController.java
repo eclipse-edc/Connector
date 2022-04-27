@@ -34,14 +34,12 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
-@Consumes({ MediaType.APPLICATION_JSON })
-@Produces({ MediaType.APPLICATION_JSON })
 @Path("/policies")
 public class PolicyApiController implements PolicyApi {
 
@@ -54,6 +52,7 @@ public class PolicyApiController implements PolicyApi {
     }
 
     @GET
+    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public List<Policy> getAllPolicies(@QueryParam("offset") Integer offset,
                                        @QueryParam("limit") Integer limit,
@@ -68,13 +67,13 @@ public class PolicyApiController implements PolicyApi {
                 .sortOrder(sortOrder).build();
         monitor.debug(format("get all policys %s", spec));
 
-        return policyService.query(spec).stream()
-                .collect(Collectors.toList());
+        return new ArrayList<>(policyService.query(spec));
 
     }
 
     @GET
     @Path("{id}")
+    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public Policy getPolicy(@PathParam("id") String id) {
         monitor.debug(format("Attempting to return policy with ID %s", id));
@@ -84,6 +83,7 @@ public class PolicyApiController implements PolicyApi {
     }
 
     @POST
+    @Consumes({ MediaType.APPLICATION_JSON })
     @Override
     public void createPolicy(Policy policy) {
 

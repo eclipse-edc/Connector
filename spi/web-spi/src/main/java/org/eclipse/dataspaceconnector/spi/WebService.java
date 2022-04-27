@@ -14,12 +14,9 @@
 
 package org.eclipse.dataspaceconnector.spi;
 
-import org.eclipse.dataspaceconnector.spi.system.Feature;
-
 /**
  * Manages the runtime web (HTTP) service.
  */
-@Feature("edc:core:base:webservice")
 public interface WebService {
 
     /**

@@ -117,7 +117,7 @@ class BoundedCommandQueueTest {
     }
 
     private static class BoundedTestCommandQueue extends BoundedCommandQueue<TestCommand> {
-        public BoundedTestCommandQueue(int bound) {
+        BoundedTestCommandQueue(int bound) {
             super(bound);
         }
     }

@@ -19,6 +19,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
 
+@Deprecated
 @OpenAPIDefinition
 public interface ClientControlCatalogApi {
 

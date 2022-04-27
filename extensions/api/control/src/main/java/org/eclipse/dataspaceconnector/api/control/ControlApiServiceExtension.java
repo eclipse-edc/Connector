@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import java.security.SecureRandom;
 import java.util.function.Predicate;
 
+@Deprecated
 public class ControlApiServiceExtension implements ServiceExtension {
 
     @EdcSetting

@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.tra
 
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformer;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
@@ -39,8 +38,8 @@ public class ContractDefinitionDtoToContractDefinitionTransformer implements Dto
     public @Nullable ContractDefinition transform(@Nullable ContractDefinitionDto object, @NotNull TransformerContext context) {
         return ContractDefinition.Builder.newInstance()
                 .id(object.getId())
-                .accessPolicy(Policy.Builder.newInstance().id(object.getAccessPolicyId()).build()) // TODO: policy will be replaced by policy id
-                .contractPolicy(Policy.Builder.newInstance().id(object.getContractPolicyId()).build()) // TODO: policy will be replaced by policy id
+                .accessPolicyId(object.getAccessPolicyId())
+                .contractPolicyId(object.getContractPolicyId())
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().criteria(object.getCriteria()).build())
                 .build();
     }

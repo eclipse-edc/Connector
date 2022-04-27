@@ -15,6 +15,8 @@
 
 val rsApi: String by project
 val restAssured: String by project
+val jerseyVersion: String by project
+
 
 plugins {
     `java-library`
@@ -35,6 +37,7 @@ dependencies {
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
+    testRuntimeOnly("org.glassfish.jersey.ext:jersey-bean-validation:${jerseyVersion}") //for validation
 }
 
 publishing {

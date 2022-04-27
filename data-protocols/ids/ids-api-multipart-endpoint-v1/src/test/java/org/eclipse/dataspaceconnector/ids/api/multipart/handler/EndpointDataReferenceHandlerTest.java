@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.javafaker.Faker;
 import de.fraunhofer.iais.eis.MessageProcessedNotificationMessage;
 import de.fraunhofer.iais.eis.ParticipantCertificateRevokedMessageBuilder;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessageBuilder;
@@ -24,18 +25,15 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceReceiver;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceReceiverRegistry;
-import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformer;
+import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,20 +45,21 @@ import static org.mockito.Mockito.when;
 
 class EndpointDataReferenceHandlerTest {
 
+    private static final Faker FAKER = new Faker();
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private EndpointDataReferenceHandler handler;
     private EndpointDataReferenceReceiverRegistry receiverRegistry;
-    private EndpointDataReferenceTransformer transformer;
+    private EndpointDataReferenceTransformerRegistry transformerRegistry;
 
     @BeforeEach
     public void setUp() {
         var monitor = mock(Monitor.class);
-        var connectorId = UUID.randomUUID().toString();
+        var connectorId = FAKER.lorem().word();
         receiverRegistry = mock(EndpointDataReferenceReceiverRegistry.class);
-        transformer = mock(EndpointDataReferenceTransformer.class);
+        transformerRegistry = mock(EndpointDataReferenceTransformerRegistry.class);
         var typeManager = new TypeManager();
-        handler = new EndpointDataReferenceHandler(monitor, connectorId, receiverRegistry, transformer, typeManager);
+        handler = new EndpointDataReferenceHandler(monitor, connectorId, receiverRegistry, transformerRegistry, typeManager);
     }
 
     @Test
@@ -79,25 +78,25 @@ class EndpointDataReferenceHandlerTest {
 
     @Test
     void handleRequest_success_shouldReturnMessageProcessedNotification() throws JsonProcessingException {
-        var edr = createEndpointDataReference();
-        var request = createMultipartRequest(edr);
+        var inputEdr = createEndpointDataReference();
+        var edrAfterTransformation = createEndpointDataReference();
+        var request = createMultipartRequest(inputEdr);
 
         var edrCapture = ArgumentCaptor.forClass(EndpointDataReference.class);
-        when(transformer.transform(any())).thenReturn(Result.success(edr));
-        var receiver = mock(EndpointDataReferenceReceiver.class);
-        when(receiver.send(edr)).thenReturn(CompletableFuture.completedFuture(Result.success()));
-        when(receiverRegistry.getAll()).thenReturn(List.of(receiver));
+
+        when(transformerRegistry.transform(any())).thenReturn(Result.success(edrAfterTransformation));
+        when(receiverRegistry.receiveAll(edrAfterTransformation)).thenReturn(CompletableFuture.completedFuture(Result.success()));
 
         var response = handler.handleRequest(request, createClaimToken());
 
-        verify(transformer, times(1)).transform(edrCapture.capture());
+        verify(transformerRegistry, times(1)).transform(edrCapture.capture());
 
         assertThat(edrCapture.getValue()).satisfies(t -> {
-            assertThat(t.getEndpoint()).isEqualTo(edr.getEndpoint());
-            assertThat(t.getAuthKey()).isEqualTo(edr.getAuthKey());
-            assertThat(t.getAuthCode()).isEqualTo(edr.getAuthCode());
-            assertThat(t.getId()).isEqualTo(edr.getId());
-            assertThat(t.getProperties()).isEqualTo(edr.getProperties());
+            assertThat(t.getEndpoint()).isEqualTo(inputEdr.getEndpoint());
+            assertThat(t.getAuthKey()).isEqualTo(inputEdr.getAuthKey());
+            assertThat(t.getAuthCode()).isEqualTo(inputEdr.getAuthCode());
+            assertThat(t.getId()).isEqualTo(inputEdr.getId());
+            assertThat(t.getProperties()).isEqualTo(inputEdr.getProperties());
         });
 
         assertThat(response)
@@ -110,7 +109,7 @@ class EndpointDataReferenceHandlerTest {
         var edr = createEndpointDataReference();
         var request = createMultipartRequest(edr);
 
-        when(transformer.transform(any())).thenReturn(Result.failure("error"));
+        when(transformerRegistry.transform(any())).thenReturn(Result.failure(FAKER.lorem().sentence()));
 
         var response = handler.handleRequest(request, createClaimToken());
 
@@ -120,31 +119,12 @@ class EndpointDataReferenceHandlerTest {
     }
 
     @Test
-    void handleRequest_dispatchFailure_shouldReturnMessageProcessedNotification() throws JsonProcessingException {
+    void handleRequest_receiveFailure_shouldReturnMessageProcessedNotification() throws JsonProcessingException {
         var edr = createEndpointDataReference();
         var request = createMultipartRequest(edr);
 
-        when(transformer.transform(any())).thenReturn(Result.success(edr));
-        var receiver = mock(EndpointDataReferenceReceiver.class);
-        when(receiver.send(edr)).thenReturn(CompletableFuture.completedFuture(Result.failure("error")));
-        when(receiverRegistry.getAll()).thenReturn(List.of(receiver));
-
-        var response = handler.handleRequest(request, createClaimToken());
-
-        assertThat(response)
-                .isNotNull()
-                .satisfies(r -> assertThat(r.getHeader()).isInstanceOf(RejectionMessage.class));
-    }
-
-    @Test
-    void handleRequest_dispatchUnhandledException_shouldReturnMessageProcessedNotification() throws JsonProcessingException {
-        var edr = createEndpointDataReference();
-        var request = createMultipartRequest(edr);
-
-        when(transformer.transform(any())).thenReturn(Result.success(edr));
-        var receiver = mock(EndpointDataReferenceReceiver.class);
-        when(receiver.send(edr)).thenReturn(CompletableFuture.failedFuture(new RuntimeException("error")));
-        when(receiverRegistry.getAll()).thenReturn(List.of(receiver));
+        when(transformerRegistry.transform(any())).thenReturn(Result.success(edr));
+        when(receiverRegistry.receiveAll(edr)).thenReturn(CompletableFuture.completedFuture(Result.failure(FAKER.lorem().sentence())));
 
         var response = handler.handleRequest(request, createClaimToken());
 
@@ -155,11 +135,11 @@ class EndpointDataReferenceHandlerTest {
 
     private static EndpointDataReference createEndpointDataReference() {
         return EndpointDataReference.Builder.newInstance()
-                .endpoint("http://example.com")
-                .authKey("Api-Key")
-                .authCode("token-test")
-                .id("correlation-test")
-                .properties(Map.of("foo", "bar"))
+                .endpoint(FAKER.internet().url())
+                .authKey(FAKER.lorem().word())
+                .authCode(FAKER.internet().uuid())
+                .id(FAKER.internet().uuid())
+                .properties(Map.of(FAKER.lorem().word(), FAKER.internet().uuid()))
                 .build();
     }
 

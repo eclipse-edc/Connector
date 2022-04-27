@@ -29,7 +29,7 @@ public class TestExtensions {
     private static class MockIamExtension implements ServiceExtension {
         private final IdentityService identityService;
 
-        public MockIamExtension(IdentityService identityService) {
+        MockIamExtension(IdentityService identityService) {
             this.identityService = identityService;
         }
 

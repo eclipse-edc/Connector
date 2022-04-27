@@ -27,6 +27,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -73,5 +74,14 @@ class AuthenticationRequestFilterTest {
 
         assertThatThrownBy(() -> filter.filter(contextMock)).isInstanceOf(NotAuthorizedException.class);
         verify(authSrvMock).isAuthenticated(anyMap());
+    }
+
+    @Test
+    void filter_shouldSkipOnOptions() {
+        var contextMock = mock(ContainerRequestContext.class);
+        when(contextMock.getMethod()).thenReturn("OPTIONS");
+
+        filter.filter(contextMock);
+        verify(authSrvMock, never()).isAuthenticated(anyMap());
     }
 }

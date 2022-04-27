@@ -184,7 +184,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     public StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, String hash) {
         var negotiation = negotiationStore.find(negotiationId);
         if (negotiation == null) {
-            return StatusResult.failure(FATAL_ERROR);
+            return StatusResult.failure(FATAL_ERROR, format("ContractNegotiation with id %s not found", negotiationId));
         }
 
         var latestOffer = negotiation.getLastContractOffer();

@@ -19,6 +19,7 @@ plugins {
 val httpMockServer: String by project
 val jodahFailsafeVersion: String by project
 val okHttpVersion: String by project
+val openTelemetryVersion: String by project
 val faker: String by project
 
 dependencies {
@@ -30,6 +31,7 @@ dependencies {
 
     implementation("net.jodah:failsafe:${jodahFailsafeVersion}")
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 
     testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
     testImplementation("org.mock-server:mockserver-client-java:${httpMockServer}:shaded")

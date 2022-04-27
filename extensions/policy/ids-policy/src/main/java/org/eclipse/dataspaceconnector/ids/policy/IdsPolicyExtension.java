@@ -16,10 +16,12 @@ package org.eclipse.dataspaceconnector.ids.policy;
 
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
+import org.eclipse.dataspaceconnector.spi.policy.RuleBindingRegistry;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
+import static org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyActions.USE;
 import static org.eclipse.dataspaceconnector.spi.policy.PolicyEngine.ALL_SCOPES;
 
 /**
@@ -27,8 +29,12 @@ import static org.eclipse.dataspaceconnector.spi.policy.PolicyEngine.ALL_SCOPES;
  */
 public class IdsPolicyExtension implements ServiceExtension {
 
-    public static String ABS_SPATIAL_POSITION = "ids:absoluteSpatialPosition";
-    public static String PARTNER_LEVEL = "ids:partnerLevel";
+    private static final String ABS_SPATIAL_POSITION = "ids:absoluteSpatialPosition";
+    private static final String PARTNER_LEVEL = "ids:partnerLevel";
+
+    @Inject
+    private RuleBindingRegistry ruleBindingRegistry;
+
     @Inject
     private PolicyEngine policyEngine;
 
@@ -39,9 +45,9 @@ public class IdsPolicyExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        ruleBindingRegistry.bind(USE, ALL_SCOPES);
 
         policyEngine.registerFunction(ALL_SCOPES, Permission.class, ABS_SPATIAL_POSITION, new AbsSpatialPositionConstraintFunction());
         policyEngine.registerFunction(ALL_SCOPES, Permission.class, PARTNER_LEVEL, new PartnerLevelConstraintFunction());
     }
-
 }

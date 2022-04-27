@@ -30,13 +30,13 @@ import org.slf4j.spi.SLF4JServiceProvider;
  * Bridges from SLF4J to a monitor.
  */
 public class MonitorProvider implements SLF4JServiceProvider {
-    private static Monitor INSTANCE = new ConsoleMonitor();
+    private static Monitor instance = new ConsoleMonitor();
     private final IMarkerFactory markerFactory = new BasicMarkerFactory();
     private final MDCAdapter mdcAdapter = new NOPMDCAdapter();
 
 
     public static void setInstance(Monitor monitor) {
-        INSTANCE = monitor;
+        instance = monitor;
     }
 
     @Override
@@ -64,7 +64,7 @@ public class MonitorProvider implements SLF4JServiceProvider {
     }
 
     private static class MonitorLogger extends AbstractLogger {
-        public MonitorLogger() {
+        MonitorLogger() {
             name = getClass().getSimpleName();
         }
 
@@ -127,14 +127,14 @@ public class MonitorProvider implements SLF4JServiceProvider {
         protected void handleNormalizedLoggingCall(Level level, Marker marker, String msg, Object[] arguments, Throwable throwable) {
             switch (level) {
                 case ERROR:
-                    INSTANCE.severe(msg, throwable);
+                    instance.severe(msg, throwable);
                     break;
                 default:
                 case INFO:
-                    INSTANCE.info(msg, throwable);
+                    instance.info(msg, throwable);
                     break;
                 case DEBUG:
-                    INSTANCE.debug(msg, throwable);
+                    instance.debug(msg, throwable);
                     break;
             }
         }

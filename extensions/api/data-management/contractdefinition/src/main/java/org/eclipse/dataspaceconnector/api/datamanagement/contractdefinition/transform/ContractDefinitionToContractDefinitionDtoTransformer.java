@@ -37,8 +37,8 @@ public class ContractDefinitionToContractDefinitionDtoTransformer implements Dto
     public @Nullable ContractDefinitionDto transform(@Nullable ContractDefinition object, @NotNull TransformerContext context) {
         return ContractDefinitionDto.Builder.newInstance()
                 .id(object.getId())
-                .accessPolicyId(object.getAccessPolicy().getUid())
-                .contractPolicyId(object.getContractPolicy().getUid())
+                .accessPolicyId(object.getAccessPolicyId())
+                .contractPolicyId(object.getContractPolicyId())
                 .criteria(object.getSelectorExpression().getCriteria())
                 .build();
     }

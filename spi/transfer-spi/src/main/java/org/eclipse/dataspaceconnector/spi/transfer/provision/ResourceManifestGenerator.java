@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.spi.transfer.provision;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
@@ -23,7 +22,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest
 /**
  * Generates resource manifests for data transfer requests. Implementations are responsible for enforcing policy constraints associated with transfer requests.
  */
-@Feature("edc:core:transfer:provision:resourcemanifest-generator")
 public interface ResourceManifestGenerator {
 
     /**
@@ -44,16 +42,16 @@ public interface ResourceManifestGenerator {
      * Generates a resource manifest for a consumer-side data request. Operations must be idempotent.
      *
      * @param dataRequest the data request associated with transfer process
-     * @param policy the contract agreement usage policy for the asset being transferred
+     * @param policy      the contract agreement usage policy for the asset being transferred
      */
     ResourceManifest generateConsumerResourceManifest(DataRequest dataRequest, Policy policy);
 
     /**
      * Generates a resource manifest for a provider-side data request. Operations must be idempotent.
      *
-     * @param dataRequest the data request associated with transfer process
+     * @param dataRequest  the data request associated with transfer process
      * @param assetAddress the asset data address
-     * @param policy the contract agreement usage policy for the asset being transferred
+     * @param policy       the contract agreement usage policy for the asset being transferred
      */
     ResourceManifest generateProviderResourceManifest(DataRequest dataRequest, DataAddress assetAddress, Policy policy);
 }

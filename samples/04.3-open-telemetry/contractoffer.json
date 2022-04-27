@@ -1,0 +1,45 @@
+{
+  "connectorId": "provider",
+  "connectorAddress": "http://provider:8282/api/v1/ids/data",
+  "protocol": "ids-multipart",
+  "offer": {
+    "offerId": "1:3a75736e-001d-4364-8bd4-9888490edb58",
+    "assetId": "test-document",
+    "policy": {
+      "uid": "956e172f-2de1-4501-8881-057a57fd0e69",
+      "permissions": [
+        {
+          "edctype": "dataspaceconnector:permission",
+          "uid": null,
+          "target": "test-document",
+          "action": {
+            "type": "USE",
+            "includedIn": null,
+            "constraint": null
+          },
+          "assignee": null,
+          "assigner": null,
+          "constraints": [],
+          "duties": []
+        }
+      ],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "asset": {
+      "properties": {
+        "ids:byteSize": null,
+        "asset:prop:id": "test-document",
+        "ids:fileName": null
+      }
+    }
+  }
+}

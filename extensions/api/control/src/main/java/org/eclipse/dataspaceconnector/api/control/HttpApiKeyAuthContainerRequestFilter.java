@@ -45,7 +45,7 @@ class HttpApiKeyAuthContainerRequestFilter implements ContainerRequestFilter {
      */
     private final String expectedHeaderValue;
 
-    public HttpApiKeyAuthContainerRequestFilter(
+    HttpApiKeyAuthContainerRequestFilter(
             @NotNull String expectedHeaderName,
             @NotNull String expectedHeaderValue,
             @NotNull Predicate<ContainerRequestContext> containerRequestContextPredicate) {

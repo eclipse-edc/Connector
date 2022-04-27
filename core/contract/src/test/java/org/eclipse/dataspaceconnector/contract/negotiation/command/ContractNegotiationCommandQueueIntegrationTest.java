@@ -151,7 +151,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
      * Example Command implementation for this test.
      */
     private static class TestCommand extends SingleContractNegotiationCommand {
-        public TestCommand(String negotiationId) {
+        TestCommand(String negotiationId) {
             super(negotiationId);
         }
     }
@@ -165,7 +165,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
         private CountDownLatch countDownLatch;
         private String errorDetail;
 
-        public TestCommandHandler(ContractNegotiationStore store, CountDownLatch countDownLatch, String errorDetail) {
+        TestCommandHandler(ContractNegotiationStore store, CountDownLatch countDownLatch, String errorDetail) {
             super(store);
             this.countDownLatch = countDownLatch;
             this.errorDetail = errorDetail;

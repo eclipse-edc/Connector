@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -43,21 +44,25 @@ public class FileTransferExtension implements ServiceExtension {
     private PipelineService pipelineService;
     @Inject
     private DataTransferExecutorServiceContainer executorContainer;
+    @Inject
+    private PolicyStore policyStore;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
+        var telemetry = context.getTelemetry();
 
         var sourceFactory = new FileTransferDataSourceFactory();
         pipelineService.registerFactory(sourceFactory);
 
-        var sinkFactory = new FileTransferDataSinkFactory(monitor, executorContainer.getExecutorService(), 5);
+        var sinkFactory = new FileTransferDataSinkFactory(monitor, telemetry, executorContainer.getExecutorService(), 5);
         pipelineService.registerFactory(sinkFactory);
 
         var policy = createPolicy();
+        policyStore.save(policy);
 
         registerDataEntries(context);
-        registerContractDefinition(policy);
+        registerContractDefinition(policy.getUid());
 
         context.getMonitor().info("File Transfer Extension initialized!");
     }
@@ -91,12 +96,12 @@ public class FileTransferExtension implements ServiceExtension {
         loader.accept(asset, dataAddress);
     }
 
-    private void registerContractDefinition(Policy policy) {
+    private void registerContractDefinition(String policyId) {
 
         var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("1")
-                .accessPolicy(policy)
-                .contractPolicy(policy)
+                .accessPolicyId(policyId)
+                .contractPolicyId(policyId)
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "test-document").build())
                 .build();
 

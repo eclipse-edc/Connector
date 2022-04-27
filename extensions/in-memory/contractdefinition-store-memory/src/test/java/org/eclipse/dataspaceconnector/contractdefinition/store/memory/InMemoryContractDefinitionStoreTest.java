@@ -35,9 +35,8 @@ class InMemoryContractDefinitionStoreTest {
 
     @Test
     void verifyStore() {
-        var policy = Policy.Builder.newInstance().build();
-        var definition1 = ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build();
-        var definition2 = ContractDefinition.Builder.newInstance().id("2").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build();
+        var definition1 = ContractDefinition.Builder.newInstance().id("1").accessPolicyId("access").contractPolicyId("contract").selectorExpression(SELECT_ALL).build();
+        var definition2 = ContractDefinition.Builder.newInstance().id("2").accessPolicyId("access").contractPolicyId("contract").selectorExpression(SELECT_ALL).build();
 
         store.save(definition1);
         assertThat(store.findAll()).contains(definition1);
@@ -120,6 +119,6 @@ class InMemoryContractDefinitionStoreTest {
 
     private ContractDefinition createContractDefinition(String id) {
         var policy = Policy.Builder.newInstance().build();
-        return ContractDefinition.Builder.newInstance().id(id).accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build();
+        return ContractDefinition.Builder.newInstance().id(id).accessPolicyId("access").contractPolicyId("contract").selectorExpression(SELECT_ALL).build();
     }
 }

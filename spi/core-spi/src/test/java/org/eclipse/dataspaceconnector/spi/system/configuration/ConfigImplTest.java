@@ -241,6 +241,26 @@ class ConfigImplTest {
     }
 
     @Test
+    void getConfigShouldGetOnlyEqualGroups() {
+        var map = Map.of("group.key", "value", "group", "sameValue", "group2.key", "anotherValue");
+        var config = new ConfigImpl("", map);
+
+        var entries = config.getConfig("group").getEntries();
+
+        assertThat(entries).containsExactly(Map.entry("group.key", "value"), Map.entry("group", "sameValue"));
+    }
+
+    @Test
+    void getConfigWithEmptyStringShouldReturnAllTheConfig() {
+        var map = Map.of("group.key", "value", "group", "sameValue", "group2.key", "anotherValue");
+        var config = new ConfigImpl("", map);
+
+        var entries = config.getConfig("").getEntries();
+
+        assertThat(entries).containsExactlyInAnyOrderEntriesOf(map);
+    }
+
+    @Test
     void getEntriesShouldReturnAllTheEntriesWithTheWholePath() {
         var config = new ConfigImpl("", Map.of("group.subgroup.key", "value"));
 

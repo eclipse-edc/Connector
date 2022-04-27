@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class TransferRequestDtoToDataRequestTransformer implements DtoTransformer<TransferRequestDto, DataRequest> {
 
@@ -41,7 +42,12 @@ public class TransferRequestDtoToDataRequestTransformer implements DtoTransforme
         if (object == null) {
             return null;
         }
+
+        // Generate a DataRequest ID if none is provided (used for idempotency)
+        String id = Objects.requireNonNullElseGet(object.getId(), () -> UUID.randomUUID().toString());
+
         return DataRequest.Builder.newInstance()
+                .id(id)
                 .assetId(object.getAssetId())
                 .connectorId(object.getConnectorId())
                 .dataDestination(object.getDataDestination())

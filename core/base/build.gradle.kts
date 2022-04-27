@@ -22,13 +22,14 @@ val awaitility: String by project
 val jodahFailsafeVersion: String by project
 val jupiterVersion: String by project
 val okHttpVersion: String by project
-
+val bouncycastleVersion: String by project
 
 dependencies {
     api(project(":spi:core-spi"))
 
     api("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     api("net.jodah:failsafe:${jodahFailsafeVersion}")
+    api("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
 
     implementation(project(":core:policy:policy-engine"))
 

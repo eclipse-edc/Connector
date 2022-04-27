@@ -16,6 +16,8 @@ package org.eclipse.dataspaceconnector.transfer.provision.http.webhook;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 
 /**
@@ -24,7 +26,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedRes
 @OpenAPIDefinition
 @Tag(name = "HTTP Provisioner Webhook")
 public interface HttpProvisionerWebhookApi {
-    void callProvisionWebhook(String transferProcessId, ProvisionerWebhookRequest request);
+    void callProvisionWebhook(@NotNull String transferProcessId, @Valid ProvisionerWebhookRequest request);
 
-    void callDeprovisionWebhook(String transferProcessId, DeprovisionedResource resource);
+    void callDeprovisionWebhook(@NotNull String transferProcessId, @Valid DeprovisionedResource resource);
 }

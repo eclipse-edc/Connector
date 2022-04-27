@@ -18,9 +18,11 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.node.NullNode;
 import de.fraunhofer.iais.eis.BinaryOperator;
 import de.fraunhofer.iais.eis.Constraint;
 import de.fraunhofer.iais.eis.util.RdfResource;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -40,23 +42,46 @@ public class CustomIdsConstraintDeserializer extends StdDeserializer<Constraint>
     @Override
     public Constraint deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
         JsonNode jsonNode = p.getCodec().readTree(p);
-        var id = jsonNode.get("@id");
-        var leftOperand = jsonNode.get("ids:leftOperand");
-        var operator = jsonNode.get("ids:operator");
+        var id = getOrThrow(jsonNode, "@id");
+        var leftOperand = getOrThrow(jsonNode, "ids:leftOperand");
+        var operator = getOrThrow(jsonNode, "ids:operator");
         var rightOperand = jsonNode.get("ids:rightOperand");
-        var reference = jsonNode.get("ids:rightOperandReference");
+        var rightOperandReference = jsonNode.get("ids:rightOperandReference");
         var unit = jsonNode.get("ids:unit");
         var endpoint = jsonNode.get("ids:pipEndpoint");
         // NOTE custom properties are not deserialized
 
-        return new IdsConstraintBuilder(URI.create(id.asText()))
+        var builder = new IdsConstraintBuilder(URI.create(id.asText()))
                 .leftOperand(leftOperand.asText())
-                .operator(BinaryOperator.deserialize(operator))
-                .rightOperand(new RdfResource(rightOperand.get("@value").asText(),
-                        URI.create(rightOperand.get("@type").asText())))
-                .rightOperandReference(URI.create(reference.asText()))
-                .unit(URI.create(unit.asText()))
-                .pipEndpoint(URI.create(endpoint.asText()))
-                .build();
+                .operator(BinaryOperator.deserialize(operator));
+
+        if (isValidNode(rightOperand)) {
+            builder.rightOperand(new RdfResource(getOrThrow(rightOperand, "@value").asText(), URI.create(getOrThrow(rightOperand, "@type").asText())));
+        } else if (isValidNode(rightOperandReference)) {
+            builder.rightOperandReference(URI.create(rightOperandReference.asText()));
+        } else {
+            throw new EdcException("Either RightOperand or RightOperandReference must be provided");
+        }
+
+        if (isValidNode(unit)) {
+            builder.unit(URI.create(unit.asText()));
+        }
+        if (isValidNode(endpoint)) {
+            builder.pipEndpoint(URI.create(endpoint.asText()));
+        }
+
+        return builder.build();
+    }
+
+    private static JsonNode getOrThrow(JsonNode json, String key) {
+        var value = json.get(key);
+        if (!isValidNode(value)) {
+            throw new EdcException(String.format("Missing key: %s in %s", key, json));
+        }
+        return value;
+    }
+
+    private static boolean isValidNode(JsonNode node) {
+        return node != null && node != NullNode.getInstance();
     }
 }

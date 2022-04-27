@@ -38,6 +38,7 @@ import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -63,7 +64,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -74,7 +74,8 @@ import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.mock;
 
 @ComponentTest
-@Provides({AssetIndex.class,
+@Provides({
+        AssetIndex.class,
         DataAddressResolver.class,
         ContractDefinitionStore.class,
         IdentityService.class,
@@ -82,11 +83,13 @@ import static org.mockito.Mockito.mock;
         ConsumerContractNegotiationManager.class,
         ProviderContractNegotiationManager.class,
         ContractOfferService.class,
-        ContractValidationService.class})
+        ContractValidationService.class,
+        PolicyArchive.class
+})
 class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements ServiceExtension {
     private final List<Asset> assets;
 
-    public IdsApiMultipartEndpointV1IntegrationTestServiceExtension(List<Asset> assets) {
+    IdsApiMultipartEndpointV1IntegrationTestServiceExtension(List<Asset> assets) {
         this.assets = Objects.requireNonNull(assets);
     }
 
@@ -125,6 +128,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         context.registerService(ContractNegotiationStore.class, mock(ContractNegotiationStore.class));
         context.registerService(ProviderContractNegotiationManager.class, new FakeProviderContractNegotiationManager());
         context.registerService(ConsumerContractNegotiationManager.class, new FakeConsumerContractNegotiationManager());
+        context.registerService(PolicyArchive.class, mock(PolicyArchive.class));
     }
 
     private static class FakeIdentityService implements IdentityService {

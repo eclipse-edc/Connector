@@ -134,7 +134,7 @@ class PartitionManagerImplIntegrationTest {
     private static class SignalingWorkItemQueue extends DefaultWorkItemQueue {
         private final WorkQueueListener listener;
 
-        public SignalingWorkItemQueue(int cap, WorkQueueListener listener) {
+        SignalingWorkItemQueue(int cap, WorkQueueListener listener) {
             super(cap);
             this.listener = listener;
         }
@@ -170,7 +170,7 @@ class PartitionManagerImplIntegrationTest {
      */
     private static class RunOnceExecutionPlan implements ExecutionPlan {
 
-        public RunOnceExecutionPlan() {
+        RunOnceExecutionPlan() {
         }
 
         @Override

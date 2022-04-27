@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.spi.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
-import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 
@@ -26,10 +25,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.comm
  * <p>
  * All operations are idempotent.
  */
-@Feature(ContractNegotiationManager.FEATURE)
 public interface ContractNegotiationManager {
-
-    String FEATURE = "edc:core:contract:contractnegotiation:manager";
 
     /**
      * A negotiation was declined by the counter-party represented by the claim token.

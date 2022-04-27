@@ -25,8 +25,8 @@ import org.eclipse.dataspaceconnector.core.base.policy.RuleBindingRegistryImpl;
 import org.eclipse.dataspaceconnector.core.base.policy.ScopeFilter;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceConfiguration;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceImpl;
+import org.eclipse.dataspaceconnector.core.security.DefaultPrivateKeyParseFunction;
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
@@ -36,22 +36,17 @@ import org.eclipse.dataspaceconnector.spi.policy.RuleBindingRegistry;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.BaseExtension;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
-import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentationImplementation;
 import org.eclipse.dataspaceconnector.spi.system.Hostname;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.Base64;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -66,9 +61,7 @@ import static java.util.Optional.ofNullable;
         ParticipantAgentService.class,
         PolicyEngine.class,
         RemoteMessageDispatcherRegistry.class,
-        RetryPolicy.class,
         RuleBindingRegistry.class,
-        ExecutorInstrumentation.class,
 })
 public class CoreServicesExtension implements ServiceExtension {
 
@@ -103,9 +96,11 @@ public class CoreServicesExtension implements ServiceExtension {
      * An optional instrumentor for {@link ExecutorService}. Used by the optional {@code micrometer} module.
      */
     @Inject(required = false)
-    private ExecutorInstrumentationImplementation executorInstrumentationImplementation;
+    private ExecutorInstrumentation executorInstrumentation;
 
     private HealthCheckServiceImpl healthCheckService;
+    private RuleBindingRegistryImpl ruleBindingRegistry;
+    private ScopeFilter scopeFilter;
 
     @Override
     public String name() {
@@ -114,37 +109,19 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        addHttpClient(context);
-        addRetryPolicy(context);
         registerParser(context);
-        var executorInstrumentation = registerExecutorInstrumentation(context);
         var config = getHealthCheckConfig(context);
 
         // health check service
         healthCheckService = new HealthCheckServiceImpl(config, executorInstrumentation);
         context.registerService(HealthCheckService.class, healthCheckService);
 
-        // remote message dispatcher registry
-        var dispatcherRegistry = new RemoteMessageDispatcherRegistryImpl();
-        context.registerService(RemoteMessageDispatcherRegistry.class, dispatcherRegistry);
+        ruleBindingRegistry = new RuleBindingRegistryImpl();
 
-        context.registerService(CommandHandlerRegistry.class, new CommandHandlerRegistryImpl());
-
-        var agentService = new ParticipantAgentServiceImpl();
-        context.registerService(ParticipantAgentService.class, agentService);
-
-        var bindingRegistry = new RuleBindingRegistryImpl();
-        context.registerService(RuleBindingRegistry.class, bindingRegistry);
-
-        var scopeFilter = new ScopeFilter(bindingRegistry);
+        scopeFilter = new ScopeFilter(ruleBindingRegistry);
 
         var typeManager = context.getTypeManager();
         PolicyRegistrationTypes.TYPES.forEach(typeManager::registerTypes);
-
-        var policyEngine = new PolicyEngineImpl(scopeFilter);
-        context.registerService(PolicyEngine.class, policyEngine);
-
-        registerHostname(context);
     }
 
     @Override
@@ -158,6 +135,71 @@ public class CoreServicesExtension implements ServiceExtension {
         ServiceExtension.super.shutdown();
     }
 
+    @Provider(isDefault = true)
+    public ExecutorInstrumentation defaultInstrumentation() {
+        return ExecutorInstrumentation.noop();
+    }
+
+    @Provider
+    public RetryPolicy<?> retryPolicy(ServiceExtensionContext context) {
+        var maxRetries = context.getSetting(MAX_RETRIES, 5);
+        var minBackoff = context.getSetting(BACKOFF_MIN_MILLIS, 500);
+        var maxBackoff = context.getSetting(BACKOFF_MAX_MILLIS, 10_000);
+
+        return new RetryPolicy<>()
+                .withMaxRetries(maxRetries)
+                .withBackoff(minBackoff, maxBackoff, ChronoUnit.MILLIS);
+    }
+
+    @Provider
+    public Hostname hostname(ServiceExtensionContext context) {
+        var hostname = context.getSetting(HOSTNAME_SETTING, DEFAULT_HOSTNAME);
+        if (DEFAULT_HOSTNAME.equals(hostname)) {
+            context.getMonitor().warning(String.format("Settings: No setting found for key '%s'. Using default value '%s'", HOSTNAME_SETTING, DEFAULT_HOSTNAME));
+        }
+        return () -> hostname;
+    }
+
+    @Provider
+    public RemoteMessageDispatcherRegistry remoteMessageDispatcherRegistry() {
+        return new RemoteMessageDispatcherRegistryImpl();
+    }
+
+    @Provider
+    public CommandHandlerRegistry commandHandlerRegistry() {
+        return new CommandHandlerRegistryImpl();
+    }
+
+    @Provider
+    public ParticipantAgentService participantAgentService() {
+        return new ParticipantAgentServiceImpl();
+    }
+
+    @Provider
+    public RuleBindingRegistry ruleBindingRegistry() {
+
+        return ruleBindingRegistry;
+    }
+
+    @Provider
+    public PolicyEngine policyEngine() {
+        return new PolicyEngineImpl(scopeFilter);
+    }
+
+    @Provider
+    public OkHttpClient addHttpClient(ServiceExtensionContext context) {
+        var builder = new OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS);
+
+        ofNullable(okHttpEventListener).ifPresent(builder::eventListener);
+
+        var client = builder.build();
+
+        context.registerService(OkHttpClient.class, client);
+        return client;
+    }
+
     private HealthCheckServiceConfiguration getHealthCheckConfig(ServiceExtensionContext context) {
 
         return HealthCheckServiceConfiguration.Builder.newInstance()
@@ -169,57 +211,9 @@ public class CoreServicesExtension implements ServiceExtension {
                 .build();
     }
 
-    private void registerHostname(ServiceExtensionContext context) {
-        var hostname = context.getSetting(HOSTNAME_SETTING, DEFAULT_HOSTNAME);
-        if (DEFAULT_HOSTNAME.equals(hostname)) {
-            context.getMonitor().warning(String.format("Settings: No setting found for key '%s'. Using default value '%s'", HOSTNAME_SETTING, DEFAULT_HOSTNAME));
-        }
-        context.registerService(Hostname.class, () -> hostname);
-    }
-
     private void registerParser(ServiceExtensionContext context) {
         var resolver = context.getService(PrivateKeyResolver.class);
-        resolver.addParser(PrivateKey.class, encoded -> {
-            try {
-                KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-                return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(Base64.getDecoder().decode(encoded.getBytes())));
-            } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-                throw new EdcException(e);
-            }
-        });
+        resolver.addParser(PrivateKey.class, new DefaultPrivateKeyParseFunction());
     }
 
-    private void addRetryPolicy(ServiceExtensionContext context) {
-
-        var maxRetries = context.getSetting(MAX_RETRIES, 5);
-        var minBackoff = context.getSetting(BACKOFF_MIN_MILLIS, 500);
-        var maxBackoff = context.getSetting(BACKOFF_MAX_MILLIS, 10_000);
-
-        var retryPolicy = new RetryPolicy<>()
-                .withMaxRetries(maxRetries)
-                .withBackoff(minBackoff, maxBackoff, ChronoUnit.MILLIS);
-
-        context.registerService(RetryPolicy.class, retryPolicy);
-
-    }
-
-    private void addHttpClient(ServiceExtensionContext context) {
-        var builder = new OkHttpClient.Builder()
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS);
-
-        ofNullable(okHttpEventListener).ifPresent(builder::eventListener);
-
-        var client = builder.build();
-
-        context.registerService(OkHttpClient.class, client);
-    }
-
-    private ExecutorInstrumentation registerExecutorInstrumentation(ServiceExtensionContext context) {
-        var executorInstrumentation = ofNullable((ExecutorInstrumentation) this.executorInstrumentationImplementation)
-                .orElse(ExecutorInstrumentation.noop());
-        // Register ExecutorImplementation with default noop implementation if none available
-        context.registerService(ExecutorInstrumentation.class, executorInstrumentation);
-        return executorInstrumentation;
-    }
 }
