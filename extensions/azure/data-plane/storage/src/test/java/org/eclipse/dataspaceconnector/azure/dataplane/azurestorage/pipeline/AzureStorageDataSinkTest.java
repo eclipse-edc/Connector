@@ -42,12 +42,6 @@ import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFix
 import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createContainerName;
 import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createRequest;
 import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createSharedKey;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.TestCustomException;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createAccountName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createBlobName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createContainerName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createRequest;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createSharedKey;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -96,7 +90,7 @@ class AzureStorageDataSinkTest {
                 .thenReturn(destination);
 
         when(completionMarker.getOutputStream()).thenReturn(completionMarkerOutput);
-        when(blobAdapterFactory.getBlobAdapter(
+        when(blobStoreApi.getBlobAdapter(
                 eq(accountName),
                 eq(containerName),
                 argThat(s -> s.endsWith(".complete")),
@@ -149,7 +143,7 @@ class AzureStorageDataSinkTest {
     @Test
     void complete() throws IOException {
         dataSink.complete();
-        verify(blobAdapterFactory).getBlobAdapter(
+        verify(blobStoreApi).getBlobAdapter(
                 eq(accountName),
                 eq(containerName),
                 argThat(s -> s.endsWith(".complete")),

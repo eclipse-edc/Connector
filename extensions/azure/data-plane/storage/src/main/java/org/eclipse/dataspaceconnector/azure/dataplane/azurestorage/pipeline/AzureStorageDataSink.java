@@ -66,7 +66,7 @@ public class AzureStorageDataSink extends ParallelSink {
     protected StatusResult<Void> complete() {
         try {
             // Write an empty blob to indicate completion
-            blobAdapterFactory.getBlobAdapter(accountName, containerName, COMPLETE_BLOB_NAME, sharedKey)
+            blobStoreApi.getBlobAdapter(accountName, containerName, COMPLETE_BLOB_NAME, sharedKey)
                     .getOutputStream().close();
         } catch (Exception e) {
             return getTransferResult(e, "Error creating blob %s on account %s", COMPLETE_BLOB_NAME, accountName);
