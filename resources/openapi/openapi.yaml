@@ -11,6 +11,8 @@ servers:
 paths:
   /assets:
     get:
+      tags:
+      - Asset
       operationId: getAllAssets
       parameters:
       - name: offset
@@ -63,6 +65,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/AssetDto'
     post:
+      tags:
+      - Asset
       operationId: createAsset
       requestBody:
         content:
@@ -73,9 +77,11 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            '*/*': {}
   /assets/{id}:
     get:
+      tags:
+      - Asset
       operationId: getAsset
       parameters:
       - name: id
@@ -93,6 +99,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/AssetDto'
     delete:
+      tags:
+      - Asset
       operationId: removeAsset
       parameters:
       - name: id
@@ -106,7 +114,7 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            '*/*': {}
   /control/catalog:
     get:
       operationId: getDescription
@@ -123,6 +131,7 @@ paths:
           description: default response
           content:
             application/json: {}
+      deprecated: true
   /control/transfer:
     post:
       operationId: addTransfer
@@ -136,6 +145,7 @@ paths:
           description: default response
           content:
             application/json: {}
+      deprecated: true
   /control/agreement/{id}:
     get:
       operationId: getAgreementById
@@ -152,6 +162,7 @@ paths:
           description: default response
           content:
             application/json: {}
+      deprecated: true
   /control/negotiation/{id}:
     get:
       operationId: getNegotiationById
@@ -168,6 +179,7 @@ paths:
           description: default response
           content:
             application/json: {}
+      deprecated: true
   /control/negotiation/{id}/state:
     get:
       operationId: getNegotiationStateById
@@ -184,6 +196,7 @@ paths:
           description: default response
           content:
             application/json: {}
+      deprecated: true
   /control/negotiation:
     post:
       operationId: initiateNegotiation
@@ -197,8 +210,11 @@ paths:
           description: default response
           content:
             application/json: {}
+      deprecated: true
   /check/health:
     get:
+      tags:
+      - Application Observability
       operationId: checkHealth
       responses:
         default:
@@ -207,6 +223,8 @@ paths:
             application/json: {}
   /check/liveness:
     get:
+      tags:
+      - Application Observability
       operationId: getLiveness
       responses:
         default:
@@ -215,6 +233,8 @@ paths:
             application/json: {}
   /check/readiness:
     get:
+      tags:
+      - Application Observability
       operationId: getReadiness
       responses:
         default:
@@ -223,6 +243,8 @@ paths:
             application/json: {}
   /check/startup:
     get:
+      tags:
+      - Application Observability
       operationId: getStartup
       responses:
         default:
@@ -231,6 +253,8 @@ paths:
             application/json: {}
   /instances:
     get:
+      tags:
+      - Dataplane Selector
       operationId: getAll
       responses:
         default:
@@ -242,6 +266,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/DataPlaneInstance'
     post:
+      tags:
+      - Dataplane Selector
       operationId: addEntry
       requestBody:
         content:
@@ -255,6 +281,8 @@ paths:
             application/json: {}
   /instances/select:
     post:
+      tags:
+      - Dataplane Selector
       operationId: find
       requestBody:
         content:
@@ -268,8 +296,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DataPlaneInstance'
+  /catalog:
+    get:
+      tags:
+      - Catalog
+      operationId: getCatalog
+      parameters:
+      - name: providerUrl
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalog'
   /contractnegotiations/{id}/cancel:
     post:
+      tags:
+      - Contract Negotiation
       operationId: cancelNegotiation
       parameters:
       - name: id
@@ -283,9 +332,11 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            '*/*': {}
   /contractnegotiations/{id}/decline:
     post:
+      tags:
+      - Contract Negotiation
       operationId: declineNegotiation
       parameters:
       - name: id
@@ -299,9 +350,11 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            '*/*': {}
   /contractnegotiations/{id}/agreement:
     get:
+      tags:
+      - Contract Negotiation
       operationId: getAgreementForNegotiation
       parameters:
       - name: id
@@ -320,6 +373,8 @@ paths:
                 $ref: '#/components/schemas/ContractAgreementDto'
   /contractnegotiations/{id}:
     get:
+      tags:
+      - Contract Negotiation
       operationId: getNegotiation
       parameters:
       - name: id
@@ -338,6 +393,8 @@ paths:
                 $ref: '#/components/schemas/ContractNegotiationDto'
   /contractnegotiations/{id}/state:
     get:
+      tags:
+      - Contract Negotiation
       operationId: getNegotiationState
       parameters:
       - name: id
@@ -351,11 +408,13 @@ paths:
         default:
           description: default response
           content:
-            application/json:
+            text/plain:
               schema:
                 type: string
   /contractnegotiations:
     get:
+      tags:
+      - Contract Negotiation
       operationId: getNegotiations
       parameters:
       - name: offset
@@ -408,6 +467,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/ContractNegotiationDto'
     post:
+      tags:
+      - Contract Negotiation
       operationId: initiateContractNegotiation
       requestBody:
         content:
@@ -418,11 +479,13 @@ paths:
         default:
           description: default response
           content:
-            application/json:
+            text/plain:
               schema:
                 type: string
   /callback/{processId}/deprovision:
     post:
+      tags:
+      - HTTP Provisioner Webhook
       operationId: callDeprovisionWebhook
       parameters:
       - name: processId
@@ -444,6 +507,8 @@ paths:
             application/json: {}
   /callback/{processId}/provision:
     post:
+      tags:
+      - HTTP Provisioner Webhook
       operationId: callProvisionWebhook
       parameters:
       - name: processId
@@ -465,6 +530,8 @@ paths:
             application/json: {}
   /contractdefinitions:
     get:
+      tags:
+      - Contract Definition
       operationId: getAllContractDefinitions
       parameters:
       - name: offset
@@ -517,6 +584,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/ContractDefinitionDto'
     post:
+      tags:
+      - Contract Definition
       operationId: createContractDefinition
       requestBody:
         content:
@@ -527,9 +596,11 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            '*/*': {}
   /contractdefinitions/{id}:
     get:
+      tags:
+      - Contract Definition
       operationId: getContractDefinition
       parameters:
       - name: id
@@ -547,6 +618,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ContractDefinitionDto'
     delete:
+      tags:
+      - Contract Definition
       operationId: deleteContractDefinition
       parameters:
       - name: id
@@ -560,9 +633,11 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            '*/*': {}
   /identity-hub/query-commits:
     post:
+      tags:
+      - Identity Hub
       operationId: queryCommits
       requestBody:
         content:
@@ -578,6 +653,8 @@ paths:
                 type: string
   /identity-hub/query-objects:
     post:
+      tags:
+      - Identity Hub
       operationId: queryObjects
       requestBody:
         content:
@@ -593,6 +670,8 @@ paths:
                 type: string
   /identity-hub/collections:
     post:
+      tags:
+      - Identity Hub
       operationId: write
       requestBody:
         content:
@@ -608,6 +687,8 @@ paths:
                 type: string
   /identity-hub/collections-commit:
     post:
+      tags:
+      - Identity Hub
       operationId: writeCommit
       requestBody:
         content:
@@ -621,25 +702,10 @@ paths:
           description: default response
           content:
             application/json: {}
-  /catalog:
-    post:
-      operationId: getCatalog
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/FederatedCatalogCacheQuery'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ContractOffer'
   /policies:
     get:
+      tags:
+      - Policy
       operationId: getAllPolicies
       parameters:
       - name: offset
@@ -692,6 +758,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/Policy'
     post:
+      tags:
+      - Policy
       operationId: createPolicy
       requestBody:
         content:
@@ -702,9 +770,11 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            '*/*': {}
   /policies/{id}:
     get:
+      tags:
+      - Policy
       operationId: getPolicy
       parameters:
       - name: id
@@ -722,6 +792,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Policy'
     delete:
+      tags:
+      - Policy
       operationId: deletePolicy
       parameters:
       - name: id
@@ -735,9 +807,11 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            '*/*': {}
   /contractagreements:
     get:
+      tags:
+      - Contract Agreement
       operationId: getAllAgreements
       parameters:
       - name: offset
@@ -791,6 +865,8 @@ paths:
                   $ref: '#/components/schemas/ContractAgreementDto'
   /contractagreements/{id}:
     get:
+      tags:
+      - Contract Agreement
       operationId: getContractAgreement
       parameters:
       - name: id
@@ -809,6 +885,8 @@ paths:
                 $ref: '#/components/schemas/ContractAgreementDto'
   /transferprocess/{id}/cancel:
     post:
+      tags:
+      - Transfer Process
       operationId: cancelTransferProcess
       parameters:
       - name: id
@@ -822,9 +900,11 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            '*/*': {}
   /transferprocess/{id}/deprovision:
     post:
+      tags:
+      - Transfer Process
       operationId: deprovisionTransferProcess
       parameters:
       - name: id
@@ -838,9 +918,11 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            '*/*': {}
   /transferprocess:
     get:
+      tags:
+      - Transfer Process
       operationId: getAllTransferProcesses
       parameters:
       - name: offset
@@ -893,6 +975,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/TransferProcessDto'
     post:
+      tags:
+      - Transfer Process
       operationId: initiateTransfer
       requestBody:
         content:
@@ -903,11 +987,13 @@ paths:
         default:
           description: default response
           content:
-            application/json:
+            text/plain:
               schema:
                 type: string
   /transferprocess/{id}:
     get:
+      tags:
+      - Transfer Process
       operationId: getTransferProcess
       parameters:
       - name: id
@@ -926,6 +1012,8 @@ paths:
                 $ref: '#/components/schemas/TransferProcessDto'
   /transferprocess/{id}/state:
     get:
+      tags:
+      - Transfer Process
       operationId: getTransferProcessState
       parameters:
       - name: id
@@ -939,7 +1027,7 @@ paths:
         default:
           description: default response
           content:
-            application/json:
+            text/plain:
               schema:
                 type: string
 components:
@@ -961,6 +1049,8 @@ components:
           additionalProperties:
             type: object
     AssetDto:
+      required:
+      - properties
       type: object
       properties:
         properties:
@@ -968,12 +1058,24 @@ components:
           additionalProperties:
             type: object
     AssetEntryDto:
+      required:
+      - asset
+      - dataAddress
       type: object
       properties:
         asset:
           $ref: '#/components/schemas/AssetDto'
         dataAddress:
           $ref: '#/components/schemas/DataAddressDto'
+    Catalog:
+      type: object
+      properties:
+        id:
+          type: string
+        contractOffers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContractOffer'
     Constraint:
       required:
       - edctype
@@ -1006,6 +1108,11 @@ components:
         policyId:
           type: string
     ContractDefinitionDto:
+      required:
+      - accessPolicyId
+      - contractPolicyId
+      - criteria
+      - id
       type: object
       properties:
         accessPolicyId:
@@ -1070,6 +1177,9 @@ components:
           type: string
           format: date-time
     ContractOfferDescription:
+      required:
+      - assetId
+      - offerId
       type: object
       properties:
         offerId:
@@ -1217,6 +1327,11 @@ components:
           items:
             $ref: '#/components/schemas/Criterion'
     NegotiationInitiateRequestDto:
+      required:
+      - connectorAddress
+      - connectorId
+      - offer
+      - protocol
       type: object
       properties:
         connectorAddress:
@@ -1249,6 +1364,10 @@ components:
           items:
             $ref: '#/components/schemas/Duty'
     Policy:
+      required:
+      - obligations
+      - permissions
+      - prohibitions
       type: object
       properties:
         uid:
@@ -1301,6 +1420,11 @@ components:
           items:
             $ref: '#/components/schemas/Constraint'
     ProvisionerWebhookRequest:
+      required:
+      - assetId
+      - contentDataAddress
+      - resourceDefinitionId
+      - resourceName
       type: object
       properties:
         resourceDefinitionId:
@@ -1338,6 +1462,14 @@ components:
         dataRequest:
           $ref: '#/components/schemas/DataRequestDto'
     TransferRequestDto:
+      required:
+      - assetId
+      - connectorAddress
+      - connectorId
+      - contractId
+      - dataDestination
+      - protocol
+      - transferType
       type: object
       properties:
         connectorAddress:

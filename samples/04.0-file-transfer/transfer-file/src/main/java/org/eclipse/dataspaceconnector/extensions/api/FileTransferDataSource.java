@@ -27,7 +27,7 @@ class FileTransferDataSource implements DataSource {
 
     private final File file;
 
-    public FileTransferDataSource(File file) {
+    FileTransferDataSource(File file) {
         this.file = file;
     }
 

@@ -1,28 +1,35 @@
-
 # Changelog
 
 All notable changes to this project will be documented in this file - formatted and maintained according to the rules
 documented on <http://keepachangelog.com>.
 
-This file will not cover changes about documentation, code clean-up, samples, or the CI pipeline. With each version 
-(respectively milestone), the core features are highlighted. Relevant changes to existing implementations can be found in
-the detailed section referring to by linking pull requests or issues.
+This file will not cover changes about documentation, code clean-up, samples, or the CI pipeline. With each version
+(respectively milestone), the core features are highlighted. Relevant changes to existing implementations can be found
+in the detailed section referring to by linking pull requests or issues.
 
 ## [Unreleased]
 
 ### Overview
-
-*
+* Bugfixing DataManagementApi
+* Build improvements
+* Improvements to Dependency Resolution
 
 ### Detailed Changes
 
 #### Added
 
-*
+* Add domain model documentation (#1158)
+* Add gradle test summary (#1148)
+* Check to avoid duplicated module names (#1190)
+* Implement Catalog service for Data Management API (#1195)
+* Add strict body validation for REST endpoints (#1128)
+* Dependency injection using factory/provider methods (#1056)
 
 #### Changed
 
-*
+* Restructure sql extension folder tree (#1154)
+* Extract single `PolicyArchive` implementation (#1158)
+* Replace `accessPolicy` and `contractPolicy` with `accessPolicyId` and `contractPolicyId` on `ContractDefinition` (#1144)
 
 #### Removed
 
@@ -30,7 +37,11 @@ the detailed section referring to by linking pull requests or issues.
 
 #### Fixed
 
-* Hande Jakarta exception correctly (#1102)
+* Handle Jakarta exception correctly (#1102)
+* Fix Postgres column name (#1108)
+* Fix problem with interpreting contractId/negotiationId (#1140)
+* Fixed DMgmtApi content types (#1126)
+* Fix HTTPS termination in Jetty (#1133)
 
 ## [milestone-3] - 2022-04-08
 
@@ -73,6 +84,7 @@ the detailed section referring to by linking pull requests or issues.
 * Implement AssetLoader, AssetIndex, DataAddressResolver for SQL (#863)
 * Support for HTTP-based provisioning (#963)
 * Let Control Plane delegate data transfer to Data Plane (#988)
+* Add integration tests for traces (#1035)
 * CosmosDb based `PolicyStore` (#826)
 * Implement SQL-based PolicyStore (#866)
 * Http Provisioner Webhook endpoint (#1039)
@@ -88,6 +100,7 @@ the detailed section referring to by linking pull requests or issues.
 * Http Deprovisioner Webhook endpoint (#1039)
 * Add performance test example and scheduled workflow (#1029)
 * Add basic authentication mechanism for DataManagement API (#981)
+* Trace context propagation in DPF (#1162)
 
 #### Changed
 
@@ -114,6 +127,7 @@ the detailed section referring to by linking pull requests or issues.
 * Update CI workflow to use concurrency (#1092)
 * Adapt system-test to use Embedded DPF to perform file copy (#1060)
 * Remove default token-based authentication at the DataManagement API (#981)
+*
 
 #### Removed
 

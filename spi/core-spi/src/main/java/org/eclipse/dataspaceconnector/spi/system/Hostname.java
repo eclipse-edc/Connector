@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.spi.system;
 
 @FunctionalInterface
-@Feature("edc:hostname")
 public interface Hostname {
 
     /**

@@ -2,6 +2,8 @@ openapi: 3.0.1
 paths:
   /contractnegotiations/{id}/cancel:
     post:
+      tags:
+      - Contract Negotiation
       operationId: cancelNegotiation
       parameters:
       - name: id
@@ -13,9 +15,11 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            '*/*': {}
   /contractnegotiations/{id}/decline:
     post:
+      tags:
+      - Contract Negotiation
       operationId: declineNegotiation
       parameters:
       - name: id
@@ -27,9 +31,11 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            '*/*': {}
   /contractnegotiations/{id}/agreement:
     get:
+      tags:
+      - Contract Negotiation
       operationId: getAgreementForNegotiation
       parameters:
       - name: id
@@ -46,6 +52,8 @@ paths:
                 $ref: '#/components/schemas/ContractAgreementDto'
   /contractnegotiations/{id}:
     get:
+      tags:
+      - Contract Negotiation
       operationId: getNegotiation
       parameters:
       - name: id
@@ -62,6 +70,8 @@ paths:
                 $ref: '#/components/schemas/ContractNegotiationDto'
   /contractnegotiations/{id}/state:
     get:
+      tags:
+      - Contract Negotiation
       operationId: getNegotiationState
       parameters:
       - name: id
@@ -73,11 +83,13 @@ paths:
         default:
           description: default response
           content:
-            application/json:
+            text/plain:
               schema:
                 type: string
   /contractnegotiations:
     get:
+      tags:
+      - Contract Negotiation
       operationId: getNegotiations
       parameters:
       - name: offset
@@ -115,6 +127,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/ContractNegotiationDto'
     post:
+      tags:
+      - Contract Negotiation
       operationId: initiateContractNegotiation
       requestBody:
         content:
@@ -125,7 +139,7 @@ paths:
         default:
           description: default response
           content:
-            application/json:
+            text/plain:
               schema:
                 type: string
 components:
@@ -191,6 +205,9 @@ components:
       discriminator:
         propertyName: edctype
     ContractOfferDescription:
+      required:
+      - assetId
+      - offerId
       type: object
       properties:
         offerId:
@@ -223,6 +240,11 @@ components:
         consequence:
           $ref: '#/components/schemas/Duty'
     NegotiationInitiateRequestDto:
+      required:
+      - connectorAddress
+      - connectorId
+      - offer
+      - protocol
       type: object
       properties:
         connectorAddress:
@@ -255,6 +277,10 @@ components:
           items:
             $ref: '#/components/schemas/Duty'
     Policy:
+      required:
+      - obligations
+      - permissions
+      - prohibitions
       type: object
       properties:
         uid:

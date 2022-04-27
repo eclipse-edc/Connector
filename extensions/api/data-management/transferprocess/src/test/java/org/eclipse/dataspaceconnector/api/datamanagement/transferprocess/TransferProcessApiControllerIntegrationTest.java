@@ -29,6 +29,7 @@ import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static io.restassured.http.ContentType.TEXT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
@@ -93,7 +94,7 @@ class TransferProcessApiControllerIntegrationTest {
                 .get("/transferprocess/" + PROCESS_ID + "/state")
                 .then()
                 .statusCode(200)
-                .contentType(JSON)
+                .contentType(TEXT)
                 .extract().asString();
 
         assertThat(state).isEqualTo("PROVISIONING");
@@ -160,6 +161,7 @@ class TransferProcessApiControllerIntegrationTest {
     @Test
     void deprovision_conflict(TransferProcessStore store) {
         store.create(createTransferProcess(PROCESS_ID, INITIAL.code()));
+
         baseRequest()
                 .contentType(JSON)
                 .post("/transferprocess/" + PROCESS_ID + "/deprovision")
@@ -170,6 +172,7 @@ class TransferProcessApiControllerIntegrationTest {
     @Test
     void initiateRequest() {
         var request = TransferRequestDto.Builder.newInstance()
+                .id("id")
                 .connectorAddress("http://some-contract")
                 .contractId("some-contract")
                 .protocol("test-asset")
@@ -185,6 +188,29 @@ class TransferProcessApiControllerIntegrationTest {
                 .post("/transferprocess")
                 .then()
                 .statusCode(200)
+                .extract().body().asString();
+
+        assertThat(result).isNotBlank();
+    }
+
+    @Test
+    void initiateRequest_invalidBody() {
+        var request = TransferRequestDto.Builder.newInstance()
+                .connectorAddress("http://some-contract")
+                .contractId(null) //violation
+                .protocol("test-asset")
+                .assetId("assetId")
+                .dataDestination(DataAddress.Builder.newInstance().type("test-type").build())
+                .connectorId("connectorId")
+                .properties(Map.of("prop", "value"))
+                .build();
+
+        var result = baseRequest()
+                .contentType(JSON)
+                .body(request)
+                .post("/transferprocess")
+                .then()
+                .statusCode(400)
                 .extract().body().asString();
 
         assertThat(result).isNotBlank();

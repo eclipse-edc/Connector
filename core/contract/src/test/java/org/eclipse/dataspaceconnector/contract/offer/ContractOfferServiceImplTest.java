@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
@@ -23,6 +24,7 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionServi
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +34,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -40,39 +42,24 @@ import static org.mockito.Mockito.when;
 
 class ContractOfferServiceImplTest {
 
-    private ContractDefinitionService contractDefinitionService;
-    private AssetIndex assetIndex;
+    private final ContractDefinitionService contractDefinitionService = mock(ContractDefinitionService.class);
+    private final AssetIndex assetIndex = mock(AssetIndex.class);
+    private final ParticipantAgentService agentService = mock(ParticipantAgentService.class);
+    private final PolicyStore policyStore = mock(PolicyStore.class);
+
     private ContractOfferService contractOfferService;
-    private ParticipantAgentService agentService;
 
     @BeforeEach
     void setUp() {
-        contractDefinitionService = mock(ContractDefinitionService.class);
-        assetIndex = mock(AssetIndex.class);
-        agentService = mock(ParticipantAgentService.class);
-
-        contractOfferService = new ContractOfferServiceImpl(agentService, contractDefinitionService, assetIndex);
+        contractOfferService = new ContractOfferServiceImpl(agentService, contractDefinitionService, assetIndex, policyStore);
     }
 
     @Test
-    void testConstructorNullParametersThrowingIllegalArgumentException() {
-        // just eval all constructor parameters are mandatory and lead to NPE
-        assertThatThrownBy(() -> new ContractOfferServiceImpl(null, contractDefinitionService, assetIndex))
-                .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> new ContractOfferServiceImpl(agentService, contractDefinitionService, null))
-                .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> new ContractOfferServiceImpl(agentService, null, assetIndex))
-                .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> new ContractOfferServiceImpl(agentService, null, null))
-                .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
-    void testFullFlow() {
+    void shouldGetContractOffers() {
         var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("1")
-                .accessPolicy(Policy.Builder.newInstance().build())
-                .contractPolicy(Policy.Builder.newInstance().build())
+                .accessPolicyId("access")
+                .contractPolicyId("contract")
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
                 .build();
 
@@ -80,12 +67,34 @@ class ContractOfferServiceImplTest {
         when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenReturn(Stream.of(contractDefinition));
         var assetStream = Stream.of(Asset.Builder.newInstance().build(), Asset.Builder.newInstance().build());
         when(assetIndex.queryAssets(isA(AssetSelectorExpression.class))).thenReturn(assetStream);
+        when(policyStore.findById(any())).thenReturn(Policy.Builder.newInstance().build());
 
-        ContractOfferQuery query = ContractOfferQuery.builder().claimToken(ClaimToken.Builder.newInstance().build()).build();
+        var query = ContractOfferQuery.builder().claimToken(ClaimToken.Builder.newInstance().build()).build();
 
         assertThat(contractOfferService.queryContractOffers(query)).hasSize(2);
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(contractDefinitionService).definitionsFor(isA(ParticipantAgent.class));
         verify(assetIndex).queryAssets(isA(AssetSelectorExpression.class));
+        verify(policyStore).findById("contract");
+    }
+
+    @Test
+    void shouldNotGetContractOfferIfPolicyIsNotFound() {
+        var contractDefinition = ContractDefinition.Builder.newInstance()
+                .id("1")
+                .accessPolicyId("access")
+                .contractPolicyId("contract")
+                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
+                .build();
+        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
+        when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenReturn(Stream.of(contractDefinition));
+        when(assetIndex.queryAssets(isA(AssetSelectorExpression.class))).thenReturn(Stream.of(Asset.Builder.newInstance().build()));
+        when(policyStore.findById(any())).thenReturn(null);
+
+        var query = ContractOfferQuery.builder().claimToken(ClaimToken.Builder.newInstance().build()).build();
+
+        var result = contractOfferService.queryContractOffers(query);
+
+        assertThat(result).hasSize(0);
     }
 }

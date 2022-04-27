@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:in-memory:negotiation-store-memory"))
     implementation(project(":extensions:in-memory:contractdefinition-store-memory"))
+    implementation(project(":extensions:in-memory:policy-store-memory"))
 
     implementation(project(":data-protocols:ids"))
 
@@ -37,7 +38,7 @@ dependencies {
     implementation(project(":extensions:iam:oauth2:oauth2-core"))
     implementation(project(":extensions:iam:daps"))
 
-    implementation(project(":extensions:api:control"))
+    implementation(project(":extensions:api:data-management"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")

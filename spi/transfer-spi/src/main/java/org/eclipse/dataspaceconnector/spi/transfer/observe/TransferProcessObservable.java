@@ -15,11 +15,9 @@
 package org.eclipse.dataspaceconnector.spi.transfer.observe;
 
 import org.eclipse.dataspaceconnector.spi.observe.Observable;
-import org.eclipse.dataspaceconnector.spi.system.Feature;
 
 /**
  * Manages and invokes {@link TransferProcessListener}s when an event related to a transfer process is emitted.
  */
-@Feature("edc:core:transfer:transferprocess-observable")
 public interface TransferProcessObservable extends Observable<TransferProcessListener> {
 }

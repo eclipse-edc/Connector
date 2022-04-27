@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.iam.did.spi.credentials;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.spi.system.Feature;
 
 import java.util.Map;
 
@@ -24,10 +23,8 @@ import java.util.Map;
  * Obtains and verifies credentials associated with a DID according to an implementation-specific trust model.
  */
 @FunctionalInterface
-@Feature(CredentialsVerifier.FEATURE)
 public interface CredentialsVerifier {
 
-    String FEATURE = "edc:identity:verifier";
 
     /**
      * Verifies credentials contained in the given hub.

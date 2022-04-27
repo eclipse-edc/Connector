@@ -146,7 +146,7 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
         private final ServiceLocator delegate = new ServiceLocatorImpl();
         private final LinkedHashMap<Class<? extends SystemExtension>, List<SystemExtension>> systemExtensions;
 
-        public MultiSourceServiceLocator() {
+        MultiSourceServiceLocator() {
             this.systemExtensions  = new LinkedHashMap<>();
         }
 

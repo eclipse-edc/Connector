@@ -22,8 +22,6 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
  */
 public interface DidPublicKeyResolver {
 
-    String FEATURE = "edc:identity:public-key-resolver";
-
     /**
      * Resolves the public key.
      */

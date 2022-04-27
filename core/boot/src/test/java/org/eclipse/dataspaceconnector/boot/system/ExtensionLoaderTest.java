@@ -17,6 +17,8 @@ package org.eclipse.dataspaceconnector.boot.system;
 
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
+import org.eclipse.dataspaceconnector.boot.system.testextensions.DefaultProviderExtension;
+import org.eclipse.dataspaceconnector.boot.system.testextensions.ProviderExtension;
 import org.eclipse.dataspaceconnector.boot.util.CyclicDependencyException;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
@@ -34,6 +36,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 import org.eclipse.dataspaceconnector.spi.system.injection.EdcInjectionException;
 import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,6 +47,10 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.dataspaceconnector.boot.system.TestFunctions.createDependentExtension;
+import static org.eclipse.dataspaceconnector.boot.system.TestFunctions.createInjectionContainers;
+import static org.eclipse.dataspaceconnector.boot.system.TestFunctions.createList;
+import static org.eclipse.dataspaceconnector.boot.system.TestFunctions.createProviderExtension;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -53,6 +60,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -333,6 +342,101 @@ class ExtensionLoaderTest {
 
         assertThatThrownBy(() -> loader.loadServiceExtensions()).isInstanceOf(CyclicDependencyException.class);
         verify(serviceLocator).loadImplementors(eq(ServiceExtension.class), anyBoolean());
+    }
+
+    @Test
+    @DisplayName("bootServiceExtensions - Should invoke default provider")
+    void bootServiceExtensions_withSingleDefaultProvider() {
+        var dependentExtension = createDependentExtension(true);
+
+        var defaultProvider = (DefaultProviderExtension) spy(createProviderExtension(true));
+        when(defaultProvider.testObject()).thenCallRealMethod();
+
+
+        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of());
+
+        var list = createInjectionContainers(createList(defaultProvider, dependentExtension));
+
+        ExtensionLoader.bootServiceExtensions(list, context);
+
+        verify(defaultProvider, times(1)).testObject();
+    }
+
+    @Test
+    @DisplayName("bootServiceExtensions - Should only invoke non-default provider")
+    void bootServiceExtensions_withSingleDefaultProvider_andNonDefault() {
+        var dependentExtension = createDependentExtension(true);
+
+        var defaultProvider = (DefaultProviderExtension) spy(createProviderExtension(true));
+
+        var nonDefaultProvider = (ProviderExtension) spy(createProviderExtension(false));
+        when(nonDefaultProvider.testObject()).thenCallRealMethod();
+
+        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of());
+
+        var list = createInjectionContainers(createList(defaultProvider, dependentExtension, nonDefaultProvider));
+
+        ExtensionLoader.bootServiceExtensions(list, context);
+
+        verify(defaultProvider, never()).testObject();
+        verify(nonDefaultProvider, times(1)).testObject();
+    }
+
+    @Test
+    @DisplayName("bootServiceExtensions - Should invoke non-default provider")
+    void bootServiceExtensions_withNonDefault() {
+        var dependentExtension = createDependentExtension(true);
+
+        var nonDefaultProvider = (ProviderExtension) spy(createProviderExtension(false));
+        when(nonDefaultProvider.testObject()).thenCallRealMethod();
+
+        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of());
+
+        var list = createInjectionContainers(createList(dependentExtension, nonDefaultProvider));
+
+        ExtensionLoader.bootServiceExtensions(list, context);
+
+        verify(nonDefaultProvider, times(1)).testObject();
+    }
+
+    @Test
+    @DisplayName("bootServiceExtensions - Should invoke default provider for optional dependency")
+    void bootServiceExtensions_withOptionalDependency_onlyDefault() {
+        var dependentExtension = createDependentExtension(false);
+
+        var defaultProvider = (DefaultProviderExtension) spy(createProviderExtension(true));
+        when(defaultProvider.testObject()).thenCallRealMethod();
+
+        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of());
+
+        var list = createInjectionContainers(createList(dependentExtension, defaultProvider));
+
+        ExtensionLoader.bootServiceExtensions(list, context);
+
+        verify(defaultProvider, times(1)).testObject();
+        assertThat(context.getService(TestObject.class)).isNotNull();
+    }
+
+    @Test
+    @DisplayName("bootServiceExtensions - Should invoke non-default provider with optional dependency")
+    void bootServiceExtensions_withOptionalDependency_defaultAndNonDefault() {
+        var dependentExtension = createDependentExtension(false);
+
+        var defaultProvider = (DefaultProviderExtension) spy(createProviderExtension(true));
+        when(defaultProvider.testObject()).thenCallRealMethod();
+
+        var provider = (ProviderExtension) spy(createProviderExtension(false));
+        when(provider.testObject()).thenCallRealMethod();
+
+        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of());
+
+        var list = createInjectionContainers(createList(dependentExtension, defaultProvider, provider));
+
+        ExtensionLoader.bootServiceExtensions(list, context);
+
+        verify(defaultProvider, never()).testObject();
+        verify(provider, times(1)).testObject();
+        assertThat(context.getService(TestObject.class)).isNotNull();
     }
 
     @SafeVarargs

@@ -126,9 +126,13 @@ Cosmos DB integration tests are run by default against a locally running [Cosmos
 
 ### Running them in the CI pipeline
 
-All integration tests should go into the [integration test workflow](../.github/workflows/integrationtests.yaml), every
+All integration tests should go into the [verify workflow](../.github/workflows/verify.yaml), every
 "technology" should have its own job, and technology specific tests can be targeted using Junit tags with
 `-DincludeTags` property as described above in document.
+
+A GitHub [composite action](https://docs.github.com/actions/creating-actions/creating-a-composite-action) was created to encapsulate the tasks of running tests and uploading test reports as artifacts for publication.
+
+A final job named  `Upload-Test-Report`  should depend on all test jobs. It assembles all individual test reports.
 
 For example let's assume we've implemented a Postgres-based Asset Index, then the integration tests for that should go
 into a "Postgres" `job`, and every module that adds a test (here: `extensions:postgres:assetindex`) should apply a
@@ -139,7 +143,7 @@ Let's also make sure that the code is checked out before and integration tests o
 
 ```yaml
 jobs:
-  Postgres-Integration-Test:
+  Postgres-Integration-Tests:
     # run only on upstream repo
     if: github.repository_owner == 'eclipse-dataspaceconnector'
     runs-on: ubuntu-latest
@@ -160,17 +164,28 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+    env:
+      POSTGRES_USER: ${{ secrets.POSTGRES_USERNAME }}
+      POSTGRES_PWD: ${{ secrets.POSTGRES_PASSWORD }}
+
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v1
         with:
           java-version: '17'
 
-      - name: Postgres Asset Index Test   #just an example!
-        env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USERNAME }}
-          POSTGRES_PWD: ${{ secrets.POSTGRES_PASSWORD }}
-        run: ./gradlew -p extensions/postgres test -DincludeTags="PostgresIntegrationTest"
+      - name: Postgres Tests   #just an example!
+        uses: ./.github/actions/run-tests
+        with:
+          command: ./gradlew -p extensions/postgres test -DincludeTags="PostgresIntegrationTest"
+          
+[...]
+
+  Upload-Test-Report:
+    needs:
+      [...]
+      - Postgres-Integration-Tests
+    [...]
 ```
 
 It is important to note that the secrets (here: `POSTGRES_USERNAME` and `POSTGRES_PASSWORD`) must be defined within the

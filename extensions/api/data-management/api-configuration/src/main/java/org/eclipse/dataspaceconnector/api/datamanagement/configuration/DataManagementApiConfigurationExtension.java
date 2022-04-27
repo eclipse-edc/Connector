@@ -39,6 +39,11 @@ public class DataManagementApiConfigurationExtension implements ServiceExtension
     private AuthenticationService service;
 
     @Override
+    public String name() {
+        return "Data Management API configuration";
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
 
         var contextAlias = DEFAULT_DATAMANAGEMENT_ALIAS;

@@ -23,11 +23,8 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNeg
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +36,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static io.restassured.http.ContentType.TEXT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.TestFunctions.createOffer;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
@@ -112,7 +110,7 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .get("/contractnegotiations/negotiationId/state")
                 .then()
                 .statusCode(200)
-                .contentType(JSON)
+                .contentType(TEXT)
                 .extract().asString();
 
         assertThat(state).isEqualTo("REQUESTED");
@@ -148,7 +146,7 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .connectorId("connector")
                 .protocol(TestRemoteMessageDispatcher.TEST_PROTOCOL)
                 .connectorAddress("connectorAddress")
-                .offerId(createOffer())
+                .offer(createOffer())
                 .build();
 
         var result = baseRequest()
@@ -157,6 +155,27 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .post("/contractnegotiations")
                 .then()
                 .statusCode(200)
+                .extract().body().asString();
+
+        assertThat(result).isNotBlank();
+    }
+
+    @Test
+    void initiateContractNegotiation_invalidBody(RemoteMessageDispatcherRegistry registry) {
+        registry.register(new TestRemoteMessageDispatcher());
+        var request = NegotiationInitiateRequestDto.Builder.newInstance()
+                .connectorId("connector")
+                .protocol(TestRemoteMessageDispatcher.TEST_PROTOCOL)
+                .connectorAddress(null) // breaks validation
+                .offer(createOffer())
+                .build();
+
+        var result = baseRequest()
+                .contentType(JSON)
+                .body(request)
+                .post("/contractnegotiations")
+                .then()
+                .statusCode(400)
                 .extract().body().asString();
 
         assertThat(result).isNotBlank();

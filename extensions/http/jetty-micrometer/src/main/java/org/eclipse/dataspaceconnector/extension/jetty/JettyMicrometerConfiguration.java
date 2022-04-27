@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.extension.jetty;
 
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.binder.jetty.JettyConnectionMetrics;
 import org.eclipse.jetty.server.ServerConnector;

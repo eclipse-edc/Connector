@@ -96,6 +96,8 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         context.registerService(DataTransferExecutorServiceContainer.class, executorContainer);
 
         monitor = context.getMonitor();
+        var telemetry = context.getTelemetry();
+
         var queueCapacity = context.getSetting(QUEUE_CAPACITY, DEFAULT_QUEUE_CAPACITY);
         var workers = context.getSetting(WORKERS, DEFAULT_WORKERS);
         var waitTimeout = context.getSetting(WAIT_TIMEOUT, DEFAULT_WAIT_TIMEOUT);
@@ -108,7 +110,9 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
                 .pipelineService(pipelineService)
                 .transferServiceRegistry(transferServiceRegistry)
                 .store(new InMemoryDataPlaneStore(IN_MEMORY_STORE_CAPACITY))
-                .monitor(monitor).build();
+                .monitor(monitor)
+                .telemetry(telemetry)
+                .build();
 
         context.registerService(DataPlaneManager.class, dataPlaneManager);
     }

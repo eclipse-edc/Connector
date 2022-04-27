@@ -15,14 +15,12 @@
 package org.eclipse.dataspaceconnector.spi.transfer;
 
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
-import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
 
 /**
  * Manages data transfer processes. Currently synchronous and asynchronous data transfers are supported.
  */
-@Feature("edc:core:transfer:transferprocessmanager")
 public interface TransferProcessManager {
 
     /**

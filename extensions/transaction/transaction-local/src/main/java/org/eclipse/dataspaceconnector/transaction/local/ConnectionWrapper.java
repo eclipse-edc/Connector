@@ -40,7 +40,7 @@ import java.util.concurrent.Executor;
 class ConnectionWrapper implements Connection {
     private final Connection delegate;
 
-    public ConnectionWrapper(Connection delegate) {
+    ConnectionWrapper(Connection delegate) {
         this.delegate = delegate;
     }
 

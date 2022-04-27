@@ -28,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
-import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
  * This class handles and processes incoming IDS {@link ContractRejectionMessage}s.

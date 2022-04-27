@@ -57,7 +57,7 @@ public class EndToEndTest {
         private final ByteArrayOutputStream stream;
         private final OutputStreamDataSink sink;
 
-        public FixedEndpoint(Monitor monitor) {
+        FixedEndpoint(Monitor monitor) {
             stream = new ByteArrayOutputStream();
             sink = new OutputStreamDataSink(stream, Executors.newFixedThreadPool(1), monitor);
         }

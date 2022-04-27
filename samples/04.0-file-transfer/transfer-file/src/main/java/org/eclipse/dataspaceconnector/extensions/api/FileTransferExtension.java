@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -43,6 +44,8 @@ public class FileTransferExtension implements ServiceExtension {
     private PipelineService pipelineService;
     @Inject
     private DataTransferExecutorServiceContainer executorContainer;
+    @Inject
+    private PolicyStore policyStore;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -55,9 +58,10 @@ public class FileTransferExtension implements ServiceExtension {
         pipelineService.registerFactory(sinkFactory);
 
         var policy = createPolicy();
+        policyStore.save(policy);
 
         registerDataEntries(context);
-        registerContractDefinition(policy);
+        registerContractDefinition(policy.getUid());
 
         context.getMonitor().info("File Transfer Extension initialized!");
     }
@@ -90,12 +94,12 @@ public class FileTransferExtension implements ServiceExtension {
         loader.accept(asset, dataAddress);
     }
 
-    private void registerContractDefinition(Policy policy) {
+    private void registerContractDefinition(String uid) {
 
         var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("1")
-                .accessPolicy(policy)
-                .contractPolicy(policy)
+                .accessPolicyId(uid)
+                .contractPolicyId(uid)
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "test-document").build())
                 .build();
 

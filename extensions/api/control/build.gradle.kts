@@ -16,6 +16,7 @@
 val infoModelVersion: String by project
 val rsApi: String by project
 val jerseyVersion: String by project
+val restAssured: String by project
 
 plugins {
     `java-library`
@@ -41,7 +42,7 @@ dependencies {
 
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(testFixtures(project(":common:util")))
-    testImplementation("io.rest-assured:rest-assured:4.4.0")
+    testImplementation("io.rest-assured:rest-assured:${restAssured}")
 
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
 

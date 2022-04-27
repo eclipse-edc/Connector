@@ -51,11 +51,16 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
 
     public static Stream<Arguments> invalidRequestParams() {
         return Stream.of(
-                Arguments.of(null, DataAddress.Builder.newInstance().type("foo").build(), "resourcename", "resourcedef"),
-                Arguments.of("assetid", null, "resourcename", "resourcedef"),
-                Arguments.of("assetid", DataAddress.Builder.newInstance().type("foo").build(), null, "resourcedef"),
-                Arguments.of("assetid", DataAddress.Builder.newInstance().type("foo").build(), "resourcename", null)
+                Arguments.of(null, dataAddress(), "resourcename", "resourcedef", "token"),
+                Arguments.of("assetid", null, "resourcename", "resourcedef", "token"),
+                Arguments.of("assetid", dataAddress(), null, "resourcedef", "token"),
+                Arguments.of("assetid", dataAddress(), "resourcename", null, "token"),
+                Arguments.of("assetid", dataAddress(), "resourcename", "resourcedef", null)
         );
+    }
+
+    private static DataAddress dataAddress() {
+        return DataAddress.Builder.newInstance().type("foo").build();
     }
 
     @BeforeEach
@@ -72,12 +77,13 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
 
     @ParameterizedTest
     @MethodSource("invalidRequestParams")
-    void callProvisionWebhook_invalidBody(String assetId, DataAddress cda, String resName, String resDefId) {
+    void callProvisionWebhook_invalidBody(String assetId, DataAddress cda, String resName, String resDefId, String token) {
         var tpId = "tpId";
         var rq = ProvisionerWebhookRequest.Builder.newInstance()
                 .assetId(assetId)
                 .contentDataAddress(cda)
                 .resourceName(resName)
+                .apiToken(token)
                 .resourceDefinitionId(resDefId)
                 .build();
 
@@ -94,7 +100,8 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
     void callProvisionWebhook() {
         var rq = ProvisionerWebhookRequest.Builder.newInstance()
                 .assetId("test-asset")
-                .contentDataAddress(DataAddress.Builder.newInstance().type("foo").build())
+                .contentDataAddress(dataAddress())
+                .apiToken("test-token")
                 .resourceName("resource-name")
                 .resourceDefinitionId("resource-definition")
                 .build();

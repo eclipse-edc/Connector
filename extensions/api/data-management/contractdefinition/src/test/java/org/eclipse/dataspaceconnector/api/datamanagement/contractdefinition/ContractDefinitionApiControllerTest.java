@@ -20,7 +20,6 @@ import org.eclipse.dataspaceconnector.api.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
@@ -175,8 +174,8 @@ class ContractDefinitionApiControllerTest {
     private ContractDefinition createContractDefinition() {
         return ContractDefinition.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .accessPolicy(Policy.Builder.newInstance().build())
-                .contractPolicy(Policy.Builder.newInstance().build())
+                .accessPolicyId(UUID.randomUUID().toString())
+                .contractPolicyId(UUID.randomUUID().toString())
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
                 .build();
     }

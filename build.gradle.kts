@@ -18,7 +18,7 @@ plugins {
     checkstyle
     jacoco
     id("com.rameshkp.openapi-merger-gradle-plugin") version "1.0.4"
-    id ("org.eclipse.dataspaceconnector.dependency-rules") apply(false)
+    id("org.eclipse.dataspaceconnector.module-names")
     id("com.autonomousapps.dependency-analysis") version "1.0.0-rc05" apply (false)
 }
 
@@ -71,6 +71,7 @@ allprojects {
     apply(plugin = "maven-publish")
     apply(plugin = "checkstyle")
     apply(plugin = "java")
+    apply(plugin = "org.eclipse.dataspaceconnector.test-summary")
 
     if (System.getenv("JACOCO") == "true") {
         apply(plugin = "jacoco")
@@ -79,8 +80,7 @@ allprojects {
     checkstyle {
         toolVersion = "9.0"
         configFile = rootProject.file("resources/edc-checkstyle-config.xml")
-        maxErrors = 0 // does not tolerate errors ...
-        maxWarnings = 0 // ... or warnings
+        maxErrors = 0 // does not tolerate errors
     }
 
     java {
@@ -207,7 +207,7 @@ allprojects {
         }
     }
 
-    // Generate XML reports for Codecov
+// Generate XML reports for Codecov
     if (System.getenv("JACOCO") == "true") {
         tasks.jacocoTestReport {
             reports {
@@ -216,7 +216,6 @@ allprojects {
         }
     }
 }
-
 openApiMerger {
     val yamlDirectory = file("${rootProject.projectDir.path}/resources/openapi/yaml")
 
@@ -287,9 +286,10 @@ if (project.hasProperty("dependency.analysis")) {
         abi {
             exclusions {
                 excludeAnnotations(
-                        "io\\.opentelemetry\\.extension\\.annotations\\.WithSpan",
+                    "io\\.opentelemetry\\.extension\\.annotations\\.WithSpan",
                 )
             }
         }
     }
 }
+

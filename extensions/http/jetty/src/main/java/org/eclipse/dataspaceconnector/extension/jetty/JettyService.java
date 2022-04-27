@@ -19,8 +19,10 @@ import jakarta.servlet.Servlet;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.WebServer;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
@@ -48,7 +50,6 @@ import static org.eclipse.jetty.servlet.ServletContextHandler.NO_SESSIONS;
  */
 public class JettyService implements WebServer {
 
-    public static final String DEFAULT_ROOT_PATH = "/api";
     private static final String LOG_ANNOUNCE = "org.eclipse.jetty.util.log.announce";
     private final JettyConfiguration configuration;
     private final Monitor monitor;
@@ -129,15 +130,16 @@ public class JettyService implements WebServer {
         var handler = getOrCreate(actualPath);
         handler.getServletHandler().addServletWithMapping(servletHolder, "/*");
     }
-    
+
     /**
      * Allows adding a {@link PortMapping} that is not defined in the configuration. This can only
      * be done before the JettyService is started, i.e. before {@link #start()} is called.
      *
      * @param contextName name of the port mapping.
-     * @param port port of the port mapping.
-     * @param path path of the port mapping.
+     * @param port        port of the port mapping.
+     * @param path        path of the port mapping.
      */
+    @Override
     public void addPortMapping(String contextName, int port, String path) {
         var portMapping = new PortMapping(contextName, port, path);
         if (server != null && (server.isStarted() || server.isStarting())) {
@@ -148,6 +150,10 @@ public class JettyService implements WebServer {
 
     public ServletContextHandler getHandler(String path) {
         return handlers.get(path);
+    }
+
+    public void addConnectorConfigurationCallback(Consumer<ServerConnector> callback) {
+        connectorConfigurationCallbacks.add(callback);
     }
 
     @NotNull
@@ -162,13 +168,21 @@ public class JettyService implements WebServer {
         var storePassword = configuration.getKeystorePassword();
         var managerPassword = configuration.getKeymanagerPassword();
 
+        // for reference check:
+        // https://medium.com/vividcode/enable-https-support-with-self-signed-certificate-for-embedded-jetty-9-d3a86f83e9d9
         var contextFactory = new SslContextFactory.Server();
         contextFactory.setKeyStore(keyStore);
         contextFactory.setKeyStorePassword(storePassword);
         contextFactory.setKeyManagerPassword(managerPassword);
 
-        var sslConnectionFactory = new SslConnectionFactory(contextFactory, "http/1.1");
-        var sslConnector = new ServerConnector(server, httpConnectionFactory(), sslConnectionFactory);
+        var httpsConfiguration = new HttpConfiguration();
+        httpsConfiguration.setSecureScheme("https");
+        httpsConfiguration.setSecurePort(port);
+        httpsConfiguration.addCustomizer(new SecureRequestCustomizer());
+
+        var httpConnectionFactory = new HttpConnectionFactory(httpsConfiguration);
+        var sslConnectionFactory = new SslConnectionFactory(contextFactory, HttpVersion.HTTP_1_1.asString());
+        var sslConnector = new ServerConnector(server, sslConnectionFactory, httpConnectionFactory);
         sslConnector.setPort(port);
         configure(sslConnector);
         return sslConnector;
@@ -184,10 +198,6 @@ public class JettyService implements WebServer {
 
     private void configure(ServerConnector connector) {
         connectorConfigurationCallbacks.forEach(c -> c.accept(connector));
-    }
-
-    public void addConnectorConfigurationCallback(Consumer<ServerConnector> callback) {
-        connectorConfigurationCallbacks.add(callback);
     }
 
     @NotNull
