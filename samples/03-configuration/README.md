@@ -91,14 +91,16 @@ Modify the code from the `HealthEndpointExtension.java` as shown below (use the 
 of course):
 
 ```java
-@Requires(WebService.class)
 public class HealthEndpointExtension implements ServiceExtension {
+
+    @Inject
+    WebService webService;
+
     private static final String LOG_PREFIX_SETTING = "edc.samples.03.logprefix"; // this constant is new
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         var logPrefix = context.getSetting(LOG_PREFIX_SETTING, "health"); //this line is new
-        var webService = context.getService(WebService.class);
         webService.registerResource(new HealthApiController(context.getMonitor(), logPrefix));
     }
 }
@@ -145,12 +147,11 @@ There are a few things worth mentioning here:
 
 Part of most connectors will be the management api defined in the
 [`:extensions:api:data-management`](../../extensions/api/data-management) module. Therefore, we need to add the following
-two modules to the dependency list in our `build.gradle.kts`:
+module to the dependency list in our `build.gradle.kts`:
 
 ```kotlin
 dependencies {
     // ...
-    implementation(project(":extensions:api:auth-tokenbased"))
     implementation(project(":extensions:api:data-management"))
     // ...
 }
