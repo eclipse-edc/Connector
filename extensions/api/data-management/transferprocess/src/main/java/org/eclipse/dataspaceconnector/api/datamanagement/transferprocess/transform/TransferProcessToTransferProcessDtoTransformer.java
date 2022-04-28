@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.transform;
 
+import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.DataAddressInformationDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.DataRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferProcessDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformer;
@@ -46,6 +47,10 @@ public class TransferProcessToTransferProcessDtoTransformer implements DtoTransf
                 .state(getState(object.getState(), context))
                 .errorDetail(object.getErrorDetail())
                 .dataRequest(context.transform(object.getDataRequest(), DataRequestDto.class))
+                .dataDestination(
+                        DataAddressInformationDto.Builder.newInstance()
+                                .properties(object.getDataRequest().getDataDestination().getProperties())
+                                .build())
                 .build();
     }
 

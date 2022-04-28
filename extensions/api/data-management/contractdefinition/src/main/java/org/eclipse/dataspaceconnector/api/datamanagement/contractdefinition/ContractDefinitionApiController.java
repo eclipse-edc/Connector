@@ -16,7 +16,6 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition;
 
 import jakarta.validation.Valid;
-import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -44,6 +43,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
+@Produces({ MediaType.APPLICATION_JSON })
 @Path("/contractdefinitions")
 public class ContractDefinitionApiController implements ContractDefinitionApi {
     private final Monitor monitor;
@@ -57,7 +57,6 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
     }
 
     @GET
-    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public List<ContractDefinitionDto> getAllContractDefinitions(@QueryParam("offset") Integer offset,
                                                                  @QueryParam("limit") Integer limit,
@@ -81,7 +80,6 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
     @GET
     @Path("{id}")
-    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public ContractDefinitionDto getContractDefinition(@PathParam("id") String id) {
         monitor.debug(format("get contract definition with ID %s", id));
@@ -95,7 +93,6 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
     }
 
     @POST
-    @Consumes({ MediaType.APPLICATION_JSON })
     @Override
     public void createContractDefinition(@Valid ContractDefinitionDto dto) {
         monitor.debug("create new contract definition");

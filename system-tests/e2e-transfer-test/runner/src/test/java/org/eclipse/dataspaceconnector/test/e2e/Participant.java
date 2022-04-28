@@ -149,7 +149,7 @@ public class Participant {
                 .post("/api/contractnegotiations")
                 .then()
                 .statusCode(200)
-                .extract().body().asString();
+                .extract().body().jsonPath().getString("id");
     }
 
     public String getContractAgreementId(String negotiationId) {
@@ -195,7 +195,7 @@ public class Participant {
                 .post("/api/transferprocess")
                 .then()
                 .statusCode(200)
-                .extract().body().asString();
+                .extract().body().jsonPath().getString("id");
     }
 
     public String getTransferProcessState(String transferProcessId) {
@@ -206,7 +206,7 @@ public class Participant {
                 .get("/api/transferprocess/{id}/state", transferProcessId)
                 .then()
                 .statusCode(200)
-                .extract().body().asString();
+                .extract().body().jsonPath().getString("state");
     }
 
     public URI backendService() {

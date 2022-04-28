@@ -36,7 +36,6 @@ import java.util.concurrent.CompletableFuture;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
-import static io.restassured.http.ContentType.TEXT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.TestFunctions.createOffer;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
@@ -110,10 +109,10 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .get("/contractnegotiations/negotiationId/state")
                 .then()
                 .statusCode(200)
-                .contentType(TEXT)
+                .contentType(JSON)
                 .extract().asString();
 
-        assertThat(state).isEqualTo("REQUESTED");
+        assertThat(state).isEqualTo("{\"state\":\"REQUESTED\"}");
     }
 
     @Test

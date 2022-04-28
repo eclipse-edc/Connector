@@ -53,7 +53,7 @@ paths:
         default:
           description: default response
           content:
-            '*/*': {}
+            application/json: {}
   /policies/{id}:
     get:
       tags:
@@ -86,7 +86,7 @@ paths:
         default:
           description: default response
           content:
-            '*/*': {}
+            application/json: {}
 components:
   schemas:
     Action:
@@ -150,10 +150,6 @@ components:
           items:
             $ref: '#/components/schemas/Duty'
     Policy:
-      required:
-      - obligations
-      - permissions
-      - prohibitions
       type: object
       properties:
         uid:

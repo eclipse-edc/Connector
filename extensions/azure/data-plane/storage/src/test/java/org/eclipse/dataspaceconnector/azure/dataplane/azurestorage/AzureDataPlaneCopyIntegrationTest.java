@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage;
 import com.azure.core.util.BinaryData;
 import com.github.javafaker.Faker;
 import net.jodah.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.adapter.BlobAdapterFactory;
+import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApiImpl;
 import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageDataSinkFactory;
 import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageDataSourceFactory;
 import org.eclipse.dataspaceconnector.azure.testfixtures.AbstractAzureBlobTest;
@@ -34,13 +34,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createBlobName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createContainerName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.schema.AzureBlobStoreSchema.ACCOUNT_NAME;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.schema.AzureBlobStoreSchema.BLOB_NAME;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.schema.AzureBlobStoreSchema.CONTAINER_NAME;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.schema.AzureBlobStoreSchema.SHARED_KEY;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.schema.AzureBlobStoreSchema.TYPE;
+import static org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema.ACCOUNT_NAME;
+import static org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema.BLOB_NAME;
+import static org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema.CONTAINER_NAME;
+import static org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema.SHARED_KEY;
+import static org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema.TYPE;
+import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createBlobName;
+import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createContainerName;
 import static org.mockito.Mockito.mock;
 
 @AzureStorageIntegrationTest
@@ -86,11 +86,11 @@ class AzureDataPlaneCopyIntegrationTest extends AbstractAzureBlobTest {
                 .processId(UUID.randomUUID().toString())
                 .build();
 
-        var dataSource = new AzureStorageDataSourceFactory(new BlobAdapterFactory(getEndpoint(account1Name)), policy, monitor)
+        var dataSource = new AzureStorageDataSourceFactory(new BlobStoreApiImpl(null, getEndpoint(account1Name)), policy, monitor)
                 .createSource(request);
 
         int partitionSize = 5;
-        var dataSink = new AzureStorageDataSinkFactory(new BlobAdapterFactory(getEndpoint(account2Name)), executor, partitionSize, monitor)
+        var dataSink = new AzureStorageDataSinkFactory(new BlobStoreApiImpl(null, getEndpoint(account2Name)), executor, partitionSize, monitor)
                 .createSink(request);
 
         assertThat(dataSink.transfer(dataSource))

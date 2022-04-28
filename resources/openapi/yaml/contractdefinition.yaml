@@ -46,14 +46,14 @@ paths:
       operationId: createContractDefinition
       requestBody:
         content:
-          application/json:
+          '*/*':
             schema:
               $ref: '#/components/schemas/ContractDefinitionDto'
       responses:
         default:
           description: default response
           content:
-            '*/*': {}
+            application/json: {}
   /contractdefinitions/{id}:
     get:
       tags:
@@ -86,7 +86,7 @@ paths:
         default:
           description: default response
           content:
-            '*/*': {}
+            application/json: {}
 components:
   schemas:
     ContractDefinitionDto:

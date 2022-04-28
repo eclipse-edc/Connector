@@ -15,7 +15,7 @@ paths:
         default:
           description: default response
           content:
-            '*/*': {}
+            application/json: {}
   /contractnegotiations/{id}/decline:
     post:
       tags:
@@ -31,7 +31,7 @@ paths:
         default:
           description: default response
           content:
-            '*/*': {}
+            application/json: {}
   /contractnegotiations/{id}/agreement:
     get:
       tags:
@@ -83,9 +83,9 @@ paths:
         default:
           description: default response
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/NegotiationState'
   /contractnegotiations:
     get:
       tags:
@@ -139,9 +139,9 @@ paths:
         default:
           description: default response
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/NegotiationId'
 components:
   schemas:
     ContractAgreementDto:
@@ -186,6 +186,16 @@ components:
           enum:
           - CONSUMER
           - PROVIDER
+    NegotiationState:
+      type: object
+      properties:
+        state:
+          type: string
+    NegotiationId:
+      type: object
+      properties:
+        id:
+          type: string
     Action:
       type: object
       properties:
@@ -277,10 +287,6 @@ components:
           items:
             $ref: '#/components/schemas/Duty'
     Policy:
-      required:
-      - obligations
-      - permissions
-      - prohibitions
       type: object
       properties:
         uid:

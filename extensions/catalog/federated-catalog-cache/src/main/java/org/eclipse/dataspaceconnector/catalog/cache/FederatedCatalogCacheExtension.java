@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.catalog.cache;
 
 import net.jodah.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.catalog.cache.controller.CatalogController;
+import org.eclipse.dataspaceconnector.catalog.cache.controller.FederatedCatalogApiController;
 import org.eclipse.dataspaceconnector.catalog.cache.crawler.CrawlerImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.crawler.NodeQueryAdapterRegistryImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.loader.LoaderManagerImpl;
@@ -96,7 +96,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         var queryEngine = new QueryEngineImpl(queryAdapterRegistry);
         context.registerService(QueryEngine.class, queryEngine);
         monitor = context.getMonitor();
-        var catalogController = new CatalogController(monitor, queryEngine);
+        var catalogController = new FederatedCatalogApiController(monitor, queryEngine);
         webService.registerResource(catalogController);
 
         // contribute to the liveness probe

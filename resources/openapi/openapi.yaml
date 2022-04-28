@@ -9,6 +9,702 @@ info:
 servers:
 - url: /
 paths:
+  /federatedcatalog:
+    post:
+      operationId: getCatalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FederatedCatalogCacheQuery'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContractOffer'
+  /instances:
+    get:
+      tags:
+      - Dataplane Selector
+      operationId: getAll
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataPlaneInstance'
+    post:
+      tags:
+      - Dataplane Selector
+      operationId: addEntry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataPlaneInstance'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /instances/select:
+    post:
+      tags:
+      - Dataplane Selector
+      operationId: find
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SelectionRequest'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataPlaneInstance'
+  /policies:
+    get:
+      tags:
+      - Policy
+      operationId: getAllPolicies
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: limit
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: filter
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - name: sortField
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Policy'
+    post:
+      tags:
+      - Policy
+      operationId: createPolicy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Policy'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /policies/{id}:
+    get:
+      tags:
+      - Policy
+      operationId: getPolicy
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+    delete:
+      tags:
+      - Policy
+      operationId: deletePolicy
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /check/health:
+    get:
+      tags:
+      - Application Observability
+      operationId: checkHealth
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /check/liveness:
+    get:
+      tags:
+      - Application Observability
+      operationId: getLiveness
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /check/readiness:
+    get:
+      tags:
+      - Application Observability
+      operationId: getReadiness
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /check/startup:
+    get:
+      tags:
+      - Application Observability
+      operationId: getStartup
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /contractnegotiations/{id}/cancel:
+    post:
+      tags:
+      - Contract Negotiation
+      operationId: cancelNegotiation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /contractnegotiations/{id}/decline:
+    post:
+      tags:
+      - Contract Negotiation
+      operationId: declineNegotiation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /contractnegotiations/{id}/agreement:
+    get:
+      tags:
+      - Contract Negotiation
+      operationId: getAgreementForNegotiation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractAgreementDto'
+  /contractnegotiations/{id}:
+    get:
+      tags:
+      - Contract Negotiation
+      operationId: getNegotiation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractNegotiationDto'
+  /contractnegotiations/{id}/state:
+    get:
+      tags:
+      - Contract Negotiation
+      operationId: getNegotiationState
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NegotiationState'
+  /contractnegotiations:
+    get:
+      tags:
+      - Contract Negotiation
+      operationId: getNegotiations
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: limit
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: filter
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - name: sortField
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContractNegotiationDto'
+    post:
+      tags:
+      - Contract Negotiation
+      operationId: initiateContractNegotiation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NegotiationInitiateRequestDto'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NegotiationId'
+  /transferprocess/{id}/cancel:
+    post:
+      tags:
+      - Transfer Process
+      operationId: cancelTransferProcess
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /transferprocess/{id}/deprovision:
+    post:
+      tags:
+      - Transfer Process
+      operationId: deprovisionTransferProcess
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /transferprocess:
+    get:
+      tags:
+      - Transfer Process
+      operationId: getAllTransferProcesses
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: limit
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: filter
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - name: sortField
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransferProcessDto'
+    post:
+      tags:
+      - Transfer Process
+      operationId: initiateTransfer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequestDto'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferId'
+  /transferprocess/{id}:
+    get:
+      tags:
+      - Transfer Process
+      operationId: getTransferProcess
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferProcessDto'
+  /transferprocess/{id}/state:
+    get:
+      tags:
+      - Transfer Process
+      operationId: getTransferProcessState
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferState'
+  /contractdefinitions:
+    get:
+      tags:
+      - Contract Definition
+      operationId: getAllContractDefinitions
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: limit
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: filter
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - name: sortField
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContractDefinitionDto'
+    post:
+      tags:
+      - Contract Definition
+      operationId: createContractDefinition
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/ContractDefinitionDto'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /contractdefinitions/{id}:
+    get:
+      tags:
+      - Contract Definition
+      operationId: getContractDefinition
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractDefinitionDto'
+    delete:
+      tags:
+      - Contract Definition
+      operationId: deleteContractDefinition
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /identity-hub/query-commits:
+    post:
+      tags:
+      - Identity Hub
+      operationId: queryCommits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: string
+  /identity-hub/query-objects:
+    post:
+      tags:
+      - Identity Hub
+      operationId: queryObjects
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: string
+  /identity-hub/collections:
+    post:
+      tags:
+      - Identity Hub
+      operationId: write
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: string
+  /identity-hub/collections-commit:
+    post:
+      tags:
+      - Identity Hub
+      operationId: writeCommit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
   /assets:
     get:
       tags:
@@ -77,7 +773,7 @@ paths:
         default:
           description: default response
           content:
-            '*/*': {}
+            application/json: {}
   /assets/{id}:
     get:
       tags:
@@ -114,7 +810,147 @@ paths:
         default:
           description: default response
           content:
-            '*/*': {}
+            application/json: {}
+  /contractagreements:
+    get:
+      tags:
+      - Contract Agreement
+      operationId: getAllAgreements
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: limit
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: filter
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - name: sortField
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContractAgreementDto'
+  /contractagreements/{id}:
+    get:
+      tags:
+      - Contract Agreement
+      operationId: getContractAgreement
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractAgreementDto'
+  /catalog:
+    get:
+      tags:
+      - Catalog
+      operationId: getCatalog
+      parameters:
+      - name: providerUrl
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalog'
+  /callback/{processId}/deprovision:
+    post:
+      tags:
+      - HTTP Provisioner Webhook
+      operationId: callDeprovisionWebhook
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeprovisionedResource'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /callback/{processId}/provision:
+    post:
+      tags:
+      - HTTP Provisioner Webhook
+      operationId: callProvisionWebhook
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProvisionerWebhookRequest'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
   /control/catalog:
     get:
       operationId: getDescription
@@ -211,825 +1047,6 @@ paths:
           content:
             application/json: {}
       deprecated: true
-  /check/health:
-    get:
-      tags:
-      - Application Observability
-      operationId: checkHealth
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /check/liveness:
-    get:
-      tags:
-      - Application Observability
-      operationId: getLiveness
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /check/readiness:
-    get:
-      tags:
-      - Application Observability
-      operationId: getReadiness
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /check/startup:
-    get:
-      tags:
-      - Application Observability
-      operationId: getStartup
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /instances:
-    get:
-      tags:
-      - Dataplane Selector
-      operationId: getAll
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DataPlaneInstance'
-    post:
-      tags:
-      - Dataplane Selector
-      operationId: addEntry
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DataPlaneInstance'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /instances/select:
-    post:
-      tags:
-      - Dataplane Selector
-      operationId: find
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SelectionRequest'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DataPlaneInstance'
-  /catalog:
-    get:
-      tags:
-      - Catalog
-      operationId: getCatalog
-      parameters:
-      - name: providerUrl
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Catalog'
-  /contractnegotiations/{id}/cancel:
-    post:
-      tags:
-      - Contract Negotiation
-      operationId: cancelNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            '*/*': {}
-  /contractnegotiations/{id}/decline:
-    post:
-      tags:
-      - Contract Negotiation
-      operationId: declineNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            '*/*': {}
-  /contractnegotiations/{id}/agreement:
-    get:
-      tags:
-      - Contract Negotiation
-      operationId: getAgreementForNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContractAgreementDto'
-  /contractnegotiations/{id}:
-    get:
-      tags:
-      - Contract Negotiation
-      operationId: getNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContractNegotiationDto'
-  /contractnegotiations/{id}/state:
-    get:
-      tags:
-      - Contract Negotiation
-      operationId: getNegotiationState
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            text/plain:
-              schema:
-                type: string
-  /contractnegotiations:
-    get:
-      tags:
-      - Contract Negotiation
-      operationId: getNegotiations
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ContractNegotiationDto'
-    post:
-      tags:
-      - Contract Negotiation
-      operationId: initiateContractNegotiation
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NegotiationInitiateRequestDto'
-      responses:
-        default:
-          description: default response
-          content:
-            text/plain:
-              schema:
-                type: string
-  /callback/{processId}/deprovision:
-    post:
-      tags:
-      - HTTP Provisioner Webhook
-      operationId: callDeprovisionWebhook
-      parameters:
-      - name: processId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DeprovisionedResource'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /callback/{processId}/provision:
-    post:
-      tags:
-      - HTTP Provisioner Webhook
-      operationId: callProvisionWebhook
-      parameters:
-      - name: processId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ProvisionerWebhookRequest'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /contractdefinitions:
-    get:
-      tags:
-      - Contract Definition
-      operationId: getAllContractDefinitions
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ContractDefinitionDto'
-    post:
-      tags:
-      - Contract Definition
-      operationId: createContractDefinition
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ContractDefinitionDto'
-      responses:
-        default:
-          description: default response
-          content:
-            '*/*': {}
-  /contractdefinitions/{id}:
-    get:
-      tags:
-      - Contract Definition
-      operationId: getContractDefinition
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContractDefinitionDto'
-    delete:
-      tags:
-      - Contract Definition
-      operationId: deleteContractDefinition
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            '*/*': {}
-  /identity-hub/query-commits:
-    post:
-      tags:
-      - Identity Hub
-      operationId: queryCommits
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: string
-  /identity-hub/query-objects:
-    post:
-      tags:
-      - Identity Hub
-      operationId: queryObjects
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: string
-  /identity-hub/collections:
-    post:
-      tags:
-      - Identity Hub
-      operationId: write
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: string
-  /identity-hub/collections-commit:
-    post:
-      tags:
-      - Identity Hub
-      operationId: writeCommit
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              additionalProperties:
-                type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /policies:
-    get:
-      tags:
-      - Policy
-      operationId: getAllPolicies
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Policy'
-    post:
-      tags:
-      - Policy
-      operationId: createPolicy
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Policy'
-      responses:
-        default:
-          description: default response
-          content:
-            '*/*': {}
-  /policies/{id}:
-    get:
-      tags:
-      - Policy
-      operationId: getPolicy
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Policy'
-    delete:
-      tags:
-      - Policy
-      operationId: deletePolicy
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            '*/*': {}
-  /contractagreements:
-    get:
-      tags:
-      - Contract Agreement
-      operationId: getAllAgreements
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ContractAgreementDto'
-  /contractagreements/{id}:
-    get:
-      tags:
-      - Contract Agreement
-      operationId: getContractAgreement
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContractAgreementDto'
-  /transferprocess/{id}/cancel:
-    post:
-      tags:
-      - Transfer Process
-      operationId: cancelTransferProcess
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            '*/*': {}
-  /transferprocess/{id}/deprovision:
-    post:
-      tags:
-      - Transfer Process
-      operationId: deprovisionTransferProcess
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            '*/*': {}
-  /transferprocess:
-    get:
-      tags:
-      - Transfer Process
-      operationId: getAllTransferProcesses
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TransferProcessDto'
-    post:
-      tags:
-      - Transfer Process
-      operationId: initiateTransfer
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TransferRequestDto'
-      responses:
-        default:
-          description: default response
-          content:
-            text/plain:
-              schema:
-                type: string
-  /transferprocess/{id}:
-    get:
-      tags:
-      - Transfer Process
-      operationId: getTransferProcess
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TransferProcessDto'
-  /transferprocess/{id}/state:
-    get:
-      tags:
-      - Transfer Process
-      operationId: getTransferProcessState
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            text/plain:
-              schema:
-                type: string
 components:
   schemas:
     Action:
@@ -1231,24 +1248,31 @@ components:
           type: object
           additionalProperties:
             type: string
+    DataAddressInformationDto:
+      type: object
+      properties:
+        properties:
+          type: object
+          additionalProperties:
+            type: string
     DataPlaneInstance:
       type: object
       properties:
-        id:
-          type: string
-        url:
-          type: string
-          format: url
-        turnCount:
-          type: integer
-          format: int32
         lastActive:
           type: integer
           format: int64
+        turnCount:
+          type: integer
+          format: int32
+        url:
+          type: string
+          format: url
         properties:
           type: object
           additionalProperties:
             type: object
+        id:
+          type: string
     DataRequest:
       type: object
       properties:
@@ -1326,6 +1350,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Criterion'
+    NegotiationId:
+      type: object
+      properties:
+        id:
+          type: string
     NegotiationInitiateRequestDto:
       required:
       - connectorAddress
@@ -1342,6 +1371,11 @@ components:
           type: string
         offer:
           $ref: '#/components/schemas/ContractOfferDescription'
+    NegotiationState:
+      type: object
+      properties:
+        state:
+          type: string
     Permission:
       type: object
       properties:
@@ -1364,10 +1398,6 @@ components:
           items:
             $ref: '#/components/schemas/Duty'
     Policy:
-      required:
-      - obligations
-      - permissions
-      - prohibitions
       type: object
       properties:
         uid:
@@ -1448,6 +1478,11 @@ components:
           $ref: '#/components/schemas/DataAddress'
         strategy:
           type: string
+    TransferId:
+      type: object
+      properties:
+        id:
+          type: string
     TransferProcessDto:
       type: object
       properties:
@@ -1461,6 +1496,8 @@ components:
           type: string
         dataRequest:
           $ref: '#/components/schemas/DataRequestDto'
+        dataDestination:
+          $ref: '#/components/schemas/DataAddressInformationDto'
     TransferRequestDto:
       required:
       - assetId
@@ -1468,11 +1505,14 @@ components:
       - connectorId
       - contractId
       - dataDestination
+      - id
       - protocol
       - transferType
       type: object
       properties:
         connectorAddress:
+          type: string
+        id:
           type: string
         contractId:
           type: string
@@ -1491,6 +1531,11 @@ components:
         connectorId:
           type: string
         assetId:
+          type: string
+    TransferState:
+      type: object
+      properties:
+        state:
           type: string
     TransferType:
       type: object

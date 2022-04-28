@@ -28,7 +28,9 @@ import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractAgreementDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractNegotiationDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationId;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationState;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.service.ContractNegotiationService;
 import org.eclipse.dataspaceconnector.api.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
@@ -49,6 +51,9 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
+
 @Path("/contractnegotiations")
 public class ContractNegotiationApiController implements ContractNegotiationApi {
     private final Monitor monitor;
@@ -62,7 +67,6 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     }
 
     @GET
-    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public List<ContractNegotiationDto> getNegotiations(@QueryParam("offset") Integer offset,
                                                         @QueryParam("limit") Integer limit,
@@ -88,7 +92,6 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
 
     @GET
     @Path("/{id}")
-    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public ContractNegotiationDto getNegotiation(@PathParam("id") String id) {
         monitor.debug(format("Get contract negotiation with id %s", id));
@@ -103,18 +106,17 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
 
     @GET
     @Path("/{id}/state")
-    @Produces({ MediaType.TEXT_PLAIN })
     @Override
-    public String getNegotiationState(@PathParam("id") String id) {
+    public NegotiationState getNegotiationState(@PathParam("id") String id) {
         monitor.debug(format("Get contract negotiation state with id %s", id));
         return Optional.of(id)
                 .map(service::getState)
+                .map(NegotiationState::new)
                 .orElseThrow(() -> new ObjectNotFoundException(ContractDefinition.class, id));
     }
 
     @GET
     @Path("/{id}/agreement")
-    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public ContractAgreementDto getAgreementForNegotiation(@PathParam("id") String negotiationId) {
         monitor.debug(format("Get contract agreement of negotiation with id %s", negotiationId));
@@ -128,10 +130,8 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     }
 
     @POST
-    @Consumes({ MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.TEXT_PLAIN })
     @Override
-    public String initiateContractNegotiation(@Valid NegotiationInitiateRequestDto initiateDto) {
+    public NegotiationId initiateContractNegotiation(@Valid NegotiationInitiateRequestDto initiateDto) {
         if (!isValid(initiateDto)) {
             throw new IllegalArgumentException("Negotiation request is invalid");
         }
@@ -144,7 +144,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
         var request = transformResult.getContent();
 
         ContractNegotiation contractNegotiation = service.initiateNegotiation(request);
-        return contractNegotiation.getId();
+        return new NegotiationId(contractNegotiation.getId());
     }
 
     @POST

@@ -14,14 +14,26 @@
 
 plugins {
     `java-library`
+    `java-test-fixtures`
 }
 
 val storageBlobVersion: String by project
+val jodahFailsafeVersion: String by project
+val jupiterVersion: String by project
+val faker: String by project
 
 dependencies {
     api(project(":spi"))
 
-    api("com.azure:azure-storage-blob:${storageBlobVersion}")
+    implementation("com.azure:azure-storage-blob:${storageBlobVersion}")
+    implementation(project(":common:util"))
+
+    testFixturesApi(project(":extensions:azure:blobstorage:blob-core"))
+    testFixturesImplementation(project(":common:util"))
+
+    testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
+    testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
+    testFixturesImplementation("com.github.javafaker:javafaker:${faker}")
 }
 
 publishing {

@@ -16,25 +16,25 @@ package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline;
 
 import com.github.javafaker.Faker;
 import net.jodah.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.adapter.BlobAdapterFactory;
-import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.schema.AzureBlobStoreSchema;
+import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
+import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createAccountName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createBlobName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createContainerName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createRequest;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createSharedKey;
+import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createAccountName;
+import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createBlobName;
+import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createContainerName;
+import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createRequest;
+import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createSharedKey;
 import static org.mockito.Mockito.mock;
 
 class AzureStorageDataSourceFactoryTest {
     static Faker faker = new Faker();
-    BlobAdapterFactory blobAdapterFactory = mock(BlobAdapterFactory.class);
-    AzureStorageDataSourceFactory factory = new AzureStorageDataSourceFactory(blobAdapterFactory, new RetryPolicy<>(), mock(Monitor.class));
+    BlobStoreApi blobStoreApi = mock(BlobStoreApi.class);
+    AzureStorageDataSourceFactory factory = new AzureStorageDataSourceFactory(blobStoreApi, new RetryPolicy<>(), mock(Monitor.class));
     DataFlowRequest.Builder request = createRequest(AzureBlobStoreSchema.TYPE);
     DataFlowRequest.Builder invalidRequest = createRequest(faker.lorem().word());
     DataAddress.Builder dataAddress = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE);
