@@ -2,7 +2,7 @@ openapi: 3.0.1
 paths:
   /federatedcatalog:
     post:
-      operationId: getCatalog
+      operationId: getCachedCatalog
       requestBody:
         content:
           application/json:

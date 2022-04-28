@@ -29,8 +29,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 
 import java.util.Collection;
 
-@Consumes({MediaType.APPLICATION_JSON})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path("/federatedcatalog")
 public class FederatedCatalogApiController {
 
@@ -43,7 +43,7 @@ public class FederatedCatalogApiController {
     }
 
     @POST
-    public Collection<ContractOffer> getCatalog(FederatedCatalogCacheQuery federatedCatalogCacheQuery) {
+    public Collection<ContractOffer> getCachedCatalog(FederatedCatalogCacheQuery federatedCatalogCacheQuery) {
         monitor.info("Received a catalog request");
         var queryResponse = queryEngine.getCatalog(federatedCatalogCacheQuery);
         // query not possible
