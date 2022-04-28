@@ -16,14 +16,11 @@ package org.eclipse.dataspaceconnector.iam.did.spi.resolution;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.spi.system.Feature;
 
 /**
  * Delegates to a {@link DidResolver} to resolve a DID document.
  */
-@Feature(DidResolverRegistry.FEATURE)
 public interface DidResolverRegistry {
-    String FEATURE = "edc:identity:did:resolver-registry";
 
     /**
      * Registers a DID resolver.

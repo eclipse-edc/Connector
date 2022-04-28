@@ -66,7 +66,7 @@ public class HttpEndpointDataReferenceReceiverExtension implements ServiceExtens
                 .retryPolicy(retryPolicy)
                 .monitor(context.getMonitor())
                 .build();
-        receiverRegistry.addReceiver(receiver);
+        receiverRegistry.registerReceiver(receiver);
     }
 
 }

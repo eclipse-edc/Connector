@@ -53,7 +53,7 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            '*/*': {}
   /contractdefinitions/{id}:
     get:
       tags:
@@ -86,10 +86,15 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            '*/*': {}
 components:
   schemas:
     ContractDefinitionDto:
+      required:
+      - accessPolicyId
+      - contractPolicyId
+      - criteria
+      - id
       type: object
       properties:
         accessPolicyId:

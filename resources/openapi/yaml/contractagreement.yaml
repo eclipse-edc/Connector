@@ -61,6 +61,12 @@ paths:
 components:
   schemas:
     ContractAgreementDto:
+      required:
+      - assetId
+      - consumerAgentId
+      - id
+      - policyId
+      - providerAgentId
       type: object
       properties:
         id:

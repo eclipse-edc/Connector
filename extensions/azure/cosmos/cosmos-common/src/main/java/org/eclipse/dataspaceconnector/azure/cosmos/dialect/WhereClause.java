@@ -45,7 +45,7 @@ class WhereClause implements Clause {
     private final List<SqlParameter> parameters = new ArrayList<>();
     private String where = "";
 
-    public WhereClause(List<Criterion> criteria, String objectPrefix) {
+    WhereClause(List<Criterion> criteria, String objectPrefix) {
         this.objectPrefix = objectPrefix;
         if (criteria != null) {
             criteria.stream().distinct().forEach(this::criterion);

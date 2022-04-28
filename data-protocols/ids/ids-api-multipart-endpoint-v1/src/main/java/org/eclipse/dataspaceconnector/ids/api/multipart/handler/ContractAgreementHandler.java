@@ -22,7 +22,6 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -37,7 +36,6 @@ import java.util.Map;
 import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
-import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
  * This class handles and processes incoming IDS {@link ContractAgreementMessage}s.
@@ -49,21 +47,18 @@ public class ContractAgreementHandler implements Handler {
     private final String connectorId;
     private final ConsumerContractNegotiationManager negotiationManager;
     private final IdsTransformerRegistry transformerRegistry;
-    private final AssetIndex assetIndex;
 
     public ContractAgreementHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
             @NotNull ObjectMapper objectMapper,
             @NotNull ConsumerContractNegotiationManager negotiationManager,
-            @NotNull IdsTransformerRegistry transformerRegistry,
-            @NotNull AssetIndex assetIndex) {
+            @NotNull IdsTransformerRegistry transformerRegistry) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
         this.objectMapper = Objects.requireNonNull(objectMapper);
         this.negotiationManager = Objects.requireNonNull(negotiationManager);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
-        this.assetIndex = Objects.requireNonNull(assetIndex);
     }
 
     @Override
@@ -124,7 +119,7 @@ public class ContractAgreementHandler implements Handler {
         var negotiationResponse = negotiationManager.confirmed(claimToken,
                 String.valueOf(processId), agreement, null);
         if (negotiationResponse.fatalError()) {
-            monitor.debug("ContractAgreementHandler: Could not process contract agreement");
+            monitor.debug("ContractAgreementHandler: Could not process contract agreement " + negotiationResponse.getFailureMessages());
             return createBadParametersErrorMultipartResponse(message);
         }
 

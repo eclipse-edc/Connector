@@ -11,10 +11,10 @@
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  */
+
 package org.eclipse.dataspaceconnector.aws.dataplane.s3;
 
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
@@ -40,7 +40,7 @@ class S3DataSource implements DataSource {
         private final String keyName;
         private final String bucketName;
 
-        public S3Part(S3Client client, String keyName, String bucketName) {
+        S3Part(S3Client client, String keyName, String bucketName) {
             this.client = client;
             this.keyName = keyName;
             this.bucketName = bucketName;

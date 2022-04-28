@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractAgreementDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractNegotiationDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
@@ -35,7 +36,7 @@ public interface ContractNegotiationApi {
 
     ContractAgreementDto getAgreementForNegotiation(String negotiationId);
 
-    String initiateContractNegotiation(NegotiationInitiateRequestDto initiateDto);
+    String initiateContractNegotiation(@Valid NegotiationInitiateRequestDto initiateDto);
 
     void cancelNegotiation(String id);
 

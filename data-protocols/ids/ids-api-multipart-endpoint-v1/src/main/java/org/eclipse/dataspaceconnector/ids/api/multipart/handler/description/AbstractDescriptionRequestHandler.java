@@ -40,7 +40,7 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
     protected final IdsType targetIdsType;
     protected final Class<S> resultType;
 
-    public AbstractDescriptionRequestHandler(
+    AbstractDescriptionRequestHandler(
             @NotNull String connectorId,
             @NotNull Monitor monitor,
             @NotNull IdsTransformerRegistry transformerRegistry,

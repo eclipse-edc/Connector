@@ -35,14 +35,14 @@ class OrderByClause implements Clause {
     private final boolean sortAsc;
     private final String objectPrefix;
 
-    public OrderByClause(String orderField, boolean sortAsc, String objectPrefix) {
+    OrderByClause(String orderField, boolean sortAsc, String objectPrefix) {
 
         this.orderField = orderField;
         this.sortAsc = sortAsc;
         this.objectPrefix = objectPrefix;
     }
 
-    public OrderByClause(String orderField, boolean sortAsc) {
+    OrderByClause(String orderField, boolean sortAsc) {
         this(orderField, sortAsc, null);
     }
 

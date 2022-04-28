@@ -14,10 +14,7 @@
 
 package org.eclipse.dataspaceconnector.dataloading;
 
-import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 
-@Feature(ContractDefinitionLoader.FEATURE)
 public interface ContractDefinitionLoader extends DataSink<ContractDefinition> {
-    String FEATURE = "edc:core:contract:contractdefinition:loader";
 }

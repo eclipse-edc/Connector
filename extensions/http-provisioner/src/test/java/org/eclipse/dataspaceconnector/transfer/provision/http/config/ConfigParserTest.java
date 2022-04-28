@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.transfer.provision.http.config;
 
 import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;

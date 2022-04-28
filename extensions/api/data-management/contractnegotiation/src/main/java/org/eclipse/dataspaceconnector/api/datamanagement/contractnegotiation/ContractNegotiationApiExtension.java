@@ -52,6 +52,12 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
     @Inject(required = false)
     private TransactionContext transactionContext;
 
+
+    @Override
+    public String name() {
+        return "Data Management API: Contract Negotiation";
+    }
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         transformerRegistry.register(new ContractNegotiationToContractNegotiationDtoTransformer());

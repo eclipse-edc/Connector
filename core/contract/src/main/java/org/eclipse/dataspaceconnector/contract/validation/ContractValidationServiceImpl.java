@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - improvements
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
@@ -20,6 +21,7 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -31,9 +33,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Objects;
-import java.util.function.Supplier;
 
+import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.parseContractId;
 
@@ -43,13 +44,15 @@ import static org.eclipse.dataspaceconnector.contract.common.ContractId.parseCon
 public class ContractValidationServiceImpl implements ContractValidationService {
 
     private final ParticipantAgentService agentService;
-    private final Supplier<ContractDefinitionService> definitionServiceSupplier;
+    private final ContractDefinitionService contractDefinitionService;
     private final AssetIndex assetIndex;
+    private final PolicyStore policyStore;
 
-    public ContractValidationServiceImpl(ParticipantAgentService agentService, Supplier<ContractDefinitionService> definitionServiceSupplier, AssetIndex assetIndex) {
-        this.agentService = Objects.requireNonNull(agentService);
-        this.definitionServiceSupplier = Objects.requireNonNull(definitionServiceSupplier);
-        this.assetIndex = Objects.requireNonNull(assetIndex);
+    public ContractValidationServiceImpl(ParticipantAgentService agentService, ContractDefinitionService contractDefinitionService, AssetIndex assetIndex, PolicyStore policyStore) {
+        this.agentService = agentService;
+        this.contractDefinitionService = contractDefinitionService;
+        this.assetIndex = assetIndex;
+        this.policyStore = policyStore;
     }
 
     @Override
@@ -65,7 +68,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         }
 
         var agent = agentService.createFor(token);
-        var contractDefinition = definitionServiceSupplier.get().definitionFor(agent, contractIdTokens[DEFINITION_PART]);
+        var contractDefinition = contractDefinitionService.definitionFor(agent, contractIdTokens[DEFINITION_PART]);
         if (contractDefinition == null) {
             return Result.failure("Invalid contract.");
         }
@@ -78,12 +81,17 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return Result.failure("Invalid target: " + offer.getAsset());
         }
 
-        var sanitizedUsagePolicy = contractDefinition.getContractPolicy();
+        var contractPolicy = policyStore.findById(contractDefinition.getContractPolicyId());
+        if (contractPolicy == null) {
+            return Result.failure(format("Policy %s not found", contractDefinition.getContractPolicyId()));
+        }
+
         var validatedOffer = ContractOffer.Builder.newInstance()
                 .id(offer.getId())
                 .asset(targetAsset)
-                .policy(sanitizedUsagePolicy)
+                .policy(contractPolicy)
                 .build();
+
         return Result.success(validatedOffer);
     }
 
@@ -115,7 +123,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return false;
         }
 
-        return definitionServiceSupplier.get().definitionFor(agent, tokens[DEFINITION_PART]) != null;
+        return contractDefinitionService.definitionFor(agent, tokens[DEFINITION_PART]) != null;
         // TODO validate counter-party
     }
 

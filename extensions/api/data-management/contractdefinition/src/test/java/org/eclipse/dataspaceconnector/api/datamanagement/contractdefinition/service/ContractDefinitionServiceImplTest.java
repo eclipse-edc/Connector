@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service;
 
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -119,8 +118,8 @@ class ContractDefinitionServiceImplTest {
     private ContractDefinition createContractDefinition() {
         return ContractDefinition.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .accessPolicy(Policy.Builder.newInstance().build())
-                .contractPolicy(Policy.Builder.newInstance().build())
+                .accessPolicyId(UUID.randomUUID().toString())
+                .contractPolicyId(UUID.randomUUID().toString())
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
                 .build();
     }

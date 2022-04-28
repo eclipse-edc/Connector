@@ -130,7 +130,7 @@ class IdsTransformServiceExtensionTest {
     private static class TestTransformerRegistry implements IdsTransformerRegistry {
         private final Map<Class<?>, List<Class<?>>> knownConvertibles;
 
-        public TestTransformerRegistry(Map<Class<?>, List<Class<?>>> knownConvertibles) {
+        TestTransformerRegistry(Map<Class<?>, List<Class<?>>> knownConvertibles) {
             this.knownConvertibles = knownConvertibles;
         }
 

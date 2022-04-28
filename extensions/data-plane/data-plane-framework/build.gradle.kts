@@ -12,13 +12,17 @@
  *
  */
 
+val openTelemetryVersion: String by project
+
 plugins {
     `java-library`
 }
 
 dependencies {
+    api(project(":spi:core-spi"))
     api(project(":extensions:data-plane:data-plane-spi"))
     implementation(project(":common:util"))
+    implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
     testImplementation(testFixtures(project(":launchers:junit")))
 }
 

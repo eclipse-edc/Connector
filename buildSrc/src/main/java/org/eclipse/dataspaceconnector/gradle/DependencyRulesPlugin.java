@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.gradle;
 
 import org.gradle.api.Plugin;
@@ -24,9 +25,8 @@ public class DependencyRulesPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        var extension = project.getExtensions().create(
-                "dataspaceconnectorplugin", DependencyRulesPluginExtension.class
-        );
+        var extension = project.getExtensions()
+                .create("dependencyrulespluginextension", DependencyRulesPluginExtension.class);
         project.getSubprojects().forEach(p -> registerTask(p, extension));
     }
 

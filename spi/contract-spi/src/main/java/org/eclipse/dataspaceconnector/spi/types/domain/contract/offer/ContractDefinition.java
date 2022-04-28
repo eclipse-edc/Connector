@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.spi.types.domain.contract.offer;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,8 +35,8 @@ import java.util.Objects;
 @JsonDeserialize(builder = ContractDefinition.Builder.class)
 public class ContractDefinition {
     private String id;
-    private Policy accessPolicy;
-    private Policy contractPolicy;
+    private String accessPolicyId;
+    private String contractPolicyId;
     private AssetSelectorExpression selectorExpression;
 
     private ContractDefinition() {
@@ -48,13 +47,13 @@ public class ContractDefinition {
     }
 
     @NotNull
-    public Policy getAccessPolicy() {
-        return accessPolicy;
+    public String getAccessPolicyId() {
+        return accessPolicyId;
     }
 
     @NotNull
-    public Policy getContractPolicy() {
-        return contractPolicy;
+    public String getContractPolicyId() {
+        return contractPolicyId;
     }
 
     @NotNull
@@ -63,35 +62,16 @@ public class ContractDefinition {
     }
 
     @Override
-    public int hashCode() {
-        int result = id.hashCode();
-        result = 31 * result + accessPolicy.hashCode();
-        result = 31 * result + contractPolicy.hashCode();
-        result = 31 * result + selectorExpression.hashCode();
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ContractDefinition that = (ContractDefinition) o;
+        return Objects.equals(id, that.id) && Objects.equals(accessPolicyId, that.accessPolicyId) && Objects.equals(contractPolicyId, that.contractPolicyId) && Objects.equals(selectorExpression, that.selectorExpression);
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        ContractDefinition that = (ContractDefinition) o;
-
-        if (!id.equals(that.id)) {
-            return false;
-        }
-        if (!accessPolicy.equals(that.accessPolicy)) {
-            return false;
-        }
-        if (!contractPolicy.equals(that.contractPolicy)) {
-            return false;
-        }
-        return selectorExpression.equals(that.selectorExpression);
+    public int hashCode() {
+        return Objects.hash(id, accessPolicyId, contractPolicyId, selectorExpression);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -111,13 +91,13 @@ public class ContractDefinition {
             return this;
         }
 
-        public Builder accessPolicy(Policy policy) {
-            definition.accessPolicy = policy;
+        public Builder accessPolicyId(String policyId) {
+            definition.accessPolicyId = policyId;
             return this;
         }
 
-        public Builder contractPolicy(Policy policy) {
-            definition.contractPolicy = policy;
+        public Builder contractPolicyId(String policyId) {
+            definition.contractPolicyId = policyId;
             return this;
         }
 
@@ -128,8 +108,8 @@ public class ContractDefinition {
 
         public ContractDefinition build() {
             Objects.requireNonNull(definition.id);
-            Objects.requireNonNull(definition.accessPolicy);
-            Objects.requireNonNull(definition.contractPolicy);
+            Objects.requireNonNull(definition.accessPolicyId);
+            Objects.requireNonNull(definition.contractPolicyId);
             Objects.requireNonNull(definition.selectorExpression);
             return definition;
         }

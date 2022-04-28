@@ -18,6 +18,7 @@ import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -48,6 +49,7 @@ class ParallelSinkTest {
     void setup() {
         fakeSink = new FakeParallelSink();
         fakeSink.monitor = monitor;
+        fakeSink.telemetry = new Telemetry(); // default noop implementation
         fakeSink.executorService = executor;
         fakeSink.requestId = UUID.randomUUID().toString();
     }

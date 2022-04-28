@@ -36,11 +36,13 @@ class DataFlowRequestTest {
                 .processId(UUID.randomUUID().toString())
                 .destinationType("test")
                 .properties(Map.of("key", "value"))
+                .traceContext(Map.of("key2", "value2"))
                 .build();
         var serialized = mapper.writeValueAsString(request);
         var deserialized = mapper.readValue(serialized, DataFlowRequest.class);
 
         assertThat(deserialized).isNotNull();
         assertThat(deserialized.getProperties().get("key")).isEqualTo("value");
+        assertThat(deserialized.getTraceContext().get("key2")).isEqualTo("value2");
     }
 }

@@ -14,7 +14,7 @@ components:
 
 ## Registering a service implementation
 
-As a general rule the module that provides the implementation also has to register it with
+As a general rule the module that provides the implementation also should register it with
 the `ServiceExtensionContext`. This is done in an accompanying service extension. For example,
 providing a CosmosDB based implementation for a `FooStore` (stores `Foo` objects) would require the following classes:
 
@@ -35,36 +35,117 @@ providing a CosmosDB based implementation for a `FooStore` (stores `Foo` objects
     ```
 3. A `CosmosFooStoreExtension.java` located also in `:extensions:azure:cosmos:foo-store-cosmos`. Must be accompanied by
    a _"provider-configuration file"_ as required by
-   the [`ServiceLoader` documentation](https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html).
-   ```java
-   @Provides({FooStore.class, /*potentially others*/})
-   public class CosmosFooStoreExtension implements ServiceExtension {
-    
-        @Override
-        public void initialize(ServiceExtensionContext context){
-            // instantiate the implementation 
-            var store = new CosmosFooStore(/*config, monitor, etc.*/);
-            
-            // register it with the context
-            context.registerService(FooStore.class, store);
-        }    
-   }
-   ```
-   There are three important things to mention:
+   the [`ServiceLoader` documentation](https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html). Code
+   examples will follow below.
 
-    1. the call to `context#registerService` makes the object available in the context. From this point on other
-       extensions can inject a `FooStore` (and in doing so will receive a `CosmosFooStore`).
-    2. declaring the exposed interface in the `@Provides()` annotation helps the extension loader define the order in
-       which it needs to initialize extensions
-    3. service registrations **must** be done in the `initialize()` method.
+### Option 1: use `@Provider` methods (recommended)
+
+Every `ServiceExtension` may declare methods that are annotated with `@Provider`, which tells the dependency resolution
+mechanism, that this
+method contributes a dependency into the context. This is very similar to other DI containers, e.g. Spring's `@Bean`
+annotation. It looks like this:
+
+```java
+public class CosmosFooStoreExtension implements ServiceExtension {
+
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        // ...
+    }
+
+    //Example 1: no args
+    @Provider
+    public SomeService provideSomeService() {
+        return new SomeServiceImpl();
+    }
+
+    //Example 2: using context
+    @Provider
+    public FooStore provideFooStore(ServiceExtensionContext context) {
+        var setting = context.getSetting("...", null);
+        return new CosmosFooStore(setting);
+    }
+}
+```
+
+As the previous code snipped shows, provider methods may have no args, or a single argument, which is
+the `ServiceExtensionContext`.
+There are a few other restrictions too. Violating these will raise an exception. Provider methods must:
+
+- be public
+- return a value (`void` is not allowed)
+- either have no arguments, or a single `ServiceExtensionContext`.
+
+Having a provider method is equivalent to invoking `context.registerService(SomeService, new SomeServiceImpl())`. Thus,
+the return type of the method defines the service `type`,
+whatever is returned by the provider method determines the implementation of the service.
+
+**Caution**: there is a slight difference between declaring `@Provider` methods and
+calling `service.registerService(...)` with respect to sequence: the DI loader mechanism _first_
+invokes `ServiceExtension#initialize()`, and
+_then_ invokes all provider methods. In most situations this difference is negligible, but there could be situations,
+where this matters.
+
+#### Provide "defaults"
+
+Where `@Provider` methods really come into their own is when providing default implementations. This means we can have a
+fallback implementation.
+For example, going back to our `FooStore` example, there could be an extension that provides a default (=in-mem)
+implementation:
+
+```java
+public class DefaultsExtension implements ServiceExtension {
+
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        // ...
+    }
+
+    @Provider(isDefault = true)
+    public FooStore provideDefaultFooStore() {
+        return new InMemoryFooStore();
+    }
+}
+```
+
+Provider methods configured with `isDefault=true` are only invoked, if the respective service (here: `FooStore`) is not
+provided by any other extension.
+
+### Option 2: register manually
+
+Of course it is also possible to manually register services by invoking the respective method on
+the `ServiceExtensionContext`
+
+```java
+
+@Provides(FooStore.class/*, possibly others*/)
+public class CosmosFooStoreExtension implements ServiceExtension {
+
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        var setting = context.getSetting("...", null);
+        var store = new CosmosFooStore(setting);
+        context.registerService(FooStore.class, store);
+    }
+}
+```
+
+There are three important things to mention:
+
+1. the call to `context#registerService` makes the object available in the context. From this point on other
+   extensions can inject a `FooStore` (and in doing so will receive a `CosmosFooStore`).
+2. declaring the exposed interface in the `@Provides()` annotation is required, as it helps the extension loader define
+   the order in
+   which it needs to initialize extensions
+3. service registrations **must** be done in the `initialize()` method.
 
 ## Injecting a service
 
-Service should only be referenced by the interface they implement. This will keep dependencies clean and maintain
+Services should only be referenced by the interface they implement. This will keep dependencies clean and maintain
 extensibility and modularity. Say we have a `FooMaintenanceService` that receives `Foo` objects over an arbitrary
 network channel and stores them.
 
-### Option 1: use `@Inject` to declare dependencies
+### Option 1: use `@Inject` to declare dependencies (recommended)
 
 ```java
 public class FooMaintenanceService {
@@ -76,7 +157,8 @@ public class FooMaintenanceService {
 }
 ```
 
-Note that the example uses _constructor injection_, because that is needed for object construction, and it increases
+Note that the example uses what we call _constructor injection_ (even though nothing is actually _injected_), because
+that is needed for object construction, and it increases
 testability. Also, those types of class fields should be declared `final` to avoid programming errors.
 
 In contrast to conventional DI frameworks the `fooStore` dependency won't get auto-injected - rather, there has to be
@@ -139,6 +221,7 @@ positions in the list, and thus have already been initialized.
 ## Tests for classes using injection
 
 To test classes using the `@Inject` annotation, use the appropriate JUnit extension:
+
 - If only basic dependency injection is needed (unit testing), use the `DependencyInjectionExtension`.
 - If the full EDC runtime should be run (integration testing), use the `EdcExtension`.
 

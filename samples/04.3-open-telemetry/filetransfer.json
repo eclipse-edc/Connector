@@ -1,0 +1,19 @@
+{
+  "protocol": "ids-multipart",
+  "assetId": "test-document",
+  "contractId": "{agreement ID}",
+  "dataDestination": {
+    "properties": {
+      "path": "/samples/output-file.txt",
+      "keyName": "keyName",
+      "type": "File"
+    }
+  },
+  "transferType": {
+    "contentType": "application/octet-stream",
+    "isFinite": true
+  },
+  "managedResources": false,
+  "connectorAddress": "http://provider:8282/api/v1/ids/data",
+  "connectorId": "consumer"
+}

@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.azure.testfixtures;
 
 import com.azure.cosmos.CosmosClient;
@@ -74,17 +88,20 @@ public interface CosmosTestClient {
     }
 
     private static HttpClient trustStorePopulatingHttpClient() {
-        var trustStorePopulator = new TrustManager[] {
+        var trustStorePopulator = new TrustManager[]{
                 new X509TrustManager() {
-                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                        return null;
-                    }
-
+                    @Override
                     public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
                     }
 
+                    @Override
                     public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
                         setUpTrustStoreWithCertificates(certs);
+                    }
+
+                    @Override
+                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                        return null;
                     }
                 }
         };

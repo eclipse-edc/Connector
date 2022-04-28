@@ -15,12 +15,11 @@
 package org.eclipse.dataspaceconnector.spi.telemetry;
 
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * Interface for trace context carrier entities.
  *
- * Use in combination with {@link Telemetry#contextPropagationMiddleware(Function)} to propagate the tracing context stored in the entity to the current thread.
+ * Use in combination with the various overloads of {@link Telemetry#contextPropagationMiddleware} to propagate the tracing context stored in the entity to the current thread.
  */
 public interface TraceCarrier {
 

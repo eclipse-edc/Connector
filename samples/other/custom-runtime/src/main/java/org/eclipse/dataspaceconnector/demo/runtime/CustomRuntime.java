@@ -18,7 +18,6 @@ import org.eclipse.dataspaceconnector.boot.system.DefaultServiceExtensionContext
 import org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
-import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -56,7 +55,7 @@ public class CustomRuntime extends BaseRuntime {
     }
 
     private static class SuperCustomExtensionContext extends DefaultServiceExtensionContext {
-        public SuperCustomExtensionContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry, List<ConfigurationExtension> configurationExtensions) {
+        SuperCustomExtensionContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry, List<ConfigurationExtension> configurationExtensions) {
             super(typeManager, monitor, telemetry, configurationExtensions);
         }
     }
