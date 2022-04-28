@@ -20,7 +20,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":extensions:azure:data-plane:common"))
+    implementation(project(":extensions:azure:blobstorage:blob-core"))
     implementation(project(":common:util"))
     implementation("com.azure:azure-identity:${azureIdentityVersion}")
     implementation("com.azure.resourcemanager:azure-resourcemanager:${azureResourceManagerVersion}")

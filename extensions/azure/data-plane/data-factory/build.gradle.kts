@@ -22,7 +22,8 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":extensions:azure:data-plane:common"))
+    api(project(":extensions:data-plane:data-plane-spi"))
+    implementation(project(":extensions:azure:blobstorage:blob-core"))
     implementation(project(":common:util"))
     implementation("com.azure:azure-identity:${azureIdentityVersion}")
     implementation("com.azure.resourcemanager:azure-resourcemanager-datafactory:${azureResourceManagerDataFactory}")
@@ -35,7 +36,7 @@ dependencies {
     testImplementation(project(":extensions:data-plane:data-plane-framework"))
     testImplementation(project(":extensions:azure:resource-manager"))
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))
-    testImplementation(testFixtures(project(":extensions:azure:data-plane:storage")))
+    testImplementation(testFixtures(project(":extensions:azure:blobstorage:blob-core")))
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation("org.awaitility:awaitility:${awaitility}")
