@@ -1,6 +1,6 @@
 openapi: 3.0.1
 paths:
-  /catalog:
+  /federatedcatalog:
     post:
       operationId: getCatalog
       requestBody:
@@ -118,10 +118,6 @@ components:
           items:
             $ref: '#/components/schemas/Duty'
     Policy:
-      required:
-      - obligations
-      - permissions
-      - prohibitions
       type: object
       properties:
         uid:

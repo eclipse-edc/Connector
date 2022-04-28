@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.transform;
 
 import com.github.javafaker.Faker;
+import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.DataAddressInformationDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.DataRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferProcessDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
@@ -24,6 +25,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.mockito.Mockito.mock;
 
@@ -37,8 +41,11 @@ public class TransferProcessTransformerTestData {
     TransferProcessStates state = faker.options().option(TransferProcessStates.class);
     String errorDetail = faker.lorem().word();
 
+    Map<String, String> dataDestinationProperties = Map.of(faker.lorem().word(), faker.lorem().word());
+    String dataDestinationType = faker.lorem().word();
+    DataAddress.Builder dataDestination = DataAddress.Builder.newInstance().type(dataDestinationType).properties(dataDestinationProperties);
     DataRequest dataRequest = DataRequest.Builder.newInstance()
-            .dataDestination(DataAddress.Builder.newInstance().type(faker.lorem().word()).build())
+            .dataDestination(dataDestination.build())
             .build();
     DataRequestDto dataRequestDto = DataRequestDto.Builder.newInstance().build();
 
@@ -54,5 +61,15 @@ public class TransferProcessTransformerTestData {
             .type(type.name())
             .state(state.name())
             .errorDetail(errorDetail)
-            .dataRequest(dataRequestDto);
+            .dataRequest(dataRequestDto)
+            .dataDestination(
+                    DataAddressInformationDto.Builder.newInstance()
+                            .properties(mapWith(dataDestinationProperties, "type", dataDestinationType))
+                            .build());
+
+    private Map<String, String> mapWith(Map<String, String> sourceMap, String key, String value) {
+        var newMap = new HashMap<>(sourceMap);
+        newMap.put(key, value);
+        return newMap;
+    }
 }
