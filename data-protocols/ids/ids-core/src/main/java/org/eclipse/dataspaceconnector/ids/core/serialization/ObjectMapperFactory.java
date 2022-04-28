@@ -14,14 +14,14 @@
 
 package org.eclipse.dataspaceconnector.ids.core.serialization;
 
-import java.text.SimpleDateFormat;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintImpl;
+
+import java.text.SimpleDateFormat;
 
 /**
  * Creates and returns the ObjectMapper for IDS (de)serialization.
