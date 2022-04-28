@@ -42,13 +42,13 @@ import static org.mockito.Mockito.when;
 abstract class AbstractMultipartDispatcherIntegrationTest {
     // TODO needs to be replaced by an objectmapper capable to understand IDS JSON-LD
     //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
-    protected static ObjectMapper OBJECT_MAPPER;
+    protected static ObjectMapper objectMapper;
     private static final AtomicReference<Integer> PORT = new AtomicReference<>();
     private static final AtomicReference<Integer> IDS_PORT = new AtomicReference<>();
     private static final List<Asset> ASSETS = new LinkedList<>();
 
     static {
-        OBJECT_MAPPER = new ObjectMapperFactory().getObjectMapper();
+        objectMapper = new ObjectMapperFactory().getObjectMapper();
     }
 
     protected IdentityService identityService;

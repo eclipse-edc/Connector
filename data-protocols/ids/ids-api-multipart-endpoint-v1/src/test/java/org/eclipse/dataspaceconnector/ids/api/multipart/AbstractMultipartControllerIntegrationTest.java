@@ -49,7 +49,6 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -70,13 +69,13 @@ abstract class AbstractMultipartControllerIntegrationTest {
     public static final String PAYLOAD = "payload";
     // TODO needs to be replaced by an objectmapper capable to understand IDS JSON-LD
     //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
-    private static ObjectMapper OBJECT_MAPPER;
+    private static ObjectMapper objectMapper;
     private static final AtomicReference<Integer> PORT = new AtomicReference<>();
     private static final AtomicReference<Integer> IDS_PORT = new AtomicReference<>();
     private static final List<Asset> ASSETS = new LinkedList<>();
     
     static {
-        OBJECT_MAPPER = new ObjectMapperFactory().getObjectMapper();
+        objectMapper = new ObjectMapperFactory().getObjectMapper();
     }
 
     @AfterEach
@@ -126,11 +125,11 @@ abstract class AbstractMultipartControllerIntegrationTest {
     }
 
     protected String toJson(Message message) throws Exception {
-        return OBJECT_MAPPER.writeValueAsString(message);
+        return objectMapper.writeValueAsString(message);
     }
 
     protected String toJson(Contract contract) throws Exception {
-        return OBJECT_MAPPER.writeValueAsString(contract);
+        return objectMapper.writeValueAsString(contract);
     }
 
     protected DescriptionRequestMessage getDescriptionRequestMessage() {
@@ -242,7 +241,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 }
 
                 if (multipartName.equalsIgnoreCase(HEADER)) {
-                    header = OBJECT_MAPPER.readValue(part.body().inputStream(), Message.class);
+                    header = objectMapper.readValue(part.body().inputStream(), Message.class);
                 } else if (multipartName.equalsIgnoreCase(PAYLOAD)) {
                     payload = part.body().readByteArray();
                 }

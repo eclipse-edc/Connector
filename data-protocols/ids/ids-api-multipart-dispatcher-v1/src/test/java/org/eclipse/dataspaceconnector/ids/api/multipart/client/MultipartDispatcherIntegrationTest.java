@@ -88,12 +88,12 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         var idsApiPath = "/api";
 
         multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
-        multipartDispatcher.register(new MultipartDescriptionRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
-        multipartDispatcher.register(new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, vault, identityService, transformerRegistry, idsWebhookAddress, idsApiPath));
-        multipartDispatcher.register(new MultipartContractOfferSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry, idsWebhookAddress, idsApiPath));
-        multipartDispatcher.register(new MultipartContractAgreementSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry, idsWebhookAddress, idsApiPath));
-        multipartDispatcher.register(new MultipartContractRejectionSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
-        multipartDispatcher.register(new MultipartCatalogDescriptionRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
+        multipartDispatcher.register(new MultipartDescriptionRequestSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry));
+        multipartDispatcher.register(new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, objectMapper, monitor, vault, identityService, transformerRegistry, idsWebhookAddress, idsApiPath));
+        multipartDispatcher.register(new MultipartContractOfferSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress, idsApiPath));
+        multipartDispatcher.register(new MultipartContractAgreementSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress, idsApiPath));
+        multipartDispatcher.register(new MultipartContractRejectionSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry));
+        multipartDispatcher.register(new MultipartCatalogDescriptionRequestSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry));
     }
 
     @Test
