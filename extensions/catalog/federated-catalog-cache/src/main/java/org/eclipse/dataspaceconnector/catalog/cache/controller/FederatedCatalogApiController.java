@@ -31,20 +31,19 @@ import java.util.Collection;
 
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
-@Path("/")
-public class CatalogController {
+@Path("/federatedcatalog")
+public class FederatedCatalogApiController {
 
     private final Monitor monitor;
     private final QueryEngine queryEngine;
 
-    public CatalogController(Monitor monitor, QueryEngine queryEngine) {
+    public FederatedCatalogApiController(Monitor monitor, QueryEngine queryEngine) {
         this.monitor = monitor;
         this.queryEngine = queryEngine;
     }
 
     @POST
-    @Path("catalog")
-    public Collection<ContractOffer> getCatalog(FederatedCatalogCacheQuery federatedCatalogCacheQuery) {
+    public Collection<ContractOffer> getCachedCatalog(FederatedCatalogCacheQuery federatedCatalogCacheQuery) {
         monitor.info("Received a catalog request");
         var queryResponse = queryEngine.getCatalog(federatedCatalogCacheQuery);
         // query not possible

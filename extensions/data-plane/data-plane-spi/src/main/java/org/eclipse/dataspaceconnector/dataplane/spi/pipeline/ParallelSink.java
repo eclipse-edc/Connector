@@ -58,7 +58,7 @@ public abstract class ParallelSink implements DataSink {
                             .filter(AbstractResult::failed)
                             .findFirst()
                             .map(r -> StatusResult.<Void>failure(ERROR_RETRY, String.join(",", r.getFailureMessages())))
-                            .orElseGet(StatusResult::success))
+                            .orElseGet(this::complete))
                     .exceptionally(throwable -> StatusResult.failure(ERROR_RETRY, "Unhandled exception raised when transferring data: " + throwable.getMessage()));
         } catch (Exception e) {
             monitor.severe("Error processing data transfer request: " + requestId, e);
@@ -73,6 +73,17 @@ public abstract class ParallelSink implements DataSink {
     }
 
     protected abstract StatusResult<Void> transferParts(List<DataSource.Part> parts);
+
+    /**
+     * Called after all parallel parts are transferred, only if all parts were successfully transferred.
+     * <p>
+     * Implementations may override this method to perform completion logic, such as writing a completion marker.
+     *
+     * @return status result to be returned to caller.
+     */
+    protected StatusResult<Void> complete() {
+        return StatusResult.success();
+    }
 
     protected abstract static class Builder<B extends Builder<B, T>, T extends ParallelSink> {
         protected T sink;

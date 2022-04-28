@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
@@ -21,10 +22,11 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
 import org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
@@ -32,8 +34,6 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSin
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSinkFactory;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
-import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
@@ -83,52 +83,53 @@ public class DataPlanePublicApiController {
      * Sends a {@link GET} request to the data source and returns data.
      */
     @GET
-    public Response get(@Context ContainerRequestContext requestContext) {
-        return handle(requestContext);
+    public void get(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
+        handle(requestContext, response);
     }
 
     /**
      * Sends a {@link DELETE} request to the data source.
      */
     @DELETE
-    public Response delete(@Context ContainerRequestContext requestContext) {
-        return handle(requestContext);
+    public void delete(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
+        handle(requestContext, response);
     }
 
     /**
      * Sends a {@link PATCH} request to the data source.
      */
     @PATCH
-    public Response patch(@Context ContainerRequestContext requestContext) {
-        return handle(requestContext);
+    public void patch(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
+        handle(requestContext, response);
     }
 
     /**
      * Sends a {@link PUT} request to the data source.
      */
     @PUT
-    public Response put(@Context ContainerRequestContext requestContext) {
-        return handle(requestContext);
+    public void put(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
+        handle(requestContext, response);
     }
 
     /**
      * Sends a {@link POST} request to the data source.
      */
     @POST
-    public Response post(@Context ContainerRequestContext requestContext) {
-        return handle(requestContext);
+    public void post(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
+        handle(requestContext, response);
     }
 
-    private Response handle(ContainerRequestContext requestContext) {
+    private void handle(ContainerRequestContext requestContext, AsyncResponse response) {
         var bearerToken = requestContextApi.authHeader(requestContext);
         if (bearerToken == null) {
-            return notAuthorizedErrors(List.of("Missing bearer token"));
+            response.resume(notAuthorizedErrors(List.of("Missing bearer token")));
+            return;
         }
 
-        // validate and decode input token
         var tokenValidationResult = tokenValidationService.validate(bearerToken);
         if (tokenValidationResult.failed()) {
-            return notAuthorizedErrors(tokenValidationResult.getFailureMessages());
+            response.resume(notAuthorizedErrors(tokenValidationResult.getFailureMessages()));
+            return;
         }
 
         var properties = requestContextApi.properties(requestContext);
@@ -136,24 +137,29 @@ public class DataPlanePublicApiController {
 
         var validationResult = dataPlaneManager.validate(dataFlowRequest);
         if (validationResult.failed()) {
-            return validationResult.getFailureMessages().isEmpty() ?
-                    validationError(String.format("Failed to validate request with id: %s", dataFlowRequest.getId())) :
-                    validationErrors(validationResult.getFailureMessages());
+            var res = validationResult.getFailureMessages().isEmpty()
+                    ? validationError(String.format("Failed to validate request with id: %s", dataFlowRequest.getId()))
+                    : validationErrors(validationResult.getFailureMessages());
+            response.resume(res);
+            return;
         }
 
-        // perform the data transfer
         var stream = new ByteArrayOutputStream();
         var sink = new OutputStreamDataSink(stream, executorService, monitor);
-        var transferResult = dataPlaneManager.transfer(sink, dataFlowRequest)
-                .exceptionally(throwable -> StatusResult.failure(ResponseStatus.FATAL_ERROR, "Unhandled exception: " + throwable.getMessage()))
-                .join();
-        if (transferResult.failed()) {
-            return internalErrors(transferResult.getFailureMessages());
-        }
 
-        return success(stream.toString());
+        dataPlaneManager.transfer(sink, dataFlowRequest)
+                .whenComplete((result, throwable) -> {
+                    if (throwable == null) {
+                        if (result.succeeded()) {
+                            response.resume(success(stream.toString()));
+                        } else {
+                            response.resume(internalErrors(result.getFailureMessages()));
+                        }
+                    } else {
+                        response.resume(internalErrors(List.of("Unhandled exception: " + throwable.getLocalizedMessage())));
+                    }
+                });
     }
-
 
     /**
      * Create a {@link DataFlowRequest} based on the decoded claim token and the request content.
