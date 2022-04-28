@@ -26,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.NullVaultExtension;
@@ -96,7 +97,8 @@ public class EndToEndTest {
     void processProviderRequest(TransferProcessManager processManager,
                                 DataFlowManager dataFlowManager,
                                 ContractNegotiationStore negotiationStore,
-                                AssetLoader loader) throws InterruptedException {
+                                AssetLoader loader,
+                                PolicyStore policyStore) throws InterruptedException {
         var latch = new CountDownLatch(1);
 
         var controllerMock = mock(DataFlowController.class);
@@ -115,7 +117,7 @@ public class EndToEndTest {
 
         loader.accept(asset, DataAddress.Builder.newInstance().type("test").build());
 
-        loadNegotiation(negotiationStore);
+        loadNegotiation(negotiationStore, policyStore);
 
         var request = DataRequest.Builder.newInstance()
                 .protocol(Protocols.IDS_MULTIPART)
@@ -140,11 +142,11 @@ public class EndToEndTest {
         extension.registerSystemExtension(ServiceExtension.class, new TestServiceExtension());
     }
 
-    private void loadNegotiation(ContractNegotiationStore negotiationStore) {
+    private void loadNegotiation(ContractNegotiationStore negotiationStore, PolicyStore policyStore) {
         var contractAgreement = ContractAgreement.Builder.newInstance()
                 .assetId(ASSET_ID)
                 .id(CONTRACT_ID)
-                .policy(Policy.Builder.newInstance().id(POLICY_ID).build())
+                .policyId(POLICY_ID)
                 .consumerAgentId("consumer")
                 .providerAgentId("provider")
                 .build();
@@ -157,6 +159,8 @@ public class EndToEndTest {
                 .contractAgreement(contractAgreement)
                 .build();
         negotiationStore.save(contractNegotiation);
+
+        policyStore.save(Policy.Builder.newInstance().id(POLICY_ID).build());
     }
 
     @Provides(IdentityService.class)
