@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.azure.dataplane.azuredatafactory;
 
-import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.schema.AzureBlobStoreSchema;
+import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
@@ -23,10 +23,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.validator.AzureStorageValidator.validateAccountName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.validator.AzureStorageValidator.validateBlobName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.validator.AzureStorageValidator.validateContainerName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.validator.AzureStorageValidator.validateSharedKey;
+import static org.eclipse.dataspaceconnector.azure.blob.core.validator.AzureStorageValidator.validateAccountName;
+import static org.eclipse.dataspaceconnector.azure.blob.core.validator.AzureStorageValidator.validateBlobName;
+import static org.eclipse.dataspaceconnector.azure.blob.core.validator.AzureStorageValidator.validateContainerName;
+import static org.eclipse.dataspaceconnector.azure.blob.core.validator.AzureStorageValidator.validateSharedKey;
 
 /**
  * Validator for {@link AzureDataFactoryTransferService}.
