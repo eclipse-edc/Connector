@@ -24,7 +24,6 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -153,7 +152,7 @@ class ArtifactRequestHandlerTest {
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
                 .assetId(assetId)
-                .policy(Policy.Builder.newInstance().build())
+                .policyId("policyId")
                 .build();
     }
 }

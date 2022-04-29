@@ -874,10 +874,28 @@ paths:
           type: string
       responses:
         default:
+          description: Gets contract offers (=catalog) of a single connector
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Catalog'
+  /federatedcatalog:
+    post:
+      operationId: getCachedCatalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FederatedCatalogCacheQuery'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContractOffer'
   /contractdefinitions:
     get:
       tags:
@@ -1231,6 +1249,13 @@ components:
           type: object
           additionalProperties:
             type: string
+    DataAddressInformationDto:
+      type: object
+      properties:
+        properties:
+          type: object
+          additionalProperties:
+            type: string
     DataPlaneInstance:
       type: object
       properties:
@@ -1374,10 +1399,6 @@ components:
           items:
             $ref: '#/components/schemas/Duty'
     Policy:
-      required:
-      - obligations
-      - permissions
-      - prohibitions
       type: object
       properties:
         uid:
@@ -1476,6 +1497,8 @@ components:
           type: string
         dataRequest:
           $ref: '#/components/schemas/DataRequestDto'
+        dataDestination:
+          $ref: '#/components/schemas/DataAddressInformationDto'
     TransferRequestDto:
       required:
       - assetId
@@ -1483,6 +1506,7 @@ components:
       - connectorId
       - contractId
       - dataDestination
+      - id
       - protocol
       - transferType
       type: object

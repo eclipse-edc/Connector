@@ -126,6 +126,13 @@ paths:
                 $ref: '#/components/schemas/TransferState'
 components:
   schemas:
+    DataAddressInformationDto:
+      type: object
+      properties:
+        properties:
+          type: object
+          additionalProperties:
+            type: string
     DataRequestDto:
       type: object
       properties:
@@ -148,6 +155,8 @@ components:
           type: string
         dataRequest:
           $ref: '#/components/schemas/DataRequestDto'
+        dataDestination:
+          $ref: '#/components/schemas/DataAddressInformationDto'
     TransferState:
       type: object
       properties:
@@ -172,6 +181,7 @@ components:
       - connectorId
       - contractId
       - dataDestination
+      - id
       - protocol
       - transferType
       type: object

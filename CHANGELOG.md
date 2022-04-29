@@ -24,13 +24,16 @@ in the detailed section referring to by linking pull requests or issues.
 * Implement Catalog service for Data Management API (#1195)
 * Add strict body validation for REST endpoints (#1128)
 * Dependency injection using factory/provider methods (#1056)
+* Provisioned resource information in Data Management API (#1221)
 
 #### Changed
 
 * Restructure sql extension folder tree (#1154)
 * Extract single `PolicyArchive` implementation (#1158)
 * Replace `accessPolicy` and `contractPolicy` with `accessPolicyId` and `contractPolicyId` on `ContractDefinition` (#1144)
+* Replace `policy` with `policyId` on `ContractAgreement` (#1220)
 * All DMgmt Api methods now produce and consume `APPLICATION_JSON` (#1175)
+* Make data-plane public api controller asynchronous (#1228)
 
 #### Removed
 
@@ -44,6 +47,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Fixed DMgmtApi content types (#1126)
 * Fix HTTPS termination in Jetty (#1133)
 * Break lease after TransferProcessManager status check (#1214)
+* Fix path conflicts between `CatalogApiController` and `FederatedCatalogApiController` (#1225)
 
 ## [milestone-3] - 2022-04-08
 

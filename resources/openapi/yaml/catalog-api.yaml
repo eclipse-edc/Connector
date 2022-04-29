@@ -12,6 +12,7 @@ paths:
           type: string
       responses:
         default:
+          description: Gets contract offers (=catalog) of a single connector
           content:
             application/json:
               schema:

@@ -14,17 +14,22 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.transform;
 
+import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.DataAddressInformationDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.DataRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferProcessDto;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.UNSAVED;
 import static org.mockito.Mockito.when;
 
 class TransferProcessToTransferProcessDtoTransformerTest {
@@ -53,6 +58,28 @@ class TransferProcessToTransferProcessDtoTransformerTest {
         data.entity.state(invalidStateCode());
         data.dto.state(null);
         problems.add("Invalid value for TransferProcess.state");
+
+        assertThatEntityTransformsToDto();
+    }
+
+    @Test
+    void transform_whenMinimalData() {
+        data.dto.state(UNSAVED.name());
+
+        data.dataDestination = DataAddress.Builder.newInstance().type(data.dataDestinationType);
+        data.dataRequest = DataRequest.Builder.newInstance()
+                .dataDestination(data.dataDestination.build())
+                .build();
+        data.entity = TransferProcess.Builder.newInstance()
+                .id(data.id)
+                .type(data.type)
+                .dataRequest(data.dataRequest);
+        data.dto
+                .dataDestination(
+                        DataAddressInformationDto.Builder.newInstance()
+                                .properties(Map.of("type", data.dataDestinationType))
+                                .build())
+                .errorDetail(null);
 
         assertThatEntityTransformsToDto();
     }

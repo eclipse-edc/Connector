@@ -21,6 +21,7 @@ import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.common.statemachine.StateMachine;
 import org.eclipse.dataspaceconnector.common.statemachine.StateProcessorImpl;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -370,6 +371,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         var retrievedAgreement = negotiation.getContractAgreement();
 
         ContractAgreement agreement;
+        Policy policy;
         if (retrievedAgreement == null) {
             var lastOffer = negotiation.getLastContractOffer();
 
@@ -380,6 +382,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
             }
             var definitionId = contractIdTokens[DEFINITION_PART];
 
+            policy = lastOffer.getPolicy();
             //TODO move to own service
             agreement = ContractAgreement.Builder.newInstance()
                     .id(ContractId.createContractId(definitionId))
@@ -388,11 +391,12 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                     .contractSigningDate(Instant.now().getEpochSecond())
                     .providerAgentId(String.valueOf(lastOffer.getProvider()))
                     .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
-                    .policy(lastOffer.getPolicy())
+                    .policyId(policy.getUid())
                     .assetId(lastOffer.getAsset().getId())
                     .build();
         } else {
             agreement = retrievedAgreement;
+            policy = policyStore.findById(agreement.getPolicyId());
         }
 
         var request = ContractAgreementRequest.Builder.newInstance()
@@ -401,6 +405,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .connectorAddress(negotiation.getCounterPartyAddress())
                 .contractAgreement(agreement)
                 .correlationId(negotiation.getCorrelationId())
+                .policy(policy)
                 .build();
 
         //TODO protocol-independent response type?

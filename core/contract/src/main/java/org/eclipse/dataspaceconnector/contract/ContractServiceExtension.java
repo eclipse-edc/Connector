@@ -146,7 +146,7 @@ public class ContractServiceExtension implements ServiceExtension {
         var observable = new ContractNegotiationObservableImpl();
         context.registerService(ContractNegotiationObservable.class, observable);
 
-        context.registerService(PolicyArchive.class, new PolicyArchiveImpl(store));
+        context.registerService(PolicyArchive.class, new PolicyArchiveImpl(store, policyStore));
 
         consumerNegotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
@@ -159,6 +159,7 @@ public class ContractServiceExtension implements ServiceExtension {
                 .telemetry(telemetry)
                 .executorInstrumentation(context.getService(ExecutorInstrumentation.class))
                 .store(store)
+                .policyStore(policyStore)
                 .batchSize(context.getSetting(NEGOTIATION_CONSUMER_STATE_MACHINE_BATCH_SIZE, 5))
                 .build();
 
@@ -173,6 +174,7 @@ public class ContractServiceExtension implements ServiceExtension {
                 .telemetry(telemetry)
                 .executorInstrumentation(context.getService(ExecutorInstrumentation.class))
                 .store(store)
+                .policyStore(policyStore)
                 .batchSize(context.getSetting(NEGOTIATION_PROVIDER_STATE_MACHINE_BATCH_SIZE, 5))
                 .build();
 

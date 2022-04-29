@@ -97,7 +97,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
                         .providerAgentId("provider")
                         .consumerAgentId("consumer")
                         .assetId(UUID.randomUUID().toString())
-                        .policy(Policy.Builder.newInstance().build())
+                        .policyId("policyId")
                         .contractSigningDate(Instant.now().getEpochSecond())
                         .contractStartDate(Instant.now().getEpochSecond())
                         .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
@@ -350,7 +350,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         }
 
         @Override
-        public StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId, ContractAgreement contract, String hash) {
+        public StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, Policy policy) {
             return StatusResult.success(fakeContractNegotiation());
         }
 

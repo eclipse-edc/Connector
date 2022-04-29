@@ -31,8 +31,7 @@ CREATE TABLE IF NOT EXISTS edc_contract_agreement
     start_date        BIGINT,
     end_date          INTEGER,
     asset_id          VARCHAR NOT NULL,
-    policy_id         VARCHAR,
-    serialized_policy VARCHAR
+    policy_id         VARCHAR
 );
 
 

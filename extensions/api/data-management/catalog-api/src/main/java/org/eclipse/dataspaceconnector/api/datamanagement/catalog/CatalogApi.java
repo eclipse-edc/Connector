@@ -28,7 +28,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 public interface CatalogApi {
 
     @Operation(responses = {
-            @ApiResponse(content = @Content(mediaType = "application/json", schema = @Schema(implementation = Catalog.class)))
+            @ApiResponse(content = @Content(mediaType = "application/json", schema = @Schema(implementation = Catalog.class)), description = "Gets contract offers (=catalog) of a single connector")
     })
     void getCatalog(String provider, AsyncResponse response);
 
