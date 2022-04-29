@@ -18,6 +18,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart;
 
 import kotlin.NotImplementedError;
 import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
+import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -84,7 +85,8 @@ import static org.mockito.Mockito.mock;
         ProviderContractNegotiationManager.class,
         ContractOfferService.class,
         ContractValidationService.class,
-        PolicyArchive.class
+        PolicyArchive.class,
+        ObjectMapperFactory.class
 })
 class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements ServiceExtension {
     private final List<Asset> assets;
@@ -129,6 +131,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         context.registerService(ProviderContractNegotiationManager.class, new FakeProviderContractNegotiationManager());
         context.registerService(ConsumerContractNegotiationManager.class, new FakeConsumerContractNegotiationManager());
         context.registerService(PolicyArchive.class, mock(PolicyArchive.class));
+        context.registerService(ObjectMapperFactory.class, new ObjectMapperFactory());
     }
 
     private static class FakeIdentityService implements IdentityService {
