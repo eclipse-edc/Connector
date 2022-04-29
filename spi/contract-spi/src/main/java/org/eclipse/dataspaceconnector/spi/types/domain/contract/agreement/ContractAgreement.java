@@ -37,7 +37,7 @@ public class ContractAgreement {
     private final long contractStartDate;
     private final long contractEndDate;
     private final String assetId;
-    private final Policy policy;
+    private final String policyId;
 
     private ContractAgreement(@NotNull String id,
                               @NotNull String providerAgentId,
@@ -45,7 +45,7 @@ public class ContractAgreement {
                               long contractSigningDate,
                               long contractStartDate,
                               long contractEndDate,
-                              @NotNull Policy policy,
+                              @NotNull String policyId,
                               @NotNull String assetId) {
         this.id = Objects.requireNonNull(id);
         this.providerAgentId = Objects.requireNonNull(providerAgentId);
@@ -54,7 +54,7 @@ public class ContractAgreement {
         this.contractStartDate = contractStartDate;
         this.contractEndDate = contractEndDate;
         this.assetId = Objects.requireNonNull(assetId);
-        this.policy = Objects.requireNonNull(policy);
+        this.policyId = Objects.requireNonNull(policyId);
     }
 
     /**
@@ -137,18 +137,17 @@ public class ContractAgreement {
     }
 
     /**
-     * A policy describing how the {@link Asset} of this contract may be used by the consumer.
+     * The id of the policy that describes how the {@link Asset} of this contract may be used by the consumer.
      *
      * @return policy
      */
-    @NotNull
-    public Policy getPolicy() {
-        return policy;
+    public String getPolicyId() {
+        return policyId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, providerAgentId, consumerAgentId, contractSigningDate, contractStartDate, contractEndDate, assetId, policy);
+        return Objects.hash(id, providerAgentId, consumerAgentId, contractSigningDate, contractStartDate, contractEndDate, assetId, policyId);
     }
 
     @Override
@@ -162,7 +161,7 @@ public class ContractAgreement {
         ContractAgreement that = (ContractAgreement) o;
         return contractSigningDate == that.contractSigningDate && contractStartDate == that.contractStartDate && contractEndDate == that.contractEndDate &&
                 Objects.equals(id, that.id) && Objects.equals(providerAgentId, that.providerAgentId) && Objects.equals(consumerAgentId, that.consumerAgentId) &&
-                Objects.equals(assetId, that.assetId) && Objects.equals(policy, that.policy);
+                Objects.equals(assetId, that.assetId) && Objects.equals(policyId, that.policyId);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -176,6 +175,7 @@ public class ContractAgreement {
         private long contractEndDate;
         private String assetId;
         private Policy policy;
+        private String policyId;
 
         private Builder() {
         }
@@ -220,14 +220,13 @@ public class ContractAgreement {
             return this;
         }
 
-        public Builder policy(Policy policy) {
-            this.policy = policy;
+        public Builder policyId(String policyId) {
+            this.policyId = policyId;
             return this;
         }
 
         public ContractAgreement build() {
-            return new ContractAgreement(id, providerAgentId, consumerAgentId, contractSigningDate, contractStartDate, contractEndDate, policy, assetId);
+            return new ContractAgreement(id, providerAgentId, consumerAgentId, contractSigningDate, contractStartDate, contractEndDate, policyId, assetId);
         }
-
     }
 }

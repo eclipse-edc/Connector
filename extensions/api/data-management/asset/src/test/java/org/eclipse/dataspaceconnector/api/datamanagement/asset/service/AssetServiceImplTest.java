@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.service;
 
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -121,7 +120,7 @@ class AssetServiceImplTest {
                         .providerAgentId(UUID.randomUUID().toString())
                         .consumerAgentId(UUID.randomUUID().toString())
                         .assetId("assetId")
-                        .policy(Policy.Builder.newInstance().build())
+                        .policyId("policyId")
                         .build())
                 .build();
         when(contractNegotiationStore.queryNegotiations(any())).thenReturn(Stream.of(contractNegotiation));

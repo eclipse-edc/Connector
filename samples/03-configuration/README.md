@@ -36,7 +36,7 @@ INFO 2021-09-07T08:26:08.282159 Configuration file does not exist: dataspaceconn
 
 By default, the `FsConfigurationExtension` expects there to be a properties file
 named `dataspaceconnector-configuration.properties` located in the current directory. The name (and path) of the config
-file is configurable using the `dataspaceconnector.fs.config` property, so we can customize this to our liking.
+file is configurable using the `edc.fs.config` property, so we can customize this to our liking.
 
 First, create a properties file in a location of your convenience,
 e.g. `/etc/eclipse/dataspaceconnector/config.properties`.
@@ -63,14 +63,15 @@ java -Dedc.fs.config=/etc/eclipse/dataspaceconnector/config.properties -jar samp
 Observing the log output we now see that the connector's REST API is exposed on port `9191` instead:
 
 ```bash
-INFO 2021-09-07T08:43:04.476254 Registered Web API context at: /api/*
-INFO 2021-09-07T08:43:04.503543 HTTP listening on 9191                  <--this is the relevant line
-INFO 2021-09-07T08:43:04.750674 Started Web extension
+INFO 2022-04-27T14:09:10.547662345 HTTP context 'default' listening on port 9191      <-- this is the relevant line
+DEBUG 2022-04-27T14:09:10.589738491 Port mappings: {alias='default', port=9191, path='/api'}   
+INFO 2022-04-27T14:09:10.589846121 Started Jetty Service
+
 ```
 
 ## Add your own configuration value
 
-Lets say we want to have a configurable log prefix in our health REST endpoint. The way to do this involves two steps:
+Let's say we want to have a configurable log prefix in our health REST endpoint. The way to do this involves two steps:
 
 1. add the config value to the `config.properties` file
 2. access and read the config value from code
@@ -91,18 +92,16 @@ of course):
 
 ```java
 public class HealthEndpointExtension implements ServiceExtension {
-    private static final String LOG_PREFIX_SETTING = "edc.samples.03.logprefix"; // this constant is new
 
-    @Override
-    public Set<String> requires() {
-        return Set.of("edc:webservice");
-    }
+    @Inject
+    WebService webService;
+
+    private static final String LOG_PREFIX_SETTING = "edc.samples.03.logprefix"; // this constant is new
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         var logPrefix = context.getSetting(LOG_PREFIX_SETTING, "health"); //this line is new
-        var webService = context.getService(WebService.class);
-        webService.registerController(new HealthApiController(context.getMonitor(), logPrefix));
+        webService.registerResource(new HealthApiController(context.getMonitor(), logPrefix));
     }
 }
 ```
@@ -147,13 +146,12 @@ There are a few things worth mentioning here:
 ## Management API
 
 Part of most connectors will be the management api defined in the
-[`:extensions:api:data-management`](../../extensions/api/data-management) module. Therefor, we need to add the following
-two modules to the dependency list in our `build.gradle.kts`:
+[`:extensions:api:data-management`](../../extensions/api/data-management) module. Therefore, we need to add the following
+module to the dependency list in our `build.gradle.kts`:
 
 ```kotlin
 dependencies {
     // ...
-    implementation(project(":extensions:api:auth-tokenbased"))
     implementation(project(":extensions:api:data-management"))
     // ...
 }

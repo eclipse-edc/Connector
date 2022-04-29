@@ -9,36 +9,50 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
 package org.eclipse.dataspaceconnector.dataplane.api.controller;
 
 import com.github.javafaker.Faker;
-import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
 import org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSinkFactory;
-import org.eclipse.dataspaceconnector.dataplane.spi.response.TransferErrorResponse;
+import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
 
+import static io.restassured.RestAssured.given;
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
+import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -46,110 +60,113 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(EdcExtension.class)
 class DataPlanePublicApiControllerTest {
 
     private static final Faker FAKER = new Faker();
 
-    private static final TypeManager TYPE_MANAGER = new TypeManager();
-
-    private DataPlaneManager dataPlaneManagerMock;
-    private TokenValidationService tokenValidationServiceMock;
-    private ContainerRequestContextApi requestContextWrapperMock;
-    private DataPlanePublicApiController controller;
+    private final DataPlaneManager dataPlaneManager = mock(DataPlaneManager.class);
+    private final TokenValidationService tokenValidationService = mock(TokenValidationService.class);
+    private final int port = getFreePort();
+    private final int validationPort = getFreePort();
 
     @BeforeEach
-    void setUp() {
-        dataPlaneManagerMock = mock(DataPlaneManager.class);
-        tokenValidationServiceMock = mock(TokenValidationService.class);
-        requestContextWrapperMock = mock(ContainerRequestContextApi.class);
-        controller = new DataPlanePublicApiController(dataPlaneManagerMock, tokenValidationServiceMock, mock(Monitor.class), requestContextWrapperMock, TYPE_MANAGER, Executors.newSingleThreadExecutor());
+    void setUp(EdcExtension extension) {
+        extension.registerSystemExtension(ServiceExtension.class, new TestServiceExtension());
+        extension.setConfiguration(Map.of(
+                "web.http.public.port", String.valueOf(port),
+                "web.http.public.path", "/public",
+                "web.http.control.port", String.valueOf(getFreePort()),
+                "web.http.validation.port", String.valueOf(validationPort),
+                "web.http.validation.path", "/validation",
+                "edc.controlplane.validation-endpoint", "http://localhost:" + validationPort + "/validation/token"
+        ));
     }
 
-    /**
-     * Check that response with code 401 (not authorized) is returned in case no token is provided.
-     */
     @Test
     void postFailure_missingTokenInRequest() {
-        when(requestContextWrapperMock.authHeader(any())).thenReturn(null);
-
-        var response = controller.post(null);
-
-        assertErrorResponse(response, 401, "Missing bearer token");
+        given()
+                .port(port)
+                .when()
+                .post("/public/any")
+                .then()
+                .statusCode(401)
+                .body("errors[0]", is("Missing bearer token"));
     }
 
-    /**
-     * Check that response with code 401 (not authorized) is returned in case token validation fails.
-     */
     @Test
     void postFailure_tokenValidationFailure() {
         var token = FAKER.internet().uuid();
         var errorMsg = FAKER.internet().uuid();
-        when(requestContextWrapperMock.authHeader(any())).thenReturn(token);
-        when(tokenValidationServiceMock.validate(token)).thenReturn(Result.failure(errorMsg));
+        when(tokenValidationService.validate(token)).thenReturn(Result.failure(errorMsg));
 
-        var response = controller.post(null);
-
-        assertErrorResponse(response, 401, errorMsg);
+        given()
+                .port(port)
+                .header(AUTHORIZATION, token)
+                .when()
+                .post("/public/any")
+                .then()
+                .statusCode(401)
+                .body("errors.size()", is(1));
+        verify(tokenValidationService).validate(token);
     }
 
-    /**
-     * Check that response with code 400 (bad request) is returned in case of request validation error.
-     */
     @Test
     void postFailure_requestValidationFailure() {
         var token = FAKER.internet().uuid();
         var errorMsg = FAKER.internet().uuid();
-        var claims = createClaimsToken(testDestAddress());
-        when(requestContextWrapperMock.authHeader(any())).thenReturn(token);
-        when(tokenValidationServiceMock.validate(token)).thenReturn(Result.success(claims));
-        when(requestContextWrapperMock.properties(any())).thenReturn(Map.of());
-        when(dataPlaneManagerMock.validate(any())).thenReturn(Result.failure(errorMsg));
+        var claimsToken = createClaimsToken(testDestAddress());
+        when(tokenValidationService.validate(token)).thenReturn(Result.success(claimsToken));
+        when(dataPlaneManager.validate(any())).thenReturn(Result.failure(errorMsg));
 
-        var response = controller.post(null);
-
-        verify(dataPlaneManagerMock, times(1)).validate(any());
-
-        assertErrorResponse(response, 400, errorMsg);
+        given()
+                .port(port)
+                .header(AUTHORIZATION, token)
+                .when()
+                .post("/public/any")
+                .then()
+                .statusCode(400)
+                .body("errors.size()", is(1));
     }
 
-    /**
-     * Check that response with code 500 (internal server error) is returned in case of error during data transfer.
-     */
     @Test
     void postFailure_transferFailure() {
         var token = FAKER.internet().uuid();
         var errorMsg = FAKER.internet().uuid();
         var claims = createClaimsToken(testDestAddress());
-        when(requestContextWrapperMock.authHeader(any())).thenReturn(token);
-        when(tokenValidationServiceMock.validate(token)).thenReturn(Result.success(claims));
-        when(requestContextWrapperMock.properties(any())).thenReturn(Map.of());
-        when(dataPlaneManagerMock.validate(any())).thenReturn(Result.success(true));
-        when(dataPlaneManagerMock.transfer(any(DataSink.class), any()))
-                .thenReturn(CompletableFuture.completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg)));
+        when(tokenValidationService.validate(token)).thenReturn(Result.success(claims));
+        when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
+        when(dataPlaneManager.transfer(any(DataSink.class), any()))
+                .thenReturn(completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg)));
 
-        var response = controller.post(null);
-
-        assertErrorResponse(response, 500, errorMsg);
+        given()
+                .port(port)
+                .header(AUTHORIZATION, token)
+                .when()
+                .post("/public/any")
+                .then()
+                .statusCode(500)
+                .body("errors[0]", is(errorMsg));
     }
 
-    /**
-     * Check that response with code 500 (internal server error) is returned in case an unhandled exception is raised during data transfer.
-     */
     @Test
     void postFailure_transferErrorUnhandledException() {
         var token = FAKER.internet().uuid();
         var errorMsg = FAKER.internet().uuid();
         var claims = createClaimsToken(testDestAddress());
-        when(requestContextWrapperMock.authHeader(any())).thenReturn(token);
-        when(tokenValidationServiceMock.validate(token)).thenReturn(Result.success(claims));
-        when(requestContextWrapperMock.properties(any())).thenReturn(Map.of());
-        when(dataPlaneManagerMock.validate(any())).thenReturn(Result.success(true));
-        when(dataPlaneManagerMock.transfer(any(DataSink.class), any(DataFlowRequest.class)))
-                .thenReturn(CompletableFuture.failedFuture(new RuntimeException(errorMsg)));
+        when(tokenValidationService.validate(token)).thenReturn(Result.success(claims));
+        when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
+        when(dataPlaneManager.transfer(any(DataSink.class), any(DataFlowRequest.class)))
+                .thenReturn(failedFuture(new RuntimeException(errorMsg)));
 
-        var response = controller.post(null);
-
-        assertErrorResponse(response, 500, "Unhandled exception: " + errorMsg);
+        given()
+                .port(port)
+                .header(AUTHORIZATION, token)
+                .when()
+                .post("/public/any")
+                .then()
+                .statusCode(500)
+                .body("errors[0]", is("Unhandled exception: " + errorMsg));
     }
 
     @Test
@@ -158,54 +175,68 @@ class DataPlanePublicApiControllerTest {
         var address = testDestAddress();
         var claimsToken = createClaimsToken(address);
         var requestCaptor = ArgumentCaptor.forClass(DataFlowRequest.class);
-        var requestProperties = testRequestProperties();
 
-        when(requestContextWrapperMock.authHeader(any())).thenReturn(token);
-        when(tokenValidationServiceMock.validate(anyString())).thenReturn(Result.success(claimsToken));
-        when(requestContextWrapperMock.properties(any())).thenReturn(requestProperties);
-        when(dataPlaneManagerMock.validate(any())).thenReturn(Result.success(true));
-        when(dataPlaneManagerMock.transfer(any(DataSink.class), any()))
-                .thenReturn(CompletableFuture.completedFuture(StatusResult.success()));
+        when(tokenValidationService.validate(anyString())).thenReturn(Result.success(claimsToken));
+        when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
+        when(dataPlaneManager.transfer(any(DataSink.class), any()))
+                .thenReturn(completedFuture(StatusResult.success()));
 
-        var response = controller.post(null);
+        given()
+                .port(port)
+                .header(AUTHORIZATION, token)
+                .when()
+                .post("/public/any?foo=bar")
+                .then()
+                .statusCode(200);
 
-        verify(dataPlaneManagerMock, times(1)).validate(requestCaptor.capture());
-        verify(dataPlaneManagerMock, times(1)).transfer(ArgumentCaptor.forClass(DataSink.class).capture(), requestCaptor.capture());
-
-        assertThat(response.getStatus()).isEqualTo(200);
+        verify(dataPlaneManager, times(1)).validate(requestCaptor.capture());
+        verify(dataPlaneManager, times(1)).transfer(ArgumentCaptor.forClass(DataSink.class).capture(), requestCaptor.capture());
         var capturedRequests = requestCaptor.getAllValues();
-
         assertThat(capturedRequests)
                 .hasSize(2)
                 .allSatisfy(request -> {
                     assertThat(request.getDestinationDataAddress().getType()).isEqualTo(OutputStreamDataSinkFactory.TYPE);
                     assertThat(request.getSourceDataAddress().getType()).isEqualTo(address.getType());
-                    assertThat(request.getProperties()).containsExactlyInAnyOrderEntriesOf(requestProperties);
+                    assertThat(request.getProperties()).containsEntry("method", "POST").containsEntry("pathSegments", "any").containsEntry("queryParams", "foo=bar");
                 });
     }
 
-    private static ClaimToken createClaimsToken(DataAddress address) {
-        return ClaimToken.Builder.newInstance().claim(DataPlaneConstants.DATA_ADDRESS, TYPE_MANAGER.writeValueAsString(address)).build();
+    private ClaimToken createClaimsToken(DataAddress address) {
+        return ClaimToken.Builder.newInstance().claim(DataPlaneConstants.DATA_ADDRESS, new TypeManager().writeValueAsString(address)).build();
     }
 
-    private static DataAddress testDestAddress() {
+    private DataAddress testDestAddress() {
         return DataAddress.Builder.newInstance().type("test").build();
     }
 
-    private static Map<String, String> testRequestProperties() {
-        return Map.of("foo", "bar");
+    @Provides(DataPlaneManager.class)
+    private class TestServiceExtension implements ServiceExtension {
+
+        @Inject
+        WebService webService;
+
+        @Override
+        public void initialize(ServiceExtensionContext context) {
+            context.registerService(DataPlaneManager.class, dataPlaneManager);
+            webService.registerResource("validation", new TestValidationController());
+        }
     }
 
-    /**
-     * Assert an error has been returned and check the message.
-     */
-    private static void assertErrorResponse(Response response, int errorCode, String message) {
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(errorCode);
+    @Path("/")
+    public class TestValidationController {
 
-        var entity = response.getEntity();
-        assertThat(entity).isInstanceOf(TransferErrorResponse.class);
-        var errorResponse = (TransferErrorResponse) entity;
-        assertThat(errorResponse.getErrors()).containsExactly(message);
+        @GET
+        @Produces(MediaType.APPLICATION_JSON)
+        @Path("/token")
+        public ClaimToken validate(@HeaderParam("Authorization") String token) {
+            var result = tokenValidationService.validate(token);
+            if (result.succeeded()) {
+                return result.getContent();
+            } else {
+                throw new IllegalArgumentException("Token is not valid: " + String.join(", ", result.getFailureMessages()));
+            }
+
+        }
     }
+
 }

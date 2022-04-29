@@ -154,7 +154,7 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
 
         @Override
         public StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId,
-                                           ContractAgreement contract, String hash) {
+                                                           ContractAgreement agreement, Policy policy) {
             return null;
         }
 

@@ -266,27 +266,26 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
 
                 if (findContractAgreement(agrId) == null) {
                     // insert agreement
-                    var stmt2 = statements.getInsertAgreementTemplate();
-                    executeQuery(connection, stmt2, contractAgreement.getId(),
+                    var sql = statements.getInsertAgreementTemplate();
+                    executeQuery(connection, sql, contractAgreement.getId(),
                             contractAgreement.getProviderAgentId(),
                             contractAgreement.getConsumerAgentId(),
                             contractAgreement.getContractSigningDate(),
                             contractAgreement.getContractStartDate(),
                             contractAgreement.getContractEndDate(),
                             contractAgreement.getAssetId(),
-                            contractAgreement.getPolicy().getUid(),
-                            toJson(contractAgreement.getPolicy()));
+                            contractAgreement.getPolicyId()
+                    );
                 } else {
                     // update agreement
-                    var stmt2 = statements.getUpdateAgreementTemplate();
-                    executeQuery(connection, stmt2, contractAgreement.getProviderAgentId(),
+                    var query = statements.getUpdateAgreementTemplate();
+                    executeQuery(connection, query, contractAgreement.getProviderAgentId(),
                             contractAgreement.getConsumerAgentId(),
                             contractAgreement.getContractSigningDate(),
                             contractAgreement.getContractStartDate(),
                             contractAgreement.getContractEndDate(),
                             contractAgreement.getAssetId(),
-                            contractAgreement.getPolicy().getUid(),
-                            toJson(contractAgreement.getPolicy()),
+                            contractAgreement.getPolicyId(),
                             agrId);
                 }
 
@@ -312,8 +311,7 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                 .providerAgentId(resultSet.getString(statements.getProviderAgentColumn()))
                 .consumerAgentId(resultSet.getString(statements.getConsumerAgentColumn()))
                 .assetId(resultSet.getString(statements.getAssetIdColumn()))
-                .policy(fromJson(resultSet.getString(statements.getPolicyColumnSeralized()), new TypeReference<>() {
-                }))
+                .policyId(resultSet.getString(statements.getPolicyIdColumn()))
                 .contractStartDate(resultSet.getLong(statements.getStartDateColumn()))
                 .contractEndDate(resultSet.getLong(statements.getEndDateColumn()))
                 .contractSigningDate(resultSet.getLong(statements.getSigningDateColumn()))

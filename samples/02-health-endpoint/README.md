@@ -10,26 +10,23 @@ An _extension_ typically consists of two things:
    interface's fully qualified class-name and it **must** contain the fully-qualified name of the implementing class (
    =plugin class).
 
-Therefore we require an extension class, which we'll name `HealthEndpointExtension`:
+Therefore, we require an extension class, which we'll name `HealthEndpointExtension`:
 
 ```java
-@Requires({ WebService.class })
 public class HealthEndpointExtension implements ServiceExtension {
+
+    @Inject
+    WebService webService;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var webService = context.getService(WebService.class);
-        webService.registerController(new HealthApiController(context.getMonitor()));
+        webService.registerResource(new HealthApiController(context.getMonitor()));
     }
 }
 ```
 
-The `@Requires` annotation indicates that the extension needs a service that is registered by another extension, in 
+The `@Inject` annotation indicates that the extension needs a service that is registered by another extension, in 
 this case an implementation of `WebService.class`.
-
-The `ServiceExtensionContext` serves as registry for all resolvable services, somewhat comparable to the "module"
-concept in DI frameworks like Google Guice. From it, we obtain an instance of the `WebService` interface, where we can
-register our API controller class.
 
 For that, we can use Jakarta REST annotations to implement a simple REST API:
 
@@ -64,10 +61,10 @@ java -jar samples/02-health-endpoint/build/libs/connector-health.jar
 we can issue a GET request to `http://localhost:8181/api/health` and receive the aforementioned string as a result.
 
 It is worth noting that by default the webserver listens on port `8181`, which is defined
-in [`JettyService.java`](../../extensions/jetty/src/main/java/org/eclipse/dataspaceconnector/extension/jetty/JettyService.java)
+in [`JettyService.java`](../../extensions/http/jetty/src/main/java/org/eclipse/dataspaceconnector/extension/jetty/JettyService.java)
 and can be configured using the `web.http.port` property (more on that in the next chapter). You will need to configure
 this whenever you have two connectors running on the same machine.
 
 Also, the default path is `/api/*`, which is defined
-in [`JerseyRestService.java`](../../extensions/jetty/src/main/java/org/eclipse/dataspaceconnector/extension/jetty/JerseyRestService.java)
+in [`JerseyRestService.java`](../../extensions/http/jersey/src/main/java/org/eclipse/dataspaceconnector/extension/jersey/JerseyRestService.java)
 .

@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNeg
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
@@ -43,6 +44,7 @@ public abstract class AbstractContractNegotiationManager {
     protected ExecutorInstrumentation executorInstrumentation;
     protected int batchSize = 5;
     protected WaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
+    protected PolicyStore policyStore;
 
     public static class Builder<T extends AbstractContractNegotiationManager> {
 
@@ -109,6 +111,11 @@ public abstract class AbstractContractNegotiationManager {
             return this;
         }
 
+        public Builder<T> policyStore(PolicyStore policyStore) {
+            manager.policyStore = policyStore;
+            return this;
+        }
+
         public T build() {
             Objects.requireNonNull(manager.validationService, "contractValidationService");
             Objects.requireNonNull(manager.monitor, "monitor");
@@ -119,11 +126,11 @@ public abstract class AbstractContractNegotiationManager {
             Objects.requireNonNull(manager.telemetry, "telemetry");
             Objects.requireNonNull(manager.executorInstrumentation, "executorInstrumentation");
             Objects.requireNonNull(manager.negotiationStore, "store");
+            Objects.requireNonNull(manager.policyStore, "policyStore");
             manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
 
             return manager;
         }
-
     }
 
 }
