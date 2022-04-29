@@ -39,8 +39,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class DefaultServicesExtension implements ServiceExtension {
 
-    private static InMemoryAssetIndex assetIndex;
-    private static InMemoryContractDefinitionStore contractDefinitionStore;
+    private InMemoryAssetIndex assetIndex;
+    private InMemoryContractDefinitionStore contractDefinitionStore;
 
     public DefaultServicesExtension() {
     }
@@ -60,12 +60,6 @@ public class DefaultServicesExtension implements ServiceExtension {
         return getAssetIndex();
     }
 
-    private InMemoryAssetIndex getAssetIndex() {
-        if (assetIndex == null) {
-            assetIndex = new InMemoryAssetIndex();
-        }
-        return assetIndex;
-    }
 
     @Provider(isDefault = true)
     public ContractDefinitionStore defaultContractDefinitionStore() {
@@ -97,5 +91,12 @@ public class DefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public PolicyStore defaultPolicyStore() {
         return new InMemoryPolicyStore(new LockManager(new ReentrantReadWriteLock(true)));
+    }
+
+    private InMemoryAssetIndex getAssetIndex() {
+        if (assetIndex == null) {
+            assetIndex = new InMemoryAssetIndex();
+        }
+        return assetIndex;
     }
 }
