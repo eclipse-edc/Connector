@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
@@ -22,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.ParseException;
+import java.time.Instant;
 import java.util.Map;
 
 import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.CONTRACT_ID;
@@ -55,11 +57,9 @@ public class ContractValidationRule implements TokenValidationRule {
             return Result.failure("No contract agreement found for id: " + contractId);
         }
 
-        // check contract expiration date
-        //TODO: this must be uncommented when https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is solved
-        //if (Instant.now().isAfter(Instant.ofEpochSecond(contractAgreement.getContractEndDate()))) {
-        // return Result.failure("Contract has expired");
-        //}
+        if (Instant.now().isAfter(Instant.ofEpochSecond(contractAgreement.getContractEndDate()))) {
+            return Result.failure("Contract has expired");
+        }
 
         return Result.success(toVerify);
     }
