@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.system.tests.remote;
 
 import io.gatling.javaapi.core.Simulation;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.dataspaceconnector.system.tests.FileTransferRequestFactory;
 
 import java.util.Objects;
 
@@ -23,9 +24,9 @@ import static io.gatling.javaapi.core.CoreDsl.atOnceUsers;
 import static io.gatling.javaapi.core.CoreDsl.global;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.http;
-import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.CONSUMER_MANAGEMENT_PATH;
-import static org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils.DESCRIPTION;
-import static org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils.contractNegotiationAndFileTransfer;
+import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferLocalSimulation.CONSUMER_MANAGEMENT_PATH;
+import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils.DESCRIPTION;
+import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils.contractNegotiationAndTransfer;
 
 /**
  * Runs a single iteration of contract negotiation and file transfer, getting settings from environment variables.
@@ -36,9 +37,9 @@ public class FileTransferAsClientSimulation extends Simulation {
         setUp(scenario(DESCRIPTION)
                 .repeat(1)
                 .on(
-                        contractNegotiationAndFileTransfer(
+                        contractNegotiationAndTransfer(
                                 getFromEnv("PROVIDER_URL"),
-                                getFromEnv("DESTINATION_PATH"))
+                                new FileTransferRequestFactory(getFromEnv("DESTINATION_PATH")))
                 )
                 .injectOpen(atOnceUsers(1)))
                 .protocols(http
