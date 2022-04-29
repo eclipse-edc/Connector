@@ -40,11 +40,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class DefaultServicesExtension implements ServiceExtension {
 
     private static InMemoryAssetIndex assetIndex;
-    private final InMemoryContractDefinitionStore contractDefinitionStore;
+    private static InMemoryContractDefinitionStore contractDefinitionStore;
 
     public DefaultServicesExtension() {
-        assetIndex = new InMemoryAssetIndex();
-        contractDefinitionStore = new InMemoryContractDefinitionStore();
     }
 
     @Provider(isDefault = true)
@@ -62,7 +60,7 @@ public class DefaultServicesExtension implements ServiceExtension {
         return getAssetIndex();
     }
 
-    private static InMemoryAssetIndex getAssetIndex() {
+    private InMemoryAssetIndex getAssetIndex() {
         if (assetIndex == null) {
             assetIndex = new InMemoryAssetIndex();
         }
@@ -71,12 +69,19 @@ public class DefaultServicesExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public ContractDefinitionStore defaultContractDefinitionStore() {
+        return getContractDefinitionStore();
+    }
+
+    private ContractDefinitionStore getContractDefinitionStore() {
+        if (contractDefinitionStore == null) {
+            contractDefinitionStore = new InMemoryContractDefinitionStore();
+        }
         return contractDefinitionStore;
     }
 
     @Provider(isDefault = true)
     public ContractDefinitionLoader defaultContractDefinitionLoader() {
-        return contractDefinitionStore::save;
+        return getContractDefinitionStore()::save;
     }
 
     @Provider(isDefault = true)
