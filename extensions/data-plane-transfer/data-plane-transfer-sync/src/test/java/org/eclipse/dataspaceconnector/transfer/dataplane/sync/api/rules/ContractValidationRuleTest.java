@@ -24,9 +24,10 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
+import static java.time.temporal.ChronoUnit.HOURS;
+import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.CONTRACT_ID;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,7 +41,7 @@ class ContractValidationRuleTest {
 
     @Test
     void shouldSucceedIfContractIsStillValid() {
-        var contractAgreement = createContractAgreement("contractId", Instant.now().plus(1, ChronoUnit.SECONDS));
+        var contractAgreement = createContractAgreement("contractId", Instant.now().plus(1, HOURS));
         when(contractNegotiationStore.findContractAgreement("contractId")).thenReturn(contractAgreement);
         var claims = new JWTClaimsSet.Builder()
                 .claim(CONTRACT_ID, "contractId")
@@ -53,7 +54,7 @@ class ContractValidationRuleTest {
 
     @Test
     void shouldFailIfContractIsExpired() {
-        var contractAgreement = createContractAgreement("contractId", Instant.now().minus(1, ChronoUnit.SECONDS));
+        var contractAgreement = createContractAgreement("contractId", Instant.now().minus(1, SECONDS));
         when(contractNegotiationStore.findContractAgreement("contractId")).thenReturn(contractAgreement);
         var claims = new JWTClaimsSet.Builder()
                 .claim(CONTRACT_ID, "contractId")
