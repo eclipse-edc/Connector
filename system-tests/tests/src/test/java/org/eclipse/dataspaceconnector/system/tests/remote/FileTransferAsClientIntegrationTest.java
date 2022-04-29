@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.system.tests.remote;
 
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
-import org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils;
+import org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils;
 import org.junit.jupiter.api.Test;
 
 import static org.eclipse.dataspaceconnector.system.tests.utils.GatlingUtils.runGatling;
@@ -28,6 +28,6 @@ public class FileTransferAsClientIntegrationTest {
 
     @Test
     public void performFileTransfer() {
-        runGatling(FileTransferAsClientSimulation.class, FileTransferSimulationUtils.DESCRIPTION);
+        runGatling(FileTransferAsClientSimulation.class, TransferSimulationUtils.DESCRIPTION);
     }
 }
