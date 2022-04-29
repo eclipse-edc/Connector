@@ -27,6 +27,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Provisioned resource information in Data Management API (#1221)
 * Add custom Jackson (de)serializer for `XMLGregorianCalendar` (#1226)
 * Add contract validation rule (#1239)
+* Harmonize setting names in `data-plane-transfer` (#1164)
 
 #### Changed
 
