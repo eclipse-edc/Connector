@@ -25,6 +25,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Add strict body validation for REST endpoints (#1128)
 * Dependency injection using factory/provider methods (#1056)
 * Provisioned resource information in Data Management API (#1221)
+* Add custom Jackson (de)serializer for `XMLGregorianCalendar` (#1226)
 
 #### Changed
 

@@ -19,6 +19,7 @@ import de.fraunhofer.iais.eis.ContractAgreementBuilder;
 import de.fraunhofer.iais.eis.Duty;
 import de.fraunhofer.iais.eis.Permission;
 import de.fraunhofer.iais.eis.Prohibition;
+import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
@@ -33,7 +34,6 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
 
 public class ContractAgreementRequestToIdsContractAgreementTransformer  implements IdsTypeTransformer<ContractAgreementRequest, de.fraunhofer.iais.eis.ContractAgreement> {
 
@@ -94,21 +94,21 @@ public class ContractAgreementRequestToIdsContractAgreementTransformer  implemen
         } catch (NullPointerException e) {
             context.reportProblem("cannot convert empty providerId string to URI");
         }
-
+    
         try {
-            builder._contractStart_(DatatypeFactory.newInstance().newXMLGregorianCalendar(String.valueOf(agreement.getContractStartDate())));
+            builder._contractStart_(CalendarUtil.gregorianFromEpochSeconds(agreement.getContractStartDate()));
         } catch (DatatypeConfigurationException e) {
             context.reportProblem("cannot convert contract start time to XMLGregorian");
         }
-
+    
         try {
-            builder._contractEnd_(DatatypeFactory.newInstance().newXMLGregorianCalendar(String.valueOf(agreement.getContractEndDate())));
+            builder._contractEnd_(CalendarUtil.gregorianFromEpochSeconds(agreement.getContractEndDate()));
         } catch (DatatypeConfigurationException e) {
             context.reportProblem("cannot convert contract end time to XMLGregorian");
         }
-
+    
         try {
-            builder._contractDate_(DatatypeFactory.newInstance().newXMLGregorianCalendar(String.valueOf(agreement.getContractSigningDate())));
+            builder._contractDate_(CalendarUtil.gregorianFromEpochSeconds(agreement.getContractSigningDate()));
         } catch (DatatypeConfigurationException e) {
             context.reportProblem("cannot convert contract signing time to XMLGregorian");
         }
