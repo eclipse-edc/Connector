@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -102,6 +103,10 @@ public class HttpProvisionerExtensionEndToEndTest {
         extension.registerSystemExtension(ServiceExtension.class, new HttpProvisionerExtension(httpClient));
         extension.registerSystemExtension(ServiceExtension.class, new DummyCallbackUrlExtension());
         extension.setConfiguration(PROVISIONER_CONFIG);
+        extension.registerSystemExtension(ServiceExtension.class, new ServiceExtension() {
+            @Inject
+            private AssetLoader loader; //needed for on-demand dependency resolution
+        });
     }
 
     private void loadNegotiation(ContractNegotiationStore negotiationStore, PolicyStore policyStore) {

@@ -36,11 +36,8 @@ dependencies {
 
     testImplementation(project(":core:contract"))
     testImplementation(project(":extensions:dataloading"))
-    testImplementation(project(":extensions:in-memory:assetindex-memory"))
-    testImplementation(project(":extensions:in-memory:contractdefinition-store-memory"))
-    testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
-    testImplementation(project(":extensions:in-memory:policy-store-memory"))
-    testImplementation(project(":extensions:in-memory:transfer-store-memory"))
+    testImplementation(project(":core:defaults"))
+
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
