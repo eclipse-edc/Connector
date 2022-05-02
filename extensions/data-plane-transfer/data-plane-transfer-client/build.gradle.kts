@@ -24,6 +24,7 @@ val faker: String by project
 
 dependencies {
     api(project(":spi:core-spi"))
+    api(project(":spi:transfer-spi"))
     api(project(":extensions:data-plane:data-plane-spi"))
     api(project(":extensions:data-plane-transfer:data-plane-transfer-spi"))
     api(project(":extensions:data-plane-selector:selector-spi"))

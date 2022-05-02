@@ -21,5 +21,5 @@ public interface DataPlaneTransferType {
     /**
      * Synchronous data transfer using public API of the Data Plane as http proxy to query the data.
      */
-    String SYNC = "HttpProxy";
+    String HTTP_PROXY = "HttpProxy";
 }

@@ -41,10 +41,10 @@ public class ModuleNamesPlugin implements Plugin<Project> {
         project.afterEvaluate(new ModuleNamesAction());
     }
 
-    private class ModuleNamesAction implements Action<Project> {
+    private static class ModuleNamesAction implements Action<Project> {
 
-        private final Predicate<String> isSampleModule = displayName -> displayName.startsWith("project ':samples");
-        private final Predicate<String> isSystemTestModule = displayName -> displayName.startsWith("project ':system-tests");
+        private final Predicate<String> isSampleModule = displayName -> displayName.contains(":samples:");
+        private final Predicate<String> isSystemTestModule = displayName -> displayName.contains(":system-tests:");
         private final Predicate<String> excludeSamplesAndSystemTests = isSampleModule.or(isSystemTestModule).negate();
 
         @Override

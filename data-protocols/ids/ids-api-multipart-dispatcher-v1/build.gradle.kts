@@ -34,9 +34,8 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
 
     testImplementation(project(":core:transfer"))
-    testImplementation(project(":extensions:in-memory:assetindex-memory"))
-    testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
-    testImplementation(project(":extensions:in-memory:policy-store-memory"))
+    testImplementation(project(":core:defaults"))
+
     testImplementation(project(":data-protocols:ids:ids-api-multipart-endpoint-v1"))
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":launchers:junit")))

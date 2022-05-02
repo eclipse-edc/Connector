@@ -21,13 +21,13 @@ import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.transfer.dataplane.client.DataPlaneTransferClient;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.client.DataPlaneTransferClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType.SYNC;
+import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType.HTTP_PROXY;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -50,9 +50,9 @@ class DataPlaneTransferFlowControllerTest {
 
     @Test
     void canHandle() {
-        var contentAddress = DataAddress.Builder.newInstance().type(SYNC).build();
+        var contentAddress = DataAddress.Builder.newInstance().type(HTTP_PROXY).build();
         assertThat(flowController.canHandle(createDataRequest(), contentAddress)).isTrue();
-        assertThat(flowController.canHandle(createDataRequest(SYNC), contentAddress)).isFalse();
+        assertThat(flowController.canHandle(createDataRequest(HTTP_PROXY), contentAddress)).isFalse();
     }
 
     @Test

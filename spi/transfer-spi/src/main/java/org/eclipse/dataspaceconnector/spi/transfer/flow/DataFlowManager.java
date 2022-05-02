@@ -33,10 +33,10 @@ public interface DataFlowManager {
     /**
      * Initiates a data flow.
      *
-     * @param dataRequest the data to transfer
+     * @param dataRequest    the data to transfer
      * @param contentAddress the address to resolve the asset contents. This may be the original asset address or an address resolving to generated content.
-     * @param policy the contract agreement usage policy for the asset being transferred
+     * @param policy         the contract agreement usage policy for the asset being transferred
      */
     @NotNull
-    StatusResult<String> initiate(DataRequest dataRequest, DataAddress contentAddress, Policy policy);
+    StatusResult<Void> initiate(DataRequest dataRequest, DataAddress contentAddress, Policy policy);
 }

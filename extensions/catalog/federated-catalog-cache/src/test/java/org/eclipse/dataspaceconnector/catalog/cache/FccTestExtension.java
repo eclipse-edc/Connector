@@ -140,11 +140,6 @@ public class FccTestExtension implements ServiceExtension {
         }
 
         @Override
-        public @NotNull List<TransferProcess> nextForState(int state, int max) {
-            return emptyList();
-        }
-
-        @Override
         public void create(TransferProcess process) {
         }
 
@@ -159,6 +154,11 @@ public class FccTestExtension implements ServiceExtension {
         @Override
         public Stream<TransferProcess> findAll(QuerySpec querySpec) {
             return null;
+        }
+
+        @Override
+        public @NotNull List<TransferProcess> nextForState(int state, int max) {
+            return emptyList();
         }
     }
 
@@ -187,12 +187,12 @@ public class FccTestExtension implements ServiceExtension {
         public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
             throw new UnsupportedOperationException();
         }
-    
+
         @Override
         public ContractDefinition findById(String definitionId) {
             throw new UnsupportedOperationException();
         }
-    
+
         @Override
         public void save(Collection<ContractDefinition> definitions) {
             contractDefinitions.addAll(definitions);

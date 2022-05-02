@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.client.DataPlaneTransferClient;
 
 /**
  * Implementation of a {@link DataPlaneTransferClient} that uses a local {@link org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager},
