@@ -57,6 +57,7 @@ public abstract class TransferSimulationUtils {
     public static final String TRANSFER_SUCCESSFUL = "Transfer successful";
 
     public static final String TRANSFER_PROCESSES_PATH = "/transferprocess";
+    public static final String IDS_PATH = "/api/v1/ids";
 
     private TransferSimulationUtils() {
     }
@@ -82,7 +83,7 @@ public abstract class TransferSimulationUtils {
      * @param providerUrl URL for the Provider API, as accessed from the Consumer runtime.
      */
     private static ChainBuilder startContractAgreement(String providerUrl) {
-        var connectorAddress = format("%s/api/v1/ids/data", providerUrl);
+        var connectorAddress = getConnectorAddress(providerUrl);
         return group("Contract negotiation")
                 .on(exec(initiateContractNegotiation(connectorAddress)));
     }
@@ -147,7 +148,7 @@ public abstract class TransferSimulationUtils {
      * @param requestFactory Factory for creating transfer request payloads.
      */
     private static ChainBuilder startTransfer(String providerUrl, TransferRequestFactory requestFactory) {
-        String connectorAddress = format("%s/api/v1/ids/data", providerUrl);
+        String connectorAddress = getConnectorAddress(providerUrl);
         return group("Initiate transfer")
                 .on(exec(initiateTransfer(requestFactory, connectorAddress)));
     }
@@ -233,5 +234,9 @@ public abstract class TransferSimulationUtils {
         );
 
         return new TypeManager().writeValueAsString(request);
+    }
+
+    private static String getConnectorAddress(String baseUrl) {
+        return format("%s%s/data", baseUrl, IDS_PATH);
     }
 }

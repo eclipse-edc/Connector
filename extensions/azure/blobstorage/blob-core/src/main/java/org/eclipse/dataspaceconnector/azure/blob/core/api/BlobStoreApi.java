@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.azure.blob.core.api;
 
+import com.azure.core.credential.AzureSasCredential;
 import com.azure.storage.blob.models.BlobItem;
 import org.eclipse.dataspaceconnector.azure.blob.core.adapter.BlobAdapter;
 
@@ -39,4 +40,6 @@ public interface BlobStoreApi {
     byte[] getBlob(String account, String container, String blobName);
 
     BlobAdapter getBlobAdapter(String accountName, String containerName, String blobName, String sharedKey);
+
+    BlobAdapter getBlobAdapter(String accountName, String containerName, String blobName, AzureSasCredential credential);
 }
