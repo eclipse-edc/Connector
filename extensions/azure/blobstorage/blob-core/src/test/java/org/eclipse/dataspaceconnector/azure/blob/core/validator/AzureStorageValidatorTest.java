@@ -91,18 +91,4 @@ class AzureStorageValidatorTest {
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> AzureStorageValidator.validateBlobName(input));
     }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"YQo=", "YWJjZGVmZ2hpamtsbW5hCg=="})
-    void validateSharedKey_success(String input) {
-        AzureStorageValidator.validateSharedKey(input);
-    }
-
-    @ParameterizedTest
-    @NullAndEmptySource
-    @ValueSource(strings = {" ", "YWJjZGVmZ2hpamtsbW5hCg="})
-    void validateSharedKey_fail(String input) {
-        assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> AzureStorageValidator.validateSharedKey(input));
-    }
 }

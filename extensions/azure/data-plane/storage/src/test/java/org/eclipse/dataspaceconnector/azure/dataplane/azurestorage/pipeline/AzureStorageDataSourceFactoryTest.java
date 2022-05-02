@@ -19,6 +19,7 @@ import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.Test;
@@ -30,11 +31,13 @@ import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFix
 import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createRequest;
 import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createSharedKey;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class AzureStorageDataSourceFactoryTest {
     static Faker faker = new Faker();
     BlobStoreApi blobStoreApi = mock(BlobStoreApi.class);
-    AzureStorageDataSourceFactory factory = new AzureStorageDataSourceFactory(blobStoreApi, new RetryPolicy<>(), mock(Monitor.class));
+    Vault vault = mock(Vault.class);
+    AzureStorageDataSourceFactory factory = new AzureStorageDataSourceFactory(blobStoreApi, new RetryPolicy<>(), mock(Monitor.class), vault);
     DataFlowRequest.Builder request = createRequest(AzureBlobStoreSchema.TYPE);
     DataFlowRequest.Builder invalidRequest = createRequest(faker.lorem().word());
     DataAddress.Builder dataAddress = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE);
@@ -43,6 +46,7 @@ class AzureStorageDataSourceFactoryTest {
     String containerName = createContainerName();
     String blobName = createBlobName();
     String sharedKey = createSharedKey();
+    String keyName = faker.lorem().word();
 
     @Test
     void canHandle_whenBlobRequest_returnsTrue() {
@@ -60,7 +64,6 @@ class AzureStorageDataSourceFactoryTest {
                                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)
                                 .property(AzureBlobStoreSchema.CONTAINER_NAME, containerName)
                                 .property(AzureBlobStoreSchema.BLOB_NAME, blobName)
-                                .property(AzureBlobStoreSchema.SHARED_KEY, sharedKey)
                                 .build())
                         .build())
                 .succeeded()).isTrue();
@@ -71,7 +74,6 @@ class AzureStorageDataSourceFactoryTest {
         assertThat(factory.validate(request.sourceDataAddress(dataAddress
                                 .property(AzureBlobStoreSchema.CONTAINER_NAME, containerName)
                                 .property(AzureBlobStoreSchema.BLOB_NAME, blobName)
-                                .property(AzureBlobStoreSchema.SHARED_KEY, sharedKey)
                                 .build())
                         .build())
                 .failed()).isTrue();
@@ -82,7 +84,6 @@ class AzureStorageDataSourceFactoryTest {
         assertThat(factory.validate(request.sourceDataAddress(dataAddress
                                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)
                                 .property(AzureBlobStoreSchema.BLOB_NAME, blobName)
-                                .property(AzureBlobStoreSchema.SHARED_KEY, sharedKey)
                                 .build())
                         .build())
                 .failed()).isTrue();
@@ -93,18 +94,6 @@ class AzureStorageDataSourceFactoryTest {
         assertThat(factory.validate(request.sourceDataAddress(dataAddress
                                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)
                                 .property(AzureBlobStoreSchema.CONTAINER_NAME, containerName)
-                                .property(AzureBlobStoreSchema.SHARED_KEY, sharedKey)
-                                .build())
-                        .build())
-                .failed()).isTrue();
-    }
-
-    @Test
-    void validate_whenMissingSharedKey_fails() {
-        assertThat(factory.validate(request.sourceDataAddress(dataAddress
-                                .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)
-                                .property(AzureBlobStoreSchema.CONTAINER_NAME, containerName)
-                                .property(AzureBlobStoreSchema.BLOB_NAME, blobName)
                                 .build())
                         .build())
                 .failed()).isTrue();
@@ -112,11 +101,12 @@ class AzureStorageDataSourceFactoryTest {
 
     @Test
     void createSource_whenValidRequest_succeeds() {
+        when(vault.resolveSecret(keyName)).thenReturn(sharedKey);
         var validRequest = request.sourceDataAddress(dataAddress
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)
                 .property(AzureBlobStoreSchema.CONTAINER_NAME, containerName)
                 .property(AzureBlobStoreSchema.BLOB_NAME, blobName)
-                .property(AzureBlobStoreSchema.SHARED_KEY, sharedKey)
+                .keyName(keyName)
                 .build());
         assertThat(factory.createSource(validRequest.build())).isNotNull();
     }

@@ -214,7 +214,9 @@ jobs:
       - name: Azure Storage Tests
         uses: ./.github/actions/run-tests
         with:
-          command: ./gradlew -p extensions/azure test -DincludeTags="AzureStorageIntegrationTest"
+          command: |
+            ./gradlew -p extensions/azure test -DincludeTags="AzureStorageIntegrationTest"
+            ./gradlew -p system-tests/azure-tests test -DincludeTags="AzureStorageIntegrationTest"
 
   Check-Cosmos-Key:
     runs-on: ubuntu-latest
