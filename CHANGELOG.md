@@ -28,6 +28,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Add custom Jackson (de)serializer for `XMLGregorianCalendar` (#1226)
 * Add contract validation rule (#1239)
 * Harmonize setting names in `data-plane-transfer` (#1164)
+* Add component tests coverage to the codecov coverage report (#1246)
 
 #### Changed
 
