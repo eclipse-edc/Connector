@@ -23,7 +23,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -41,10 +40,9 @@ import static org.mockito.Mockito.when;
 
 public class PartitionManagerImplTest {
 
-    private PartitionManagerImpl partitionManager;
-
     private final Monitor monitorMock = mock(Monitor.class);
     private final WorkItemQueue workItemQueueMock = mock(WorkItemQueue.class);
+    private PartitionManagerImpl partitionManager;
     private List<WorkItem> staticWorkload;
 
     @BeforeEach
