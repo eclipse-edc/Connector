@@ -82,7 +82,6 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     private HealthCheckService healthCheckService;
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
-    // protocol registry - must be supplied by another extension
     // get all known nodes from node directory - must be supplied by another extension
     @Inject
     private FederatedCacheNodeDirectory directory;
