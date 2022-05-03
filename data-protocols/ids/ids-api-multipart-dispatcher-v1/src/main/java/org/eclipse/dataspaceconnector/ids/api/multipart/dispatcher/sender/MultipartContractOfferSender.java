@@ -72,6 +72,8 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
 
     @Override
     protected Message buildMessageHeader(ContractOfferRequest request, DynamicAttributeToken token) {
+        var webhookPath = idsApiPath + (idsApiPath.endsWith("/") ? "data" : "/data");
+        
         if (request.getType() == ContractOfferRequest.Type.INITIAL) {
             var message = new ContractRequestMessageBuilder()
                     ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
@@ -82,8 +84,7 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
                     ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                     ._transferContract_(URI.create(request.getCorrelationId()))
                     .build();
-            var path = idsApiPath + (idsApiPath.endsWith("/") ? "data" : "/data");
-            message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + path);
+            message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + webhookPath);
 
             return message;
         } else {
@@ -96,7 +97,7 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
                     ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                     ._transferContract_(URI.create(request.getCorrelationId()))
                     .build();
-            message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + "/api/v1/ids/data");
+            message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + webhookPath);
 
             return message;
         }

@@ -110,8 +110,8 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
                 ._transferContract_(contractId)
                 .build();
 
-        var path = idsApiPath + (idsApiPath.endsWith("/") ? "data" : "/data");
-        message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + path);
+        var webhookPath = idsApiPath + (idsApiPath.endsWith("/") ? "data" : "/data");
+        message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + webhookPath);
 
         request.getProperties().forEach(message::setProperty);
         return message;

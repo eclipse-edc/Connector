@@ -87,8 +87,8 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 ._transferContract_(URI.create(request.getCorrelationId()))
                 .build();
-        var path = idsApiPath + (idsApiPath.endsWith("/") ? "data" : "/data");
-        message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + path);
+        var webhookPath = idsApiPath + (idsApiPath.endsWith("/") ? "data" : "/data");
+        message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + webhookPath);
 
         return message;
     }
