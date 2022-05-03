@@ -71,7 +71,7 @@ public class PartitionManagerImpl implements PartitionManager {
             monitor.debug("Partition manager: execute plan - adding workload " + currentList.size());
             workQueue.addAll(currentList);
             workQueue.unlock();
-            monitor.debug("Partition manager: execute release queue lock");
+            monitor.debug("Partition manager: unlocked queue");
         });
     }
 
