@@ -49,25 +49,30 @@ public class TransferExtension implements ServiceExtension {
         return "HTTP to HTTP Transfer";
     }
 
-    @Override
     public void initialize(ServiceExtensionContext context) {
+        registerFlowController(context);
+        registerDataEntries(context);
+    }
+
+    private void registerFlowController(ServiceExtensionContext context) {
         var vault = context.getService(Vault.class);
         var monitor = context.getMonitor();
-        var assetLoader = context.getService(AssetLoader.class);
 
         dataOperatorRegistry.registerWriter(new HttpWriter(monitor));
         dataOperatorRegistry.registerReader(new HttpReader(monitor));
 
         dataFlowMgr.register(new InlineDataFlowController(vault, context.getMonitor(), dataOperatorRegistry));
-
-        final String assetUrl = context.getSetting(STUB_URL, "missing");
-
-        fakeSetup = new FakeSetup(monitor, assetLoader, contractDefinitionLoader, policyStore, assetUrl);
     }
 
-    @Override
-    public void start() {
+    private void registerDataEntries(ServiceExtensionContext context) {
+        AssetLoader assetLoader = context.getService(AssetLoader.class);
+        var monitor = context.getMonitor();
+
+        final String assetUrl = context.getSetting(STUB_URL, "missing");
+        fakeSetup = new FakeSetup(monitor, assetLoader, contractDefinitionLoader, policyStore, assetUrl);
+
         fakeSetup.setupAssets();
         fakeSetup.setupContractOffers();
     }
+
 }

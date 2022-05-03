@@ -160,8 +160,10 @@ include(":samples:other:dataseed:dataseed-policy")
 include(":samples:other:run-from-junit")
 include(":samples:other:custom-runtime")
 
-include(":samples:other:file-transfer-http-to-http")
 include(":samples:other:file-transfer-http-to-http:api")
+include(":samples:other:file-transfer-http-to-http:consumer")
+include(":samples:other:file-transfer-http-to-http:provider")
+include(":samples:other:file-transfer-http-to-http:transfer-file")
 
 // extension points for a connector
 include(":spi")
