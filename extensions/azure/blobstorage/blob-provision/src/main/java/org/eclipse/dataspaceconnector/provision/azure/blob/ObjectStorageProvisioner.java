@@ -72,13 +72,15 @@ public class ObjectStorageProvisioner implements Provisioner<ObjectStorageResour
                 })
                 .thenCompose(empty -> createContainerSasToken(containerName, accountName, expiryTime))
                 .thenApply(writeOnlySas -> {
+                    // Ensure resource name is unique to avoid key collisions in local and remote vaults
+                    String resourceName = resourceDefinition.getId() + "-container";
                     var resource = ObjectContainerProvisionedResource.Builder.newInstance()
                             .id(containerName)
                             .accountName(accountName)
                             .containerName(containerName)
                             .resourceDefinitionId(resourceDefinition.getId())
                             .transferProcessId(resourceDefinition.getTransferProcessId())
-                            .resourceName("resource")
+                            .resourceName(resourceName)
                             .hasToken(true)
                             .build();
 
