@@ -30,6 +30,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Add contract validation rule (#1239)
 * Harmonize setting names in `data-plane-transfer` (#1164)
 * Add Blob transfer Architectural Decision Record (#233)
+* Add component tests coverage to the codecov coverage report (#1246)
 
 #### Changed
 
