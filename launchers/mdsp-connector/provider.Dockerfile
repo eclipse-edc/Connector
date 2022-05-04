@@ -2,7 +2,7 @@ FROM gradle:7.4.1-jdk17 AS build
 
 COPY --chown=gradle:gradle . /home/gradle/project/
 WORKDIR /home/gradle/project/
-RUN gradle :samples:other:file-transfer-http-to-http:provider:build --no-daemon
+RUN gradle :samples:other:file-transfer-http-to-http:provider:shadowJar --no-daemon
 
 FROM openjdk:17-slim
 
@@ -16,7 +16,6 @@ EXPOSE 8282
 
 ENTRYPOINT java \
     -Djava.security.edg=file:/dev/.urandom \
-    -Dedc.ids.id="urn:connector:provider" \
     -Dedc.ids.title="Eclipse Dataspace Connector" \
     -Dedc.ids.description="Eclipse Dataspace Connector with MindSphere HTTP extensions" \
     -Dedc.ids.maintainer="https://example.maintainer.com" \

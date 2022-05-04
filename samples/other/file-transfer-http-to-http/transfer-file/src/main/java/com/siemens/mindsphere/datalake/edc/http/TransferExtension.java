@@ -16,7 +16,11 @@ package com.siemens.mindsphere.datalake.edc.http;
 
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
+import org.eclipse.dataspaceconnector.policy.model.Action;
+import org.eclipse.dataspaceconnector.policy.model.Permission;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -25,7 +29,12 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.inline.DataOperatorRegistry;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.transfer.core.inline.InlineDataFlowController;
+
+import java.util.UUID;
 
 public class TransferExtension implements ServiceExtension {
     @EdcSetting
@@ -41,20 +50,11 @@ public class TransferExtension implements ServiceExtension {
     private ContractDefinitionLoader contractDefinitionLoader;
     @Inject
     private PolicyStore policyStore;
-
-    private FakeSetup fakeSetup;
+    @Inject
+    private AssetLoader assetLoader;
 
     @Override
-    public String name() {
-        return "HTTP to HTTP Transfer";
-    }
-
     public void initialize(ServiceExtensionContext context) {
-        registerFlowController(context);
-        registerDataEntries(context);
-    }
-
-    private void registerFlowController(ServiceExtensionContext context) {
         var vault = context.getService(Vault.class);
         var monitor = context.getMonitor();
 
@@ -62,17 +62,55 @@ public class TransferExtension implements ServiceExtension {
         dataOperatorRegistry.registerReader(new HttpReader(monitor));
 
         dataFlowMgr.register(new InlineDataFlowController(vault, context.getMonitor(), dataOperatorRegistry));
+
+        String assetId = registerDataEntries(context);
+        monitor.info("Register http sample Asset: " + assetId);
+
+        var policy = createPolicy(assetId);
+        policyStore.save(policy);
+
+        registerContractDefinition(policy.getUid(), assetId);
+        context.getMonitor().info("HTTP Transfer Extension initialized!");
     }
 
-    private void registerDataEntries(ServiceExtensionContext context) {
-        AssetLoader assetLoader = context.getService(AssetLoader.class);
-        var monitor = context.getMonitor();
+    private Policy createPolicy(String assetId) {
+        return Policy.Builder.newInstance()
+                .target(assetId)
+                .permission(Permission.Builder.newInstance()
+                        .target(assetId)
+                        .action(Action.Builder.newInstance()
+                                .type("USE")
+                                .build())
+                        .build())
+                .build();
+    }
 
+    private String registerDataEntries(ServiceExtensionContext context) {
         final String assetUrl = context.getSetting(STUB_URL, "missing");
-        fakeSetup = new FakeSetup(monitor, assetLoader, contractDefinitionLoader, policyStore, assetUrl);
 
-        fakeSetup.setupAssets();
-        fakeSetup.setupContractOffers();
+        DataAddress dataAddress = DataAddress.Builder.newInstance()
+                .type(HttpSchema.TYPE)
+                .property(HttpSchema.URL, assetUrl)
+                .keyName("demo.jpg")
+                .build();
+
+        var assetId = UUID.randomUUID().toString();
+        Asset asset = Asset.Builder.newInstance().id(assetId).build();
+        assetLoader.accept(asset, dataAddress);
+
+        return assetId;
+    }
+
+    private void registerContractDefinition(String policyId, String assetId) {
+        ContractDefinition contractDefinition1 = ContractDefinition.Builder.newInstance()
+                .id("1")
+                .accessPolicyId(policyId)
+                .contractPolicyId(policyId)
+                .selectorExpression(AssetSelectorExpression.Builder.newInstance()
+                        .whenEquals(Asset.PROPERTY_ID, assetId).build())
+                .build();
+
+        contractDefinitionLoader.accept(contractDefinition1);
     }
 
 }
