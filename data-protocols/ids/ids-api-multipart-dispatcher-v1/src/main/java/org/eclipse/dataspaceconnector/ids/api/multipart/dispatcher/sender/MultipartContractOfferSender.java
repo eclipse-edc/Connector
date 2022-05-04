@@ -44,7 +44,6 @@ import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_AD
 public class MultipartContractOfferSender extends IdsMultipartSender<ContractOfferRequest, MultipartRequestInProcessResponse> {
 
     private final String idsWebhookAddress;
-    private final String idsApiPath;
 
     public MultipartContractOfferSender(@NotNull String connectorId,
                                         @NotNull OkHttpClient httpClient,
@@ -52,12 +51,10 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
                                         @NotNull Monitor monitor,
                                         @NotNull IdentityService identityService,
                                         @NotNull IdsTransformerRegistry transformerRegistry,
-                                        @NotNull String idsWebhookAddress,
-                                        @NotNull String idsApiPath) {
+                                        @NotNull String idsWebhookAddress) {
         super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
 
         this.idsWebhookAddress = idsWebhookAddress;
-        this.idsApiPath = idsApiPath;
     }
 
     @Override
@@ -82,8 +79,7 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
                     ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                     ._transferContract_(URI.create(request.getCorrelationId()))
                     .build();
-            var path = idsApiPath + (idsApiPath.endsWith("/") ? "data" : "/data");
-            message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + path);
+            message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress);
 
             return message;
         } else {
@@ -96,7 +92,7 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
                     ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                     ._transferContract_(URI.create(request.getCorrelationId()))
                     .build();
-            message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + "/api/v1/ids/data");
+            message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress);
 
             return message;
         }

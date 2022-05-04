@@ -54,6 +54,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Fix HTTPS termination in Jetty (#1133)
 * Break lease after TransferProcessManager status check (#1214)
 * Fix path conflicts between `CatalogApiController` and `FederatedCatalogApiController` (#1225)
+* Always use configured IDS API path in IDS webhook address (#1249)
 
 ## [milestone-3] - 2022-04-08
 
