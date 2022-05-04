@@ -29,7 +29,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Add custom Jackson (de)serializer for `XMLGregorianCalendar` (#1226)
 * Add contract validation rule (#1239)
 * Harmonize setting names in `data-plane-transfer` (#1164)
-* Add Blob transfer Architectural Decision Record (#233)
+* Add Blob transfer Architectural Decision Record (#1259)
 * Add component tests coverage to the codecov coverage report (#1246)
 
 #### Changed
