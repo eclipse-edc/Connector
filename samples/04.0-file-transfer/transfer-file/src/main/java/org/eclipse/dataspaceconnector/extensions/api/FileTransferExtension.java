@@ -67,7 +67,6 @@ public class FileTransferExtension implements ServiceExtension {
     }
 
     private Policy createPolicy() {
-
         var usePermission = Permission.Builder.newInstance()
                 .action(Action.Builder.newInstance().type("USE").build())
                 .build();
@@ -95,12 +94,13 @@ public class FileTransferExtension implements ServiceExtension {
     }
 
     private void registerContractDefinition(String uid) {
-
         var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("1")
                 .accessPolicyId(uid)
                 .contractPolicyId(uid)
-                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "test-document").build())
+                .selectorExpression(AssetSelectorExpression.Builder.newInstance()
+                        .whenEquals(Asset.PROPERTY_ID, "test-document")
+                        .build())
                 .build();
 
         contractStore.save(contractDefinition);
