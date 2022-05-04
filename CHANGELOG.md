@@ -22,6 +22,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Check to avoid duplicated module names (#1190)
 * Implement Catalog service for Data Management API (#1195)
 * Add strict body validation for REST endpoints (#1128)
+* Add Blob transfer Architectural Decision Record (#?)
 
 #### Changed
 
