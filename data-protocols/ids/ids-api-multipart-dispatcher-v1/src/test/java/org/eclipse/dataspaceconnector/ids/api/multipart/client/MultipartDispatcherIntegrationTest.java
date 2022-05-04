@@ -84,14 +84,13 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         Vault vault = mock(Vault.class);
         var httpClient = testOkHttpClient();
 
-        var idsWebhookAddress = "http://webhook";
-        var idsApiPath = "/api";
+        var idsWebhookAddress = "http://webhook/api";
 
         multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
         multipartDispatcher.register(new MultipartDescriptionRequestSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry));
-        multipartDispatcher.register(new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, objectMapper, monitor, vault, identityService, transformerRegistry, idsWebhookAddress, idsApiPath));
-        multipartDispatcher.register(new MultipartContractOfferSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress, idsApiPath));
-        multipartDispatcher.register(new MultipartContractAgreementSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress, idsApiPath));
+        multipartDispatcher.register(new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, objectMapper, monitor, vault, identityService, transformerRegistry, idsWebhookAddress));
+        multipartDispatcher.register(new MultipartContractOfferSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress));
+        multipartDispatcher.register(new MultipartContractAgreementSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress));
         multipartDispatcher.register(new MultipartContractRejectionSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartCatalogDescriptionRequestSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry));
     }
