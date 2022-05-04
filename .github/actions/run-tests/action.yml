@@ -16,4 +16,6 @@ runs:
       if: always()
       with:
         name: Test Results ${{ github.job }}
-        path: "**/test-results/**/*.xml"
+        path: |
+          **/test-results/**/*.xml
+          **/build/reports/jacoco/test/jacocoTestReport.xml

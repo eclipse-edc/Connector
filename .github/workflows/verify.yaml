@@ -67,9 +67,6 @@ jobs:
         with:
           command: ./gradlew test jacocoTestReport
 
-      - name: CodeCov
-        uses: codecov/codecov-action@v2
-
   Sanity-Check:
     runs-on: ubuntu-latest
     steps:
@@ -327,6 +324,8 @@ jobs:
           path: '**/build/reports/gatling/**'
 
   Component-Tests:
+    env:
+      JACOCO: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -340,7 +339,7 @@ jobs:
       - name: Component Tests
         uses: ./.github/actions/run-tests
         with:
-          command: ./gradlew test -DincludeTags="ComponentTest"
+          command: ./gradlew test jacocoTestReport -DincludeTags="ComponentTest"
 
   OpenTelemetry-Integration-Tests:
     runs-on: ubuntu-latest
@@ -383,3 +382,19 @@ jobs:
         if: always()
         with:
           files: "**/test-results/**/*.xml"
+
+  Upload-Coverage-Report-To-Codecov:
+    needs:
+      - Unit-Tests
+      - Component-Tests
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      # Sources are needed for Codecov report
+      - uses: actions/checkout@v2
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: artifacts
+      - name: CodeCov
+        uses: codecov/codecov-action@v2
