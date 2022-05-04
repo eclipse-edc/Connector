@@ -73,6 +73,14 @@ public class ContractAgreementApiControllerIntegrationTest {
     }
 
     @Test
+    void getAll_invalidQuery() {
+        baseRequest()
+                .get("/contractagreements?limit=01&offset=-1&filter=&sort=ANY&sortField=")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
     void getSingleContractAgreement(ContractNegotiationStore store) {
         store.save(createContractNegotiation(UUID.randomUUID().toString(), createContractAgreement("agreementId")));
 

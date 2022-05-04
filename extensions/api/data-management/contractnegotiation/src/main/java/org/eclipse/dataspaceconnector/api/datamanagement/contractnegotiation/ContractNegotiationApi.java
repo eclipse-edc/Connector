@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.mod
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationId;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationState;
-import org.eclipse.dataspaceconnector.spi.query.SortOrder;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 
 import java.util.List;
 
@@ -30,7 +30,7 @@ import java.util.List;
 @Tag(name = "Contract Negotiation")
 public interface ContractNegotiationApi {
 
-    List<ContractNegotiationDto> getNegotiations(Integer offset, Integer limit, String filterExpression, SortOrder sortOrder, String sortField);
+    List<ContractNegotiationDto> getNegotiations(@Valid QuerySpecDto querySpecDto);
 
     ContractNegotiationDto getNegotiation(String id);
 

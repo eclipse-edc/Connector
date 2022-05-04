@@ -24,9 +24,6 @@ paths:
         in: query
         schema:
           type: string
-          enum:
-          - ASC
-          - DESC
       - name: sortField
         in: query
         schema:
