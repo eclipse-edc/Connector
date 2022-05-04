@@ -264,9 +264,9 @@ public class Participant {
                 put("edc.keystore.password", "123456");
                 put("ids.webhook.address", idsEndpoint.toString());
                 put("edc.receiver.http.endpoint", backendService + "/api/service/pull");
-                put("edc.transfer.dataplane.token.signer.privatekey.alias", "1");
-                put("edc.public.key.alias", "public-key");
-                put("edc.transfer.dataplane.sync.endpoint", dataPlanePublic.toString());
+                put("edc.transfer.proxy.token.signer.privatekey.alias", "1");
+                put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
+                put("edc.transfer.proxy.endpoint", dataPlanePublic.toString());
             }
         };
     }
@@ -280,7 +280,7 @@ public class Participant {
                 put("web.http.public.path", "/public");
                 put("web.http.control.port", String.valueOf(dataPlaneControl.getPort()));
                 put("web.http.control.path", dataPlaneControl.getPath());
-                put("edc.controlplane.validation-endpoint", controlPlaneValidation + "/validation");
+                put("edc.controlplane.validation-endpoint", controlPlaneValidation + "/token");
             }
         };
     }

@@ -63,15 +63,15 @@ public class PartitionManagerImpl implements PartitionManager {
 
     @Override
     public void schedule(ExecutionPlan executionPlan) {
-        //todo: should we really discard updates?
-        var currentList = workloadSource.get();
         executionPlan.run(() -> {
+            // obtain latest node directory contents before scheduling the work
+            var currentList = workloadSource.get();
             monitor.debug("Partition manager: execute plan - waiting for queue lock");
             workQueue.lock();
             monitor.debug("Partition manager: execute plan - adding workload " + currentList.size());
             workQueue.addAll(currentList);
-            monitor.debug("Partition manager: execute release queue lock");
             workQueue.unlock();
+            monitor.debug("Partition manager: unlocked queue");
         });
     }
 

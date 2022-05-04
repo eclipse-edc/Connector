@@ -326,7 +326,7 @@ class TransferProcessManagerImplTest {
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(transferProcessStore.nextForState(eq(PROVISIONED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success("any"));
+        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success());
         var latch = countDownOnUpdateLatch();
 
         manager.start();

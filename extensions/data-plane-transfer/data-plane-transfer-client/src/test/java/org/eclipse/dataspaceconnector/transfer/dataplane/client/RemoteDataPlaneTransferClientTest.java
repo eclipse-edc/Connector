@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.dataplane.selector.client.DataPlaneSelecto
 import org.eclipse.dataspaceconnector.dataplane.selector.instance.DataPlaneInstance;
 import org.eclipse.dataspaceconnector.dataplane.spi.response.TransferErrorResponse;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.client.DataPlaneTransferClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;

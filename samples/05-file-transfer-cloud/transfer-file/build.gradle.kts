@@ -24,7 +24,7 @@ dependencies {
 
     implementation(project(":extensions:azure:blobstorage:blob-data-operator"))
     implementation(project(":extensions:aws:s3:s3-data-operator"))
-    implementation(project(":extensions:in-memory:assetindex-memory"))
+
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 }

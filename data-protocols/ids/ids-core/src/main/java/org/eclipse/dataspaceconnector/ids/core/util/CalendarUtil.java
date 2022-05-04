@@ -9,12 +9,14 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added method
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.core.util;
 
 import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -29,5 +31,18 @@ public final class CalendarUtil {
         } catch (DatatypeConfigurationException e) {
             throw new RuntimeException(e);
         }
+    }
+    
+    /**
+     * Creates an XMLGregorianCalendar from an epoch seconds timestamp.
+     *
+     * @param timestamp the timestamp.
+     * @return XMLGregorianCalendar representation of the timestamp.
+     * @throws DatatypeConfigurationException if the timestamp cannot be parsed.
+     */
+    public static XMLGregorianCalendar gregorianFromEpochSeconds(long timestamp) throws DatatypeConfigurationException {
+        var gregCal = new GregorianCalendar();
+        gregCal.setTime(new Date(timestamp * 1000));
+        return DatatypeFactory.newInstance().newXMLGregorianCalendar(gregCal);
     }
 }

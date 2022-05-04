@@ -29,6 +29,7 @@ import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistr
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.NullVaultExtension;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -165,6 +166,9 @@ public class EndToEndTest {
 
     @Provides(IdentityService.class)
     private static class TestServiceExtension implements ServiceExtension {
+        @Inject
+        private AssetLoader loader;
+        
         @Override
         public void initialize(ServiceExtensionContext context) {
             context.registerService(IdentityService.class, new IdentityService() {

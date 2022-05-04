@@ -25,6 +25,9 @@ in the detailed section referring to by linking pull requests or issues.
 * Add strict body validation for REST endpoints (#1128)
 * Dependency injection using factory/provider methods (#1056)
 * Provisioned resource information in Data Management API (#1221)
+* Add custom Jackson (de)serializer for `XMLGregorianCalendar` (#1226)
+* Add contract validation rule (#1239)
+* Harmonize setting names in `data-plane-transfer` (#1164)
 
 #### Changed
 
@@ -34,6 +37,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Replace `policy` with `policyId` on `ContractAgreement` (#1220)
 * All DMgmt Api methods now produce and consume `APPLICATION_JSON` (#1175)
 * Make data-plane public api controller asynchronous (#1228)
+* Provide In-mem implementations by default (#1130)
 
 #### Removed
 

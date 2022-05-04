@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.ids.core;
 
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.core.descriptor.IdsDescriptorServiceImpl;
+import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
 import org.eclipse.dataspaceconnector.ids.core.service.CatalogServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.ConnectorServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.ConnectorServiceSettings;
@@ -46,7 +47,7 @@ import java.util.List;
  * Implements the IDS Controller REST API.
  */
 @Provides({ ConnectorVersionProvider.class, CatalogService.class, ConnectorService.class, IdsDescriptorService.class,
-        CatalogService.class, ConnectorService.class, IdsTransformerRegistry.class })
+        CatalogService.class, ConnectorService.class, IdsTransformerRegistry.class, ObjectMapperFactory.class })
 public class IdsCoreServiceExtension implements ServiceExtension {
 
     @EdcSetting
@@ -106,7 +107,11 @@ public class IdsCoreServiceExtension implements ServiceExtension {
 
         ConnectorService connectorService = createConnectorService(connectorServiceSettings, connectorVersionProvider, dataCatalogService);
         serviceExtensionContext.registerService(ConnectorService.class, connectorService);
-
+        
+        //TODO remove once IDS serializer is integrated (#236)
+        var objectMapperFactory = new ObjectMapperFactory();
+        serviceExtensionContext.registerService(ObjectMapperFactory.class, objectMapperFactory);
+        
         registerOther(serviceExtensionContext);
     }
 

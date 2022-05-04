@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.catalog.cache.query.CacheQueryAdapterImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.query.CacheQueryAdapterRegistryImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.query.IdsMultipartNodeQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.cache.query.QueryEngineImpl;
+import org.eclipse.dataspaceconnector.catalog.directory.InMemoryNodeDirectory;
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
 import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
@@ -37,10 +38,12 @@ import org.eclipse.dataspaceconnector.catalog.spi.QueryEngine;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
+import org.eclipse.dataspaceconnector.catalog.store.InMemoryFederatedCacheStore;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -60,7 +63,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
-@Provides({Crawler.class, LoaderManager.class, QueryEngine.class, NodeQueryAdapterRegistry.class, CacheQueryAdapterRegistry.class})
+@Provides({ Crawler.class, LoaderManager.class, QueryEngine.class, NodeQueryAdapterRegistry.class, CacheQueryAdapterRegistry.class })
 public class FederatedCatalogCacheExtension implements ServiceExtension {
     public static final int DEFAULT_NUM_CRAWLERS = 1;
     private static final int DEFAULT_QUEUE_LENGTH = 50;
@@ -79,7 +82,6 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     private HealthCheckService healthCheckService;
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
-    // protocol registry - must be supplied by another extension
     // get all known nodes from node directory - must be supplied by another extension
     @Inject
     private FederatedCacheNodeDirectory directory;
@@ -134,6 +136,17 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         partitionManager.stop();
         loaderManager.stop();
         monitor.info("Federated Catalog Cache extension stopped");
+    }
+
+    @Provider(isDefault = true)
+    public FederatedCacheStore defaultCacheStore() {
+        //todo: converts every criterion into a predicate that is always true. must be changed later!
+        return new InMemoryFederatedCacheStore(criterion -> offer -> true);
+    }
+
+    @Provider(isDefault = true)
+    public FederatedCacheNodeDirectory defaultNodeDirectory() {
+        return new InMemoryNodeDirectory();
     }
 
     @NotNull

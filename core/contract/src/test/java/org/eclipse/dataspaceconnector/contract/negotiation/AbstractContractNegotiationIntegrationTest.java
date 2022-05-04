@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.contract.observe.ContractNegotiationObservableImpl;
-import org.eclipse.dataspaceconnector.negotiation.store.memory.InMemoryContractNegotiationStore;
+import org.eclipse.dataspaceconnector.core.defaults.negotiationstore.InMemoryContractNegotiationStore;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -60,19 +60,14 @@ import static org.mockito.Mockito.when;
  */
 public abstract class AbstractContractNegotiationIntegrationTest {
 
+    protected final PolicyStore policyStore = mock(PolicyStore.class);
     protected ProviderContractNegotiationManagerImpl providerManager;
     protected ConsumerContractNegotiationManagerImpl consumerManager;
-
     protected ContractNegotiationObservable providerObservable = new ContractNegotiationObservableImpl();
     protected ContractNegotiationObservable consumerObservable = new ContractNegotiationObservableImpl();
-
     protected InMemoryContractNegotiationStore providerStore;
     protected InMemoryContractNegotiationStore consumerStore;
-
     protected ContractValidationService validationService;
-
-    protected final PolicyStore policyStore = mock(PolicyStore.class);
-
     protected String consumerNegotiationId;
 
     protected ClaimToken token;
@@ -89,11 +84,11 @@ public abstract class AbstractContractNegotiationIntegrationTest {
 
         // Create a monitor that logs to the console
         Monitor monitor = new ConsoleMonitor();
-    
+
         // Create CommandQueue mock
         CommandQueue<ContractNegotiationCommand> queue = (CommandQueue<ContractNegotiationCommand>) mock(CommandQueue.class);
         when(queue.dequeue(anyInt())).thenReturn(new ArrayList<>());
-    
+
         // Create CommandRunner mock
         CommandRunner<ContractNegotiationCommand> runner = (CommandRunner<ContractNegotiationCommand>) mock(CommandRunner.class);
 
@@ -126,37 +121,116 @@ public abstract class AbstractContractNegotiationIntegrationTest {
 
         countDownLatch = new CountDownLatch(2);
     }
-    
+
+    /**
+     * Creates the initial contract offer.
+     *
+     * @return the contract offer.
+     */
+    protected ContractOffer getContractOffer() {
+        return ContractOffer.Builder.newInstance()
+                .id(ContractId.createContractId("1"))
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now().plusMonths(1))
+                .provider(URI.create("provider"))
+                .consumer(URI.create("consumer"))
+                .asset(Asset.Builder.newInstance().build())
+                .policy(Policy.Builder.newInstance()
+                        .id(UUID.randomUUID().toString())
+                        .type(PolicyType.CONTRACT)
+                        .assigner("assigner")
+                        .assignee("assignee")
+                        .duty(Duty.Builder.newInstance()
+                                .action(Action.Builder.newInstance()
+                                        .type("USE")
+                                        .build())
+                                .build())
+                        .build())
+                .build();
+    }
+
+    /**
+     * Creates the first counter offer.
+     *
+     * @return the contract offer.
+     */
+    protected ContractOffer getCounterOffer() {
+        return ContractOffer.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now().plusMonths(2))
+                .provider(URI.create("provider"))
+                .consumer(URI.create("consumer"))
+                .policy(Policy.Builder.newInstance()
+                        .id(UUID.randomUUID().toString())
+                        .type(PolicyType.CONTRACT)
+                        .assigner("assigner")
+                        .assignee("assignee")
+                        .duty(Duty.Builder.newInstance()
+                                .action(Action.Builder.newInstance()
+                                        .type("USE")
+                                        .build())
+                                .build())
+                        .build())
+                .build();
+    }
+
+    /**
+     * Creates the second counter offer.
+     *
+     * @return the contract offer.
+     */
+    protected ContractOffer getConsumerCounterOffer() {
+        return ContractOffer.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .contractStart(ZonedDateTime.now())
+                .contractEnd(ZonedDateTime.now().plusMonths(3))
+                .provider(URI.create("provider"))
+                .consumer(URI.create("consumer"))
+                .policy(Policy.Builder.newInstance()
+                        .id(UUID.randomUUID().toString())
+                        .type(PolicyType.CONTRACT)
+                        .assigner("assigner")
+                        .assignee("assignee")
+                        .duty(Duty.Builder.newInstance()
+                                .action(Action.Builder.newInstance()
+                                        .type("USE")
+                                        .build())
+                                .build())
+                        .build())
+                .build();
+    }
+
     /**
      * Implementation of the ContractNegotiationListener that signals a CountDownLatch when the
      * confirmed state has been reached.
      */
     protected static class ConfirmedContractNegotiationListener implements ContractNegotiationListener {
-        
+
         private final CountDownLatch countDownLatch;
-        
+
         public ConfirmedContractNegotiationListener(CountDownLatch countDownLatch) {
             this.countDownLatch = countDownLatch;
         }
-        
+
         @Override
         public void preConfirmed(ContractNegotiation negotiation) {
             countDownLatch.countDown();
         }
     }
-    
+
     /**
      * Implementation of the ContractNegotiationListener that signals a CountDownLatch when the
      * declined state has been reached.
      */
     protected static class DeclinedContractNegotiationListener implements ContractNegotiationListener {
-        
+
         private final CountDownLatch countDownLatch;
-        
+
         public DeclinedContractNegotiationListener(CountDownLatch countDownLatch) {
             this.countDownLatch = countDownLatch;
         }
-        
+
         @Override
         public void preDeclined(ContractNegotiation negotiation) {
             countDownLatch.countDown();
@@ -249,85 +323,6 @@ public abstract class AbstractContractNegotiationIntegrationTest {
 
             return future;
         }
-    }
-
-    /**
-     * Creates the initial contract offer.
-     *
-     * @return the contract offer.
-     */
-    protected ContractOffer getContractOffer() {
-        return ContractOffer.Builder.newInstance()
-                .id(ContractId.createContractId("1"))
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(1))
-                .provider(URI.create("provider"))
-                .consumer(URI.create("consumer"))
-                .asset(Asset.Builder.newInstance().build())
-                .policy(Policy.Builder.newInstance()
-                        .id(UUID.randomUUID().toString())
-                        .type(PolicyType.CONTRACT)
-                        .assigner("assigner")
-                        .assignee("assignee")
-                        .duty(Duty.Builder.newInstance()
-                                .action(Action.Builder.newInstance()
-                                        .type("USE")
-                                        .build())
-                                .build())
-                        .build())
-                .build();
-    }
-
-    /**
-     * Creates the first counter offer.
-     *
-     * @return the contract offer.
-     */
-    protected ContractOffer getCounterOffer() {
-        return ContractOffer.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(2))
-                .provider(URI.create("provider"))
-                .consumer(URI.create("consumer"))
-                .policy(Policy.Builder.newInstance()
-                        .id(UUID.randomUUID().toString())
-                        .type(PolicyType.CONTRACT)
-                        .assigner("assigner")
-                        .assignee("assignee")
-                        .duty(Duty.Builder.newInstance()
-                                .action(Action.Builder.newInstance()
-                                        .type("USE")
-                                        .build())
-                                .build())
-                        .build())
-                .build();
-    }
-
-    /**
-     * Creates the second counter offer.
-     *
-     * @return the contract offer.
-     */
-    protected ContractOffer getConsumerCounterOffer() {
-        return ContractOffer.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .contractStart(ZonedDateTime.now())
-                .contractEnd(ZonedDateTime.now().plusMonths(3))
-                .provider(URI.create("provider"))
-                .consumer(URI.create("consumer"))
-                .policy(Policy.Builder.newInstance()
-                        .id(UUID.randomUUID().toString())
-                        .type(PolicyType.CONTRACT)
-                        .assigner("assigner")
-                        .assignee("assignee")
-                        .duty(Duty.Builder.newInstance()
-                                .action(Action.Builder.newInstance()
-                                        .type("USE")
-                                        .build())
-                                .build())
-                        .build())
-                .build();
     }
 
 }

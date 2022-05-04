@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -39,11 +40,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONING;
 import static org.eclipse.dataspaceconnector.transfer.provision.http.HttpProvisionerFixtures.PROVISIONER_CONFIG;
@@ -59,6 +62,7 @@ public class HttpProvisionerExtensionEndToEndTest {
     private static final String ASSET_ID = "1";
     private static final String CONTRACT_ID = "2";
     private static final String POLICY_ID = "3";
+    private final int dataPort = getFreePort();
 
     private Interceptor delegate;
 
@@ -95,6 +99,10 @@ public class HttpProvisionerExtensionEndToEndTest {
 
     @BeforeEach
     void setup(EdcExtension extension) {
+        extension.setConfiguration(Map.of(
+                "web.http.data.port", String.valueOf(dataPort),
+                "web.http.data.path", "/api/v1/data"
+        ));
         delegate = mock(Interceptor.class);
         var httpClient = testOkHttpClient().newBuilder().addInterceptor(delegate).build();
 
@@ -102,6 +110,10 @@ public class HttpProvisionerExtensionEndToEndTest {
         extension.registerSystemExtension(ServiceExtension.class, new HttpProvisionerExtension(httpClient));
         extension.registerSystemExtension(ServiceExtension.class, new DummyCallbackUrlExtension());
         extension.setConfiguration(PROVISIONER_CONFIG);
+        extension.registerSystemExtension(ServiceExtension.class, new ServiceExtension() {
+            @Inject
+            private AssetLoader loader; //needed for on-demand dependency resolution
+        });
     }
 
     private void loadNegotiation(ContractNegotiationStore negotiationStore, PolicyStore policyStore) {

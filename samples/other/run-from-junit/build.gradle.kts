@@ -20,12 +20,8 @@ val storageBlobVersion: String by project;
 val jupiterVersion: String by project
 
 dependencies {
-    testImplementation(project(":core"))
-    testImplementation(project(":extensions:in-memory:assetindex-memory"))
-    testImplementation(project(":extensions:in-memory:contractdefinition-store-memory"))
-    testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
-    testImplementation(project(":extensions:in-memory:policy-store-memory"))
-    testImplementation(project(":extensions:in-memory:transfer-store-memory"))
+    api(project(":core"))
+    api(project(":core:defaults"))
 
     testImplementation(project(":extensions:aws:s3:s3-provision"))
 
@@ -34,7 +30,7 @@ dependencies {
     testImplementation(project(":extensions:filesystem:configuration-fs"))
     testImplementation(project(":extensions:azure:vault"))
     testImplementation("com.azure:azure-storage-blob:${storageBlobVersion}")
-    testImplementation(project(":extensions:in-memory:policy-store-memory"))
+
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
