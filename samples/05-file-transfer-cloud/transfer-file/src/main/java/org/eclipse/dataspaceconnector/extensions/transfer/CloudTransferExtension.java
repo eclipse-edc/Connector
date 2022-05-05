@@ -23,7 +23,6 @@ import org.eclipse.dataspaceconnector.azure.blob.operator.BlobStoreReader;
 import org.eclipse.dataspaceconnector.azure.blob.operator.BlobStoreWriter;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -59,7 +58,7 @@ public class CloudTransferExtension implements ServiceExtension {
 
     private void registerFlowController(ServiceExtensionContext context) {
         var s3ClientProvider = new S3ClientProviderImpl();
-        var vault = context.getService(Vault.class);
+        var vault = context.getVault();
 
         dataOperatorRegistry.registerReader(new BlobStoreReader(blobStoreApi));
         dataOperatorRegistry.registerReader(new S3BucketReader(context.getMonitor(), vault, s3ClientProvider));

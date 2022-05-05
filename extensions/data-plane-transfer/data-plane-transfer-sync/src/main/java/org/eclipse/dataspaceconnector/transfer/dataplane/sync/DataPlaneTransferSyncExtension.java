@@ -21,8 +21,6 @@ import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -120,12 +118,12 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
         var config = context.getConfig();
 
         var privateKeyAlias = config.getString(TOKEN_SIGNER_PRIVATE_KEY_ALIAS);
-        var privateKeyResolver = context.getService(PrivateKeyResolver.class);
+        var privateKeyResolver = context.getPrivateKeyResolver();
         var privateKey = privateKeyResolver.resolvePrivateKey(privateKeyAlias, PrivateKey.class);
         Objects.requireNonNull(privateKey, "Failed to resolve private key with alias: " + privateKeyAlias);
 
         var publicKeyAlias = config.getString(TOKEN_VERIFIER_PUBLIC_KEY_ALIAS, privateKeyAlias + "-pub");
-        var vault = context.getService(Vault.class);
+        var vault = context.getVault();
         var publicKeyPem = vault.resolveSecret(publicKeyAlias);
         Objects.requireNonNull(publicKeyPem, "Failed to resolve public key secret with alias: " + publicKeyPem);
         var publicKey = PublicKeyParser.from(publicKeyPem);

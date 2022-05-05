@@ -70,7 +70,7 @@ public class IdentityDidCoreExtension implements ServiceExtension {
         var publicKeyResolver = new DidPublicKeyResolverImpl(resolverRegistry);
         context.registerService(DidPublicKeyResolver.class, publicKeyResolver);
 
-        var privateKeyResolver = context.getService(PrivateKeyResolver.class);
+        var privateKeyResolver = context.getPrivateKeyResolver();
         registerParsers(privateKeyResolver);
 
         PrivateKeyWrapper privateKeyWrapper = privateKeyResolver.resolvePrivateKey(context.getConnectorId(), PrivateKeyWrapper.class);

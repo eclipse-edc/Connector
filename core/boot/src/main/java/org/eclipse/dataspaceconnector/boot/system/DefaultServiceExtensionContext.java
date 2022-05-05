@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
@@ -17,8 +17,12 @@ package org.eclipse.dataspaceconnector.boot.system;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
+import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
 import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
 import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
@@ -41,17 +45,16 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
 
     private final Map<Class<?>, Object> services = new HashMap<>();
     private final List<ConfigurationExtension> configurationExtensions;
+    private final VaultExtension vaultExtension;
     private String connectorId;
     private Config config;
 
-    public DefaultServiceExtensionContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry, List<ConfigurationExtension> configurationExtensions) {
+    public DefaultServiceExtensionContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry, List<ConfigurationExtension> configurationExtensions, VaultExtension vaultExtension) {
         this.typeManager = typeManager;
         this.monitor = monitor;
         this.telemetry = telemetry;
         this.configurationExtensions = configurationExtensions;
-        // register as services
-        registerService(TypeManager.class, typeManager);
-        registerService(Monitor.class, monitor);
+        this.vaultExtension = vaultExtension;
     }
 
     @Override
@@ -72,6 +75,21 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     @Override
     public TypeManager getTypeManager() {
         return typeManager;
+    }
+
+    @Override
+    public Vault getVault() {
+        return vaultExtension.getVault();
+    }
+
+    @Override
+    public PrivateKeyResolver getPrivateKeyResolver() {
+        return vaultExtension.getPrivateKeyResolver();
+    }
+
+    @Override
+    public CertificateResolver getCertificateResolver() {
+        return vaultExtension.getCertificateResolver();
     }
 
     @Override
@@ -112,6 +130,9 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         });
         config = loadConfig();
         connectorId = getSetting("edc.connector.name", "edc-" + UUID.randomUUID());
+
+        vaultExtension.initialize(monitor, config);
+        monitor.info("Initialized " + vaultExtension.name());
     }
 
     @Override

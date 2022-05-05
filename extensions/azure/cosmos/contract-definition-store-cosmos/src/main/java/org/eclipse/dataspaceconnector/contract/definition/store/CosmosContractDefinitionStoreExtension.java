@@ -36,7 +36,7 @@ public class CosmosContractDefinitionStoreExtension implements ServiceExtension 
     @Override
     public void initialize(ServiceExtensionContext context) {
         var configuration = new CosmosContractDefinitionStoreConfig(context);
-        Vault vault = context.getService(Vault.class);
+        Vault vault = context.getVault();
 
         var cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
 

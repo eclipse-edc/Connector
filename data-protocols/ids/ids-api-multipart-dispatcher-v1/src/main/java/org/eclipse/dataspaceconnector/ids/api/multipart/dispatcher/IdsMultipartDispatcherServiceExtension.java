@@ -33,7 +33,6 @@ import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -85,7 +84,7 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         idsWebhookAddress = idsWebhookAddress + webhookPath;
 
         var multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
-        multipartDispatcher.register(new MultipartArtifactRequestSender(connectorId, httpClient, objectMapper, monitor, context.getService(Vault.class), identityService, transformerRegistry, idsWebhookAddress));
+        multipartDispatcher.register(new MultipartArtifactRequestSender(connectorId, httpClient, objectMapper, monitor, context.getVault(), identityService, transformerRegistry, idsWebhookAddress));
         multipartDispatcher.register(new MultipartDescriptionRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartContractOfferSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress));
         multipartDispatcher.register(new MultipartContractAgreementSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress));

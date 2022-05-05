@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
@@ -24,9 +24,6 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.monitor.MultiplexingMonitor;
-import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
-import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.BaseExtension;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.MonitorExtension;
@@ -54,11 +51,8 @@ import static org.eclipse.dataspaceconnector.boot.system.TestFunctions.createPro
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -131,54 +125,6 @@ class ExtensionLoaderTest {
         Exception thrown = assertThrows(IllegalStateException.class,
                 () -> ExtensionLoader.selectOpenTelemetryImpl(List.of(customOpenTelemetry1, customOpenTelemetry2)));
         assertEquals(thrown.getMessage(), "Found 2 OpenTelemetry implementations. Please provide only one OpenTelemetry service provider.");
-    }
-
-    @Test
-    void loadVault_whenNotRegistered() {
-        DefaultServiceExtensionContext contextMock = mock(DefaultServiceExtensionContext.class);
-
-        when(contextMock.getMonitor()).thenReturn(mock(Monitor.class));
-        when(serviceLocator.loadSingletonImplementor(VaultExtension.class, false)).thenReturn(null);
-
-        ExtensionLoader.loadVault(contextMock, loader);
-
-        verify(contextMock).registerService(eq(Vault.class), isA(Vault.class));
-        verify(contextMock).registerService(eq(PrivateKeyResolver.class), any());
-        verify(contextMock).registerService(eq(CertificateResolver.class), any());
-        verify(contextMock, atLeastOnce()).getMonitor();
-        verify(serviceLocator).loadSingletonImplementor(VaultExtension.class, false);
-    }
-
-    @Test
-    void loadVault() {
-        DefaultServiceExtensionContext contextMock = mock(DefaultServiceExtensionContext.class);
-        Vault vaultMock = mock(Vault.class);
-        PrivateKeyResolver resolverMock = mock(PrivateKeyResolver.class);
-        CertificateResolver certResolverMock = mock(CertificateResolver.class);
-        when(contextMock.getMonitor()).thenReturn(mock(Monitor.class));
-        when(serviceLocator.loadSingletonImplementor(VaultExtension.class, false)).thenReturn(new VaultExtension() {
-
-            @Override
-            public Vault getVault() {
-                return vaultMock;
-            }
-
-            @Override
-            public PrivateKeyResolver getPrivateKeyResolver() {
-                return resolverMock;
-            }
-
-            @Override
-            public CertificateResolver getCertificateResolver() {
-                return certResolverMock;
-            }
-        });
-
-        ExtensionLoader.loadVault(contextMock, loader);
-
-        verify(contextMock, times(1)).registerService(Vault.class, vaultMock);
-        verify(contextMock, atLeastOnce()).getMonitor();
-        verify(serviceLocator).loadSingletonImplementor(VaultExtension.class, false);
     }
 
     @Test
@@ -353,7 +299,7 @@ class ExtensionLoaderTest {
         when(defaultProvider.testObject()).thenCallRealMethod();
 
 
-        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of());
+        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of(), mock(VaultExtension.class));
 
         var list = createInjectionContainers(createList(defaultProvider, dependentExtension));
 
@@ -372,7 +318,7 @@ class ExtensionLoaderTest {
         var nonDefaultProvider = (ProviderExtension) spy(createProviderExtension(false));
         when(nonDefaultProvider.testObject()).thenCallRealMethod();
 
-        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of());
+        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of(), mock(VaultExtension.class));
 
         var list = createInjectionContainers(createList(defaultProvider, dependentExtension, nonDefaultProvider));
 
@@ -390,7 +336,7 @@ class ExtensionLoaderTest {
         var nonDefaultProvider = (ProviderExtension) spy(createProviderExtension(false));
         when(nonDefaultProvider.testObject()).thenCallRealMethod();
 
-        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of());
+        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of(), mock(VaultExtension.class));
 
         var list = createInjectionContainers(createList(dependentExtension, nonDefaultProvider));
 
@@ -407,7 +353,7 @@ class ExtensionLoaderTest {
         var defaultProvider = (DefaultProviderExtension) spy(createProviderExtension(true));
         when(defaultProvider.testObject()).thenCallRealMethod();
 
-        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of());
+        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of(), mock(VaultExtension.class));
 
         var list = createInjectionContainers(createList(dependentExtension, defaultProvider));
 
@@ -428,7 +374,7 @@ class ExtensionLoaderTest {
         var provider = (ProviderExtension) spy(createProviderExtension(false));
         when(provider.testObject()).thenCallRealMethod();
 
-        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of());
+        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of(), mock(VaultExtension.class));
 
         var list = createInjectionContainers(createList(dependentExtension, defaultProvider, provider));
 

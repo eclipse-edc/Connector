@@ -28,8 +28,6 @@ import org.eclipse.dataspaceconnector.iam.oauth2.spi.Oauth2ValidationRulesRegist
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
-import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -147,8 +145,8 @@ public class Oauth2Extension implements ServiceExtension {
         var publicKeyAlias = context.getConfig().getString(PUBLIC_KEY_ALIAS);
         var privateKeyAlias = context.getConfig().getString(PRIVATE_KEY_ALIAS);
         var clientId = context.getConfig().getString(CLIENT_ID);
-        var privateKeyResolver = context.getService(PrivateKeyResolver.class);
-        var certificateResolver = context.getService(CertificateResolver.class);
+        var privateKeyResolver = context.getPrivateKeyResolver();
+        var certificateResolver = context.getCertificateResolver();
         return Oauth2Configuration.Builder.newInstance()
                 .identityProviderKeyResolver(providerKeyResolver)
                 .tokenUrl(tokenUrl)

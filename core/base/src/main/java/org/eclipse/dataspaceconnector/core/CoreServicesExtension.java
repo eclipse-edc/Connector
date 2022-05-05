@@ -33,7 +33,6 @@ import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.RuleBindingRegistry;
-import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.BaseExtension;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.system.Hostname;
@@ -212,7 +211,7 @@ public class CoreServicesExtension implements ServiceExtension {
     }
 
     private void registerParser(ServiceExtensionContext context) {
-        var resolver = context.getService(PrivateKeyResolver.class);
+        var resolver = context.getPrivateKeyResolver();
         resolver.addParser(PrivateKey.class, new DefaultPrivateKeyParseFunction());
     }
 

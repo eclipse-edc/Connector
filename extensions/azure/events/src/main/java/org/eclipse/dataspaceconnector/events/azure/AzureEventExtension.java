@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.events.azure;
 import com.azure.core.credential.AzureKeyCredential;
 import com.azure.messaging.eventgrid.EventGridPublisherClientBuilder;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
@@ -43,7 +42,7 @@ public class AzureEventExtension implements ServiceExtension {
 
     private void registerListeners(ServiceExtensionContext context) {
 
-        var vault = context.getService(Vault.class);
+        var vault = context.getVault();
 
         var config = new AzureEventGridConfig(context);
         var topicName = config.getTopic();

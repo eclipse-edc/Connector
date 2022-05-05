@@ -26,9 +26,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolve
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.junit.launcher.DependencyInjectionExtension;
 import org.eclipse.dataspaceconnector.spi.WebService;
-import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import org.eclipse.dataspaceconnector.spi.system.injection.ObjectFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,9 +55,7 @@ class IdentityDidCoreExtensionTest {
 
     @Test
     void verifyCorrectInitialization_withPkResolverPresent(ServiceExtensionContext context) {
-        context.registerService(PrivateKeyResolver.class, mock(PrivateKeyResolver.class));
         context.registerService(OkHttpClient.class, mock(OkHttpClient.class));
-        context.registerService(HealthCheckService.class, mock(HealthCheckService.class));
 
         extension.initialize(context);
 

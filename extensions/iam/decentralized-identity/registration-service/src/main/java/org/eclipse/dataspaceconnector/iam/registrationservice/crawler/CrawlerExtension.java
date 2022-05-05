@@ -20,7 +20,6 @@ import org.eclipse.dataspaceconnector.iam.did.spi.store.DidStore;
 import org.eclipse.dataspaceconnector.iam.registrationservice.events.CrawlerEventPublisher;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -90,7 +89,7 @@ public class CrawlerExtension implements ServiceExtension {
 
     private void scheduleCrawler(int intervalMinutes, ServiceExtensionContext context) throws SchedulerException {
 
-        var publisher = new CrawlerEventPublisher(context.getService(Vault.class), new AzureEventGridConfig(context));
+        var publisher = new CrawlerEventPublisher(context.getVault(), new AzureEventGridConfig(context));
 
         var crawlerConfig = CrawlerContext.Builder.create()
                 .didStore(didStore)

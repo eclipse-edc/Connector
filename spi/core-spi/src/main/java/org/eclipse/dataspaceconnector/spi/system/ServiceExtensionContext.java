@@ -16,6 +16,9 @@
 package org.eclipse.dataspaceconnector.spi.system;
 
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
+import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
@@ -44,6 +47,27 @@ public interface ServiceExtensionContext extends SettingResolver {
      * Returns the type manager.
      */
     TypeManager getTypeManager();
+
+    /**
+     * Returns the registered Vault
+     *
+     * @return the registered Vault service
+     */
+    Vault getVault();
+
+    /**
+     * Returns the registered PrivateKeyResolver
+     *
+     * @return the registered PrivateKeyResolver service
+     */
+    PrivateKeyResolver getPrivateKeyResolver();
+
+    /**
+     * Returns the registered CertificateResolver
+     *
+     * @return the registered CertificateResolver service
+     */
+    CertificateResolver getCertificateResolver();
 
     /**
      * Returns true if the service type is registered.

@@ -20,7 +20,6 @@ import org.eclipse.dataspaceconnector.dataplane.http.pipeline.HttpDataSinkFactor
 import org.eclipse.dataspaceconnector.dataplane.http.pipeline.HttpDataSourceFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -50,7 +49,7 @@ public class DataPlaneHttpExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var vault = context.getService(Vault.class);
+        var vault = context.getVault();
         var monitor = context.getMonitor();
 
         @SuppressWarnings("unchecked") var sourceFactory = new HttpDataSourceFactory(httpClient, retryPolicy, monitor, vault);

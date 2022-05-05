@@ -15,13 +15,11 @@
 
 package org.eclipse.dataspaceconnector.junit.launcher;
 
-import org.eclipse.dataspaceconnector.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.dataspaceconnector.boot.system.ServiceLocator;
 import org.eclipse.dataspaceconnector.boot.system.ServiceLocatorImpl;
 import org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -53,8 +51,7 @@ import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
  */
 public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver {
     private final LinkedHashMap<Class<?>, Object> serviceMocks = new LinkedHashMap<>();
-    private List<ServiceExtension> runningServiceExtensions;
-    private DefaultServiceExtensionContext context;
+    private ServiceExtensionContext context;
 
     public EdcExtension() {
         super(new MultiSourceServiceLocator());
@@ -95,7 +92,7 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
 
     @Override
     protected @NotNull ServiceExtensionContext createContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry) {
-        this.context = new DefaultServiceExtensionContext(typeManager, monitor, telemetry, loadConfigurationExtensions());
+        this.context = super.createContext(typeManager, monitor, telemetry);
         return this.context;
     }
 
@@ -103,13 +100,6 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
     protected void initializeContext(ServiceExtensionContext context) {
         serviceMocks.forEach((key, value) -> context.registerService(cast(key), value));
         super.initializeContext(context);
-    }
-
-    @Override
-    protected void initializeVault(ServiceExtensionContext context) {
-        if (!serviceMocks.containsKey(Vault.class)) {
-            super.initializeVault(context);
-        }
     }
 
     @Override
@@ -158,7 +148,7 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
         }
 
         /**
-         * This implementation will override singleton implementions found by the delegate.
+         * This implementation will override singleton implementations found by the delegate.
          */
         @Override
         public <T> T loadSingletonImplementor(Class<T> type, boolean required) {

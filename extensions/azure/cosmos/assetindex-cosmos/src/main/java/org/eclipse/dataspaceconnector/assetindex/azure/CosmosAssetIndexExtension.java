@@ -40,7 +40,7 @@ public class CosmosAssetIndexExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var configuration = new AssetIndexCosmosConfig(context);
-        Vault vault = context.getService(Vault.class);
+        Vault vault = context.getVault();
 
         var cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
         var assetIndex = new CosmosAssetIndex(cosmosDbApi, configuration.getPartitionKey(), context.getTypeManager(), context.getService(RetryPolicy.class), context.getMonitor());

@@ -38,7 +38,7 @@ public class CosmosFederatedCacheNodeDirectoryExtension implements ServiceExtens
     @Override
     public void initialize(ServiceExtensionContext context) {
         var configuration = new FederatedCacheNodeDirectoryCosmosConfig(context);
-        Vault vault = context.getService(Vault.class);
+        Vault vault = context.getVault();
 
         var cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
         FederatedCacheNodeDirectory directory = new CosmosFederatedCacheNodeDirectory(cosmosDbApi, configuration.getPartitionKey(), context.getTypeManager(), context.getService(RetryPolicy.class));

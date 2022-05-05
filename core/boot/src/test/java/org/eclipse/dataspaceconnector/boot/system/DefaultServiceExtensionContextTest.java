@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.boot.system;
 
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
+import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
 import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
 import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
@@ -40,10 +41,10 @@ class DefaultServiceExtensionContextTest {
 
     @BeforeEach
     void setUp() {
-        TypeManager typeManager = new TypeManager();
-        Monitor monitor = mock(Monitor.class);
-        Telemetry telemetry = new Telemetry();
-        context = new DefaultServiceExtensionContext(typeManager, monitor, telemetry, List.of(configuration));
+        var typeManager = new TypeManager();
+        var monitor = mock(Monitor.class);
+        var telemetry = new Telemetry();
+        context = new DefaultServiceExtensionContext(typeManager, monitor, telemetry, List.of(configuration), mock(VaultExtension.class));
     }
 
     @Test

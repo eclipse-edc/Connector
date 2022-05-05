@@ -36,7 +36,7 @@ public class CosmosContractNegotiationStoreExtension implements ServiceExtension
     @Override
     public void initialize(ServiceExtensionContext context) {
         var configuration = new CosmosContractNegotiationStoreConfig(context);
-        Vault vault = context.getService(Vault.class);
+        Vault vault = context.getVault();
 
         var cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
         var store = new CosmosContractNegotiationStore(cosmosDbApi, context.getTypeManager(), (RetryPolicy<Object>) context.getService(RetryPolicy.class), configuration.getPartitionKey());

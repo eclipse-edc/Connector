@@ -23,8 +23,10 @@ import org.eclipse.dataspaceconnector.boot.system.ServiceLocator;
 import org.eclipse.dataspaceconnector.boot.system.ServiceLocatorImpl;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
+import org.eclipse.dataspaceconnector.spi.system.NullVaultExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
@@ -46,7 +48,7 @@ import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadTel
  * <ul>
  *     <li>{@link BaseRuntime#createTypeManager()}: instantiates a new {@link TypeManager}</li>
  *     <li>{@link BaseRuntime#createMonitor()} : instantiates a new {@link Monitor}</li>
- *     <li>{@link BaseRuntime#createContext(TypeManager, Monitor, Telemetry)}: creates a new {@link DefaultServiceExtensionContext} and invokes its {@link DefaultServiceExtensionContext#initialize()} method</li>
+ *     <li>{@link BaseRuntime#createContext(TypeManager, Monitor, Telemetry, VaultExtension)}: creates a new {@link DefaultServiceExtensionContext} and invokes its {@link DefaultServiceExtensionContext#initialize()} method</li>
  *     <li>{@link BaseRuntime#initializeVault(ServiceExtensionContext)}: initializes the {@link org.eclipse.dataspaceconnector.spi.security.Vault} by
  *          calling {@link ExtensionLoader#loadVault(ServiceExtensionContext)} </li>
  *     <li>{@link BaseRuntime#createExtensions()}: creates a list of {@code ServiceExtension} objects. By default, these are created through {@link ServiceExtensionContext#loadServiceExtensions()}</li>
@@ -110,7 +112,7 @@ public class BaseRuntime {
     }
 
     /**
-     * Initializes the context. If {@link BaseRuntime#createContext(TypeManager, Monitor, Telemetry)} is overridden and the (custom) context
+     * Initializes the context. If {@link BaseRuntime#createContext(TypeManager, Monitor, Telemetry, VaultExtension)} is overridden and the (custom) context
      * needs to be initialized, this method should be overridden as well.
      *
      * @param context The context.
@@ -165,11 +167,28 @@ public class BaseRuntime {
      */
     @NotNull
     protected ServiceExtensionContext createContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry) {
-        return new DefaultServiceExtensionContext(typeManager, monitor, telemetry, loadConfigurationExtensions());
+        return new DefaultServiceExtensionContext(typeManager, monitor, telemetry, loadConfigurationExtensions(), loadVaultExtension());
     }
 
     protected List<ConfigurationExtension> loadConfigurationExtensions() {
         return extensionLoader.loadExtensions(ConfigurationExtension.class, false);
+    }
+
+    /**
+     * Load the {@link VaultExtension} using the extensionLoader
+     *
+     * In order to provide a custom {@code Vault} implementation, please consider using the extension mechanism ({@link org.eclipse.dataspaceconnector.spi.system.VaultExtension}) rather than overriding this method.
+     * However, for development/testing scenarios it might be an easy solution to just override this method.
+     *
+     * @return the VaultExtension
+     */
+    protected VaultExtension loadVaultExtension() {
+        var vaultExtension = extensionLoader.loadSingletonExtension(VaultExtension.class, false);
+        if (vaultExtension == null) {
+            monitor.warning("Secrets vault not configured. Defaulting to null vault.");
+            return new NullVaultExtension();
+        }
+        return vaultExtension;
     }
 
     /**
@@ -185,20 +204,6 @@ public class BaseRuntime {
             iter.remove();
         }
         monitor.info("Shutdown complete");
-    }
-
-    /**
-     * Hook point to initialize the vault. It can be assumed that a {@link org.eclipse.dataspaceconnector.spi.security.Vault} instance exists prior to this method being called.
-     * By default, the {@code Vault} is loaded using the Service Loader mechanism ({@link org.eclipse.dataspaceconnector.spi.system.VaultExtension}) and
-     * a call to {@link ExtensionLoader#loadVault(ServiceExtensionContext)} is made.
-     * <p>
-     * In order to provide a custom {@code Vault} implementation, please consider using the extension mechanism ({@link org.eclipse.dataspaceconnector.spi.system.VaultExtension}) rather than overriding this method.
-     * However, for development/testing scenarios it might be an easy solution to just override this method.
-     *
-     * @param context An {@code ServiceExtensionContext} to resolve the {@code Vault} from.
-     */
-    protected void initializeVault(ServiceExtensionContext context) {
-        ExtensionLoader.loadVault(context, extensionLoader);
     }
 
     /**
@@ -221,17 +226,15 @@ public class BaseRuntime {
     }
 
     private void boot(boolean addShutdownHook) {
-        ServiceExtensionContext context = createServiceExtensionContext();
-
-        var name = getRuntimeName(context);
         try {
-            initializeVault(context);
+            var context = createServiceExtensionContext();
+
             List<InjectionContainer<ServiceExtension>> newExtensions = createExtensions();
             bootExtensions(context, newExtensions);
 
             newExtensions.stream().map(InjectionContainer::getInjectionTarget).forEach(serviceExtensions::add);
             if (addShutdownHook) {
-                getRuntime().addShutdownHook(new Thread(() -> shutdown()));
+                getRuntime().addShutdownHook(new Thread(this::shutdown));
             }
 
             var healthCheckService = context.getService(HealthCheckService.class);
@@ -240,11 +243,11 @@ public class BaseRuntime {
             startupStatus.set(HealthCheckResult.success());
 
             healthCheckService.refresh();
+
+            monitor.info(format("%s ready", getRuntimeName(context)));
         } catch (Exception e) {
             onError(e);
         }
-
-        monitor.info(format("%s ready", name));
     }
 
     private HealthCheckResult getStartupStatus() {

@@ -53,7 +53,6 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -151,7 +150,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         var handlers = new LinkedList<Handler>();
         handlers.add(descriptionHandler);
 
-        var vault = serviceExtensionContext.getService(Vault.class);
+        var vault = serviceExtensionContext.getVault();
         var artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault);
         handlers.add(artifactRequestHandler);
 

@@ -22,7 +22,6 @@ import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
 import org.eclipse.dataspaceconnector.aws.s3.core.SdkClientProvider;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -98,7 +97,7 @@ public class AwsProvisionExtension implements ServiceExtension {
 
     @NotNull
     private AwsCredentialsProvider createCredentialsProvider(ServiceExtensionContext context) {
-        var vault = context.getService(Vault.class);
+        var vault = context.getVault();
         var accessKey = vault.resolveSecret(AwsProvisionExtension.AWS_ACCESS_KEY);
         if (accessKey == null) {
             monitor.severe("AWS access key was not found in the vault");

@@ -23,7 +23,6 @@ import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.CoreExtension;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
@@ -120,7 +119,7 @@ public class CoreTransferExtension implements ServiceExtension {
         var dataOperatorRegistry = new DataOperatorRegistryImpl();
         context.registerService(DataOperatorRegistry.class, dataOperatorRegistry);
 
-        var vault = context.getService(Vault.class);
+        var vault = context.getVault();
 
         var provisionManager = new ProvisionManagerImpl(monitor);
         context.registerService(ProvisionManager.class, provisionManager);

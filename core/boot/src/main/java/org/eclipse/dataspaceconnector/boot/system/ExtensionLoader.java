@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
@@ -22,14 +22,9 @@ import org.eclipse.dataspaceconnector.boot.system.injection.lifecycle.ExtensionL
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.monitor.MultiplexingMonitor;
-import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
-import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.MonitorExtension;
-import org.eclipse.dataspaceconnector.spi.system.NullVaultExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.injection.ProviderMethod;
 import org.eclipse.dataspaceconnector.spi.system.injection.ProviderMethodScanner;
@@ -84,24 +79,6 @@ public class ExtensionLoader {
             context.registerService(p.getReturnType(), d);
             return d;
         };
-    }
-
-
-    /**
-     * Loads a vault extension.
-     */
-    public static void loadVault(ServiceExtensionContext context, ExtensionLoader loader) {
-        VaultExtension vaultExtension = loader.loadSingletonExtension(VaultExtension.class, false);
-        if (vaultExtension == null) {
-            vaultExtension = new NullVaultExtension();
-            context.getMonitor().info("Secrets vault not configured. Defaulting to null vault.");
-        }
-        vaultExtension.initialize(context.getMonitor());
-        context.getMonitor().info("Initialized " + vaultExtension.name());
-        vaultExtension.initializeVault(context);
-        context.registerService(Vault.class, vaultExtension.getVault());
-        context.registerService(PrivateKeyResolver.class, vaultExtension.getPrivateKeyResolver());
-        context.registerService(CertificateResolver.class, vaultExtension.getCertificateResolver());
     }
 
     public static @NotNull Monitor loadMonitor() {

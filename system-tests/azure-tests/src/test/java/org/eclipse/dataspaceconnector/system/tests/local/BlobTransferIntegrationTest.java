@@ -32,6 +32,7 @@ import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.NullVaultExtension;
+import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils;
 import org.junit.jupiter.api.BeforeAll;
@@ -107,14 +108,8 @@ public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
 
     @BeforeAll
     static void beforeAll() {
-        setUpMockVault(consumer, CONSUMER_VAULT);
-        setUpMockVault(provider, PROVIDER_VAULT);
-    }
-
-    private static void setUpMockVault(EdcRuntimeExtension consumer, Vault vault) {
-        consumer.registerServiceMock(Vault.class, vault);
-        consumer.registerServiceMock(PrivateKeyResolver.class, new NullVaultExtension().getPrivateKeyResolver());
-        consumer.registerServiceMock(CertificateResolver.class, new NullVaultExtension().getCertificateResolver());
+        consumer.registerSystemExtension(VaultExtension.class, new MockVaultExtension(CONSUMER_VAULT));
+        provider.registerSystemExtension(VaultExtension.class, new MockVaultExtension(PROVIDER_VAULT));
     }
 
     @Test
@@ -234,5 +229,28 @@ public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
     private RequestSpecification givenProviderBaseRequest() {
         return given()
                 .baseUri(PROVIDER_CONNECTOR_MANAGEMENT_URL + PROVIDER_MANAGEMENT_PATH);
+    }
+
+    private static class MockVaultExtension implements VaultExtension {
+        private final Vault vault;
+
+        MockVaultExtension(Vault vault) {
+            this.vault = vault;
+        }
+
+        @Override
+        public Vault getVault() {
+            return vault;
+        }
+
+        @Override
+        public PrivateKeyResolver getPrivateKeyResolver() {
+            return new NullVaultExtension().getPrivateKeyResolver();
+        }
+
+        @Override
+        public CertificateResolver getCertificateResolver() {
+            return new NullVaultExtension().getCertificateResolver();
+        }
     }
 }

@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.transfer.store.cosmos;
 
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -46,7 +45,7 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
         var monitor = context.getMonitor();
 
 
-        var vault = context.getService(Vault.class);
+        var vault = context.getVault();
         var connectorId = context.getConnectorId();
 
         retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);

@@ -14,9 +14,11 @@
 
 package org.eclipse.dataspaceconnector.spi.system;
 
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
 
 /**
  * Provides a vault to resolve secrets.
@@ -38,7 +40,8 @@ public interface VaultExtension extends BootExtension {
      */
     CertificateResolver getCertificateResolver();
 
-    default void initializeVault(ServiceExtensionContext context) {
+    default void initialize(Monitor monitor, Config config) {
+        initialize(monitor);
     }
 
 }

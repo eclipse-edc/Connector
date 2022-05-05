@@ -21,7 +21,6 @@ import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifie
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -67,7 +66,7 @@ public class DecentralizedIdentityServiceExtension implements ServiceExtension {
         return () -> {
             // we'll use the connector name to restore the Private Key
             var connectorName = context.getConnectorId();
-            var resolver = context.getService(PrivateKeyResolver.class);
+            var resolver = context.getPrivateKeyResolver();
             var privateKeyString = resolver.resolvePrivateKey(connectorName, ECKey.class); //to get the private key
 
             // we cannot store the VerifiableCredential in the Vault, because it has an expiry date

@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.api.auth;
 
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -36,7 +35,7 @@ public class BasicAuthenticationExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
-        var vault = context.getService(Vault.class);
+        var vault = context.getVault();
 
         var credentials = context.getConfig(BASIC_AUTH)
                 .getRelativeEntries().entrySet().stream()

@@ -24,6 +24,8 @@ import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,23 +60,7 @@ class DapsIntegrationTest {
     protected void before(EdcExtension extension) {
         KeyStore clientKeystore = readKeystoreFromResources("keystore.p12", "PKCS12", CLIENT_KEYSTORE_PASSWORD);
         extension.setConfiguration(configuration);
-        extension.registerServiceMock(Vault.class, new MockVault());
-        extension.registerServiceMock(PrivateKeyResolver.class, new FsPrivateKeyResolver(CLIENT_KEYSTORE_PASSWORD, clientKeystore));
-        extension.registerServiceMock(CertificateResolver.class, new FsCertificateResolver(clientKeystore));
-    }
-
-    private static KeyStore readKeystoreFromResources(String fileName, String type, String password) {
-        var url = Thread.currentThread().getContextClassLoader().getResource(fileName);
-        Objects.requireNonNull(url);
-
-        try {
-            var ks = KeyStore.getInstance(type);
-            var fis = new FileInputStream(url.getFile());
-            ks.load(fis, password.toCharArray());
-            return ks;
-        } catch (Exception e) {
-            throw new EdcException("Failed to load keystore: " + e);
-        }
+        extension.registerSystemExtension(VaultExtension.class, testVaultExtension(clientKeystore));
     }
 
     @Test
@@ -86,6 +72,40 @@ class DapsIntegrationTest {
         var verificationResult = identityService.verifyJwtToken(tokenResult.getContent().getToken());
 
         assertThat(verificationResult.succeeded()).isTrue();
+    }
+
+    @NotNull
+    private VaultExtension testVaultExtension(KeyStore clientKeystore) {
+        return new VaultExtension() {
+            @Override
+            public Vault getVault() {
+                return new MockVault();
+            }
+
+            @Override
+            public PrivateKeyResolver getPrivateKeyResolver() {
+                return new FsPrivateKeyResolver(CLIENT_KEYSTORE_PASSWORD, clientKeystore);
+            }
+
+            @Override
+            public CertificateResolver getCertificateResolver() {
+                return new FsCertificateResolver(clientKeystore);
+            }
+        };
+    }
+
+    private KeyStore readKeystoreFromResources(String fileName, String type, String password) {
+        var url = Thread.currentThread().getContextClassLoader().getResource(fileName);
+        Objects.requireNonNull(url);
+
+        try {
+            var ks = KeyStore.getInstance(type);
+            var fis = new FileInputStream(url.getFile());
+            ks.load(fis, password.toCharArray());
+            return ks;
+        } catch (Exception e) {
+            throw new EdcException("Failed to load keystore: " + e);
+        }
     }
 
 }
