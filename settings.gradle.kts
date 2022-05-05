@@ -175,6 +175,10 @@ include(":samples:other:custom-runtime")
 include(":samples:other:file-transfer-http-to-http")
 include(":samples:other:file-transfer-http-to-http:api")
 
+// provisioning sample
+include(":samples:other:file-transfer-provisioning:consumer")
+include(":samples:other:file-transfer-provisioning:provider")
+
 // extension points for a connector
 include(":spi")
 include(":spi:core-spi")
