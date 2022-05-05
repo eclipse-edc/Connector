@@ -83,7 +83,7 @@ class ContractNegotiationApiControllerIntegrationTest {
     @Test
     void getAll_invalidQuery() {
         baseRequest()
-                .get("/contractnegotiations?limit=01&offset=-1&filter=&sort=ANY&sortField=")
+                .get("/contractnegotiations?limit=1&offset=-1&filter=&sortField=")
                 .then()
                 .statusCode(400);
     }

@@ -68,7 +68,7 @@ class TransferProcessApiControllerIntegrationTest {
     @Test
     void getAll_invalidQuery() {
         baseRequest()
-                .get("/transferprocess?limit=01&offset=-1&filter=&sort=ANY&sortField=")
+                .get("/transferprocess?limit=1&offset=-1&filter=&sortField=")
                 .then()
                 .statusCode(400);
     }

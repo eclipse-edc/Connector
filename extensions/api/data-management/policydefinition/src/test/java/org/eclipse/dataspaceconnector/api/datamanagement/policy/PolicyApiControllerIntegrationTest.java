@@ -66,7 +66,7 @@ public class PolicyApiControllerIntegrationTest {
     @Test
     void getAll_invalidQuery() {
         baseRequest()
-                .get("/policies?limit=01&offset=-1&filter=&sort=ANY&sortField=")
+                .get("/policies?limit=1&offset=-1&filter=&sortField=")
                 .then()
                 .statusCode(400);
     }

@@ -77,7 +77,7 @@ public class ContractDefinitionApiControllerIntegrationTest {
     @Test
     void getAll_invalidQuery() {
         baseRequest()
-                .get("/contractdefinitions?limit=01&offset=-1&filter=&sort=ANY&sortField=")
+                .get("/contractdefinitions?limit=1&offset=-1&filter=&sortField=")
                 .then()
                 .statusCode(400);
     }
