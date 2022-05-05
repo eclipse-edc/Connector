@@ -16,9 +16,12 @@ package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline;
 
 import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
+import org.eclipse.dataspaceconnector.azure.blob.core.AzureSasToken;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.Test;
@@ -29,21 +32,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createAccountName;
 import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createContainerName;
 import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createRequest;
-import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createSharedKey;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class AzureStorageDataSinkFactoryTest {
     static Faker faker = new Faker();
     BlobStoreApi blobStoreApi = mock(BlobStoreApi.class);
-    AzureStorageDataSinkFactory factory = new AzureStorageDataSinkFactory(blobStoreApi, Executors.newFixedThreadPool(1), 5, mock(Monitor.class));
+    Vault vault = mock(Vault.class);
+    TypeManager typeManager = new TypeManager();
+    AzureStorageDataSinkFactory factory = new AzureStorageDataSinkFactory(blobStoreApi, Executors.newFixedThreadPool(1), 5, mock(Monitor.class), vault, typeManager);
     DataFlowRequest.Builder request = createRequest(AzureBlobStoreSchema.TYPE);
     DataFlowRequest.Builder invalidRequest = createRequest(faker.lorem().word());
     DataAddress.Builder dataAddress = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE);
 
     String accountName = createAccountName();
     String containerName = createContainerName();
-    String sharedKey = createSharedKey();
+    String keyName = faker.lorem().word();
+    AzureSasToken token = new AzureSasToken(faker.lorem().word(), faker.random().nextLong());
 
     @Test
     void canHandle_whenBlobRequest_returnsTrue() {
@@ -60,7 +66,7 @@ class AzureStorageDataSinkFactoryTest {
         assertThat(factory.validate(request.destinationDataAddress(dataAddress
                                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)
                                 .property(AzureBlobStoreSchema.CONTAINER_NAME, containerName)
-                                .property(AzureBlobStoreSchema.SHARED_KEY, sharedKey)
+                                .keyName(keyName)
                                 .build())
                         .build())
                 .succeeded()).isTrue();
@@ -70,7 +76,7 @@ class AzureStorageDataSinkFactoryTest {
     void validate_whenMissingAccountName_fails() {
         assertThat(factory.validate(request.destinationDataAddress(dataAddress
                                 .property(AzureBlobStoreSchema.CONTAINER_NAME, containerName)
-                                .property(AzureBlobStoreSchema.SHARED_KEY, sharedKey)
+                                .keyName(keyName)
                                 .build())
                         .build())
                 .failed()).isTrue();
@@ -80,17 +86,7 @@ class AzureStorageDataSinkFactoryTest {
     void validate_whenMissingContainerName_fails() {
         assertThat(factory.validate(request.destinationDataAddress(dataAddress
                                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)
-                                .property(AzureBlobStoreSchema.SHARED_KEY, sharedKey)
-                                .build())
-                        .build())
-                .failed()).isTrue();
-    }
-
-    @Test
-    void validate_whenMissingSharedKey_fails() {
-        assertThat(factory.validate(request.destinationDataAddress(dataAddress
-                                .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)
-                                .property(AzureBlobStoreSchema.CONTAINER_NAME, containerName)
+                                .keyName(keyName)
                                 .build())
                         .build())
                 .failed()).isTrue();
@@ -98,10 +94,11 @@ class AzureStorageDataSinkFactoryTest {
 
     @Test
     void createSink_whenValidRequest_succeeds() {
+        when(vault.resolveSecret(keyName)).thenReturn(typeManager.writeValueAsString(token));
         var validRequest = request.destinationDataAddress(dataAddress
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)
                 .property(AzureBlobStoreSchema.CONTAINER_NAME, containerName)
-                .property(AzureBlobStoreSchema.SHARED_KEY, sharedKey)
+                .keyName(keyName)
                 .build());
         assertThat(factory.createSink(validRequest.build())).isNotNull();
     }

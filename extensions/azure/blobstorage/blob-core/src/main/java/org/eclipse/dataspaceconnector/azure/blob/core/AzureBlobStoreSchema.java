@@ -27,5 +27,4 @@ public class AzureBlobStoreSchema {
     public static final String CONTAINER_NAME = "container";
     public static final String ACCOUNT_NAME = "account";
     public static final String BLOB_NAME = "blobname";
-    public static final String SHARED_KEY = "sharedKey";
 }

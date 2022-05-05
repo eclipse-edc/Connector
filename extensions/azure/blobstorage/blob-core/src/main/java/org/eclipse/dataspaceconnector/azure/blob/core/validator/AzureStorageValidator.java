@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.azure.blob.core.validator;
 
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 
-import java.util.Base64;
 import java.util.regex.Pattern;
 
 
@@ -28,8 +27,6 @@ import java.util.regex.Pattern;
  * Azure documentation</a>.
  */
 public class AzureStorageValidator {
-    private static final Base64.Decoder DECODER = Base64.getDecoder();
-
     private static final int ACCOUNT_MIN_LENGTH = 3;
     private static final int ACCOUNT_MAX_LENGTH = 24;
     private static final int CONTAINER_MIN_LENGTH = 3;
@@ -42,7 +39,6 @@ public class AzureStorageValidator {
     private static final String ACCOUNT = "account";
     private static final String BLOB = "blob";
     private static final String CONTAINER = "container";
-    private static final String INVALID_KEY = "Storage Key is not a valid base64 encoded string";
     private static final String INVALID_RESOURCE_NAME = "Invalid %s name";
     private static final String INVALID_RESOURCE_NAME_LENGTH = "Invalid %s name length, the name must be between %s and %s characters long";
     private static final String RESOURCE_NAME_EMPTY = "Invalid %s name, the name may not be null, empty or blank";
@@ -91,23 +87,6 @@ public class AzureStorageValidator {
 
         if (slashCount >= 254) {
             throw new IllegalArgumentException(TOO_MANY_PATH_SEGMENTS);
-        }
-    }
-
-    /**
-     * Checks if a storage account shared key is in the expected format.
-     *
-     * @param accountKey A String representing the shared key to validate.
-     * @throws IllegalArgumentException if the string does not represent a value encoded in the expected format.
-     */
-    public static void validateSharedKey(String accountKey) {
-        if (StringUtils.isNullOrBlank(accountKey)) {
-            throw new IllegalArgumentException(INVALID_KEY);
-        }
-        try {
-            DECODER.decode(accountKey);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(INVALID_KEY);
         }
     }
 

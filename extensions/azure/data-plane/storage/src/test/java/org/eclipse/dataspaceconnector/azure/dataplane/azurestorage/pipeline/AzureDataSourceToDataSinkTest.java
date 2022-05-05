@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.TestFunctions.sharedAccessSignatureMatcher;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -52,7 +53,7 @@ class AzureDataSourceToDataSinkTest {
     String sourceSharedKey = AzureStorageTestFixtures.createSharedKey();
     String sinkAccountName = AzureStorageTestFixtures.createAccountName();
     String sinkContainerName = AzureStorageTestFixtures.createContainerName();
-    String sinkSharedKey = AzureStorageTestFixtures.createSharedKey();
+    String sinkSharedAccessSignature = AzureStorageTestFixtures.createSharedAccessSignature();
     String requestId = UUID.randomUUID().toString();
     String errorMessage = faker.lorem().sentence();
 
@@ -82,22 +83,22 @@ class AzureDataSourceToDataSinkTest {
 
         var fakeSinkFactory = mock(BlobStoreApi.class);
         when(fakeSinkFactory.getBlobAdapter(
-                sinkAccountName,
-                sinkContainerName,
-                fakeSource.name,
-                sinkSharedKey
+                eq(sinkAccountName),
+                eq(sinkContainerName),
+                eq(fakeSource.name),
+                sharedAccessSignatureMatcher(sinkSharedAccessSignature)
         )).thenReturn(fakeSink);
         when(fakeSinkFactory.getBlobAdapter(
                 eq(sinkAccountName),
                 eq(sinkContainerName),
                 argThat(name -> name.endsWith(".complete")),
-                eq(sinkSharedKey)
+                sharedAccessSignatureMatcher(sinkSharedAccessSignature)
         )).thenReturn(fakeCompletionMarker);
 
         var dataSink = AzureStorageDataSink.Builder.newInstance()
                 .accountName(sinkAccountName)
                 .containerName(sinkContainerName)
-                .sharedKey(sinkSharedKey)
+                .sharedAccessSignature(sinkSharedAccessSignature)
                 .requestId(requestId)
                 .blobStoreApi(fakeSinkFactory)
                 .executorService(executor)
@@ -141,16 +142,16 @@ class AzureDataSourceToDataSinkTest {
 
         var fakeSinkFactory = mock(BlobStoreApi.class);
         when(fakeSinkFactory.getBlobAdapter(
-                sinkAccountName,
-                sinkContainerName,
-                fakeSource.name,
-                sinkSharedKey
+                eq(sinkAccountName),
+                eq(sinkContainerName),
+                eq(fakeSource.name),
+                sharedAccessSignatureMatcher(sinkSharedAccessSignature)
         )).thenReturn(fakeSink);
 
         var dataSink = AzureStorageDataSink.Builder.newInstance()
                 .accountName(sinkAccountName)
                 .containerName(sinkContainerName)
-                .sharedKey(sinkSharedKey)
+                .sharedAccessSignature(sinkSharedAccessSignature)
                 .requestId(requestId)
                 .blobStoreApi(fakeSinkFactory)
                 .executorService(executor)
@@ -198,7 +199,7 @@ class AzureDataSourceToDataSinkTest {
         var dataSink = AzureStorageDataSink.Builder.newInstance()
                 .accountName(sinkAccountName)
                 .containerName(sinkContainerName)
-                .sharedKey(sinkSharedKey)
+                .sharedAccessSignature(sinkSharedAccessSignature)
                 .requestId(requestId)
                 .blobStoreApi(fakeSinkFactory)
                 .executorService(executor)
