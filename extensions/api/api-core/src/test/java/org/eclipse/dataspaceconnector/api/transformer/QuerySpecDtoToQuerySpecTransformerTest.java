@@ -40,7 +40,7 @@ class QuerySpecDtoToQuerySpecTransformerTest {
                 .offset(10)
                 .limit(20)
                 .filter("field=value")
-                .sortOrder("DESC")
+                .sortOrder(SortOrder.DESC)
                 .sortField("field")
                 .build();
 

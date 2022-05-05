@@ -16,12 +16,9 @@ package org.eclipse.dataspaceconnector.api.transformer;
 
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Optional;
 
 public class QuerySpecDtoToQuerySpecTransformer implements DtoTransformer<QuerySpecDto, QuerySpec> {
 
@@ -37,13 +34,12 @@ public class QuerySpecDtoToQuerySpecTransformer implements DtoTransformer<QueryS
 
     @Override
     public @Nullable QuerySpec transform(@Nullable QuerySpecDto object, @NotNull TransformerContext context) {
-        var sortOrder = Optional.of(object).map(QuerySpecDto::getSortOrder).map(SortOrder::valueOf).orElse(SortOrder.ASC);
         return QuerySpec.Builder.newInstance()
                 .limit(object.getLimit())
                 .offset(object.getOffset())
                 .filter(object.getFilter())
                 .sortField(object.getSortField())
-                .sortOrder(sortOrder)
+                .sortOrder(object.getSortOrder())
                 .build();
     }
 }

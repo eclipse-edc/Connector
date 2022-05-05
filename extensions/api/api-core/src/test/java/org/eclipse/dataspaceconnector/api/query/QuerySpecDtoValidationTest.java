@@ -43,15 +43,6 @@ class QuerySpecDtoValidationTest {
     }
 
     @Test
-    void sortOrderShouldBeValid() {
-        var querySpec = QuerySpecDto.Builder.newInstance().sortOrder("WRONG").build();
-
-        var result = validator.validate(querySpec);
-
-        assertThat(result).isNotEmpty();
-    }
-
-    @Test
     void limitShouldBeGreaterThanZero() {
         var querySpec = QuerySpecDto.Builder.newInstance().limit(0).build();
 

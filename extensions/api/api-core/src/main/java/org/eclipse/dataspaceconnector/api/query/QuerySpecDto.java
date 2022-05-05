@@ -34,7 +34,7 @@ public class QuerySpecDto {
     private String filter;
 
     @QueryParam("sort")
-    private String sortOrder = "ASC";
+    private SortOrder sortOrder = SortOrder.ASC;
 
     @QueryParam("sortField")
     private String sortField;
@@ -55,7 +55,7 @@ public class QuerySpecDto {
         return filter;
     }
 
-    public String getSortOrder() {
+    public SortOrder getSortOrder() {
         return sortOrder;
     }
 
@@ -71,14 +71,6 @@ public class QuerySpecDto {
 
         if (sortField != null && sortField.isBlank()) {
             return false;
-        }
-
-        if (sortOrder != null) {
-            try {
-                SortOrder.valueOf(sortOrder);
-            } catch (IllegalArgumentException e) {
-                return false;
-            }
         }
 
         return true;
@@ -105,7 +97,7 @@ public class QuerySpecDto {
             return this;
         }
 
-        public Builder sortOrder(String sortOrder) {
+        public Builder sortOrder(SortOrder sortOrder) {
             querySpec.sortOrder = sortOrder;
             return this;
         }

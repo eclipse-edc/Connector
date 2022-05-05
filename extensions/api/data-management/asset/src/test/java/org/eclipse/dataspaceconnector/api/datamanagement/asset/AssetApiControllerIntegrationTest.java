@@ -88,7 +88,7 @@ public class AssetApiControllerIntegrationTest {
     @Test
     void getAll_invalidQuery() {
         baseRequest()
-                .get("/assets?limit=0&offset=-1&filter=&sort=ANY&sortField=")
+                .get("/assets?limit=0&offset=-1&filter=&sortField=")
                 .then()
                 .statusCode(400);
     }

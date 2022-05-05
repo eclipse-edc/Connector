@@ -45,6 +45,9 @@ paths:
         explode: true
         schema:
           type: string
+          enum:
+          - ASC
+          - DESC
       - name: sortField
         in: query
         required: false
@@ -445,6 +448,9 @@ paths:
         explode: true
         schema:
           type: string
+          enum:
+          - ASC
+          - DESC
       - name: sortField
         in: query
         required: false
@@ -559,6 +565,9 @@ paths:
         explode: true
         schema:
           type: string
+          enum:
+          - ASC
+          - DESC
       - name: sortField
         in: query
         required: false
@@ -747,6 +756,9 @@ paths:
         explode: true
         schema:
           type: string
+          enum:
+          - ASC
+          - DESC
       - name: sortField
         in: query
         required: false
@@ -850,6 +862,9 @@ paths:
         explode: true
         schema:
           type: string
+          enum:
+          - ASC
+          - DESC
       - name: sortField
         in: query
         required: false
@@ -958,6 +973,9 @@ paths:
         explode: true
         schema:
           type: string
+          enum:
+          - ASC
+          - DESC
       - name: sortField
         in: query
         required: false
