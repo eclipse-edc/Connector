@@ -87,7 +87,7 @@ public class InMemoryDidDocumentStore implements DidStore {
         private final Instant createTime = Instant.now();
         private final T payload;
 
-        public Entity(T payload) {
+        Entity(T payload) {
             this.payload = payload;
         }
 

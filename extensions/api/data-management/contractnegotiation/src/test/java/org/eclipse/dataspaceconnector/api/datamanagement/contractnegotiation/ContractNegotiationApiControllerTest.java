@@ -29,7 +29,6 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
@@ -178,7 +177,7 @@ class ContractNegotiationApiControllerTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .protocol("protocol")
-                .offerId(createOffer("offerId"))
+                .offer(createOffer("offerId"))
                 .build();
 
         var negotiationId = controller.initiateContractNegotiation(request);
@@ -193,7 +192,7 @@ class ContractNegotiationApiControllerTest {
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .protocol("protocol")
-                .offerId(createOffer("offerId"))
+                .offer(createOffer("offerId"))
                 .build();
         when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("failure"));
 
@@ -255,7 +254,7 @@ class ContractNegotiationApiControllerTest {
                 .connectorAddress(connectorAddress)
                 .connectorId(connectorId)
                 .protocol(protocol)
-                .offerId(createOffer(offerId))
+                .offer(createOffer(offerId))
                 .build();
         assertThatThrownBy(() -> controller.initiateContractNegotiation(rq)).isInstanceOf(IllegalArgumentException.class);
     }

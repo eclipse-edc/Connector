@@ -21,9 +21,9 @@ import static io.gatling.javaapi.core.CoreDsl.global;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
-import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.API_KEY_CONTROL_AUTH;
 import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.CONSUMER_ASSET_PATH;
-import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.CONSUMER_CONNECTOR_HOST;
+import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.CONSUMER_CONNECTOR_MANAGEMENT_URL;
+import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.CONSUMER_MANAGEMENT_PATH;
 import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.PROVIDER_IDS_API;
 import static org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils.DESCRIPTION;
 import static org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils.contractNegotiationAndFileTransfer;
@@ -43,12 +43,9 @@ public class FileTransferLocalSimulation extends Simulation {
 
         setUp(scenario(DESCRIPTION)
                 .repeat(REPEAT)
-                .on(
-                        contractNegotiationAndFileTransfer(PROVIDER_IDS_API, CONSUMER_ASSET_PATH, API_KEY_CONTROL_AUTH)
-                )
+                .on(contractNegotiationAndFileTransfer(PROVIDER_IDS_API, CONSUMER_ASSET_PATH))
                 .injectOpen(atOnceUsers(AT_ONCE_USERS)))
-                .protocols(http
-                        .baseUrl(CONSUMER_CONNECTOR_HOST))
+                .protocols(http.baseUrl(CONSUMER_CONNECTOR_MANAGEMENT_URL + "/" + CONSUMER_MANAGEMENT_PATH))
                 .assertions(
                         global().responseTime().max().lt(MAX_RESPONSE_TIME),
                         global().successfulRequests().percent().is(SUCCESS_PERCENTAGE)

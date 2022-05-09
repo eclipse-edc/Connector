@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.metadata.memory;
 
 import org.assertj.core.api.Assertions;
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;

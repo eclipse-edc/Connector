@@ -31,10 +31,8 @@ import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.CoreMatchers.is;
-import static org.mockito.Mockito.mock;
 
 @ExtendWith(EdcExtension.class)
 public class ContractAgreementApiControllerIntegrationTest {

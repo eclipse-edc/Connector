@@ -17,20 +17,22 @@ package org.eclipse.dataspaceconnector.transfer.dataplane.core;
 import org.eclipse.dataspaceconnector.common.token.TokenGenerationServiceImpl;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformer;
-import org.eclipse.dataspaceconnector.transfer.dataplane.core.proxy.DataPlaneProxyManagerImpl;
+import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformerRegistry;
 import org.eclipse.dataspaceconnector.transfer.dataplane.core.proxy.DataPlaneProxyTokenGeneratorImpl;
+import org.eclipse.dataspaceconnector.transfer.dataplane.core.proxy.DataPlaneTransferConsumerProxyTransformer;
+import org.eclipse.dataspaceconnector.transfer.dataplane.core.proxy.DataPlaneTransferProxyCreatorImpl;
 import org.eclipse.dataspaceconnector.transfer.dataplane.core.security.NoopDataEncrypter;
-import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyManager;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTransferProxyCreator;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.security.DataEncrypter;
 
 import java.security.PrivateKey;
 import java.util.concurrent.TimeUnit;
 
-@Provides({DataEncrypter.class, DataPlaneProxyManager.class})
+@Provides({DataEncrypter.class, DataPlaneTransferProxyCreator.class})
 public class DataPlaneTransferCoreExtension implements ServiceExtension {
 
     @EdcSetting
@@ -42,6 +44,9 @@ public class DataPlaneTransferCoreExtension implements ServiceExtension {
 
     @EdcSetting
     private static final String TOKEN_SIGNER_PRIVATE_KEY_ALIAS = "edc.transfer.dataplane.token.signer.privatekey.alias";
+
+    @Inject
+    private EndpointDataReferenceTransformerRegistry transformerRegistry;
 
     @Override
     public String name() {
@@ -62,8 +67,10 @@ public class DataPlaneTransferCoreExtension implements ServiceExtension {
         context.registerService(DataEncrypter.class, encrypter);
 
         var dataPlaneProxyTokenGenerator = new DataPlaneProxyTokenGeneratorImpl(context.getTypeManager(), encrypter, tokenGenerationService, tokenValidity);
-        var proxyManager = new DataPlaneProxyManagerImpl(endpoint, dataPlaneProxyTokenGenerator);
-        context.registerService(DataPlaneProxyManager.class, proxyManager);
-        context.registerService(EndpointDataReferenceTransformer.class, proxyManager);
+        var proxyCreator = new DataPlaneTransferProxyCreatorImpl(endpoint, dataPlaneProxyTokenGenerator);
+        context.registerService(DataPlaneTransferProxyCreator.class, proxyCreator);
+
+        var consumerProxyTransformer = new DataPlaneTransferConsumerProxyTransformer(proxyCreator);
+        transformerRegistry.registerTransformer(consumerProxyTransformer);
     }
 }

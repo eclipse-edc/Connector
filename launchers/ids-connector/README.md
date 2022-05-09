@@ -20,24 +20,25 @@ for one, you can set up and configure a local DAPS instance for testing. To do s
 The following modules are used for this launcher:
 
 ### Core
-| Name | Description |
-| ---- | ----------- |
+| Name | Description                                                                                                   |
+|------|---------------------------------------------------------------------------------------------------------------|
 | core | all core modules, including e.g. the BaseRuntime as well as the modules for transfer and contract negotiation |
 
 ### Extensions
 
-| Name | Description |
-| ---- | ----------- |
-| extensions:in-memory:transfer-store-memory | store for persisting `TransferProcesses` |
-| extensions:in-memory:assetindex-memory | store for persisting `Assets` | 
-| extensions:in-memory:negotiation-store-memory | store for persisting `ContractNegotiations` | 
-| extensions:in-memory:contractdefinition-store-memory | store for persisting `ContractDefinitions` | 
-| extensions:data-protocols:ids | contains all IDS modules, e.g. for dispatching and handling IDS multipart messages | 
-| extensions:filesystem:configuration-fs | reads configuration properties from a file in the file-system | 
-| extensions:filesystem:vault-fs | file-system based vault, required for using a certificate from the file-system | 
-| extensions:iam:oauth2:oauth2-core | provides OAuth2 authentication, required as DAPS is OAuth2 based | 
-| extensions:iam:daps | provides the DAPS specific extension for OAuth2 | 
-| extensions:api:control | provides endpoints e.g. for initiating a contract negotiation or a data transfer |
+| Name                                                 | Description                                                                        |
+|------------------------------------------------------|------------------------------------------------------------------------------------|
+| extensions:in-memory:transfer-store-memory           | store for persisting `TransferProcesses`                                           |
+| extensions:in-memory:assetindex-memory               | store for persisting `Assets`                                                      | 
+| extensions:in-memory:negotiation-store-memory        | store for persisting `ContractNegotiations`                                        | 
+| extensions:in-memory:contractdefinition-store-memory | store for persisting `ContractDefinitions`                                         | 
+| extensions:in-memory:policy-store-memory             | store for persisting `Policies`                                         | 
+| extensions:data-protocols:ids                        | contains all IDS modules, e.g. for dispatching and handling IDS multipart messages | 
+| extensions:filesystem:configuration-fs               | reads configuration properties from a file in the file-system                      | 
+| extensions:filesystem:vault-fs                       | file-system based vault, required for using a certificate from the file-system     | 
+| extensions:iam:oauth2:oauth2-core                    | provides OAuth2 authentication, required as DAPS is OAuth2 based                   | 
+| extensions:iam:daps                                  | provides the DAPS specific extension for OAuth2                                    | 
+| extensions:api:data-management                       | provides endpoints e.g. for initiating a contract negotiation or a data transfer   |
 
 All stores used in this launcher are in-memory implementations, meaning **all data will be lost 
 once the connector is shut down**. If you want data to be persisted even after the connector shuts 
@@ -57,10 +58,8 @@ this launcher's directory. Please adjust this for your setup as follows:
 * `ids.webhook.address`: Set this to the address at which another connector can reach your connector, 
   as it is used as a callback address during the contract negotiation, where messages are exchanged 
   asynchronously. If you change the IDS API port, make sure to adjust the webhook address accordingly.
-* `edc.api.control.auth.apikey.key`: Name of the header used for authentication when calling 
-  endpoints of the control API.
-* `edc.api.control.auth.apikey.value`: Value of the header used for authentication when calling 
-  endpoints of the control API.
+* `edc.api.auth.key`: Value of the header used for authentication when calling 
+  endpoints of the data management API.
 * `edc.oauth.token.url`: Set this to the URL of the DAPS you want to use followed by `/token` or 
   `/v2/token`, depending on the DAPS used.
 * `edc.oauth.client.id`: Identifier from the certificate for the DAPS. You can find instructions on 

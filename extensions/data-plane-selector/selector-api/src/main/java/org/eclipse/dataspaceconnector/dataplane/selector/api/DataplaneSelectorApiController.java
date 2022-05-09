@@ -47,7 +47,6 @@ public class DataplaneSelectorApiController implements DataplaneSelectorApi {
         }
     }
 
-
     @POST
     public void addEntry(DataPlaneInstance instance) {
         selectionService.addInstance(instance);

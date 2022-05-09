@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.transfer.provision.http.webhook;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -44,14 +46,7 @@ public class HttpProvisionerWebhookApiController implements HttpProvisionerWebho
     @Override
     @POST
     @Path("/{processId}/provision")
-    public void callProvisionWebhook(@PathParam("processId") String transferProcessId, ProvisionerWebhookRequest request) {
-
-        Objects.requireNonNull(request);
-        Objects.requireNonNull(request.getAssetId());
-        Objects.requireNonNull(request.getContentDataAddress());
-        Objects.requireNonNull(request.getResourceName());
-        Objects.requireNonNull(transferProcessId);
-        Objects.requireNonNull(request.getResourceDefinitionId());
+    public void callProvisionWebhook(@PathParam("processId") @NotNull String transferProcessId, @Valid ProvisionerWebhookRequest request) {
 
         var cr = HttpProvisionedContentResource.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
@@ -76,7 +71,7 @@ public class HttpProvisionerWebhookApiController implements HttpProvisionerWebho
     @Override
     @POST
     @Path("/{processId}/deprovision")
-    public void callDeprovisionWebhook(@PathParam("processId") String transferProcessId, DeprovisionedResource resource) {
+    public void callDeprovisionWebhook(@PathParam("processId") @NotNull String transferProcessId, @Valid DeprovisionedResource resource) {
 
         Objects.requireNonNull(resource);
         Objects.requireNonNull(resource.getProvisionedResourceId());

@@ -51,3 +51,5 @@ launchers/demo-e2e/edc-config.properties
 *.hprof
 samples/other/file-transfer-http-to-http/deployment
 java.config
+resources/charts/values.default.yaml
+resources/charts/values.develop.yaml

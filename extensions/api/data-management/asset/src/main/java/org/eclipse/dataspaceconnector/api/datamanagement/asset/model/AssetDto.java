@@ -17,11 +17,13 @@ package org.eclipse.dataspaceconnector.api.datamanagement.asset.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.Map;
 
 @JsonDeserialize(builder = AssetDto.Builder.class)
 public class AssetDto {
+    @NotNull(message = "properties cannot be null")
     private Map<String, Object> properties;
 
     private AssetDto() {

@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition;
 
+import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -32,7 +33,6 @@ import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -44,30 +44,26 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
-@Consumes({ MediaType.APPLICATION_JSON })
-@Produces({ MediaType.APPLICATION_JSON })
 @Path("/contractdefinitions")
 public class ContractDefinitionApiController implements ContractDefinitionApi {
     private final Monitor monitor;
     private final ContractDefinitionService service;
-    private final PolicyStore policyStore;
     private final DtoTransformerRegistry transformerRegistry;
 
-    public ContractDefinitionApiController(Monitor monitor, ContractDefinitionService service, PolicyStore policyStore,
-            DtoTransformerRegistry transformerRegistry) {
+    public ContractDefinitionApiController(Monitor monitor, ContractDefinitionService service, DtoTransformerRegistry transformerRegistry) {
         this.monitor = monitor;
         this.service = service;
-        this.policyStore = policyStore;
         this.transformerRegistry = transformerRegistry;
     }
 
     @GET
+    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public List<ContractDefinitionDto> getAllContractDefinitions(@QueryParam("offset") Integer offset,
-            @QueryParam("limit") Integer limit,
-            @QueryParam("filter") String filterExpression,
-            @QueryParam("sort") SortOrder sortOrder,
-            @QueryParam("sortField") String sortField) {
+                                                                 @QueryParam("limit") Integer limit,
+                                                                 @QueryParam("filter") String filterExpression,
+                                                                 @QueryParam("sort") SortOrder sortOrder,
+                                                                 @QueryParam("sortField") String sortField) {
         var spec = QuerySpec.Builder.newInstance()
                 .offset(offset)
                 .limit(limit)
@@ -85,6 +81,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
     @GET
     @Path("{id}")
+    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public ContractDefinitionDto getContractDefinition(@PathParam("id") String id) {
         monitor.debug(format("get contract definition with ID %s", id));
@@ -98,22 +95,16 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
     }
 
     @POST
+    @Consumes({ MediaType.APPLICATION_JSON })
     @Override
-    public void createContractDefinition(ContractDefinitionDto dto) {
+    public void createContractDefinition(@Valid ContractDefinitionDto dto) {
         monitor.debug("create new contract definition");
-        monitor.debug(dto.toString());
         var transformResult = transformerRegistry.transform(dto, ContractDefinition.class);
         if (transformResult.failed()) {
             throw new IllegalArgumentException("Request is not well formatted");
         }
-        ContractDefinition protoContractDefinition = transformResult.getContent();
 
-        ContractDefinition contractDefinition = ContractDefinition.Builder.newInstance()
-                .id(protoContractDefinition.getId())
-                .accessPolicy(policyStore.findById(dto.getAccessPolicyId()))
-                .contractPolicy(policyStore.findById(dto.getContractPolicyId()))
-                .selectorExpression(protoContractDefinition.getSelectorExpression())
-                .build();
+        ContractDefinition contractDefinition = transformResult.getContent();
 
         var result = service.create(contractDefinition);
         if (result.succeeded()) {

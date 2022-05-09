@@ -28,7 +28,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformer;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
-import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyManager;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTransferProxyCreator;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.security.DataEncrypter;
 import org.eclipse.dataspaceconnector.transfer.dataplane.sync.api.controller.DataPlaneTransferSyncApiController;
 import org.eclipse.dataspaceconnector.transfer.dataplane.sync.api.resolver.SelfPublicKeyResolver;
@@ -57,7 +57,7 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
     private DataFlowManager dataFlowManager;
 
     @Inject
-    private DataPlaneProxyManager proxyManager;
+    private DataPlaneTransferProxyCreator proxyManager;
 
     @Inject
     private DataEncrypter encrypter;

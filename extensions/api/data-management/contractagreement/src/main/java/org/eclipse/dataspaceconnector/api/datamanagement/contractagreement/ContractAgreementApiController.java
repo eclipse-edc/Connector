@@ -15,7 +15,6 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractagreement;
 
-import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -38,8 +37,6 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
-@Consumes({ MediaType.APPLICATION_JSON })
-@Produces({ MediaType.APPLICATION_JSON })
 @Path("/contractagreements")
 public class ContractAgreementApiController implements ContractAgreementApi {
     private final Monitor monitor;
@@ -53,6 +50,7 @@ public class ContractAgreementApiController implements ContractAgreementApi {
     }
 
     @GET
+    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public List<ContractAgreementDto> getAllAgreements(@QueryParam("offset") Integer offset,
                                                        @QueryParam("limit") Integer limit,
@@ -76,6 +74,7 @@ public class ContractAgreementApiController implements ContractAgreementApi {
 
     @GET
     @Path("{id}")
+    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public ContractAgreementDto getContractAgreement(@PathParam("id") String id) {
         monitor.debug(format("get contract agreement with ID %s", id));

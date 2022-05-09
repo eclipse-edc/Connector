@@ -17,10 +17,13 @@ package org.eclipse.dataspaceconnector.api.datamanagement.asset.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import jakarta.validation.constraints.NotNull;
 
 @JsonDeserialize(builder = AssetEntryDto.Builder.class)
 public class AssetEntryDto {
+    @NotNull(message = "Asset cannot be null")
     private AssetDto asset;
+    @NotNull(message = "DataAddress cannot be null")
     private DataAddressDto dataAddress;
 
     private AssetEntryDto() {

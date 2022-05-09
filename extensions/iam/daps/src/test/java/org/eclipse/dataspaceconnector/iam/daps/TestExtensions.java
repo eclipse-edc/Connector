@@ -29,7 +29,7 @@ public class TestExtensions {
     private static class MockHttpExtension implements ServiceExtension {
         private final OkHttpClient client;
 
-        public MockHttpExtension(OkHttpClient client) {
+        MockHttpExtension(OkHttpClient client) {
             this.client = client;
         }
 

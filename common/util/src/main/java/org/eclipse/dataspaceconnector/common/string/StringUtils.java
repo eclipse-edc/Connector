@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.common.string;
 
-import java.util.List;
 import java.util.Objects;
 
 public class StringUtils {

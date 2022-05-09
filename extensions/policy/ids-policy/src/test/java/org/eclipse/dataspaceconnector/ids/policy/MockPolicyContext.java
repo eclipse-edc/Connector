@@ -25,7 +25,7 @@ class MockPolicyContext implements PolicyContext {
     private final ParticipantAgent agent;
     private final List<String> problems = new ArrayList<>();
 
-    public MockPolicyContext(ParticipantAgent agent) {
+    MockPolicyContext(ParticipantAgent agent) {
         this.agent = agent;
     }
 

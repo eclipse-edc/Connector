@@ -1,14 +1,15 @@
 /*
- * Copyright (c) 2022 ZF Friedrichshafen AG
+ *  Copyright (c) 2022 ZF Friedrichshafen AG
  *
- * This program and the accompanying materials are made available under the
- * terms of the Apache License, Version 2.0 which is available at
- * https://www.apache.org/licenses/LICENSE-2.0
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
  *
- * SPDX-License-Identifier: Apache-2.0
+ *  SPDX-License-Identifier: Apache-2.0
  *
- * Contributors:
- *    ZF Friedrichshafen AG - Initial API and Implementation
+ *  Contributors:
+ *       ZF Friedrichshafen AG - Initial API and Implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.api.datamanagement.policy.service;
@@ -53,8 +54,8 @@ public class PolicyServiceImpl implements PolicyService {
     @Override
     public @NotNull ServiceResult<Policy> deleteById(String policyId) {
 
-        var contractFilter = format("contractPolicy.uid = %s ", policyId);
-        var accessFilter = format("accessPolicy.uid = %s ", policyId);
+        var contractFilter = format("contractPolicyId = %s ", policyId);
+        var accessFilter = format("accessPolicyId = %s ", policyId);
 
         return transactionContext.execute(() -> {
 

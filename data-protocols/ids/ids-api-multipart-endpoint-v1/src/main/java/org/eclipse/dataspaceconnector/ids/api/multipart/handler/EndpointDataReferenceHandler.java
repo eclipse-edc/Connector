@@ -19,17 +19,16 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceReceiver;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceReceiverRegistry;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformer;
+import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceMessage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.dataspaceconnector.common.async.AsyncUtils.asyncAllOf;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.internalRecipientError;
 
 /**
@@ -41,18 +40,18 @@ public class EndpointDataReferenceHandler implements Handler {
     private final Monitor monitor;
     private final String connectorId;
     private final EndpointDataReferenceReceiverRegistry receiverRegistry;
-    private final EndpointDataReferenceTransformer transformer;
+    private final EndpointDataReferenceTransformerRegistry transformerRegistry;
     private final TypeManager typeManager;
 
     public EndpointDataReferenceHandler(@NotNull Monitor monitor,
                                         @NotNull String connectorId,
                                         @NotNull EndpointDataReferenceReceiverRegistry receiverRegistry,
-                                        @NotNull EndpointDataReferenceTransformer transformer,
+                                        @NotNull EndpointDataReferenceTransformerRegistry transformerRegistry,
                                         @NotNull TypeManager typeManager) {
         this.monitor = monitor;
         this.connectorId = connectorId;
         this.receiverRegistry = receiverRegistry;
-        this.transformer = transformer;
+        this.transformerRegistry = transformerRegistry;
         this.typeManager = typeManager;
     }
 
@@ -70,24 +69,15 @@ public class EndpointDataReferenceHandler implements Handler {
     @Override
     public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull ClaimToken claimToken) {
         var edr = typeManager.readValue(multipartRequest.getPayload(), EndpointDataReference.class);
-        var transformationResult = transformer.transform(edr);
+        var transformationResult = transformerRegistry.transform(edr);
         if (transformationResult.failed()) {
             monitor.severe("EDR transformation failed: " + String.join(", ", transformationResult.getFailureMessages()));
             return createErrorMultipartResponse(multipartRequest);
         }
 
         var transformedEdr = transformationResult.getContent();
-        var receiveResult = receiverRegistry.getAll().stream()
-                .map(receiver -> receiver.send(transformedEdr))
-                .collect(asyncAllOf())
-                .thenApply(results -> results.stream()
-                        .filter(Result::failed)
-                        .findFirst()
-                        .map(failed -> Result.failure(failed.getFailureMessages()))
-                        .orElse(Result.success("Successful operation")))
-                .exceptionally(throwable -> Result.failure("Unhandled exception raised when transferring data: " + throwable.getMessage()))
-                .join();
 
+        var receiveResult = receiverRegistry.receiveAll(transformedEdr).join();
         if (receiveResult.failed()) {
             monitor.severe("EDR dispatch failed: " + String.join(", ", receiveResult.getFailureMessages()));
             return createErrorMultipartResponse(multipartRequest);

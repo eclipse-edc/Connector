@@ -148,7 +148,7 @@ abstract class DecentralizedIdentityServiceTest {
         private String hubUrlDid;
         private JWK keyPair;
 
-        public TestResolverRegistry(String hubUrlDid, JWK keyPair) {
+        TestResolverRegistry(String hubUrlDid, JWK keyPair) {
             this.hubUrlDid = hubUrlDid;
             this.keyPair = keyPair;
         }

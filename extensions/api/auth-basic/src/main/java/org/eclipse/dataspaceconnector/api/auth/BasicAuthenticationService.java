@@ -111,7 +111,7 @@ public class BasicAuthenticationService implements AuthenticationService {
         String username;
         String password;
 
-        public BasicAuthCredentials(String username, String password) {
+        BasicAuthCredentials(String username, String password) {
             this.username = username;
             this.password = password;
         }

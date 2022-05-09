@@ -147,23 +147,18 @@ To negotiate a contract copy one of the contract offers into the statement below
 it is only possible to negotiate an _unchanged_ contract, so counter offers are not supported.
 
 ```bash
-curl --location --request POST 'http://localhost:9191/api/control/negotiation' \
+curl --location --request POST 'http://localhost:9192/api/v1/data/contractnegotiations' \
 --header 'X-API-Key: password' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-  "type": "INITIAL",
-  "protocol": "ids-multipart",
-  "connectorId": "1",
+  "connectorId": "provider",
   "connectorAddress": "http://localhost:8282/api/v1/ids/data",
-  "correlationId": null,
-  "contractOffer": { <Copy one of the contract offer from Step 2> },
-  "asset": "1",
-  "provider": "https://provider.com",
-  "consumer": "https://consumer.com",
-  "offerStart": null,
-  "offerEnd": null,
-  "contractStart": null,
-  "contractEnd": null
+  "protocol": "ids-multipart",
+  "offer": {
+    "offerId": "1:3a75736e-001d-4364-8bd4-9888490edb58",
+    "assetId": "1",
+    "policy": { <Copy one of the policy from contractoffer.json file in samples/04.0-file-transfer> }
+  }
 }'
 ```
 
@@ -174,8 +169,7 @@ The EDC will answer with the contract negotiation id. This id will be used in st
 To get the contract agreement id insert the negotiation id into the following statement end execute it.
 
 ```bash
-curl --location --request GET 'http://localhost:9191/api/control/negotiation/<NegotiationId>/state' \
---header 'X-API-Key: password'
+curl -X GET -H 'X-Api-Key: password' "http://localhost:9192/api/v1/data/contractnegotiations/{UUID}"
 ```
 
 The EDC will return the current state of the contract negotiation. When the negotiation is completed successfully,
@@ -186,14 +180,11 @@ the response will also contain an agreement id, that is required in the next ste
 To transfer data from the insert the contract agreement id from step 3 and execute the statement below.
 
 ```bash
-curl --location --request POST 'http://localhost:9191/api/control/transfer' \
+curl --location --request POST 'http://localhost:9191/api/v1/data/transferprocess' \
 --header 'X-API-Key: password' \
 --header 'Content-Type: application/json' \
 --data-raw '
 {
-  "edctype": "dataspaceconnector:datarequest",
-  "id": null,
-  "processId": null,
   "connectorAddress": "http://localhost:8282/api/v1/ids/data",
   "protocol": "ids-multipart",
   "connectorId": "consumer",
@@ -201,6 +192,7 @@ curl --location --request POST 'http://localhost:9191/api/control/transfer' \
   "contractId": "<ContractAgreementId>",
   "dataDestination": {
     "properties": {
+      "type": "AmazonS3",
       "region": "us-east-1"
     },
     "type": "AmazonS3"
@@ -209,7 +201,6 @@ curl --location --request POST 'http://localhost:9191/api/control/transfer' \
   "transferType": {
     "contentType": "application/octet-stream",
     "isFinite": true
-  },
-  "destinationType": "AmazonS3"
+  }
 }'
 ```

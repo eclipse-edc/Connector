@@ -1,0 +1,19 @@
+{
+  "protocol": "ids-multipart",
+  "assetId": "test-document",
+  "contractId": "1:d7a0183c-d19e-4ffd-a92f-46834501da33",
+  "dataDestination": {
+    "properties": {
+      "path": "d:/edc/consumer/test-document.txt",
+      "keyName": "keyName",
+      "type": "file"
+    }
+  },
+  "transferType": {
+    "contentType": "application/octet-stream",
+    "isFinite": true
+  },
+  "managedResources": false,
+  "connectorAddress": "http://localhost:8282/api/v1/ids/data",
+  "connectorId": "consumer"
+}

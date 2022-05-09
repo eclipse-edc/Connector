@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2021, 2022 Siemens AG
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package com.siemens.mindsphere.datalake.edc.http;
 
 import jakarta.ws.rs.Consumes;
@@ -40,12 +54,14 @@ public class ConsumerApiController {
         return "{\"response\":\"I'm alive!\"}";
     }
 
+    @Deprecated(since = "never used")
     @POST
     @Path("/transfer/data/request")
     public Response initiateDataRequest(DataRequest request) {
         if (request == null) {
             return Response.status(400).entity("data request cannot be null").build();
         }
+        //Not to be used
         request = request.copy(UUID.randomUUID().toString()); //assign random ID
         monitor.info("Received new data request, ID = " + request.getId());
         var result = processManager.initiateConsumerRequest(request);

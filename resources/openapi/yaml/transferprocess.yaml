@@ -15,7 +15,7 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            '*/*': {}
   /transferprocess/{id}/deprovision:
     post:
       tags:
@@ -31,7 +31,7 @@ paths:
         default:
           description: default response
           content:
-            application/json: {}
+            '*/*': {}
   /transferprocess:
     get:
       tags:
@@ -85,7 +85,7 @@ paths:
         default:
           description: default response
           content:
-            application/json:
+            text/plain:
               schema:
                 type: string
   /transferprocess/{id}:
@@ -121,7 +121,7 @@ paths:
         default:
           description: default response
           content:
-            application/json:
+            text/plain:
               schema:
                 type: string
 components:
@@ -156,6 +156,14 @@ components:
           additionalProperties:
             type: string
     TransferRequestDto:
+      required:
+      - assetId
+      - connectorAddress
+      - connectorId
+      - contractId
+      - dataDestination
+      - protocol
+      - transferType
       type: object
       properties:
         connectorAddress:

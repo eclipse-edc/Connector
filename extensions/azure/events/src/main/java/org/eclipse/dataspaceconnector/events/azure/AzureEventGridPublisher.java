@@ -33,7 +33,7 @@ class AzureEventGridPublisher implements TransferProcessListener {
     private final String eventTypeMetadata = "dataspaceconnector/metadata/store";
     private final String connectorId;
 
-    public AzureEventGridPublisher(String connectorId, Monitor monitor, EventGridPublisherAsyncClient<EventGridEvent> client) {
+    AzureEventGridPublisher(String connectorId, Monitor monitor, EventGridPublisherAsyncClient<EventGridEvent> client) {
         this.connectorId = connectorId;
         this.monitor = monitor;
         this.client = client;
