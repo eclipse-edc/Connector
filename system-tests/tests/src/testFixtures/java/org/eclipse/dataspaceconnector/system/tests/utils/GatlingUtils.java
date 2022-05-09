@@ -18,8 +18,6 @@ import io.gatling.app.Gatling;
 import io.gatling.core.config.GatlingPropertiesBuilder;
 import io.gatling.javaapi.core.Simulation;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Utilities for Gatling tests.
  */
@@ -40,8 +38,8 @@ public class GatlingUtils {
 
         var statusCode = Gatling.fromMap(props.build());
 
-        assertThat(statusCode)
-                .withFailMessage("Gatling Simulation failed")
-                .isEqualTo(0);
+        if (statusCode != 0) {
+            throw new AssertionError("Gatling Simulation failed");
+        }
     }
 }

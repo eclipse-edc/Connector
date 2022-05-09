@@ -10,6 +10,7 @@ in the detailed section referring to by linking pull requests or issues.
 ## [Unreleased]
 
 ### Overview
+
 * Bugfixing DataManagementApi
 * Build improvements
 * Improvements to Dependency Resolution
@@ -28,6 +29,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Add custom Jackson (de)serializer for `XMLGregorianCalendar` (#1226)
 * Add contract validation rule (#1239)
 * Harmonize setting names in `data-plane-transfer` (#1164)
+* Add component tests coverage to the codecov coverage report (#1246)
 
 #### Changed
 
@@ -38,6 +40,7 @@ in the detailed section referring to by linking pull requests or issues.
 * All DMgmt Api methods now produce and consume `APPLICATION_JSON` (#1175)
 * Make data-plane public api controller asynchronous (#1228)
 * Provide In-mem implementations by default (#1130)
+* Changed Catalog config keys and switched from minutes to seconds
 
 #### Removed
 
@@ -52,6 +55,8 @@ in the detailed section referring to by linking pull requests or issues.
 * Fix HTTPS termination in Jetty (#1133)
 * Break lease after TransferProcessManager status check (#1214)
 * Fix path conflicts between `CatalogApiController` and `FederatedCatalogApiController` (#1225)
+* Always use configured IDS API path in IDS webhook address (#1249)
+* Fix Azure storage transfer (#1245)
 
 ## [milestone-3] - 2022-04-08
 

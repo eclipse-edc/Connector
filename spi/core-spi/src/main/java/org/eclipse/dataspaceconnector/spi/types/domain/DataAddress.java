@@ -35,7 +35,7 @@ import java.util.Objects;
 @JsonDeserialize(builder = DataAddress.Builder.class)
 public class DataAddress {
     public static final String TYPE = "type";
-    private static final String KEYNAME = "keyName";
+    public static final String KEY_NAME = "keyName";
     private final Map<String, String> properties = new HashMap<>();
 
     private DataAddress() {
@@ -61,13 +61,13 @@ public class DataAddress {
     }
 
     public String getKeyName() {
-        return properties.get(KEYNAME);
+        return properties.get(KEY_NAME);
     }
 
     @JsonIgnore
     public void setKeyName(String keyName) {
         Objects.requireNonNull(keyName);
-        properties.put(KEYNAME, keyName);
+        properties.put(KEY_NAME, keyName);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -100,7 +100,7 @@ public class DataAddress {
         }
 
         public Builder keyName(String keyName) {
-            address.getProperties().put(KEYNAME, Objects.requireNonNull(keyName));
+            address.getProperties().put(KEY_NAME, Objects.requireNonNull(keyName));
             return this;
         }
 

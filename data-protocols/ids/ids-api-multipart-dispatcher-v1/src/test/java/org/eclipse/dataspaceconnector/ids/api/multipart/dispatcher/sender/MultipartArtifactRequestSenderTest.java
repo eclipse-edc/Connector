@@ -57,9 +57,8 @@ class MultipartArtifactRequestSenderTest {
         var identityService = mock(IdentityService.class);
         String connectorId = UUID.randomUUID().toString();
         transformerRegistry = mock(IdsTransformerRegistry.class);
-        idsWebhookAddress = UUID.randomUUID().toString();
-        idsApiPath = "/api/v1/ids";
-        sender = new MultipartArtifactRequestSender(connectorId, httpClient, mapper, monitor, vault, identityService, transformerRegistry, idsWebhookAddress, idsApiPath);
+        idsWebhookAddress = UUID.randomUUID() + "/api/v1/ids/data";
+        sender = new MultipartArtifactRequestSender(connectorId, httpClient, mapper, monitor, vault, identityService, transformerRegistry, idsWebhookAddress);
     }
 
     @Test
@@ -87,7 +86,7 @@ class MultipartArtifactRequestSenderTest {
                     assertThat(msg.getProperties())
                             .hasSize(request.getProperties().size() + 1)
                             .containsAllEntriesOf(request.getProperties())
-                            .containsEntry(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + "/api/v1/ids/data");
+                            .containsEntry(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress);
                 });
     }
 
