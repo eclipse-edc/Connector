@@ -43,7 +43,7 @@ The sequence starts from the client triggering the transfer on the consumer side
 10. The Provider DPF reads the data that needs to be transfered using an [AzureStorageDataSource](../../../../extensions/azure/data-plane/storage/src/main/java/org/eclipse/dataspaceconnector/azure/dataplane/azurestorage/pipeline/AzureStorageDataSource.java).  
 11. The Provider DPF writes the data to the destination blob so that the consumer can access the data.
 The [AzureStorageDataSink](../../../../extensions/azure/data-plane/storage/src/main/java/org/eclipse/dataspaceconnector/azure/dataplane/azurestorage/pipeline/AzureStorageDataSink.java) transfers the data to the blob destination.
-12. When the transfer is finished, the Provider DPF writes a blob called `.complete`.
+12. When the transfer is finished, the Provider DPF writes a blob called `.complete` to signal the completion.
 13. In the meantime, the client polls the transfer status regularly on the consumer endpoint `/transferprocess/<PROCESS_ID>/state`.  
 14. In the meantime, the consumer regularly checks if a blob named `.complete` exists in the container. Clients can poll the state using the `/transferprocess/<PROCESS_ID>/state` endpoint.
 When the `.complete` is found, the consumer persists the new transferProcess state.  
