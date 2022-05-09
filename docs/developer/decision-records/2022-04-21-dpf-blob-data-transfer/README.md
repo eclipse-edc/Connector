@@ -37,7 +37,7 @@ The sequence starts from the client triggering the transfer on the consumer side
 4. Consumer stores the SAS token in its Vault.
 5. Consumer sends an IDS message to the Provider, containing the information needed to transfer data to the destination container, including the asset id, the destination blob account and container name and the SAS token needed to write a blob to the container.  
 6. Provider stores the SAS token in its Vault (rather than in the request to DPF, so that the latter may be persisted in a future implementation without containing secrets).
-7. Provider initiates the blob transfer on the Provider DPF. The Provider DPF can be embedded or run in a separated runtime. If it runs on a separated runtime, the Provider initiates the transfer via an HTTP request.  
+7. Provider initiates the blob transfer on the Provider DPF. The Provider DPF can be embedded or run in a separated runtime. If it runs on a separated runtime, the Provider's control plane initiates the transfer via an HTTP request.  
 8. The Provider DPF gets the source storage account access key in the Provider Vault.  
 9. The Provider DPF gets the SAS token needed to write the blob to the consumer blob container.  
 10. The Provider DPF reads the data that needs to be transfered. The [AzureStorageDataSource](../../../../extensions/azure/data-plane/storage/src/main/java/org/eclipse/dataspaceconnector/azure/dataplane/azurestorage/pipeline/AzureStorageDataSource.java) provides the source data stream.  
