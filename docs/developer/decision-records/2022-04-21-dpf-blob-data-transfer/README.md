@@ -40,7 +40,7 @@ The sequence starts from the client triggering the transfer on the consumer side
 7. Provider initiates the blob transfer on the Provider DPF. The Provider DPF can be embedded or run in a separated runtime. If it runs on a separated runtime, the Provider's control plane initiates the transfer via an HTTP request.  
 8. The Provider DPF gets the source storage account access key in the Provider Vault.  
 9. The Provider DPF gets the SAS token needed to write the blob to the consumer blob container.  
-10. The Provider DPF reads the data that needs to be transfered. The [AzureStorageDataSource](../../../../extensions/azure/data-plane/storage/src/main/java/org/eclipse/dataspaceconnector/azure/dataplane/azurestorage/pipeline/AzureStorageDataSource.java) provides the source data stream.  
+10. The Provider DPF reads the data that needs to be transfered using an [AzureStorageDataSource](../../../../extensions/azure/data-plane/storage/src/main/java/org/eclipse/dataspaceconnector/azure/dataplane/azurestorage/pipeline/AzureStorageDataSource.java).  
 11. The Provider DPF writes the data to the destination blob so that the consumer can access the data.
 The [AzureStorageDataSink](../../../../extensions/azure/data-plane/storage/src/main/java/org/eclipse/dataspaceconnector/azure/dataplane/azurestorage/pipeline/AzureStorageDataSink.java) transfers the data to the blob destination.
 12. When the transfer is finished, the Provider DPF writes a blob called `.complete`.
