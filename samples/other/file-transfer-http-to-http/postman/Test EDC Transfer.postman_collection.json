@@ -1,0 +1,1018 @@
+{
+	"info": {
+		"_postman_id": "19a30dd3-a375-4142-bd9a-968c4f1b07c0",
+		"name": "Test EDC Transfer",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "[1] Delete Asset",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function randomString(dataSet = 'abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ') {\r",
+							"    let length = 40, randomString = \"\";\r",
+							"    for (let i = 0; i < length; i++)\r",
+							"        randomString += dataSet.charAt(Math.floor(Math.random() * dataSet.length));\r",
+							"    return randomString;\r",
+							"}\r",
+							"\r",
+							"pm.globals.set(\"providerUrl\", \"http://localhost:8182\");\r",
+							"pm.globals.set(\"consumerUrl\", \"http://localhost:8181\");\r",
+							"pm.globals.set(\"idsUrl\", \"http://localhost:8282\");\r",
+							"\r",
+							"pm.globals.set(\"assetId\", \"1\");\r",
+							"pm.globals.set(\"policyUid\", randomString());\r",
+							"\r",
+							"pm.globals.set(\"numberOfRetriesLeftForNegotiation\", \"30\");\r",
+							"pm.globals.set(\"numberOfRetriesLeftForTransfer\", \"30\");\r",
+							"pm.globals.set(\"retryDelay\", \"1000\");\r",
+							"\r",
+							"pm.globals.set(\"sourcePath\", \"data/ten=castidev/data.csv\");\r",
+							"pm.globals.set(\"destinationPath\", \"sample2.csv\");\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "datasecret",
+							"type": "string"
+						},
+						{
+							"key": "in",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "X-Api-Key",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{providerUrl}}/api/v1/data/assets/{{assetId}}",
+					"host": [
+						"{{providerUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"data",
+						"assets",
+						"{{assetId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[2] Create Asset",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "datasecret",
+							"type": "string"
+						},
+						{
+							"key": "in",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "X-Api-Key",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"asset\": {\r\n        \"properties\": {\r\n            \"asset:prop:id\": \"{{assetId}}\",\r\n            \"asset:prop:name\": \"test\",\r\n            \"asset:prop:description\": \"\",\r\n            \"asset:prop:version\": \"0.1\",\r\n            \"asset:prop:contenttype\": \"http\"\r\n        }\r\n    },\r\n    \"dataAddress\": {\r\n        \"properties\": {\r\n            \"type\": \"http\",\r\n            \"keyName\": \"{{sourcePath}}\",\r\n            \"path\": \"{{sourcePath}}\"\r\n        }\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{providerUrl}}/api/v1/data/assets",
+					"host": [
+						"{{providerUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"data",
+						"assets"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[3] Get Assets",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let response = pm.response.json();\r",
+							"pm.test(\"Respone asset array has at least one element\", response.length >= 1);\r",
+							"\r",
+							"let foundId = false;\r",
+							"for (const asset of response) {\r",
+							"    if (asset.properties[\"asset:prop:id\"] == pm.globals.get(\"assetId\")) {\r",
+							"        foundId = true;\r",
+							"    }\r",
+							"}\r",
+							"pm.test(\"Found id of created asset\", foundId);\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "datasecret",
+							"type": "string"
+						},
+						{
+							"key": "in",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "X-Api-Key",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{providerUrl}}/api/v1/data/assets",
+					"host": [
+						"{{providerUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"data",
+						"assets"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[4] Delete Policy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "datasecret",
+							"type": "string"
+						},
+						{
+							"key": "in",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "X-Api-Key",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{providerUrl}}/api/v1/data/policies/{{policyUid}}",
+					"host": [
+						"{{providerUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"data",
+						"policies",
+						"{{policyUid}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[5] Create Policy",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log(\"Policy uid = \" + pm.globals.replaceIn(\"{{policyUid}}\"));"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "datasecret",
+							"type": "string"
+						},
+						{
+							"key": "in",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "X-Api-Key",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"uid\": \"{{policyUid}}\",\r\n    \"permissions\": [\r\n        {\r\n            \"edctype\": \"dataspaceconnector:permission\",\r\n            \"target\": \"{{assetId}}\",\r\n            \"action\": {\r\n                \"type\": \"USE\"\r\n            }\r\n        }\r\n    ],\r\n    \"target\": \"{{assetId}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{providerUrl}}/api/v1/data/policies",
+					"host": [
+						"{{providerUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"data",
+						"policies"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[6] Get Policy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let response = pm.response.json();\r",
+							"pm.test(\"Respone policy array has at least one element\", response.length >= 1);\r",
+							"\r",
+							"let foundId = false;\r",
+							"for (const policy of response) {\r",
+							"    if (policy.uid == pm.globals.get(\"policyUid\")) {\r",
+							"        foundId = true;\r",
+							"    }\r",
+							"}\r",
+							"pm.test(\"Found id of created policy\", foundId);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "datasecret",
+							"type": "string"
+						},
+						{
+							"key": "in",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "X-Api-Key",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{providerUrl}}/api/v1/data/policies/",
+					"host": [
+						"{{providerUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"data",
+						"policies",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[7] Delete Contract Definition",
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "datasecret",
+							"type": "string"
+						},
+						{
+							"key": "in",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "X-Api-Key",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{providerUrl}}/api/v1/data/contractdefinitions/{{policyUid}}",
+					"host": [
+						"{{providerUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"data",
+						"contractdefinitions",
+						"{{policyUid}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[8] Create Contract Definition",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "datasecret",
+							"type": "string"
+						},
+						{
+							"key": "in",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "X-Api-Key",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Acc",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"accessPolicyId\": \"{{policyUid}}\",\r\n  \"contractPolicyId\": \"{{policyUid}}\",\r\n  \"criteria\": [\r\n    {\r\n      \"left\": \"asset:prop:id\",\r\n      \"op\": \"=\",\r\n      \"right\": \"{{assetId}}\"\r\n    }\r\n  ],\r\n  \"id\": \"{{assetId}}\"\r\n}"
+				},
+				"url": {
+					"raw": "{{providerUrl}}/api/v1/data/contractdefinitions",
+					"host": [
+						"{{providerUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"data",
+						"contractdefinitions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[9] Get Contract Definitions",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let response = pm.response.json();\r",
+							"pm.test(\"Respone contract definition array has at least one element\", response.length >= 1);\r",
+							"\r",
+							"let foundId = false;\r",
+							"for (const contractDefinition of response) {\r",
+							"    if (contractDefinition.id == pm.globals.get(\"assetId\")) {\r",
+							"        foundId = true;\r",
+							"        pm.test(\"Access policy id matched the expected policy\", contractDefinition.accessPolicyId == pm.globals.get(\"policyUid\"));\r",
+							"        pm.test(\"Contract policy id matched the expected policy\", contractDefinition.contractPolicyId == pm.globals.get(\"policyUid\"));\r",
+							"    }\r",
+							"}\r",
+							"pm.test(\"Found id of created contract definition\", foundId);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "datasecret",
+							"type": "string"
+						},
+						{
+							"key": "in",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "X-Api-Key",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{providerUrl}}/api/v1/data/contractdefinitions",
+					"host": [
+						"{{providerUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"data",
+						"contractdefinitions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[10] Get Offers",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let response = pm.response.json();\r",
+							"pm.test(\"Respone offers array has at least one element\", response.length >= 1);\r",
+							"\r",
+							"let foundId = false;\r",
+							"for (const contractOffer of response.contractOffers) {\r",
+							"    if (contractOffer.asset.properties[\"asset:prop:id\"] == pm.globals.get(\"assetId\")) {\r",
+							"        foundId = true;\r",
+							"        pm.globals.set(\"contractOffer\", JSON.stringify(contractOffer));\r",
+							"    }\r",
+							"}\r",
+							"pm.test(\"Found contract offer for asset\", foundId);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "in",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "X-Api-Key",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{consumerUrl}}/api/control/catalog?provider={{idsUrl}}/api/v1/ids/data",
+					"host": [
+						"{{consumerUrl}}"
+					],
+					"path": [
+						"api",
+						"control",
+						"catalog"
+					],
+					"query": [
+						{
+							"key": "provider",
+							"value": "{{idsUrl}}/api/v1/ids/data"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[11] Negotiate Contract",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log(\"Contract offer = \" + pm.globals.get(\"contractOffer\"));"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response is not empty\", pm.response.text().length > 0);\r",
+							"pm.globals.set(\"negotiatedContract\", pm.response.text());\r",
+							"console.log(\"Negotiated contract = \" + pm.globals.get(\"negotiatedContract\"));\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "in",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "X-Api-Key",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"type\": \"INITIAL\",\r\n    \"protocol\": \"ids-multipart\",\r\n    \"connectorId\": \"1\",\r\n    \"connectorAddress\": \"{{idsUrl}}/api/v1/ids/data\",\r\n    \"correlationId\": null,\r\n    \"contractOffer\": {{contractOffer}},\r\n    \"asset\": \"e24e4acf-05c7-4b2d-9f44-393ded7c00b4\",\r\n    \"provider\": \"https://provider.com\",\r\n    \"consumer\": \"https://consumer.com\",\r\n    \"offerStart\": null,\r\n    \"offerEnd\": null,\r\n    \"contractStart\": null,\r\n    \"contractEnd\": null\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{consumerUrl}}/api/control/negotiation",
+					"host": [
+						"{{consumerUrl}}"
+					],
+					"path": [
+						"api",
+						"control",
+						"negotiation"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[12] Get Negotiation State",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"let response = pm.response.json();\r",
+							"if (response.status != \"CONFIRMED\") {\r",
+							"    var tries = parseInt(pm.globals.get(\"numberOfRetriesLeftForNegotiation\"), 10) - 1;\r",
+							"    pm.globals.set(\"numberOfRetriesLeftForNegotiation\", tries);\r",
+							"    console.log(\"numberOfRetriesLeftForNegotiation=\" + pm.globals.get(\"numberOfRetriesLeftForNegotiation\"));\r",
+							"    if (tries > 0) {\r",
+							"        setTimeout(function() {}, parseInt(pm.globals.get(\"retryDelay\"), 10));\r",
+							"        postman.setNextRequest(\"[12] Get Negotiation State\");\r",
+							"    }\r",
+							"} else {\r",
+							"    pm.test(\"Status is CONFIRMED\", pm.expect(response.status).to.eql(\"CONFIRMED\"));\r",
+							"    pm.globals.set(\"contractAgreementId\", response.contractAgreementId);\r",
+							"    console.log(\"Contract agreement id = \" + pm.globals.get(\"contractAgreementId\"));\r",
+							"}\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "in",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "X-Api-Key",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{consumerUrl}}/api/control/negotiation/{{negotiatedContract}}/state",
+					"host": [
+						"{{consumerUrl}}"
+					],
+					"path": [
+						"api",
+						"control",
+						"negotiation",
+						"{{negotiatedContract}}",
+						"state"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[13] Initiate Transfer",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response is not empty\", pm.response.text().length > 0);\r",
+							"pm.globals.set(\"transferProcessId\", pm.response.text());\r",
+							"console.log(\"Transfer process id = \" + pm.globals.get(\"transferProcessId\"));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"connectorAddress\": \"{{idsUrl}}/api/v1/ids/data\",\r\n  \"protocol\": \"ids-multipart\",\r\n  \"connectorId\": \"provider\",\r\n  \"assetId\": \"{{assetId}}\",\r\n  \"contractId\": \"{{contractAgreementId}}\",\r\n  \"dataDestination\": {\r\n    \"keyName\" : \"{{destinationPath}}\",\r\n    \"type\": \"http\",\r\n    \"properties\" : {\r\n        \"path\": \"{{destinationPath}}\"\r\n    }\r\n  },\r\n  \"managedResources\": true,\r\n  \"properties\": {},\r\n  \"transferType\": {\r\n    \"contentType\": \"application/octet-stream\",\r\n    \"isFinite\": true\r\n  },\r\n  \"destinationType\": \"Test Address Type\"\r\n}"
+				},
+				"url": {
+					"raw": "{{providerUrl}}/api/v1/data/transferprocess",
+					"host": [
+						"{{providerUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"data",
+						"transferprocess"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[14] Check Transfer Status",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"let response = pm.response.json();\r",
+							"if (response.state != \"ENDED\") {\r",
+							"    var tries = parseInt(pm.globals.get(\"numberOfRetriesLeftForTransfer\"), 10) - 1;\r",
+							"    pm.globals.set(\"numberOfRetriesLeftForTransfer\", tries);\r",
+							"    console.log(\"Transfer status = \" + response.state  + \", numberOfRetriesLeftForTransfer=\" + pm.globals.get(\"numberOfRetriesLeftForTransfer\"));\r",
+							"    if (tries > 0) {\r",
+							"        setTimeout(function() {}, parseInt(pm.globals.get(\"retryDelay\"), 10));\r",
+							"        postman.setNextRequest(\"[14] Check Transfer Status\");\r",
+							"    }\r",
+							"} else {\r",
+							"    pm.test(\"Status is ENDED\", pm.expect(response.status).to.eql(\"ENDED\"));\r",
+							"}\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "datasecret",
+							"type": "string"
+						},
+						{
+							"key": "in",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "X-Api-Key",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{providerUrl}}/api/v1/data/transferprocess/{{transferProcessId}}",
+					"host": [
+						"{{providerUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"data",
+						"transferprocess",
+						"{{transferProcessId}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
