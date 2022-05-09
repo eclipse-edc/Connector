@@ -30,7 +30,6 @@ public class FileSystemResourceDefinitionGenerator implements ProviderResourceDe
         this.context = context;
     }
 
-    private static final String PATH = "path";
     private static final String EDC_ASSET_PATH = "edc.samples.04.asset.path";
 
     private Monitor monitor;

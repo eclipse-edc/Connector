@@ -1,1 +1,2 @@
 com.siemens.mindsphere.FileSystemExtension
+com.siemens.mindsphere.dataspaceconnector.extensions.api.HttpFileTransferExtension

@@ -23,9 +23,11 @@ plugins {
 
 val jupiterVersion: String by project
 val rsApi: String by project
+val openTelemetryVersion: String by project
 
 dependencies {
     implementation(project(":core"))
+    implementation(project(":core:transfer"))
 
     implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:in-memory:policy-store-memory"))
@@ -42,6 +44,23 @@ dependencies {
     implementation(project(":extensions:api:data-management"))
 
     implementation(project(":data-protocols:ids"))
+
+    implementation(project(":extensions:data-plane-transfer:data-plane-transfer-client"))
+    implementation(project(":extensions:data-plane-selector:selector-client"))
+    implementation(project(":extensions:data-plane-selector:selector-core"))
+    implementation(project(":extensions:data-plane-selector:selector-store"))
+    implementation(project(":extensions:data-plane:data-plane-framework"))
+    implementation(project(":extensions:data-plane:data-plane-http"))
+
+    implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
+
+    implementation(project(":extensions:data-plane:data-plane-spi"))
+    implementation(project(":extensions:in-memory:assetindex-memory"))
+    implementation(project(":extensions:in-memory:policy-store-memory"))
+
+    api(project(":extensions:dataloading"))
+
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
     implementation(project(":samples:04.0-file-transfer:transfer-file"))
 }

@@ -123,3 +123,25 @@ DEBUG 2022-05-03T13:21:13.0709799 Response received from connector. Status 200
 
 After the file transfer is completed, we can check the destination path specified in the request for the file. Here,
 we'll now find a file with the same content as the generated on the fly content offered by the provider.
+
+
+## Second test
+
+For the second test we will do download a http file locally by:
+* Using dataplane
+* Create source as http (custom type httpfile)
+* Create sink/destination as file (copy content to local file)
+* No need to use provisioning
+
+For this test we've prepared two new json sample files:
+* httpcontractoffer.json
+* httpfiletransfer.json
+
+The order of curl calls are the same:
+```bash
+curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/other/file-transfer-provisioning/httpcontractoffer.json "http://localhost:9192/api/v1/data/contractnegotiations"
+
+curl -X GET -H "Content-Type: application/json" -H "X-Api-Key: password"  "http://localhost:9192/api/v1/data/contractnegotiations"
+
+curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/other/file-transfer-provisioning/httpfiletransfer.json "http://localhost:9192/api/v1/data/transferprocess"
+```

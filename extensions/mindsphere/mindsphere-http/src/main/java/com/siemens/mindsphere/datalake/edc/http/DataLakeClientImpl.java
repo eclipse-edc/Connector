@@ -27,17 +27,17 @@ import java.net.URI;
 import java.net.URL;
 
 public class DataLakeClientImpl implements DataLakeClient {
-    public DataLakeClientImpl(URI dataLakeBaseUrl, OkHttpClient client, ObjectMapper objectMapper) {
+    public DataLakeClientImpl(URL dataLakeBaseUrl, OkHttpClient client, ObjectMapper objectMapper) {
         this.dataLakeBaseUrl = dataLakeBaseUrl;
         this.client = client;
         this.objectMapper = objectMapper;
     }
 
-    public DataLakeClientImpl(URI dataLakeBaseUrl) {
+    public DataLakeClientImpl(URL dataLakeBaseUrl) {
         this(dataLakeBaseUrl, new OkHttpClient(), new ObjectMapper());
     }
 
-    public DataLakeClientImpl(OauthClientDetails oauthClientDetails, URI dataLakeBaseUrl) {
+    public DataLakeClientImpl(OauthClientDetails oauthClientDetails, URL dataLakeBaseUrl) {
         this(dataLakeBaseUrl, new OkHttpClient(), new ObjectMapper());
         this.oauthClientDetails = oauthClientDetails;
     }
@@ -55,7 +55,7 @@ public class DataLakeClientImpl implements DataLakeClient {
 
     private OauthClientDetails oauthClientDetails;
 
-    private final URI dataLakeBaseUrl;
+    private final URL dataLakeBaseUrl;
 
     private final OkHttpClient client;
 
@@ -67,6 +67,8 @@ public class DataLakeClientImpl implements DataLakeClient {
     
     private static final String X_SPACE_AUTH_KEY = "X-SPACE-AUTH-KEY";
 
+    private static final String AUTHORIZATION = "authorization";
+
 
     @Override
     public URL getUrl(String path) throws DataLakeException {
@@ -77,13 +79,17 @@ public class DataLakeClientImpl implements DataLakeClient {
             }
             String accessToken = getAccessToken(extractedTenant);
             System.out.println("Access token: " + accessToken);
+            if (accessToken.contains("null")) {
+                throw new DataLakeException("Getting token failed");
+            }
 
             final SignUrlRequestContainerDto requestContainerDto = SignUrlRequestContainerDto.composeForSinglePath(path);
             final String payloadString = objectMapper.writeValueAsString(requestContainerDto);
             final RequestBody requestPayload = RequestBody.create(payloadString, MediaType.parse("application/json"));
             final Request request = new Request.Builder()
                     .method("POST", requestPayload)
-                    .url(dataLakeBaseUrl.resolve(DATA_LAKE_SIGN_REQ_URL).toURL())
+                    .url(dataLakeBaseUrl)
+                    .header(AUTHORIZATION, accessToken)
                     .build();
             final Response response = client.newCall(request).execute();
             System.out.println("Response code: " + response.code());

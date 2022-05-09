@@ -38,18 +38,18 @@ public class DataLakeExtension implements ServiceExtension {
 
     @EdcSetting
     private static final String TOKENMANAGEMENT_ADDRESS = "datalake.oauth.address";
+    
+    @EdcSetting
+    private static final String TOKENMANAGEMENT_CLIENT_ID = "datalake.oauth.client.id";
+    
+    @EdcSetting
+    private static final String TOKENMANAGEMENT_CLIENT_SECRET = "datalake.oauth.client.secret";
 
     @EdcSetting
-    private static final String TOKENMANAGEMENT_CLIENT_ID = "datalake.oauth.clientId";
+    private static final String TOKENMANAGEMENT_CLIENT_APP_NAME = "datalake.oauth.client.app.name";
 
     @EdcSetting
-    private static final String TOKENMANAGEMENT_CLIENT_SECRET = "datalake.oauth.clientSecret";
-
-    @EdcSetting
-    private static final String TOKENMANAGEMENT_CLIENT_APP_NAME = "datalake.oauth.clientAppName";
-
-    @EdcSetting
-    private static final String TOKENMANAGEMENT_CLIENT_APP_VERSION = "datalake.oauth.clientAppVersion";
+    private static final String TOKENMANAGEMENT_CLIENT_APP_VERSION = "datalake.oauth.client.app.version";
 
     @EdcSetting
     private static final String APPLICATION_TENANT = "datalake.tenant";
@@ -77,25 +77,30 @@ public class DataLakeExtension implements ServiceExtension {
         final String tokenmanagementAddress = context.getSetting(TOKENMANAGEMENT_ADDRESS, "");
         final String dataLakeAddress = context.getSetting(DATALAKE_ADDRESS, "");
 
-        final String applicationTenant = context.getSetting(APPLICATION_TENANT, "");
+        final String applicationTenant = context.getSetting(APPLICATION_TENANT, "presdev");
         final String snsTopicArn = context.getSetting(SNS_TOPIC_ARN, "");
        
+        System.out.println("datalake.oauth.clientId=" + tokenmanagementClientId);
+        System.out.println("datalake.oauth.clientSecret=" + tokenmanagementClientSecret);
+        System.out.println("datalake.tenant=" + applicationTenant);
+        System.out.println("datalake.address=" + dataLakeAddress);
 
-        final URI uri;
+        final URL url;
         try {
-            uri = new URL(destinationUrl).toURI();
+            url = new URL(dataLakeAddress);
             final OauthClientDetails oauthClientDetails = new OauthClientDetails(tokenmanagementClientId, tokenmanagementClientSecret,
             tokenmanagementClientAppName, tokenmanagementClientAppVersion, applicationTenant, new URL(tokenmanagementAddress));
-            DataLakeClientImpl clientImpl = new DataLakeClientImpl(oauthClientDetails, URI.create(dataLakeAddress));
+            DataLakeClientImpl clientImpl = new DataLakeClientImpl(oauthClientDetails, new URL(dataLakeAddress));
             DataLakeClientImpl.setInstance(clientImpl);
-            clientImpl.getUrl("{\"paths\":[{\"path\":\"data/ten=castidev/data.csv\"}]}");
-        } catch (MalformedURLException | URISyntaxException | DataLakeException e) {
+            URL createdUrl = clientImpl.getUrl("{\"paths\":[{\"path\":\"data/ten=castidev/data.csv\"}]}");
+            System.out.println("Created presigned url: " + createdUrl.toString());
+        } catch (MalformedURLException  | DataLakeException e) {
             e.printStackTrace();
             throw new IllegalArgumentException("Bad destination url given", e);
         }
 
         final DataLakeClient dataLakeClient;
-        dataLakeClient = new DataLakeClientImpl(uri);
+        dataLakeClient = new DataLakeClientImpl(url);
 
 
         // create Data Lake Reader
