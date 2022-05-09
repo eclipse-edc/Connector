@@ -48,6 +48,6 @@ The [AzureStorageDataSink](../../../../extensions/azure/data-plane/storage/src/m
 14. In the meantime, the consumer regularly checks if a blob named `.complete` exists in the container.
 When the `.complete` is found, the consumer persists the new transferProcess state.  
 15. When the transfer is finished, the client can read the blob.  
-16. Then, the client can call the Data Management API to destroy the data.  
+16. Then, the client can call the Data Management API to deprovision the transfer process by the following two steps.
 17. Consumer deletes the container containing the blob. The [ObjectStorageProvisioner](../../../../extensions/azure/blobstorage/blob-provision/src/main/java/org/eclipse/dataspaceconnector/provision/azure/blob/ObjectStorageProvisioner.java) is responsible for deprovisioning the container.
 18. Consumer deletes the SAS token in the Vault. The [TransferProcessManagerImpl](../../../../extensions/azure/blobstorage/blob-provision/src/main/java/org/eclipse/dataspaceconnector/transfer/core/transfer/TransferProcessManagerImpl.java) is responsible for deprovisioning the SAS token.
