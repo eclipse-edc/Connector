@@ -33,8 +33,6 @@ dependencies {
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(project(":core:base"))
     testImplementation(project(":core:contract"))
-    testImplementation(project(":extensions:sql:pool:apache-commons-pool-sql"))
-    testImplementation(project(":extensions:transaction:transaction-local"))
     testImplementation(testFixtures(project(":extensions:sql:lease-sql")))
     testImplementation("com.h2database:h2:${h2Version}")
     testImplementation("org.assertj:assertj-core:${assertj}")
