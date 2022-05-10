@@ -17,10 +17,10 @@ package org.eclipse.dataspaceconnector.transaction.local;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.transaction.local.LocalTransactionContextManager;
 
-import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import javax.sql.DataSource;
 
 /**
  * Default {@link DataSourceRegistry} implementation. This implementation is used to register both local and XA data sources so that they can be resolved by extensions.

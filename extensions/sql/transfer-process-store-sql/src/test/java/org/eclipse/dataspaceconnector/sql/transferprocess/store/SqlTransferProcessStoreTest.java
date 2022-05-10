@@ -22,8 +22,6 @@ import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegis
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
-import org.eclipse.dataspaceconnector.sql.datasource.ConnectionFactoryDataSource;
-import org.eclipse.dataspaceconnector.sql.datasource.ConnectionPoolDataSource;
 import org.eclipse.dataspaceconnector.sql.lease.LeaseUtil;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.AfterEach;
@@ -31,7 +29,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -40,6 +37,7 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
