@@ -53,3 +53,5 @@ samples/other/file-transfer-http-to-http/deployment
 java.config
 resources/charts/values.default.yaml
 resources/charts/values.develop.yaml
+resources/charts/values.develop.consumer.yaml
+resources/charts/values.develop.provider.yaml
