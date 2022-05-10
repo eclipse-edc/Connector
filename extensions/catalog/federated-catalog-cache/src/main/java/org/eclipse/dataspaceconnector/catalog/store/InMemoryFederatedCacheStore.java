@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.catalog.store;
 
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
+import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.CriterionConverter;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -33,20 +34,30 @@ public class InMemoryFederatedCacheStore implements FederatedCacheStore {
 
     private final Map<String, ContractOffer> cache = new ConcurrentHashMap<>();
     private final CriterionConverter<Predicate<ContractOffer>> converter;
+    private final LockManager lockManager;
 
-    public InMemoryFederatedCacheStore(CriterionConverter<Predicate<ContractOffer>> converter) {
+    public InMemoryFederatedCacheStore(CriterionConverter<Predicate<ContractOffer>> converter, LockManager lockManager) {
         this.converter = converter;
+        this.lockManager = lockManager;
     }
 
     @Override
     public void save(ContractOffer contractOffer) {
-        cache.put(contractOffer.getAsset().getId(), contractOffer);
+        lockManager.writeLock(() -> cache.put(contractOffer.getAsset().getId(), contractOffer));
     }
 
     @Override
     public Collection<ContractOffer> query(List<Criterion> query) {
         //AND all predicates
         var rootPredicate = query.stream().map(converter::convert).reduce(x -> true, Predicate::and);
-        return cache.values().stream().filter(rootPredicate).collect(Collectors.toList());
+        return lockManager.readLock(() -> cache.values().stream().filter(rootPredicate).collect(Collectors.toList()));
+    }
+
+    @Override
+    public void deleteAll() {
+        lockManager.writeLock(() -> {
+            cache.clear();
+            return null;
+        });
     }
 }

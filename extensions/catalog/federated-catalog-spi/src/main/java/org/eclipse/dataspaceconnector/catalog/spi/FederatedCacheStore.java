@@ -38,4 +38,9 @@ public interface FederatedCacheStore {
      */
     Collection<ContractOffer> query(List<Criterion> query);
 
+    /**
+     * Deletes all entries from the cache
+     */
+    void deleteAll();
+
 }
