@@ -5,8 +5,7 @@ on:
     workflows:
       - 'Test Code (Style, Tests)'
       - 'CodeQL'
-      - 'Integration Tests'
-    branches: [feature/transfer-from-mindsphere]
+    branches: [feature/transfer-from-mindsphere, master]
     types:
       - completed
 
