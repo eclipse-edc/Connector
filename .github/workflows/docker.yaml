@@ -1,13 +1,9 @@
 name: publish images to ecr
 
 on:
-  workflow_run:
-    workflows:
-      - 'Test Code (Style, Tests)'
-      - 'CodeQL'
-    branches: [feature/transfer-from-mindsphere, master]
-    types:
-      - completed
+  push:
+  pull_request:
+    branches: [ main ]
 
 jobs:
   Publish:
