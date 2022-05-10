@@ -72,6 +72,28 @@ public class AssetApiControllerIntegrationTest {
     }
 
     @Test
+    void getAllAssetsQuery(AssetLoader assetLoader) {
+        var asset = Asset.Builder.newInstance().id("id").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+        assetLoader.accept(asset, dataAddress);
+
+        baseRequest()
+                .get("/assets?limit=1&offset=0&filter=asset:prop:id=id&sort=DESC&sortField=properties.asset:prop:id")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(1));
+    }
+
+    @Test
+    void getAll_invalidQuery() {
+        baseRequest()
+                .get("/assets?limit=0&offset=-1&filter=&sortField=")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
     void getSingleAsset(AssetLoader assetLoader) {
         var asset = Asset.Builder.newInstance().id("id").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();

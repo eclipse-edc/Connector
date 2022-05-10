@@ -35,7 +35,6 @@ class ContractDefinitionDtoValidationTest {
 
     private Validator validator;
 
-
     @BeforeEach
     void setUp() {
         try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {

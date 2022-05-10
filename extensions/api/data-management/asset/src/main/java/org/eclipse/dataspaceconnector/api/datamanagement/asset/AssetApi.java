@@ -19,7 +19,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
-import org.eclipse.dataspaceconnector.spi.query.SortOrder;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 
 import java.util.List;
 
@@ -29,7 +29,7 @@ public interface AssetApi {
 
     void createAsset(@Valid AssetEntryDto assetEntryDto);
 
-    List<AssetDto> getAllAssets(Integer offset, Integer limit, String filterExpression, SortOrder sortOrder, String sortField);
+    List<AssetDto> getAllAssets(@Valid QuerySpecDto querySpecDto);
 
     AssetDto getAsset(String id);
 
