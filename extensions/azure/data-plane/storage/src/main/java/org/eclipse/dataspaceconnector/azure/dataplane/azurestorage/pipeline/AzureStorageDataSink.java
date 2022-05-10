@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline;
 
+import com.azure.core.credential.AzureSasCredential;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.ParallelSink;
@@ -35,7 +36,7 @@ public class AzureStorageDataSink extends ParallelSink {
 
     private String accountName;
     private String containerName;
-    private String sharedKey;
+    private String sharedAccessSignature;
     private BlobStoreApi blobStoreApi;
 
     /**
@@ -45,7 +46,7 @@ public class AzureStorageDataSink extends ParallelSink {
         for (DataSource.Part part : parts) {
             String blobName = part.name();
             try (var input = part.openStream()) {
-                try (var output = blobStoreApi.getBlobAdapter(accountName, containerName, blobName, sharedKey)
+                try (var output = blobStoreApi.getBlobAdapter(accountName, containerName, blobName, new AzureSasCredential(sharedAccessSignature))
                         .getOutputStream()) {
                     try {
                         input.transferTo(output);
@@ -66,7 +67,7 @@ public class AzureStorageDataSink extends ParallelSink {
     protected StatusResult<Void> complete() {
         try {
             // Write an empty blob to indicate completion
-            blobStoreApi.getBlobAdapter(accountName, containerName, COMPLETE_BLOB_NAME, sharedKey)
+            blobStoreApi.getBlobAdapter(accountName, containerName, COMPLETE_BLOB_NAME, new AzureSasCredential(sharedAccessSignature))
                     .getOutputStream().close();
         } catch (Exception e) {
             return getTransferResult(e, "Error creating blob %s on account %s", COMPLETE_BLOB_NAME, accountName);
@@ -100,8 +101,8 @@ public class AzureStorageDataSink extends ParallelSink {
             return this;
         }
 
-        public Builder sharedKey(String sharedKey) {
-            sink.sharedKey = sharedKey;
+        public Builder sharedAccessSignature(String sharedAccessSignature) {
+            sink.sharedAccessSignature = sharedAccessSignature;
             return this;
         }
 
@@ -113,7 +114,7 @@ public class AzureStorageDataSink extends ParallelSink {
         protected void validate() {
             Objects.requireNonNull(sink.accountName, "accountName");
             Objects.requireNonNull(sink.containerName, "containerName");
-            Objects.requireNonNull(sink.sharedKey, "sharedKey");
+            Objects.requireNonNull(sink.sharedAccessSignature, "sharedAccessSignature");
             Objects.requireNonNull(sink.blobStoreApi, "blobStoreApi");
         }
 

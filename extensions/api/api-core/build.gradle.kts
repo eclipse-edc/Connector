@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Daimler TSS GmbH
+ *  Copyright (c) 2021 - 2022 Daimler TSS GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,13 +9,13 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
-
-val infoModelVersion: String by project
-val rsApi: String by project
+val jakartaValidationApi: String by project
 val jerseyVersion: String by project
+val rsApi: String by project
 
 plugins {
     `java-library`
@@ -27,11 +27,13 @@ dependencies {
 
     implementation(project(":common:util"))
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+    implementation("jakarta.validation:jakarta.validation-api:${jakartaValidationApi}")
 
     testImplementation("org.glassfish.jersey.core:jersey-common:${jerseyVersion}")
     testImplementation("org.glassfish.jersey.core:jersey-server:${jerseyVersion}")
 
     testImplementation(testFixtures(project(":launchers:junit")))
+    testRuntimeOnly("org.glassfish.jersey.ext:jersey-bean-validation:${jerseyVersion}") //for validation
 }
 
 publishing {

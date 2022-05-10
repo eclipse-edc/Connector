@@ -22,12 +22,12 @@ import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.mod
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.service.ContractNegotiationService;
 import org.eclipse.dataspaceconnector.api.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
-import org.eclipse.dataspaceconnector.spi.query.SortOrder;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -75,31 +75,39 @@ class ContractNegotiationApiControllerTest {
         when(service.query(any())).thenReturn(List.of(contractNegotiation));
         var dto = ContractNegotiationDto.Builder.newInstance().id(contractNegotiation.getId()).build();
         when(transformerRegistry.transform(any(), eq(ContractNegotiationDto.class))).thenReturn(Result.success(dto));
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
+        var querySpec = QuerySpecDto.Builder.newInstance().build();
 
-        var negotiations = controller.getNegotiations(1, 10, "field=value", SortOrder.ASC, "field");
+        var negotiations = controller.getNegotiations(querySpec);
 
         assertThat(negotiations).hasSize(1).first().matches(d -> d.getId().equals(contractNegotiation.getId()));
+        verify(service).query(argThat(s -> s.getOffset() == 10));
         verify(transformerRegistry).transform(contractNegotiation, ContractNegotiationDto.class);
-        verify(service).query(argThat(s ->
-                s.getOffset() == 1 &&
-                        s.getLimit() == 10 &&
-                        s.getFilterExpression().size() == 1 &&
-                        s.getFilterExpression().get(0).equals(new Criterion("field", "=", "value")) &&
-                        s.getSortOrder().equals(SortOrder.ASC) &&
-                        s.getSortField().equals("field")
-        ));
+        verify(transformerRegistry).transform(isA(QuerySpecDto.class), eq(QuerySpec.class));
     }
 
     @Test
     void getAll_filtersOutFailedTransforms() {
         var contractNegotiation = createContractNegotiation("negotiationId");
         when(service.query(any())).thenReturn(List.of(contractNegotiation));
-        when(transformerRegistry.transform(isA(ContractNegotiation.class), eq(ContractNegotiationDto.class))).thenReturn(Result.failure("failure"));
+        when(transformerRegistry.transform(isA(ContractNegotiation.class), eq(ContractNegotiationDto.class)))
+                .thenReturn(Result.failure("failure"));
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
 
-        var negotiations = controller.getNegotiations(1, 10, "field=value", SortOrder.ASC, "field");
+        var negotiations = controller.getNegotiations(QuerySpecDto.Builder.newInstance().build());
 
         assertThat(negotiations).hasSize(0);
         verify(transformerRegistry).transform(contractNegotiation, ContractNegotiationDto.class);
+    }
+
+    @Test
+    void getAll_throwsExceptionIfQuerySpecTransformFails() {
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.failure("Cannot transform"));
+
+        assertThatThrownBy(() -> controller.getNegotiations(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

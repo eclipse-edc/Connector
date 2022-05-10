@@ -19,6 +19,7 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.common.token.TokenGenerationServiceImpl;
 import org.eclipse.dataspaceconnector.common.token.TokenValidationServiceImpl;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.identity.IdentityProviderKeyResolver;
+import org.eclipse.dataspaceconnector.iam.oauth2.core.identity.IdentityProviderKeyResolverConfiguration;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.identity.Oauth2ServiceImpl;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.jwt.DefaultJwtDecorator;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.jwt.Oauth2JwtDecoratorRegistryRegistryImpl;
@@ -37,14 +38,12 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Provides OAuth2 client credentials flow support.
  */
-@Provides({IdentityService.class, Oauth2JwtDecoratorRegistry.class, Oauth2ValidationRulesRegistry.class})
+@Provides({ IdentityService.class, Oauth2JwtDecoratorRegistry.class, Oauth2ValidationRulesRegistry.class })
 public class Oauth2Extension implements ServiceExtension {
 
     private static final long TOKEN_EXPIRATION = TimeUnit.MINUTES.toSeconds(5);
@@ -75,10 +74,6 @@ public class Oauth2Extension implements ServiceExtension {
 
     private IdentityProviderKeyResolver providerKeyResolver;
 
-    private long keyRefreshInterval;
-
-    private ScheduledExecutorService executorService;
-
     @Inject
     private OkHttpClient okHttpClient;
 
@@ -90,8 +85,9 @@ public class Oauth2Extension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var jwksUrl = context.getSetting(PROVIDER_JWKS_URL, "http://localhost/empty_jwks_url");
-        providerKeyResolver = new IdentityProviderKeyResolver(jwksUrl, context.getMonitor(), okHttpClient, context.getTypeManager());
-        keyRefreshInterval = context.getSetting(PROVIDER_JWKS_REFRESH, 5);
+        var keyRefreshInterval = context.getSetting(PROVIDER_JWKS_REFRESH, 5);
+        var identityProviderKeyResolverConfiguration = new IdentityProviderKeyResolverConfiguration(jwksUrl, keyRefreshInterval);
+        providerKeyResolver = new IdentityProviderKeyResolver(context.getMonitor(), okHttpClient, context.getTypeManager(), identityProviderKeyResolverConfiguration);
 
         var configuration = createConfig(context);
 
@@ -116,16 +112,12 @@ public class Oauth2Extension implements ServiceExtension {
 
     @Override
     public void start() {
-        providerKeyResolver.refreshKeys();
-        executorService = Executors.newSingleThreadScheduledExecutor();
-        executorService.scheduleWithFixedDelay(() -> providerKeyResolver.refreshKeys(), keyRefreshInterval, keyRefreshInterval, TimeUnit.MINUTES);
+        providerKeyResolver.start();
     }
 
     @Override
     public void shutdown() {
-        if (executorService != null) {
-            executorService.shutdownNow();
-        }
+        providerKeyResolver.stop();
     }
 
     private static byte[] getEncodedClientCertificate(Oauth2Configuration configuration) {

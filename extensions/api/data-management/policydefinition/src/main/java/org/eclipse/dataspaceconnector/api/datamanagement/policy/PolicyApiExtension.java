@@ -59,6 +59,6 @@ public class PolicyApiExtension implements ServiceExtension {
                 });
         var service = new PolicyServiceImpl(transactionContextImpl, policyStore, contractDefinitionStore);
 
-        webService.registerResource(configuration.getContextAlias(), new PolicyApiController(monitor, service));
+        webService.registerResource(configuration.getContextAlias(), new PolicyApiController(monitor, service, transformerRegistry));
     }
 }

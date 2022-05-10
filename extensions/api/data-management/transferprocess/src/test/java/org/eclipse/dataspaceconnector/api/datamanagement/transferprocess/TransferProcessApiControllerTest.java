@@ -20,13 +20,12 @@ import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.T
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.service.TransferProcessService;
 import org.eclipse.dataspaceconnector.api.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -47,6 +46,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.mock;
@@ -54,13 +54,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class TransferProcessApiControllerTest {
-    public static final int OFFSET = 5;
-    public static final int LIMIT = 10;
     private static final Faker FAKER = new Faker();
     private final TransferProcessService service = mock(TransferProcessService.class);
     private final DtoTransformerRegistry transformerRegistry = mock(DtoTransformerRegistry.class);
-    private final String filterExpression = "someField=value";
-    private final String someField = "someField";
     private TransferProcessApiController controller;
 
     @BeforeEach
@@ -73,23 +69,38 @@ class TransferProcessApiControllerTest {
     void getAll() {
         var transferProcess = transferProcess();
         var dto = transferProcessDto(transferProcess);
-
         when(transformerRegistry.transform(isA(TransferProcess.class), eq(TransferProcessDto.class))).thenReturn(Result.success(dto));
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
+        var querySpec = QuerySpecDto.Builder.newInstance().build();
         when(service.query(any())).thenReturn(List.of(transferProcess));
 
-        assertThat(controller.getAllTransferProcesses(OFFSET, LIMIT, filterExpression, SortOrder.ASC, someField)).containsExactly(dto);
-        assertQuerySpec(10, 5, SortOrder.ASC, someField, new Criterion(someField, "=", "value"));
+        var transferProcesses = controller.getAllTransferProcesses(querySpec);
+
+        assertThat(transferProcesses).containsExactly(dto);
+        verify(service).query(argThat(s -> s.getOffset() == 10));
+        verify(transformerRegistry).transform(isA(QuerySpecDto.class), eq(QuerySpec.class));
     }
 
     @Test
     void getAll_filtersOutFailedTransforms() {
         var transferProcess = transferProcess();
-
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
         when(transformerRegistry.transform(isA(TransferProcess.class), eq(TransferProcessDto.class))).thenReturn(Result.failure("failure"));
         when(service.query(any())).thenReturn(List.of(transferProcess));
 
-        assertThat(controller.getAllTransferProcesses(OFFSET, LIMIT, filterExpression, SortOrder.ASC, someField)).isEmpty();
-        assertQuerySpec(10, 5, SortOrder.ASC, someField, new Criterion(someField, "=", "value"));
+        var transferProcesses = controller.getAllTransferProcesses(QuerySpecDto.Builder.newInstance().build());
+
+        assertThat(transferProcesses).isEmpty();
+    }
+
+    @Test
+    void getAll_throwsExceptionIfQuerySpecTransformFails() {
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.failure("Cannot transform"));
+
+        assertThatThrownBy(() -> controller.getAllTransferProcesses(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -256,17 +267,6 @@ class TransferProcessApiControllerTest {
         return DataRequest.Builder.newInstance()
                 .dataDestination(DataAddress.Builder.newInstance().type("dataaddress-type").build())
                 .build();
-    }
-
-    private void assertQuerySpec(int limit, int offset, SortOrder sortOrder, String sortField, Criterion... criterions) {
-        ArgumentCaptor<QuerySpec> captor = ArgumentCaptor.forClass(QuerySpec.class);
-        verify(service).query(captor.capture());
-        QuerySpec querySpec = captor.getValue();
-        assertThat(querySpec.getFilterExpression()).containsExactly(criterions);
-        assertThat(querySpec.getLimit()).isEqualTo(limit);
-        assertThat(querySpec.getOffset()).isEqualTo(offset);
-        assertThat(querySpec.getSortOrder()).isEqualTo(sortOrder);
-        assertThat(querySpec.getSortField()).isEqualTo(sortField);
     }
 
     private TransferProcessDto transferProcessDto(TransferProcess transferProcess) {

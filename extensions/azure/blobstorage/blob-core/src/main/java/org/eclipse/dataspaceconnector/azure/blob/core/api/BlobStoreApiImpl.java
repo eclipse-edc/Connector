@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.azure.blob.core.api;
 
+import com.azure.core.credential.AzureSasCredential;
 import com.azure.core.util.BinaryData;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
@@ -124,6 +125,12 @@ public class BlobStoreApiImpl implements BlobStoreApi {
     @Override
     public BlobAdapter getBlobAdapter(String accountName, String containerName, String blobName, String sharedKey) {
         BlobServiceClientBuilder builder = new BlobServiceClientBuilder().credential(new StorageSharedKeyCredential(accountName, sharedKey));
+        return getBlobAdapter(accountName, containerName, blobName, builder);
+    }
+
+    @Override
+    public BlobAdapter getBlobAdapter(String accountName, String containerName, String blobName, AzureSasCredential credential) {
+        BlobServiceClientBuilder builder = new BlobServiceClientBuilder().credential(credential);
         return getBlobAdapter(accountName, containerName, blobName, builder);
     }
 
