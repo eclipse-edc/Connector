@@ -42,5 +42,5 @@ jobs:
           ECR_REPOSITORY: catena-x-edc-connector
           IMAGE_TAG: ${{ github.sha }}-${{ matrix.connector }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -f ./launchers/mdsp-connector/${{ matrix.connector }}.Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
