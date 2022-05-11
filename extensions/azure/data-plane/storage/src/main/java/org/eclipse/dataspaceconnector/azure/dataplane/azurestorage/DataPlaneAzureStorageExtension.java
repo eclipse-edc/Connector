@@ -42,6 +42,9 @@ public class DataPlaneAzureStorageExtension implements ServiceExtension {
     @Inject
     private DataTransferExecutorServiceContainer executorContainer;
 
+    @Inject
+    private Vault vault;
+
     @Override
     public String name() {
         return "Data Plane Azure Storage";
@@ -50,7 +53,6 @@ public class DataPlaneAzureStorageExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
-        Vault vault = context.getService(Vault.class);
 
         var sourceFactory = new AzureStorageDataSourceFactory(blobStoreApi, retryPolicy, monitor, vault);
         pipelineService.registerFactory(sourceFactory);

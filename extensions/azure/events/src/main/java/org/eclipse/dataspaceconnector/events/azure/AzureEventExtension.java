@@ -18,6 +18,7 @@ import com.azure.core.credential.AzureKeyCredential;
 import com.azure.messaging.eventgrid.EventGridPublisherClientBuilder;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
@@ -26,7 +27,11 @@ import java.util.Objects;
 
 public class AzureEventExtension implements ServiceExtension {
 
+    @Inject
     private Monitor monitor;
+
+    @Inject
+    private Vault vault;
 
     @Override
     public String name() {
@@ -35,16 +40,11 @@ public class AzureEventExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
-
         monitor.info("AzureEventExtension: create event grid appender");
         registerListeners(context);
     }
 
     private void registerListeners(ServiceExtensionContext context) {
-
-        var vault = context.getService(Vault.class);
-
         var config = new AzureEventGridConfig(context);
         var topicName = config.getTopic();
         var endpoint = config.getEndpoint(topicName);

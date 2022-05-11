@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.core.security.azure;
 
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -59,11 +58,6 @@ public class AzureVaultExtension implements VaultExtension {
     }
 
     @Override
-    public void initialize(Monitor monitor) {
-        monitor.debug("AzureVaultExtension: general initialization complete");
-    }
-
-    @Override
     public Vault getVault() {
         return vault;
     }
@@ -79,7 +73,7 @@ public class AzureVaultExtension implements VaultExtension {
     }
 
     @Override
-    public void initializeVault(ServiceExtensionContext context) {
+    public void initialize(ServiceExtensionContext context) {
         String clientId = getMandatorySetting(context, VAULT_CLIENT_ID);
         String tenantId = getMandatorySetting(context, VAULT_TENANT_ID);
         String keyVaultName = getMandatorySetting(context, VAULT_NAME);
@@ -95,4 +89,5 @@ public class AzureVaultExtension implements VaultExtension {
 
         context.getMonitor().info("AzureVaultExtension: authentication/initialization complete.");
     }
+
 }

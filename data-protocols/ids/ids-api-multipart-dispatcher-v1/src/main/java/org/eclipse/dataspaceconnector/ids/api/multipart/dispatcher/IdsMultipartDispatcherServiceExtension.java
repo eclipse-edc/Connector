@@ -62,6 +62,8 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
     private IdsApiConfiguration idsApiConfiguration;
     @Inject
     private ObjectMapperFactory objectMapperFactory;
+    @Inject
+    private Vault vault;
 
     @Override
     public String name() {
@@ -85,7 +87,7 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         idsWebhookAddress = idsWebhookAddress + webhookPath;
 
         var multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
-        multipartDispatcher.register(new MultipartArtifactRequestSender(connectorId, httpClient, objectMapper, monitor, context.getService(Vault.class), identityService, transformerRegistry, idsWebhookAddress));
+        multipartDispatcher.register(new MultipartArtifactRequestSender(connectorId, httpClient, objectMapper, monitor, vault, identityService, transformerRegistry, idsWebhookAddress));
         multipartDispatcher.register(new MultipartDescriptionRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartContractOfferSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress));
         multipartDispatcher.register(new MultipartContractAgreementSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress));

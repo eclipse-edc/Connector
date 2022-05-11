@@ -22,9 +22,14 @@ import org.eclipse.dataspaceconnector.boot.system.ExtensionLoader;
 import org.eclipse.dataspaceconnector.boot.system.ServiceLocator;
 import org.eclipse.dataspaceconnector.boot.system.ServiceLocatorImpl;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
+import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
+import org.eclipse.dataspaceconnector.spi.system.NullVaultExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
@@ -189,8 +194,7 @@ public class BaseRuntime {
 
     /**
      * Hook point to initialize the vault. It can be assumed that a {@link org.eclipse.dataspaceconnector.spi.security.Vault} instance exists prior to this method being called.
-     * By default, the {@code Vault} is loaded using the Service Loader mechanism ({@link org.eclipse.dataspaceconnector.spi.system.VaultExtension}) and
-     * a call to {@link ExtensionLoader#loadVault(ServiceExtensionContext, ExtensionLoader)} is made.
+     * By default, the {@code Vault} is loaded using the Extension Loader mechanism ({@link org.eclipse.dataspaceconnector.spi.system.VaultExtension})
      * <p>
      * In order to provide a custom {@code Vault} implementation, please consider using the extension mechanism ({@link org.eclipse.dataspaceconnector.spi.system.VaultExtension}) rather than overriding this method.
      * However, for development/testing scenarios it might be an easy solution to just override this method.
@@ -198,7 +202,15 @@ public class BaseRuntime {
      * @param context An {@code ServiceExtensionContext} to resolve the {@code Vault} from.
      */
     protected void initializeVault(ServiceExtensionContext context) {
-        ExtensionLoader.loadVault(context, extensionLoader);
+        var vaultExtension = extensionLoader.loadSingletonExtension(VaultExtension.class, NullVaultExtension::new);
+        if (vaultExtension instanceof NullVaultExtension) {
+            context.getMonitor().warning("Secrets vault not configured. Defaulting to null vault.");
+        }
+        vaultExtension.initialize(context);
+        context.getMonitor().info("Initialized " + vaultExtension.name());
+        context.registerService(Vault.class, vaultExtension.getVault());
+        context.registerService(PrivateKeyResolver.class, vaultExtension.getPrivateKeyResolver());
+        context.registerService(CertificateResolver.class, vaultExtension.getCertificateResolver());
     }
 
     /**
