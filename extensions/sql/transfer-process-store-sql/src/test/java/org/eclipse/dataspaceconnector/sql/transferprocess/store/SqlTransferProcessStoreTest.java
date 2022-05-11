@@ -16,21 +16,13 @@ package org.eclipse.dataspaceconnector.sql.transferprocess.store;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
-import org.eclipse.dataspaceconnector.sql.datasource.ConnectionFactoryDataSource;
-import org.eclipse.dataspaceconnector.sql.datasource.ConnectionPoolDataSource;
 import org.eclipse.dataspaceconnector.sql.lease.LeaseUtil;
-import org.eclipse.dataspaceconnector.sql.pool.ConnectionPool;
-import org.eclipse.dataspaceconnector.sql.pool.commons.CommonsConnectionPool;
-import org.eclipse.dataspaceconnector.sql.pool.commons.CommonsConnectionPoolConfig;
-import org.eclipse.dataspaceconnector.transaction.local.DataSourceResource;
-import org.eclipse.dataspaceconnector.transaction.local.LocalDataSourceRegistry;
-import org.eclipse.dataspaceconnector.transaction.local.LocalTransactionContext;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,6 +37,7 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -53,50 +46,55 @@ import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.dataspaceconnector.sql.transferprocess.store.TestFunctions.createDataRequest;
 import static org.eclipse.dataspaceconnector.sql.transferprocess.store.TestFunctions.createTransferProcess;
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 @ComponentTest
 class SqlTransferProcessStoreTest {
     private static final String DATASOURCE_NAME = "transferprocess";
     private static final String CONNECTOR_NAME = "test-connector";
-    private DataSourceRegistry dataSourceRegistry;
-    private ConnectionPool connectionPool;
     private SqlTransferProcessStore store;
     private LeaseUtil leaseUtil;
+    private Connection connection;
+    private DataSourceRegistry dataSourceRegistry;
 
     @BeforeEach
     void setUp() throws SQLException, IOException {
-        var monitor = mock(Monitor.class);
-        var txManager = new LocalTransactionContext(monitor);
-        dataSourceRegistry = new LocalDataSourceRegistry(txManager);
+        var transactionContext = new NoopTransactionContext();
+        dataSourceRegistry = mock(DataSourceRegistry.class);
+
         var jdbcDataSource = new JdbcDataSource();
         jdbcDataSource.setURL("jdbc:h2:mem:");
 
-        var connection = jdbcDataSource.getConnection();
-        var dataSource = new ConnectionFactoryDataSource(() -> connection);
-        connectionPool = new CommonsConnectionPool(dataSource, CommonsConnectionPoolConfig.Builder.newInstance().build());
-        var poolDataSource = new ConnectionPoolDataSource(connectionPool);
-        dataSourceRegistry.register(DATASOURCE_NAME, poolDataSource);
-        txManager.registerResource(new DataSourceResource(poolDataSource));
+        // do not actually close
+        connection = spy(jdbcDataSource.getConnection());
+        doNothing().when(connection).close();
+
+        var datasourceMock = mock(DataSource.class);
+        when(datasourceMock.getConnection()).thenReturn(connection);
+        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
         var statements = new PostgresStatements();
-        store = new SqlTransferProcessStore(dataSourceRegistry, DATASOURCE_NAME, txManager, new ObjectMapper(), statements, CONNECTOR_NAME);
+        store = new SqlTransferProcessStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper(), statements, CONNECTOR_NAME);
 
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
-        txManager.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
+        transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
 
-        leaseUtil = new LeaseUtil(txManager, this::getConnection, statements);
+        leaseUtil = new LeaseUtil(transactionContext, this::getConnection, statements);
 
     }
 
     @AfterEach
     void tearDown() throws Exception {
-        connectionPool.close();
+        doCallRealMethod().when(connection).close();
+        connection.close();
     }
 
     @Test
     void create() {
         var t = createTransferProcess("test-id");
-
         store.create(t);
 
         assertThat(store.findAll(QuerySpec.none())).containsExactly(t);
@@ -329,7 +327,7 @@ class SqlTransferProcessStoreTest {
         t1.transitionInitial(); //modify
 
         // leased by someone else -> throw exception
-        assertThatThrownBy(() -> store.update(t1)).hasRootCauseInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> store.update(t1)).isInstanceOf(IllegalStateException.class);
 
     }
 
@@ -350,7 +348,7 @@ class SqlTransferProcessStoreTest {
         leaseUtil.leaseEntity(t1.getId(), CONNECTOR_NAME);
 
 
-        assertThatThrownBy(() -> store.delete("id1")).hasRootCauseInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> store.delete("id1")).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -360,7 +358,7 @@ class SqlTransferProcessStoreTest {
 
         leaseUtil.leaseEntity(t1.getId(), "someone-else");
 
-        assertThatThrownBy(() -> store.delete("id1")).hasRootCauseInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> store.delete("id1")).isInstanceOf(IllegalStateException.class);
     }
 
     @Test

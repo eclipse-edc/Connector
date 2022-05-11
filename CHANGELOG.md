@@ -46,6 +46,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Changed Catalog config keys and switched from minutes to seconds
 * Uniform all the sql schema files as `docs/schema.sql` (#1278)
 * Clean FCC store before updating
+* Usage of `NooTransactionContext` in (SQL-)Tests (#1119)
 
 #### Removed
 
