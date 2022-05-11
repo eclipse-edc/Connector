@@ -48,6 +48,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Uniform all the sql schema files as `docs/schema.sql` (#1278)
 * Clean FCC store before updating
 * Usage of `NooTransactionContext` in (SQL-)Tests (#1119)
+* Improve CosmosDB statement parser (#1282)
 
 #### Removed
 
