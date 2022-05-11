@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.spi.query;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -34,8 +34,10 @@ public abstract class BaseCriterionToPredicateConverter<T> implements CriterionC
         var operator = criterion.getOperator().toLowerCase();
 
         switch (operator) {
-            case "=": return equalPredicate(criterion);
-            case "in": return inPredicate(criterion);
+            case "=":
+                return equalPredicate(criterion);
+            case "in":
+                return inPredicate(criterion);
             default:
                 throw new IllegalArgumentException(String.format("Operator [%s] is not supported by this converter!", criterion.getOperator()));
         }
@@ -65,13 +67,19 @@ public abstract class BaseCriterionToPredicateConverter<T> implements CriterionC
     private Predicate<T> inPredicate(Criterion criterion) {
         return t -> {
             String property = property((String) criterion.getOperandLeft(), t);
-            var items = ((String) criterion.getOperandRight())
-                    .replace("(", "")
-                    .replace(")", "")
-                    .replace(" ", "")
-                    .split(",");
 
-            return Arrays.asList(items).contains(property);
+            var rightOp = criterion.getOperandRight();
+
+
+            if (rightOp instanceof Iterable) {
+                var items = new ArrayList<String>();
+                ((Iterable<?>) rightOp).forEach(o -> items.add(o.toString()));
+                return items.contains(property);
+            } else {
+                throw new IllegalArgumentException("Operator IN requires the right-hand operand to be an " + Iterable.class.getName() + " but was " + rightOp.getClass().getName());
+            }
+
+
         };
     }
 
