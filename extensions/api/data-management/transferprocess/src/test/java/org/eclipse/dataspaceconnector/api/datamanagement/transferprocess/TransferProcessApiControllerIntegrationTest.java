@@ -66,6 +66,14 @@ class TransferProcessApiControllerIntegrationTest {
     }
 
     @Test
+    void getAll_invalidQuery() {
+        baseRequest()
+                .get("/transferprocess?limit=1&offset=-1&filter=&sortField=")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
     void getSingleTransferProcess(TransferProcessStore store) {
         store.create(createTransferProcess(PROCESS_ID));
         baseRequest()

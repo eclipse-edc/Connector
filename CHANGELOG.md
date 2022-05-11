@@ -24,11 +24,13 @@ in the detailed section referring to by linking pull requests or issues.
 * Check to avoid duplicated module names (#1190)
 * Implement Catalog service for Data Management API (#1195)
 * Add strict body validation for REST endpoints (#1128)
+* Add validation on query endpoints (#1258)
 * Dependency injection using factory/provider methods (#1056)
 * Provisioned resource information in Data Management API (#1221)
 * Add custom Jackson (de)serializer for `XMLGregorianCalendar` (#1226)
 * Add contract validation rule (#1239)
 * Harmonize setting names in `data-plane-transfer` (#1164)
+* Add Blob transfer Architectural Decision Record (#1259)
 * Add component tests coverage to the codecov coverage report (#1246)
 * Postgresql end to end test (#1278)
 
@@ -43,6 +45,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Provide In-mem implementations by default (#1130)
 * Changed Catalog config keys and switched from minutes to seconds
 * Uniform all the sql schema files as `docs/schema.sql` (#1278)
+* Clean FCC store before updating
 
 #### Removed
 
