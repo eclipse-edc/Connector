@@ -7,8 +7,7 @@
     <link rel="icon" href="_media/favicon.ico" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="description" content="A scalable cloud data connector." />
-    <meta name="viewport"
-      content="width=device-width, initial-scale=1.0, minimum-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0"/>
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css" title="vue"/>
     <style>
       nav.app-nav li ul {
@@ -54,6 +53,11 @@
         },
         subMaxLevel: 1,
         themeColor: '#f78e2c',
+        timeUpdater: {
+          text: "_Last updated on {docsify-updated}_",
+          formatUpdated: "{YYYY}-{MM}-{DD}",
+          whereToPlace: "top"
+        },
         topMargin: 90,
       };
     </script>
@@ -63,5 +67,6 @@
     <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
     <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
     <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docsify-updated/src/time-updater.min.js"></script>
   </body>
 </html>
