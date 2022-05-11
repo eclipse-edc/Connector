@@ -43,6 +43,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Make data-plane public api controller asynchronous (#1228)
 * Provide In-mem implementations by default (#1130)
 * Changed Catalog config keys and switched from minutes to seconds
+* Clean FCC store before updating
 
 #### Removed
 
