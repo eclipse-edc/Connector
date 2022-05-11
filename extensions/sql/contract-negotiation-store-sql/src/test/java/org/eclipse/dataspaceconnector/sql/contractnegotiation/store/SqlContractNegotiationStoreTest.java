@@ -25,6 +25,7 @@ import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
+import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.eclipse.dataspaceconnector.sql.datasource.ConnectionFactoryDataSource;
 import org.eclipse.dataspaceconnector.sql.datasource.ConnectionPoolDataSource;
 import org.eclipse.dataspaceconnector.sql.lease.LeaseUtil;
@@ -41,7 +42,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Duration;
@@ -67,7 +69,7 @@ class SqlContractNegotiationStoreTest {
     private LeaseUtil leaseUtil;
 
     @BeforeEach
-    void setUp() throws SQLException {
+    void setUp() throws SQLException, IOException {
         var monitor = new Monitor() {
         };
         var txManager = new LocalTransactionContext(monitor);
@@ -88,13 +90,8 @@ class SqlContractNegotiationStoreTest {
         manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
         store = new SqlContractNegotiationStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, manager, statements, CONNECTOR_NAME);
 
-        try (var inputStream = getClass().getClassLoader().getResourceAsStream("schema.sql")) {
-            var schema = new String(Objects.requireNonNull(inputStream).readAllBytes(), StandardCharsets.UTF_8);
-            transactionContext.execute(() -> executeQuery(connection, schema));
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        var schema = Files.readString(Paths.get("./docs/schema.sql"));
+        transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
 
         leaseUtil = new LeaseUtil(transactionContext, this::getConnection, statements);
     }

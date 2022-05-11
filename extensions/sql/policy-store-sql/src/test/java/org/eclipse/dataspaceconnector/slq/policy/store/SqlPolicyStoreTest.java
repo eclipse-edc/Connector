@@ -43,15 +43,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 @ComponentTest
 class SqlPolicyStoreTest {
@@ -62,9 +63,8 @@ class SqlPolicyStoreTest {
     private ConnectionPool connectionPool;
 
     @BeforeEach
-    void setUp() throws SQLException {
-        var monitor = new Monitor() {
-        };
+    void setUp() throws SQLException, IOException {
+        var monitor = mock(Monitor.class);
         var txManager = new LocalTransactionContext(monitor);
         DataSourceRegistry dataSourceRegistry;
         dataSourceRegistry = new LocalDataSourceRegistry(txManager);
@@ -80,13 +80,8 @@ class SqlPolicyStoreTest {
         txManager.registerResource(new DataSourceResource(poolDataSource));
         sqlPolicyStore = new SqlPolicyStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new TypeManager(), new PostgressStatements());
 
-        try (var inputStream = getClass().getClassLoader().getResourceAsStream("schema.sql")) {
-            var schema = new String(Objects.requireNonNull(inputStream).readAllBytes(), StandardCharsets.UTF_8);
-            transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        var schema = Files.readString(Paths.get("./docs/schema.sql"));
+        transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
     }
 
     @AfterEach

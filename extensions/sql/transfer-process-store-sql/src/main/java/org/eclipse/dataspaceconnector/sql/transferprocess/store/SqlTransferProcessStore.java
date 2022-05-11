@@ -187,6 +187,7 @@ public class SqlTransferProcessStore implements TransferProcessStore {
                 process.getErrorDetail(),
                 toJson(process.getResourceManifest()),
                 toJson(process.getProvisionedResourceSet()),
+                toJson(process.getContentDataAddress()),
                 transferProcessId);
     }
 
@@ -220,6 +221,7 @@ public class SqlTransferProcessStore implements TransferProcessStore {
                         process.getErrorDetail(),
                         toJson(process.getResourceManifest()),
                         toJson(process.getProvisionedResourceSet()),
+                        toJson(process.getContentDataAddress()),
                         process.getType().toString());
 
                 //insert DataRequest
@@ -236,7 +238,8 @@ public class SqlTransferProcessStore implements TransferProcessStore {
                         toJson(dr.getProperties()),
                         toJson(dr.getTransferType()),
                         process.getId(),
-                        dr.getProtocol());
+                        dr.getProtocol(),
+                        dr.isManagedResources());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -255,6 +258,7 @@ public class SqlTransferProcessStore implements TransferProcessStore {
                 .provisionedResourceSet(fromJson(resultSet.getString(statements.getProvisionedResourcesetColumn()), ProvisionedResourceSet.class))
                 .errorDetail(resultSet.getString(statements.getErrorDetailColumn()))
                 .dataRequest(extractDataRequest(resultSet))
+                .contentDataAddress(fromJson(resultSet.getString(statements.getContentDataAddressColumn()), DataAddress.class))
                 .build();
     }
 
@@ -264,7 +268,7 @@ public class SqlTransferProcessStore implements TransferProcessStore {
 
     private DataRequest mapDataRequest(ResultSet resultSet) throws SQLException {
         return DataRequest.Builder.newInstance()
-                .id(resultSet.getString("edc_data_request.id"))
+                .id(resultSet.getString("edc_data_request_id"))
                 .assetId(resultSet.getString(statements.getAssetIdColumn()))
                 .protocol(resultSet.getString(statements.getProtocolColumn()))
                 .dataDestination(fromJson(resultSet.getString(statements.getDestinationColumn()), DataAddress.class))

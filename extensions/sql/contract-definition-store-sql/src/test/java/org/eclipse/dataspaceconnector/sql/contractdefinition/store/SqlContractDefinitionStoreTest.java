@@ -42,15 +42,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.Collection;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
+import static org.mockito.Mockito.mock;
 
 @ComponentTest
 public class SqlContractDefinitionStoreTest {
@@ -63,10 +64,8 @@ public class SqlContractDefinitionStoreTest {
     private PostgresStatements statements;
 
     @BeforeEach
-    void setUp() throws SQLException {
-        var monitor = new Monitor() {
-
-        };
+    void setUp() throws SQLException, IOException {
+        var monitor = mock(Monitor.class);
         var txManager = new LocalTransactionContext(monitor);
         dataSourceRegistry = new LocalDataSourceRegistry(txManager);
         var transactionContext = (TransactionContext) txManager;
@@ -82,13 +81,8 @@ public class SqlContractDefinitionStoreTest {
         statements = new PostgresStatements();
         sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, statements, new TypeManager());
 
-        try (var inputStream = getClass().getClassLoader().getResourceAsStream("schema.sql")) {
-            var schema = new String(Objects.requireNonNull(inputStream).readAllBytes(), StandardCharsets.UTF_8);
-            transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        var schema = Files.readString(Paths.get("./docs/schema.sql"));
+        transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
     }
 
     @AfterEach

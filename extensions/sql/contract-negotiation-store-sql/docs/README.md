@@ -4,7 +4,7 @@
 work but might have unexpected side effects!_**
 
 ## 1. Table schema
-see [ddl_postgres.sql](ddl_postgres.sql).
+see [schema.sql](schema.sql).
 
 As an alternative to storing `ContractAgreement`s in a dedicated table, it could also be serialized and stored as column 
 in the `contract_negotiation` table. However, we will need to be able to list all contract agreements at some point, so it 

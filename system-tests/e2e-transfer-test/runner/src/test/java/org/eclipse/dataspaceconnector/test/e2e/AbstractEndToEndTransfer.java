@@ -14,14 +14,10 @@
 
 package org.eclipse.dataspaceconnector.test.e2e;
 
-import org.eclipse.dataspaceconnector.common.annotations.EndToEndTest;
-import org.eclipse.dataspaceconnector.junit.launcher.EdcRuntimeExtension;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.time.Duration;
-import java.util.HashMap;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,73 +27,24 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddre
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
 import static org.hamcrest.CoreMatchers.equalTo;
 
-@EndToEndTest
-class EndToEndTransferTest {
+public abstract class AbstractEndToEndTransfer {
 
-    private final Duration timeout = Duration.ofSeconds(30);
+    protected final Duration timeout = Duration.ofSeconds(30);
 
-    private static final Participant CONSUMER = new Participant();
-    private static final Participant PROVIDER = new Participant();
-
-    @RegisterExtension
-    static EdcRuntimeExtension consumerControlPlane = new EdcRuntimeExtension(
-            ":system-tests:e2e-transfer-test:control-plane",
-            "consumer-control-plane",
-            CONSUMER.controlPlaneConfiguration()
-    );
-
-    @RegisterExtension
-    static EdcRuntimeExtension consumerDataPlane = new EdcRuntimeExtension(
-            ":system-tests:e2e-transfer-test:data-plane",
-            "consumer-data-plane",
-            CONSUMER.dataPlaneConfiguration()
-    );
-
-    @RegisterExtension
-    static EdcRuntimeExtension consumerBackendService = new EdcRuntimeExtension(
-            ":system-tests:e2e-transfer-test:backend-service",
-            "consumer-backend-service",
-            new HashMap<>() {
-                {
-                    put("web.http.port", String.valueOf(CONSUMER.backendService().getPort()));
-                }
-            }
-    );
-
-    @RegisterExtension
-    static EdcRuntimeExtension providerDataPlane = new EdcRuntimeExtension(
-            ":system-tests:e2e-transfer-test:data-plane",
-            "provider-data-plane",
-            PROVIDER.dataPlaneConfiguration()
-    );
-
-    @RegisterExtension
-    static EdcRuntimeExtension providerControlPlane = new EdcRuntimeExtension(
-            ":system-tests:e2e-transfer-test:control-plane",
-            "provider-control-plane",
-            PROVIDER.controlPlaneConfiguration()
-    );
-
-    @RegisterExtension
-    static EdcRuntimeExtension providerBackendService = new EdcRuntimeExtension(
-            ":system-tests:e2e-transfer-test:backend-service",
-            "provider-backend-service",
-            new HashMap<>() {
-                {
-                    put("web.http.port", String.valueOf(PROVIDER.backendService().getPort()));
-                }
-            }
-    );
+    protected static final Participant CONSUMER = new Participant("consumer");
+    protected static final Participant PROVIDER = new Participant("provider");
 
     @Test
     void httpPullDataTransfer() {
-        createAssetAndContractDefinitionOnProvider();
+        String definitionId = "1";
+        createAssetAndContractDefinitionOnProvider("asset-id", definitionId);
 
         var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
         assertThat(catalog.getContractOffers()).hasSize(1);
 
-        var assetId = catalog.getContractOffers().get(0).getAsset().getId();
-        var negotiationId = CONSUMER.negotiateContract(assetId, PROVIDER);
+        var contractOffer = catalog.getContractOffers().get(0);
+        var assetId = contractOffer.getAsset().getId();
+        var negotiationId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
         var contractAgreementId = CONSUMER.getContractAgreementId(negotiationId);
 
         assertThat(contractAgreementId).isNotEmpty();
@@ -123,13 +70,15 @@ class EndToEndTransferTest {
     @Test
     void httpPushDataTransfer() {
         PROVIDER.registerDataPlane();
-        createAssetAndContractDefinitionOnProvider();
+        var definitionId = "1";
+        createAssetAndContractDefinitionOnProvider("asset-id", definitionId);
 
         var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
         assertThat(catalog.getContractOffers()).hasSize(1);
 
-        var assetId = catalog.getContractOffers().get(0).getAsset().getId();
-        var negotiationId = CONSUMER.negotiateContract(assetId, PROVIDER);
+        var contractOffer = catalog.getContractOffers().get(0);
+        var assetId = contractOffer.getAsset().getId();
+        var negotiationId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
         var contractAgreementId = CONSUMER.getContractAgreementId(negotiationId);
 
         assertThat(contractAgreementId).isNotEmpty();
@@ -157,11 +106,10 @@ class EndToEndTransferTest {
         });
     }
 
-    private void createAssetAndContractDefinitionOnProvider() {
-        var assetId = "asset-id";
+    private void createAssetAndContractDefinitionOnProvider(String assetId, String definitionId) {
         PROVIDER.createAsset(assetId);
         var policyId = PROVIDER.createPolicy(assetId);
-        PROVIDER.createContractDefinition(policyId);
+        PROVIDER.createContractDefinition(policyId, assetId, definitionId);
     }
 
     private DataAddress sync() {
