@@ -19,6 +19,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -77,7 +79,7 @@ class AssetPredicateConverterTest {
                 .version("6.9")
                 .property("test-property", "somevalue")
                 .build();
-        var criterion = new Criterion(Asset.PROPERTY_NAME, "in", "(bob, alice)");
+        var criterion = new Criterion(Asset.PROPERTY_NAME, "in", List.of("bob", "alice"));
         var pred = converter.convert(criterion);
         assertThat(pred).isNotNull().accepts(asset);
 

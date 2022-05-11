@@ -29,7 +29,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression.SELECT_ALL;
 
@@ -131,7 +130,7 @@ class InMemoryAssetIndexTest {
         index.accept(testAsset2, createDataAddress(testAsset2));
         index.accept(testAsset3, createDataAddress(testAsset3));
 
-        var inExpr = format("(  %s )", String.join(", ", List.of(testAsset1.getId(), testAsset2.getId())));
+        var inExpr = List.of(testAsset1.getId(), testAsset2.getId());
         var selector = AssetSelectorExpression.Builder.newInstance()
                 .constraint(Asset.PROPERTY_ID, "IN", inExpr)
                 .build();
@@ -150,7 +149,7 @@ class InMemoryAssetIndexTest {
         index.accept(testAsset2, createDataAddress(testAsset2));
         index.accept(testAsset3, createDataAddress(testAsset3));
 
-        var inExpr = format("(  %s )", String.join(", ", List.of("test-id1", "test-id2")));
+        var inExpr = List.of("test-id1", "test-id2");
         var selector = AssetSelectorExpression.Builder.newInstance()
                 .constraint(Asset.PROPERTY_ID, "IN", inExpr)
                 .build();
@@ -169,7 +168,7 @@ class InMemoryAssetIndexTest {
         index.accept(testAsset2, createDataAddress(testAsset2));
         index.accept(testAsset3, createDataAddress(testAsset3));
 
-        var inExpr = String.join(", ", List.of(testAsset1.getId(), testAsset2.getId()));
+        var inExpr = List.of(testAsset1.getId(), testAsset2.getId());
         var selector = AssetSelectorExpression.Builder.newInstance()
                 .constraint(Asset.PROPERTY_ID, "IN", inExpr)
                 .build();
@@ -188,7 +187,7 @@ class InMemoryAssetIndexTest {
         index.accept(testAsset2, createDataAddress(testAsset2));
         index.accept(testAsset3, createDataAddress(testAsset3));
 
-        var inExpr = String.join(",", List.of(testAsset1.getId(), testAsset2.getId()));
+        var inExpr = List.of(testAsset1.getId(), testAsset2.getId());
         var selector = AssetSelectorExpression.Builder.newInstance()
                 .constraint(Asset.PROPERTY_ID, "IN", inExpr)
                 .build();
