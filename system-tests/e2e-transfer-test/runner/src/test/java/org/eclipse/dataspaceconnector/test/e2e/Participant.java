@@ -21,7 +21,9 @@ import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
+import org.eclipse.dataspaceconnector.test.e2e.postgresql.PostgresqlLocalInstance;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
@@ -52,15 +54,18 @@ public class Participant {
     private final URI dataPlanePublic = URI.create("http://localhost:" + getFreePort() + "/public");
     private final URI backendService = URI.create("http://localhost:" + getFreePort());
     private final URI idsEndpoint = URI.create("http://localhost:" + getFreePort());
+    private final String name;
+
+    public Participant(String name) {
+        this.name = name;
+    }
 
     public void createAsset(String assetId) {
         var asset = Map.of(
                 "asset", Map.of(
                         "properties", Map.of(
                                 "asset:prop:id", assetId,
-                                "asset:prop:name", "asset name",
-                                "asset:prop:contenttype", "text/plain",
-                                "asset:prop:policy-id", "use-eu"
+                                "asset:prop:description", "description"
                         )
                 ),
                 "dataAddress", Map.of(
@@ -78,8 +83,7 @@ public class Participant {
                 .body(asset)
                 .when()
                 .post("/api/assets")
-                .then()
-                .statusCode(204);
+                .then();
     }
 
     public String createPolicy(String assetId) {
@@ -97,18 +101,17 @@ public class Participant {
                 .body(policy)
                 .when()
                 .post("/api/policies")
-                .then()
-                .statusCode(204);
+                .then();
 
         return policy.getUid();
     }
 
-    public void createContractDefinition(String policyId) {
+    public void createContractDefinition(String policyId, String assetId, String definitionId) {
         var contractDefinition = Map.of(
-                "id", "1",
+                "id", definitionId,
                 "accessPolicyId", policyId,
                 "contractPolicyId", policyId,
-                "criteria", AssetSelectorExpression.SELECT_ALL.getCriteria()
+                "criteria", AssetSelectorExpression.Builder.newInstance().constraint("asset:prop:id", "=", assetId).build().getCriteria()
         );
 
         given()
@@ -117,27 +120,18 @@ public class Participant {
                 .body(contractDefinition)
                 .when()
                 .post("/api/contractdefinitions")
-                .then()
-                .statusCode(204);
+                .then();
     }
 
-    public String negotiateContract(String assetId, Participant provider) {
-        var policy = Policy.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .permission(Permission.Builder.newInstance()
-                        .target(assetId)
-                        .action(Action.Builder.newInstance().type("USE").build())
-                        .build())
-                .type(PolicyType.SET)
-                .build();
+    public String negotiateContract(Participant provider, ContractOffer contractOffer) {
         var request = Map.of(
                 "connectorId", "provider",
                 "connectorAddress", provider.idsEndpoint() + "/api/v1/ids/data",
                 "protocol", "ids-multipart",
                 "offer", Map.of(
-                        "offerId", "1:1",
-                        "assetId", assetId,
-                        "policy", policy
+                        "offerId", contractOffer.getId(),
+                        "assetId", contractOffer.getAsset().getId(),
+                        "policy", contractOffer.getPolicy()
                 )
         );
 
@@ -267,8 +261,34 @@ public class Participant {
                 put("edc.transfer.proxy.token.signer.privatekey.alias", "1");
                 put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
                 put("edc.transfer.proxy.endpoint", dataPlanePublic.toString());
+
+                put("edc.datasource.asset.name", "asset");
+                put("edc.datasource.asset.url", jdbcUrl());
+                put("edc.datasource.asset.user", PostgresqlLocalInstance.USER);
+                put("edc.datasource.asset.password", PostgresqlLocalInstance.PASSWORD);
+                put("edc.datasource.contractdefinition.name", "contractdefinition");
+                put("edc.datasource.contractdefinition.url", jdbcUrl());
+                put("edc.datasource.contractdefinition.user", PostgresqlLocalInstance.USER);
+                put("edc.datasource.contractdefinition.password", PostgresqlLocalInstance.PASSWORD);
+                put("edc.datasource.contractnegotiation.name", "contractnegotiation");
+                put("edc.datasource.contractnegotiation.url", jdbcUrl());
+                put("edc.datasource.contractnegotiation.user", PostgresqlLocalInstance.USER);
+                put("edc.datasource.contractnegotiation.password", PostgresqlLocalInstance.PASSWORD);
+                put("edc.datasource.policy.name", "policy");
+                put("edc.datasource.policy.url", jdbcUrl());
+                put("edc.datasource.policy.user", PostgresqlLocalInstance.USER);
+                put("edc.datasource.policy.password", PostgresqlLocalInstance.PASSWORD);
+                put("edc.datasource.transferprocess.name", "transferprocess");
+                put("edc.datasource.transferprocess.url", jdbcUrl());
+                put("edc.datasource.transferprocess.user", PostgresqlLocalInstance.USER);
+                put("edc.datasource.transferprocess.password", PostgresqlLocalInstance.PASSWORD);
             }
         };
+    }
+
+    @NotNull
+    public String jdbcUrl() {
+        return PostgresqlLocalInstance.JDBC_URL_PREFIX + name;
     }
 
     public Map<String, String> dataPlaneConfiguration() {
@@ -283,6 +303,10 @@ public class Participant {
                 put("edc.controlplane.validation-endpoint", controlPlaneValidation + "/token");
             }
         };
+    }
+
+    public String getName() {
+        return name;
     }
 
     @NotNull

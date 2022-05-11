@@ -44,18 +44,19 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.AbstractMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
+import static org.mockito.Mockito.mock;
 
 @ComponentTest
 class SqlAssetIndexTest {
@@ -69,9 +70,8 @@ class SqlAssetIndexTest {
     private TransactionContext transactionContext;
 
     @BeforeEach
-    void setUp() throws SQLException {
-        var monitor = new Monitor() {
-        };
+    void setUp() throws SQLException, IOException {
+        var monitor = mock(Monitor.class);
         var txManager = new LocalTransactionContext(monitor);
         dataSourceRegistry = new LocalDataSourceRegistry(txManager);
         transactionContext = txManager;
@@ -86,14 +86,10 @@ class SqlAssetIndexTest {
         txManager.registerResource(new DataSourceResource(poolDataSource));
         sqlAssetIndex = new SqlAssetIndex(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper(), new PostgresSqlAssetQueries());
 
-        try (var inputStream = getClass().getClassLoader().getResourceAsStream("schema.sql")) {
-            var schema = new String(Objects.requireNonNull(inputStream).readAllBytes(), StandardCharsets.UTF_8);
-            transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         sqlAssetQueries = new PostgresSqlAssetQueries();
+
+        var schema = Files.readString(Paths.get("./docs/schema.sql"));
+        transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
     }
 
     @AfterEach

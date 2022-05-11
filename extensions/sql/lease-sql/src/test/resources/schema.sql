@@ -1,7 +1,6 @@
 -- Statements are designed for and tested with Postgres only!
 
-DROP TABLE IF EXISTS edc_lease;
-CREATE TABLE edc_lease
+CREATE TABLE IF NOT EXISTS edc_lease
 (
     leased_by      VARCHAR NOT NULL,
     leased_at      BIGINT,
@@ -20,8 +19,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS lease_lease_id_uindex
 
 
 -- test entity
-DROP TABLE IF EXISTS edc_test_entity;
-CREATE TABLE edc_test_entity
+CREATE TABLE IF NOT EXISTS edc_test_entity
 (
     id       VARCHAR NOT NULL
         CONSTRAINT test_id_pk PRIMARY KEY,

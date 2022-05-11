@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
+import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.eclipse.dataspaceconnector.sql.datasource.ConnectionFactoryDataSource;
 import org.eclipse.dataspaceconnector.sql.datasource.ConnectionPoolDataSource;
 import org.eclipse.dataspaceconnector.sql.lease.LeaseUtil;
@@ -37,11 +38,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Duration;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -52,6 +53,7 @@ import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.dataspaceconnector.sql.transferprocess.store.TestFunctions.createDataRequest;
 import static org.eclipse.dataspaceconnector.sql.transferprocess.store.TestFunctions.createTransferProcess;
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.Mockito.mock;
 
 @ComponentTest
 class SqlTransferProcessStoreTest {
@@ -63,9 +65,8 @@ class SqlTransferProcessStoreTest {
     private LeaseUtil leaseUtil;
 
     @BeforeEach
-    void setUp() throws SQLException {
-        var monitor = new Monitor() {
-        };
+    void setUp() throws SQLException, IOException {
+        var monitor = mock(Monitor.class);
         var txManager = new LocalTransactionContext(monitor);
         dataSourceRegistry = new LocalDataSourceRegistry(txManager);
         var jdbcDataSource = new JdbcDataSource();
@@ -80,13 +81,8 @@ class SqlTransferProcessStoreTest {
         var statements = new PostgresStatements();
         store = new SqlTransferProcessStore(dataSourceRegistry, DATASOURCE_NAME, txManager, new ObjectMapper(), statements, CONNECTOR_NAME);
 
-        try (var inputStream = getClass().getClassLoader().getResourceAsStream("schema.sql")) {
-            var schema = new String(Objects.requireNonNull(inputStream).readAllBytes(), StandardCharsets.UTF_8);
-            txManager.execute(() -> executeQuery(connection, schema));
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        var schema = Files.readString(Paths.get("./docs/schema.sql"));
+        txManager.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
 
         leaseUtil = new LeaseUtil(txManager, this::getConnection, statements);
 
@@ -100,6 +96,7 @@ class SqlTransferProcessStoreTest {
     @Test
     void create() {
         var t = createTransferProcess("test-id");
+
         store.create(t);
 
         assertThat(store.findAll(QuerySpec.none())).containsExactly(t);
@@ -147,9 +144,7 @@ class SqlTransferProcessStoreTest {
                 .hasSize(5)
                 .isSubsetOf(all)
                 .doesNotContainAnyElementsOf(leasedTp);
-
     }
-
 
     @Test
     void nextForState_noFreeItem_shouldReturnEmpty() {
@@ -252,7 +247,8 @@ class SqlTransferProcessStoreTest {
         var t = createTransferProcess("id1");
         store.create(t);
 
-        TransferProcess res = store.find("id1");
+        var res = store.find("id1");
+
         assertThat(res).usingRecursiveComparison().isEqualTo(t);
     }
 
