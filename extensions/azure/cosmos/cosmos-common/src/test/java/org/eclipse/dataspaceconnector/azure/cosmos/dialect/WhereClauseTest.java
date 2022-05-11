@@ -45,4 +45,21 @@ class WhereClauseTest {
     void whereClause_withInvalidOperator() {
         assertThatThrownBy(() -> new WhereClause(List.of(new Criterion("foo", "BEGINSWITH", "bar3")), "testobj")).isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void whereClause_withLowercaseOperator() {
+        var wc = new WhereClause(List.of(new Criterion("foo", "in", "('bar1', 'bar2')")), "testobj");
+        assertThat(wc.getWhere()).isEqualTo("WHERE testobj.foo in ('bar1', 'bar2')");
+        assertThat(wc.getParameters()).isEmpty();
+    }
+
+    @Test
+    void whereClause_withMultipleCriteria_noParams() {
+        var wc = new WhereClause(List.of(
+                new Criterion("foo", "in", "('bar1', 'bar2')"),
+                new Criterion("foo", "=", "bar")),
+                "testobj");
+        assertThat(wc.getWhere()).isEqualTo("WHERE testobj.foo in ('bar1', 'bar2') AND testobj.foo = @foo");
+        assertThat(wc.getParameters()).hasSize(1);
+    }
 }

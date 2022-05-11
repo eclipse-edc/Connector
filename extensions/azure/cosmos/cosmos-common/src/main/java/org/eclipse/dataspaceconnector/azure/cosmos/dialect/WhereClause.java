@@ -39,7 +39,7 @@ import static org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument.sanitiz
  */
 class WhereClause implements Clause {
     public static final String EQUALS_OPERATOR = "=";
-    public static final String IN_OPERATOR = "IN";
+    public static final String IN_OPERATOR = "in";
     private static final List<String> SUPPORTED_OPERATOR = List.of(EQUALS_OPERATOR, IN_OPERATOR);
     private final String objectPrefix;
     private final List<SqlParameter> parameters = new ArrayList<>();
@@ -71,16 +71,16 @@ class WhereClause implements Clause {
     }
 
     private void criterion(Criterion criterion) {
-        if (!SUPPORTED_OPERATOR.contains(criterion.getOperator())) {
-            throw new IllegalArgumentException("Cannot build SqlParameter for operator: " + criterion.getOperator());
+        if (!SUPPORTED_OPERATOR.contains(criterion.getOperator().toLowerCase())) {
+            throw new IllegalArgumentException("Cannot build SqlParameter for operator: " + criterion.getOperator().toLowerCase());
         }
         var operandLeft = sanitize(criterion.getOperandLeft().toString());
         var operandRight = criterion.getOperandRight().toString();
-        var queryParam = createQueryParam(operandLeft, criterion.getOperator(), operandRight);
+        var queryParam = createQueryParam(operandLeft, criterion.getOperator().toLowerCase(), operandRight);
         String param = queryParam.isEmpty() ? operandRight : sanitizedParameterName(operandLeft);
-        where += parameters.isEmpty() ? "WHERE" : " AND";
+        where += where.startsWith("WHERE") ? " AND" : "WHERE"; //if we have a chained WHERE ... AND ... statement
         parameters.addAll(queryParam);
-        where += String.format(" %s.%s %s %s", objectPrefix, operandLeft, criterion.getOperator(), param);
+        where += String.format(" %s.%s %s %s", objectPrefix, operandLeft, criterion.getOperator().toLowerCase(), param);
     }
 
     private List<SqlParameter> createQueryParam(String opLeft, String operator, String opRight) {
