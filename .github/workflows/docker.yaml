@@ -1,4 +1,4 @@
-name: publish images to ecr
+name: Publish Images to ECR
 
 on:
   push:
