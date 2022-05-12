@@ -75,8 +75,8 @@ public class ConsoleMonitor implements Monitor {
     }
 
     private void output(String level, Supplier<String> supplier, Throwable... errors) {
-        String time = ZonedDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        System.out.println(prefix + level + " " + time + " " + supplier.get());
+        var time = ZonedDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        System.out.println(prefix + level + " " + time + " " + sanitizeMessage(supplier));
         if (errors != null) {
             for (Throwable error : errors) {
                 if (error != null) {

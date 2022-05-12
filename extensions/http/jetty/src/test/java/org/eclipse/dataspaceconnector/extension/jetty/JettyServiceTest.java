@@ -42,6 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
+import static org.mockito.Mockito.mock;
 
 class JettyServiceTest {
     private JettyService jettyService;
@@ -50,8 +51,7 @@ class JettyServiceTest {
 
     @BeforeEach
     void setUp() {
-        monitor = new Monitor() {
-        };
+        monitor = mock(Monitor.class);
         testController = new TestController();
     }
 
