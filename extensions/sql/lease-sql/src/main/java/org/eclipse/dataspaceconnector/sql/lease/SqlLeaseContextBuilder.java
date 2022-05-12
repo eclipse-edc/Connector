@@ -74,7 +74,7 @@ public class SqlLeaseContextBuilder {
     }
 
     /**
-     * sets the {@linkplain Connection} on which the next DB statement is executed.<br/>
+     * sets the {@linkplain Connection} on which the next DB statement is executed.<p>
      * <strong>Storing references to the {@link SqlLeaseContext} is strongly discouraged, as this would keep the database {@link Connection} open!</strong>
      */
     public SqlLeaseContext withConnection(Connection connection) {
