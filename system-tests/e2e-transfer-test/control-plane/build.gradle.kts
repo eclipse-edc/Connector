@@ -24,13 +24,10 @@ dependencies {
     implementation(project(":extensions:http"))
     implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:api:data-management"))
-
-
-
-
     implementation(project(":extensions:data-plane-transfer:data-plane-transfer-spi"))
     implementation(project(":extensions:data-plane-transfer:data-plane-transfer-client"))
     implementation(project(":extensions:data-plane-transfer:data-plane-transfer-sync"))
     implementation(project(":extensions:data-plane-selector"))
     implementation(project(":extensions:http-receiver"))
+
 }

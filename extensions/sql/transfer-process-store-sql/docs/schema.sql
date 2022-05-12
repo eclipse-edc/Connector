@@ -1,7 +1,6 @@
 -- Statements are designed for and tested with Postgres only!
 
-DROP TABLE IF EXISTS edc_lease;
-CREATE TABLE edc_lease
+CREATE TABLE IF NOT EXISTS edc_lease
 (
     leased_by      VARCHAR NOT NULL,
     leased_at      BIGINT,
@@ -15,7 +14,6 @@ COMMENT ON COLUMN edc_lease.leased_at IS 'posix timestamp of lease';
 
 COMMENT ON COLUMN edc_lease.lease_duration IS 'duration of lease in milliseconds';
 
-DROP TABLE IF EXISTS edc_transfer_process;
 CREATE TABLE IF NOT EXISTS edc_transfer_process
 (
     id                       VARCHAR           NOT NULL
@@ -29,6 +27,7 @@ CREATE TABLE IF NOT EXISTS edc_transfer_process
     error_detail             VARCHAR,
     resource_manifest        VARCHAR,
     provisioned_resource_set VARCHAR,
+    content_data_address     VARCHAR,
     lease_id                 VARCHAR
         CONSTRAINT transfer_process_lease_lease_id_fk
             REFERENCES edc_lease
@@ -41,10 +40,12 @@ COMMENT ON COLUMN edc_transfer_process.resource_manifest IS 'java ResourceManife
 
 COMMENT ON COLUMN edc_transfer_process.provisioned_resource_set IS 'ProvisionedResourceSet serialized as JSON';
 
-CREATE UNIQUE INDEX transfer_process_id_uindex
+COMMENT ON COLUMN edc_transfer_process.content_data_address IS 'DataAddress serialized as JSON';
+
+
+CREATE UNIQUE INDEX IF NOT EXISTS transfer_process_id_uindex
     ON edc_transfer_process (id);
 
-DROP TABLE IF EXISTS edc_data_request;
 CREATE TABLE IF NOT EXISTS edc_data_request
 (
     id                  VARCHAR NOT NULL
@@ -73,7 +74,7 @@ COMMENT ON COLUMN edc_data_request.properties IS 'java Map serialized as JSON';
 COMMENT ON COLUMN edc_data_request.transfer_type IS 'TransferType serialized as JSON';
 
 
-CREATE UNIQUE INDEX data_request_id_uindex
+CREATE UNIQUE INDEX IF NOT EXISTS data_request_id_uindex
     ON edc_data_request (id);
 
 CREATE UNIQUE INDEX IF NOT EXISTS lease_lease_id_uindex

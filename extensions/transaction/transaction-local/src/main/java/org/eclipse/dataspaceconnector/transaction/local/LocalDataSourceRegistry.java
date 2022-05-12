@@ -26,9 +26,9 @@ import javax.sql.DataSource;
  * Default {@link DataSourceRegistry} implementation. This implementation is used to register both local and XA data sources so that they can be resolved by extensions.
  */
 public class LocalDataSourceRegistry implements DataSourceRegistry {
-    private LocalTransactionContextManager manager;
+    private final LocalTransactionContextManager manager;
 
-    private Map<String, DataSource> dataSources = new HashMap<>();
+    private final Map<String, DataSource> dataSources = new HashMap<>();
 
     public LocalDataSourceRegistry(LocalTransactionContextManager manager) {
         this.manager = manager;

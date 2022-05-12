@@ -44,15 +44,15 @@ public class PostgresStatements implements TransferProcessStoreStatements {
 
     @Override
     public String getInsertStatement() {
-        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s,%s, %s) VALUES (?, ?, ?,?, ?, ?, ?, ?, ?);",
+        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
                 getTableName(), getIdColumn(), getStateColumn(), getStateCountColumn(), getStateTimestampColumn(),
                 getTraceContextColumn(), getErrorDetailColumn(), getResourceManifestColumn(),
-                getProvisionedResourcesetColumn(), getTypeColumn());
+                getProvisionedResourcesetColumn(), getContentDataAddressColumn(), getTypeColumn());
     }
 
     @Override
     public String getFindByIdStatement() {
-        return "SELECT * FROM edc_transfer_process LEFT OUTER JOIN edc_data_request dr ON edc_transfer_process.id = dr.transfer_process_id WHERE edc_transfer_process.id=?";
+        return "SELECT *, dr.id as edc_data_request_id FROM edc_transfer_process LEFT OUTER JOIN edc_data_request dr ON edc_transfer_process.id = dr.transfer_process_id WHERE edc_transfer_process.id=?";
     }
 
     @Override
@@ -68,7 +68,7 @@ public class PostgresStatements implements TransferProcessStoreStatements {
 
     @Override
     public String getNextForStateTemplate() {
-        return format("SELECT * FROM %s LEFT OUTER JOIN edc_data_request dr ON edc_transfer_process.id = dr.transfer_process_id " +
+        return format("SELECT *, dr.id as edc_data_request_id FROM %s LEFT OUTER JOIN edc_data_request dr ON edc_transfer_process.id = dr.transfer_process_id " +
                         "WHERE %s=? " +
                         "AND (%s IS NULL OR %s IN (SELECT %s FROM %s WHERE (? > (%s + %s)))) " +
                         "ORDER BY %s ASC LIMIT ? ;", getTableName(), getStateColumn(), getLeaseIdColumn(), getLeaseIdColumn(), getLeaseIdColumn(),
@@ -77,21 +77,23 @@ public class PostgresStatements implements TransferProcessStoreStatements {
 
     @Override
     public String getUpdateTransferProcessTemplate() {
-        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=? WHERE %s=?", getTableName(), getStateColumn(), getStateCountColumn(), getStateTimestampColumn(),
-                getTraceContextColumn(), getErrorDetailColumn(), getResourceManifestColumn(), getProvisionedResourcesetColumn(),
+        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=? WHERE %s=?", getTableName(), getStateColumn(),
+                getStateCountColumn(), getStateTimestampColumn(), getTraceContextColumn(), getErrorDetailColumn(),
+                getResourceManifestColumn(), getProvisionedResourcesetColumn(), getContentDataAddressColumn(),
                 getIdColumn());
     }
 
     @Override
     public String getInsertDataRequestTemplate() {
-        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
-                getDataRequestTable(), getIdColumn(), getProcessIdColumn(), getConnectorAddressColumn(), getConnectorIdColumn(), getAssetIdColumn(), getContractIdColumn(),
-                getDataDestinationColumn(), getPropertiesColumn(), getTransferTypeColumn(), getTransferProcessIdColumn(), getProtocolColumn());
+        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+                getDataRequestTable(), getIdColumn(), getProcessIdColumn(), getConnectorAddressColumn(), getConnectorIdColumn(),
+                getAssetIdColumn(), getContractIdColumn(), getDataDestinationColumn(), getPropertiesColumn(),
+                getTransferTypeColumn(), getTransferProcessIdColumn(), getProtocolColumn(), getManagedResourcesColumn());
     }
 
     @Override
     public String getQueryStatement() {
-        return "SELECT * FROM edc_transfer_process LEFT OUTER JOIN edc_data_request dr ON edc_transfer_process.id = dr.transfer_process_id LIMIT ? OFFSET ?";
+        return "SELECT *, dr.id as edc_data_request_id FROM edc_transfer_process LEFT OUTER JOIN edc_data_request dr ON edc_transfer_process.id = dr.transfer_process_id LIMIT ? OFFSET ?";
     }
 }

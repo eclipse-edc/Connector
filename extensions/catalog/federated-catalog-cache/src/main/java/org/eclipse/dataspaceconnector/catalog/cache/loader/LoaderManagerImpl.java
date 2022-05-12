@@ -89,6 +89,7 @@ public class LoaderManagerImpl implements LoaderManager {
                     // take the elements out of the queue and forward to loaders
                     queue.drainTo(batch, batchSize);
                     monitor.debug(format("LoaderManager: batch full, begin loading (%s items, %s workers)", batchSize, loaders.size()));
+                    loaders.forEach(Loader::clear);
                     loaders.forEach(l -> l.load(batch));
                     monitor.debug("LoaderManager: loading complete");
                 }
