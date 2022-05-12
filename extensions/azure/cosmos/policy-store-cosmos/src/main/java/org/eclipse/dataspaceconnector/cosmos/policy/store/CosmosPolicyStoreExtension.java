@@ -29,8 +29,6 @@ public class CosmosPolicyStoreExtension implements ServiceExtension {
 
     @Inject
     private RetryPolicy retryPolicy;
-    @Inject
-    private Vault vault;
 
     @Override
     public String name() {
@@ -40,6 +38,8 @@ public class CosmosPolicyStoreExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var configuration = new CosmosPolicyStoreConfig(context);
+
+        var vault = context.getService(Vault.class);
 
         var cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
 
