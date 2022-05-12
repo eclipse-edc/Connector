@@ -78,7 +78,7 @@ allprojects {
     apply(plugin = "maven-publish")
     apply(plugin = "checkstyle")
     apply(plugin = "java")
-    apply(plugin = "signing")
+
 
     apply(plugin = "org.eclipse.dataspaceconnector.test-summary")
 
@@ -132,51 +132,56 @@ allprojects {
             testImplementation("com.github.javafaker:javafaker:${faker}")
         }
 
-        publishing {
-            repositories {
-                maven {
-                    name = "OSSRH"
-                    setUrl("https://oss.sonatype.org/service/local/staging/deploy/maven2")
-                    credentials {
-                        username = System.getenv("OSSRH_USER") ?: return@credentials
-                        password = System.getenv("OSSRH_PASSWORD") ?: return@credentials
-                    }
-                }
-            }
-            publications {
-                create<MavenPublication>("mavenJava") {
-                    java {
-                        withJavadocJar()
-                        withSourcesJar()
-                    }
-                    pom {
-                        name.set(project.name)
-                        description.set("edc :: ${project.name}")
-                        url.set(edcWebsiteUrl)
-                        licenses {
-                            license {
-                                name.set("The Apache License, Version 2.0")
-                                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                            }
-                            developers {
-                                developer {
-                                    id.set(edcDeveloperId)
-                                    name.set(edcDeveloperName)
-                                    email.set(edcDeveloperEmail)
-                                }
-                            }
-                            scm {
-                                connection.set(edcScmConnection)
-                                url.set(edcScmUrl)
-                            }
+        if (!project.hasProperty("skip.signing")) {
+
+            apply(plugin = "signing")
+            publishing {
+                repositories {
+                    maven {
+                        name = "OSSRH"
+                        setUrl("https://oss.sonatype.org/service/local/staging/deploy/maven2")
+                        credentials {
+                            username = System.getenv("OSSRH_USER") ?: return@credentials
+                            password = System.getenv("OSSRH_PASSWORD") ?: return@credentials
                         }
                     }
                 }
+                publications {
+                    create<MavenPublication>("mavenJava") {
+                        java {
+                            withJavadocJar()
+                            withSourcesJar()
+                        }
+                        pom {
+                            name.set(project.name)
+                            description.set("edc :: ${project.name}")
+                            url.set(edcWebsiteUrl)
+                            
+                            licenses {
+                                license {
+                                    name.set("The Apache License, Version 2.0")
+                                    url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                                }
+                                developers {
+                                    developer {
+                                        id.set(edcDeveloperId)
+                                        name.set(edcDeveloperName)
+                                        email.set(edcDeveloperEmail)
+                                    }
+                                }
+                                scm {
+                                    connection.set(edcScmConnection)
+                                    url.set(edcScmUrl)
+                                }
+                            }
+                        }
+                    }
 
-            }
+                }
 
-            signing {
-                sign(publishing.publications)
+                signing {
+                    sign(publishing.publications)
+                }
             }
         }
 
@@ -332,7 +337,7 @@ if (project.hasProperty("dependency.analysis")) {
         abi {
             exclusions {
                 excludeAnnotations(
-                        "io\\.opentelemetry\\.extension\\.annotations\\.WithSpan",
+                    "io\\.opentelemetry\\.extension\\.annotations\\.WithSpan",
                 )
             }
         }
