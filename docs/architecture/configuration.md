@@ -1,12 +1,6 @@
-**Please note**
-
-### Work in progress
-
-All content reflects the current state of discussion, not final decisions.
-
----
-
 # Configuration
+
+**Please note**: Work in progress. All content reflects the current state of discussion, not final decisions.
 
 It is possible to configure the Eclipse Dataspace Connector. All configuration are retrieved by their key from an
 extension, that implements the Configuration Extension interface.
