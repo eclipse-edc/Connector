@@ -144,7 +144,7 @@ class CosmosAssetIndexTest {
         var queryCapture = ArgumentCaptor.forClass(SqlQuerySpec.class);
         when(api.queryItems(queryCapture.capture())).thenReturn(Stream.of(createDocument(id1), createDocument(id2)));
 
-        var inExpr = "(" + String.join(",", List.of(id1, id2)) + ")";
+        var inExpr = List.of(id1, id2);
         var selector = AssetSelectorExpression.Builder.newInstance()
                 .constraint(Asset.PROPERTY_ID, "IN", inExpr)
                 .build();
@@ -154,7 +154,7 @@ class CosmosAssetIndexTest {
         assertThat(assets).hasSize(2)
                 .anyMatch(asset -> asset.getId().equals(id1))
                 .anyMatch(asset -> asset.getId().equals(id2));
-        assertThat(queryCapture.getValue().getQueryText()).contains("WHERE AssetDocument.wrappedInstance.asset_prop_id IN (" + id1 + "," + id2 + ")");
+        assertThat(queryCapture.getValue().getQueryText()).contains("WHERE AssetDocument.wrappedInstance.asset_prop_id IN (@asset_prop_id0, @asset_prop_id1)");
         verify(api).queryItems(queryCapture.capture());
         verifyNoMoreInteractions(api);
     }
