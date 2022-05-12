@@ -384,27 +384,6 @@ class ExtensionLoaderTest {
         assertThat(context.getService(TestObject.class)).isNotNull();
     }
 
-    @Test
-    void loadSingletonExtension() {
-        var loaded = new SomeExtension();
-        var defaultInstance = new SomeExtension();
-        when(serviceLocator.loadSingletonImplementor(SomeExtension.class, false)).thenReturn(loaded);
-
-        var extension = loader.loadSingletonExtension(SomeExtension.class, () -> defaultInstance);
-
-        assertThat(extension).isSameAs(loaded);
-    }
-
-    @Test
-    void loadSingletonExtension_default() {
-        var defaultInstance = new SomeExtension();
-        when(serviceLocator.loadSingletonImplementor(SomeExtension.class, false)).thenReturn(null);
-
-        var extension = loader.loadSingletonExtension(SomeExtension.class, () -> defaultInstance);
-
-        assertThat(extension).isSameAs(defaultInstance);
-    }
-
     @SafeVarargs
     private <T> List<T> mutableListOf(T... elements) {
         return new ArrayList<>(List.of(elements));

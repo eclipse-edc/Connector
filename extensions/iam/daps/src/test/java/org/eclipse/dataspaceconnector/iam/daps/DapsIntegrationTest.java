@@ -14,24 +14,14 @@
 
 package org.eclipse.dataspaceconnector.iam.daps;
 
-import org.eclipse.dataspaceconnector.core.security.fs.FsCertificateResolver;
-import org.eclipse.dataspaceconnector.core.security.fs.FsPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.iam.daps.annotations.DapsTest;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
-import org.eclipse.dataspaceconnector.junit.launcher.MockVault;
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
-import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.FileInputStream;
-import java.security.KeyStore;
 import java.util.Map;
-import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -56,25 +46,10 @@ class DapsIntegrationTest {
 
     @BeforeEach
     protected void before(EdcExtension extension) {
-        KeyStore clientKeystore = readKeystoreFromResources("keystore.p12", "PKCS12", CLIENT_KEYSTORE_PASSWORD);
+        System.setProperty("edc.vault", "src/test/resources/empty-vault.properties");
+        System.setProperty("edc.keystore", "src/test/resources/keystore.p12");
+        System.setProperty("edc.keystore.password", CLIENT_KEYSTORE_PASSWORD);
         extension.setConfiguration(configuration);
-        extension.registerServiceMock(Vault.class, new MockVault());
-        extension.registerServiceMock(PrivateKeyResolver.class, new FsPrivateKeyResolver(CLIENT_KEYSTORE_PASSWORD, clientKeystore));
-        extension.registerServiceMock(CertificateResolver.class, new FsCertificateResolver(clientKeystore));
-    }
-
-    private static KeyStore readKeystoreFromResources(String fileName, String type, String password) {
-        var url = Thread.currentThread().getContextClassLoader().getResource(fileName);
-        Objects.requireNonNull(url);
-
-        try {
-            var ks = KeyStore.getInstance(type);
-            var fis = new FileInputStream(url.getFile());
-            ks.load(fis, password.toCharArray());
-            return ks;
-        } catch (Exception e) {
-            throw new EdcException("Failed to load keystore: " + e);
-        }
     }
 
     @Test

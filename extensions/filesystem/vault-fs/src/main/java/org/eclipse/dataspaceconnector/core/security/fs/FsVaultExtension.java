@@ -15,11 +15,13 @@
 package org.eclipse.dataspaceconnector.core.security.fs;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
+import org.eclipse.dataspaceconnector.spi.system.BaseExtension;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,10 +38,9 @@ import static org.eclipse.dataspaceconnector.core.security.fs.FsConfiguration.VA
 /**
  * Bootstraps the file system-based vault extension.
  */
-public class FsVaultExtension implements VaultExtension {
-    private Vault vault;
-    private PrivateKeyResolver privateKeyResolver;
-    private CertificateResolver certificateResolver;
+@BaseExtension
+@Provides({ Vault.class, PrivateKeyResolver.class, CertificateResolver.class })
+public class FsVaultExtension implements ServiceExtension {
 
     @Override
     public String name() {
@@ -47,27 +48,16 @@ public class FsVaultExtension implements VaultExtension {
     }
 
     @Override
-    public void initialize(Monitor monitor) {
-        vault = initializeVault();
+    public void initialize(ServiceExtensionContext context) {
+        var vault = initializeVault();
+        context.registerService(Vault.class, vault);
 
         KeyStore keyStore = loadKeyStore();
-        privateKeyResolver = new FsPrivateKeyResolver(KEYSTORE_PASSWORD, keyStore);
-        certificateResolver = new FsCertificateResolver(keyStore);
-    }
+        var privateKeyResolver = new FsPrivateKeyResolver(KEYSTORE_PASSWORD, keyStore);
+        context.registerService(PrivateKeyResolver.class, privateKeyResolver);
 
-    @Override
-    public Vault getVault() {
-        return vault;
-    }
-
-    @Override
-    public PrivateKeyResolver getPrivateKeyResolver() {
-        return privateKeyResolver;
-    }
-
-    @Override
-    public CertificateResolver getCertificateResolver() {
-        return certificateResolver;
+        var certificateResolver = new FsCertificateResolver(keyStore);
+        context.registerService(CertificateResolver.class, certificateResolver);
     }
 
     private Vault initializeVault() {

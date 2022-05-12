@@ -46,6 +46,9 @@ import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
+import org.eclipse.dataspaceconnector.spi.system.vault.NoopCertificateResolver;
+import org.eclipse.dataspaceconnector.spi.system.vault.NoopPrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.system.vault.NoopVault;
 import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
@@ -68,9 +71,6 @@ import static java.util.Optional.ofNullable;
         RuleBindingRegistry.class,
         Monitor.class,
         TypeManager.class,
-        Vault.class,
-        PrivateKeyResolver.class,
-        CertificateResolver.class,
         Telemetry.class
 })
 public class CoreServicesExtension implements ServiceExtension {
@@ -108,6 +108,9 @@ public class CoreServicesExtension implements ServiceExtension {
     @Inject(required = false)
     private ExecutorInstrumentation executorInstrumentation;
 
+    @Inject
+    private PrivateKeyResolver privateKeyResolver;
+
     private HealthCheckServiceImpl healthCheckService;
     private RuleBindingRegistryImpl ruleBindingRegistry;
     private ScopeFilter scopeFilter;
@@ -119,7 +122,7 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        privateKeyResolver(context).addParser(PrivateKey.class, new DefaultPrivateKeyParseFunction());
+        privateKeyResolver.addParser(PrivateKey.class, new DefaultPrivateKeyParseFunction());
 
         var config = getHealthCheckConfig(context);
 
@@ -204,40 +207,22 @@ public class CoreServicesExtension implements ServiceExtension {
 
         ofNullable(okHttpEventListener).ifPresent(builder::eventListener);
 
-        var client = builder.build();
-
-        context.registerService(OkHttpClient.class, client);
-        return client;
+        return builder.build();
     }
 
-    @Provider
-    public Monitor monitor(ServiceExtensionContext context) {
-        return context.getMonitor();
+    @Provider(isDefault = true)
+    public Vault vault() {
+        return new NoopVault();
     }
 
-    @Provider
-    public TypeManager typeManager(ServiceExtensionContext context) {
-        return context.getTypeManager();
+    @Provider(isDefault = true)
+    public PrivateKeyResolver privateKeyResolver() {
+        return new NoopPrivateKeyResolver();
     }
 
-    @Provider
-    public Telemetry telemetry(ServiceExtensionContext context) {
-        return context.getTelemetry();
-    }
-
-    @Provider
-    public Vault vault(ServiceExtensionContext context) {
-        return context.getService(Vault.class);
-    }
-
-    @Provider
-    public PrivateKeyResolver privateKeyResolver(ServiceExtensionContext context) {
-        return context.getService(PrivateKeyResolver.class);
-    }
-
-    @Provider
-    public CertificateResolver certificateResolver(ServiceExtensionContext context) {
-        return context.getService(CertificateResolver.class);
+    @Provider(isDefault = true)
+    public CertificateResolver certificateResolver() {
+        return new NoopCertificateResolver();
     }
 
     private HealthCheckServiceConfiguration getHealthCheckConfig(ServiceExtensionContext context) {

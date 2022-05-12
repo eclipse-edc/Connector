@@ -39,7 +39,6 @@ import java.util.stream.Collectors;
 
 public class ExtensionLoader {
 
-
     private final ServiceLocator serviceLocator;
 
     public ExtensionLoader(ServiceLocator serviceLocator) {
@@ -122,18 +121,6 @@ public class ExtensionLoader {
      */
     public <T> List<T> loadExtensions(Class<T> type, boolean required) {
         return serviceLocator.loadImplementors(type, required);
-    }
-
-    /**
-     * Loads a single extension, returning the default one if no one is found.
-     */
-    public <T> T loadSingletonExtension(Class<T> type, Supplier<T> defaultSupplier) {
-        var extension = serviceLocator.loadSingletonImplementor(type, false);
-        if (extension == null) {
-            return defaultSupplier.get();
-        } else {
-            return extension;
-        }
     }
 
 }

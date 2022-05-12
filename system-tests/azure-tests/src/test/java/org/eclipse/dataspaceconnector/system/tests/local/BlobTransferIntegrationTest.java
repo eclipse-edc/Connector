@@ -31,7 +31,8 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.system.NullVaultExtension;
+import org.eclipse.dataspaceconnector.spi.system.vault.NoopCertificateResolver;
+import org.eclipse.dataspaceconnector.spi.system.vault.NoopPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils;
 import org.junit.jupiter.api.BeforeAll;
@@ -113,8 +114,8 @@ public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
 
     private static void setUpMockVault(EdcRuntimeExtension consumer, Vault vault) {
         consumer.registerServiceMock(Vault.class, vault);
-        consumer.registerServiceMock(PrivateKeyResolver.class, new NullVaultExtension().getPrivateKeyResolver());
-        consumer.registerServiceMock(CertificateResolver.class, new NullVaultExtension().getCertificateResolver());
+        consumer.registerServiceMock(PrivateKeyResolver.class, new NoopPrivateKeyResolver());
+        consumer.registerServiceMock(CertificateResolver.class, new NoopCertificateResolver());
     }
 
     @Test

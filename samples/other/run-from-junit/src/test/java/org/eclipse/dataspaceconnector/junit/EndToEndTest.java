@@ -30,11 +30,9 @@ import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
-import org.eclipse.dataspaceconnector.spi.system.NullVaultExtension;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
@@ -139,7 +137,6 @@ public class EndToEndTest {
 
     @BeforeEach
     void before(EdcExtension extension) {
-        extension.registerSystemExtension(VaultExtension.class, new NullVaultExtension());
         extension.registerSystemExtension(ServiceExtension.class, new TestServiceExtension());
     }
 

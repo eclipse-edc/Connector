@@ -51,6 +51,7 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
     public static final String IDS_WEBHOOK_ADDRESS = "ids.webhook.address";
     public static final String DEFAULT_IDS_WEBHOOK_ADDRESS = "http://localhost";
 
+    @Inject
     private Monitor monitor;
     @Inject
     private OkHttpClient httpClient;
@@ -70,11 +71,8 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         return "IDS Multipart Dispatcher API";
     }
 
-
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
-
         var connectorId = resolveConnectorId(context);
 
         // TODO ObjectMapper needs to be replaced by one capable to write proper IDS JSON-LD
