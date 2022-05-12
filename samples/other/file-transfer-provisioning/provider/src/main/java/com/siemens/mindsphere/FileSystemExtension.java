@@ -13,10 +13,7 @@
 
 package com.siemens.mindsphere;
 
-import com.siemens.mindsphere.provision.FileSystemProvisionedResource;
-import com.siemens.mindsphere.provision.FileSystemProvisioner;
-import com.siemens.mindsphere.provision.FileSystemResourceDefinition;
-import com.siemens.mindsphere.provision.FileSystemResourceDefinitionGenerator;
+import com.siemens.mindsphere.provision.*;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
@@ -39,7 +36,10 @@ public class FileSystemExtension implements ServiceExtension {
         @SuppressWarnings("unchecked") var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
         var provisionManager = context.getService(ProvisionManager.class);
         final FileSystemProvisioner fileSystemProvisioner = new FileSystemProvisioner(monitor, retryPolicy);
+        final SourceUrlProvisioner sourceUrlProvisioner = new SourceUrlProvisioner(context, retryPolicy);
+
         provisionManager.register(fileSystemProvisioner);
+        provisionManager.register(sourceUrlProvisioner);
 
         // register the fs resource definition generator
         manifestGenerator.registerGenerator(new FileSystemResourceDefinitionGenerator(monitor, context));
@@ -55,5 +55,6 @@ public class FileSystemExtension implements ServiceExtension {
 
     private void registerTypes(TypeManager typeManager) {
         typeManager.registerTypes(FileSystemProvisionedResource.class, FileSystemResourceDefinition.class);
+        typeManager.registerTypes(SourceUrlProvisionedResource.class, SourceUrlResourceDefinition.class);
     }
 }
