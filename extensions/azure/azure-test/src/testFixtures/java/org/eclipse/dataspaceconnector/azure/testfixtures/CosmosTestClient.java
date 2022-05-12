@@ -116,12 +116,12 @@ public interface CosmosTestClient {
     }
 
     private static void setUpTrustStoreWithCertificates(X509Certificate[] certs) {
-
         try {
+            var trustStorePassword = propOrEnv("javax.net.ssl.trustStorePassword", "changeit").toCharArray();
+
             var trustStorePath =
                     System.getProperty("javax.net.ssl.trustStore",
                             System.getProperty("java.home") + separator + "lib" + separator + "security" + separator + "cacerts");
-            var trustStorePassword = System.getProperty("javax.net.ssl.trustStorePassword", "changeit").toCharArray();
 
             var trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
             trustStore.load(new FileInputStream(trustStorePath), trustStorePassword);

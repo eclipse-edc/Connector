@@ -15,3 +15,6 @@ To run the `EndToEndTransferPostgresqlTest` you need to spin the postgresql cont
 ```shell
 docker run --rm --name edc-postgres -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres
 ```
+
+## CosmosDB
+Check the instructions about how to run a local cosmos-emulator instance in the [azure-test README](../../extensions/azure/azure-test/README.md)

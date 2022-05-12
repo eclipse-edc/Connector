@@ -14,9 +14,7 @@
 
 package org.eclipse.dataspaceconnector.azure.cosmos;
 
-import com.azure.cosmos.ConsistencyLevel;
 import com.azure.cosmos.CosmosClient;
-import com.azure.cosmos.CosmosClientBuilder;
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
 import com.azure.cosmos.CosmosException;
@@ -31,25 +29,20 @@ import com.azure.cosmos.models.CosmosStoredProcedureResponse;
 import com.azure.cosmos.models.PartitionKey;
 import com.azure.cosmos.models.SqlParameter;
 import com.azure.cosmos.models.SqlQuerySpec;
-import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class CosmosDbApiImpl implements CosmosDbApi {
-
-    private static final String HOST_TEMPLATE = "https://%s.documents.azure.com:443/";
 
     private final CosmosItemRequestOptions itemRequestOptions;
     private final CosmosQueryRequestOptions queryRequestOptions;
@@ -62,8 +55,8 @@ public class CosmosDbApiImpl implements CosmosDbApi {
         this.container = container;
     }
 
-    public CosmosDbApiImpl(@NotNull Vault vault, @NotNull AbstractCosmosConfig config) {
-        this(getContainer(vault, config), config.isQueryMetricsEnabled());
+    public CosmosDbApiImpl(@NotNull AbstractCosmosConfig config, CosmosClient client) {
+        this(getContainer(config, client), config.isQueryMetricsEnabled());
     }
 
     private static void handleResponse(CosmosItemResponse<?> response, String error) {
@@ -76,29 +69,12 @@ public class CosmosDbApiImpl implements CosmosDbApi {
         }
     }
 
-    private static CosmosContainer getContainer(Vault vault, AbstractCosmosConfig config) {
-        CosmosClient client = createClient(vault, config.getAccountName(), Collections.singletonList(config.getPreferredRegion()));
+    private static CosmosContainer getContainer(AbstractCosmosConfig config, CosmosClient client) {
         CosmosDatabase database = getDatabase(client, config.getDbName());
         if (database.readAllContainers().stream().noneMatch(sp -> sp.getId().equals(config.getContainerName()))) {
             throw new EdcException("No CosmosDB container named '" + config.getContainerName() + "' was found in account '" + config.getAccountName() + "'. Please create one, preferably using terraform.");
         }
         return database.getContainer(config.getContainerName());
-    }
-
-    private static CosmosClient createClient(Vault vault, String accountName, List<String> preferredRegions) {
-        var accountKey = vault.resolveSecret(accountName);
-        if (StringUtils.isNullOrEmpty(accountKey)) {
-            throw new EdcException("No credentials found in vault for Cosmos DB '" + accountName + "'");
-        }
-
-        // create cosmos db api client
-        String host = String.format(HOST_TEMPLATE, accountName);
-        return new CosmosClientBuilder()
-                .endpoint(host)
-                .key(accountKey)
-                .preferredRegions(preferredRegions)
-                .consistencyLevel(ConsistencyLevel.SESSION)
-                .buildClient();
     }
 
     private static CosmosDatabase getDatabase(CosmosClient client, String databaseName) {
