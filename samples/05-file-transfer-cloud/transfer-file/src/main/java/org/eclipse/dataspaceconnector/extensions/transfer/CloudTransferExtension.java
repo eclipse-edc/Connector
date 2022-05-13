@@ -45,6 +45,8 @@ public class CloudTransferExtension implements ServiceExtension {
     private BlobStoreApi blobStoreApi;
     @Inject
     private DataOperatorRegistry dataOperatorRegistry;
+    @Inject
+    private Vault vault;
 
     @Override
     public String name() {
@@ -59,7 +61,6 @@ public class CloudTransferExtension implements ServiceExtension {
 
     private void registerFlowController(ServiceExtensionContext context) {
         var s3ClientProvider = new S3ClientProviderImpl();
-        var vault = context.getService(Vault.class);
 
         dataOperatorRegistry.registerReader(new BlobStoreReader(blobStoreApi));
         dataOperatorRegistry.registerReader(new S3BucketReader(context.getMonitor(), vault, s3ClientProvider));

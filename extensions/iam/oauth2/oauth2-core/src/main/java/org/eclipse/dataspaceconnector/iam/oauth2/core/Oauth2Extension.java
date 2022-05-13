@@ -77,6 +77,12 @@ public class Oauth2Extension implements ServiceExtension {
     @Inject
     private OkHttpClient okHttpClient;
 
+    @Inject
+    private PrivateKeyResolver privateKeyResolver;
+
+    @Inject
+    private CertificateResolver certificateResolver;
+
     @Override
     public String name() {
         return "OAuth2";
@@ -139,8 +145,6 @@ public class Oauth2Extension implements ServiceExtension {
         var publicKeyAlias = context.getConfig().getString(PUBLIC_KEY_ALIAS);
         var privateKeyAlias = context.getConfig().getString(PRIVATE_KEY_ALIAS);
         var clientId = context.getConfig().getString(CLIENT_ID);
-        var privateKeyResolver = context.getService(PrivateKeyResolver.class);
-        var certificateResolver = context.getService(CertificateResolver.class);
         return Oauth2Configuration.Builder.newInstance()
                 .identityProviderKeyResolver(providerKeyResolver)
                 .tokenUrl(tokenUrl)

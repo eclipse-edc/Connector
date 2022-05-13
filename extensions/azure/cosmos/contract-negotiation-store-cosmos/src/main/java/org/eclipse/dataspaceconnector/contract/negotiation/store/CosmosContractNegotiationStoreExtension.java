@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractNegotiationDocument;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -26,6 +27,9 @@ import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
 @Provides({ ContractNegotiationStore.class })
 public class CosmosContractNegotiationStoreExtension implements ServiceExtension {
+
+    @Inject
+    private Vault vault;
 
     @Override
     public String name() {
@@ -36,7 +40,6 @@ public class CosmosContractNegotiationStoreExtension implements ServiceExtension
     @Override
     public void initialize(ServiceExtensionContext context) {
         var configuration = new CosmosContractNegotiationStoreConfig(context);
-        Vault vault = context.getService(Vault.class);
 
         var cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
         var store = new CosmosContractNegotiationStore(cosmosDbApi, context.getTypeManager(), (RetryPolicy<Object>) context.getService(RetryPolicy.class), configuration.getPartitionKey());

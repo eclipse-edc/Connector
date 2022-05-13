@@ -35,6 +35,8 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
     private RetryPolicy<Object> retryPolicy;
     @Inject
     private HealthCheckService healthService;
+    @Inject
+    private Vault vault;
 
     @Override
     public String name() {
@@ -45,8 +47,6 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 
-
-        var vault = context.getService(Vault.class);
         var connectorId = context.getConnectorId();
 
         retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);

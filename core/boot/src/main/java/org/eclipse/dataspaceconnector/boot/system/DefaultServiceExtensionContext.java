@@ -35,9 +35,6 @@ import java.util.UUID;
  * <p>Prior to using, {@link #initialize()} must be called.</p>
  */
 public class DefaultServiceExtensionContext implements ServiceExtensionContext {
-    private final Monitor monitor;
-    private final Telemetry telemetry;
-    private final TypeManager typeManager;
 
     private final Map<Class<?>, Object> services = new HashMap<>();
     private final List<ConfigurationExtension> configurationExtensions;
@@ -45,13 +42,11 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     private Config config;
 
     public DefaultServiceExtensionContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry, List<ConfigurationExtension> configurationExtensions) {
-        this.typeManager = typeManager;
-        this.monitor = monitor;
-        this.telemetry = telemetry;
         this.configurationExtensions = configurationExtensions;
         // register as services
         registerService(TypeManager.class, typeManager);
         registerService(Monitor.class, monitor);
+        registerService(Telemetry.class, telemetry);
     }
 
     @Override
@@ -61,17 +56,17 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
 
     @Override
     public Monitor getMonitor() {
-        return monitor;
+        return getService(Monitor.class);
     }
 
     @Override
     public Telemetry getTelemetry() {
-        return telemetry;
+        return getService(Telemetry.class);
     }
 
     @Override
     public TypeManager getTypeManager() {
-        return typeManager;
+        return getService(TypeManager.class);
     }
 
     @Override
@@ -99,7 +94,7 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     @Override
     public <T> void registerService(Class<T> type, T service) {
         if (hasService(type)) {
-            monitor.warning("A service of the type " + type.getCanonicalName() + " was already registered and has now been replaced");
+            getMonitor().warning("A service of the type " + type.getCanonicalName() + " was already registered and has now been replaced with a " + service.getClass().getSimpleName() + " instance.");
         }
         services.put(type, service);
     }
@@ -107,8 +102,8 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     @Override
     public void initialize() {
         configurationExtensions.forEach(ext -> {
-            ext.initialize(monitor);
-            monitor.info("Initialized " + ext.name());
+            ext.initialize(getMonitor());
+            getMonitor().info("Initialized " + ext.name());
         });
         config = loadConfig();
         connectorId = getSetting("edc.connector.name", "edc-" + UUID.randomUUID());

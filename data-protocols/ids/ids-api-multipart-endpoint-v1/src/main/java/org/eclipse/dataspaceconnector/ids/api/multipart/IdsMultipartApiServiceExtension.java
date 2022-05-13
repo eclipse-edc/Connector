@@ -107,6 +107,8 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     private IdsApiConfiguration idsApiConfiguration;
     @Inject
     private ObjectMapperFactory objectMapperFactory;
+    @Inject
+    private Vault vault;
 
     @Override
     public String name() {
@@ -151,7 +153,6 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         var handlers = new LinkedList<Handler>();
         handlers.add(descriptionHandler);
 
-        var vault = serviceExtensionContext.getService(Vault.class);
         var artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault);
         handlers.add(artifactRequestHandler);
 
