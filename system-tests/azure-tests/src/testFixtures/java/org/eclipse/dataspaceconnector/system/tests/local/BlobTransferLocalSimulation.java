@@ -16,8 +16,10 @@ package org.eclipse.dataspaceconnector.system.tests.local;
 
 public class BlobTransferLocalSimulation extends TransferLocalSimulation {
     static final String ACCOUNT_NAME_PROPERTY = "BlobTransferLocalSimulation-account-name";
+    static final String MAX_DURATION_SECONDS_PROPERTY = "BlobTransferLocalSimulation-copy-max-duration-seconds";
 
     public BlobTransferLocalSimulation() {
-        super(new BlobTransferRequestFactory(System.getProperty(ACCOUNT_NAME_PROPERTY)));
+        super(new BlobTransferSimulationConfiguration(System.getProperty(ACCOUNT_NAME_PROPERTY),
+                Integer.parseInt(System.getProperty(MAX_DURATION_SECONDS_PROPERTY, "30"))));
     }
 }

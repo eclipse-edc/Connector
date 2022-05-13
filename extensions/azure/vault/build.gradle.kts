@@ -16,6 +16,7 @@ val rsApi: String by project
 val mockitoVersion: String by project
 val azureIdentityVersion: String by project
 val azureResourceManagerVersion: String by project
+val azureKeyVaultVersion: String by project
 
 plugins {
     `java-library`
@@ -25,7 +26,7 @@ dependencies {
     api(project(":spi:core-spi"))
 
     implementation(project(":common:util"))
-    implementation("com.azure:azure-security-keyvault-secrets:4.2.3")
+    implementation("com.azure:azure-security-keyvault-secrets:${azureKeyVaultVersion}")
     implementation("com.azure:azure-identity:${azureIdentityVersion}")
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 

@@ -15,8 +15,6 @@
 
 plugins {
     `java-library`
-    `java-test-fixtures`
-    `maven-publish`
 }
 
 val gatlingVersion: String by project
@@ -39,18 +37,18 @@ dependencies {
     }
 
     testImplementation(project(":extensions:azure:blobstorage:blob-core"))
-    testFixturesImplementation(project(":extensions:azure:blobstorage:blob-core"))
+    testImplementation(project(":extensions:azure:vault"))
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(testFixtures(project(":system-tests:tests")))
-    testFixturesImplementation(testFixtures(project(":system-tests:tests")))
+    testImplementation(testFixtures(project(":system-tests:azure-tests")))
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))
     testImplementation("com.azure:azure-storage-blob:${storageBlobVersion}")
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
-    testFixturesImplementation("io.rest-assured:rest-assured:${restAssured}")
     testImplementation("com.azure:azure-identity:${azureIdentityVersion}")
     testImplementation("com.azure:azure-security-keyvault-secrets:${azureKeyVaultVersion}")
 
-    testCompileOnly(project(":system-tests:runtimes:azure-storage-transfer-provider"))
-    testCompileOnly(project(":system-tests:runtimes:azure-storage-transfer-consumer"))
+    testRuntimeOnly(project(":system-tests:runtimes:azure-data-factory-transfer-provider"))
+    testRuntimeOnly(project(":system-tests:runtimes:azure-storage-transfer-consumer"))
 }
+

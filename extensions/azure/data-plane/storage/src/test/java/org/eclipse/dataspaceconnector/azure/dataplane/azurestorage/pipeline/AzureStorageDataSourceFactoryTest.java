@@ -64,6 +64,7 @@ class AzureStorageDataSourceFactoryTest {
                                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)
                                 .property(AzureBlobStoreSchema.CONTAINER_NAME, containerName)
                                 .property(AzureBlobStoreSchema.BLOB_NAME, blobName)
+                                .property(DataAddress.KEY_NAME, accountName + "-key1")
                                 .build())
                         .build())
                 .succeeded()).isTrue();

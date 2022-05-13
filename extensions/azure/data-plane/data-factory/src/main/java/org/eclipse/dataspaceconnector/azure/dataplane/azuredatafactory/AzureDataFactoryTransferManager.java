@@ -14,12 +14,18 @@
 
 package org.eclipse.dataspaceconnector.azure.dataplane.azuredatafactory;
 
+import com.azure.core.credential.AzureSasCredential;
 import com.azure.resourcemanager.datafactory.models.PipelineResource;
+import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
+import org.eclipse.dataspaceconnector.azure.blob.core.AzureSasToken;
+import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -33,19 +39,37 @@ import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_R
  * Service for performing data transfers in Azure Data Factory.
  */
 public class AzureDataFactoryTransferManager {
+    // Name of the empty blob used to indicate completion. Used by consumer-side status checker.
+    private static final String COMPLETE_BLOB_NAME = ".complete";
     private final Monitor monitor;
     private final Duration maxDuration;
     private final Clock clock;
     private final DataFactoryClient client;
     private final DataFactoryPipelineFactory pipelineFactory;
+    private final BlobStoreApi blobStoreApi;
+    private final TypeManager typeManager;
+    private final KeyVaultClient keyVaultClient;
     private final Duration pollDelay;
 
-    public AzureDataFactoryTransferManager(Monitor monitor, DataFactoryClient client, DataFactoryPipelineFactory pipelineFactory, Duration maxDuration, Clock clock, Duration pollDelay) {
+    public AzureDataFactoryTransferManager(
+            Monitor monitor,
+            DataFactoryClient client,
+            DataFactoryPipelineFactory pipelineFactory,
+            Duration maxDuration,
+            Clock clock,
+            BlobStoreApi blobStoreApi,
+            TypeManager typeManager,
+            KeyVaultClient keyVaultClient,
+            Duration pollDelay
+    ) {
         this.monitor = monitor;
         this.client = client;
         this.pipelineFactory = pipelineFactory;
         this.maxDuration = maxDuration;
         this.clock = clock;
+        this.blobStoreApi = blobStoreApi;
+        this.typeManager = typeManager;
+        this.keyVaultClient = keyVaultClient;
         this.pollDelay = pollDelay;
     }
 
@@ -59,11 +83,29 @@ public class AzureDataFactoryTransferManager {
 
         PipelineResource pipeline = pipelineFactory.createPipeline(request);
 
+        // Destination
+        var dataAddress = request.getDestinationDataAddress();
+        var secret = keyVaultClient.getSecret(dataAddress.getKeyName());
+        var token = typeManager.readValue(secret.getValue(), AzureSasToken.class);
+        var accountName = dataAddress.getProperty(AzureBlobStoreSchema.ACCOUNT_NAME);
+        var containerName = dataAddress.getProperty(AzureBlobStoreSchema.CONTAINER_NAME);
+
         var runId = client.runPipeline(pipeline).runId();
 
         monitor.info("Created ADF pipeline for " + request.getProcessId() + ". Run id is " + runId);
 
-        return awaitRunCompletion(runId);
+        return awaitRunCompletion(runId)
+                .thenApply(result -> {
+                    if (result.succeeded()) {
+                        return complete(accountName, containerName, token.getSas());
+                    }
+                    return result;
+                })
+                .exceptionally(throwable -> {
+                    var error = "Unhandled exception raised when transferring data";
+                    monitor.severe(error, throwable);
+                    return StatusResult.failure(ERROR_RETRY, error + ":" + throwable.getMessage());
+                });
     }
 
     @NotNull
@@ -101,6 +143,17 @@ public class AzureDataFactoryTransferManager {
         }
         client.cancelPipelineRun(runId);
         return completedFuture(StatusResult.failure(ERROR_RETRY, "ADF run timed out"));
+    }
+
+    private StatusResult<Void> complete(String accountName, String containerName, String sharedAccessSignature) {
+        try {
+            // Write an empty blob to indicate completion
+            blobStoreApi.getBlobAdapter(accountName, containerName, COMPLETE_BLOB_NAME, new AzureSasCredential(sharedAccessSignature))
+                    .getOutputStream().close();
+            return StatusResult.success();
+        } catch (IOException e) {
+            return StatusResult.failure(ERROR_RETRY, format("Error creating blob %s on account %s", COMPLETE_BLOB_NAME, accountName));
+        }
     }
 
     /**

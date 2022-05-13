@@ -15,16 +15,21 @@
 package org.eclipse.dataspaceconnector.azure.dataplane.azuredatafactory;
 
 import com.azure.resourcemanager.AzureResourceManager;
+import com.azure.resourcemanager.keyvault.models.Vault;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.azure.storage.blob.sas.BlobContainerSasPermission;
+import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
 import com.azure.storage.common.StorageSharedKeyCredential;
 import com.github.javafaker.Faker;
+import org.eclipse.dataspaceconnector.azure.blob.core.AzureSasToken;
 import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureDataFactoryIntegrationTest;
 import org.eclipse.dataspaceconnector.common.testfixtures.TestUtils;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.AfterAll;
@@ -36,6 +41,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -48,7 +54,6 @@ import static org.awaitility.Awaitility.await;
 import static org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema.ACCOUNT_NAME;
 import static org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema.BLOB_NAME;
 import static org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema.CONTAINER_NAME;
-import static org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema.SHARED_KEY;
 import static org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema.TYPE;
 import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createBlobName;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -63,13 +68,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AzureDataFactoryCopyIntegrationTest {
 
     private static List<Runnable> containerCleanup = new ArrayList<>();
+    private static List<Runnable> secretCleanup = new ArrayList<>();
     private static Properties savedProperties;
     private static final String RUNTIME_SETTINGS_PATH = "resources/azure/testing/runtime_settings.properties";
     private static final String EDC_FS_CONFIG = "edc.fs.config";
     private static final String PROVIDER_STORAGE_RESOURCE_ID = "test.provider.storage.resourceid";
     private static final String CONSUMER_STORAGE_RESOURCE_ID = "test.consumer.storage.resourceid";
+    private static final String KEY_VAULT_RESOURCE_ID = "edc.data.factory.key.vault.resource.id";
 
     private final String blobName = createBlobName();
+    private final TypeManager typeManager = new TypeManager();
 
     @BeforeAll
     static void beforeAll() throws FileNotFoundException {
@@ -85,6 +93,7 @@ class AzureDataFactoryCopyIntegrationTest {
     static void afterAll() {
         System.setProperties(savedProperties);
         containerCleanup.parallelStream().forEach(Runnable::run);
+        secretCleanup.forEach(Runnable::run);
     }
 
     @Test
@@ -111,14 +120,17 @@ class AzureDataFactoryCopyIntegrationTest {
                 .property(ACCOUNT_NAME, providerStorage.name)
                 .property(CONTAINER_NAME, providerStorage.containerName)
                 .property(BLOB_NAME, blobName)
-                .property(SHARED_KEY, providerStorage.key)
+                .keyName(providerStorage.name + "-key1")
                 .build();
+
+        var destSecretKeyName = consumerStorage.name + "-ittest-sas";
         var destination = DataAddress.Builder.newInstance()
                 .type(TYPE)
                 .property(ACCOUNT_NAME, consumerStorage.name)
                 .property(CONTAINER_NAME, consumerStorage.containerName)
-                .property(SHARED_KEY, consumerStorage.key)
+                .keyName(destSecretKeyName)
                 .build();
+
         var request = DataFlowRequest.Builder.newInstance()
                 .sourceDataAddress(source)
                 .destinationDataAddress(destination)
@@ -126,6 +138,11 @@ class AzureDataFactoryCopyIntegrationTest {
                 .processId(UUID.randomUUID().toString())
                 .trackable(true)
                 .build();
+
+        // Generate write-only sas for destination container and store as secret
+        var vault = azure.vaults()
+                .getById(Objects.requireNonNull(edc.getContext().getConfig().getString(KEY_VAULT_RESOURCE_ID), KEY_VAULT_RESOURCE_ID));
+        setSecret(consumerStorage, vault, destSecretKeyName);
 
         // Act
         dataPlaneManager.initiateTransfer(request);
@@ -143,6 +160,23 @@ class AzureDataFactoryCopyIntegrationTest {
                 .isTrue();
         assertThat(destinationBlob.getProperties().getBlobSize())
                 .isEqualTo(randomBytes.length);
+    }
+
+    private void setSecret(Account account, Vault vault, String secretName) {
+        // ADF SLA to start an activity is 4 minutes.
+        var expiryTime = OffsetDateTime.now().plusMinutes(8);
+        var permission = new BlobContainerSasPermission().setWritePermission(true);
+        var sasSignatureValues = new BlobServiceSasSignatureValues(expiryTime, permission)
+                .setStartTime(OffsetDateTime.now());
+        var sasToken = account.client
+                .getBlobContainerClient(account.containerName)
+                .generateSas(sasSignatureValues);
+        var edcAzureSas = new AzureSasToken(sasToken, expiryTime.toEpochSecond());
+        // Set Secret
+        vault.secretClient().setSecret(secretName, typeManager.writeValueAsString(edcAzureSas)).block(Duration.ofMinutes(1));
+        // Add for clean up test data
+        secretCleanup.add(() -> vault.secretClient().beginDeleteSecret(secretName).blockLast(Duration.ofMinutes(1)));
+        secretCleanup.add(() -> vault.secretClient().purgeDeletedSecret(secretName).block(Duration.ofMinutes(1)));
     }
 
     static class Account {

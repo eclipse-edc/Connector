@@ -17,27 +17,27 @@ package org.eclipse.dataspaceconnector.system.tests;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
-import org.eclipse.dataspaceconnector.system.tests.utils.TransferRequestFactory;
-import org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils;
+import org.eclipse.dataspaceconnector.system.tests.utils.TransferInitiationData;
+import org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationConfiguration;
 
 import java.util.Map;
 
 import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils.PROVIDER_ASSET_ID;
 
 /**
- * Factory used to configure a File transfer in
+ * Configuration for File transfer used in
  * {@link org.eclipse.dataspaceconnector.system.tests.local.FileTransferLocalSimulation}.
  */
-public class FileTransferRequestFactory implements TransferRequestFactory {
+public class FileTransferSimulationConfiguration implements TransferSimulationConfiguration {
 
     private final String destinationPath;
 
-    public FileTransferRequestFactory(String destinationPath) {
+    public FileTransferSimulationConfiguration(String destinationPath) {
         this.destinationPath = destinationPath;
     }
 
     @Override
-    public String apply(TransferSimulationUtils.TransferInitiationData transferInitiationData) {
+    public String createTransferRequest(TransferInitiationData transferInitiationData) {
         var request = Map.of(
                 "contractId", transferInitiationData.contractAgreementId,
                 "assetId", PROVIDER_ASSET_ID,

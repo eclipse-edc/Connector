@@ -26,7 +26,7 @@ import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.azure.blob.core.validator.AzureStorageValidator.validateAccountName;
 import static org.eclipse.dataspaceconnector.azure.blob.core.validator.AzureStorageValidator.validateBlobName;
 import static org.eclipse.dataspaceconnector.azure.blob.core.validator.AzureStorageValidator.validateContainerName;
-import static org.eclipse.dataspaceconnector.azure.blob.core.validator.AzureStorageValidator.validateSharedKey;
+import static org.eclipse.dataspaceconnector.azure.blob.core.validator.AzureStorageValidator.validateKeyName;
 
 /**
  * Validator for {@link AzureDataFactoryTransferService}.
@@ -68,7 +68,7 @@ class AzureDataFactoryTransferRequestValidator {
     private void validateProperties(HashMap<String, String> properties) {
         validateAccountName(properties.remove(AzureBlobStoreSchema.ACCOUNT_NAME));
         validateContainerName(properties.remove(AzureBlobStoreSchema.CONTAINER_NAME));
-        validateSharedKey(properties.remove(AzureBlobStoreSchema.SHARED_KEY));
+        validateKeyName(properties.remove(DataAddress.KEY_NAME));
         properties.keySet().stream().filter(k -> !DataAddress.TYPE.equals(k)).findFirst().ifPresent(k -> {
             throw new IllegalArgumentException(format("Unexpected property %s", k));
         });

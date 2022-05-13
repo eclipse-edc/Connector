@@ -14,11 +14,16 @@
 
 package org.eclipse.dataspaceconnector.system.tests.utils;
 
-import java.util.function.Function;
+import java.time.Duration;
 
 /**
  * Pluggable definition for {@link org.eclipse.dataspaceconnector.system.tests.local.TransferLocalSimulation}
- * implementations to define the kind of transfer to be performed.
+ * implementations to define the kind of transfer to be performed and modify certain settings.
  */
-public interface TransferRequestFactory extends Function<TransferSimulationUtils.TransferInitiationData, String> {
+public interface TransferSimulationConfiguration {
+    String createTransferRequest(TransferInitiationData transferInitiationData);
+
+    default Duration copyMaxDuration() {
+        return Duration.ofSeconds(30);
+    }
 }

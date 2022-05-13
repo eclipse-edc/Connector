@@ -57,6 +57,8 @@ Follow the instructions to *Create an app registration*.
 
 Take note of the Application (client) ID.
 
+Create a client secret by following the section "Create a new application secret" in the page on [Creating an Azure AD application to access resources](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal#option-2-create-a-new-application-secret). Take note of the client secret and keep it safe.
+
 Follow the instructions to *Configure a federated identity credential*.
 
 - For **Entity Type**, select **Environment**.
