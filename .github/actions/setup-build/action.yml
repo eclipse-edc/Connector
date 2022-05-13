@@ -1,0 +1,14 @@
+name: "Setup Gradle"
+description: "Setup Gradle"
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-java@v2
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Setup Gradle cache
+      uses: gradle/gradle-build-action@v2
