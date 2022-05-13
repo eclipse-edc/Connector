@@ -64,7 +64,7 @@ import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulati
 @AzureDataFactoryIntegrationTest
 public class AzureDataFactoryTransferIntegrationTest {
 
-    private static final List<Runnable> containerCleanup = new ArrayList<>();
+    private static final List<Runnable> CONTAINER_CLEANUP = new ArrayList<>();
     private static final String EDC_FS_CONFIG = "edc.fs.config";
     private static final String EDC_VAULT_NAME = "edc.vault.name";
     private static final String EDC_VAULT_CLIENT_ID = "edc.vault.clientid";
@@ -80,7 +80,7 @@ public class AzureDataFactoryTransferIntegrationTest {
     private static final String BLOB_STORE_ENDPOINT_TEMPLATE = "https://%s.blob.core.windows.net";
 
     @RegisterExtension
-    private static final EdcRuntimeExtension consumer = new EdcRuntimeExtension(
+    private static final EdcRuntimeExtension CONSUMER = new EdcRuntimeExtension(
             ":system-tests:runtimes:azure-storage-transfer-consumer",
             "consumer",
             Map.ofEntries(
@@ -99,7 +99,7 @@ public class AzureDataFactoryTransferIntegrationTest {
     );
 
     @RegisterExtension
-    private static final EdcRuntimeExtension provider = new EdcRuntimeExtension(
+    private static final EdcRuntimeExtension PROVIDER = new EdcRuntimeExtension(
             ":system-tests:runtimes:azure-data-factory-transfer-provider",
             "provider",
             Map.ofEntries(
@@ -128,7 +128,7 @@ public class AzureDataFactoryTransferIntegrationTest {
 
     @AfterAll
     static void cleanUp() {
-        containerCleanup.parallelStream().forEach(Runnable::run);
+        CONTAINER_CLEANUP.parallelStream().forEach(Runnable::run);
     }
 
     @Test
@@ -143,7 +143,7 @@ public class AzureDataFactoryTransferIntegrationTest {
         blobStoreApi.createContainer(PROVIDER_STORAGE_ACCOUNT_NAME, PROVIDER_CONTAINER_NAME);
         blobStoreApi.putBlob(PROVIDER_STORAGE_ACCOUNT_NAME, PROVIDER_CONTAINER_NAME, PROVIDER_ASSET_FILE, blobContent.getBytes(UTF_8));
         // Add for cleanup
-        containerCleanup.add(() -> blobStoreApi.deleteContainer(PROVIDER_STORAGE_ACCOUNT_NAME, PROVIDER_CONTAINER_NAME));
+        CONTAINER_CLEANUP.add(() -> blobStoreApi.deleteContainer(PROVIDER_STORAGE_ACCOUNT_NAME, PROVIDER_CONTAINER_NAME));
 
         // Seed data to provider
         createAsset(PROVIDER_STORAGE_ACCOUNT_NAME, PROVIDER_CONTAINER_NAME);
@@ -158,7 +158,7 @@ public class AzureDataFactoryTransferIntegrationTest {
         // Assert
         var provisionedContainerName = BlobTransferUtils.getProvisionedContainerName();
         // Add for cleanup
-        containerCleanup.add(() -> blobStoreApi.deleteContainer(CONSUMER_STORAGE_ACCOUNT_NAME, provisionedContainerName));
+        CONTAINER_CLEANUP.add(() -> blobStoreApi.deleteContainer(CONSUMER_STORAGE_ACCOUNT_NAME, provisionedContainerName));
 
         var actualBlobContent = blobStoreApi.getBlob(CONSUMER_STORAGE_ACCOUNT_NAME, provisionedContainerName, PROVIDER_ASSET_FILE);
         assertThat(actualBlobContent.length)

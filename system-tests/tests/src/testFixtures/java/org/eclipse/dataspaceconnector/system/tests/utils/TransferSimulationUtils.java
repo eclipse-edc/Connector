@@ -171,7 +171,7 @@ public abstract class TransferSimulationUtils {
      * <p>
      * Expects the Transfer Process ID to be provided in the {@see TRANSFER_PROCESS_ID} session key.
      *
-     * @param requestFactory
+     * @param simulationConfiguration See {@link TransferSimulationConfiguration}
      */
     private static ChainBuilder waitForTransferCompletion(TransferSimulationConfiguration simulationConfiguration) {
         return group("Wait for transfer")
