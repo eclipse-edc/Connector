@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.spi.monitor;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -52,6 +53,12 @@ public interface Monitor {
 
     default void debug(String message, Throwable... errors) {
         debug(() -> message, errors);
+    }
+
+    default String sanitizeMessage(Supplier<String> supplier) {
+        return Optional.ofNullable(supplier.get())
+                .map(msg -> msg.replaceAll("([\\r\\n])", " "))
+                .orElse(null);
     }
 
 }
