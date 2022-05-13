@@ -26,7 +26,6 @@ import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.vault.NoopCertificateResolver;
 import org.eclipse.dataspaceconnector.spi.system.vault.NoopPrivateKeyResolver;
-import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

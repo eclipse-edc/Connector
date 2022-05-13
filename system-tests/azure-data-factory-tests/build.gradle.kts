@@ -49,6 +49,6 @@ dependencies {
     testImplementation("com.azure:azure-security-keyvault-secrets:${azureKeyVaultVersion}")
 
     testRuntimeOnly(project(":system-tests:runtimes:azure-data-factory-transfer-provider"))
-    testRuntimeOnly(project(":system-tests:runtimes:azure-storage-transfer-consumer"))
+    testRuntimeOnly(project(":system-tests:runtimes:azure-data-factory-transfer-consumer"))
 }
 
