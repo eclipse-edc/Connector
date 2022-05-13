@@ -120,6 +120,8 @@ we would appreciate if your pull request applies to the following points:
 
 * Where code is not self-explanatory, add documentation providing extra clarification.
 
+* Add documentation files to new modules. See [here](#add-documentation) for more details.
+
 * Add relevant changes (e.g., no typo fixes, updated readme files, fixes of stuck test) to the 
   [changelog](CHANGELOG.md). If these refer to a new feature, add this to the `Overview` section 
   and add your changes to the `Detailed Changes` section according to the rules documented on 
@@ -141,6 +143,12 @@ we would appreciate if your pull request applies to the following points:
     * _Intellectual Property Validation_ verifying the [Eclipse CLA](#eclipse-contributor-agreement) 
       has been signed as well as commits have been signed-off and
     * _Continuous Integration_ performing various test conventions.
+
+### Add Documentation
+
+Every decision record, launcher, or extension has to provide documentation that covers at least
+one markdown file with necessary information. Please find appropriate templates that should
+be used in [this directory](docs/templates).
 
 ### Report on Flaky Tests
 
