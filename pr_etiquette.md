@@ -1,6 +1,6 @@
 # Etiquette for pull requests
 
-## As an author (assuming non-committer)
+## As an author
 
 Submitting pull requests in EDC should be done while adhering to a couple of simple rules.
 
@@ -39,7 +39,7 @@ Submitting pull requests in EDC should be done while adhering to a couple of sim
   owners document](CODEOWNERS) should help with that.
 - Don't be overly pedantic
 - Don't argue basic principles (code style, architectural decisions, etc.)
-- Use the ````suggestion` feature of Github for small/simple changes.
+- Use the `suggestion` feature of Github for small/simple changes.
 - The following could serve you as a review checklist:
     - no unnecessary dependencies in `build.gradle.kts`
     - sensible unit tests, prefer unit tests over integration tests wherever possible (test runtime). Also check the
