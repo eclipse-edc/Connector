@@ -32,3 +32,4 @@ terraform output -raw EDC_AZURE_TENANT_ID | $gh secret set AZURE_TENANT_ID
 cd ..
 
 $gh secret set RUNTIME_SETTINGS < runtime_settings.properties
+$gh secret set AZURE_CLIENT_SECRET --body "$CI_CLIENT_SECRET"

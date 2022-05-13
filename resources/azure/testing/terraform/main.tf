@@ -100,3 +100,23 @@ resource "azurerm_role_assignment" "data_factory" {
   role_definition_name = "Data Factory Contributor"
   principal_id         = data.azuread_service_principal.ci_client.object_id
 }
+
+## Store provider storage account accesss key seceret
+resource "azurerm_key_vault_secret" "provider_storage_key" {
+  name         = "${azurerm_storage_account.provider.name}-key1"
+  value        = azurerm_storage_account.provider.primary_access_key
+  key_vault_id = azurerm_key_vault.main.id
+  depends_on = [
+    azurerm_role_assignment.ci_key_vault
+  ]
+}
+
+## Store consumer storage account accesss key seceret
+resource "azurerm_key_vault_secret" "consumer_storage_key" {
+  name         = "${azurerm_storage_account.consumer.name}-key1"
+  value        = azurerm_storage_account.consumer.primary_access_key
+  key_vault_id = azurerm_key_vault.main.id
+  depends_on = [
+    azurerm_role_assignment.ci_key_vault
+  ]
+}

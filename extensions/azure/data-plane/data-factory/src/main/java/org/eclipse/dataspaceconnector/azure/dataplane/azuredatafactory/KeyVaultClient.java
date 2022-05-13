@@ -37,4 +37,14 @@ class KeyVaultClient {
     KeyVaultSecret setSecret(String name, String value) {
         return secretClient.setSecret(name, value);
     }
+
+    /**
+     * Gets a Key Vault secret.
+     *
+     * @param name secret name.
+     * @return stored Key Vault secret.
+     */
+    KeyVaultSecret getSecret(String name) {
+        return secretClient.getSecret(name);
+    }
 }
