@@ -49,6 +49,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Clean FCC store before updating
 * Usage of `NooTransactionContext` in (SQL-)Tests (#1119)
 * Sanitize log messages (#1295)
+* Improve CosmosDB statement parser (#1282)
 
 #### Removed
 
