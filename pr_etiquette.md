@@ -29,7 +29,7 @@ Submitting pull requests in EDC should be done while adhering to a couple of sim
 - Re-request reviews after all remarks have been adopted. This helps reviewers track their work in Github.
 - If you disagree with a committer's remarks, feel free to object and argue, but if no agreement is reached, you'll have
   to either accept the decision or withdraw your PR.
-- Be civil and objective. no foul language, insulting or otherwise abusive language will be tolerated.
+- Be civil and objective. No foul language, insulting or otherwise abusive language will be tolerated.
 
 ## As a reviewer
 
