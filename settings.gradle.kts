@@ -213,7 +213,7 @@ include(":system-tests:runtimes:file-transfer-consumer")
 include(":system-tests:tests")
 include(":system-tests:runtimes:azure-storage-transfer-provider")
 include(":system-tests:runtimes:azure-data-factory-transfer-provider")
+include(":system-tests:runtimes:azure-data-factory-transfer-consumer")
 include(":system-tests:runtimes:azure-storage-transfer-consumer")
 include(":system-tests:azure-tests")
 include(":system-tests:azure-data-factory-tests")
-

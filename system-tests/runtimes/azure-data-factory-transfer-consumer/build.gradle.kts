@@ -9,7 +9,6 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Fraunhofer Institute for Software and Systems Engineering - added dependencies
  *
  */
 
@@ -34,6 +33,7 @@ dependencies {
     implementation(project(":data-protocols:ids"))
 
     implementation(project(":extensions:azure:blobstorage"))
+    implementation(project(":extensions:azure:vault"))
 
     api(project(":spi"))
     implementation(project(":common:util"))

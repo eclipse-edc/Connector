@@ -22,8 +22,6 @@ plugins {
 val gatlingVersion: String by project
 val storageBlobVersion: String by project
 val restAssured: String by project
-val azureIdentityVersion: String by project
-val azureKeyVaultVersion: String by project
 
 dependencies {
     testImplementation("io.gatling.highcharts:gatling-charts-highcharts:${gatlingVersion}") {
@@ -46,10 +44,7 @@ dependencies {
     testFixturesImplementation(testFixtures(project(":system-tests:tests")))
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))
     testImplementation("com.azure:azure-storage-blob:${storageBlobVersion}")
-    testImplementation("io.rest-assured:rest-assured:${restAssured}")
     testFixturesImplementation("io.rest-assured:rest-assured:${restAssured}")
-    testImplementation("com.azure:azure-identity:${azureIdentityVersion}")
-    testImplementation("com.azure:azure-security-keyvault-secrets:${azureKeyVaultVersion}")
 
     testCompileOnly(project(":system-tests:runtimes:azure-storage-transfer-provider"))
     testCompileOnly(project(":system-tests:runtimes:azure-storage-transfer-consumer"))
