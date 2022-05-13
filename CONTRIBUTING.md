@@ -82,6 +82,8 @@ In addition to the contribution guideline made available in the
 [Eclipse project handbook](https://www.eclipse.org/projects/handbook/#contributing),
 we would appreciate if your pull request applies to the following points:
 
+* Conform to [Pull-Request Etiquette](pr_etiquette.md)
+
 * Always apply the following copyright header to specific files in your work replacing the fields 
   enclosed by curly brackets "{}" with your own identifying information. (Don't include the curly 
   brackets!) Enclose the text in the appropriate comment syntax for the file format.
@@ -144,7 +146,7 @@ we would appreciate if your pull request applies to the following points:
 * PR descriptions should use the current [PR template](.github/PULL_REQUEST_TEMPLATE.md)
 
 * Submit a draft pull request at early-stage and add people previously working on the same code as 
-  reviewer. Make sure automatically checks pass before marking it as "ready for review":
+  reviewer. Make sure automatic checks pass before marking it as "ready for review":
 
     * _Intellectual Property Validation_ verifying the [Eclipse CLA](#eclipse-contributor-agreement) 
       has been signed as well as commits have been signed-off and
