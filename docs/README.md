@@ -20,11 +20,11 @@ TBD
 
 ## Architecture
 
-[Architecture Principles](architecture-principles.md)
+[Architecture Principles](IdeaProjects/EclipseDataspaceConnector/docs/architecture/architecture-principles.md)
 
 [Sequence Diagrams](architecture/README.md)
 
-[Domain Model](domain-model.md)
+[Domain Model](IdeaProjects/EclipseDataspaceConnector/docs/architecture/domain-model.md)
 
 ## Terminology
 

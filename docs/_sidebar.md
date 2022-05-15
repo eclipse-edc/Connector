@@ -3,31 +3,31 @@ landing page of this section. Other subsections are placed below and can be link
 free to add sections and subsections to this sidebar.)
 
 - [Home](README.md)
-- [Hands-on](samples.md)
+- [Hands-on](getting-started.md)
 
 - Architecture  
   - [Overview](architecture/README.md)
   - [Configuration](architecture/configuration.md)
   - [Contracts](architecture/contracts.md)
   - [Data Flow](diagrams/data-flow/README.md)
-  - [Domain Model](domain-model.md)
-  - [Policies](Policies.md)
-  - [Principles](architecture-principles.md)
-  - [Terminology](Terminology.md)
+  - [Domain Model](architecture/domain-model.md)
+  - [Policies](architecture/policies.md)
+  - [Principles](architecture/architecture-principles.md)
+  - [Terminology](architecture/terminology.md)
   
 - IDS
-  - [Overview](ids/README.md)
-  - [Architectural Alignment](ids/architectural-alignment.md)
-  - [Key Components](ids/key-components.md)
+  - [Overview](architecture/ids/README.md)
+  - [Architectural Alignment](architecture/ids/architectural-alignment.md)
+  - [Key Components](architecture/ids/key-components.md)
 
 - Developer
-  - [Command Queue](command-queue.md)
+  - [Command Queue](developer/command-queue.md)
   - [Dependency Resolution](developer/dependency_resolution.md)
   - [DPF Selector](developer/dpf_selector.md)
   - [DPF Transfer](developer/dpf_transfer.md)
-  - [Metrics](metrics.md)
+  - [Metrics](developer/metrics.md)
   - [Release Approach](developer/releases.md)
-  - [Writing Tests](testing.md)
+  - [Writing Tests](developer/testing.md)
 
 - Decision Records
   - [2022-02-03 Integration Testing](developer/decision-records/2022-02-03-integration-testing/README.md)
