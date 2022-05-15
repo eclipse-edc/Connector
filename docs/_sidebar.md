@@ -3,47 +3,36 @@ landing page of this section. Other subsections are placed below and can be link
 free to add sections and subsections to this sidebar.)
 
 - [Home](README.md)
-- [Hands-on](getting-started.md)
+- [Getting Started](getting-started.md)
+- Introduction
+  - [Extensions](extensions.md)
+  - [Launchers](launchers.md)
+  - [Terminology](terminology.md)
 
 - Architecture  
   - [Overview](architecture/README.md)
-  - [Configuration](architecture/configuration.md)
-  - [Contracts](architecture/contracts.md)
-  - [Data Flow](diagrams/data-flow/README.md)
+  - [Cataloging](architecture/cataloging/README.md)
+  - [Configuration](architecture/configuration/README.md)
+  - [Data Transfer](architecture/data-transfer/README.md)
   - [Domain Model](architecture/domain-model.md)
-  - [Policies](architecture/policies.md)
-  - [Principles](architecture/architecture-principles.md)
-  - [Terminology](architecture/terminology.md)
-  
-- IDS
-  - [Overview](architecture/ids/README.md)
-  - [Architectural Alignment](architecture/ids/architectural-alignment.md)
-  - [Key Components](architecture/ids/key-components.md)
+  - [Identity Management](architecture/identity-management/README.md)
+  - [IDS](architecture/ids/README.md)
+  - Usage Control
+    - [Contracts](architecture/usage-control/contracts.md)
+    - [Enforcement](architecture/usage-control/enforcement.md)
+    - [Policies](architecture/usage-control/policies.md)
 
-- Developer
+- Adopters
+
+- Users
+
+- Developers
   - [Command Queue](developer/command-queue.md)
+  - [Decision Records](developer/decision-records/README.md)
   - [Dependency Resolution](developer/dependency_resolution.md)
-  - [DPF Selector](developer/dpf_selector.md)
-  - [DPF Transfer](developer/dpf_transfer.md)
+  - Data Plane Framework
+    - [DPF Selector](developer/dpf_selector.md)
+    - [DPF Transfer](developer/dpf_transfer.md)
   - [Metrics](developer/metrics.md)
-  - [Release Approach](developer/releases.md)
-  - [Writing Tests](developer/testing.md)
-
-- Decision Records
-  - [2022-02-03 Integration Testing](developer/decision-records/2022-02-03-integration-testing/README.md)
-  - [2022-02-07 Micrometer Metrics](developer/decision-records/2022-02-07-micrometer-metrics/README.md)
-  - [2022-02-07 Tracing](developer/decision-records/2022-02-07-tracing/README.md)
-  - [2022-02-10 Code Coverage](developer/decision-records/2022-02-10-code-coverage/README.md)
-    - [Jacoco](developer/decision-records/2022-02-10-code-coverage/jacoco.md)
-    - [Jacoco with Codacy](developer/decision-records/2022-02-10-code-coverage/codacy.md)
-    - [Jacoco with Codecov](developer/decision-records/2022-02-10-code-coverage/codecov.md)
-    - [Jacoco with GitHub Actions](developer/decision-records/2022-02-10-code-coverage/jacoco_github_action.md)
-    - [Jacoco with Sonarqube](developer/decision-records/2022-02-10-code-coverage/sonarqube.md)
-  - [2022-02-11 CodeQL](developer/decision-records/2022-02-11-codeql/README.md)
-  - [2022-02-14 Helm Chart](developer/decision-records/2022-02-14-helm-chart/README.md)
-  - [2022-03-02 Performance Tests](developer/decision-records/2022-03-02-performance-tests/README.md)
-  - [2022-03-11 Story Issues](developer/decision-records/2022-03-11-story-issues/README.md)
-  - [2022-03-15 Policy Scopes](developer/decision-records/2022-03-15-policy-scopes/README.md)
-  - [2022-03-15 Swagger Annotations](developer/decision-records/2022-03-15-swagger-annotations/README.md)
-  - [2022-03-30 CosmosDB Lease Mechanism](developer/decision-records/2022-03-30-cosmosdb-lease-mechanism/README.md)
-  - [2022-04-21 DPF Blob Data Transfer](developer/decision-records/2022-04-21-dpf-blob-data-transfer/README.md)
+  - [Releases](developer/releases.md)
+  - [Testing](developer/testing.md)
