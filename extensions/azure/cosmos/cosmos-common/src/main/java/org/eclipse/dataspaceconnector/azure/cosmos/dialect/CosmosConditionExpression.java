@@ -15,13 +15,15 @@
 package org.eclipse.dataspaceconnector.azure.cosmos.dialect;
 
 import com.azure.cosmos.models.SqlParameter;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
@@ -29,7 +31,7 @@ import java.util.stream.StreamSupport;
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument.sanitize;
 
-public class CosmosConditionExpression {
+class CosmosConditionExpression {
     private static final String IN_OPERATOR = "in";
     private static final String EQUALS_OPERATOR = "=";
     private static final List<String> SUPPORTED_PREPARED_STATEMENT_OPERATORS = List.of(EQUALS_OPERATOR, IN_OPERATOR);
@@ -42,7 +44,7 @@ public class CosmosConditionExpression {
     }
 
     CosmosConditionExpression(Criterion criterion, String objectPrefix) {
-        this.criterion = criterion;
+        this.criterion = parse(criterion);
         this.objectPrefix = objectPrefix;
     }
 
@@ -56,8 +58,9 @@ public class CosmosConditionExpression {
             return Result.failure("unsupported operator " + criterion.getOperator());
         }
 
-        if (Objects.equals(IN_OPERATOR, criterion.getOperator()) && !(criterion.getOperandRight() instanceof Iterable)) {
-            return Result.failure(format("The \"%s\" operator requires the right-hand operand to be of type %s", IN_OPERATOR, Iterable.class));
+        Object operandRight = criterion.getOperandRight();
+        if (IN_OPERATOR.equalsIgnoreCase(criterion.getOperator()) && !(operandRight instanceof Iterable)) {
+            return Result.failure(format("The \"%s\" operator requires the right-hand operand to be of type %s but was actually %s", IN_OPERATOR, Iterable.class, operandRight.getClass()));
         }
         return Result.success();
     }
@@ -91,6 +94,20 @@ public class CosmosConditionExpression {
         return objectPrefix != null ?
                 String.format(" %s.%s %s %s", objectPrefix, operandLeft, criterion.getOperator(), toValuePlaceholder()) :
                 String.format(" %s %s %s", operandLeft, criterion.getOperator(), toValuePlaceholder());
+    }
+
+    private Criterion parse(Criterion criterion) {
+        if (IN_OPERATOR.equalsIgnoreCase(criterion.getOperator())) {
+            var tr = new TypeReference<List<String>>() {
+            };
+            try {
+                var list = new ObjectMapper().readValue(criterion.getOperandRight().toString(), tr);
+                return new Criterion(criterion.getOperandLeft(), criterion.getOperator(), list);
+            } catch (JsonProcessingException e) {
+                // not a list
+            }
+        }
+        return criterion;
     }
 
     /**
