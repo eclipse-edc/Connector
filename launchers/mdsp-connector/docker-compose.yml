@@ -2,10 +2,10 @@ version: '3.5'
 
 services:
   edc-provider:
-    #build:
-    #  context: ../../
-    #  dockerfile: ./launchers/mdsp-connector/provider.Dockerfile
-    image: mdsp-connector_edc-provider:latest
+    build:
+      context: ../../
+      dockerfile: ./launchers/mdsp-connector/provider.Dockerfile
+    #image: mdsp-connector_edc-provider:latest
     container_name: 'catena-x-edc-provider'
     ports:
       - 8181:8181
@@ -15,10 +15,10 @@ services:
       - IDS_WEBHOOK_ADDRESS=http://catena-x-edc-provider:8282
 
   edc-consumer:
-    #build:
-    #  context: ../../
-    #  dockerfile: ./launchers/mdsp-connector/consumer.Dockerfile
-    image: mdsp-connector_edc-consumer:latest
+    build:
+      context: ../../
+      dockerfile: ./launchers/mdsp-connector/consumer.Dockerfile
+    #image: mdsp-connector_edc-consumer:latest
     container_name: 'catena-x-edc-consumer'
     ports:
       - 9191:9191
