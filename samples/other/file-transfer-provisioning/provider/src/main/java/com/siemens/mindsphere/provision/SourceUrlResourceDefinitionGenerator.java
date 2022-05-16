@@ -13,11 +13,13 @@
 
 package com.siemens.mindsphere.provision;
 
+import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProviderResourceDefinitionGenerator;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 import org.jetbrains.annotations.Nullable;
@@ -30,29 +32,33 @@ public class SourceUrlResourceDefinitionGenerator implements ProviderResourceDef
         this.context = context;
     }
 
-    private static final String EDC_ASSET_DATALAKE_PATH = "edc.samples.04.asset.datalake.path";
-
     private Monitor monitor;
     private ServiceExtensionContext context;
 
     @Override
     public @Nullable ResourceDefinition generate(DataRequest dataRequest, DataAddress assetAddress, Policy policy) {
         if (dataRequest.getDestinationType() == null) {
+            monitor.debug("There is no destination type");
             return null;
         }
 
         final String dataDestinationType = dataRequest.getDataDestination().getType();
-        if (!"datalake".equals(dataDestinationType)) {
+        if (!HttpDataAddressSchema.TYPE.equals(dataDestinationType)) {
+            monitor.debug("The destination is not " + HttpDataAddressSchema.TYPE);
             return null;
         }
 
-        var assetPathSetting = context.getSetting(EDC_ASSET_DATALAKE_PATH, "/tmp/provider/test-document.txt");
+        final String datalakepath = assetAddress.getProperty("datalakepath");
+        if (StringUtils.isNullOrBlank(datalakepath)) {
+            monitor.debug("There is no datalakepath");
+            return null;
+        }
 
         monitor.info("Generating source path for dataRequest: " + dataRequest.getId());
 
-        return FileSystemResourceDefinition.Builder.newInstance()
+        return SourceUrlResourceDefinition.Builder.newInstance()
                 .id(randomUUID().toString())
-                .path(assetPathSetting)
+                .datalakePath(datalakepath)
                 .build();
     }
 }

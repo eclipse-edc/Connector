@@ -15,16 +15,15 @@
 package com.siemens.mindsphere.datalake.edc.http;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.Call;
+import okhttp3.*;
 
 import java.io.IOException;
-import java.net.URI;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 public class DataLakeClientImpl implements DataLakeClient {
     public DataLakeClientImpl(URL dataLakeBaseUrl, OkHttpClient client, ObjectMapper objectMapper) {
@@ -61,27 +60,100 @@ public class DataLakeClientImpl implements DataLakeClient {
 
     private final ObjectMapper objectMapper;
 
-    private static final String DATA_LAKE_SIGN_REQ_URL = "/generateUploadObjectUrls";
+    private static final String DATA_LAKE_SIGN_REQ_UPLOAD_URL = "/generateUploadObjectUrls";
+
+    private static final String DATA_LAKE_SIGN_REQ_DOWNLOAD_URL = "/generateDownloadObjectUrls";
 
     private static final String TENANT_IDENTIFIER = "ten=";
-    
+
     private static final String X_SPACE_AUTH_KEY = "X-SPACE-AUTH-KEY";
 
     private static final String AUTHORIZATION = "authorization";
 
+    private static class DatalakePaths {
+        private List<DatalakePath> paths = new ArrayList<>();
+
+        public List<DatalakePath> getPaths() {
+            return paths;
+        }
+
+        public DatalakePaths setPaths(List<DatalakePath> paths) {
+            this.paths = paths;
+            return this;
+        }
+    }
+
+    private static class DatalakePath {
+        private String path;
+
+        public String getPath() {
+            return path;
+        }
+
+        public DatalakePath setPath(String path) {
+            this.path = path;
+            return this;
+        }
+    }
+
+    /**
+     * see https://documentation.mindsphere.io/MindSphere/apis/iot-integrated-data-lake/api-integrated-data-lake-samples-download-data.html
+     * @param datalakePath
+     * @return
+     * @throws DataLakeException
+     */
+    @Override
+    public URL getPresignedDownloadUrl(final String datalakePath) throws DataLakeException {
+        try {
+            final String path = objectMapper.writeValueAsString(new DatalakePaths()
+                    .setPaths(Collections.singletonList(new DatalakePath().setPath(datalakePath))));
+
+            final String extractedTenant = extractTenantFromPath(path)
+                    .orElseThrow(() -> new DataLakeException("Could not identify tenant for path " + datalakePath));
+
+            final String accessToken = getAccessToken(extractedTenant)
+                    .orElseThrow(() -> new DataLakeException("Getting token failed"));
+
+            final String payloadString = objectMapper.writeValueAsString(new DatalakePaths()
+                    .setPaths(Collections.singletonList(new DatalakePath().setPath(extractFilenameFromPath(datalakePath)))));
+            final RequestBody requestPayload = RequestBody.create(payloadString, MediaType.parse("application/json"));
+            final Request request = new Request.Builder()
+                    .method("POST", requestPayload)
+                    .url(dataLakeBaseUrl)
+                    .header(AUTHORIZATION, accessToken)
+                    .build();
+            final Response response = client.newCall(request).execute();
+
+            if (!response.isSuccessful()) {
+                throw new DataLakeException("Request to DataLake was not successful " + response);
+            }
+
+            final SignUrlResponseContainerDto signUrlResponseContainerDto = objectMapper.readValue(response.body()
+                    .bytes(), SignUrlResponseContainerDto.class);
+
+            final SignUrlResponseContainerDto.SignUrlResponseDto signedUrl = signUrlResponseContainerDto.getObjectUrls().stream().findFirst().orElseThrow(() -> new DataLakeException("No such path in Data Lake"));
+
+            return new URL(signedUrl.getSignedUrl());
+        } catch (IOException e) {
+            throw new DataLakeException("Error getting signed URL", e);
+        }
+    }
+
+    private String extractFilenameFromPath(String datalakePath) {
+        return datalakePath.startsWith("data/ten=") ? datalakePath.replace("data/ten=", "").split("/")[1] : datalakePath;
+    }
 
     @Override
-    public URL getUrl(String path) throws DataLakeException {
+    public URL getPresignedUploadUrl(String datalakePath) throws DataLakeException {
         try {
-            String extractedTenant = extractTenantFromPath(path);
-            if (extractedTenant == null) {
-                throw new DataLakeException("Could not identify tenant");
-            }
-            String accessToken = getAccessToken(extractedTenant);
-            System.out.println("Access token: " + accessToken);
-            if (accessToken.contains("null")) {
-                throw new DataLakeException("Getting token failed");
-            }
+            final String path = objectMapper.writeValueAsString(new DatalakePaths()
+                    .setPaths(Collections.singletonList(new DatalakePath().setPath(datalakePath))));
+
+            final String extractedTenant = extractTenantFromPath(path)
+                    .orElseThrow(() -> new DataLakeException("Could not identify tenant for path " + datalakePath));
+
+            final String accessToken = getAccessToken(extractedTenant)
+                    .orElseThrow(() -> new DataLakeException("Getting token failed"));
 
             final SignUrlRequestContainerDto requestContainerDto = SignUrlRequestContainerDto.composeForSinglePath(path);
             final String payloadString = objectMapper.writeValueAsString(requestContainerDto);
@@ -92,8 +164,6 @@ public class DataLakeClientImpl implements DataLakeClient {
                     .header(AUTHORIZATION, accessToken)
                     .build();
             final Response response = client.newCall(request).execute();
-            System.out.println("Response code: " + response.code());
-            System.out.println("Response message: " + response.message());
 
             if (!response.isSuccessful()) {
                 throw new DataLakeException("Request to DataLake was not successful");
@@ -106,45 +176,45 @@ public class DataLakeClientImpl implements DataLakeClient {
 
             return new URL(signedUrl.getSignedUrl());
         } catch (IOException e) {
-            e.printStackTrace();
             throw new DataLakeException("Error getting signed URL", e);
         }
     }
 
-    private String extractTenantFromPath(String path) {
+    private Optional<String> extractTenantFromPath(String path) {
         if (path == null || !path.contains(TENANT_IDENTIFIER)) {
-            return null;
+            return Optional.empty();
         }
         int tenantStartIndex = path.indexOf(TENANT_IDENTIFIER);
         int firstSlashAfterTenantIndex = path.indexOf("/", tenantStartIndex);
 
         if (firstSlashAfterTenantIndex == -1) {
-            return null;
+            return Optional.empty();
         }
-        return path.substring(tenantStartIndex + TENANT_IDENTIFIER.length(), firstSlashAfterTenantIndex);
+        return Optional.of(path.substring(tenantStartIndex + TENANT_IDENTIFIER.length(), firstSlashAfterTenantIndex));
     }
 
-    private String getAccessToken(String tenant) throws IOException {
+    private Optional<String> getAccessToken(String tenant) throws IOException {
         TechnicalUserTokenRequestDto technicalUserTokenRequestDto = new TechnicalUserTokenRequestDto(oauthClientDetails.getTenant(),
         tenant, oauthClientDetails.getClientAppName(), oauthClientDetails.getClientAppVersion());
-        
+
         final String requestPayload = objectMapper.writeValueAsString(technicalUserTokenRequestDto);
         final RequestBody requestBody = RequestBody.create(requestPayload, MediaType.parse("application/json"));
 
-        System.out.println("Credentials: " + oauthClientDetails.getBase64Credentials() );
+
         final Request tokenRequest = new Request.Builder().url(oauthClientDetails.getAccessTokenUrl())
         .method("POST", requestBody)
         .header(X_SPACE_AUTH_KEY, String.format("Bearer %s", oauthClientDetails.getBase64Credentials()))
         .build();
-         
+
         final Call call = client.newCall(tokenRequest);
         final Response response = call.execute();
-        System.out.println("Response access token: " + response.code());
+
 
         final TechnicalUserTokenResponseDto technicalUserTokenResponseDto = objectMapper.readValue(response.body()
                 .bytes(), TechnicalUserTokenResponseDto.class);
-    
-        return "Bearer " + technicalUserTokenResponseDto.getAccessToken();
+
+        return technicalUserTokenResponseDto.getAccessToken() == null ?
+                Optional.empty() : Optional.of("Bearer " + technicalUserTokenResponseDto.getAccessToken());
     }
 
     @Override

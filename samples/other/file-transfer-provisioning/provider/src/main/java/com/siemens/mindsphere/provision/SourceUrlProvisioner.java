@@ -25,19 +25,20 @@ import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.UUID.randomUUID;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.NAME;
 
 public class SourceUrlProvisioner
         implements Provisioner<SourceUrlResourceDefinition, SourceUrlProvisionedResource> {
@@ -62,10 +63,7 @@ public class SourceUrlProvisioner
     private static final String APPLICATION_TENANT = "datalake.tenant";
 
     @EdcSetting
-    private static final String SNS_TOPIC_ARN = "datalake.event.destination";
-
-    @EdcSetting
-    private static final String DATALAKE_ADDRESS = "datalake.address";
+    private static final String DATALAKE_DOWNLOAD_ADDRESS = "datalake.generatedownloadbjecturls.endpoint";
 
     public SourceUrlProvisioner(ServiceExtensionContext context, RetryPolicy<Object> retryPolicy) {
         this.monitor = context.getMonitor();
@@ -98,29 +96,32 @@ public class SourceUrlProvisioner
                                 .id(randomUUID().toString())
                                 .transferProcessId(resourceDefinition.getTransferProcessId())
                                 .resourceDefinitionId(resourceDefinition.getId())
-                                .resourceName(resourceDefinition.getUrl())
+                                .resourceName(resourceDefinition.getDatalakePath())
                                 .dataAddress(DataAddress.Builder.newInstance()
                                         .properties(
-                                                Map.of("url", createPresignedUrl(resourceDefinition.getUrl())))
-                                        .type("httpfile").build())
-                                .path(resourceDefinition.getUrl())
+                                                Map.of(
+                                                        ENDPOINT, createPresignedUrl(resourceDefinition.getDatalakePath()),
+                                                        NAME, "",
+                                                        "datalakepath", resourceDefinition.getDatalakePath()))
+                                        .type(HttpDataAddressSchema.TYPE).build())
+                                .path(resourceDefinition.getDatalakePath())
                                 .build())
                         .build();
                 return StatusResult.success(response);
             } catch (Exception e) {
-                monitor.severe("Failed to provision " + resourceDefinition.getUrl(), e);
+                monitor.severe("Failed to provision " + resourceDefinition.getDatalakePath(), e);
                 return StatusResult.failure(ResponseStatus.FATAL_ERROR);
             }
         });
     }
 
-    private String createPresignedUrl(final String datalakeUrl) {
+    private String createPresignedUrl(final String datalakePath) {
         final String tokenmanagementClientId = context.getSetting(TOKENMANAGEMENT_CLIENT_ID, "");
         final String tokenmanagementClientSecret = context.getSetting(TOKENMANAGEMENT_CLIENT_SECRET, "");
         final String tokenmanagementClientAppName = context.getSetting(TOKENMANAGEMENT_CLIENT_APP_NAME, "");
         final String tokenmanagementClientAppVersion = context.getSetting(TOKENMANAGEMENT_CLIENT_APP_VERSION, "");
         final String tokenmanagementAddress = context.getSetting(TOKENMANAGEMENT_ADDRESS, "");
-        final String dataLakeAddress = datalakeUrl;
+        final String dataLakeAddress = context.getSetting(DATALAKE_DOWNLOAD_ADDRESS, "");
 
         final String applicationTenant = context.getSetting(APPLICATION_TENANT, "presdev");
 
@@ -138,12 +139,12 @@ public class SourceUrlProvisioner
 
             final DataLakeClientImpl clientImpl = new DataLakeClientImpl(oauthClientDetails, url);
 
-            final URL createdUrl = clientImpl.getUrl("{\"paths\":[{\"path\":\"data/ten=castidev/data.csv\"}]}");
+            final URL createdUrl = clientImpl.getPresignedDownloadUrl(datalakePath);
 
             monitor.debug("Created presigned url: " + createdUrl.toString());
             return createdUrl.toString();
         } catch (MalformedURLException | DataLakeException e) {
-            monitor.severe("Failed to generate presigned url for " + datalakeUrl, e);
+            monitor.severe("Failed to generate presigned url for " + datalakePath, e);
             throw new IllegalArgumentException("Bad destination url given", e);
         }
     }

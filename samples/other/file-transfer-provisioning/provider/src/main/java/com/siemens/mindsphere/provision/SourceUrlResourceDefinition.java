@@ -18,13 +18,13 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefiniti
 import java.util.Objects;
 
 public class SourceUrlResourceDefinition extends ResourceDefinition {
-    private String url;
+    private String datalakePath;
 
     private SourceUrlResourceDefinition() {
     }
 
-    public String getUrl() {
-        return url;
+    public String getDatalakePath() {
+        return datalakePath;
     }
 
     public static class Builder extends ResourceDefinition.Builder<SourceUrlResourceDefinition, Builder> {
@@ -37,15 +37,15 @@ public class SourceUrlResourceDefinition extends ResourceDefinition {
             return new Builder();
         }
 
-        public Builder url(String url) {
-            resourceDefinition.url = url;
+        public Builder datalakePath(String datalakePath) {
+            resourceDefinition.datalakePath = datalakePath;
             return this;
         }
 
         @Override
         protected void verify() {
             super.verify();
-            Objects.requireNonNull(resourceDefinition.url, "url");
+            Objects.requireNonNull(resourceDefinition.datalakePath, "datalakePath");
         }
     }
 }

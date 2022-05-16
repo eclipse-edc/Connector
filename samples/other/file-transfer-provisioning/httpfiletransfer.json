@@ -1,0 +1,19 @@
+{
+  "protocol": "ids-multipart",
+  "assetId": "onboarding",
+  "contractId": "2:188d6b90-2929-47a5-acdc-2ed49d16a396",
+  "dataDestination": {
+    "properties": {
+      "path": "d:/edc/consumer/onboard.md",
+      "keyName": "keyName",
+      "type": "HttpData"
+    }
+  },
+  "transferType": {
+    "contentType": "application/octet-stream",
+    "isFinite": true
+  },
+  "managedResources": false,
+  "connectorAddress": "http://localhost:8282/api/v1/ids/data",
+  "connectorId": "consumer"
+}

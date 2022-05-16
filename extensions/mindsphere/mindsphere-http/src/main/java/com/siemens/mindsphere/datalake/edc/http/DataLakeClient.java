@@ -17,7 +17,9 @@ package com.siemens.mindsphere.datalake.edc.http;
 import java.net.URL;
 
 public interface DataLakeClient {
-    URL getUrl(String path) throws DataLakeException;
+    URL getPresignedUploadUrl(String path) throws DataLakeException;
+
+    URL getPresignedDownloadUrl(String datalakePath) throws DataLakeException;
 
     boolean isPresent(String path) throws DataLakeException;
 }

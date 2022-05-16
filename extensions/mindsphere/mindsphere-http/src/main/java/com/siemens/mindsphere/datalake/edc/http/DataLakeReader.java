@@ -44,7 +44,7 @@ public class DataLakeReader implements DataReader {
         final String targetPath = source.getProperty("path");
         try {
             // get pre-signed URL
-            final URL targetUrl = dataLakeClient.getUrl(targetPath);
+            final URL targetUrl = dataLakeClient.getPresignedUploadUrl(targetPath);
             // read the URL
             return Result.success(new ByteArrayInputStream(targetUrl.openStream().readAllBytes()));
         } catch (IOException e) {

@@ -25,7 +25,12 @@ public class StubDataLakeClient implements DataLakeClient {
     }
 
     @Override
-    public URL getUrl(String path) {
+    public URL getPresignedUploadUrl(String path) {
+        return url;
+    }
+
+    @Override
+    public URL getPresignedDownloadUrl(String datalakePath) throws DataLakeException {
         return url;
     }
 

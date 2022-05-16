@@ -14,6 +14,7 @@
 
 package com.siemens.mindsphere.dataspaceconnector.extensions.api;
 
+import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -37,7 +38,7 @@ class FileTransferDataSinkFactory implements DataSinkFactory {
 
     @Override
     public boolean canHandle(DataFlowRequest request) {
-        return "httpfile".equalsIgnoreCase(request.getDestinationDataAddress().getType());
+        return !StringUtils.isNullOrBlank(request.getDestinationDataAddress().getProperty("path"));
     }
 
     @Override

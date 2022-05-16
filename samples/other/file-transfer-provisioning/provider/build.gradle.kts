@@ -58,6 +58,8 @@ dependencies {
     implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:in-memory:policy-store-memory"))
 
+    implementation(project(":extensions:mindsphere:mindsphere-http"))
+
     api(project(":extensions:dataloading"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")

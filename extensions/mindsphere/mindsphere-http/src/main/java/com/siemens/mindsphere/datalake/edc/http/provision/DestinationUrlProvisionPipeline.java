@@ -37,7 +37,7 @@ public class DestinationUrlProvisionPipeline {
     public CompletableFuture<DestinationUrlProvisionResponse> provision(DestinationUrlResourceDefinition resourceDefinition) {
         monitor.info("Provisioning destination HTTP url for path: " + resourceDefinition.getPath());
         return Failsafe.with(retryPolicy)
-                .getAsync(() -> dataLakeClient.getUrl(resourceDefinition.getPath()))
+                .getAsync(() -> dataLakeClient.getPresignedUploadUrl(resourceDefinition.getPath()))
                         .thenApply(url -> new DestinationUrlProvisionResponse(resourceDefinition.getPath(),
                                 url.toString()));
     }

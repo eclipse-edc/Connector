@@ -16,7 +16,6 @@ package com.siemens.mindsphere.provision;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.junit.jupiter.api.AfterEach;
@@ -28,7 +27,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FileSystemProvisionerTest {
 
@@ -52,7 +52,7 @@ class FileSystemProvisionerTest {
 
         assertTrue(statusResult.succeeded());
         assertTrue(statusResult.getContent().getResource() instanceof FileSystemProvisionedResource);
-        assertEquals(FILE_LOCATION, ((FileSystemProvisionedResource)statusResult.getContent().getResource()).getPath());
-        assertTrue(Files.readAllLines(Path.of(((FileSystemProvisionedResource)statusResult.getContent().getResource()).getPath())).get(0).contains("Generated"));
+        assertEquals(FILE_LOCATION, ((FileSystemProvisionedResource) statusResult.getContent().getResource()).getPath());
+        assertTrue(Files.readAllLines(Path.of(((FileSystemProvisionedResource) statusResult.getContent().getResource()).getPath())).get(0).contains("Generated"));
     }
 }

@@ -41,8 +41,8 @@ public class DataLakeExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        Monitor monitor = context.getMonitor();
-        // create Data Lake client
+        /* Monitor monitor = context.getMonitor();
+
         final String destinationUrl = context.getSetting(STUB_URL, "http://missing");
 
         final URI uri;
@@ -75,6 +75,8 @@ public class DataLakeExtension implements ServiceExtension {
         // register status checker
         var statusCheckerReg = context.getService(StatusCheckerRegistry.class);
         //statusCheckerReg.register(HttpSchema.TYPE, new DataLakeStatusChecker(dataLakeClient, retryPolicy, monitor));
+
+         */
     }
 
     @Override
