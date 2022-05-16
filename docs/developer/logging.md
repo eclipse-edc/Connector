@@ -1,0 +1,38 @@
+# Logging
+
+This document describes how the EDC code should be logged and why.
+
+## Logging component
+
+Logs can be produced using the [`Monitor`](../../spi/core-spi/src/main/java/org/eclipse/dataspaceconnector/spi/monitor/Monitor.java) service, 
+that offers 4 different log levels:
+
+### `severe` 
+> Error events that might lead the application to abort or still allow it to continue running.
+
+Used in case of an unexpected interruption of the flow.
+
+### `warning`
+> Potentially harmful situations messages.
+
+Used in case of an expected event that does not interrupt the flow but that should be taken into consideration. 
+ 
+### `info`
+> Informational messages that highlight the progress of the application at coarse-grained level.
+ 
+Used to describe the normal flow of the application.
+ 
+### `debug` 
+> Fine-grained informational events that are most useful to debug an application.
+ 
+Used to describe details of the normal flow that are not interesting for a production environment.
+
+## What should be logged
+
+- every incoming call with `debug`
+- every state change with `info`
+- every exception with `severe` or `warning`
+
+## What should not be logged
+
+- secrets and sensitive data
