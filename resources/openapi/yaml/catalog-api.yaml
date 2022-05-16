@@ -2,32 +2,32 @@ openapi: 3.0.1
 paths:
   /catalog:
     get:
-      tags:
-      - Catalog
       operationId: getCatalog
       parameters:
-      - name: providerUrl
-        in: query
+      - in: query
+        name: providerUrl
         schema:
           type: string
       responses:
         default:
-          description: Gets contract offers (=catalog) of a single connector
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Catalog'
+          description: Gets contract offers (=catalog) of a single connector
+      tags:
+      - Catalog
 components:
   schemas:
     Action:
       type: object
       properties:
-        type:
-          type: string
-        includedIn:
-          type: string
         constraint:
           $ref: '#/components/schemas/Constraint'
+        includedIn:
+          type: string
+        type:
+          type: string
     Asset:
       type: object
       properties:
@@ -38,80 +38,76 @@ components:
     Catalog:
       type: object
       properties:
-        id:
-          type: string
         contractOffers:
           type: array
           items:
             $ref: '#/components/schemas/ContractOffer'
+        id:
+          type: string
     Constraint:
-      required:
-      - edctype
       type: object
+      discriminator:
+        propertyName: edctype
       properties:
         edctype:
           type: string
-      discriminator:
-        propertyName: edctype
+      required:
+      - edctype
     ContractOffer:
       type: object
       properties:
-        id:
-          type: string
-        policy:
-          $ref: '#/components/schemas/Policy'
         asset:
           $ref: '#/components/schemas/Asset'
-        policyId:
-          type: string
         assetId:
           type: string
-        provider:
-          type: string
-          format: uri
         consumer:
           type: string
           format: uri
-        offerStart:
-          type: string
-          format: date-time
-        offerEnd:
+        contractEnd:
           type: string
           format: date-time
         contractStart:
           type: string
           format: date-time
-        contractEnd:
+        id:
+          type: string
+        offerEnd:
           type: string
           format: date-time
+        offerStart:
+          type: string
+          format: date-time
+        policy:
+          $ref: '#/components/schemas/Policy'
+        policyId:
+          type: string
+        provider:
+          type: string
+          format: uri
     Duty:
       type: object
       properties:
-        uid:
-          type: string
-        target:
-          type: string
         action:
           $ref: '#/components/schemas/Action'
         assignee:
           type: string
         assigner:
           type: string
+        consequence:
+          $ref: '#/components/schemas/Duty'
         constraints:
           type: array
           items:
             $ref: '#/components/schemas/Constraint'
         parentPermission:
           $ref: '#/components/schemas/Permission'
-        consequence:
-          $ref: '#/components/schemas/Duty'
+        target:
+          type: string
+        uid:
+          type: string
     Permission:
       type: object
       properties:
-        uid:
-          type: string
-        target:
-          type: string
         action:
           $ref: '#/components/schemas/Action'
         assignee:
@@ -126,11 +122,33 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Duty'
+        target:
+          type: string
+        uid:
+          type: string
     Policy:
       type: object
       properties:
-        uid:
+        '@type':
           type: string
+          enum:
+          - SET
+          - OFFER
+          - CONTRACT
+        assignee:
+          type: string
+        assigner:
+          type: string
+        extensibleProperties:
+          type: object
+          additionalProperties:
+            type: object
+        inheritsFrom:
+          type: string
+        obligations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Duty'
         permissions:
           type: array
           items:
@@ -139,35 +157,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Prohibition'
-        obligations:
-          type: array
-          items:
-            $ref: '#/components/schemas/Duty'
-        extensibleProperties:
-          type: object
-          additionalProperties:
-            type: object
-        inheritsFrom:
-          type: string
-        assigner:
-          type: string
-        assignee:
-          type: string
         target:
           type: string
-        '@type':
+        uid:
           type: string
-          enum:
-          - SET
-          - OFFER
-          - CONTRACT
     Prohibition:
       type: object
       properties:
-        uid:
-          type: string
-        target:
-          type: string
         action:
           $ref: '#/components/schemas/Action'
         assignee:
@@ -178,3 +174,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Constraint'
+        target:
+          type: string
+        uid:
+          type: string
