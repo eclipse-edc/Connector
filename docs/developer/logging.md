@@ -33,6 +33,8 @@ Used to describe details of the normal flow that are not interesting for a produ
 - every state change with `info`
 - every exception with `severe` or `warning`
 
-## What should not be logged
+## What should be not logged
 
-- secrets and sensitive data
+- logging secrets and sensitive data
+- an exception that will be thrown in the same block
+- not strictly necessary information, like "entering method X", "leaving block Y", "returning HTTP 200"
