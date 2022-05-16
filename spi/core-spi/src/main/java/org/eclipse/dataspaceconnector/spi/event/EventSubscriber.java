@@ -23,5 +23,5 @@ public interface EventSubscriber {
      *
      * @param event the event happened
      */
-    void on(Event event);
+    void on(Event<?> event);
 }

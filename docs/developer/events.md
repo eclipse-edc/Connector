@@ -54,7 +54,7 @@ public class SomethingHappened extends Event {
     private SomethingHappened() {
     }
 
-    public static class Builder extends Event.Builder<SomethingHappened, Payload> {
+    public static class Builder extends Event.Builder<SomethingHappened, Payload, Builder> {
 
         public static Builder newInstance() {
             return new Builder();
