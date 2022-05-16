@@ -30,7 +30,7 @@ Although custom spans can be given a specific name, we suggest using default spa
 
 ## Sample traces with Jaeger
 
-The following two samples were created by running the scenario presented in [sample 04.3](../../../../samples/04.3-open-telemetry) using the Jaeger backend. Note how traces include communication between consumer and provider due to a proper trace context propagation.
+The following two samples were created by running the scenario presented in [sample 04.3](/samples/04.3-open-telemetry) using the Jaeger backend. Note how traces include communication between consumer and provider due to a proper trace context propagation.
 
 ### Contract Negotiation Trace
 

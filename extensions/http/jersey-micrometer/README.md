@@ -1,3 +1,3 @@
 # Jersey Micrometer extension
 
-See [developer documentation](../../../docs/metrics.md)
+See [developer documentation](../../../docs/developer/metrics.md)

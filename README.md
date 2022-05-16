@@ -139,7 +139,7 @@ Contains several scripts to deploy a connector in an AKS cluster on Microsoft Az
 ## Code style & Patterns
 
 Please refer to the dedicated [style guide](styleguide.md) and the patterns we documented
-in [architecture principles](IdeaProjects/EclipseDataspaceConnector/docs/architecture/architecture-principles.md).
+in [architecture principles](docs/architecture/architecture-principles.md).
 
 ## Roadmap
 
