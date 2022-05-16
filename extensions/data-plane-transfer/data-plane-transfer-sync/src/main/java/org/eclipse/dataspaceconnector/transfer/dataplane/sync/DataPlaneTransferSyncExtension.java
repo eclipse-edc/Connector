@@ -69,6 +69,12 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
     @Inject
     private EndpointDataReferenceTransformerRegistry transformerRegistry;
 
+    @Inject
+    private Vault vault;
+
+    @Inject
+    private PrivateKeyResolver privateKeyResolver;
+
     @Override
     public String name() {
         return "Data Plane Transfer Sync";
@@ -120,12 +126,10 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
         var config = context.getConfig();
 
         var privateKeyAlias = config.getString(TOKEN_SIGNER_PRIVATE_KEY_ALIAS);
-        var privateKeyResolver = context.getService(PrivateKeyResolver.class);
         var privateKey = privateKeyResolver.resolvePrivateKey(privateKeyAlias, PrivateKey.class);
         Objects.requireNonNull(privateKey, "Failed to resolve private key with alias: " + privateKeyAlias);
 
         var publicKeyAlias = config.getString(TOKEN_VERIFIER_PUBLIC_KEY_ALIAS, privateKeyAlias + "-pub");
-        var vault = context.getService(Vault.class);
         var publicKeyPem = vault.resolveSecret(publicKeyAlias);
         Objects.requireNonNull(publicKeyPem, "Failed to resolve public key secret with alias: " + publicKeyPem);
         var publicKey = PublicKeyParser.from(publicKeyPem);

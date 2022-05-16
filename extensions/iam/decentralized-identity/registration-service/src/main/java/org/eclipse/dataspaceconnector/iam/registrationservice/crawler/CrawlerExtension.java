@@ -51,6 +51,8 @@ public class CrawlerExtension implements ServiceExtension {
     private DidStore didStore;
     @Inject
     private DidResolverRegistry resolverRegistry;
+    @Inject
+    private Vault vault;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -90,7 +92,7 @@ public class CrawlerExtension implements ServiceExtension {
 
     private void scheduleCrawler(int intervalMinutes, ServiceExtensionContext context) throws SchedulerException {
 
-        var publisher = new CrawlerEventPublisher(context.getService(Vault.class), new AzureEventGridConfig(context));
+        var publisher = new CrawlerEventPublisher(vault, new AzureEventGridConfig(context));
 
         var crawlerConfig = CrawlerContext.Builder.create()
                 .didStore(didStore)

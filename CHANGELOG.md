@@ -33,6 +33,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Add Blob transfer Architectural Decision Record (#1259)
 * Add component tests coverage to the codecov coverage report (#1246)
 * Postgresql end to end test (#1278)
+* Add signing/publishing config (#1147)
 
 #### Changed
 
@@ -47,6 +48,8 @@ in the detailed section referring to by linking pull requests or issues.
 * Uniform all the sql schema files as `docs/schema.sql` (#1278)
 * Clean FCC store before updating
 * Usage of `NooTransactionContext` in (SQL-)Tests (#1119)
+* Sanitize log messages (#1295)
+* Improve CosmosDB statement parser (#1282)
 
 #### Removed
 
@@ -64,6 +67,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Always use configured IDS API path in IDS webhook address (#1249)
 * Fix Azure storage transfer (#1245)
 * Throw exception if `IdentityProviderKeyResolver` cannot get keys at startup (#1266)
+* Make all the services injectable (#1285)
 
 ## [milestone-3] - 2022-04-08
 

@@ -20,7 +20,7 @@ import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
 /**
- * A simple log handler to validate logger under unit tests {@link org.eclipse.dataspaceconnector.logger.LoggerMonitorTests}.
+ * A simple log handler to validate logger under unit tests {@link LoggerMonitorTest}.
  */
 public class TestLogHandler extends Handler {
 

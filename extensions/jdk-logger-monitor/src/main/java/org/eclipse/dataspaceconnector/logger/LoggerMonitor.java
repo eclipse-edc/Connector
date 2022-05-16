@@ -18,7 +18,6 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,12 +59,9 @@ public class LoggerMonitor implements Monitor {
 
     private void log(final Supplier<String> supplier, final Level level, final Throwable... errors) {
         if (errors == null || errors.length == 0) {
-            LOGGER.log(level, supplier);
+            LOGGER.log(level, () -> sanitizeMessage(supplier));
         } else {
-            String logMessage = Optional.ofNullable(supplier.get())
-                    .map(msg -> msg.replaceAll("([\\r\\n])", " "))
-                    .orElse(null);
-            Arrays.stream(errors).forEach(error -> LOGGER.log(level, logMessage, error));
+            Arrays.stream(errors).forEach(error -> LOGGER.log(level, sanitizeMessage(supplier), error));
         }
     }
 }

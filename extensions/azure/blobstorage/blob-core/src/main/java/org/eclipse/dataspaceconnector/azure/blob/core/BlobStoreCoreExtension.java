@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApiImpl;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -27,6 +28,9 @@ public class BlobStoreCoreExtension implements ServiceExtension {
 
     @EdcSetting
     public static final String EDC_BLOBSTORE_ENDPOINT_TEMPLATE = "edc.blobstore.endpoint.template";
+
+    @Inject
+    private Vault vault;
 
     @Override
     public String name() {
@@ -38,7 +42,7 @@ public class BlobStoreCoreExtension implements ServiceExtension {
         var blobstoreEndpointTemplate = context
                 .getSetting(EDC_BLOBSTORE_ENDPOINT_TEMPLATE, "https://%s.blob.core.windows.net");
 
-        var blobStoreApi = new BlobStoreApiImpl(context.getService(Vault.class), blobstoreEndpointTemplate);
+        var blobStoreApi = new BlobStoreApiImpl(vault, blobstoreEndpointTemplate);
         context.registerService(BlobStoreApi.class, blobStoreApi);
     }
 }
