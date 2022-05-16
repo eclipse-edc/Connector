@@ -53,7 +53,7 @@ in the detailed section referring to by linking pull requests or issues.
 
 #### Removed
 
-*
+* Deprecated Control API (#1310)
 
 #### Fixed
 

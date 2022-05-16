@@ -46,7 +46,6 @@ include(":data-protocols:ids:ids-api-configuration")
 
 // modules for technology- or cloud-provider extensions
 include(":extensions:aws")
-include(":extensions:api:control")
 include(":extensions:api:api-core")
 include(":extensions:api:auth-spi")
 include(":extensions:api:auth-basic")
