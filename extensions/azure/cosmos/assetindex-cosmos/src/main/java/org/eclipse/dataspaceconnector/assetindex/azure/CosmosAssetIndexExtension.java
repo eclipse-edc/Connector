@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -32,6 +33,9 @@ import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 @Provides({ AssetIndex.class, DataAddressResolver.class, AssetLoader.class })
 public class CosmosAssetIndexExtension implements ServiceExtension {
 
+    @Inject
+    private Vault vault;
+
     @Override
     public String name() {
         return "CosmosDB Asset Index";
@@ -40,7 +44,6 @@ public class CosmosAssetIndexExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var configuration = new AssetIndexCosmosConfig(context);
-        Vault vault = context.getService(Vault.class);
 
         var cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
         var assetIndex = new CosmosAssetIndex(cosmosDbApi, configuration.getPartitionKey(), context.getTypeManager(), context.getService(RetryPolicy.class), context.getMonitor());

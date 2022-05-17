@@ -18,10 +18,10 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractagreement;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.model.ContractAgreementDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.service.ContractAgreementService;
 import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
-import org.eclipse.dataspaceconnector.spi.query.SortOrder;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +33,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -60,32 +59,40 @@ class ContractAgreementApiControllerTest {
         when(service.query(any())).thenReturn(List.of(contractAgreement));
         var dto = ContractAgreementDto.Builder.newInstance().id(contractAgreement.getId()).build();
         when(transformerRegistry.transform(any(), eq(ContractAgreementDto.class))).thenReturn(Result.success(dto));
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
+        var querySpec = QuerySpecDto.Builder.newInstance().build();
 
-        var allContractAgreements = controller.getAllAgreements(1, 10, "field=value", SortOrder.ASC, "field");
+        var allContractAgreements = controller.getAllAgreements(querySpec);
 
         assertThat(allContractAgreements).hasSize(1).first().matches(d -> d.getId().equals(contractAgreement.getId()));
         verify(transformerRegistry).transform(contractAgreement, ContractAgreementDto.class);
-        verify(service).query(argThat(s ->
-                s.getOffset() == 1 &&
-                        s.getLimit() == 10 &&
-                        s.getFilterExpression().size() == 1 &&
-                        s.getFilterExpression().get(0).equals(new Criterion("field", "=", "value")) &&
-                        s.getSortOrder().equals(SortOrder.ASC) &&
-                        s.getSortField().equals("field")
-        ));
+        verify(transformerRegistry).transform(isA(QuerySpecDto.class), eq(QuerySpec.class));
     }
 
     @Test
     void getAll_filtersOutFailedTransforms() {
         var contractAgreement = createContractAgreement();
         when(service.query(any())).thenReturn(List.of(contractAgreement));
-        when(transformerRegistry.transform(isA(ContractAgreement.class), eq(ContractAgreementDto.class))).thenReturn(Result.failure("failure"));
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
+        when(transformerRegistry.transform(isA(ContractAgreement.class), eq(ContractAgreementDto.class)))
+                .thenReturn(Result.failure("failure"));
 
-        var allContractAgreements = controller.getAllAgreements(1, 10, "field=value", SortOrder.ASC, "field");
+        var allContractAgreements = controller.getAllAgreements(QuerySpecDto.Builder.newInstance().build());
 
         assertThat(allContractAgreements).hasSize(0);
         verify(transformerRegistry).transform(contractAgreement, ContractAgreementDto.class);
     }
+
+    @Test
+    void getAll_throwsExceptionIfQuerySpecTransformFails() {
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.failure("Cannot transform"));
+
+        assertThatThrownBy(() -> controller.getAllAgreements(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(IllegalArgumentException.class);
+    }
+
 
     @Test
     void getContractDef_found() {

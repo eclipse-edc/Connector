@@ -22,10 +22,21 @@ import java.util.concurrent.ScheduledExecutorService;
  * collect execution metrics when available.
  * <p>
  * The default implementation does not provide any instrumentation. Extension
- * modules can provide implementations of the {@link ExecutorInstrumentationImplementation} sub-interface,
+ * modules can provide implementations of the {@link ExecutorInstrumentation} sub-interface,
  * such as for collecting metrics.
  */
 public interface ExecutorInstrumentation {
+    /**
+     * Default implementation that does not provide any instrumentation. Extension
+     * modules can provide implementations, such as for collecting metrics.
+     *
+     * @return a default {@link ExecutorInstrumentation} implementation.
+     */
+    static ExecutorInstrumentation noop() {
+        return new ExecutorInstrumentation() {
+        };
+    }
+
     /**
      * Instrument a {@link ScheduledExecutorService}.
      *
@@ -46,16 +57,5 @@ public interface ExecutorInstrumentation {
      */
     default ExecutorService instrument(ExecutorService target, String name) {
         return target;
-    }
-
-    /**
-     * Default implementation that does not provide any instrumentation. Extension
-     * modules can provide implementations, such as for collecting metrics.
-     *
-     * @return a default {@link ExecutorInstrumentation} implementation.
-     */
-    static ExecutorInstrumentation noop() {
-        return new ExecutorInstrumentation() {
-        };
     }
 }

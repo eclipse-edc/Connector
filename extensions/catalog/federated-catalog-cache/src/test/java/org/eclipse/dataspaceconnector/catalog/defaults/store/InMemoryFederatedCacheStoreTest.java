@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.catalog.defaults.store;
 
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
 import org.eclipse.dataspaceconnector.catalog.store.InMemoryFederatedCacheStore;
+import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.query.CriterionConverter;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -26,7 +27,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,7 +55,7 @@ class InMemoryFederatedCacheStoreTest {
     @BeforeEach
     public void setUp() {
         CriterionConverter<Predicate<ContractOffer>> converter = criterion -> offer -> true;
-        store = new InMemoryFederatedCacheStore(converter);
+        store = new InMemoryFederatedCacheStore(converter, new LockManager(new ReentrantReadWriteLock()));
     }
 
     @Test
@@ -109,5 +112,24 @@ class InMemoryFederatedCacheStoreTest {
                 .hasSize(2)
                 .anySatisfy(co -> assertThat(co.getAsset().getId()).isEqualTo(assetId1))
                 .anySatisfy(co -> assertThat(co.getAsset().getId()).isEqualTo(assetId2));
+    }
+
+    @Test
+    void deleteAll() {
+        String contractOfferId1 = UUID.randomUUID().toString();
+        String contractOfferId2 = UUID.randomUUID().toString();
+        String assetId1 = UUID.randomUUID().toString();
+        String assetId2 = UUID.randomUUID().toString();
+        ContractOffer contractOffer1 = createContractOffer(contractOfferId1, createAsset(assetId1));
+        ContractOffer contractOffer2 = createContractOffer(contractOfferId2, createAsset(assetId2));
+
+        store.save(contractOffer1);
+        store.save(contractOffer2);
+
+        assertThat(store.query(List.of())).hasSize(2);
+
+        store.deleteAll();
+        assertThat(store.query(List.of())).isEmpty();
+
     }
 }

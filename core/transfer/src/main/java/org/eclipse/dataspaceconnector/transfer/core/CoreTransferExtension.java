@@ -91,6 +91,9 @@ public class CoreTransferExtension implements ServiceExtension {
     @Inject
     private DataAddressResolver addressResolver;
 
+    @Inject
+    private Vault vault;
+
     private TransferProcessManagerImpl processManager;
 
     @Override
@@ -119,8 +122,6 @@ public class CoreTransferExtension implements ServiceExtension {
 
         var dataOperatorRegistry = new DataOperatorRegistryImpl();
         context.registerService(DataOperatorRegistry.class, dataOperatorRegistry);
-
-        var vault = context.getService(Vault.class);
 
         var provisionManager = new ProvisionManagerImpl(monitor);
         context.registerService(ProvisionManager.class, provisionManager);

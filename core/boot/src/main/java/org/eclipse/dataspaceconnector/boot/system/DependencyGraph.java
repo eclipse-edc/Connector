@@ -31,6 +31,7 @@ import org.eclipse.dataspaceconnector.spi.system.injection.ProviderMethodScanner
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -60,28 +61,29 @@ public class DependencyGraph {
      * @see InjectionContainer
      */
     public List<InjectionContainer<ServiceExtension>> of(List<ServiceExtension> loadedExtensions) {
-        Map<String, List<ServiceExtension>> dependencyMap = new HashMap<>();
-        addDefaultExtensions(loadedExtensions);
+        var extensions = sortByType(loadedExtensions);
+        var dependencyMap = createDependencyMap(extensions);
 
-        // add all provided features to the dependency map
-        loadedExtensions.forEach(ext -> getDefaultProvidedFeatures(ext).forEach(feature -> dependencyMap.computeIfAbsent(feature, k -> new ArrayList<>()).add(ext)));
-        loadedExtensions.forEach(ext -> getProvidedFeatures(ext).forEach(feature -> dependencyMap.computeIfAbsent(feature, k -> new ArrayList<>()).add(ext)));
         var sort = new TopologicalSort<ServiceExtension>();
 
         // check if all injected fields are satisfied, collect missing ones and throw exception otherwise
         var unsatisfiedInjectionPoints = new ArrayList<InjectionPoint<ServiceExtension>>();
-        var injectionPoints = loadedExtensions.stream().flatMap(ext -> getInjectedFields(ext).stream().peek(injectionPoint -> {
-            List<ServiceExtension> providers = dependencyMap.get(injectionPoint.getFeatureName());
-            if (providers == null) {
-                if (injectionPoint.isRequired()) {
-                    unsatisfiedInjectionPoints.add(injectionPoint);
-                }
-            } else {
-                providers.stream()
-                        .filter(d -> !Objects.equals(d, ext)) // remove dependencies onto oneself
-                        .forEach(provider -> sort.addDependency(ext, provider));
-            }
-        })).collect(Collectors.toList());
+        var injectionPoints = extensions.stream()
+                .flatMap(ext -> getInjectedFields(ext).stream()
+                        .peek(injectionPoint -> {
+                            var providers = dependencyMap.get(injectionPoint.getFeatureName());
+                            if (providers == null) {
+                                if (injectionPoint.isRequired()) {
+                                    unsatisfiedInjectionPoints.add(injectionPoint);
+                                }
+                            } else {
+                                providers.stream()
+                                        .filter(d -> !Objects.equals(d, ext)) // remove dependencies onto oneself
+                                        .forEach(provider -> sort.addDependency(ext, provider));
+                            }
+                        })
+                )
+                .collect(Collectors.toList());
 
         //throw an exception if still unsatisfied links
         if (!unsatisfiedInjectionPoints.isEmpty()) {
@@ -92,7 +94,7 @@ public class DependencyGraph {
 
         //check that all the @Required features are there
         var unsatisfiedRequirements = new ArrayList<String>();
-        loadedExtensions.forEach(ext -> {
+        extensions.forEach(ext -> {
             var features = getRequiredFeatures(ext.getClass());
             features.forEach(feature -> {
                 var dependencies = dependencyMap.get(feature);
@@ -109,11 +111,20 @@ public class DependencyGraph {
             throw new EdcException(string);
         }
 
-        sort.sort(loadedExtensions);
+        sort.sort(extensions);
 
         // todo: should the list of InjectionContainers be generated directly by the flatmap?
         // convert the sorted list of extensions into an equally sorted list of InjectionContainers
-        return loadedExtensions.stream().map(se -> new InjectionContainer<>(se, injectionPoints.stream().filter(ip -> ip.getInstance() == se).collect(Collectors.toSet()))).collect(Collectors.toList());
+        return extensions.stream()
+                .map(se -> new InjectionContainer<>(se, injectionPoints.stream().filter(ip -> ip.getInstance() == se).collect(Collectors.toSet())))
+                .collect(Collectors.toList());
+    }
+
+    private Map<String, List<ServiceExtension>> createDependencyMap(List<ServiceExtension> extensions) {
+        Map<String, List<ServiceExtension>> dependencyMap = new HashMap<>();
+        extensions.forEach(ext -> getDefaultProvidedFeatures(ext).forEach(feature -> dependencyMap.computeIfAbsent(feature, k -> new ArrayList<>()).add(ext)));
+        extensions.forEach(ext -> getProvidedFeatures(ext).forEach(feature -> dependencyMap.computeIfAbsent(feature, k -> new ArrayList<>()).add(ext)));
+        return dependencyMap;
     }
 
     private Set<String> getRequiredFeatures(Class<?> clazz) {
@@ -153,18 +164,13 @@ public class DependencyGraph {
      * Handles core-, transfer- and contract-extensions and inserts them at the beginning of the list so that
      * explicit @Requires annotations are not necessary
      */
-    private void addDefaultExtensions(List<ServiceExtension> loadedExtensions) {
+    private List<ServiceExtension> sortByType(List<ServiceExtension> loadedExtensions) {
         var baseDependencies = loadedExtensions.stream().filter(e -> e.getClass().getAnnotation(BaseExtension.class) != null).collect(Collectors.toList());
         if (baseDependencies.isEmpty()) {
             throw new EdcException("No base dependencies were found on the classpath. Please add the \"core:base\" module to your classpath!");
         }
-        var coreDependencies = loadedExtensions.stream().filter(e -> e.getClass().getAnnotation(CoreExtension.class) != null).collect(Collectors.toList());
 
-        //make sure the core- and transfer-dependencies are ALWAYS ordered first
-        loadedExtensions.removeAll(baseDependencies);
-        loadedExtensions.removeAll(coreDependencies);
-        coreDependencies.forEach(se -> loadedExtensions.add(0, se));
-        baseDependencies.forEach(se -> loadedExtensions.add(0, se));
+        return loadedExtensions.stream().sorted(new ServiceExtensionComparator()).collect(Collectors.toList());
     }
 
     /**
@@ -173,5 +179,18 @@ public class DependencyGraph {
     private Set<InjectionPoint<ServiceExtension>> getInjectedFields(ServiceExtension ext) {
         // initialize with legacy list
         return injectionPointScanner.getInjectionPoints(ext);
+    }
+
+    private static class ServiceExtensionComparator implements Comparator<ServiceExtension> {
+        @Override
+        public int compare(ServiceExtension o1, ServiceExtension o2) {
+            return orderFor(o1.getClass()).compareTo(orderFor(o2.getClass()));
+        }
+
+        private Integer orderFor(Class<? extends ServiceExtension> class1) {
+            return class1.getAnnotation(BaseExtension.class) != null
+                    ? 0 : class1.getAnnotation(CoreExtension.class) != null
+                    ? 1 : 2;
+        }
     }
 }

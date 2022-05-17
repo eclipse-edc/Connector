@@ -51,6 +51,7 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
     public static final String IDS_WEBHOOK_ADDRESS = "ids.webhook.address";
     public static final String DEFAULT_IDS_WEBHOOK_ADDRESS = "http://localhost";
 
+    @Inject
     private Monitor monitor;
     @Inject
     private OkHttpClient httpClient;
@@ -62,17 +63,16 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
     private IdsApiConfiguration idsApiConfiguration;
     @Inject
     private ObjectMapperFactory objectMapperFactory;
+    @Inject
+    private Vault vault;
 
     @Override
     public String name() {
         return "IDS Multipart Dispatcher API";
     }
 
-
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
-
         var connectorId = resolveConnectorId(context);
 
         // TODO ObjectMapper needs to be replaced by one capable to write proper IDS JSON-LD
@@ -85,7 +85,7 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         idsWebhookAddress = idsWebhookAddress + webhookPath;
 
         var multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
-        multipartDispatcher.register(new MultipartArtifactRequestSender(connectorId, httpClient, objectMapper, monitor, context.getService(Vault.class), identityService, transformerRegistry, idsWebhookAddress));
+        multipartDispatcher.register(new MultipartArtifactRequestSender(connectorId, httpClient, objectMapper, monitor, vault, identityService, transformerRegistry, idsWebhookAddress));
         multipartDispatcher.register(new MultipartDescriptionRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartContractOfferSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress));
         multipartDispatcher.register(new MultipartContractAgreementSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress));

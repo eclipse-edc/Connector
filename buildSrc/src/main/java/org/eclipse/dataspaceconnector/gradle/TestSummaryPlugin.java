@@ -39,7 +39,7 @@ public class TestSummaryPlugin implements Plugin<Project> {
     private class AfterSuitePrinter extends SummaryPrinterAdapter {
         private final Logger logger;
 
-        public AfterSuitePrinter(Logger logger) {
+        AfterSuitePrinter(Logger logger) {
             this.logger = logger;
         }
 

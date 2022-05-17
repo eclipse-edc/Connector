@@ -18,22 +18,14 @@ package org.eclipse.dataspaceconnector.sql.contractnegotiation.store;
 import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
-import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
+import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
+import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
-import org.eclipse.dataspaceconnector.sql.datasource.ConnectionFactoryDataSource;
-import org.eclipse.dataspaceconnector.sql.datasource.ConnectionPoolDataSource;
+import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.eclipse.dataspaceconnector.sql.lease.LeaseUtil;
-import org.eclipse.dataspaceconnector.sql.pool.ConnectionPool;
-import org.eclipse.dataspaceconnector.sql.pool.commons.CommonsConnectionPool;
-import org.eclipse.dataspaceconnector.sql.pool.commons.CommonsConnectionPoolConfig;
-import org.eclipse.dataspaceconnector.transaction.local.DataSourceResource;
-import org.eclipse.dataspaceconnector.transaction.local.LocalDataSourceRegistry;
-import org.eclipse.dataspaceconnector.transaction.local.LocalTransactionContext;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +33,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Duration;
@@ -49,59 +42,61 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createContract;
 import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createNegotiation;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 @ComponentTest
 class SqlContractNegotiationStoreTest {
 
     private static final String DATASOURCE_NAME = "contractnegotiation";
     private static final String CONNECTOR_NAME = "test-connector";
-    private ConnectionPool connectionPool;
     private SqlContractNegotiationStore store;
-    private LocalDataSourceRegistry dataSourceRegistry;
+    private DataSourceRegistry dataSourceRegistry;
     private LeaseUtil leaseUtil;
+    private Connection connection;
 
     @BeforeEach
-    void setUp() throws SQLException {
-        var monitor = new Monitor() {
-        };
-        var txManager = new LocalTransactionContext(monitor);
-        dataSourceRegistry = new LocalDataSourceRegistry(txManager);
-        var transactionContext = (TransactionContext) txManager;
+    void setUp() throws SQLException, IOException {
+        var txManager = new NoopTransactionContext();
+        dataSourceRegistry = mock(DataSourceRegistry.class);
+
         var jdbcDataSource = new JdbcDataSource();
         jdbcDataSource.setURL("jdbc:h2:mem:");
 
-        var connection = jdbcDataSource.getConnection();
-        var dataSource = new ConnectionFactoryDataSource(() -> connection);
-        connectionPool = new CommonsConnectionPool(dataSource, CommonsConnectionPoolConfig.Builder.newInstance().build());
-        var poolDataSource = new ConnectionPoolDataSource(connectionPool);
-        dataSourceRegistry.register(DATASOURCE_NAME, poolDataSource);
-        txManager.registerResource(new DataSourceResource(poolDataSource));
+        // do not actually close
+        connection = spy(jdbcDataSource.getConnection());
+        doNothing().when(connection).close();
+
+        var datasourceMock = mock(DataSource.class);
+        when(datasourceMock.getConnection()).thenReturn(connection);
+        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
+
         var statements = new PostgresStatements();
         TypeManager manager = new TypeManager();
 
         manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
-        store = new SqlContractNegotiationStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, manager, statements, CONNECTOR_NAME);
+        store = new SqlContractNegotiationStore(dataSourceRegistry, DATASOURCE_NAME, txManager, manager, statements, CONNECTOR_NAME);
 
-        try (var inputStream = getClass().getClassLoader().getResourceAsStream("schema.sql")) {
-            var schema = new String(Objects.requireNonNull(inputStream).readAllBytes(), StandardCharsets.UTF_8);
-            transactionContext.execute(() -> executeQuery(connection, schema));
+        var schema = Files.readString(Paths.get("./docs/schema.sql"));
+        txManager.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        leaseUtil = new LeaseUtil(transactionContext, this::getConnection, statements);
+        leaseUtil = new LeaseUtil(txManager, this::getConnection, statements);
     }
 
     @AfterEach
     void tearDown() throws Exception {
-        connectionPool.close();
+        doCallRealMethod().when(connection).close();
+        connection.close();
     }
 
     @Test
@@ -281,7 +276,7 @@ class SqlContractNegotiationStoreTest {
 
         // update should break lease
         assertThat(leaseUtil.isLeased(id, "someone-else")).isTrue();
-        assertThatThrownBy(() -> store.save(newNegotiation)).hasRootCauseInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> store.save(newNegotiation)).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -350,7 +345,7 @@ class SqlContractNegotiationStoreTest {
         leaseUtil.leaseEntity(id, CONNECTOR_NAME);
 
         //todo: verify returned object
-        assertThatThrownBy(() -> store.delete(id)).hasRootCauseInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> store.delete(id)).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -363,7 +358,7 @@ class SqlContractNegotiationStoreTest {
         leaseUtil.leaseEntity(id, "someone-else");
 
         //todo: verify returned object
-        assertThatThrownBy(() -> store.delete(id)).hasRootCauseInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> store.delete(id)).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
@@ -383,7 +378,7 @@ class SqlContractNegotiationStoreTest {
 
         assertThat(store.find(id)).isNotNull().usingRecursiveComparison().isEqualTo(n);
 
-        assertThatThrownBy(() -> store.delete(id)).isInstanceOf(EdcException.class)
+        assertThatThrownBy(() -> store.delete(id)).isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Cannot delete ContractNegotiation")
                 .hasMessageContaining("ContractAgreement already created.");
 

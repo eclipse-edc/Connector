@@ -51,7 +51,6 @@ public class PolicyApiControllerIntegrationTest {
 
     @Test
     void getAllPolicies(PolicyStore policyStore) {
-
         var policy = createPolicy("id");
 
         policyStore.save(policy);
@@ -62,6 +61,14 @@ public class PolicyApiControllerIntegrationTest {
                 .statusCode(200)
                 .contentType(ContentType.JSON)
                 .body("size()", is(1));
+    }
+
+    @Test
+    void getAll_invalidQuery() {
+        baseRequest()
+                .get("/policies?limit=1&offset=-1&filter=&sortField=")
+                .then()
+                .statusCode(400);
     }
 
     @Test

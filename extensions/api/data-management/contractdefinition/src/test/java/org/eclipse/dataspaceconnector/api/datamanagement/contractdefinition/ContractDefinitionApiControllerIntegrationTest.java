@@ -75,6 +75,14 @@ public class ContractDefinitionApiControllerIntegrationTest {
     }
 
     @Test
+    void getAll_invalidQuery() {
+        baseRequest()
+                .get("/contractdefinitions?limit=1&offset=-1&filter=&sortField=")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
     void getSingleContractDef(ContractDefinitionLoader loader) {
         loader.accept(createContractDefinition("definitionId"));
 
