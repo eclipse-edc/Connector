@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.assetindex.azure;
 
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
-import com.azure.cosmos.CosmosException;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
 import com.azure.cosmos.models.PartitionKey;
 import net.jodah.failsafe.RetryPolicy;
@@ -173,9 +172,8 @@ class CosmosAssetIndexIntegrationTest {
         container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
         container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
 
-        var inExpr = format("('%s', '%s')", asset1.getId(), asset2.getId());
         var selector = AssetSelectorExpression.Builder.newInstance()
-                .constraint(Asset.PROPERTY_ID, "IN", inExpr)
+                .constraint(Asset.PROPERTY_ID, "IN", List.of(asset1.getId(), asset2.getId()))
                 .build();
 
         List<Asset> assets = assetIndex.queryAssets(selector).collect(Collectors.toList());
@@ -186,26 +184,7 @@ class CosmosAssetIndexIntegrationTest {
     }
 
     @Test
-    void queryAssets_operatorIn_noUpTicks() {
-        Asset asset1 = createAsset("123", "hello", "world");
-
-        Asset asset2 = createAsset("456", "foo", "bar");
-
-        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
-        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
-
-        var inExpr = format("(%s, %s)", asset1.getId(), asset2.getId());
-        var selector = AssetSelectorExpression.Builder.newInstance()
-                .constraint(Asset.PROPERTY_ID, "IN", inExpr)
-                .build();
-
-        List<Asset> assets = assetIndex.queryAssets(selector).collect(Collectors.toList());
-
-        assertThat(assets).isEmpty();
-    }
-
-    @Test
-    void queryAssets_operatorIn_noBrackets_throwsException() {
+    void queryAssets_operatorIn_notList_throwsException() {
         Asset asset1 = createAsset("123", "hello", "world");
 
         Asset asset2 = createAsset("456", "foo", "bar");
@@ -219,7 +198,8 @@ class CosmosAssetIndexIntegrationTest {
                 .build();
 
         // collecting is necessary, otherwise the cosmos query is not executed
-        assertThatThrownBy(() -> assetIndex.queryAssets(selector).collect(Collectors.toList())).isInstanceOf(CosmosException.class);
+        assertThatThrownBy(() -> assetIndex.queryAssets(selector).collect(Collectors.toList())).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Cannot build WHERE clause, reason: The \"in\" operator requires the right-hand operand to be of type interface java.lang.Iterable but was actually class java.lang.String");
 
     }
 
@@ -234,17 +214,18 @@ class CosmosAssetIndexIntegrationTest {
 
         var inExpr = format("('%s' ; '%s')", asset1.getId(), asset2.getId());
         var selector = AssetSelectorExpression.Builder.newInstance()
-                .constraint(Asset.PROPERTY_ID, "IN", inExpr)
+                .constraint(Asset.PROPERTY_ID, "IN foobar", List.of(asset1.getId(), asset2.getId()))
                 .build();
 
         // collecting is necessary, otherwise the cosmos query is not executed
-        assertThatThrownBy(() -> assetIndex.queryAssets(selector).collect(Collectors.toList())).isInstanceOf(CosmosException.class);
+        assertThatThrownBy(() -> assetIndex.queryAssets(selector).collect(Collectors.toList())).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Cannot build WHERE clause, reason: unsupported operator IN foobar");
     }
 
     @Test
     void queryAssets_operatorIn_notFound() {
 
-        var inExpr = "('not-exist1', 'not-exist2')";
+        var inExpr = List.of("not-exist1", "not-exist2");
         var selector = AssetSelectorExpression.Builder.newInstance()
                 .constraint(Asset.PROPERTY_ID, "IN", inExpr)
                 .build();
@@ -329,7 +310,7 @@ class CosmosAssetIndexIntegrationTest {
                 .filter("foo STARTSWITH bar4")
                 .build();
 
-        assertThatThrownBy(() -> assetIndex.queryAssets(filterQuery)).isInstanceOf(IllegalArgumentException.class).hasMessage("Cannot build SqlParameter for operator: STARTSWITH");
+        assertThatThrownBy(() -> assetIndex.queryAssets(filterQuery)).isInstanceOf(IllegalArgumentException.class).hasMessage("Cannot build WHERE clause, reason: unsupported operator STARTSWITH");
     }
 
     @Test
@@ -339,7 +320,7 @@ class CosmosAssetIndexIntegrationTest {
 
         var filterQuery = QuerySpec.Builder.newInstance()
                 .equalsAsContains(false)
-                .filter("foo IN ('bar4', 'bar3', 'bar2', 'bar1')")
+                .filter("foo IN [\"bar4\", \"bar3\", \"bar2\", \"bar1\"]")
                 .limit(10)
                 .build();
 
