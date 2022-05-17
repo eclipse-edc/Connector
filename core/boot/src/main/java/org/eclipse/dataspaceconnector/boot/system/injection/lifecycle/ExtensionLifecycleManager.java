@@ -14,13 +14,13 @@
 
 package org.eclipse.dataspaceconnector.boot.system.injection.lifecycle;
 
+import org.eclipse.dataspaceconnector.boot.system.ExtensionLoader;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.injection.Injector;
-import org.eclipse.dataspaceconnector.spi.system.injection.ProviderMethod;
 import org.eclipse.dataspaceconnector.spi.system.injection.ProviderMethodScanner;
 
 import static java.lang.String.format;
@@ -89,8 +89,7 @@ public class ExtensionLifecycleManager {
     public ExtensionLifecycleManager provide() {
         var target = container.getInjectionTarget();
         // invoke provider methods, register the service they return
-        providerMethodScanner.nonDefaultProviders()
-                .forEach(pm -> invokeAndRegister(pm, target, context));
+        providerMethodScanner.nonDefaultProviders().forEach(pm -> ExtensionLoader.getProvidedAndRegister(context, pm, target));
         return this;
     }
 
@@ -104,10 +103,4 @@ public class ExtensionLifecycleManager {
         return this;
     }
 
-    private void invokeAndRegister(ProviderMethod providerMethod, ServiceExtension target, ServiceExtensionContext context) {
-        var type = providerMethod.getReturnType();
-        var result = providerMethod.invoke(target, context);
-
-        context.registerService(type, result);
-    }
 }

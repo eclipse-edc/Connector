@@ -51,10 +51,12 @@ public class ExtensionLoader {
     public static void bootServiceExtensions(List<InjectionContainer<ServiceExtension>> containers, ServiceExtensionContext context) {
         //construct a list of default providers, which are invoked, if a particular service is not present in the context
         var defaultServices = new HashMap<Class<?>, Supplier<Object>>();
-        containers.forEach(se -> {
-            var pm = new ProviderMethodScanner(se.getInjectionTarget()).defaultProviders();
-            pm.forEach(p -> defaultServices.put(p.getReturnType(), getDefaultProviderInvoker(context, se, p)));
-        });
+        containers.stream()
+                .map(InjectionContainer::getInjectionTarget)
+                .forEach(serviceExtension -> {
+                    var defaultProviders = new ProviderMethodScanner(serviceExtension).defaultProviders();
+                    defaultProviders.forEach(provider -> defaultServices.put(provider.getReturnType(), () -> getProvidedAndRegister(context, provider, serviceExtension)));
+                });
 
         var injector = new InjectorImpl(defaultServices);
 
@@ -70,12 +72,10 @@ public class ExtensionLoader {
     }
 
     @NotNull
-    private static Supplier<Object> getDefaultProviderInvoker(ServiceExtensionContext context, InjectionContainer<ServiceExtension> se, ProviderMethod p) {
-        return () -> {
-            var d = p.invoke(se.getInjectionTarget(), context);
-            context.registerService(p.getReturnType(), d);
-            return d;
-        };
+    public static Object getProvidedAndRegister(ServiceExtensionContext context, ProviderMethod providerMethod, ServiceExtension serviceExtension) {
+        var result = providerMethod.invoke(serviceExtension, context);
+        context.registerService(providerMethod.getReturnType(), result);
+        return result;
     }
 
     public static @NotNull Monitor loadMonitor() {
