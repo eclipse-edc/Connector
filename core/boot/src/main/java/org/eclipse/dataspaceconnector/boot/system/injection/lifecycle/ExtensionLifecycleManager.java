@@ -20,14 +20,18 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.injection.Injector;
+import org.eclipse.dataspaceconnector.spi.system.injection.ProviderMethod;
+import org.eclipse.dataspaceconnector.spi.system.injection.ProviderMethodScanner;
+
+import static java.lang.String.format;
 
 /**
  * {@link ServiceExtension} implementors should not be constructed by just invoking their constructors, instead they need to go through
  * a lifecycle, which is what this class aims at doing. There are three major phases for initialization:
  * <ol>
  *     <li>inject dependencies: all fields annotated with {@link org.eclipse.dataspaceconnector.spi.system.Inject} are set</li>
- *     <li>initialize: invokes the {@link ServiceExtension#initialize(ServiceExtensionContext)} method</li>
  *     <li>provide: invokes all methods annotated with {@link org.eclipse.dataspaceconnector.spi.system.Provider} to register more services into the context</li>
+ *     <li>initialize: invokes the {@link ServiceExtension#initialize(ServiceExtensionContext)} method</li>
  * </ol>
  * <p>
  * The sequence of these phases is actually important.
@@ -35,55 +39,75 @@ import org.eclipse.dataspaceconnector.spi.system.injection.Injector;
  * It is advisable to put all {@link ServiceExtension} instances through their initialization lifecycle <em>before</em> invoking their
  * {@linkplain ServiceExtension#start()} method!
  *
- * @see InitializePhase
- * @see RegistrationPhase
- * @see StartPhase
  */
 public class ExtensionLifecycleManager {
     private final InjectionContainer<ServiceExtension> container;
     private final ServiceExtensionContext context;
     private final Injector injector;
+    private final ProviderMethodScanner providerMethodScanner;
     private final Monitor monitor;
 
-    public ExtensionLifecycleManager(InjectionContainer<ServiceExtension> container, ServiceExtensionContext context, Injector injector) {
+    public ExtensionLifecycleManager(InjectionContainer<ServiceExtension> container, ServiceExtensionContext context, Injector injector, ProviderMethodScanner providerMethodScanner) {
         monitor = context.getMonitor();
         this.container = container;
         this.context = context;
         this.injector = injector;
-    }
-
-    /**
-     * Invokes the {@link ServiceExtensionContext#initialize()} method and validates, that every type provided with @Provides
-     * is actually provided, logs a warning otherwise
-     */
-    public static RegistrationPhase initialize(InitializePhase phase) {
-        phase.initialize();
-        return new RegistrationPhase(phase);
-    }
-
-    /**
-     * Scans the {@linkplain ServiceExtension} for methods annotated with {@linkplain org.eclipse.dataspaceconnector.spi.system.Provider}
-     * with the {@link Provider#isDefault()} flag set to {@code false}, invokes them and registers the bean into the {@link ServiceExtensionContext} if necessary.
-     */
-    public static StartPhase provide(RegistrationPhase phase) {
-        phase.invokeProviderMethods();
-        return new StartPhase(phase);
-    }
-
-    /**
-     * invokes {@link ServiceExtension#start()}.
-     */
-    public static void start(StartPhase starter) {
-        starter.start();
+        this.providerMethodScanner = providerMethodScanner;
     }
 
     /**
      * Injects all dependencies into a {@link ServiceExtension}: those dependencies must be class members annotated with @Inject.
      * Kicks off the multi-phase initialization.
      */
-    public InitializePhase inject() {
+    public ExtensionLifecycleManager inject() {
         injector.inject(container, context);
-        return new InitializePhase(injector, container, context, monitor);
+        return this;
     }
 
+    /**
+     * Invokes the {@link ServiceExtensionContext#initialize()} method and validates, that every type provided with @Provides
+     * is actually provided, logs a warning otherwise
+     */
+    public ExtensionLifecycleManager initialize() {
+        // call initialize
+        var target = container.getInjectionTarget();
+        target.initialize(context);
+        var result = container.validate(context);
+
+        // wrap failure message in a more descriptive string
+        if (result.failed()) {
+            monitor.warning(String.join(", ", format("There were missing service registrations in extension %s: %s", target.getClass(), String.join(", ", result.getFailureMessages()))));
+        }
+        monitor.info("Initialized " + container.getInjectionTarget().name());
+        return this;
+    }
+
+    /**
+     * Scans the {@linkplain ServiceExtension} for methods annotated with {@linkplain org.eclipse.dataspaceconnector.spi.system.Provider}
+     * with the {@link Provider#isDefault()} flag set to {@code false}, invokes them and registers the bean into the {@link ServiceExtensionContext} if necessary.
+     */
+    public ExtensionLifecycleManager provide() {
+        var target = container.getInjectionTarget();
+        // invoke provider methods, register the service they return
+        providerMethodScanner.nonDefaultProviders()
+                .forEach(pm -> invokeAndRegister(pm, target, context));
+        return this;
+    }
+
+    /**
+     * invokes {@link ServiceExtension#start()}.
+     */
+    public ExtensionLifecycleManager start() {
+        var target = container.getInjectionTarget();
+        target.start();
+        monitor.info("Started " + target.name());
+        return this;
+    }
+
+    private void invokeAndRegister(ProviderMethod providerMethod, ServiceExtension target, ServiceExtensionContext context) {
+        var type = providerMethod.getReturnType();
+        var result = providerMethod.invoke(target, context);
+
+        context.registerService(type, result);
+    }
 }

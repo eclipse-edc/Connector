@@ -111,9 +111,10 @@ public class CoreServicesExtension implements ServiceExtension {
     @Inject
     private PrivateKeyResolver privateKeyResolver;
 
+    @Inject
+    private RuleBindingRegistry ruleBindingRegistry;
+
     private HealthCheckServiceImpl healthCheckService;
-    private RuleBindingRegistryImpl ruleBindingRegistry;
-    private ScopeFilter scopeFilter;
 
     @Override
     public String name() {
@@ -131,8 +132,6 @@ public class CoreServicesExtension implements ServiceExtension {
         context.registerService(HealthCheckService.class, healthCheckService);
 
         ruleBindingRegistry = new RuleBindingRegistryImpl();
-
-        scopeFilter = new ScopeFilter(ruleBindingRegistry);
 
         var typeManager = context.getTypeManager();
         PolicyRegistrationTypes.TYPES.forEach(typeManager::registerTypes);
@@ -189,14 +188,14 @@ public class CoreServicesExtension implements ServiceExtension {
         return new ParticipantAgentServiceImpl();
     }
 
-    @Provider
+    @Provider(isDefault = true)
     public RuleBindingRegistry ruleBindingRegistry() {
-        return ruleBindingRegistry;
+        return new RuleBindingRegistryImpl();
     }
 
     @Provider
     public PolicyEngine policyEngine() {
-        return new PolicyEngineImpl(scopeFilter);
+        return new PolicyEngineImpl(new ScopeFilter(ruleBindingRegistry));
     }
 
     @Provider

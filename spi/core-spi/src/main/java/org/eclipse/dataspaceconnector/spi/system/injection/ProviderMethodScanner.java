@@ -33,7 +33,6 @@ public class ProviderMethodScanner {
         this.target = target;
     }
 
-
     /**
      * Returns all methods annotated with {@link Provider}, where {@link Provider#isDefault()} is {@code false}
      */

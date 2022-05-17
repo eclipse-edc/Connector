@@ -51,12 +51,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class ExtensionLoaderTest {
@@ -293,32 +296,27 @@ class ExtensionLoaderTest {
     @DisplayName("bootServiceExtensions - Should invoke default provider")
     void bootServiceExtensions_withSingleDefaultProvider() {
         var dependentExtension = createDependentExtension(true);
-
         var defaultProvider = (DefaultProviderExtension) spy(createProviderExtension(true));
         when(defaultProvider.testObject()).thenCallRealMethod();
+        var monitor = mock(Monitor.class);
+        var context = new DefaultServiceExtensionContext(new TypeManager(), monitor, null, List.of());
+        var containers = createInjectionContainers(createList(defaultProvider, dependentExtension));
 
-
-        var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of());
-
-        var list = createInjectionContainers(createList(defaultProvider, dependentExtension));
-
-        ExtensionLoader.bootServiceExtensions(list, context);
+        ExtensionLoader.bootServiceExtensions(containers, context);
 
         verify(defaultProvider, times(1)).testObject();
+        verify(monitor, atLeastOnce()).info(anyString());
+        verifyNoMoreInteractions(monitor);
     }
 
     @Test
     @DisplayName("bootServiceExtensions - Should only invoke non-default provider")
     void bootServiceExtensions_withSingleDefaultProvider_andNonDefault() {
         var dependentExtension = createDependentExtension(true);
-
         var defaultProvider = (DefaultProviderExtension) spy(createProviderExtension(true));
-
         var nonDefaultProvider = (ProviderExtension) spy(createProviderExtension(false));
         when(nonDefaultProvider.testObject()).thenCallRealMethod();
-
         var context = new DefaultServiceExtensionContext(new TypeManager(), mock(Monitor.class), null, List.of());
-
         var list = createInjectionContainers(createList(defaultProvider, dependentExtension, nonDefaultProvider));
 
         ExtensionLoader.bootServiceExtensions(list, context);

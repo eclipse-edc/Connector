@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
@@ -60,10 +60,10 @@ public class ExtensionLoader {
 
         // go through the extension initialization lifecycle
         var lifeCycles = containers.stream()
-                .map(c -> new ExtensionLifecycleManager(c, context, injector))
+                .map(c -> new ExtensionLifecycleManager(c, context, injector, new ProviderMethodScanner(c.getInjectionTarget())))
                 .map(ExtensionLifecycleManager::inject)
-                .map(ExtensionLifecycleManager::initialize)
                 .map(ExtensionLifecycleManager::provide)
+                .map(ExtensionLifecycleManager::initialize)
                 .collect(Collectors.toList());
 
         lifeCycles.forEach(ExtensionLifecycleManager::start);

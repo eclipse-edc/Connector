@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.core;
 
 import org.eclipse.dataspaceconnector.core.security.DefaultPrivateKeyParseFunction;
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
+import org.eclipse.dataspaceconnector.spi.policy.RuleBindingRegistry;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -39,6 +40,20 @@ class CoreServicesExtensionTest {
     private TypeManager typeManager;
     private PrivateKeyResolver privateKeyResolverMock;
 
+    @BeforeEach
+    void setUp(ServiceExtensionContext context, ObjectFactory factory) {
+        privateKeyResolverMock = mock(PrivateKeyResolver.class);
+        context.registerService(PrivateKeyResolver.class, privateKeyResolverMock);
+
+        typeManager = context.getTypeManager(); //is already a spy!
+        context.registerService(ExecutorInstrumentation.class, mock(ExecutorInstrumentation.class));
+
+        context.registerService(RuleBindingRegistry.class, mock(RuleBindingRegistry.class));
+
+        this.context = context;
+        extension = factory.constructInstance(CoreServicesExtension.class);
+    }
+
     @Test
     void verifyPolicyTypesAreRegistered() {
         extension.initialize(context);
@@ -49,17 +64,5 @@ class CoreServicesExtensionTest {
     void verifyDefaultPrivateKeyParserIsRegistered() {
         extension.initialize(context);
         verify(privateKeyResolverMock).addParser(eq(PrivateKey.class), any(DefaultPrivateKeyParseFunction.class));
-    }
-
-    @BeforeEach
-    void setUp(ServiceExtensionContext context, ObjectFactory factory) {
-        privateKeyResolverMock = mock(PrivateKeyResolver.class);
-        context.registerService(PrivateKeyResolver.class, privateKeyResolverMock);
-
-        typeManager = context.getTypeManager(); //is already a spy!
-        context.registerService(ExecutorInstrumentation.class, mock(ExecutorInstrumentation.class));
-
-        this.context = context;
-        extension = factory.constructInstance(CoreServicesExtension.class);
     }
 }
