@@ -1,0 +1,815 @@
+{
+	"info": {
+		"_postman_id": "ae45bb08-95c7-4289-a6d4-371ff46de042",
+		"name": "catenax-edc-0.0.32",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Provider",
+			"item": [
+				{
+					"name": "Health check",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "X-Api-Key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8181/api/check/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8181",
+							"path": [
+								"api",
+								"check",
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create asset",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "passwordProvider",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "X-Api-Key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"asset\": {\n        \"properties\": {\n            \"asset:prop:id\": \"2\",\n            \"asset:prop:name\": \"PowerConsumption.json\",\n            \"asset:prop:contenttype\": \"http\"\n        }\n    },\n    \"dataAddress\": {\n        \"properties\": {\n            \"type\": \"http\",\n            \"url\": \"https://catenax-test-source.s3.eu-central-1.amazonaws.com/PowerConsumption.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20220516T084456Z&X-Amz-SignedHeaders=host&X-Amz-Expires=43199&X-Amz-Credential=AKIARM37P5UZG7LNQIWM%2F20220516%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Signature=bf8d19e8660999eb97c3bc8c9f6e21d51f2f637db71ba41a377c5be0dd0925f7\"\n        }\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8182/api/v1/data/assets",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8182",
+							"path": [
+								"api",
+								"v1",
+								"data",
+								"assets"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all assets",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "passwordProvider",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "X-Api-Key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8182/api/v1/data/assets",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8182",
+							"path": [
+								"api",
+								"v1",
+								"data",
+								"assets"
+							],
+							"query": [
+								{
+									"key": "offset",
+									"value": "5734126",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "5734126",
+									"disabled": true
+								},
+								{
+									"key": "filter",
+									"value": "te",
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "DESC",
+									"disabled": true
+								},
+								{
+									"key": "sortField",
+									"value": "tenant",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create policy",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "passwordProvider",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "X-Api-Key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"uid\": \"4ae29651-f56a-4e8e-8186-444f10c701f2\",\n    \"permissions\": [\n        {\n            \"edctype\": \"dataspaceconnector:permission\",\n            \"target\": \"2\",\n            \"action\": {\n                \"type\": \"USE\"\n            }\n        }\n    ],\n    \"target\": \"2\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8182/api/v1/data/policies",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8182",
+							"path": [
+								"api",
+								"v1",
+								"data",
+								"policies"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all policies",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "passwordProvider",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "X-Api-Key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8182/api/v1/data/policies",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8182",
+							"path": [
+								"api",
+								"v1",
+								"data",
+								"policies"
+							],
+							"query": [
+								{
+									"key": "offset",
+									"value": "-37301109",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "-37301109",
+									"disabled": true
+								},
+								{
+									"key": "filter",
+									"value": "Excepteur cupidatat",
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "ASC",
+									"disabled": true
+								},
+								{
+									"key": "sortField",
+									"value": "Excepteur cupidatat",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create contract",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "passwordProvider",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "X-Api-Key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"accessPolicyId\": \"4ae29651-f56a-4e8e-8186-444f10c701f2\",\n  \"contractPolicyId\": \"4ae29651-f56a-4e8e-8186-444f10c701f2\",\n  \"criteria\": [\n    {\n      \"left\": \"asset:prop:id\",\n      \"op\": \"=\",\n      \"right\": \"2\"\n    }\n  ],\n  \"id\": \"2\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8182/api/v1/data/contractdefinitions",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8182",
+							"path": [
+								"api",
+								"v1",
+								"data",
+								"contractdefinitions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all Contracts",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "passwordProvider",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "X-Api-Key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8182/api/v1/data/contractdefinitions",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8182",
+							"path": [
+								"api",
+								"v1",
+								"data",
+								"contractdefinitions"
+							],
+							"query": [
+								{
+									"key": "offset",
+									"value": "-37301109",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "-37301109",
+									"disabled": true
+								},
+								{
+									"key": "filter",
+									"value": "Excepteur cupidatat",
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "ASC",
+									"disabled": true
+								},
+								{
+									"key": "sortField",
+									"value": "Excepteur cupidatat",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Consumer",
+			"item": [
+				{
+					"name": "Health check",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "X-Api-Key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9191/api/check/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9191",
+							"path": [
+								"api",
+								"check",
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get offers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseText = pm.response.text();\r",
+									"pm.test(\"Response is OK\", () => {\r",
+									"    pm.expect(responseText).to.be.not.empty\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"var offer = response.contractOffers[0];\r",
+									"\r",
+									"offer[\"provider\"] = \"https://provider.com\";\r",
+									"offer[\"consumer\"] = \"https://consumer.com\";\r",
+									"\r",
+									"pm.environment.set(\"contract-offer-body\", JSON.stringify(offer));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "passwordConsumer",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "X-Api-Key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9192/api/v1/data/catalog?providerUrl=http://catena-x-edc-provider:8282/api/v1/ids/data",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9192",
+							"path": [
+								"api",
+								"v1",
+								"data",
+								"catalog"
+							],
+							"query": [
+								{
+									"key": "providerUrl",
+									"value": "http://catena-x-edc-provider:8282/api/v1/ids/data"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Negotiate contract",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseText = pm.response.text();\r",
+									"pm.test(\"Response is OK\", () => {\r",
+									"    pm.expect(responseText).to.be.not.empty\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.text();\r",
+									"\r",
+									"pm.environment.set(\"negotiation-id\", response);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "passwordConsumer",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "X-Api-Key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"protocol\": \"ids-multipart\",\r\n    \"connectorId\": \"provider\",\r\n    \"connectorAddress\": \"http://catena-x-edc-provider:8282/api/v1/ids/data\",\r\n    \"offer\": {\r\n        \"assetId\": \"2\",\r\n        \"offerId\": \"2:6d108659-4fe6-4095-8a70-ac08e619dac8\",\r\n        \"policy\": {\r\n            \"uid\": \"5b6e6c5c-840e-4065-b925-9ea6f1fd7cfe\",\r\n            \"permissions\": [\r\n                {\r\n                    \"edctype\": \"dataspaceconnector:permission\",\r\n                    \"uid\": null,\r\n                    \"target\": \"2\",\r\n                    \"action\": {\r\n                        \"type\": \"USE\",\r\n                        \"includedIn\": null,\r\n                        \"constraint\": null\r\n                    },\r\n                    \"assignee\": null,\r\n                    \"assigner\": null,\r\n                    \"constraints\": [],\r\n                    \"duties\": []\r\n                }\r\n            ],\r\n            \"prohibitions\": [],\r\n            \"obligations\": [],\r\n            \"extensibleProperties\": {},\r\n            \"inheritsFrom\": null,\r\n            \"assigner\": null,\r\n            \"assignee\": null,\r\n            \"target\": null,\r\n            \"@type\": {\r\n                \"@policytype\": \"set\"\r\n            }\r\n        }\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9192/api/v1/data/contractnegotiations",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9192",
+							"path": [
+								"api",
+								"v1",
+								"data",
+								"contractnegotiations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get contract ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseText = pm.response.text();\r",
+									"pm.test(\"Response is OK\", () => {\r",
+									"    pm.expect(responseText).to.be.not.empty\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"pm.environment.set(\"agreement-id\", response.contractAgreementId);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "passwordConsumer",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "X-Api-Key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-KEY",
+								"value": "secret",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9192/api/v1/data/contractnegotiations/ec0c2201-2818-4146-8bfe-891c882a4f95",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9192",
+							"path": [
+								"api",
+								"v1",
+								"data",
+								"contractnegotiations",
+								"ec0c2201-2818-4146-8bfe-891c882a4f95"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Initiate transfer",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "passwordConsumer",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "X-Api-Key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "*/*"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"connectorAddress\": \"http://catena-x-edc-provider:8282/api/v1/ids/data\",\n  \"protocol\": \"ids-multipart\",\n  \"connectorId\": \"consumer\",\n  \"assetId\": \"2\",\n  \"contractId\": \"2:d43ad206-652f-4d0e-8311-559710a6b358\",\n  \"dataDestination\": {\n\n    \"properties\" : {\n        \"keyName\" : \"PowerConsumption.json\",\n        \"type\": \"http\",\n        \"url\" : \"https://catenax-test-destination.s3.eu-central-1.amazonaws.com/PowerConsumption.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20220516T091511Z&X-Amz-SignedHeaders=host&X-Amz-Expires=43199&X-Amz-Credential=AKIARM37P5UZG7LNQIWM%2F20220516%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Signature=cfc84f847e92e15f5427fbdfd12fef1430b106211c6573816eb59605eef0c485\"\n    }\n  },\n  \"managedResources\": false,\n  \"transferType\": {\n    \"contentType\": \"application/octet-stream\",\n    \"isFinite\": true\n  },\n  \"destinationType\": \"http\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:9192/api/v1/data/transferprocess",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9192",
+							"path": [
+								"api",
+								"v1",
+								"data",
+								"transferprocess"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get status of all transfers",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "passwordConsumer",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "X-Api-Key",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9192/api/v1/data/transferprocess",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9192",
+							"path": [
+								"api",
+								"v1",
+								"data",
+								"transferprocess"
+							],
+							"query": [
+								{
+									"key": "offset",
+									"value": "-37301109",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "-37301109",
+									"disabled": true
+								},
+								{
+									"key": "filter",
+									"value": "Excepteur cupidatat",
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "ASC",
+									"disabled": true
+								},
+								{
+									"key": "sortField",
+									"value": "Excepteur cupidatat",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
