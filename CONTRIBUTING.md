@@ -115,17 +115,7 @@ we would appreciate if your pull request applies to the following points:
   the [Developer Certificate of Origin.](https://www.eclipse.org/legal/DCO.php)
   As such, all parties involved in a contribution must have valid ECAs. Additionally, commits can 
   include a ["Signed-off-by" entry](https://wiki.eclipse.org/Development_Resources/Contributing_via_Git).
-* We prefer small changes and short living branches. Please do not combine independent things in one
-  pull request.
-
-
-* Excessive branching and merging can make git history confusing. With that in mind please
-
-    * [squash your commits](https://git-scm.com/book/en/v2/Git-Tools-Rewriting-History#_squashing)
-      down to a few commits, or one commit, before submitting a pull request and
-    * [rebase](https://git-scm.com/book/en/v2/Git-Branching-Rebasing) your pull request changes on 
-      top of the current master. Pull requests shouldn't include merge commits.
-
+  
 * Add meaningful tests to verify your submission acts as expected.
 
 * Where code is not self-explanatory, add documentation providing extra clarification.

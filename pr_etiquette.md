@@ -51,7 +51,7 @@ Submitting pull requests in EDC should be done while adhering to a couple of sim
 - Be civil and objective. No foul language, insulting or otherwise abusive language will be tolerated. The goal is to
   _encourage_ contributions.
 
-## The technical committers (as of May 13, 2022)
+## The technical committers (as of May 18, 2022)
 
 - @MoritzKeppler
 - @jimmarino
