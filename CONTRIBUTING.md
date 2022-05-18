@@ -146,9 +146,9 @@ we would appreciate if your pull request applies to the following points:
 
 ### Add Documentation
 
-Every decision record, launcher, or extension has to provide documentation that covers at least
+Every decision record, launcher, extension, or any type of module has to provide documentation that covers at least
 one markdown file with necessary information. Please find appropriate templates that should
-be used in [this directory](docs/templates).
+be used in [the templates directory](docs/templates).
 
 ### Report on Flaky Tests
 

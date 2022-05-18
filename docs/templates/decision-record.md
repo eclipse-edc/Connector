@@ -2,11 +2,12 @@
 
 ## Decision
 
-_Briefly and clearly describe the topic this record covers, and what decision was made._
+_Briefly and clearly describe the topic this record covers, what decision was made and why._
 
 ## Rationale
 
-_Briefly describe the relevance of this topic and why it is important to have a decision._
+_Briefly describe the relevance of this topic and why it is important to have a decision. If applicable, 
+add an evaluation of several options (e.g., different libs)._
 
 ## Approach
 

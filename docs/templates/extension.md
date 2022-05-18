@@ -1,6 +1,6 @@
 # Title of the Extension
 
-_Briefly describe what functionality this extension introduces._
+_Briefly describe the functionality this extension introduces._
 
 ## Background
 
@@ -13,20 +13,26 @@ sharing scenarios._
 
 ### Use Cases
 
-_Optionally, explain one or multiple use cases that could be realized using this extension._
+_Explain one or multiple use cases that could be realized using this extension._
 
 ## Technical Details
 
 ### Interfaces
 
-_Provide a detailed description of all provided and consumed interfaces._
+_Provide a detailed description of provided and consumed interfaces, e.g., name http endpoints and values,
+or classes/methods and parameter, and add details on the purpose. You may use the table below or add an
+OpenAPI description or similar._
+
+| Interface | Parameters | Description |
+| :----| :---- | :-------------------- |
+|  |  |
 
 ### Dependencies
 
 _Provide some information about dependencies, e.g., used extensions._
 
-| Name | Description                                                                                                   |
-| :----| :---------------------------------------------------------------------------------------|
+| Name | Description |
+| :----| :-----------|
 | extensions:api:data-management | _this is an example_ |
 
 ### Configurations
