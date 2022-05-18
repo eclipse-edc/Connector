@@ -50,6 +50,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Usage of `NooTransactionContext` in (SQL-)Tests (#1119)
 * Sanitize log messages (#1295)
 * Improve CosmosDB statement parser (#1282)
+* Update `slf4j-api` to `2.0.0-alpha7` (#1328)
 
 #### Removed
 
