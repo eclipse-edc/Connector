@@ -30,14 +30,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static java.lang.String.format;
 
-@Consumes({MediaType.APPLICATION_JSON})
-@Produces({MediaType.APPLICATION_JSON})
 @Path("/service")
 public class BackendServiceController {
 
     private final Monitor monitor;
     private final OkHttpClient httpClient;
-
     private final AtomicReference<String> providerData = new AtomicReference<>();
 
     public BackendServiceController(Monitor monitor, OkHttpClient httpClient) {
@@ -47,6 +44,7 @@ public class BackendServiceController {
 
     @Path("/pull")
     @POST
+    @Consumes({MediaType.APPLICATION_JSON})
     public void pullData(EndpointDataReference dataReference) {
         String url = dataReference.getEndpoint();
         monitor.debug("Endpoint Data Reference received, will call data plane at " + url);
@@ -71,13 +69,22 @@ public class BackendServiceController {
 
     @Path("/data")
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     public Map<String, String> getData() {
         return Map.of("message", "some information");
     }
 
+    @Path("/data")
+    @POST
+    public void pushData(String body) {
+        providerData.set(body);
+    }
+
     @Path("/providerData")
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     public String getProviderData() {
         return providerData.get();
     }
+
 }

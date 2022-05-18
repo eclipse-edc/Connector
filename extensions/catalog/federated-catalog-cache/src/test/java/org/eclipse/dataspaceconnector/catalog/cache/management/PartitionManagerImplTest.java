@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.catalog.cache.management;
 import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
+import org.eclipse.dataspaceconnector.catalog.spi.model.ExecutionPlan;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,20 +27,22 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createWorkItem;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PartitionManagerImplTest {
 
-    private PartitionManagerImpl partitionManager;
-
     private final Monitor monitorMock = mock(Monitor.class);
     private final WorkItemQueue workItemQueueMock = mock(WorkItemQueue.class);
+    private PartitionManagerImpl partitionManager;
     private List<WorkItem> staticWorkload;
 
     @BeforeEach
@@ -74,6 +77,27 @@ public class PartitionManagerImplTest {
 
         assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
         partitionManager.stop();
+    }
+
+    @Test
+    void schedule_verifyNodeDirectoryGetsQueried() {
+        Supplier<List<WorkItem>> queueSourceMock = mock(Supplier.class);
+        when(queueSourceMock.get()).thenReturn(List.of(new WorkItem("http://some.url", "test-protocol")));
+        partitionManager = new PartitionManagerImpl(monitorMock, workItemQueueMock, workItems -> mock(Crawler.class), 5, queueSourceMock);
+
+        ExecutionPlan runMultiPlan = mock(ExecutionPlan.class);
+        doAnswer(invocation -> {
+            var runnable = (Runnable) invocation.getArgument(0);
+            runnable.run(); //run several times
+            runnable.run();
+            runnable.run();
+            return null;
+        }).when(runMultiPlan).run(any());
+
+        // schedule once, make sure multiple invocations happen
+        partitionManager.schedule(runMultiPlan);
+
+        verify(queueSourceMock, times(3)).get();
     }
 
 }

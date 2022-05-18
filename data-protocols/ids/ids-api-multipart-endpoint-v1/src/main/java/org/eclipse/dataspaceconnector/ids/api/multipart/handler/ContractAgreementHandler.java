@@ -14,30 +14,25 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractAgreementMessage;
 import de.fraunhofer.iais.eis.Message;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.spi.transform.ContractAgreementTransformerOutput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
-import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
  * This class handles and processes incoming IDS {@link ContractAgreementMessage}s.
@@ -49,21 +44,18 @@ public class ContractAgreementHandler implements Handler {
     private final String connectorId;
     private final ConsumerContractNegotiationManager negotiationManager;
     private final IdsTransformerRegistry transformerRegistry;
-    private final AssetIndex assetIndex;
 
     public ContractAgreementHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
             @NotNull ObjectMapper objectMapper,
             @NotNull ConsumerContractNegotiationManager negotiationManager,
-            @NotNull IdsTransformerRegistry transformerRegistry,
-            @NotNull AssetIndex assetIndex) {
+            @NotNull IdsTransformerRegistry transformerRegistry) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
         this.objectMapper = Objects.requireNonNull(objectMapper);
         this.negotiationManager = Objects.requireNonNull(negotiationManager);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
-        this.assetIndex = Objects.requireNonNull(assetIndex);
     }
 
     @Override
@@ -82,12 +74,7 @@ public class ContractAgreementHandler implements Handler {
 
         de.fraunhofer.iais.eis.ContractAgreement contractAgreement;
         try {
-            var map = objectMapper.readValue(multipartRequest.getPayload(), new TypeReference<Map<String, Object>>() {
-            });
-            map.remove("ids:contractEnd");
-            map.remove("ids:contractStart");
-            map.remove("ids:contractDate");
-            contractAgreement = objectMapper.convertValue(map, de.fraunhofer.iais.eis.ContractAgreement.class);
+            contractAgreement = objectMapper.readValue(multipartRequest.getPayload(), de.fraunhofer.iais.eis.ContractAgreement.class);
         } catch (IOException e) {
             monitor.severe("ContractAgreementHandler: Contract Agreement is invalid", e);
             return createBadParametersErrorMultipartResponse(message);
@@ -110,8 +97,7 @@ public class ContractAgreementHandler implements Handler {
                 .asset(asset)
                 .build();
 
-        // Create contract agreement
-        Result<ContractAgreement> result = transformerRegistry.transform(input, ContractAgreement.class);
+        var result = transformerRegistry.transform(input, ContractAgreementTransformerOutput.class);
         if (result.failed()) {
             monitor.debug(String.format("Could not transform contract agreement: [%s]",
                     String.join(", ", result.getFailureMessages())));
@@ -119,12 +105,12 @@ public class ContractAgreementHandler implements Handler {
         }
 
         // TODO get hash from message
-        var agreement = result.getContent();
+        var output = result.getContent();
         var processId = message.getTransferContract();
         var negotiationResponse = negotiationManager.confirmed(claimToken,
-                String.valueOf(processId), agreement, null);
+                String.valueOf(processId), output.getContractAgreement(), output.getPolicy());
         if (negotiationResponse.fatalError()) {
-            monitor.debug("ContractAgreementHandler: Could not process contract agreement");
+            monitor.debug("ContractAgreementHandler: Could not process contract agreement " + negotiationResponse.getFailureMessages());
             return createBadParametersErrorMultipartResponse(message);
         }
 

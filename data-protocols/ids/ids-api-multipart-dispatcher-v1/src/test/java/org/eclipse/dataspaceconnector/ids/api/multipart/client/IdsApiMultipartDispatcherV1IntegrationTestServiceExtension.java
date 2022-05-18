@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.client;
 
 import kotlin.NotImplementedError;
 import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
+import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -35,6 +36,7 @@ import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -66,15 +68,21 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
+import static org.mockito.Mockito.mock;
+
 @ComponentTest
-@Provides({ AssetIndex.class, TransferProcessStore.class, ContractDefinitionStore.class, IdentityService.class, ContractNegotiationManager.class,
-        ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class, ContractOfferService.class, ContractValidationService.class })
+@Provides({
+        AssetIndex.class, TransferProcessStore.class, ContractDefinitionStore.class, IdentityService.class,
+        ContractNegotiationManager.class, ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class,
+        ContractOfferService.class, ContractValidationService.class, PolicyArchive.class,
+        ObjectMapperFactory.class
+})
 class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements ServiceExtension {
     private final List<Asset> assets;
 
     private final IdentityService identityService;
 
-    public IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(List<Asset> assets, IdentityService identityService) {
+    IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(List<Asset> assets, IdentityService identityService) {
         this.assets = Objects.requireNonNull(assets);
         this.identityService = identityService;
     }
@@ -91,7 +99,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
                         .providerAgentId("provider")
                         .consumerAgentId("consumer")
                         .assetId(UUID.randomUUID().toString())
-                        .policy(Policy.Builder.newInstance().build())
+                        .policyId("policyId")
                         .contractSigningDate(Instant.now().getEpochSecond())
                         .contractStartDate(Instant.now().getEpochSecond())
                         .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
@@ -111,6 +119,8 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         context.registerService(ContractValidationService.class, new FakeContractValidationService());
         context.registerService(ProviderContractNegotiationManager.class, new FakeProviderContractNegotiationManager());
         context.registerService(ConsumerContractNegotiationManager.class, new FakeConsumerContractNegotiationManager());
+        context.registerService(PolicyArchive.class, mock(PolicyArchive.class));
+        context.registerService(ObjectMapperFactory.class, new ObjectMapperFactory());
     }
 
     private static class FakeAssetIndex implements AssetIndex {
@@ -219,7 +229,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
 
         private final List<ContractDefinition> contractDefinitions = new ArrayList<>();
 
-        public FakeContractDefinitionStore() {
+        FakeContractDefinitionStore() {
             Policy publicPolicy = Policy.Builder.newInstance()
                     .permission(Permission.Builder.newInstance()
                             .target("2")
@@ -231,8 +241,8 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
 
             ContractDefinition contractDefinition = ContractDefinition.Builder.newInstance()
                     .id("1")
-                    .accessPolicy(publicPolicy)
-                    .contractPolicy(publicPolicy)
+                    .accessPolicyId(publicPolicy.getUid())
+                    .contractPolicyId(publicPolicy.getUid())
                     .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals("id", "1").build())
                     .build();
 
@@ -343,7 +353,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         }
 
         @Override
-        public StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId, ContractAgreement contract, String hash) {
+        public StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, Policy policy) {
             return StatusResult.success(fakeContractNegotiation());
         }
 

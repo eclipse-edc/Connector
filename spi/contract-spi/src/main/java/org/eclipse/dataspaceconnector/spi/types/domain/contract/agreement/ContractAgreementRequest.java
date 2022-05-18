@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement;
 
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 
 import java.util.Objects;
@@ -25,6 +26,7 @@ public class ContractAgreementRequest implements RemoteMessage {
     private String connectorAddress;
     private String correlationId;
     private ContractAgreement contractAgreement;
+    private Policy policy;
 
     @Override
     public String getProtocol() {
@@ -45,6 +47,10 @@ public class ContractAgreementRequest implements RemoteMessage {
 
     public ContractAgreement getContractAgreement() {
         return contractAgreement;
+    }
+
+    public Policy getPolicy() {
+        return policy;
     }
 
     public static class Builder {
@@ -83,11 +89,17 @@ public class ContractAgreementRequest implements RemoteMessage {
             return this;
         }
 
+        public Builder policy(Policy policy) {
+            this.contractAgreementRequest.policy = policy;
+            return this;
+        }
+
         public ContractAgreementRequest build() {
             Objects.requireNonNull(contractAgreementRequest.protocol, "protocol");
             Objects.requireNonNull(contractAgreementRequest.connectorId, "connectorId");
             Objects.requireNonNull(contractAgreementRequest.connectorAddress, "connectorAddress");
             Objects.requireNonNull(contractAgreementRequest.contractAgreement, "contractAgreement");
+            Objects.requireNonNull(contractAgreementRequest.policy, "policy");
             Objects.requireNonNull(contractAgreementRequest.correlationId, "correlationId");
             return contractAgreementRequest;
         }

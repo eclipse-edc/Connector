@@ -16,11 +16,12 @@ services:
       WEB_HTTP_IDS_PORT: 9292
       WEB_HTTP_IDS_PATH: /api/v1/ids
       IDS_WEBHOOK_ADDRESS: http://consumer:9292
+      EDC_API_AUTH_KEY: password
     volumes:
       - ../:/samples
     ports:
       - "9191:9191"
-      - "9192:9292"
+      - "9192:9192"
     entrypoint: java
       -javaagent:/samples/04.3-open-telemetry/opentelemetry-javaagent.jar
       -Djava.util.logging.config.file=/samples/04.3-open-telemetry/logging.properties
@@ -37,12 +38,12 @@ services:
       WEB_HTTP_DATA_PORT: 8182
       WEB_HTTP_DATA_PATH: /api/v1/data
       IDS_WEBHOOK_ADDRESS: http://provider:8282
+      EDC_SAMPLES_04_ASSET_PATH: /samples/04.3-open-telemetry/input-file.txt
     volumes:
       - ../:/samples
     ports:
       - "8181:8181"
       - "8182:8182"
-      - "8282:8282"
     entrypoint: java
       -javaagent:/samples/04.3-open-telemetry/opentelemetry-javaagent.jar
       -Djava.util.logging.config.file=/samples/04.3-open-telemetry/logging.properties

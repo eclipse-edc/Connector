@@ -25,6 +25,7 @@ import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidation
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -46,7 +47,6 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONSUMER_APPROVED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONSUMER_APPROVING;
@@ -63,6 +63,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -72,6 +73,7 @@ class ConsumerContractNegotiationManagerImplTest {
     private final ContractValidationService validationService = mock(ContractValidationService.class);
     private final ContractNegotiationStore store = mock(ContractNegotiationStore.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
+    private final PolicyStore policyStore = mock(PolicyStore.class);
     private ConsumerContractNegotiationManagerImpl negotiationManager;
 
     @BeforeEach
@@ -89,6 +91,7 @@ class ConsumerContractNegotiationManagerImplTest {
                 .commandRunner(commandRunner)
                 .observable(mock(ContractNegotiationObservable.class))
                 .store(store)
+                .policyStore(policyStore)
                 .build();
     }
 
@@ -171,10 +174,13 @@ class ConsumerContractNegotiationManagerImplTest {
     void testConfirmedInvalidId() {
         var token = ClaimToken.Builder.newInstance().build();
         var contractAgreement = mock(ContractAgreement.class);
+        var policy = Policy.Builder.newInstance().build();
 
-        var result = negotiationManager.confirmed(token, "not a valid id", contractAgreement, "hash");
+        var result = negotiationManager.confirmed(token, "not a valid id", contractAgreement, policy);
 
         assertThat(result.fatalError()).isTrue();
+        verify(policyStore, never()).save(any());
+        verify(store, never()).save(any());
     }
 
     @Test
@@ -182,16 +188,18 @@ class ConsumerContractNegotiationManagerImplTest {
         var negotiationConsumerOffered = createContractNegotiationConsumerOffered();
         var token = ClaimToken.Builder.newInstance().build();
         var contractAgreement = mock(ContractAgreement.class);
+        var policy = Policy.Builder.newInstance().build();
         when(store.find(negotiationConsumerOffered.getId())).thenReturn(negotiationConsumerOffered);
         when(validationService.validate(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(true);
 
-        var result = negotiationManager.confirmed(token, negotiationConsumerOffered.getId(), contractAgreement, "hash");
+        var result = negotiationManager.confirmed(token, negotiationConsumerOffered.getId(), contractAgreement, policy);
 
         assertThat(result.succeeded()).isTrue();
         verify(store).save(argThat(negotiation ->
                 negotiation.getState() == CONFIRMED.code() &&
                 negotiation.getContractAgreement() == contractAgreement
         ));
+        verify(policyStore).save(argThat(p -> p.getUid().equals(policy.getUid())));
         verify(validationService).validate(eq(token), eq(contractAgreement), any(ContractOffer.class));
     }
 
@@ -200,10 +208,11 @@ class ConsumerContractNegotiationManagerImplTest {
         var negotiationConsumerOffered = createContractNegotiationConsumerOffered();
         var token = ClaimToken.Builder.newInstance().build();
         var contractAgreement = mock(ContractAgreement.class);
+        var policy = Policy.Builder.newInstance().build();
         when(store.find(negotiationConsumerOffered.getId())).thenReturn(negotiationConsumerOffered);
         when(validationService.validate(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(false);
 
-        var result = negotiationManager.confirmed(token, negotiationConsumerOffered.getId(), contractAgreement, "hash");
+        var result = negotiationManager.confirmed(token, negotiationConsumerOffered.getId(), contractAgreement, policy);
 
         assertThat(result.succeeded()).isTrue();
         verify(store).save(argThat(negotiation ->

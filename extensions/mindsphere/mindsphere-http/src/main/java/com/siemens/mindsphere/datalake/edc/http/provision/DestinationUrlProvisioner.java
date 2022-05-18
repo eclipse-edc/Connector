@@ -1,17 +1,34 @@
+/*
+ *  Copyright (c) 2021, 2022 Siemens AG
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package com.siemens.mindsphere.datalake.edc.http.provision;
 
 import com.siemens.mindsphere.datalake.edc.http.DataLakeClient;
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionResponse;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 
 import java.util.concurrent.CompletableFuture;
 
-public class DestinationUrlProvisioner implements Provisioner<DestinationUrlResourceDefinition, DestinationUrlProvisionedResource> {
+public class DestinationUrlProvisioner
+        implements Provisioner<DestinationUrlResourceDefinition, DestinationUrlProvisionedResource> {
     public DestinationUrlProvisioner(DataLakeClient dataLakeClient, Monitor monitor, RetryPolicy<Object> retryPolicy) {
         this.dataLakeClient = dataLakeClient;
         this.monitor = monitor;
@@ -33,7 +50,8 @@ public class DestinationUrlProvisioner implements Provisioner<DestinationUrlReso
     }
 
     @Override
-    public CompletableFuture<ProvisionResponse> provision(DestinationUrlResourceDefinition resourceDefinition) {
+    public CompletableFuture<StatusResult<ProvisionResponse>> provision(DestinationUrlResourceDefinition resourceDefinition,
+            Policy policy) {
         return DestinationUrlProvisionPipeline.Builder.newInstance(retryPolicy)
                 .client(dataLakeClient)
                 .monitor(monitor)
@@ -43,12 +61,19 @@ public class DestinationUrlProvisioner implements Provisioner<DestinationUrlReso
     }
 
     @Override
-    public CompletableFuture<DeprovisionResponse> deprovision(DestinationUrlProvisionedResource provisionedResource) {
+    public CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(DestinationUrlProvisionedResource provisionedResource,
+            Policy policy) {
         // NOTE: there is nothing to de-provision
-        return CompletableFuture.completedFuture(DeprovisionResponse.Builder.newInstance().resource(provisionedResource).build());
+
+        return DestinationUrlProvisionPipeline.Builder.newInstance(retryPolicy)
+                .client(dataLakeClient)
+                .monitor(monitor)
+                .build()
+                .deprovision(provisionedResource)
+                .thenApply(ignore -> StatusResult.success(DeprovisionedResource.Builder.newInstance().provisionedResourceId(provisionedResource.getId()).build()));
     }
 
-    private ProvisionResponse provisionSuccedeed(DestinationUrlResourceDefinition resourceDefinition, String url) {
+    private StatusResult<ProvisionResponse> provisionSuccedeed(DestinationUrlResourceDefinition resourceDefinition, String url) {
         var resource = DestinationUrlProvisionedResource.Builder.newInstance()
                 .id(resourceDefinition.getPath())
                 .resourceDefinitionId(resourceDefinition.getId())
@@ -58,6 +83,7 @@ public class DestinationUrlProvisioner implements Provisioner<DestinationUrlReso
                 .build();
 
         monitor.debug("DestinationUrlProvisioner: Url created for path: " + resourceDefinition.getPath());
-        return ProvisionResponse.Builder.newInstance().resource(resource).build();
+        var response = ProvisionResponse.Builder.newInstance().resource(resource).build();
+        return StatusResult.success(response);
     }
 }

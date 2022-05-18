@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform;
 
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
@@ -40,16 +39,16 @@ class ContractDefinitionToContractDefinitionDtoTransformerTest {
         var context = mock(TransformerContext.class);
         var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .accessPolicy(Policy.Builder.newInstance().id(UUID.randomUUID().toString()).build())
-                .contractPolicy(Policy.Builder.newInstance().id(UUID.randomUUID().toString()).build())
+                .accessPolicyId(UUID.randomUUID().toString())
+                .contractPolicyId(UUID.randomUUID().toString())
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().constraint("left", "=", "right").build())
                 .build();
 
         var dto = transformer.transform(contractDefinition, context);
 
         assertThat(dto.getId()).isEqualTo(contractDefinition.getId());
-        assertThat(dto.getAccessPolicyId()).isEqualTo(contractDefinition.getAccessPolicy().getUid());
-        assertThat(dto.getContractPolicyId()).isEqualTo(contractDefinition.getContractPolicy().getUid());
+        assertThat(dto.getAccessPolicyId()).isEqualTo(contractDefinition.getAccessPolicyId());
+        assertThat(dto.getContractPolicyId()).isEqualTo(contractDefinition.getContractPolicyId());
         assertThat(dto.getCriteria()).containsExactlyElementsOf(contractDefinition.getSelectorExpression().getCriteria());
     }
 

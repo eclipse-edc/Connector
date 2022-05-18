@@ -25,8 +25,10 @@ dependencies {
     implementation(project(":common:state-machine-lib"))
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 
-    testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
+    testImplementation(project(":core:defaults"))
+    
     testImplementation(testFixtures(project(":common:util")))
+    testImplementation(testFixtures(project(":launchers:junit")))
 }
 
 publishing {

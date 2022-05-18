@@ -28,17 +28,12 @@ dependencies {
     implementation(project(":samples:04.2-modify-transferprocess:watchdog"))
     implementation(project(":samples:04.2-modify-transferprocess:simulator"))
 
-    implementation(project(":extensions:in-memory:assetindex-memory"))
-    implementation(project(":extensions:in-memory:transfer-store-memory"))
-    implementation(project(":extensions:in-memory:assetindex-memory"))
-    implementation(project(":extensions:in-memory:negotiation-store-memory"))
-    implementation(project(":extensions:in-memory:contractdefinition-store-memory"))
     implementation(project(":extensions:http"))
 
     implementation(project(":extensions:filesystem:configuration-fs"))
     implementation(project(":extensions:iam:iam-mock"))
 
-    implementation(project(":extensions:api:control"))
+    implementation(project(":extensions:api:auth-tokenbased"))
     implementation(project(":extensions:api:data-management"))
 
     implementation(project(":data-protocols:ids"))

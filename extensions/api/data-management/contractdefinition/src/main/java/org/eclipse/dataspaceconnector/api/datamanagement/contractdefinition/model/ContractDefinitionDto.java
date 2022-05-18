@@ -18,15 +18,21 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.mod
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import jakarta.validation.constraints.NotNull;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @JsonDeserialize(builder = ContractDefinitionDto.Builder.class)
 public class ContractDefinitionDto {
+    @NotNull
     private String accessPolicyId;
+    @NotNull
     private String contractPolicyId;
-    private List<Criterion> criteria;
+    @NotNull
+    private List<Criterion> criteria = new ArrayList<>();
+    @NotNull
     private String id;
 
     private ContractDefinitionDto() {
@@ -50,6 +56,10 @@ public class ContractDefinitionDto {
         return id;
     }
 
+    @Override
+    public String toString() {
+        return "accessPolicyId: " + accessPolicyId + "; contractPolicyId: " + contractPolicyId + "; id: " + id;
+    }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {

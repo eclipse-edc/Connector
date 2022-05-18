@@ -19,6 +19,7 @@ plugins {
 }
 
 val rsApi: String by project
+val openTelemetryVersion: String by project
 
 dependencies {
     api(project(":spi"))
@@ -28,9 +29,10 @@ dependencies {
     implementation(project(":extensions:data-plane-selector:selector-core"))
     implementation(project(":extensions:data-plane-selector:selector-store"))
     implementation(project(":extensions:data-plane:data-plane-framework"))
+    implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 
     implementation(project(":extensions:data-plane:data-plane-spi"))
-    implementation(project(":extensions:in-memory:assetindex-memory"))
+
     api(project(":extensions:dataloading"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")

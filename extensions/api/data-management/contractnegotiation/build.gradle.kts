@@ -13,6 +13,7 @@
 
 val restAssured: String by project
 val rsApi: String by project
+val jerseyVersion: String by project
 
 plugins {
     `java-library`
@@ -33,10 +34,10 @@ dependencies {
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(project(":common:util"))
     testImplementation(project(":extensions:http"))
-    testImplementation(project(":extensions:in-memory:assetindex-memory"))
-    testImplementation(project(":extensions:in-memory:contractdefinition-store-memory"))
-    testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
+    testImplementation(project(":core:defaults"))
+
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
+    testRuntimeOnly("org.glassfish.jersey.ext:jersey-bean-validation:${jerseyVersion}") //for validation
 }
 
 publishing {

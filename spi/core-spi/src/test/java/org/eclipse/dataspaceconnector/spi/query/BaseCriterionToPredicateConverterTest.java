@@ -17,7 +17,10 @@ package org.eclipse.dataspaceconnector.spi.query;
 import org.eclipse.dataspaceconnector.common.reflection.ReflectionUtil;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class BaseCriterionToPredicateConverterTest {
 
@@ -33,8 +36,17 @@ class BaseCriterionToPredicateConverterTest {
     }
 
     @Test
-    void convertIn() {
+    void convertIn_throwsException() {
         var predicate = converter.convert(new Criterion("value", "in", "(first, second)"));
+        assertThatThrownBy(() -> predicate.test(new TestObject("first")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Operator IN requires the right-hand operand to be an");
+
+    }
+
+    @Test
+    void convertIn() {
+        var predicate = converter.convert(new Criterion("value", "in", List.of("first", "second")));
 
         assertThat(predicate)
                 .accepts(new TestObject("first"), new TestObject("second"))
@@ -50,17 +62,17 @@ class BaseCriterionToPredicateConverterTest {
     }
 
     private static class TestObject {
+        private final String value;
+
+        private TestObject(String value) {
+            this.value = value;
+        }
+
         @Override
         public String toString() {
             return "TestObject{" +
                     "value='" + value + '\'' +
                     '}';
-        }
-
-        private final String value;
-
-        private TestObject(String value) {
-            this.value = value;
         }
     }
 }

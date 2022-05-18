@@ -1,0 +1,85 @@
+/*
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
+package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model;
+
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
+
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class NegotiationInitiateRequestDtoValidationTest {
+    private Validator validator;
+
+    @NotNull
+    private static ContractOfferDescription validOffer() {
+        return new ContractOfferDescription("offerId", "assetid", "policyId", null);
+    }
+
+    @BeforeEach
+    void setUp() {
+        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            validator = factory.getValidator();
+        }
+    }
+
+    @Test
+    void validate_validDto() {
+        var offerDescription = validOffer();
+        var dto = NegotiationInitiateRequestDto.Builder.newInstance()
+                .connectorAddress("connectorAddress")
+                .connectorId("connectorId")
+                .protocol("protocol")
+                .offer(offerDescription)
+                .build();
+
+        assertThat(validator.validate(dto)).isEmpty();
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(InvalidArgumentsProvider.class)
+    void validate_invalidStringProps(String connectorAddress, String protocol, String connectorId, ContractOfferDescription description) {
+        var dto = NegotiationInitiateRequestDto.Builder.newInstance()
+                .connectorAddress(connectorAddress)
+                .connectorId(connectorId)
+                .protocol(protocol)
+                .offer(description)
+                .build();
+
+        assertThat(validator.validate(dto)).hasSize(1);
+    }
+
+    private static class InvalidArgumentsProvider implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    Arguments.of(null, "ids-multipart", "connector-id", validOffer()),
+                    Arguments.of("https://connector.com", null, "connector-id", validOffer()),
+                    Arguments.of("https://connector.com", "ids-multipart", "connector-id", null),
+                    Arguments.of("https://connector.com", "ids-multipart", null, validOffer())
+            );
+        }
+    }
+}

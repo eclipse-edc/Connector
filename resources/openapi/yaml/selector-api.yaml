@@ -2,6 +2,8 @@ openapi: 3.0.1
 paths:
   /instances:
     get:
+      tags:
+      - Dataplane Selector
       operationId: getAll
       responses:
         default:
@@ -13,6 +15,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/DataPlaneInstance'
     post:
+      tags:
+      - Dataplane Selector
       operationId: addEntry
       requestBody:
         content:
@@ -26,6 +30,8 @@ paths:
             application/json: {}
   /instances/select:
     post:
+      tags:
+      - Dataplane Selector
       operationId: find
       requestBody:
         content:

@@ -16,9 +16,10 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
 import io.restassured.specification.RequestSpecification;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -71,6 +72,28 @@ public class AssetApiControllerIntegrationTest {
     }
 
     @Test
+    void getAllAssetsQuery(AssetLoader assetLoader) {
+        var asset = Asset.Builder.newInstance().id("id").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+        assetLoader.accept(asset, dataAddress);
+
+        baseRequest()
+                .get("/assets?limit=1&offset=0&filter=asset:prop:id=id&sort=DESC&sortField=properties.asset:prop:id")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("size()", is(1));
+    }
+
+    @Test
+    void getAll_invalidQuery() {
+        baseRequest()
+                .get("/assets?limit=0&offset=-1&filter=&sortField=")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
     void getSingleAsset(AssetLoader assetLoader) {
         var asset = Asset.Builder.newInstance().id("id").build();
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
@@ -103,6 +126,20 @@ public class AssetApiControllerIntegrationTest {
                 .then()
                 .statusCode(204);
         assertThat(assetIndex.findById("assetId")).isNotNull();
+    }
+
+    @Test
+    void postAsset_invalidBody(AssetIndex assetIndex) {
+        var assetDto = AssetDto.Builder.newInstance().properties(Map.of(Asset.PROPERTY_ID, "testId", "Asset-1", "An Asset")).build();
+        var assetEntryDto = AssetEntryDto.Builder.newInstance().asset(assetDto).dataAddress(null).build();
+
+        baseRequest()
+                .body(assetEntryDto)
+                .contentType(JSON)
+                .post("/assets")
+                .then()
+                .statusCode(400);
+        assertThat(assetIndex.findById("assetId")).isNull();
     }
 
     @Test
@@ -185,7 +222,7 @@ public class AssetApiControllerIntegrationTest {
                 .providerAgentId(UUID.randomUUID().toString())
                 .consumerAgentId(UUID.randomUUID().toString())
                 .assetId(asset.getId())
-                .policy(Policy.Builder.newInstance().build())
+                .policyId("policyId")
                 .build();
     }
 

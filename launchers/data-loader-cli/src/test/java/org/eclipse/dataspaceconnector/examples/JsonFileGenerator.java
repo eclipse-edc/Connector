@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.examples;
 
 import org.eclipse.dataspaceconnector.dataloading.AssetEntry;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -55,8 +54,8 @@ public class JsonFileGenerator {
         return ContractDefinition.Builder.newInstance()
                 .id("ContractDefinition_" + i)
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
-                .contractPolicy(Policy.Builder.newInstance().id("CP_" + i).build())
-                .accessPolicy(Policy.Builder.newInstance().id("AP_" + i).build())
+                .contractPolicyId("CP_" + i)
+                .accessPolicyId("AP_" + i)
                 .build();
     }
 

@@ -28,11 +28,11 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.functions.spi.flow.http.TransferFunctionInterceptorRegistry;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -49,6 +49,16 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(EdcExtension.class)
 public class TransferFunctionsCoreHttpTest {
+
+    @BeforeEach
+    protected void before(EdcExtension extension) {
+        extension.setConfiguration(Map.of(ENABLED_PROTOCOLS_KEY, "test-protocol1"));
+
+        // register a wait strategy of 1ms to speed up the interval between transfer manager iterations
+        extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
+
+        extension.registerSystemExtension(ServiceExtension.class, new MockServiceExtension());
+    }
 
     @Test
     void verifyHttpFlowControllerInvoked(TransferProcessManager processManager, TransferFunctionInterceptorRegistry registry) throws InterruptedException {
@@ -78,21 +88,6 @@ public class TransferFunctionsCoreHttpTest {
         processManager.initiateProviderRequest(dataRequest);
 
         assertThat(latch.await(1, TimeUnit.MINUTES)).isTrue();
-    }
-
-    @BeforeEach
-    protected void before(EdcExtension extension) {
-        System.setProperty(ENABLED_PROTOCOLS_KEY, "test-protocol1");
-
-        // register a wait strategy of 1ms to speed up the interval between transfer manager iterations
-        extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
-
-        extension.registerSystemExtension(ServiceExtension.class, new MockServiceExtension());
-    }
-
-    @AfterEach
-    protected void after() {
-        System.clearProperty(ENABLED_PROTOCOLS_KEY);
     }
 
     @Provides({DataAddressResolver.class})

@@ -49,10 +49,11 @@ public interface ContractNegotiationService {
     String getState(String negotiationId);
 
     /**
-     * Get negotiation contract agreement if it already exists
+     * Fetches the {@linkplain ContractAgreement} for a given {@linkplain ContractNegotiation},
+     * or null if either the negotiation does not exist, or no agreement has yet been reached.
      *
      * @param negotiationId the id of contract negotiation
-     * @return the contract agreement, null if it does not exists
+     * @return the contract agreement, null if the negotiation does not exist or no agreement attached.
      */
     ContractAgreement getForNegotiation(String negotiationId);
 

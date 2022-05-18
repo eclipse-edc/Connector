@@ -22,37 +22,40 @@ import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyCreationRequest;
-import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneProxyManager;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTransferProxyCreationRequest;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTransferProxyReferenceService;
 import org.jetbrains.annotations.NotNull;
 
-import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType.SYNC;
+import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType.HTTP_PROXY;
 
 public class ProviderDataPlaneProxyDataFlowController implements DataFlowController {
 
     private final String connectorId;
+    private final String proxyEndpoint;
     private final RemoteMessageDispatcherRegistry dispatcherRegistry;
-    private final DataPlaneProxyManager proxyManager;
+    private final DataPlaneTransferProxyReferenceService proxyReferenceService;
 
-    public ProviderDataPlaneProxyDataFlowController(String connectorId, RemoteMessageDispatcherRegistry dispatcherRegistry, DataPlaneProxyManager proxyManager) {
+    public ProviderDataPlaneProxyDataFlowController(String connectorId, String proxyEndpoint, RemoteMessageDispatcherRegistry dispatcherRegistry, DataPlaneTransferProxyReferenceService proxyReferenceService) {
         this.connectorId = connectorId;
+        this.proxyEndpoint = proxyEndpoint;
         this.dispatcherRegistry = dispatcherRegistry;
-        this.proxyManager = proxyManager;
+        this.proxyReferenceService = proxyReferenceService;
     }
 
     @Override
     public boolean canHandle(DataRequest dataRequest, DataAddress contentAddress) {
-        return SYNC.equals(dataRequest.getDestinationType());
+        return HTTP_PROXY.equals(dataRequest.getDestinationType());
     }
 
     @Override
-    public @NotNull StatusResult<String> initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
-        var proxyCreationRequest = DataPlaneProxyCreationRequest.Builder.newInstance()
+    public @NotNull StatusResult<Void> initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
+        var proxyCreationRequest = DataPlaneTransferProxyCreationRequest.Builder.newInstance()
                 .id(dataRequest.getId())
-                .address(contentAddress)
+                .contentAddress(contentAddress)
+                .proxyEndpoint(proxyEndpoint)
                 .contractId(dataRequest.getContractId())
                 .build();
-        var proxyCreationResult = proxyManager.createProxy(proxyCreationRequest);
+        var proxyCreationResult = proxyReferenceService.createProxyReference(proxyCreationRequest);
         if (proxyCreationResult.failed()) {
             return StatusResult.failure(ResponseStatus.FATAL_ERROR, "Failed to generate proxy: " + String.join(", ", proxyCreationResult.getFailureMessages()));
         }
@@ -65,7 +68,7 @@ public class ProviderDataPlaneProxyDataFlowController implements DataFlowControl
                 .build();
 
         return dispatcherRegistry.send(Object.class, request, dataRequest::getId)
-                .thenApply(o -> StatusResult.success("Transfer successful"))
+                .thenApply(o -> StatusResult.success())
                 .exceptionally(throwable -> StatusResult.failure(ResponseStatus.ERROR_RETRY, "Transfer failed: " + throwable.getMessage()))
                 .join();
     }

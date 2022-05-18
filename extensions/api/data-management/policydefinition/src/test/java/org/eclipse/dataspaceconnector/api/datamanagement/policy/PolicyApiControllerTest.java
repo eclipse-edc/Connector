@@ -14,122 +14,142 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.policy;
 
+import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicyService;
+import org.eclipse.dataspaceconnector.api.exception.ObjectExistsException;
+import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
+import org.eclipse.dataspaceconnector.api.result.ServiceResult;
+import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class PolicyApiControllerTest {
+
+    private final PolicyService service = mock(PolicyService.class);
+    private final DtoTransformerRegistry transformerRegistry = mock(DtoTransformerRegistry.class);
     private PolicyApiController controller;
 
     @BeforeEach
     void setup() {
         var monitor = mock(Monitor.class);
-        controller = new PolicyApiController(monitor);
+        controller = new PolicyApiController(monitor, service, transformerRegistry);
     }
 
     @Test
-    void getAll_paging_noFilter() {
-        //todo: implement
+    void getPolicyById() {
+        when(service.findById("id")).thenReturn(Policy.Builder.newInstance().build());
+
+        var policyDto = controller.getPolicy("id");
+
+        assertThat(policyDto).isNotNull();
     }
 
     @Test
-    void getAll_paging_pageSizeTooLarge() {
-        //todo: implement
+    void getPolicyById_notExists() {
+        when(service.findById("id")).thenReturn(null);
+
+        assertThatThrownBy(() -> controller.getPolicy("id")).isInstanceOf(ObjectNotFoundException.class);
     }
 
     @Test
-    void getAll_paging_offsetOutOfBounds() {
-        //todo: implement
-    }
+    void getAllPolicies() {
+        when(service.query(any())).thenReturn(List.of(Policy.Builder.newInstance().build()));
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
+        var querySpec = QuerySpecDto.Builder.newInstance().build();
 
-    @ParameterizedTest
-    @ValueSource(strings = { "id=id1", "id = id1", "id =id1", "id= id1" })
-    void getAll_paging_withValidFilter(String filter) {
-        //todo: implement
-    }
+        var allPolicies = controller.getAllPolicies(querySpec);
 
-
-    @ParameterizedTest
-    @ValueSource(strings = { "id > id1", "id < id1", "id like id1", "id inside id1" })
-    void getAll_paging_filterWithInvalidOperator(String filter) {
-        //todo: implement
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = { "id>id1", "id<id1" })
-    void getAll_paging_withInvalidFilter(String filter) {
-        //todo: implement
+        assertThat(allPolicies).hasSize(1);
+        verify(service).query(argThat(s -> s.getOffset() == 10));
+        verify(transformerRegistry).transform(isA(QuerySpecDto.class), eq(QuerySpec.class));
     }
 
     @Test
-    void getAll_paging_invalidParams() {
-        //todo: implement
+    void getAll_throwsExceptionIfQuerySpecTransformFails() {
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.failure("Cannot transform"));
+
+        assertThatThrownBy(() -> controller.getAllPolicies(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
-    void getAll_noPaging() {
-        //todo: implement
+    void createPolicy() {
+        var policyDefinition = Policy.Builder.newInstance()
+                .inheritsFrom("inheritant")
+                .assigner("the tester")
+                .assignee("the tested")
+                .target("the target")
+                .extensibleProperties(Map.of("key", "value"))
+                .permissions(List.of())
+                .prohibitions(List.of())
+                .duties(List.of())
+                .id("an Id")
+                .build();
+
+        var policy = Policy.Builder.newInstance().build();
+
+        when(service.create(any())).thenReturn(ServiceResult.success(policy));
+
+        controller.createPolicy(policyDefinition);
+
+        verify(service).create(isA(Policy.class));
     }
 
     @Test
-    void getContractDef_found() {
-        //todo: implement
+    void createPolicy_alreadyExists() {
+        var policyDefinition = Policy.Builder.newInstance()
+                .inheritsFrom("inheritant")
+                .assigner("the tester")
+                .assignee("the tested")
+                .target("the target")
+                .extensibleProperties(Map.of("key", "value"))
+                .permissions(List.of())
+                .prohibitions(List.of())
+                .duties(List.of())
+                .id("an Id")
+                .build();
+
+        var policy = Policy.Builder.newInstance().build();
+        when(service.create(any())).thenReturn(ServiceResult.conflict("already exists"));
+
+        assertThatThrownBy(() -> controller.createPolicy(policyDefinition)).isInstanceOf(ObjectExistsException.class);
+    }
+
+
+    @Test
+    void deletePolicy() {
+        when(service.deleteById("id")).thenReturn(ServiceResult.success(Policy.Builder.newInstance().build()));
+        controller.deletePolicy("id");
+        verify(service).deleteById("id");
     }
 
     @Test
-    void getContractDef_notFound() {
-        assertThat(controller.getPolicy("not-exist")).isNull();
+    void deletePolicy_notFound() {
+        when(service.deleteById("id")).thenReturn(ServiceResult.notFound("Not found"));
+        assertThatThrownBy(() -> controller.deletePolicy("id")).isInstanceOf(ObjectNotFoundException.class);
     }
 
     @Test
-    void createContractDefinition_success() {
-        //todo: implement
-
-    }
-
-    @Test
-    void createContractDefinition_alreadyExists() {
-        //todo: implement
-    }
-
-    @Test
-    void createContractDefinition_policyNotFound() {
-        //todo: implement
-
-    }
-
-    @Test
-    void createContractDefinition_noAssetSelector() {
-        //todo: implement
-    }
-
-    @Test
-    void createContractDefinition_noAccessPolicy() {
-        //todo: implement
-    }
-
-    @Test
-    void createContractDefinition_noContractPolicy() {
-        //todo: implement
-    }
-
-    @Test
-    void delete() {
-        //todo: implement
-    }
-
-    @Test
-    void delete_notFound() {
-
-    }
-
-    @Test
-    void delete_notPossible() {
-        //todo: implement
+    void deletePolicy_conflicts() {
+        when(service.deleteById("id")).thenReturn(ServiceResult.conflict("Conflicting"));
+        assertThatThrownBy(() -> controller.deletePolicy("id")).isInstanceOf(ObjectExistsException.class);
     }
 }

@@ -21,6 +21,7 @@ import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.common.statemachine.StateMachine;
 import org.eclipse.dataspaceconnector.common.statemachine.StateProcessorImpl;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -175,16 +176,16 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      * @param token Claim token of the consumer that send the contract request.
      * @param negotiationId Id of the ContractNegotiation.
      * @param agreement Agreement sent by provider.
-     * @param hash A hash of all previous contract offers.
+     * @param policy the policy
      * @return a {@link StatusResult}: FATAL_ERROR, if no match found for Id or no last
      *         offer found for negotiation; OK otherwise
      */
     @WithSpan
     @Override
-    public StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, String hash) {
+    public StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, Policy policy) {
         var negotiation = negotiationStore.find(negotiationId);
         if (negotiation == null) {
-            return StatusResult.failure(FATAL_ERROR);
+            return StatusResult.failure(FATAL_ERROR, format("ContractNegotiation with id %s not found", negotiationId));
         }
 
         var latestOffer = negotiation.getLastContractOffer();
@@ -214,6 +215,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
             // TODO: otherwise will fail. But should do it, since it's already confirmed? A duplicated message received shouldn't be an issue
             negotiation.transitionConfirmed();
         }
+        policyStore.save(policy);
         update(negotiation, l -> l.preConfirmed(negotiation));
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
@@ -390,6 +392,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         }
         var definitionId = contractIdTokens[DEFINITION_PART];
 
+        var policy = lastOffer.getPolicy();
         var agreement = ContractAgreement.Builder.newInstance()
                 .id(ContractId.createContractId(definitionId))
                 .contractStartDate(Instant.now().getEpochSecond())
@@ -397,7 +400,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .contractSigningDate(Instant.now().getEpochSecond())
                 .providerAgentId(String.valueOf(lastOffer.getProvider()))
                 .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
-                .policy(lastOffer.getPolicy())
+                .policyId(policy.getUid())
                 .assetId(lastOffer.getAsset().getId())
                 .build();
 
@@ -407,6 +410,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .connectorAddress(negotiation.getCounterPartyAddress())
                 .contractAgreement(agreement)
                 .correlationId(negotiation.getId())
+                .policy(policy)
                 .build();
 
         // TODO protocol-independent response type?

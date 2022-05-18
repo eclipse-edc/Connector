@@ -15,9 +15,9 @@
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline;
 
 import com.github.javafaker.Faker;
-import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.adapter.BlobAdapter;
-import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.adapter.BlobAdapterFactory;
-import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.schema.AzureBlobStoreSchema;
+import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
+import org.eclipse.dataspaceconnector.azure.blob.core.adapter.BlobAdapter;
+import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource.Part;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.InputStreamDataSource;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -27,7 +27,9 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,12 +37,14 @@ import java.util.concurrent.Executors;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.TestCustomException;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createAccountName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createBlobName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createContainerName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createRequest;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageTestFixtures.createSharedKey;
+import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createAccountName;
+import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createBlobName;
+import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createContainerName;
+import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createRequest;
+import static org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures.createSharedAccessSignature;
+import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.TestFunctions.sharedAccessSignatureMatcher;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,12 +54,13 @@ class AzureStorageDataSinkTest {
     static Faker faker = new Faker();
     Monitor monitor = mock(Monitor.class);
     ExecutorService executor = Executors.newFixedThreadPool(2);
-    BlobAdapterFactory blobAdapterFactory = mock(BlobAdapterFactory.class);
+    BlobStoreApi blobStoreApi = mock(BlobStoreApi.class);
     DataFlowRequest.Builder request = createRequest(AzureBlobStoreSchema.TYPE);
 
     String accountName = createAccountName();
     String containerName = createContainerName();
-    String sharedKey = createSharedKey();
+    String sharedAccessSignature = createSharedAccessSignature();
+
     String blobName = createBlobName();
     String content = faker.lorem().sentence();
 
@@ -64,25 +69,35 @@ class AzureStorageDataSinkTest {
     AzureStorageDataSink dataSink = AzureStorageDataSink.Builder.newInstance()
             .accountName(accountName)
             .containerName(containerName)
-            .sharedKey(sharedKey)
+            .sharedAccessSignature(sharedAccessSignature)
             .requestId(request.build().getId())
-            .blobAdapterFactory(blobAdapterFactory)
+            .blobStoreApi(blobStoreApi)
             .executorService(executor)
             .monitor(monitor)
             .build();
     BlobAdapter destination = mock(BlobAdapter.class);
+    BlobAdapter completionMarker = mock(BlobAdapter.class);
     InputStreamDataSource part = new InputStreamDataSource(blobName, new ByteArrayInputStream(content.getBytes(UTF_8)));
     ByteArrayOutputStream output = new ByteArrayOutputStream();
+    OutputStream completionMarkerOutput = mock(OutputStream.class);
 
     @BeforeEach
     void setUp() {
         when(destination.getOutputStream()).thenReturn(output);
-        when(blobAdapterFactory.getBlobAdapter(
-                accountName,
-                containerName,
-                blobName,
-                sharedKey))
+        when(blobStoreApi.getBlobAdapter(
+                eq(accountName),
+                eq(containerName),
+                eq(blobName),
+                sharedAccessSignatureMatcher(sharedAccessSignature)))
                 .thenReturn(destination);
+
+        when(completionMarker.getOutputStream()).thenReturn(completionMarkerOutput);
+        when(blobStoreApi.getBlobAdapter(
+                eq(accountName),
+                eq(containerName),
+                argThat(s -> s.endsWith(".complete")),
+                sharedAccessSignatureMatcher(sharedAccessSignature)))
+                .thenReturn(completionMarker);
     }
 
     @Test
@@ -94,11 +109,11 @@ class AzureStorageDataSinkTest {
 
     @Test
     void transferParts_whenBlobClientCreationFails_fails() {
-        when(blobAdapterFactory.getBlobAdapter(
-                accountName,
-                containerName,
-                blobName,
-                sharedKey))
+        when(blobStoreApi.getBlobAdapter(
+                eq(accountName),
+                eq(containerName),
+                eq(blobName),
+                sharedAccessSignatureMatcher(sharedAccessSignature)))
                 .thenThrow(exception);
         assertThatTransferPartsFails(part, "Error creating blob for %s on account %s", blobName, accountName);
     }
@@ -107,7 +122,6 @@ class AzureStorageDataSinkTest {
     void transferParts_whenWriteFails_fails() {
         when(destination.getOutputStream()).thenThrow(exception);
     }
-
 
     @Test
     void transferParts_whenReadFails_fails() {
@@ -126,6 +140,17 @@ class AzureStorageDataSinkTest {
         when(part.openStream()).thenReturn(input);
         when(part.name()).thenReturn(blobName);
         assertThatTransferPartsFails(part, "Error transferring blob for %s on account %s", blobName, accountName);
+    }
+
+    @Test
+    void complete() throws IOException {
+        dataSink.complete();
+        verify(blobStoreApi).getBlobAdapter(
+                eq(accountName),
+                eq(containerName),
+                argThat(s -> s.endsWith(".complete")),
+                sharedAccessSignatureMatcher(sharedAccessSignature));
+        verify(completionMarkerOutput).close();
     }
 
     private void assertThatTransferPartsFails(Part part, String logMessage, Object... args) {

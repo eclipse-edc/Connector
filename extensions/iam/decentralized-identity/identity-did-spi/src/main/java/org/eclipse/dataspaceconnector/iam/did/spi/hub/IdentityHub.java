@@ -15,15 +15,12 @@
 package org.eclipse.dataspaceconnector.iam.did.spi.hub;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.Commit;
-import org.eclipse.dataspaceconnector.spi.system.Feature;
 
 /**
  * Implements a Distributed Identity Foundation Identity Hub as described by {@code https://identity.foundation/identity-hub/spec/}.
  */
-@Feature(IdentityHub.FEATURE)
 public interface IdentityHub {
 
-    String FEATURE = "edc:identity:hub";
 
     /**
      * Writes a commit JWE to the hub and returns either a success response encoded as a JWE or a plaintext error message.
@@ -32,6 +29,8 @@ public interface IdentityHub {
 
     /**
      * Workaround for Hackathon .NET client
+     *
+     * @deprecated use {@link #write(String)}
      */
     @Deprecated
     void write(Commit commit);

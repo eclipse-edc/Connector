@@ -18,6 +18,6 @@ public class ApiEndpointExtension implements ServiceExtension {
         var webService = context.getService(WebService.class);
         var processManager = context.getService(TransferProcessManager.class);
         var processStore = context.getService(TransferProcessStore.class);
-        webService.registerController(new ConsumerApiController(context.getMonitor(), processManager, processStore));
+        webService.registerResource(new ConsumerApiController(context.getMonitor(), processManager, processStore));
     }
 }

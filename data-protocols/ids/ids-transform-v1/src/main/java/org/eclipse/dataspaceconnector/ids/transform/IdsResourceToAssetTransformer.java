@@ -31,7 +31,7 @@ import java.util.Objects;
 
 /**
  * Transforms an IDS Resource into an {@link Asset}.
- * Please note that, as an {@link Asset} consists of an IDS Resource, Representation & Artifact,
+ * Please note that, as an {@link Asset} consists of an IDS Resource, Representation and Artifact,
  * there may be some kind of information loss.
  */
 public class IdsResourceToAssetTransformer implements IdsTypeTransformer<Resource, Asset> {

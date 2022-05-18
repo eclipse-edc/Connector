@@ -25,7 +25,6 @@ import org.eclipse.dataspaceconnector.azure.cosmos.dialect.SqlStatement;
 import org.eclipse.dataspaceconnector.azure.cosmos.util.CosmosLeaseContext;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractNegotiationDocument;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
@@ -175,11 +174,6 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
         };
         var list = typeManager.readValue(rawJson, typeRef);
         return list.stream().map(this::toNegotiation).collect(Collectors.toList());
-    }
-
-    @Override
-    public Policy findPolicyForContract(String contractId) {
-        return ofNullable(findContractAgreement(contractId)).map(ContractAgreement::getPolicy).orElse(null);
     }
 
     private ContractNegotiation toNegotiation(Object object) {

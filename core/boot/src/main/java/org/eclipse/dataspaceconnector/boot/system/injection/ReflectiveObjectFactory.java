@@ -62,7 +62,8 @@ public class ReflectiveObjectFactory implements ObjectFactory {
             var defaultCtor = getDefaultCtor(clazz);
             defaultCtor.setAccessible(true);
             return defaultCtor.newInstance();
-        } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
+        } catch (InvocationTargetException | InstantiationException | IllegalAccessException |
+                 NoSuchMethodException e) {
             throw new EdcException(e);
         }
     }

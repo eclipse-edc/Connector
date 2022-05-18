@@ -12,9 +12,7 @@ that contains the essential dependencies. We'll need at least the following thin
 ```kotlin
 dependencies {
     implementation(project(":core"))
-    implementation(project(":extensions:in-memory:transfer-store-memory"))
-    implementation(project(":extensions:in-memory:assetindex-memory"))
-    implementation(project(":extensions:in-memory:negotiation-store-memory"))
+    
 }
 ```
 

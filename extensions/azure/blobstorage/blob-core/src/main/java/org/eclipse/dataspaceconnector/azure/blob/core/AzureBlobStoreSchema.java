@@ -15,6 +15,9 @@
 package org.eclipse.dataspaceconnector.azure.blob.core;
 
 
+/**
+ * Constants used in Azure Blob storage data address properties.
+ */
 public class AzureBlobStoreSchema {
 
     private AzureBlobStoreSchema() {

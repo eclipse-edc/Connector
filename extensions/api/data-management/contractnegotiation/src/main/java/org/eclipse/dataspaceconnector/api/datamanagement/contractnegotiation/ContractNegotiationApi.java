@@ -15,25 +15,30 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractAgreementDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractNegotiationDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationId;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
-import org.eclipse.dataspaceconnector.spi.query.SortOrder;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationState;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 
 import java.util.List;
 
 @OpenAPIDefinition
+@Tag(name = "Contract Negotiation")
 public interface ContractNegotiationApi {
 
-    List<ContractNegotiationDto> getNegotiations(Integer offset, Integer limit, String filterExpression, SortOrder sortOrder, String sortField);
+    List<ContractNegotiationDto> getNegotiations(@Valid QuerySpecDto querySpecDto);
 
     ContractNegotiationDto getNegotiation(String id);
 
-    String getNegotiationState(String id);
+    NegotiationState getNegotiationState(String id);
 
     ContractAgreementDto getAgreementForNegotiation(String negotiationId);
 
-    String initiateContractNegotiation(NegotiationInitiateRequestDto initiateDto);
+    NegotiationId initiateContractNegotiation(@Valid NegotiationInitiateRequestDto initiateDto);
 
     void cancelNegotiation(String id);
 

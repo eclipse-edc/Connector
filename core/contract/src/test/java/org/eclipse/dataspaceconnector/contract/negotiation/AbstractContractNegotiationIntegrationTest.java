@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.contract.observe.ContractNegotiationObservableImpl;
-import org.eclipse.dataspaceconnector.negotiation.store.memory.InMemoryContractNegotiationStore;
+import org.eclipse.dataspaceconnector.core.defaults.negotiationstore.InMemoryContractNegotiationStore;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -30,7 +30,9 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
@@ -49,7 +51,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 
-import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -59,17 +60,14 @@ import static org.mockito.Mockito.when;
  */
 public abstract class AbstractContractNegotiationIntegrationTest {
 
+    protected final PolicyStore policyStore = mock(PolicyStore.class);
     protected ProviderContractNegotiationManagerImpl providerManager;
     protected ConsumerContractNegotiationManagerImpl consumerManager;
-
     protected ContractNegotiationObservable providerObservable = new ContractNegotiationObservableImpl();
     protected ContractNegotiationObservable consumerObservable = new ContractNegotiationObservableImpl();
-
     protected InMemoryContractNegotiationStore providerStore;
     protected InMemoryContractNegotiationStore consumerStore;
-
     protected ContractValidationService validationService;
-
     protected String consumerNegotiationId;
 
     protected ClaimToken token;
@@ -85,12 +83,12 @@ public abstract class AbstractContractNegotiationIntegrationTest {
         validationService = mock(ContractValidationService.class);
 
         // Create a monitor that logs to the console
-        Monitor monitor = new FakeConsoleMonitor();
-    
+        Monitor monitor = new ConsoleMonitor();
+
         // Create CommandQueue mock
         CommandQueue<ContractNegotiationCommand> queue = (CommandQueue<ContractNegotiationCommand>) mock(CommandQueue.class);
         when(queue.dequeue(anyInt())).thenReturn(new ArrayList<>());
-    
+
         // Create CommandRunner mock
         CommandRunner<ContractNegotiationCommand> runner = (CommandRunner<ContractNegotiationCommand>) mock(CommandRunner.class);
 
@@ -106,6 +104,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .commandRunner(runner)
                 .observable(providerObservable)
                 .store(providerStore)
+                .policyStore(policyStore)
                 .build();
 
         consumerManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
@@ -117,178 +116,10 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .commandRunner(runner)
                 .observable(consumerObservable)
                 .store(consumerStore)
+                .policyStore(policyStore)
                 .build();
 
         countDownLatch = new CountDownLatch(2);
-    }
-    
-    /**
-     * Implementation of the ContractNegotiationListener that signals a CountDownLatch when the
-     * confirmed state has been reached.
-     */
-    protected class ConfirmedContractNegotiationListener implements ContractNegotiationListener {
-        
-        private final CountDownLatch countDownLatch;
-        
-        public ConfirmedContractNegotiationListener(CountDownLatch countDownLatch) {
-            this.countDownLatch = countDownLatch;
-        }
-        
-        @Override
-        public void preConfirmed(ContractNegotiation negotiation) {
-            countDownLatch.countDown();
-        }
-    }
-    
-    /**
-     * Implementation of the ContractNegotiationListener that signals a CountDownLatch when the
-     * declined state has been reached.
-     */
-    protected class DeclinedContractNegotiationListener implements ContractNegotiationListener {
-        
-        private final CountDownLatch countDownLatch;
-        
-        public DeclinedContractNegotiationListener(CountDownLatch countDownLatch) {
-            this.countDownLatch = countDownLatch;
-        }
-        
-        @Override
-        public void preDeclined(ContractNegotiation negotiation) {
-            countDownLatch.countDown();
-        }
-    }
-
-    /**
-     * Implementation of the RemoteMessageDispatcherRegistry for the provider that delegates
-     * the requests to the consumer negotiation manager directly.
-     */
-    protected class FakeProviderDispatcherRegistry implements RemoteMessageDispatcherRegistry {
-
-        @Override
-        public void register(RemoteMessageDispatcher dispatcher) {
-            // Not needed for test
-        }
-
-        @Override
-        public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {
-            return (CompletableFuture<T>) send(message);
-        }
-
-        public CompletableFuture<Object> send(RemoteMessage message) {
-            StatusResult<ContractNegotiation> result;
-            if (message instanceof ContractOfferRequest) {
-                var request = (ContractOfferRequest) message;
-                result = consumerManager.offerReceived(token, request.getCorrelationId(), request.getContractOffer(), "hash");
-            } else if (message instanceof ContractAgreementRequest) {
-                var request = (ContractAgreementRequest) message;
-                result = consumerManager.confirmed(token, request.getCorrelationId(), request.getContractAgreement(), "hash");
-            } else if (message instanceof ContractRejection) {
-                var request = (ContractRejection) message;
-                result = consumerManager.declined(token, request.getCorrelationId());
-            } else {
-                throw new IllegalArgumentException("Unknown message type.");
-            }
-
-            CompletableFuture<Object> future = new CompletableFuture<>();
-            if (result.succeeded()) {
-                future.complete("Success!");
-            } else {
-                future.completeExceptionally(new Exception("Negotiation failed."));
-            }
-
-            return future;
-        }
-    }
-
-    /**
-     * Implementation of the RemoteMessageDispatcherRegistry for the consumer that delegates
-     * the requests to the provider negotiation manager directly.
-     */
-    protected class FakeConsumerDispatcherRegistry implements RemoteMessageDispatcherRegistry {
-
-        @Override
-        public void register(RemoteMessageDispatcher dispatcher) {
-            // Not needed for test
-        }
-
-        @Override
-        public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {
-            return (CompletableFuture<T>) send(message);
-        }
-
-        public CompletableFuture<Object> send(RemoteMessage message) {
-            StatusResult<ContractNegotiation> result;
-            if (message instanceof ContractOfferRequest) {
-                var request = (ContractOfferRequest) message;
-                consumerNegotiationId = request.getCorrelationId();
-                result = providerManager.offerReceived(token, request.getCorrelationId(), request.getContractOffer(), "hash");
-                if (result.fatalError()) {
-                    result = providerManager.requested(token, request);
-                }
-            } else if (message instanceof ContractAgreementRequest) {
-                var request = (ContractAgreementRequest) message;
-                result = providerManager.consumerApproved(token, request.getCorrelationId(), request.getContractAgreement(), "hash");
-            } else if (message instanceof ContractRejection) {
-                var request = (ContractRejection) message;
-                result = providerManager.declined(token, request.getCorrelationId());
-            } else {
-                throw new IllegalArgumentException("Unknown message type.");
-            }
-
-            CompletableFuture<Object> future = new CompletableFuture<>();
-            if (result.succeeded()) {
-                future.complete("Success!");
-            } else {
-                future.completeExceptionally(new Exception("Negotiation failed."));
-            }
-
-            return future;
-        }
-    }
-
-    /**
-     * Monitor implementation that prints to the console.
-     */
-    protected class FakeConsoleMonitor implements Monitor {
-        @Override
-        public void debug(String message, Throwable... errors) {
-            System.out.println("\u001B[34mDEBUG\u001B[0m - " + message);
-            if (errors != null && errors.length > 0) {
-                for (Throwable error : errors) {
-                    error.printStackTrace();
-                }
-            }
-        }
-
-        @Override
-        public void info(String message, Throwable... errors) {
-            System.out.println("\u001B[32mINFO\u001B[0m - " + message);
-            if (errors != null && errors.length > 0) {
-                for (Throwable error : errors) {
-                    error.printStackTrace();
-                }
-            }
-        }
-
-        @Override
-        public void warning(String message, Throwable... errors) {
-            System.out.println("\u001B[33mWARNING\u001B[0m - " + message);
-            if (errors != null && errors.length > 0) {
-                for (Throwable error : errors) {
-                    error.printStackTrace();
-                }
-            }
-        }
-
-        @Override
-        public void severe(String message, Throwable... errors) {
-            System.out.println("\u001B[31mSEVERE\u001B[0m - " + message);
-            if (errors != null && errors.length > 0) {
-                for (Throwable error : errors) {
-                    error.printStackTrace();
-                }
-            }
-        }
     }
 
     /**
@@ -368,6 +199,130 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                                 .build())
                         .build())
                 .build();
+    }
+
+    /**
+     * Implementation of the ContractNegotiationListener that signals a CountDownLatch when the
+     * confirmed state has been reached.
+     */
+    protected static class ConfirmedContractNegotiationListener implements ContractNegotiationListener {
+
+        private final CountDownLatch countDownLatch;
+
+        public ConfirmedContractNegotiationListener(CountDownLatch countDownLatch) {
+            this.countDownLatch = countDownLatch;
+        }
+
+        @Override
+        public void preConfirmed(ContractNegotiation negotiation) {
+            countDownLatch.countDown();
+        }
+    }
+
+    /**
+     * Implementation of the ContractNegotiationListener that signals a CountDownLatch when the
+     * declined state has been reached.
+     */
+    protected static class DeclinedContractNegotiationListener implements ContractNegotiationListener {
+
+        private final CountDownLatch countDownLatch;
+
+        public DeclinedContractNegotiationListener(CountDownLatch countDownLatch) {
+            this.countDownLatch = countDownLatch;
+        }
+
+        @Override
+        public void preDeclined(ContractNegotiation negotiation) {
+            countDownLatch.countDown();
+        }
+    }
+
+    /**
+     * Implementation of the RemoteMessageDispatcherRegistry for the provider that delegates
+     * the requests to the consumer negotiation manager directly.
+     */
+    protected class FakeProviderDispatcherRegistry implements RemoteMessageDispatcherRegistry {
+
+        @Override
+        public void register(RemoteMessageDispatcher dispatcher) {
+            // Not needed for test
+        }
+
+        @Override
+        public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {
+            return (CompletableFuture<T>) send(message);
+        }
+
+        public CompletableFuture<Object> send(RemoteMessage message) {
+            StatusResult<ContractNegotiation> result;
+            if (message instanceof ContractOfferRequest) {
+                var request = (ContractOfferRequest) message;
+                result = consumerManager.offerReceived(token, request.getCorrelationId(), request.getContractOffer(), "hash");
+            } else if (message instanceof ContractAgreementRequest) {
+                var request = (ContractAgreementRequest) message;
+                result = consumerManager.confirmed(token, request.getCorrelationId(), request.getContractAgreement(), request.getPolicy());
+            } else if (message instanceof ContractRejection) {
+                var request = (ContractRejection) message;
+                result = consumerManager.declined(token, request.getCorrelationId());
+            } else {
+                throw new IllegalArgumentException("Unknown message type.");
+            }
+
+            CompletableFuture<Object> future = new CompletableFuture<>();
+            if (result.succeeded()) {
+                future.complete("Success!");
+            } else {
+                future.completeExceptionally(new Exception("Negotiation failed."));
+            }
+
+            return future;
+        }
+    }
+
+    /**
+     * Implementation of the RemoteMessageDispatcherRegistry for the consumer that delegates
+     * the requests to the provider negotiation manager directly.
+     */
+    protected class FakeConsumerDispatcherRegistry implements RemoteMessageDispatcherRegistry {
+
+        @Override
+        public void register(RemoteMessageDispatcher dispatcher) {
+            // Not needed for test
+        }
+
+        @Override
+        public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {
+            return (CompletableFuture<T>) send(message);
+        }
+
+        public CompletableFuture<Object> send(RemoteMessage message) {
+            StatusResult<ContractNegotiation> result;
+            if (message instanceof ContractOfferRequest) {
+                var request = (ContractOfferRequest) message;
+                consumerNegotiationId = request.getCorrelationId();
+                result = providerManager.offerReceived(token, request.getCorrelationId(), request.getContractOffer(), "hash");
+                if (result.fatalError()) {
+                    result = providerManager.requested(token, request);
+                }
+            } else if (message instanceof ContractAgreementRequest) {
+                var request = (ContractAgreementRequest) message;
+                result = providerManager.consumerApproved(token, request.getCorrelationId(), request.getContractAgreement(), "hash");
+            } else if (message instanceof ContractRejection) {
+                var request = (ContractRejection) message;
+                result = providerManager.declined(token, request.getCorrelationId());
+            } else {
+                throw new IllegalArgumentException("Unknown message type.");
+            }
+
+            CompletableFuture<Object> future = new CompletableFuture<>();
+            if (result.succeeded()) {
+                future.complete("Success!");
+            } else {
+                future.completeExceptionally(new Exception("Negotiation failed."));
+            }
+
+            return future;
+        }
     }
 
 }

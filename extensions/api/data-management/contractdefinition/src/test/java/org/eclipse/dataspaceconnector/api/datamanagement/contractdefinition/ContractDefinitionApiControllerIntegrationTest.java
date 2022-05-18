@@ -19,7 +19,6 @@ import io.restassured.specification.RequestSpecification;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionDto;
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
@@ -28,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
+import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -75,6 +75,14 @@ public class ContractDefinitionApiControllerIntegrationTest {
     }
 
     @Test
+    void getAll_invalidQuery() {
+        baseRequest()
+                .get("/contractdefinitions?limit=1&offset=-1&filter=&sortField=")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
     void getSingleContractDef(ContractDefinitionLoader loader) {
         loader.accept(createContractDefinition("definitionId"));
 
@@ -96,7 +104,7 @@ public class ContractDefinitionApiControllerIntegrationTest {
 
     @Test
     void postContractDefinition(ContractDefinitionStore store) {
-        var dto = ContractDefinitionDto.Builder.newInstance().id("definitionId").build();
+        var dto = createDto("definitionId");
 
         baseRequest()
                 .body(dto)
@@ -108,9 +116,26 @@ public class ContractDefinitionApiControllerIntegrationTest {
     }
 
     @Test
+    void postContractDefinition_invalidBody(ContractDefinitionStore store) {
+        var dto = ContractDefinitionDto.Builder.newInstance()
+                .id("test-id")
+                .contractPolicyId(null)
+                .accessPolicyId(UUID.randomUUID().toString())
+                .build();
+
+        baseRequest()
+                .body(dto)
+                .contentType(JSON)
+                .post("/contractdefinitions")
+                .then()
+                .statusCode(400);
+        assertThat(store.findAll()).isEmpty();
+    }
+
+    @Test
     void postContractDefinition_alreadyExists(ContractDefinitionLoader loader, ContractDefinitionStore store) {
         loader.accept(createContractDefinition("definitionId"));
-        var dto = ContractDefinitionDto.Builder.newInstance().id("definitionId").build();
+        var dto = createDto("definitionId");
 
         baseRequest()
                 .body(dto)
@@ -142,11 +167,19 @@ public class ContractDefinitionApiControllerIntegrationTest {
                 .statusCode(404);
     }
 
+    private ContractDefinitionDto createDto(String definitionId) {
+        return ContractDefinitionDto.Builder.newInstance()
+                .id(definitionId)
+                .contractPolicyId(UUID.randomUUID().toString())
+                .accessPolicyId(UUID.randomUUID().toString())
+                .build();
+    }
+
     private ContractDefinition createContractDefinition(String id) {
         return ContractDefinition.Builder.newInstance()
                 .id(id)
-                .accessPolicy(Policy.Builder.newInstance().build())
-                .contractPolicy(Policy.Builder.newInstance().build())
+                .accessPolicyId(UUID.randomUUID().toString())
+                .contractPolicyId(UUID.randomUUID().toString())
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
                 .build();
     }

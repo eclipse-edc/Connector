@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2021, 2022 Siemens AG
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package com.siemens.mindsphere.datalake.edc.http;
 
 import com.siemens.mindsphere.datalake.edc.http.provision.DestinationUrlProvisionedResource;
@@ -9,7 +23,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusChecker;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 public class DataLakeStatusChecker implements StatusChecker {
     public DataLakeStatusChecker(DataLakeClient dataLakeClient, RetryPolicy<Object> retryPolicy, Monitor monitor) {
@@ -38,11 +51,10 @@ public class DataLakeStatusChecker implements StatusChecker {
 
         monitor.info("Checking completion status for: " + transferProcess.getId());
         final String destinationPath = destinationUrlResource.getPath();
-        final Boolean isPresent = Failsafe.with(retryPolicy).onFailure(event ->
-                        monitor.warning("Failed checking completion status, attempts " + event.getAttemptCount()))
-                .getStageAsync(() -> CompletableFuture.supplyAsync(() -> dataLakeClient.isPresent(destinationPath)))
-                .join();
 
-        return isPresent;
+        return Failsafe.with(retryPolicy).onFailure(event ->
+                        monitor.warning("Failed checking completion status, attempts " + event.getAttemptCount()))
+                .getAsync(() -> dataLakeClient.isPresent(destinationPath))
+                .join();
     }
 }

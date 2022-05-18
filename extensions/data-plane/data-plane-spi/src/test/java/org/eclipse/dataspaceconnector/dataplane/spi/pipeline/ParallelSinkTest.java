@@ -18,6 +18,7 @@ import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -41,6 +42,9 @@ class ParallelSinkTest {
     String dataSourceName = faker.lorem().word();
     String dataSourceContent = faker.lorem().characters();
     String errorMessage = faker.lorem().sentence();
+    InputStreamDataSource dataSource = new InputStreamDataSource(
+            dataSourceName,
+            new ByteArrayInputStream(dataSourceContent.getBytes()));
 
     FakeParallelSink fakeSink;
 
@@ -48,18 +52,25 @@ class ParallelSinkTest {
     void setup() {
         fakeSink = new FakeParallelSink();
         fakeSink.monitor = monitor;
+        fakeSink.telemetry = new Telemetry(); // default noop implementation
         fakeSink.executorService = executor;
         fakeSink.requestId = UUID.randomUUID().toString();
     }
 
     @Test
     void transfer_succeeds() {
-        var dataSource = new InputStreamDataSource(dataSourceName, new ByteArrayInputStream(dataSourceContent.getBytes()));
-
         assertThat(fakeSink.transfer(dataSource)).succeedsWithin(500, TimeUnit.MILLISECONDS)
                 .satisfies(transferResult -> assertThat(transferResult.succeeded()).isTrue());
 
         assertThat(fakeSink.parts).containsExactly(dataSource);
+        assertThat(fakeSink.complete).isEqualTo(1);
+    }
+
+    @Test
+    void transfer_whenCompleteFails_fails() {
+        fakeSink.completeResponse = StatusResult.failure(ResponseStatus.ERROR_RETRY);
+        assertThat(fakeSink.transfer(dataSource)).succeedsWithin(500, TimeUnit.MILLISECONDS)
+                .isEqualTo(fakeSink.completeResponse);
     }
 
     @Test
@@ -69,22 +80,22 @@ class ParallelSinkTest {
         when(dataSourceMock.openPartStream()).thenThrow(new RuntimeException(errorMessage));
 
         assertThat(fakeSink.transfer(dataSourceMock)).succeedsWithin(500, TimeUnit.MILLISECONDS)
-            .satisfies(transferResult -> assertThat(transferResult.failed()).isTrue())
-            .satisfies(transferResult -> assertThat(transferResult.getFailureMessages()).containsExactly("Error processing data transfer request"));
+                .satisfies(transferResult -> assertThat(transferResult.failed()).isTrue())
+                .satisfies(transferResult -> assertThat(transferResult.getFailureMessages()).containsExactly("Error processing data transfer request"));
+        assertThat(fakeSink.complete).isEqualTo(0);
     }
 
     @Test
     void transfer_whenFailureDuringTransfer_fails() {
         fakeSink.transferResultSupplier = () -> StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMessage);
 
-        var dataSource = new InputStreamDataSource(dataSourceName, new ByteArrayInputStream(dataSourceContent.getBytes()));
-
         assertThat(fakeSink.transfer(dataSource)).succeedsWithin(500, TimeUnit.MILLISECONDS)
-            .satisfies(transferResult -> assertThat(transferResult.failed()).isTrue())
+                .satisfies(transferResult -> assertThat(transferResult.failed()).isTrue())
                 .satisfies(transferResult -> assertThat(transferResult.getFailure().status()).isEqualTo(ResponseStatus.ERROR_RETRY))
-            .satisfies(transferResult -> assertThat(transferResult.getFailureMessages()).containsExactly(errorMessage));
+                .satisfies(transferResult -> assertThat(transferResult.getFailureMessages()).containsExactly(errorMessage));
 
         assertThat(fakeSink.parts).containsExactly(dataSource);
+        assertThat(fakeSink.complete).isEqualTo(0);
     }
 
     @Test
@@ -92,7 +103,6 @@ class ParallelSinkTest {
         fakeSink.transferResultSupplier = () -> {
             throw new RuntimeException(errorMessage);
         };
-        var dataSource = new InputStreamDataSource(dataSourceName, new ByteArrayInputStream(dataSourceContent.getBytes()));
 
         assertThat(fakeSink.transfer(dataSource)).succeedsWithin(500, TimeUnit.MILLISECONDS)
                 .satisfies(transferResult -> assertThat(transferResult.failed()).isTrue())
@@ -101,17 +111,26 @@ class ParallelSinkTest {
                         .containsExactly("Unhandled exception raised when transferring data: java.lang.RuntimeException: " + errorMessage));
 
         assertThat(fakeSink.parts).containsExactly(dataSource);
+        assertThat(fakeSink.complete).isEqualTo(0);
     }
 
     private static class FakeParallelSink extends ParallelSink {
 
         List<DataSource.Part> parts;
         Supplier<StatusResult<Void>> transferResultSupplier = StatusResult::success;
+        private int complete;
+        private StatusResult<Void> completeResponse = StatusResult.success();
 
         @Override
         protected StatusResult<Void> transferParts(List<DataSource.Part> parts) {
             this.parts = parts;
             return transferResultSupplier.get();
+        }
+
+        @Override
+        protected StatusResult<Void> complete() {
+            complete++;
+            return completeResponse;
         }
     }
 }

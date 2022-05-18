@@ -15,19 +15,22 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.policy;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionDto;
-import org.eclipse.dataspaceconnector.spi.query.SortOrder;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 
 import java.util.List;
 
 @OpenAPIDefinition
+@Tag(name = "Policy")
 public interface PolicyApi {
 
-    List<PolicyDefinitionDto> getAllPolicies(Integer offset, Integer limit, String filterExpression, SortOrder sortOrder, String sortField);
+    List<Policy> getAllPolicies(@Valid QuerySpecDto querySpecDto);
 
-    PolicyDefinitionDto getPolicy(String id);
+    Policy getPolicy(String id);
 
-    void createPolicy(PolicyDefinitionDto dto);
+    void createPolicy(Policy policy);
 
     void deletePolicy(String id);
 

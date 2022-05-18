@@ -14,38 +14,23 @@
 
 package org.eclipse.dataspaceconnector.system.tests.local;
 
-import io.gatling.javaapi.core.Simulation;
+import org.eclipse.dataspaceconnector.system.tests.FileTransferRequestFactory;
 
-import static io.gatling.javaapi.core.CoreDsl.atOnceUsers;
-import static io.gatling.javaapi.core.CoreDsl.global;
-import static io.gatling.javaapi.core.CoreDsl.scenario;
-import static io.gatling.javaapi.http.HttpDsl.http;
-import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.API_KEY_CONTROL_AUTH;
-import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.CONSUMER_ASSET_PATH;
-import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.CONSUMER_CONNECTOR_HOST;
-import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.PROVIDER_IDS_API;
-import static org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils.DESCRIPTION;
-import static org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils.contractNegotiationAndFileTransfer;
+import java.io.File;
+
+import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.tempDirectory;
+import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils.PROVIDER_ASSET_FILE;
 
 /**
  * Runs a single iteration of contract negotiation and file transfer, getting settings from
  * {@see FileTransferIntegrationTest}.
  */
-public class FileTransferLocalSimulation extends Simulation {
+public class FileTransferLocalSimulation extends TransferLocalSimulation {
+    public static final String CONSUMER_ASSET_PATH = new File(tempDirectory(), "output.txt").getAbsolutePath();
+    public static final String PROVIDER_ASSET_PATH = format("%s/%s.txt", tempDirectory(), PROVIDER_ASSET_FILE);
 
     public FileTransferLocalSimulation() {
-
-        setUp(scenario(DESCRIPTION)
-                .repeat(1)
-                .on(
-                        contractNegotiationAndFileTransfer(PROVIDER_IDS_API, CONSUMER_ASSET_PATH, API_KEY_CONTROL_AUTH)
-                )
-                .injectOpen(atOnceUsers(1)))
-                .protocols(http
-                        .baseUrl(CONSUMER_CONNECTOR_HOST))
-                .assertions(
-                        global().responseTime().max().lt(5000),
-                        global().successfulRequests().percent().is(100.0)
-                );
+        super(new FileTransferRequestFactory(CONSUMER_ASSET_PATH));
     }
 }

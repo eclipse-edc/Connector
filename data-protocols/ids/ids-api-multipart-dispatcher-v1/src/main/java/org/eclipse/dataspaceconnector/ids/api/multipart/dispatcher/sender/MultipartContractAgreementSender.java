@@ -43,8 +43,6 @@ import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_AD
 public class MultipartContractAgreementSender extends IdsMultipartSender<ContractAgreementRequest, MultipartMessageProcessedResponse> {
 
     private final String idsWebhookAddress;
-    private final String idsApiPath;
-    private final IdsTransformerRegistry transformerRegistry;
 
     public MultipartContractAgreementSender(@NotNull String connectorId,
                                             @NotNull OkHttpClient httpClient,
@@ -52,13 +50,10 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
                                             @NotNull Monitor monitor,
                                             @NotNull IdentityService identityService,
                                             @NotNull IdsTransformerRegistry transformerRegistry,
-                                            @NotNull String idsWebhookAddress,
-                                            @NotNull String idsApiPath) {
+                                            @NotNull String idsWebhookAddress) {
         super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
 
-        this.transformerRegistry = transformerRegistry;
         this.idsWebhookAddress = idsWebhookAddress;
-        this.idsApiPath = idsApiPath;
     }
 
     @Override
@@ -75,7 +70,7 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
     protected Message buildMessageHeader(ContractAgreementRequest request, DynamicAttributeToken token) throws Exception {
         var id = request.getContractAgreement().getId();
         var idsId = IdsId.Builder.newInstance().type(IdsType.CONTRACT_AGREEMENT).value(id).build();
-        var idUriResult = transformerRegistry.transform(idsId, URI.class);
+        var idUriResult = getTransformerRegistry().transform(idsId, URI.class);
         if (idUriResult.failed()) {
             throw new EdcException("Cannot convert contract agreement id to URI");
         }
@@ -89,16 +84,15 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 ._transferContract_(URI.create(request.getCorrelationId()))
                 .build();
-        var path = idsApiPath + (idsApiPath.endsWith("/") ? "data" : "/data");
-        message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + path);
+
+        message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress);
 
         return message;
     }
 
     @Override
     protected String buildMessagePayload(ContractAgreementRequest request) throws Exception {
-        var contractAgreement = request.getContractAgreement();
-        var transformationResult = getTransformerRegistry().transform(contractAgreement, ContractAgreement.class);
+        var transformationResult = getTransformerRegistry().transform(request, ContractAgreement.class);
         if (transformationResult.failed()) {
             throw new EdcException("Failed to create IDS contract agreement");
         }
@@ -109,7 +103,7 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
 
     @Override
     protected MultipartMessageProcessedResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        Message header = getObjectMapper().readValue(parts.getHeader(), Message.class);
+        var header = getObjectMapper().readValue(parts.getHeader(), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());

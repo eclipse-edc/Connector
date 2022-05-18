@@ -15,25 +15,25 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition;
 
-import jakarta.ws.rs.Consumes;
+import jakarta.validation.Valid;
+import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.api.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 
@@ -43,7 +43,6 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
-@Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/contractdefinitions")
 public class ContractDefinitionApiController implements ContractDefinitionApi {
@@ -59,17 +58,15 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
     @GET
     @Override
-    public List<ContractDefinitionDto> getAllContractDefinitions(@QueryParam("offset") Integer offset,
-                                                                 @QueryParam("limit") Integer limit,
-                                                                 @QueryParam("filter") String filterExpression,
-                                                                 @QueryParam("sort") SortOrder sortOrder,
-                                                                 @QueryParam("sortField") String sortField) {
-        var spec = QuerySpec.Builder.newInstance()
-                .offset(offset)
-                .limit(limit)
-                .sortField(sortField)
-                .filter(filterExpression)
-                .sortOrder(sortOrder).build();
+    public List<ContractDefinitionDto> getAllContractDefinitions(@Valid @BeanParam QuerySpecDto querySpecDto) {
+        var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
+        if (result.failed()) {
+            monitor.warning("Error transforming QuerySpec: " + String.join(", ", result.getFailureMessages()));
+            throw new IllegalArgumentException("Cannot transform QuerySpecDto object");
+        }
+
+        var spec = result.getContent();
+
         monitor.debug(format("get all contract definitions %s", spec));
 
         return service.query(spec).stream()
@@ -95,7 +92,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
     @POST
     @Override
-    public void createContractDefinition(ContractDefinitionDto dto) {
+    public void createContractDefinition(@Valid ContractDefinitionDto dto) {
         monitor.debug("create new contract definition");
         var transformResult = transformerRegistry.transform(dto, ContractDefinition.class);
         if (transformResult.failed()) {
@@ -127,9 +124,12 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
     private void handleFailedResult(ServiceResult<ContractDefinition> result, String id) {
         switch (result.reason()) {
-            case NOT_FOUND: throw new ObjectNotFoundException(ContractDefinition.class, id);
-            case CONFLICT: throw new ObjectExistsException(ContractDefinition.class, id);
-            default: throw new EdcException("unexpected error");
+            case NOT_FOUND:
+                throw new ObjectNotFoundException(ContractDefinition.class, id);
+            case CONFLICT:
+                throw new ObjectExistsException(ContractDefinition.class, id);
+            default:
+                throw new EdcException("unexpected error");
         }
     }
 

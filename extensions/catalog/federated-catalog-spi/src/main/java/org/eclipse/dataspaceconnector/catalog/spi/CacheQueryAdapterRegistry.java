@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.catalog.spi;
 
 import org.eclipse.dataspaceconnector.catalog.spi.model.FederatedCatalogCacheQuery;
-import org.eclipse.dataspaceconnector.spi.system.Feature;
 
 import java.util.Collection;
 
@@ -23,9 +22,7 @@ import java.util.Collection;
  * Registry where {@link CacheQueryAdapter} instances are stored and maintained.
  * {@link FederatedCatalogCacheQuery}s should be issued to the registry rather than to the {@link CacheQueryAdapter} directly!
  */
-@Feature(CacheQueryAdapterRegistry.FEATURE)
 public interface CacheQueryAdapterRegistry {
-    String FEATURE = "edc:catalog:cache:query:registry";
 
     /**
      * Finds all instances of {@link CacheQueryAdapter} that was registered.

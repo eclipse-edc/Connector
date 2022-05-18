@@ -10,7 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Daimler TSS GmbH - fixed contract dates to epoch seconds
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - refactor
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -41,6 +42,7 @@ import static java.time.Instant.MAX;
 import static java.time.Instant.MIN;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -48,10 +50,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ContractValidationServiceImplTest {
+
+    private final ParticipantAgentService agentService = mock(ParticipantAgentService.class);
+    private final ContractDefinitionService definitionService = mock(ContractDefinitionService.class);
+    private final AssetIndex assetIndex = mock(AssetIndex.class);
+    private final PolicyStore policyStore = mock(PolicyStore.class);
     private ContractValidationServiceImpl validationService;
-    private ParticipantAgentService agentService;
-    private ContractDefinitionService definitionService;
-    private AssetIndex assetIndex;
+
+    @BeforeEach
+    void setUp() {
+        validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore);
+    }
 
     @Test
     void verifyContractOfferValidation() {
@@ -60,13 +69,15 @@ class ContractValidationServiceImplTest {
         var asset = Asset.Builder.newInstance().id("1").build();
         var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("1")
-                .accessPolicy(Policy.Builder.newInstance().build())
-                .contractPolicy(newPolicy)
+                .accessPolicyId("access")
+                .contractPolicyId("contract")
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
                 .build();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
+        when(policyStore.findById("access")).thenReturn(Policy.Builder.newInstance().build());
+        when(policyStore.findById("contract")).thenReturn(newPolicy);
         when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(Stream.of(asset));
 
         var claimToken = ClaimToken.Builder.newInstance().build();
@@ -88,24 +99,25 @@ class ContractValidationServiceImplTest {
 
     @Test
     void verifyContractAgreementValidation() {
-        var originalPolicy = Policy.Builder.newInstance().build();
         var newPolicy = Policy.Builder.newInstance().build();
 
         var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("1")
-                .accessPolicy(Policy.Builder.newInstance().build())
-                .contractPolicy(newPolicy)
+                .accessPolicyId("access")
+                .contractPolicyId("contract")
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
                 .build();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
+        when(policyStore.findById("access")).thenReturn(Policy.Builder.newInstance().build());
+        when(policyStore.findById("contract")).thenReturn(newPolicy);
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = ContractAgreement.Builder.newInstance().id("1")
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
-                .policy(originalPolicy)
+                .policyId("policy")
                 .assetId(UUID.randomUUID().toString())
                 .contractStartDate(Instant.now().getEpochSecond())
                 .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
@@ -132,24 +144,43 @@ class ContractValidationServiceImplTest {
         assertThat(isValid).isFalse();
     }
 
-    @BeforeEach
-    void setUp() {
-        agentService = mock(ParticipantAgentService.class);
-        definitionService = mock(ContractDefinitionService.class);
-        assetIndex = mock(AssetIndex.class);
-        validationService = new ContractValidationServiceImpl(agentService, () -> definitionService, assetIndex);
+    @Test
+    void verifyPolicyNotFound() {
+        var originalPolicy = Policy.Builder.newInstance().build();
+        var asset = Asset.Builder.newInstance().id("1").build();
+        var contractDefinition = ContractDefinition.Builder.newInstance()
+                .id("1")
+                .accessPolicyId("access")
+                .contractPolicyId("contract")
+                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
+                .build();
+
+        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
+        when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
+        when(policyStore.findById(any())).thenReturn(null);
+        when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(Stream.of(asset));
+
+        var claimToken = ClaimToken.Builder.newInstance().build();
+        var offer = ContractOffer.Builder.newInstance().id("1:2")
+                .asset(asset)
+                .policy(originalPolicy)
+                .provider(URI.create("provider"))
+                .consumer(URI.create("consumer"))
+                .build();
+
+        var result = validationService.validate(claimToken, offer);
+
+        assertThat(result.failed()).isTrue();
     }
 
     private boolean validateAgreementDate(long signingDate, long startDate, long endDate) {
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
 
-        var originalPolicy = Policy.Builder.newInstance().build();
-
         var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = ContractAgreement.Builder.newInstance().id("1")
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
-                .policy(originalPolicy)
+                .policyId("policy")
                 .assetId(UUID.randomUUID().toString())
                 .contractSigningDate(signingDate)
                 .contractStartDate(startDate)

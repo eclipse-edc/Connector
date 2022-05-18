@@ -49,3 +49,11 @@ distributions/azure/azure.properties
 launchers/demo-e2e/edc-config.properties
 **/out
 *.hprof
+samples/other/file-transfer-http-to-http/deployment
+java.config
+resources/charts/values.default.yaml
+resources/charts/values.develop.yaml
+resources/charts/values.develop.consumer.yaml
+resources/charts/values.develop.provider.yaml
+resources/charts/values.default.consumer.yaml
+resources/charts/values.default.provider.yaml

@@ -14,13 +14,13 @@
 
 package org.eclipse.dataspaceconnector.azure.blob.core.api;
 
+import com.azure.core.credential.AzureSasCredential;
 import com.azure.storage.blob.models.BlobItem;
-import org.eclipse.dataspaceconnector.spi.system.Feature;
+import org.eclipse.dataspaceconnector.azure.blob.core.adapter.BlobAdapter;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 
-@Feature("edc:persistence:blobstore")
 public interface BlobStoreApi {
 
     void createContainer(String accountName, String containerName);
@@ -38,4 +38,8 @@ public interface BlobStoreApi {
     String createAccountSas(String accountName, String containerName, String racwxdl, OffsetDateTime expiry);
 
     byte[] getBlob(String account, String container, String blobName);
+
+    BlobAdapter getBlobAdapter(String accountName, String containerName, String blobName, String sharedKey);
+
+    BlobAdapter getBlobAdapter(String accountName, String containerName, String blobName, AzureSasCredential credential);
 }

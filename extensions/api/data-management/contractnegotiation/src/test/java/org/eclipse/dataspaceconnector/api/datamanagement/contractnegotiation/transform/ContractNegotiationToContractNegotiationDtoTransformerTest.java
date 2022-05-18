@@ -14,9 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.transform;
 
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
@@ -70,7 +68,7 @@ class ContractNegotiationToContractNegotiationDtoTransformerTest {
                 .consumerAgentId("any")
                 .providerAgentId("any")
                 .assetId(UUID.randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
+                .policyId(UUID.randomUUID().toString())
                 .build();
     }
 

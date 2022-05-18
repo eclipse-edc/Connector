@@ -16,9 +16,7 @@
 package org.eclipse.dataspaceconnector.spi.contract.negotiation.store;
 
 import org.eclipse.dataspaceconnector.spi.persistence.StateEntityStore;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.jetbrains.annotations.NotNull;
@@ -30,10 +28,7 @@ import java.util.stream.Stream;
  * Stores {@link ContractNegotiation}s and their associated types such as {@link ContractAgreement}s.
  * <p>
  */
-@Feature(ContractNegotiationStore.FEATURE)
-public interface ContractNegotiationStore extends StateEntityStore<ContractNegotiation>, PolicyArchive {
-
-    String FEATURE = "edc:core:contract:contractnegotiation:store";
+public interface ContractNegotiationStore extends StateEntityStore<ContractNegotiation> {
 
     /**
      * Finds the contract negotiation for the id or null.
@@ -48,7 +43,7 @@ public interface ContractNegotiationStore extends StateEntityStore<ContractNegot
     ContractNegotiation findForCorrelationId(String correlationId);
 
     /**
-     * Returns the contract agreement for the id or null.
+     * Returns the contract agreement for the contract id or null.
      */
     @Nullable
     ContractAgreement findContractAgreement(String contractId);
@@ -69,7 +64,7 @@ public interface ContractNegotiationStore extends StateEntityStore<ContractNegot
      * <p>
      * The general order of precedence of the query parameters is:
      * <pre>
-     * filter > sort > limit
+     * filter &gt; sort &gt; limit
      * </pre>
      * <p>
      *

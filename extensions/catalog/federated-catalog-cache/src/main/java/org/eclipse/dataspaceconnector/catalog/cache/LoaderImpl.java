@@ -30,7 +30,6 @@ public class LoaderImpl implements Loader {
 
     @Override
     public void load(Collection<UpdateResponse> responses) {
-
         for (var response : responses) {
             var catalog = response.getCatalog();
             catalog.getContractOffers().forEach(offer -> {
@@ -38,5 +37,10 @@ public class LoaderImpl implements Loader {
                 store.save(offer);
             });
         }
+    }
+
+    @Override
+    public void clear() {
+        store.deleteAll(); // delete all entries before re-populating
     }
 }

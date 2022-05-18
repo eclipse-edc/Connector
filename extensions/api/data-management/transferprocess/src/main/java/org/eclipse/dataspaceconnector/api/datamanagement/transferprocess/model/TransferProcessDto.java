@@ -25,6 +25,7 @@ public class TransferProcessDto {
     private String state;
     private String errorDetail;
     private DataRequestDto dataRequest;
+    private DataAddressInformationDto dataDestination;
 
     private TransferProcessDto() {
     }
@@ -47,6 +48,10 @@ public class TransferProcessDto {
 
     public DataRequestDto getDataRequest() {
         return dataRequest;
+    }
+
+    public DataAddressInformationDto getDataDestination() {
+        return dataDestination;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -84,6 +89,11 @@ public class TransferProcessDto {
 
         public Builder dataRequest(DataRequestDto dataRequest) {
             transferProcessDto.dataRequest = dataRequest;
+            return this;
+        }
+
+        public Builder dataDestination(DataAddressInformationDto dataDestination) {
+            transferProcessDto.dataDestination = dataDestination;
             return this;
         }
 

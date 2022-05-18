@@ -14,15 +14,20 @@
 
 package org.eclipse.dataspaceconnector.dataplane.spi.pipeline;
 
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.common.stream.PartitionIterator;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.AbstractResult;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
+import org.eclipse.dataspaceconnector.spi.telemetry.TraceCarrier;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.stream.Collectors.toList;
@@ -37,19 +42,23 @@ public abstract class ParallelSink implements DataSink {
     protected int partitionSize = 5;
     protected ExecutorService executorService;
     protected Monitor monitor;
+    protected Telemetry telemetry;
 
+    @WithSpan
     @Override
     public CompletableFuture<StatusResult<Void>> transfer(DataSource source) {
         try (var partStream = source.openPartStream()) {
             var partitioned = PartitionIterator.streamOf(partStream, partitionSize);
-            var futures = partitioned.map(parts -> supplyAsync(() -> transferParts(parts), executorService)).collect(toList());
+            var traceCarrier = telemetry.getTraceCarrierWithCurrentContext();
+
+            var futures = partitioned.map(parts -> processPartsAsync(parts, traceCarrier)).collect(toList());
             return futures.stream()
                     .collect(asyncAllOf())
                     .thenApply(results -> results.stream()
                             .filter(AbstractResult::failed)
                             .findFirst()
                             .map(r -> StatusResult.<Void>failure(ERROR_RETRY, String.join(",", r.getFailureMessages())))
-                            .orElseGet(StatusResult::success))
+                            .orElseGet(this::complete))
                     .exceptionally(throwable -> StatusResult.failure(ERROR_RETRY, "Unhandled exception raised when transferring data: " + throwable.getMessage()));
         } catch (Exception e) {
             monitor.severe("Error processing data transfer request: " + requestId, e);
@@ -57,13 +66,31 @@ public abstract class ParallelSink implements DataSink {
         }
     }
 
+    @NotNull
+    private CompletableFuture<StatusResult<Void>> processPartsAsync(List<DataSource.Part> parts, TraceCarrier traceCarrier) {
+        Supplier<StatusResult<Void>> supplier = () -> transferParts(parts);
+        return supplyAsync(telemetry.contextPropagationMiddleware(supplier, traceCarrier), executorService);
+    }
+
     protected abstract StatusResult<Void> transferParts(List<DataSource.Part> parts);
+
+    /**
+     * Called after all parallel parts are transferred, only if all parts were successfully transferred.
+     * <p>
+     * Implementations may override this method to perform completion logic, such as writing a completion marker.
+     *
+     * @return status result to be returned to caller.
+     */
+    protected StatusResult<Void> complete() {
+        return StatusResult.success();
+    }
 
     protected abstract static class Builder<B extends Builder<B, T>, T extends ParallelSink> {
         protected T sink;
 
         protected Builder(T sink) {
             this.sink = sink;
+            this.sink.telemetry = new Telemetry(); // default noop implementation
         }
 
         public B requestId(String requestId) {
@@ -83,6 +110,11 @@ public abstract class ParallelSink implements DataSink {
 
         public B monitor(Monitor monitor) {
             sink.monitor = monitor;
+            return self();
+        }
+
+        public B telemetry(Telemetry telemetry) {
+            sink.telemetry = telemetry;
             return self();
         }
 

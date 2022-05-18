@@ -21,6 +21,7 @@ val okHttpVersion: String by project
 val jodahFailsafeVersion: String by project
 val rsApi: String by project
 val restAssured: String by project
+val jerseyVersion: String by project
 
 
 dependencies {
@@ -33,16 +34,14 @@ dependencies {
     implementation("net.jodah:failsafe:${jodahFailsafeVersion}")
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
-    testImplementation(testFixtures(project(":common:util")))
-    testImplementation(project(":extensions:in-memory:policy-store-memory"))
-    testImplementation(project(":core:transfer"))
-    testImplementation(project(":extensions:in-memory:assetindex-memory"))
-    testImplementation(project(":extensions:in-memory:transfer-store-memory"))
-    testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
+    testImplementation(project(":core:contract"))
     testImplementation(project(":extensions:dataloading"))
+    testImplementation(project(":core:defaults"))
+
+    testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
-
+    testRuntimeOnly("org.glassfish.jersey.ext:jersey-bean-validation:${jerseyVersion}") //for validation
 }
 
 

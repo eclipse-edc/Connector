@@ -26,9 +26,11 @@ import org.eclipse.dataspaceconnector.transfer.provision.http.HttpWebhookExtensi
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.Map;
 import java.util.stream.Stream;
@@ -49,15 +51,6 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
     private final int port = getFreePort();
     private final String authKey = "123456";
 
-    public static Stream<Arguments> invalidRequestParams() {
-        return Stream.of(
-                Arguments.of(null, DataAddress.Builder.newInstance().type("foo").build(), "resourcename", "resourcedef"),
-                Arguments.of("assetid", null, "resourcename", "resourcedef"),
-                Arguments.of("assetid", DataAddress.Builder.newInstance().type("foo").build(), null, "resourcedef"),
-                Arguments.of("assetid", DataAddress.Builder.newInstance().type("foo").build(), "resourcename", null)
-        );
-    }
-
     @BeforeEach
     void setUp(EdcExtension extension) {
         extension.registerSystemExtension(ServiceExtension.class, new DummyAuthenticationExtension());
@@ -71,13 +64,14 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
     }
 
     @ParameterizedTest
-    @MethodSource("invalidRequestParams")
-    void callProvisionWebhook_invalidBody(String assetId, DataAddress cda, String resName, String resDefId) {
+    @ArgumentsSource(InvalidRequestParams.class)
+    void callProvisionWebhook_invalidBody(String assetId, DataAddress cda, String resName, String resDefId, String token) {
         var tpId = "tpId";
         var rq = ProvisionerWebhookRequest.Builder.newInstance()
                 .assetId(assetId)
                 .contentDataAddress(cda)
                 .resourceName(resName)
+                .apiToken(token)
                 .resourceDefinitionId(resDefId)
                 .build();
 
@@ -94,7 +88,8 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
     void callProvisionWebhook() {
         var rq = ProvisionerWebhookRequest.Builder.newInstance()
                 .assetId("test-asset")
-                .contentDataAddress(DataAddress.Builder.newInstance().type("foo").build())
+                .contentDataAddress(dataAddress())
+                .apiToken("test-token")
                 .resourceName("resource-name")
                 .resourceDefinitionId("resource-definition")
                 .build();
@@ -133,6 +128,28 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
                 .then()
                 .statusCode(allOf(greaterThanOrEqualTo(200), lessThan(300)))
                 .body(anything());
+    }
+
+    private static class InvalidRequestParams implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+            return Stream.of(
+                    Arguments.of(null, dataAddress(), "resourcename", "resourcedef", "token"),
+                    Arguments.of("assetid", null, "resourcename", "resourcedef", "token"),
+                    Arguments.of("assetid", dataAddress(), null, "resourcedef", "token"),
+                    Arguments.of("assetid", dataAddress(), "resourcename", null, "token"),
+                    Arguments.of("assetid", dataAddress(), "resourcename", "resourcedef", null)
+            );
+        }
+
+        private DataAddress dataAddress() {
+            return DataAddress.Builder.newInstance().type("foo").build();
+        }
+    }
+
+    private DataAddress dataAddress() {
+        return DataAddress.Builder.newInstance().type("foo").build();
     }
 
     private RequestSpecification baseRequest() {

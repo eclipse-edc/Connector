@@ -18,16 +18,12 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -85,6 +81,14 @@ class ContractNegotiationApiControllerIntegrationTest {
     }
 
     @Test
+    void getAll_invalidQuery() {
+        baseRequest()
+                .get("/contractnegotiations?limit=1&offset=-1&filter=&sortField=")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
     void getSingleContractNegotation(ContractNegotiationStore store) {
         store.save(createContractNegotiation("negotiationId"));
 
@@ -115,7 +119,7 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .contentType(JSON)
                 .extract().asString();
 
-        assertThat(state).isEqualTo("REQUESTED");
+        assertThat(state).isEqualTo("{\"state\":\"REQUESTED\"}");
     }
 
     @Test
@@ -148,7 +152,7 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .connectorId("connector")
                 .protocol(TestRemoteMessageDispatcher.TEST_PROTOCOL)
                 .connectorAddress("connectorAddress")
-                .offerId(createOffer())
+                .offer(createOffer())
                 .build();
 
         var result = baseRequest()
@@ -157,6 +161,27 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .post("/contractnegotiations")
                 .then()
                 .statusCode(200)
+                .extract().body().asString();
+
+        assertThat(result).isNotBlank();
+    }
+
+    @Test
+    void initiateContractNegotiation_invalidBody(RemoteMessageDispatcherRegistry registry) {
+        registry.register(new TestRemoteMessageDispatcher());
+        var request = NegotiationInitiateRequestDto.Builder.newInstance()
+                .connectorId("connector")
+                .protocol(TestRemoteMessageDispatcher.TEST_PROTOCOL)
+                .connectorAddress(null) // breaks validation
+                .offer(createOffer())
+                .build();
+
+        var result = baseRequest()
+                .contentType(JSON)
+                .body(request)
+                .post("/contractnegotiations")
+                .then()
+                .statusCode(400)
                 .extract().body().asString();
 
         assertThat(result).isNotBlank();
@@ -203,7 +228,7 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .providerAgentId(UUID.randomUUID().toString())
                 .consumerAgentId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
+                .policyId(UUID.randomUUID().toString())
                 .build();
     }
 

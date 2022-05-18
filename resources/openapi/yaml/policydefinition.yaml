@@ -2,6 +2,8 @@ openapi: 3.0.1
 paths:
   /policies:
     get:
+      tags:
+      - Policy
       operationId: getAllPolicies
       parameters:
       - name: offset
@@ -37,14 +39,16 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PolicyDefinitionDto'
+                  $ref: '#/components/schemas/Policy'
     post:
+      tags:
+      - Policy
       operationId: createPolicy
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyDefinitionDto'
+              $ref: '#/components/schemas/Policy'
       responses:
         default:
           description: default response
@@ -52,6 +56,8 @@ paths:
             application/json: {}
   /policies/{id}:
     get:
+      tags:
+      - Policy
       operationId: getPolicy
       parameters:
       - name: id
@@ -65,8 +71,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PolicyDefinitionDto'
+                $ref: '#/components/schemas/Policy'
     delete:
+      tags:
+      - Policy
       operationId: deletePolicy
       parameters:
       - name: id
@@ -141,7 +149,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Duty'
-    PolicyDefinitionDto:
+    Policy:
       type: object
       properties:
         uid:
@@ -163,6 +171,12 @@ components:
           additionalProperties:
             type: object
         inheritsFrom:
+          type: string
+        assigner:
+          type: string
+        assignee:
+          type: string
+        target:
           type: string
         '@type':
           type: string

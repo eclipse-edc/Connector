@@ -14,9 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.transform;
 
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.junit.jupiter.api.Test;
 
@@ -41,7 +39,7 @@ class ContractAgreementToContractAgreementDtoTransformerTest {
                 .consumerAgentId("consumerAgentId")
                 .providerAgentId("providerAgentId")
                 .assetId("assetId")
-                .policy(Policy.Builder.newInstance().id("policyId").build())
+                .policyId("policyId")
                 .contractStartDate(1)
                 .contractSigningDate(2)
                 .contractEndDate(3)

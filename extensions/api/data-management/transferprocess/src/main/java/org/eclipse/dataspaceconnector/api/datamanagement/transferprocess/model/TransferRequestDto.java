@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import jakarta.validation.constraints.NotNull;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
 
@@ -26,17 +27,31 @@ import java.util.Map;
 @JsonDeserialize(builder = TransferRequestDto.Builder.class)
 public class TransferRequestDto {
 
+    @NotNull
     private String connectorAddress;
+    @NotNull
+    private String id;
+    @NotNull
     private String contractId;
+    @NotNull
     private DataAddress dataDestination;
     private boolean managedResources = true;
     private Map<String, String> properties = new HashMap<>();
-    private TransferType transferType;
+    @NotNull
+    private TransferType transferType = new TransferType();
+    @NotNull
     private String protocol = "ids-multipart";
+    @NotNull
     private String connectorId;
+    @NotNull
+    private String assetId;
 
     public String getConnectorAddress() {
         return connectorAddress;
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getContractId() {
@@ -67,6 +82,10 @@ public class TransferRequestDto {
         return connectorId;
     }
 
+    public String getAssetId() {
+        return assetId;
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
         private final TransferRequestDto request;
@@ -82,6 +101,11 @@ public class TransferRequestDto {
 
         public Builder connectorAddress(String connectorAddress) {
             request.connectorAddress = connectorAddress;
+            return this;
+        }
+
+        public Builder id(String id) {
+            request.id = id;
             return this;
         }
 
@@ -117,6 +141,11 @@ public class TransferRequestDto {
 
         public Builder connectorId(String connectorId) {
             request.connectorId = connectorId;
+            return this;
+        }
+
+        public Builder assetId(String assetId) {
+            request.assetId = assetId;
             return this;
         }
 

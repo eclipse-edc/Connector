@@ -23,7 +23,6 @@ import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
@@ -48,6 +47,7 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class ContractNegotiationServiceImplTest {
@@ -110,11 +110,37 @@ class ContractNegotiationServiceImplTest {
     @Test
     void getForNegotiation_filtersById() {
         var contractAgreement = createContractAgreement("agreementId");
-        when(store.findContractAgreement("negotiationId")).thenReturn(contractAgreement);
+        var negotiation = createContractNegotiation("negotiationId");
+        negotiation.setContractAgreement(contractAgreement);
+
+        when(store.find("negotiationId")).thenReturn(negotiation);
 
         var result = service.getForNegotiation("negotiationId");
 
         assertThat(result).matches(it -> it.getId().equals("agreementId"));
+        verify(store).find(any());
+        verifyNoMoreInteractions(store);
+    }
+
+    @Test
+    void getForNegotiation_negotiationNotFound() {
+        when(store.find("negotiationId")).thenReturn(null);
+        var result = service.getForNegotiation("negotiationId");
+        assertThat(result).isNull();
+        verify(store).find(any());
+        verifyNoMoreInteractions(store);
+    }
+
+    @Test
+    void getForNegotiation_negotiationNoAgreement() {
+        var negotiation = createContractNegotiation("negotiationId");
+        when(store.find("negotiationId")).thenReturn(negotiation);
+
+        var result = service.getForNegotiation("negotiationId");
+
+        assertThat(result).isNull();
+        verify(store).find(any());
+        verifyNoMoreInteractions(store);
     }
 
     @Test
@@ -217,7 +243,7 @@ class ContractNegotiationServiceImplTest {
                 .providerAgentId(UUID.randomUUID().toString())
                 .consumerAgentId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
+                .policyId(UUID.randomUUID().toString())
                 .build();
     }
 

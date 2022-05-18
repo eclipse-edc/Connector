@@ -26,7 +26,6 @@ import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.azure.testfixtures.CosmosTestClient;
 import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureCosmosDbIntegrationTest;
 import org.eclipse.dataspaceconnector.cosmos.policy.store.model.ContractDefinitionDocument;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -70,7 +69,6 @@ public class CosmosContractDefinitionStoreIntegrationTest {
 
         CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
         database = client.getDatabase(response.getProperties().getId());
-
     }
 
     @AfterAll
@@ -140,13 +138,12 @@ public class CosmosContractDefinitionStoreIntegrationTest {
 
     @Test
     void save() {
-        ContractDefinition def = generateDefinition();
-        store.save(def);
+        var definition = generateDefinition();
+        store.save(definition);
 
         var actual = container.readAllItems(new PartitionKey(TEST_PARTITION_KEY), Object.class);
-        assertThat(actual).hasSize(1);
-        var doc = actual.stream().findFirst().get();
-        assertThat(convert(doc)).isEqualTo(def);
+
+        assertThat(actual).hasSize(1).map(this::convert).first().isEqualTo(definition);
     }
 
     @Test
@@ -327,15 +324,16 @@ public class CosmosContractDefinitionStoreIntegrationTest {
 
         // modify the object
         var modifiedDef = ContractDefinition.Builder.newInstance().id(def.getId())
-                .contractPolicy(Policy.Builder.newInstance().id("test-cp-id-new").build())
-                .accessPolicy(Policy.Builder.newInstance().id("test-ap-id-new").build())
+                .contractPolicyId("test-cp-id-new")
+                .accessPolicyId("test-ap-id-new")
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals("somekey", "someval").build())
                 .build();
 
         store.update(modifiedDef);
 
         // re-read
-        var all = store.findAll(QuerySpec.Builder.newInstance().filter("contractPolicy.uid=test-cp-id-new").build()).collect(Collectors.toList());
+        var all = store.findAll(QuerySpec.Builder.newInstance().filter("contractPolicyId=test-cp-id-new").build()).collect(Collectors.toList());
+
         assertThat(all).hasSize(1).containsExactly(modifiedDef);
 
     }

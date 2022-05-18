@@ -48,8 +48,8 @@ class ContractDefinitionDtoToContractDefinitionTransformerTest {
         var contractDefinition = transformer.transform(contractDefinitionDto, context);
 
         assertThat(contractDefinition.getId()).isEqualTo(contractDefinitionDto.getId());
-        assertThat(contractDefinition.getAccessPolicy().getUid()).isEqualTo(contractDefinitionDto.getAccessPolicyId());
-        assertThat(contractDefinition.getContractPolicy().getUid()).isEqualTo(contractDefinitionDto.getContractPolicyId());
+        assertThat(contractDefinition.getAccessPolicyId()).isEqualTo(contractDefinitionDto.getAccessPolicyId());
+        assertThat(contractDefinition.getContractPolicyId()).isEqualTo(contractDefinitionDto.getContractPolicyId());
         assertThat(contractDefinition.getSelectorExpression().getCriteria()).containsExactlyElementsOf(contractDefinitionDto.getCriteria());
     }
 

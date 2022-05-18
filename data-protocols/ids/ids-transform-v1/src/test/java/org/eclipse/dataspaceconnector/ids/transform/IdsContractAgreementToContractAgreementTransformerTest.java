@@ -32,6 +32,7 @@ import java.util.GregorianCalendar;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -60,7 +61,6 @@ public class IdsContractAgreementToContractAgreementTransformerTest {
         idsPermission = new de.fraunhofer.iais.eis.PermissionBuilder().build();
         idsProhibition = new de.fraunhofer.iais.eis.ProhibitionBuilder().build();
         idsDuty = new de.fraunhofer.iais.eis.DutyBuilder().build();
-        // mocks
         var idsContractAgreement = new de.fraunhofer.iais.eis.ContractAgreementBuilder(AGREEMENT_ID)
                 ._provider_(PROVIDER_URI)
                 ._consumer_(CONSUMER_URI)
@@ -71,7 +71,7 @@ public class IdsContractAgreementToContractAgreementTransformerTest {
                 ._contractEnd_(CONTRACT_END)
                 ._contractDate_(SIGNING_DATE)
                 .build();
-        Asset asset = Asset.Builder.newInstance().build();
+        var asset = Asset.Builder.newInstance().build();
         input = ContractTransformerInput.Builder.newInstance().contract(idsContractAgreement).asset(asset).build();
         context = mock(TransformerContext.class);
     }
@@ -99,9 +99,9 @@ public class IdsContractAgreementToContractAgreementTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        Permission edcPermission = mock(Permission.class);
-        Prohibition edcProhibition = mock(Prohibition.class);
-        Duty edcObligation = mock(Duty.class);
+        var edcPermission = mock(Permission.class);
+        var edcProhibition = mock(Prohibition.class);
+        var edcObligation = mock(Duty.class);
 
         when(context.transform(eq(idsPermission), eq(Permission.class))).thenReturn(edcPermission);
         when(context.transform(eq(idsProhibition), eq(Prohibition.class))).thenReturn(edcProhibition);
@@ -109,15 +109,13 @@ public class IdsContractAgreementToContractAgreementTransformerTest {
 
         var result = transformer.transform(input, context);
 
-        Assertions.assertNotNull(result);
-        Assertions.assertNotNull(result.getPolicy());
-        var policy = result.getPolicy();
-        Assertions.assertEquals(1, policy.getObligations().size());
-        Assertions.assertEquals(edcObligation, policy.getObligations().get(0));
-        Assertions.assertEquals(1, policy.getPermissions().size());
-        Assertions.assertEquals(edcPermission, policy.getPermissions().get(0));
-        Assertions.assertEquals(1, policy.getProhibitions().size());
-        Assertions.assertEquals(edcProhibition, policy.getProhibitions().get(0));
+        assertThat(result).isNotNull();
+        assertThat(result.getPolicy()).isNotNull().satisfies(policy -> {
+            assertThat(policy.getObligations()).hasSize(1).containsExactly(edcObligation);
+            assertThat(policy.getPermissions()).hasSize(1).containsExactly(edcPermission);
+            assertThat(policy.getProhibitions()).hasSize(1).containsExactly(edcProhibition);
+        });
+        assertThat(result.getContractAgreement()).isNotNull();
         verify(context).transform(eq(idsPermission), eq(Permission.class));
         verify(context).transform(eq(idsProhibition), eq(Prohibition.class));
         verify(context).transform(eq(idsDuty), eq(Duty.class));

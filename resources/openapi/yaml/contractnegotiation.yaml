@@ -2,6 +2,8 @@ openapi: 3.0.1
 paths:
   /contractnegotiations/{id}/cancel:
     post:
+      tags:
+      - Contract Negotiation
       operationId: cancelNegotiation
       parameters:
       - name: id
@@ -16,6 +18,8 @@ paths:
             application/json: {}
   /contractnegotiations/{id}/decline:
     post:
+      tags:
+      - Contract Negotiation
       operationId: declineNegotiation
       parameters:
       - name: id
@@ -30,6 +34,8 @@ paths:
             application/json: {}
   /contractnegotiations/{id}/agreement:
     get:
+      tags:
+      - Contract Negotiation
       operationId: getAgreementForNegotiation
       parameters:
       - name: id
@@ -46,6 +52,8 @@ paths:
                 $ref: '#/components/schemas/ContractAgreementDto'
   /contractnegotiations/{id}:
     get:
+      tags:
+      - Contract Negotiation
       operationId: getNegotiation
       parameters:
       - name: id
@@ -62,6 +70,8 @@ paths:
                 $ref: '#/components/schemas/ContractNegotiationDto'
   /contractnegotiations/{id}/state:
     get:
+      tags:
+      - Contract Negotiation
       operationId: getNegotiationState
       parameters:
       - name: id
@@ -75,9 +85,11 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/NegotiationState'
   /contractnegotiations:
     get:
+      tags:
+      - Contract Negotiation
       operationId: getNegotiations
       parameters:
       - name: offset
@@ -115,6 +127,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/ContractNegotiationDto'
     post:
+      tags:
+      - Contract Negotiation
       operationId: initiateContractNegotiation
       requestBody:
         content:
@@ -127,7 +141,7 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/NegotiationId'
 components:
   schemas:
     ContractAgreementDto:
@@ -172,6 +186,16 @@ components:
           enum:
           - CONSUMER
           - PROVIDER
+    NegotiationState:
+      type: object
+      properties:
+        state:
+          type: string
+    NegotiationId:
+      type: object
+      properties:
+        id:
+          type: string
     Action:
       type: object
       properties:
@@ -191,6 +215,9 @@ components:
       discriminator:
         propertyName: edctype
     ContractOfferDescription:
+      required:
+      - assetId
+      - offerId
       type: object
       properties:
         offerId:
@@ -223,6 +250,11 @@ components:
         consequence:
           $ref: '#/components/schemas/Duty'
     NegotiationInitiateRequestDto:
+      required:
+      - connectorAddress
+      - connectorId
+      - offer
+      - protocol
       type: object
       properties:
         connectorAddress:

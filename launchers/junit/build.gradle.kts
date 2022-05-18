@@ -20,6 +20,7 @@ plugins {
 
 
 val jupiterVersion: String by project
+val assertj: String by project
 
 dependencies {
     api(project(":spi"))
@@ -29,6 +30,7 @@ dependencies {
 
     testFixturesImplementation(project(":common:util"))
 
+    testFixturesImplementation("org.assertj:assertj-core:${assertj}")
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
 }

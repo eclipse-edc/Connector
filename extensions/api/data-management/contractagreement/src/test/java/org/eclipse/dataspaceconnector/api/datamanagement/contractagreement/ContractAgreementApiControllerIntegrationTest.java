@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractagreement;
 
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -31,10 +30,8 @@ import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.CoreMatchers.is;
-import static org.mockito.Mockito.mock;
 
 @ExtendWith(EdcExtension.class)
 public class ContractAgreementApiControllerIntegrationTest {
@@ -73,6 +70,14 @@ public class ContractAgreementApiControllerIntegrationTest {
                 .statusCode(200)
                 .contentType(JSON)
                 .body("size()", Matchers.is(1));
+    }
+
+    @Test
+    void getAll_invalidQuery() {
+        baseRequest()
+                .get("/contractagreements?limit=1&offset=-1&filter=&sortField=")
+                .then()
+                .statusCode(400);
     }
 
     @Test
@@ -120,7 +125,7 @@ public class ContractAgreementApiControllerIntegrationTest {
                 .providerAgentId(UUID.randomUUID().toString())
                 .consumerAgentId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
+                .policyId("policyId")
                 .build();
     }
 

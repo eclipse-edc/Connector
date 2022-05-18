@@ -14,10 +14,12 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.client;
 
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.client.DataPlaneTransferClient;
 
 /**
  * Implementation of a {@link DataPlaneTransferClient} that uses a local {@link org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager},
@@ -31,6 +33,7 @@ public class EmbeddedDataPlaneTransferClient implements DataPlaneTransferClient 
         this.dataPlaneManager = dataPlaneManager;
     }
 
+    @WithSpan
     @Override
     public StatusResult<Void> transfer(DataFlowRequest request) {
         var result = dataPlaneManager.validate(request);

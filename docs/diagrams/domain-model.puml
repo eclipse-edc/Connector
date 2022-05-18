@@ -1,0 +1,87 @@
+@startuml
+'https://plantuml.com/object-diagram
+
+skinParam NoteBackgroundColor WhiteSmoke
+skinParam NoteFontColor Black
+skinParam ParticipantBackgroundColor WhiteSmoke
+skinParam ActorBackgroundColor WhiteSmoke
+skinParam AgentBackgroundColor White
+skinParam AgentBorderColor SkyBlue
+skinparam shadowing false
+
+object "Policy" as policy {
+  Technically processable contract.
+  Based on the ODRL.
+  --Contains--
+  * Permitions
+  * Prohibitions
+  * Duties
+
+}
+
+object "Contract Offer" as contract_offer{
+   Dynamically generated and \nnot persisted anywhere.
+   --Contains--
+   * Asset
+   * Policy
+}
+
+object "Contract Negotiation" as contractNegotiation{
+    Represent the negotiation process.
+    --Contains--
+    * Final contract agreement
+    * Contract offers
+}
+
+object "Contract Agreement" as contractAgreement{
+    Describes the signedcontract\nbetween the consumer and provider.
+    --Contains--
+    * Asset
+    * Policy
+}
+
+object "Resource" as resource{
+    Describes resources of the data transfer.
+}
+
+object "Asset" as asset{
+    Describes data which should be transferred.
+}
+
+object "Contract Definition" as contractDefinition{
+    Template for contract offers.
+    --Contains--
+    * Access Policy
+    * Contract Policy
+    * Asset selector
+}
+
+object "Data Address" as dataAddress{
+    Describes datasource for Asset-Data.
+}
+
+object "Data Request" as dataRequest{
+    -- Contains --
+    * AssetID
+    * ContractID
+    * dataDestination
+}
+
+object "Transfer Process" as transferProcess{
+    Runs through a state machine.
+    Symbolizes the data transfer on the control plane.
+}
+
+contractDefinition --> policy: Contains
+contractDefinition --> asset: Selects (0..*) \nvia AssetSelector
+contract_offer --> contractAgreement: Transferred into\n(after the agreement)
+asset --> dataAddress: Describes where the\ndata comes from
+contractDefinition --> contract_offer: Generates x \n contract offers
+contractNegotiation --> contractAgreement: Contains the\nfinal agreement
+transferProcess --> resource: Provisions,\ntransfers,\nand deprovisions
+transferProcess --> dataRequest: Contains
+dataRequest --> dataAddress: Describes where the\ndata should be copied
+contractNegotiation --> contract_offer: Contains history of\nseveral offers
+
+@enduml
+

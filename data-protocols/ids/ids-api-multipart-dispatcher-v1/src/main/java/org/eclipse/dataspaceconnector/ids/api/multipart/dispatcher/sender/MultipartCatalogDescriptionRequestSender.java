@@ -29,7 +29,6 @@ import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
 import org.jetbrains.annotations.NotNull;
@@ -87,13 +86,13 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
             throw new EdcException("Payload was null but connector self-description was expected");
         }
 
-        BaseConnector baseConnector = getBaseConnector(getObjectMapper(), parts);
+        var baseConnector = getBaseConnector(getObjectMapper(), parts);
         if (baseConnector.getResourceCatalog() == null || baseConnector.getResourceCatalog().isEmpty()) {
             throw new EdcException("Resource catalog is null in connector self-description, should not happen");
         }
 
         // If there is no resource catalog in connector self-description, we initialize a new empty resource catalog.
-        ResourceCatalog resourceCatalog = baseConnector.getResourceCatalog().stream()
+        var resourceCatalog = baseConnector.getResourceCatalog().stream()
                 .findFirst()
                 .orElse(new ResourceCatalogBuilder().build());
 
@@ -101,7 +100,7 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
             createOfferResourcesFromProperties(resourceCatalog, getObjectMapper());
         }
 
-        Result<Catalog> transformResult = getTransformerRegistry().transform(resourceCatalog, Catalog.class);
+        var transformResult = getTransformerRegistry().transform(resourceCatalog, Catalog.class);
 
         if (transformResult.failed()) {
             throw new EdcException(String.format("Could not transform ids data catalog: %s", String.join(", ", transformResult.getFailureMessages())));

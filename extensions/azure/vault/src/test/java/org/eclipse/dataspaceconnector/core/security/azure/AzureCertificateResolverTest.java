@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 class AzureCertificateResolverTest {
 
-    static String TEST = "-----BEGIN CERTIFICATE-----" +
+    static final String TEST = "-----BEGIN CERTIFICATE-----" +
             "MIICVjCCAb8CAg37MA0GCSqGSIb3DQEBBQUAMIGbMQswCQYDVQQGEwJKUDEOMAwG" +
             "A1UECBMFVG9reW8xEDAOBgNVBAcTB0NodW8ta3UxETAPBgNVBAoTCEZyYW5rNERE" +
             "MRgwFgYDVQQLEw9XZWJDZXJ0IFN1cHBvcnQxGDAWBgNVBAMTD0ZyYW5rNEREIFdl" +

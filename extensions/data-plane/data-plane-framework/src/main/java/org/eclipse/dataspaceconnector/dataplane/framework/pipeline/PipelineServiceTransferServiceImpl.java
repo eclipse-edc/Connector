@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.dataplane.framework.pipeline;
 
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
@@ -43,6 +44,7 @@ public class PipelineServiceTransferServiceImpl implements TransferService {
         return pipelineService.validate(request);
     }
 
+    @WithSpan
     @Override
     public CompletableFuture<StatusResult<Void>> transfer(DataFlowRequest request) {
         return pipelineService.transfer(request);

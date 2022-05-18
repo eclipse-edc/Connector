@@ -50,7 +50,7 @@ public class StateMachine {
         this.name = name;
         this.monitor = monitor;
         this.waitStrategy = waitStrategy;
-        this.executor = instrumentation.instrument(
+        executor = instrumentation.instrument(
                 Executors.newSingleThreadScheduledExecutor(r -> {
                     var thread = Executors.defaultThreadFactory().newThread(r);
                     thread.setName("StateMachine-" + name);
@@ -68,17 +68,10 @@ public class StateMachine {
         return submit(0L);
     }
 
-    @NotNull
-    private Future<?> submit(long delayMillis) {
-        monitor.debug(format("StateMachine [%s] delaying for %d ms", name, delayMillis));
-        return executor.schedule(loop(), delayMillis, MILLISECONDS);
-    }
-
     /**
      * Stop the loop gracefully
      *
-     * @return a future that will complete when the loop is fully stopped.
-     *         The content of the future will be true if stop happened before the timeout, false elsewhere.
+     * @return a future that will complete when the loop is fully stopped. The content of the future will be true if stop happened before the timeout, false elsewhere.
      */
     public CompletableFuture<Boolean> stop() {
         active.set(false);
@@ -100,6 +93,11 @@ public class StateMachine {
      */
     public boolean isActive() {
         return active.get();
+    }
+
+    @NotNull
+    private Future<?> submit(long delayMillis) {
+        return executor.schedule(loop(), delayMillis, MILLISECONDS);
     }
 
     private Runnable loop() {
@@ -139,7 +137,7 @@ public class StateMachine {
         private final StateMachine loop;
 
         private Builder(String name, Monitor monitor, ExecutorInstrumentation instrumentation, WaitStrategy waitStrategy) {
-            this.loop = new StateMachine(name, monitor, instrumentation, waitStrategy);
+            loop = new StateMachine(name, monitor, instrumentation, waitStrategy);
         }
 
         public static Builder newInstance(String name, Monitor monitor, ExecutorInstrumentation instrumentation, WaitStrategy waitStrategy) {

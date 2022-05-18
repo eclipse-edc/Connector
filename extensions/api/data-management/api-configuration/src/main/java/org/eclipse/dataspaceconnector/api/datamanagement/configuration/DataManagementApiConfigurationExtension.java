@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 
 @Provides(DataManagementApiConfiguration.class)
 public class DataManagementApiConfigurationExtension implements ServiceExtension {
@@ -33,8 +34,14 @@ public class DataManagementApiConfigurationExtension implements ServiceExtension
 
     @Inject
     private WebService webService;
-    @Inject
+
+    @Inject(required = false)
     private AuthenticationService service;
+
+    @Override
+    public String name() {
+        return "Data Management API configuration";
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -61,7 +68,8 @@ public class DataManagementApiConfigurationExtension implements ServiceExtension
         // the DataManagementApiConfiguration tells all DataManagementApi controllers under which context alias
         // they need to register their resources: either `default` or `data`
         context.registerService(DataManagementApiConfiguration.class, new DataManagementApiConfiguration(contextAlias));
-        webService.registerResource(contextAlias, new AuthenticationRequestFilter(service));
+        var srv = ofNullable(service).orElse(headers -> true);
+        webService.registerResource(contextAlias, new AuthenticationRequestFilter(srv));
         webService.registerResource(contextAlias, new EdcApiExceptionMapper());
     }
 }

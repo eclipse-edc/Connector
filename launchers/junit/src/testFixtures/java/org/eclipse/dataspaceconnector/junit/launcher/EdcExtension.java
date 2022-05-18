@@ -21,7 +21,6 @@ import org.eclipse.dataspaceconnector.boot.system.ServiceLocatorImpl;
 import org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -106,13 +105,6 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
     }
 
     @Override
-    protected void initializeVault(ServiceExtensionContext context) {
-        if (!serviceMocks.containsKey(Vault.class)) {
-            super.initializeVault(context);
-        }
-    }
-
-    @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         var type = parameterContext.getParameter().getParameterizedType();
         if (type.equals(EdcExtension.class)) {
@@ -146,7 +138,7 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
         private final ServiceLocator delegate = new ServiceLocatorImpl();
         private final LinkedHashMap<Class<? extends SystemExtension>, List<SystemExtension>> systemExtensions;
 
-        public MultiSourceServiceLocator() {
+        MultiSourceServiceLocator() {
             this.systemExtensions  = new LinkedHashMap<>();
         }
 

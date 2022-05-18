@@ -65,13 +65,13 @@ public class HttpDataFlowController implements DataFlowController {
     }
 
     @Override
-    public @NotNull StatusResult<String>  initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
+    public @NotNull StatusResult<Void> initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
         var dataFlowRequest = createRequest(dataRequest, contentAddress);
         var requestBody = RequestBody.create(typeManager.writeValueAsString(dataFlowRequest), JSON);
         var request = new Request.Builder().url(transferEndpoint).post(requestBody).build();
         try (var response = clientSupplier.get().newCall(request).execute()) {
             if (response.code() == 200) {
-                return StatusResult.success("");
+                return StatusResult.success();
             } else if (response.code() >= 500 && response.code() <= 504) {
                 // retry
                 return StatusResult.failure(ERROR_RETRY, "Received error code: " + response.code());

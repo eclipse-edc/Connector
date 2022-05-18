@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
 public class ContractNegotiationServiceImpl implements ContractNegotiationService {
@@ -66,7 +67,8 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
 
     @Override
     public ContractAgreement getForNegotiation(String negotiationId) {
-        return transactionContext.execute(() -> store.findContractAgreement(negotiationId));
+        return transactionContext.execute(() -> ofNullable(store.find(negotiationId))
+                .map(ContractNegotiation::getContractAgreement).orElse(null));
     }
 
     @Override

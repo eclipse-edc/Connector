@@ -20,13 +20,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Specifies which feature a certain class, package or modules provides.
- * Feature must be namespaced in the form "edc:XXX:YYY:ZZZ".
+ * Annotation, that specifies on the type level which feature a certain class provides.
  * <p>
- * If a referenced feature class is <em>not</em> annotated, the dependency injection mechanism will use the feature's fully
- * qualified class name by default.
  * <p>
- * All fields that are marked with {@link Inject} must be @Provided by at least one extension.
+ * All fields that are marked with {@link Inject} must be @Provides-ed by at least one extension.
  */
 @Target({ ElementType.TYPE, ElementType.PACKAGE, ElementType.MODULE })
 @Retention(RetentionPolicy.RUNTIME)

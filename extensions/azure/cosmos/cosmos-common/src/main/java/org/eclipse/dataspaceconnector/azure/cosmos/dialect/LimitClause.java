@@ -22,7 +22,7 @@ class LimitClause implements Clause {
 
     private final Integer limit;
 
-    public LimitClause(Integer limit) {
+    LimitClause(Integer limit) {
         this.limit = limit;
     }
 

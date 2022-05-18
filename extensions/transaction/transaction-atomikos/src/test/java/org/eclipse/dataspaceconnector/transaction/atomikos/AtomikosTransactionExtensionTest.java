@@ -52,8 +52,7 @@ class AtomikosTransactionExtensionTest {
 
         when(extensionContext.getConfig(isA(String.class))).thenAnswer(a -> createDataSourceConfig());
         when(extensionContext.getConfig()).thenAnswer(a -> createAtomikosConfig());
-        when(extensionContext.getMonitor()).thenReturn(new Monitor() {
-        });
+        when(extensionContext.getMonitor()).thenReturn(mock(Monitor.class));
 
         var dsRegistry = new DataSourceRegistry[1];
         doAnswer(invocation -> {

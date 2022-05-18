@@ -15,6 +15,8 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.policy;
 
+import jakarta.validation.Valid;
+import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -22,60 +24,77 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.dataspaceconnector.api.datamanagement.policy.model.PolicyDefinitionDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicyService;
+import org.eclipse.dataspaceconnector.api.exception.ObjectExistsException;
+import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
+import org.eclipse.dataspaceconnector.api.result.ServiceResult;
+import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static java.lang.String.format;
 
-@Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
+@Consumes({ MediaType.APPLICATION_JSON })
 @Path("/policies")
 public class PolicyApiController implements PolicyApi {
-    private final Monitor monitor;
 
-    public PolicyApiController(Monitor monitor) {
+    private final Monitor monitor;
+    private final PolicyService policyService;
+    private final DtoTransformerRegistry transformerRegistry;
+
+    public PolicyApiController(Monitor monitor, PolicyService policyService, DtoTransformerRegistry transformerRegistry) {
         this.monitor = monitor;
+        this.policyService = policyService;
+        this.transformerRegistry = transformerRegistry;
     }
 
     @GET
     @Override
-    public List<PolicyDefinitionDto> getAllPolicies(@QueryParam("offset") Integer offset,
-                                                    @QueryParam("limit") Integer limit,
-                                                    @QueryParam("filter") String filterExpression,
-                                                    @QueryParam("sort") SortOrder sortOrder,
-                                                    @QueryParam("sortField") String sortField) {
-        var spec = QuerySpec.Builder.newInstance()
-                .offset(offset)
-                .limit(limit)
-                .sortField(sortField)
-                .filter(filterExpression)
-                .sortOrder(sortOrder).build();
-        monitor.debug(format("get all policys %s", spec));
+    public List<Policy> getAllPolicies(@Valid @BeanParam QuerySpecDto querySpecDto) {
+        var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
+        if (result.failed()) {
+            monitor.warning("Error transforming QuerySpec: " + String.join(", ", result.getFailureMessages()));
+            throw new IllegalArgumentException("Cannot transform QuerySpecDto object");
+        }
 
-        return Collections.emptyList();
+        var spec = result.getContent();
+
+        monitor.debug(format("get all policies %s", spec));
+
+        return new ArrayList<>(policyService.query(spec));
 
     }
 
     @GET
     @Path("{id}")
     @Override
-    public PolicyDefinitionDto getPolicy(@PathParam("id") String id) {
-        monitor.debug(format("get policy with ID %s", id));
-
-        return null;
+    public Policy getPolicy(@PathParam("id") String id) {
+        monitor.debug(format("Attempting to return policy with ID %s", id));
+        return Optional.of(id)
+                .map(it -> policyService.findById(id))
+                .orElseThrow(() -> new ObjectNotFoundException(Policy.class, id));
     }
 
     @POST
     @Override
-    public void createPolicy(PolicyDefinitionDto dto) {
-        monitor.debug("create new policy");
+    public void createPolicy(Policy policy) {
+
+        var result = policyService.create(policy);
+
+        if (result.succeeded()) {
+            monitor.debug(format("Policy created %s", policy.getUid()));
+        } else {
+            handleFailedResult(result, policy.getUid());
+        }
     }
 
     @DELETE
@@ -83,6 +102,23 @@ public class PolicyApiController implements PolicyApi {
     @Override
     public void deletePolicy(@PathParam("id") String id) {
         monitor.debug(format("Attempting to delete policy with id %s", id));
+        var result = policyService.deleteById(id);
+        if (result.succeeded()) {
+            monitor.debug(format("Policy deleted %s", id));
+        } else {
+            handleFailedResult(result, id);
+        }
+    }
+
+    private void handleFailedResult(ServiceResult<Policy> result, String id) {
+        switch (result.reason()) {
+            case NOT_FOUND:
+                throw new ObjectNotFoundException(Policy.class, id);
+            case CONFLICT:
+                throw new ObjectExistsException(Policy.class, id);
+            default:
+                throw new EdcException("unexpected error");
+        }
     }
 
 }

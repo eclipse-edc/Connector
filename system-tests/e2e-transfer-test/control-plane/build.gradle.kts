@@ -17,21 +17,17 @@ plugins {
 }
 
 dependencies {
-    api(project(":core"))
-    api(project(":data-protocols:ids"))
-    api(project(":extensions:filesystem:vault-fs"))
-    api(project(":extensions:http"))
-    api(project(":extensions:iam:iam-mock"))
-    api(project(":extensions:api:control"))
-    api(project(":extensions:in-memory:assetindex-memory"))
-    api(project(":extensions:in-memory:transfer-store-memory"))
-    api(project(":extensions:in-memory:negotiation-store-memory"))
-    api(project(":extensions:in-memory:contractdefinition-store-memory"))
-    api(project(":extensions:in-memory:policy-store-memory"))
+    implementation(project(":common:token-generation-lib"))
+    implementation(project(":core"))
+    implementation(project(":data-protocols:ids"))
+    implementation(project(":extensions:filesystem:vault-fs"))
+    implementation(project(":extensions:http"))
+    implementation(project(":extensions:iam:iam-mock"))
+    implementation(project(":extensions:api:data-management"))
+    implementation(project(":extensions:data-plane-transfer:data-plane-transfer-spi"))
+    implementation(project(":extensions:data-plane-transfer:data-plane-transfer-client"))
+    implementation(project(":extensions:data-plane-transfer:data-plane-transfer-sync"))
+    implementation(project(":extensions:data-plane-selector"))
+    implementation(project(":extensions:http-receiver"))
 
-    api(project(":extensions:data-plane-transfer:data-plane-transfer-spi"))
-    api(project(":extensions:data-plane-transfer:data-plane-transfer-core"))
-    api(project(":extensions:data-plane-transfer:data-plane-transfer-sync"))
-    api(project(":extensions:http-receiver"))
-    api(project(":common:token-generation-lib"))
 }

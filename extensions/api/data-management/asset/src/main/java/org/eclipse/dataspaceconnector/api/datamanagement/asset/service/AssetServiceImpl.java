@@ -27,7 +27,6 @@ import java.util.Collection;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
-import static org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset.PROPERTY_ID;
 
 public class AssetServiceImpl implements AssetService {
     private final AssetIndex index;

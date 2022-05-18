@@ -23,7 +23,7 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractN
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -36,12 +36,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
-import java.util.List;
-import java.util.stream.Stream;
 
 import static org.mockito.Mockito.mock;
 
@@ -51,6 +47,8 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
     private AssetLoader assetLoader;
     @Inject
     private ContractDefinitionStore contractDefinitionStore;
+    @Inject
+    private PolicyStore policyStore;
 
     @Override
     public String name() {
@@ -121,17 +119,20 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
                         .build())
                 .build();
 
+        policyStore.save(publicPolicy);
+        policyStore.save(publicPolicy2);
+
         ContractDefinition contractDefinition1 = ContractDefinition.Builder.newInstance()
                 .id("1")
-                .accessPolicy(publicPolicy)
-                .contractPolicy(publicPolicy)
+                .accessPolicyId(publicPolicy.getUid())
+                .contractPolicyId(publicPolicy.getUid())
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals("asset:prop:id", "1").build())
                 .build();
 
         ContractDefinition contractDefinition2 = ContractDefinition.Builder.newInstance()
                 .id("2")
-                .accessPolicy(publicPolicy2)
-                .contractPolicy(publicPolicy2)
+                .accessPolicyId(publicPolicy2.getUid())
+                .contractPolicyId(publicPolicy2.getUid())
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals("asset:prop:id", "2").build())
                 .build();
 
@@ -153,7 +154,7 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
 
         @Override
         public StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId,
-                                           ContractAgreement contract, String hash) {
+                                                           ContractAgreement agreement, Policy policy) {
             return null;
         }
 

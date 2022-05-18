@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
@@ -25,9 +26,11 @@ import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidation
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
@@ -49,7 +52,6 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.DECLINED;
@@ -60,6 +62,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -72,6 +75,7 @@ class ProviderContractNegotiationManagerImplTest {
     private final ContractNegotiationStore store = mock(ContractNegotiationStore.class);
     private final ContractValidationService validationService = mock(ContractValidationService.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
+    private final PolicyStore policyStore = mock(PolicyStore.class);
     private ProviderContractNegotiationManagerImpl negotiationManager;
 
     private final String correlationId = "correlationId";
@@ -91,6 +95,7 @@ class ProviderContractNegotiationManagerImplTest {
                 .commandRunner(commandRunner)
                 .observable(mock(ContractNegotiationObservable.class))
                 .store(store)
+                .policyStore(policyStore)
                 .build();
     }
 
@@ -365,7 +370,31 @@ class ProviderContractNegotiationManagerImplTest {
 
     @Test
     void confirming_shouldSendAgreementAndTransitionConfirmed() throws InterruptedException {
-        var negotiation = contractNegotiationBuilder().state(CONFIRMING.code()).contractOffer(contractOffer()).build();
+        var negotiation = contractNegotiationBuilder()
+                .state(CONFIRMING.code())
+                .contractOffer(contractOffer())
+                .contractAgreement(contractAgreementBuilder().policyId("policyId").build())
+                .build();
+        when(store.nextForState(eq(CONFIRMING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(dispatcherRegistry.send(any(), any(), any())).thenReturn(completedFuture(null));
+        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(policyStore.findById("policyId")).thenReturn(Policy.Builder.newInstance().id("policyId").build());
+        var latch = countDownOnUpdateLatch();
+
+        negotiationManager.start();
+
+        assertThat(latch.await(5, SECONDS)).isTrue();
+        verify(store).save(argThat(p -> p.getState() == CONFIRMED.code()));
+        verify(dispatcherRegistry, only()).send(any(), isA(ContractAgreementRequest.class), any());
+        verify(policyStore).findById("policyId");
+    }
+
+    @Test
+    void confirming_shouldSendNewAgreementAndTransitionConfirmed() throws InterruptedException {
+        var negotiation = contractNegotiationBuilder()
+                .state(CONFIRMING.code())
+                .contractOffer(contractOffer())
+                .build();
         when(store.nextForState(eq(CONFIRMING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any(), any())).thenReturn(completedFuture(null));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
@@ -375,7 +404,7 @@ class ProviderContractNegotiationManagerImplTest {
 
         assertThat(latch.await(5, SECONDS)).isTrue();
         verify(store).save(argThat(p -> p.getState() == CONFIRMED.code()));
-        verify(dispatcherRegistry, only()).send(any(), any(), any());
+        verify(dispatcherRegistry, only()).send(any(), isA(ContractAgreementRequest.class), any());
     }
 
     @Test
@@ -423,9 +452,18 @@ class ProviderContractNegotiationManagerImplTest {
                 .stateTimestamp(Instant.now().toEpochMilli());
     }
 
+    private ContractAgreement.Builder contractAgreementBuilder() {
+        return ContractAgreement.Builder.newInstance()
+                .id(ContractId.createContractId(UUID.randomUUID().toString()))
+                .providerAgentId("any")
+                .consumerAgentId("any")
+                .assetId("default")
+                .policyId("default");
+    }
+
     private ContractOffer contractOffer() {
         return ContractOffer.Builder.newInstance()
-                .id("id:id")
+                .id(ContractId.createContractId("1"))
                 .policy(Policy.Builder.newInstance().build())
                 .asset(Asset.Builder.newInstance().id("assetId").build())
                 .build();

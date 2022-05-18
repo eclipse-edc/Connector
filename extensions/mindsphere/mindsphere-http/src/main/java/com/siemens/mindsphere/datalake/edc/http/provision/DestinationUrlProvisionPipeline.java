@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2021, 2022 Siemens AG
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package com.siemens.mindsphere.datalake.edc.http.provision;
 
 import com.siemens.mindsphere.datalake.edc.http.DataLakeClient;
@@ -17,15 +31,15 @@ public class DestinationUrlProvisionPipeline {
     }
 
     private final RetryPolicy<Object> retryPolicy;
-    private Monitor monitor;
-    private DataLakeClient dataLakeClient;
+    private final Monitor monitor;
+    private final DataLakeClient dataLakeClient;
 
     public CompletableFuture<DestinationUrlProvisionResponse> provision(DestinationUrlResourceDefinition resourceDefinition) {
         monitor.info("Provisioning destination HTTP url for path: " + resourceDefinition.getPath());
         return Failsafe.with(retryPolicy)
-                .getStageAsync(() -> CompletableFuture.supplyAsync(() -> dataLakeClient.getUploadUrl(resourceDefinition.getPath()))
+                .getAsync(() -> dataLakeClient.getUploadUrl(resourceDefinition.getPath()))
                         .thenApply(url -> new DestinationUrlProvisionResponse(resourceDefinition.getPath(),
-                                url.toString())));
+                                url.toString()));
     }
 
     static class Builder {
@@ -57,5 +71,9 @@ public class DestinationUrlProvisionPipeline {
             Objects.requireNonNull(monitor);
             return new DestinationUrlProvisionPipeline(retryPolicy, monitor, dataLakeClient);
         }
+    }
+
+    public CompletableFuture<?> deprovision(DestinationUrlProvisionedResource provisionedResource) {
+        return null;
     }
 }

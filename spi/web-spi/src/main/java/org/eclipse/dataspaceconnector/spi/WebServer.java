@@ -14,21 +14,18 @@
 
 package org.eclipse.dataspaceconnector.spi;
 
-import org.eclipse.dataspaceconnector.spi.system.Feature;
-
 /**
  * Manages the runtime web (HTTP) server.
  */
-@Feature("edc:core:base:webserver")
 public interface WebServer {
-    
+
     /**
      * Adds a new port mapping and thus a new API context to this web server.
      *
      * @param contextName the name of the API context.
-     * @param port the port of the API context.
-     * @param path the path of the API context.
+     * @param port        the port of the API context.
+     * @param path        the path of the API context.
      */
     void addPortMapping(String contextName, int port, String path);
-    
+
 }
