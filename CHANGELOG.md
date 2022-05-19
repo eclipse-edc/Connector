@@ -14,6 +14,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Bugfixing DataManagementApi
 * Build improvements
 * Improvements to Dependency Resolution
+* Improve and extend documentation
 
 ### Detailed Changes
 
