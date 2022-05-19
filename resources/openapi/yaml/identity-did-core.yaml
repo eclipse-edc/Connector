@@ -1,43 +1,7 @@
 openapi: 3.0.1
 paths:
-  /identity-hub/query-commits:
-    post:
-      tags:
-      - Identity Hub
-      operationId: queryCommits
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: string
-  /identity-hub/query-objects:
-    post:
-      tags:
-      - Identity Hub
-      operationId: queryObjects
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: string
   /identity-hub/collections:
     post:
-      tags:
-      - Identity Hub
       operationId: write
       requestBody:
         content:
@@ -46,15 +10,15 @@ paths:
               type: string
       responses:
         default:
-          description: default response
           content:
             application/json:
               schema:
                 type: string
-  /identity-hub/collections-commit:
-    post:
+          description: default response
       tags:
       - Identity Hub
+  /identity-hub/collections-commit:
+    post:
       operationId: writeCommit
       requestBody:
         content:
@@ -65,6 +29,42 @@ paths:
                 type: string
       responses:
         default:
-          description: default response
           content:
             application/json: {}
+          description: default response
+      tags:
+      - Identity Hub
+  /identity-hub/query-commits:
+    post:
+      operationId: queryCommits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: string
+          description: default response
+      tags:
+      - Identity Hub
+  /identity-hub/query-objects:
+    post:
+      operationId: queryObjects
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: string
+          description: default response
+      tags:
+      - Identity Hub

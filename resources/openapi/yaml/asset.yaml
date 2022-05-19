@@ -2,47 +2,45 @@ openapi: 3.0.1
 paths:
   /assets:
     get:
-      tags:
-      - Asset
       operationId: getAllAssets
       parameters:
-      - name: offset
-        in: query
+      - in: query
+        name: offset
         schema:
           type: integer
           format: int32
-      - name: limit
-        in: query
+      - in: query
+        name: limit
         schema:
           type: integer
           format: int32
-      - name: filter
-        in: query
+      - in: query
+        name: filter
         schema:
           type: string
-      - name: sort
-        in: query
+      - in: query
+        name: sort
         schema:
           type: string
           enum:
           - ASC
           - DESC
-      - name: sortField
-        in: query
+      - in: query
+        name: sortField
         schema:
           type: string
       responses:
         default:
-          description: default response
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/AssetDto'
-    post:
+          description: default response
       tags:
       - Asset
+    post:
       operationId: createAsset
       requestBody:
         content:
@@ -51,63 +49,65 @@ paths:
               $ref: '#/components/schemas/AssetEntryDto'
       responses:
         default:
-          description: default response
           content:
             application/json: {}
-  /assets/{id}:
-    get:
+          description: default response
       tags:
       - Asset
-      operationId: getAsset
+  /assets/{id}:
+    delete:
+      operationId: removeAsset
       parameters:
-      - name: id
-        in: path
+      - in: path
+        name: id
         required: true
         schema:
           type: string
       responses:
         default:
+          content:
+            application/json: {}
           description: default response
+      tags:
+      - Asset
+    get:
+      operationId: getAsset
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetDto'
-    delete:
+          description: default response
       tags:
       - Asset
-      operationId: removeAsset
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
 components:
   schemas:
     AssetDto:
-      required:
-      - properties
       type: object
       properties:
         properties:
           type: object
           additionalProperties:
             type: object
-    AssetEntryDto:
       required:
-      - asset
-      - dataAddress
+      - properties
+    AssetEntryDto:
       type: object
       properties:
         asset:
           $ref: '#/components/schemas/AssetDto'
         dataAddress:
           $ref: '#/components/schemas/DataAddressDto'
+      required:
+      - asset
+      - dataAddress
     DataAddressDto:
       type: object
       properties:
