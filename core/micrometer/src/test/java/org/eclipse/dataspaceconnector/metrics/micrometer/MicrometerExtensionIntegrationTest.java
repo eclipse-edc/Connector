@@ -19,6 +19,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.common.annotations.OpenTelemetryIntegrationTest;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.junit.launcher.OpenTelemetryExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 
 @OpenTelemetryIntegrationTest
-@ExtendWith(EdcExtension.class)
+@ExtendWith(value = {EdcExtension.class, OpenTelemetryExtension.class})
 public class MicrometerExtensionIntegrationTest {
     static final int CONNECTOR_PORT = getFreePort();
     static final String HEALTH_ENDPOINT = String.format("http://localhost:%s/api/check/health", CONNECTOR_PORT);

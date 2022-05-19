@@ -33,7 +33,7 @@ public class DataPlaneS3Extension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Data Plane Azure Storage";
+        return "Data Plane S3 Storage";
     }
 
     @Override
