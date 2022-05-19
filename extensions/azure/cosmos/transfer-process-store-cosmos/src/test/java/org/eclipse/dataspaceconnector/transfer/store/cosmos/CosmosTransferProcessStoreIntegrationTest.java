@@ -169,7 +169,7 @@ class CosmosTransferProcessStoreIntegrationTest {
         String id1 = UUID.randomUUID().toString();
         var tp = createTransferProcess(id1, TransferProcessStates.INITIAL);
         TransferProcessDocument item = new TransferProcessDocument(tp, partitionKey);
-        Duration leaseDuration = Duration.ofSeconds(2);
+        Duration leaseDuration = Duration.ofSeconds(10);
         item.acquireLease("another-connector", leaseDuration);
         container.upsertItem(item);
 
@@ -177,7 +177,7 @@ class CosmosTransferProcessStoreIntegrationTest {
         assertThat(processesBeforeLeaseBreak).isEmpty();
 
         await()
-                .atMost(Duration.ofSeconds(10))
+                .atMost(Duration.ofSeconds(20))
                 .pollInterval(Duration.ofMillis(500))
                 .pollDelay(leaseDuration) //give the lease time to expire
                 .untilAsserted(() -> {
@@ -564,7 +564,7 @@ class CosmosTransferProcessStoreIntegrationTest {
 
         var query = QuerySpec.Builder.newInstance().filter("something contains other").build();
 
-        assertThatThrownBy(() -> store.findAll(query)).isInstanceOfAny(IllegalArgumentException.class).hasMessage("Cannot build SqlParameter for operator: contains");
+        assertThatThrownBy(() -> store.findAll(query)).isInstanceOfAny(IllegalArgumentException.class).hasMessage("Cannot build WHERE clause, reason: unsupported operator contains");
     }
 
     @Test

@@ -34,6 +34,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Add component tests coverage to the codecov coverage report (#1246)
 * Postgresql end to end test (#1278)
 * Add signing/publishing config (#1147)
+* Verify OpenAPI definitions (#1312)
 
 #### Changed
 
@@ -51,6 +52,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Sanitize log messages (#1295)
 * Improve CosmosDB statement parser (#1282)
 * Move `provide` phase of the extension loading process before the `initialize` one (#1318)
+* Update `slf4j-api` to `2.0.0-alpha7` (#1328)
 
 #### Removed
 
@@ -116,6 +118,8 @@ in the detailed section referring to by linking pull requests or issues.
 * CosmosDb based `PolicyStore` (#826)
 * Implement SQL-based PolicyStore (#866)
 * Http Provisioner Webhook endpoint (#1039)
+* Add Junit tags to categorize tests (#868)
+* Add Azure Data Factory extension (#910)
 * Add `PolicyService` and Rest endpoints in Data Management API (#1025)
 * Add dependency checks (#1000)
 * Add `ContractAgreement` query methods on `ContractNegotiationStore` (#1044)

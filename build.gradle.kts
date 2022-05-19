@@ -198,6 +198,7 @@ allprojects {
         tasks.withType<io.swagger.v3.plugins.gradle.tasks.ResolveTask> {
             outputFileName = project.name
             outputFormat = io.swagger.v3.plugins.gradle.tasks.ResolveTask.Format.YAML
+            sortOutput = true
             prettyPrint = true
             classpath = java.sourceSets["main"].runtimeClasspath
             buildClasspath = classpath

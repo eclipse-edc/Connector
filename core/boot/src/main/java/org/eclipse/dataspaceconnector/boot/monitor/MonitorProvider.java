@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
 
@@ -26,6 +27,7 @@ import org.slf4j.helpers.NOPMDCAdapter;
 import org.slf4j.spi.MDCAdapter;
 import org.slf4j.spi.SLF4JServiceProvider;
 
+
 /**
  * Bridges from SLF4J to a monitor.
  */
@@ -33,7 +35,6 @@ public class MonitorProvider implements SLF4JServiceProvider {
     private static Monitor instance = new ConsoleMonitor();
     private final IMarkerFactory markerFactory = new BasicMarkerFactory();
     private final MDCAdapter mdcAdapter = new NOPMDCAdapter();
-
 
     public static void setInstance(Monitor monitor) {
         instance = monitor;
@@ -55,7 +56,7 @@ public class MonitorProvider implements SLF4JServiceProvider {
     }
 
     @Override
-    public String getRequesteApiVersion() {
+    public String getRequestedApiVersion() {
         return "1.8";
     }
 

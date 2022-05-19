@@ -18,23 +18,30 @@ import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
-import org.eclipse.dataspaceconnector.system.tests.utils.TransferRequestFactory;
-import org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils;
+import org.eclipse.dataspaceconnector.system.tests.utils.TransferInitiationData;
+import org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationConfiguration;
 
+import java.time.Duration;
 import java.util.Map;
 
 import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils.PROVIDER_ASSET_ID;
 
-public class BlobTransferRequestFactory implements TransferRequestFactory {
+/**
+ * Configuration for Azure Blob transfer used in
+ * {@link org.eclipse.dataspaceconnector.system.tests.local.BlobTransferLocalSimulation}.
+ */
+public class BlobTransferSimulationConfiguration implements TransferSimulationConfiguration {
 
     private final String accountName;
+    private final Integer maxSeconds;
 
-    public BlobTransferRequestFactory(String accountName) {
+    public BlobTransferSimulationConfiguration(String accountName, Integer maxSeconds) {
         this.accountName = accountName;
+        this.maxSeconds = maxSeconds;
     }
 
     @Override
-    public String apply(TransferSimulationUtils.TransferInitiationData transferInitiationData) {
+    public String createTransferRequest(TransferInitiationData transferInitiationData) {
         var request = Map.of(
                 "contractId", transferInitiationData.contractAgreementId,
                 "assetId", PROVIDER_ASSET_ID,
@@ -53,5 +60,10 @@ public class BlobTransferRequestFactory implements TransferRequestFactory {
         );
 
         return new TypeManager().writeValueAsString(request);
+    }
+
+    @Override
+    public Duration copyMaxDuration() {
+        return Duration.ofSeconds(maxSeconds);
     }
 }

@@ -10,24 +10,24 @@ paths:
               $ref: '#/components/schemas/FederatedCatalogCacheQuery'
       responses:
         default:
-          description: default response
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/ContractOffer'
+          description: default response
 components:
   schemas:
     Action:
       type: object
       properties:
-        type:
-          type: string
-        includedIn:
-          type: string
         constraint:
           $ref: '#/components/schemas/Constraint'
+        includedIn:
+          type: string
+        type:
+          type: string
     Asset:
       type: object
       properties:
@@ -36,73 +36,85 @@ components:
           additionalProperties:
             type: object
     Constraint:
-      required:
-      - edctype
       type: object
+      discriminator:
+        propertyName: edctype
       properties:
         edctype:
           type: string
-      discriminator:
-        propertyName: edctype
+      required:
+      - edctype
     ContractOffer:
       type: object
       properties:
-        id:
-          type: string
-        policy:
-          $ref: '#/components/schemas/Policy'
         asset:
           $ref: '#/components/schemas/Asset'
-        policyId:
-          type: string
         assetId:
           type: string
-        provider:
-          type: string
-          format: uri
         consumer:
           type: string
           format: uri
-        offerStart:
-          type: string
-          format: date-time
-        offerEnd:
+        contractEnd:
           type: string
           format: date-time
         contractStart:
           type: string
           format: date-time
-        contractEnd:
+        id:
+          type: string
+        offerEnd:
           type: string
           format: date-time
+        offerStart:
+          type: string
+          format: date-time
+        policy:
+          $ref: '#/components/schemas/Policy'
+        policyId:
+          type: string
+        provider:
+          type: string
+          format: uri
+    Criterion:
+      type: object
+      properties:
+        left:
+          type: object
+        op:
+          type: string
+        right:
+          type: object
     Duty:
       type: object
       properties:
-        uid:
-          type: string
-        target:
-          type: string
         action:
           $ref: '#/components/schemas/Action'
         assignee:
           type: string
         assigner:
           type: string
+        consequence:
+          $ref: '#/components/schemas/Duty'
         constraints:
           type: array
           items:
             $ref: '#/components/schemas/Constraint'
         parentPermission:
           $ref: '#/components/schemas/Permission'
-        consequence:
-          $ref: '#/components/schemas/Duty'
+        target:
+          type: string
+        uid:
+          type: string
+    FederatedCatalogCacheQuery:
+      type: object
+      properties:
+        criteria:
+          type: array
+          items:
+            $ref: '#/components/schemas/Criterion'
     Permission:
       type: object
       properties:
-        uid:
-          type: string
-        target:
-          type: string
         action:
           $ref: '#/components/schemas/Action'
         assignee:
@@ -117,11 +129,33 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Duty'
+        target:
+          type: string
+        uid:
+          type: string
     Policy:
       type: object
       properties:
-        uid:
+        '@type':
           type: string
+          enum:
+          - SET
+          - OFFER
+          - CONTRACT
+        assignee:
+          type: string
+        assigner:
+          type: string
+        extensibleProperties:
+          type: object
+          additionalProperties:
+            type: object
+        inheritsFrom:
+          type: string
+        obligations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Duty'
         permissions:
           type: array
           items:
@@ -130,35 +164,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Prohibition'
-        obligations:
-          type: array
-          items:
-            $ref: '#/components/schemas/Duty'
-        extensibleProperties:
-          type: object
-          additionalProperties:
-            type: object
-        inheritsFrom:
-          type: string
-        assigner:
-          type: string
-        assignee:
-          type: string
         target:
           type: string
-        '@type':
+        uid:
           type: string
-          enum:
-          - SET
-          - OFFER
-          - CONTRACT
     Prohibition:
       type: object
       properties:
-        uid:
-          type: string
-        target:
-          type: string
         action:
           $ref: '#/components/schemas/Action'
         assignee:
@@ -169,19 +181,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Constraint'
-    Criterion:
-      type: object
-      properties:
-        left:
-          type: object
-        op:
+        target:
           type: string
-        right:
-          type: object
-    FederatedCatalogCacheQuery:
-      type: object
-      properties:
-        criteria:
-          type: array
-          items:
-            $ref: '#/components/schemas/Criterion'
+        uid:
+          type: string

@@ -65,14 +65,14 @@ public abstract class TransferSimulationUtils {
     /**
      * Gatling chain for performing contract negotiation and file transfer.
      *
-     * @param providerUrl    URL for the Provider API, as accessed from the Consumer runtime.
-     * @param requestFactory Factory for creating transfer request payloads.
+     * @param providerUrl             URL for the Provider API, as accessed from the Consumer runtime.
+     * @param simulationConfiguration Configuration for transfers.
      */
-    public static ChainBuilder contractNegotiationAndTransfer(String providerUrl, TransferRequestFactory requestFactory) {
+    public static ChainBuilder contractNegotiationAndTransfer(String providerUrl, TransferSimulationConfiguration simulationConfiguration) {
         return startContractAgreement(providerUrl)
                 .exec(waitForContractAgreement())
-                .exec(startTransfer(providerUrl, requestFactory))
-                .exec(waitForTransferCompletion());
+                .exec(startTransfer(providerUrl, simulationConfiguration))
+                .exec(waitForTransferCompletion(simulationConfiguration));
     }
 
     /**
@@ -144,30 +144,20 @@ public abstract class TransferSimulationUtils {
      * <p>
      * Saves the Transfer Process ID into the {@see TRANSFER_PROCESS_ID} session key.
      *
-     * @param providerUrl    URL for the Provider API, as accessed from the Consumer runtime.
-     * @param requestFactory Factory for creating transfer request payloads.
+     * @param providerUrl             URL for the Provider API, as accessed from the Consumer runtime.
+     * @param simulationConfiguration Configuration for transfers.
      */
-    private static ChainBuilder startTransfer(String providerUrl, TransferRequestFactory requestFactory) {
+    private static ChainBuilder startTransfer(String providerUrl, TransferSimulationConfiguration simulationConfiguration) {
         String connectorAddress = getConnectorAddress(providerUrl);
         return group("Initiate transfer")
-                .on(exec(initiateTransfer(requestFactory, connectorAddress)));
-    }
-
-    public static class TransferInitiationData {
-        public final String contractAgreementId;
-        public final String connectorAddress;
-
-        TransferInitiationData(String contractAgreementId, String connectorAddress) {
-            this.contractAgreementId = contractAgreementId;
-            this.connectorAddress = connectorAddress;
-        }
+                .on(exec(initiateTransfer(simulationConfiguration, connectorAddress)));
     }
 
     @NotNull
-    private static HttpRequestActionBuilder initiateTransfer(TransferRequestFactory requestFactory, String connectorAddress) {
+    private static HttpRequestActionBuilder initiateTransfer(TransferSimulationConfiguration simulationConfiguration, String connectorAddress) {
         return http("Initiate file transfer")
                 .post(TRANSFER_PROCESSES_PATH)
-                .body(StringBody(session -> requestFactory.apply(new TransferInitiationData(session.getString(CONTRACT_AGREEMENT_ID), connectorAddress))))
+                .body(StringBody(session -> simulationConfiguration.createTransferRequest(new TransferInitiationData(session.getString(CONTRACT_AGREEMENT_ID), connectorAddress))))
                 .header(CONTENT_TYPE, "application/json")
                 .check(status().is(200))
                 .check(jmesPath("id")
@@ -180,12 +170,14 @@ public abstract class TransferSimulationUtils {
      * attained, or a timeout is reached.
      * <p>
      * Expects the Transfer Process ID to be provided in the {@see TRANSFER_PROCESS_ID} session key.
+     *
+     * @param simulationConfiguration See {@link TransferSimulationConfiguration}
      */
-    private static ChainBuilder waitForTransferCompletion() {
+    private static ChainBuilder waitForTransferCompletion(TransferSimulationConfiguration simulationConfiguration) {
         return group("Wait for transfer")
                 .on(exec(session -> session.set("status", "INITIAL"))
                         .doWhileDuring(session -> transferNotCompleted(session),
-                                Duration.ofSeconds(30))
+                                simulationConfiguration.copyMaxDuration())
                         .on(exec(getTransferStatus()).pace(Duration.ofSeconds(1))))
 
                 .exitHereIf(session -> transferNotCompleted(session))
