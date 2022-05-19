@@ -2,47 +2,45 @@ openapi: 3.0.1
 paths:
   /policies:
     get:
-      tags:
-      - Policy
       operationId: getAllPolicies
       parameters:
-      - name: offset
-        in: query
+      - in: query
+        name: offset
         schema:
           type: integer
           format: int32
-      - name: limit
-        in: query
+      - in: query
+        name: limit
         schema:
           type: integer
           format: int32
-      - name: filter
-        in: query
+      - in: query
+        name: filter
         schema:
           type: string
-      - name: sort
-        in: query
+      - in: query
+        name: sort
         schema:
           type: string
           enum:
           - ASC
           - DESC
-      - name: sortField
-        in: query
+      - in: query
+        name: sortField
         schema:
           type: string
       responses:
         default:
-          description: default response
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Policy'
-    post:
+          description: default response
       tags:
       - Policy
+    post:
       operationId: createPolicy
       requestBody:
         content:
@@ -51,90 +49,88 @@ paths:
               $ref: '#/components/schemas/Policy'
       responses:
         default:
-          description: default response
           content:
             application/json: {}
-  /policies/{id}:
-    get:
+          description: default response
       tags:
       - Policy
-      operationId: getPolicy
+  /policies/{id}:
+    delete:
+      operationId: deletePolicy
       parameters:
-      - name: id
-        in: path
+      - in: path
+        name: id
         required: true
         schema:
           type: string
       responses:
         default:
+          content:
+            application/json: {}
           description: default response
+      tags:
+      - Policy
+    get:
+      operationId: getPolicy
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Policy'
-    delete:
+          description: default response
       tags:
       - Policy
-      operationId: deletePolicy
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
 components:
   schemas:
     Action:
       type: object
       properties:
-        type:
-          type: string
-        includedIn:
-          type: string
         constraint:
           $ref: '#/components/schemas/Constraint'
+        includedIn:
+          type: string
+        type:
+          type: string
     Constraint:
-      required:
-      - edctype
       type: object
+      discriminator:
+        propertyName: edctype
       properties:
         edctype:
           type: string
-      discriminator:
-        propertyName: edctype
+      required:
+      - edctype
     Duty:
       type: object
       properties:
-        uid:
-          type: string
-        target:
-          type: string
         action:
           $ref: '#/components/schemas/Action'
         assignee:
           type: string
         assigner:
           type: string
+        consequence:
+          $ref: '#/components/schemas/Duty'
         constraints:
           type: array
           items:
             $ref: '#/components/schemas/Constraint'
         parentPermission:
           $ref: '#/components/schemas/Permission'
-        consequence:
-          $ref: '#/components/schemas/Duty'
+        target:
+          type: string
+        uid:
+          type: string
     Permission:
       type: object
       properties:
-        uid:
-          type: string
-        target:
-          type: string
         action:
           $ref: '#/components/schemas/Action'
         assignee:
@@ -149,11 +145,33 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Duty'
+        target:
+          type: string
+        uid:
+          type: string
     Policy:
       type: object
       properties:
-        uid:
+        '@type':
           type: string
+          enum:
+          - SET
+          - OFFER
+          - CONTRACT
+        assignee:
+          type: string
+        assigner:
+          type: string
+        extensibleProperties:
+          type: object
+          additionalProperties:
+            type: object
+        inheritsFrom:
+          type: string
+        obligations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Duty'
         permissions:
           type: array
           items:
@@ -162,35 +180,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Prohibition'
-        obligations:
-          type: array
-          items:
-            $ref: '#/components/schemas/Duty'
-        extensibleProperties:
-          type: object
-          additionalProperties:
-            type: object
-        inheritsFrom:
-          type: string
-        assigner:
-          type: string
-        assignee:
-          type: string
         target:
           type: string
-        '@type':
+        uid:
           type: string
-          enum:
-          - SET
-          - OFFER
-          - CONTRACT
     Prohibition:
       type: object
       properties:
-        uid:
-          type: string
-        target:
-          type: string
         action:
           $ref: '#/components/schemas/Action'
         assignee:
@@ -201,3 +197,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Constraint'
+        target:
+          type: string
+        uid:
+          type: string

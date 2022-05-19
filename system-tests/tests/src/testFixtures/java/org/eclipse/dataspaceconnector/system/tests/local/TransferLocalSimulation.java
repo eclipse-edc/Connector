@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.system.tests.local;
 
 import io.gatling.javaapi.core.Simulation;
-import org.eclipse.dataspaceconnector.system.tests.utils.TransferRequestFactory;
+import org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationConfiguration;
 
 import static io.gatling.javaapi.core.CoreDsl.atOnceUsers;
 import static io.gatling.javaapi.core.CoreDsl.details;
@@ -48,15 +48,16 @@ public abstract class TransferLocalSimulation extends Simulation {
     public static final int PROVIDER_IDS_API_PORT = getFreePort();
     public static final String PROVIDER_IDS_API = "http://localhost:" + PROVIDER_IDS_API_PORT;
 
+    public static final String IDS_PATH = "/api/v1/ids";
     private static final int REPEAT = Integer.parseInt(propOrEnv("repeat", "1"));
     private static final int AT_ONCE_USERS = Integer.parseInt(propOrEnv("at.once.users", "1"));
     private static final int MAX_RESPONSE_TIME = Integer.parseInt(propOrEnv("max.response.time", "5000"));
     private static final double SUCCESS_PERCENTAGE = Double.parseDouble(propOrEnv("success.percentage", "100.0"));
 
-    public TransferLocalSimulation(TransferRequestFactory requestFactory) {
+    public TransferLocalSimulation(TransferSimulationConfiguration simulationConfiguration) {
         setUp(scenario(DESCRIPTION)
                 .repeat(REPEAT)
-                .on(contractNegotiationAndTransfer(PROVIDER_IDS_API, requestFactory))
+                .on(contractNegotiationAndTransfer(PROVIDER_IDS_API, simulationConfiguration))
                 .injectOpen(atOnceUsers(AT_ONCE_USERS)))
                 .protocols(http.baseUrl(CONSUMER_CONNECTOR_MANAGEMENT_URL + CONSUMER_MANAGEMENT_PATH))
                 .assertions(
