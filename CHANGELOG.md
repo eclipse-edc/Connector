@@ -34,6 +34,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Add component tests coverage to the codecov coverage report (#1246)
 * Postgresql end to end test (#1278)
 * Add signing/publishing config (#1147)
+* Verify OpenAPI definitions (#1312)
 
 #### Changed
 
@@ -50,10 +51,11 @@ in the detailed section referring to by linking pull requests or issues.
 * Usage of `NooTransactionContext` in (SQL-)Tests (#1119)
 * Sanitize log messages (#1295)
 * Improve CosmosDB statement parser (#1282)
+* Update `slf4j-api` to `2.0.0-alpha7` (#1328)
 
 #### Removed
 
-*
+* Deprecated Control API (#1310)
 
 #### Fixed
 
@@ -68,6 +70,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Fix Azure storage transfer (#1245)
 * Throw exception if `IdentityProviderKeyResolver` cannot get keys at startup (#1266)
 * Make all the services injectable (#1285)
+* Fix CosmosDB Integration tests (#1313)
 
 ## [milestone-3] - 2022-04-08
 
@@ -114,6 +117,8 @@ in the detailed section referring to by linking pull requests or issues.
 * CosmosDb based `PolicyStore` (#826)
 * Implement SQL-based PolicyStore (#866)
 * Http Provisioner Webhook endpoint (#1039)
+* Add Junit tags to categorize tests (#868)
+* Add Azure Data Factory extension (#910)
 * Add `PolicyService` and Rest endpoints in Data Management API (#1025)
 * Add dependency checks (#1000)
 * Add `ContractAgreement` query methods on `ContractNegotiationStore` (#1044)

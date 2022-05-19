@@ -22,8 +22,6 @@ import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Scanner;
@@ -33,19 +31,13 @@ import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestUtils {
-    public static final String SAMPLE_FILE_RESOURCE_NAME = "hello.txt";
     public static final int MAX_TCP_PORT = 65_535;
+    private static final String GRADLE_WRAPPER_UNIX = "gradlew";
+    private static final String GRADLE_WRAPPER_WINDOWS = "gradlew.bat";
+    public static final String GRADLE_WRAPPER;
 
-    public static Path getResourcePath(String resourceName) {
-        Path path = null;
-
-        try {
-            path = Paths.get(Thread.currentThread().getContextClassLoader().getResource(resourceName).toURI());
-        } catch (URISyntaxException e) {
-            fail("Resource: " + resourceName + " does not exist" + e.getLocalizedMessage());
-        }
-
-        return path;
+    static {
+        GRADLE_WRAPPER = (System.getProperty("os.name").toLowerCase().contains("win")) ? GRADLE_WRAPPER_WINDOWS : GRADLE_WRAPPER_UNIX;
     }
 
     public static File getFileFromResourceName(String resourceName) {
@@ -150,4 +142,36 @@ public class TestUtils {
                 .readTimeout(1, TimeUnit.MINUTES)
                 .build();
     }
+
+    /**
+     * Utility method to locate the Gradle project root.
+     *
+     * @return The Gradle project root directory.
+     */
+    public static File findBuildRoot() {
+        File canonicalFile;
+        try {
+            canonicalFile = new File(".").getCanonicalFile();
+        } catch (IOException e) {
+            throw new IllegalStateException("Could not resolve current directory.", e);
+        }
+        var root = findBuildRoot(canonicalFile);
+        if (root == null) {
+            throw new IllegalStateException("Could not find " + GRADLE_WRAPPER + " in parent directories.");
+        }
+        return root;
+    }
+
+    private static File findBuildRoot(File path) {
+        File gradlew = new File(path, GRADLE_WRAPPER);
+        if (gradlew.exists()) {
+            return path;
+        }
+        var parent = path.getParentFile();
+        if (parent != null) {
+            return findBuildRoot(parent);
+        }
+        return null;
+    }
+
 }

@@ -39,6 +39,7 @@ public class AzureStorageValidator {
     private static final String ACCOUNT = "account";
     private static final String BLOB = "blob";
     private static final String CONTAINER = "container";
+    private static final String KEY_NAME = "keyName";
     private static final String INVALID_RESOURCE_NAME = "Invalid %s name";
     private static final String INVALID_RESOURCE_NAME_LENGTH = "Invalid %s name length, the name must be between %s and %s characters long";
     private static final String RESOURCE_NAME_EMPTY = "Invalid %s name, the name may not be null, empty or blank";
@@ -87,6 +88,18 @@ public class AzureStorageValidator {
 
         if (slashCount >= 254) {
             throw new IllegalArgumentException(TOO_MANY_PATH_SEGMENTS);
+        }
+    }
+
+    /**
+     * Checks if key name is valid.
+     *
+     * @param keyName A string representing blob key secret.
+     * @throws IllegalArgumentException if the string is null or blank.
+     */
+    public static void validateKeyName(String keyName) {
+        if (StringUtils.isNullOrBlank(keyName)) {
+            throw new IllegalArgumentException(String.format(INVALID_RESOURCE_NAME, KEY_NAME));
         }
     }
 
