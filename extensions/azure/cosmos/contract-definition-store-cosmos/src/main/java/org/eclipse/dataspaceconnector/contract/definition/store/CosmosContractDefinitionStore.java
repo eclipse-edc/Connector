@@ -71,12 +71,12 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
     public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
         return lockManager.readLock(() -> queryResolver.query(getCache().values().stream(), spec));
     }
-    
+
     @Override
     public ContractDefinition findById(String definitionId) {
         return lockManager.readLock(() -> getCache().get(definitionId));
     }
-    
+
     @Override
     public void save(Collection<ContractDefinition> definitions) {
         lockManager.writeLock(() -> {
@@ -106,8 +106,11 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
 
     @Override
     public ContractDefinition deleteById(String id) {
-        var deletedItem = cosmosDbApi.deleteItem(id);
-        return deletedItem == null ? null : convert(deletedItem);
+        return lockManager.writeLock(() -> {
+            var deletedItem = with(retryPolicy).get(() -> cosmosDbApi.deleteItem(id));
+            getCache().remove(id);
+            return deletedItem == null ? null : convert(deletedItem);
+        });
     }
 
     @Override

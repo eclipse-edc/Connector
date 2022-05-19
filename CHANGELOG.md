@@ -71,6 +71,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Throw exception if `IdentityProviderKeyResolver` cannot get keys at startup (#1266)
 * Make all the services injectable (#1285)
 * Fix CosmosDB Integration tests (#1313)
+* Remove ContractDef from Cosmos DB cache when deleting (#1330)
 
 ## [milestone-3] - 2022-04-08
 
