@@ -25,6 +25,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
+
 @Provides({ ContractNegotiationStore.class })
 public class CosmosContractNegotiationStoreExtension implements ServiceExtension {
 
@@ -49,6 +50,10 @@ public class CosmosContractNegotiationStoreExtension implements ServiceExtension
 
         context.getService(HealthCheckService.class).addReadinessProvider(() -> cosmosDbApi.get().forComponent(name()));
 
+        if (context.getSetting(configuration.allowSprocAutoUploadSetting(), true)) {
+            cosmosDbApi.uploadStoredProcedure("nextForState");
+            cosmosDbApi.uploadStoredProcedure("lease");
+        }
     }
 
 }

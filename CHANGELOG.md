@@ -74,6 +74,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Make all the services injectable (#1285)
 * Fix CosmosDB Integration tests (#1313)
 * Remove ContractDef from Cosmos DB cache when deleting (#1330)
+* Auto-upload of Cosmos stored procedures (#1338)
 
 ## [milestone-3] - 2022-04-08
 
