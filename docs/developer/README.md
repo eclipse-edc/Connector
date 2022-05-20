@@ -17,12 +17,16 @@ As a developer, I do not want to ...
 
 ## Important links
 
-- [Command Queue](command-queue.md)
-- [Dependency Resolution](dependency_resolution.md)
-- [Data Plane Framework](data-plane-framework/README.md)
+- [Architectural principles](../architecture/architecture-principles.md)
+- [Cloud testing](cloud_testing.md)
+- [Command queue](command-queue.md)
+- [Contribution guidelines](../_helper/contributing.md)
+- [Dependency resolution](dependency_resolution.md)
+- [Data plane framework](data-plane-framework/README.md)
 - [Logging](logging.md)
 - [Metrics](metrics.md)
 - [Releases](releases.md)
+- [Style guide](_helper/styleguide.md)
 - [Testing](testing.md)
 
 > All implementations have to follow existing design principles and architectural patterns that are provided as 

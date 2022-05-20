@@ -27,7 +27,8 @@ As a user, I do not want to ...
 ## Important links
 
 - [Configuration](configuration.md)
+- [Contribution guidelines](../_helper/contributing.md)
 - [Deployment](deployment.md)
-- [OpenApi Documentation](../adopter/openapi.md)
+- [OpenApi Documentation](_helper/openapi.md)
 - [Monitoring](monitoring.md)
 - [Use Cases](use-cases.md)

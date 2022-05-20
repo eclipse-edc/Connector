@@ -39,6 +39,6 @@ The EDC connector will not be able to support more than one IDS Information mode
 - The Connector Description Sub Handler is dispatched to as the default handler. This Sub Handler will use the `ConnectorDescriptorService`.
 
 ### Transformers
-- A `TransformerRegistery` dispatches to `Transformers` to map between IDS and EDC types. Handlers/Sub Handlers should use these to marshall requests and responses to and from the
-  EDC core.
+- A `TransformerRegistery` dispatches to `Transformers` to map between IDS and EDC types. Handlers/Sub Handlers should use these to marshal 
+requests and responses to and from the EDC core.
 - Type mapping should preferably be done in the handlers, not services (we need to look at this further, e.g. `ConnectorDescriptionService`). 

@@ -27,7 +27,8 @@ As an adopter, I do not want to ...
 
 ## Important links
 
-- [List of extensions](../extensions.md)
-- [List of launchers](../launchers.md)
-- [Samples](../hands-on.md)
-- [OpenApi Documentation](./openapi.md)
+- [Contribution guidelines](../_helper/contributing.md)
+- [List of extensions](../overview/extensions.md)
+- [List of launchers](../overview/launchers.md)
+- [OpenApi Documentation](_helper/openapi.md)
+- [Samples](../overview/hands-on.md)

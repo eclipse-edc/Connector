@@ -4,13 +4,29 @@
 
 ## Overview
 
-Since the concept of data spaces is emerging and promise new capabilities to the data exchange between participants 
-(organizations) in terms of data sovereignty, many may ask the question "when and why to use a connector component".
+Data spaces allow organizations to securely share data with others. They enable data cooperation in a multi-cloud 
+federation by focusing on identity, trust, sovereignty, and interoperability.
+
+- Identity: Each participant remains in control of their identity.
+- Trust: Each participant decides who to trust.
+- Sovereignty: Each participant decides under what policies their data is shared.
+- Interoperability: Each participant remains in control of their deployment.
+
+Since the concept of data spaces is emerging and promises new capabilities to the data exchange between participants 
+(organizations) in terms of data sovereignty, many may ask the questions "What is a connector?" and "When and why should 
+I use it?".
+
+**What is a connector?**
+
+A participant in a data space wants to share and consume data offers, transfer data, and - most important - maintain
+control over its usage. All processes are based on the aforementioned principles of identity, trust, sovereignty, and 
+interoperability. This is why a connector component is used to participate in a data space and mainly focuses on
+these aspects while ensuring data sovereignty along the entire data supply and value chain.
+
 In order to build up and participate in a data space, it is not enough to consider existing communication protocols.
-Rather, the connector ensures data sovereignty along the entire data supply chain. This means, besides the actual 
-data transfer, it has to provide capabilities i.e. for discovering, connecting, automated contract negotiation, 
-policy enforcement, and auditing processes. Data space connectors act as logical gatekeepers that integrate into each 
-participant’s infrastructure and communicate with each other.
+This means, besides the actual data transfer, a connector has to provide capabilities, i.e., for discovering, 
+connecting, automated contract negotiation, policy enforcement, and auditing processes. Data space connectors act as 
+logical gatekeepers that integrate into each participant’s infrastructure and communicate with each other.
 
 **When to use a data space connector?**
 
@@ -50,13 +66,13 @@ users, and adopters. This documentation addresses all of them by defining explic
 and overviews. Depending on your interests, you can take a look at one or more of the following.
 
 - **Adopter**: Adopters are the individuals and organizations that adopt Eclipse technology for inclusion in their own products and services.
-- **Developer**: Developers are Committers or Contributors. A Contributor is anybody who makes contributions to a Project. A 
+- **Developer**: Developers are committers or contributors. A contributor is anybody who makes contributions to a project. A 
 committer is a software developer who has the necessary rights to make decisions regarding a Project.
 - **User**: Users use the project to realize use cases. They do not want to contribute code or customize the software; they want 
-to use it as-is. Users provide valuable feedback and proof that a Project is useful and needed.
+to use it as-is. Users provide valuable feedback and proof that a project is useful and needed.
 
 No matter what role you assign yourself to, if you want to become familiar with the EDC and its functionalities,
-please take a look at our [hands-on](./hands-on.md) section and samples. 
+please take a look at our [hands-on](overview/hands-on.md) section and samples. 
 
 ### How to contribute
 
@@ -68,7 +84,7 @@ artifacts are open, public, and easily accessible.
 * Vendor-neutrality: No vendor is permitted to dominate a project, and nobody can be excluded from participating 
 in a project based on their employment status.
 
-If you want to know more about actually contributing code, please find more information [here]({{main}}CONTRIBUTING.md) 
+If you want to know more about actually contributing code, please find more information [here](./_helper/contributing.md) 
 and take a look at our [developer documentation](./developer/README.md).
 
 > To join our Discord server, you may use [this](https://discord.gg/n4sD9qtjMQ) invite. 
@@ -123,7 +139,7 @@ at the following links:
 
 | Name       | Link |
 | :--------- | :--- |
-| Homepage                  | <http://dataspace-connector.io/> (in progress) |
+| Homepage                  | <https://dataspace-connector.io/> (in progress) |
 | Eclipse project page      | <https://projects.eclipse.org/projects/technology.dataspaceconnector> |
 | EDC project proposal      | <https://projects.eclipse.org/proposals/eclipse-dataspace-connector> |
 | YouTube Channel           | <https://www.youtube.com/channel/UCYmjEHtMSzycheBB4AeITHg> |

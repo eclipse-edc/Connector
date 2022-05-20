@@ -13,3 +13,5 @@ Each sample provides a detailed documentation that guides you step by step and a
 
 For an extended introduction and information about prerequisites, please take a look at the
 [on-boarding guide]({{main}}onboarding.md).
+
+_Directory link: [onboarding.md](../../onboarding.md)_
