@@ -2,89 +2,89 @@ openapi: 3.0.1
 paths:
   /contractagreements:
     get:
-      tags:
-      - Contract Agreement
       operationId: getAllAgreements
       parameters:
-      - name: offset
-        in: query
+      - in: query
+        name: offset
         schema:
           type: integer
           format: int32
-      - name: limit
-        in: query
+      - in: query
+        name: limit
         schema:
           type: integer
           format: int32
-      - name: filter
-        in: query
+      - in: query
+        name: filter
         schema:
           type: string
-      - name: sort
-        in: query
+      - in: query
+        name: sort
         schema:
           type: string
           enum:
           - ASC
           - DESC
-      - name: sortField
-        in: query
+      - in: query
+        name: sortField
         schema:
           type: string
       responses:
         default:
-          description: default response
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/ContractAgreementDto'
-  /contractagreements/{id}:
-    get:
+          description: default response
       tags:
       - Contract Agreement
+  /contractagreements/{id}:
+    get:
       operationId: getContractAgreement
       parameters:
-      - name: id
-        in: path
+      - in: path
+        name: id
         required: true
         schema:
           type: string
       responses:
         default:
-          description: default response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContractAgreementDto'
+          description: default response
+      tags:
+      - Contract Agreement
 components:
   schemas:
     ContractAgreementDto:
-      required:
-      - assetId
-      - consumerAgentId
-      - id
-      - policyId
-      - providerAgentId
       type: object
       properties:
-        id:
-          type: string
-        providerAgentId:
+        assetId:
           type: string
         consumerAgentId:
           type: string
+        contractEndDate:
+          type: integer
+          format: int64
         contractSigningDate:
           type: integer
           format: int64
         contractStartDate:
           type: integer
           format: int64
-        contractEndDate:
-          type: integer
-          format: int64
-        assetId:
+        id:
           type: string
         policyId:
           type: string
+        providerAgentId:
+          type: string
+      required:
+      - assetId
+      - consumerAgentId
+      - id
+      - policyId
+      - providerAgentId

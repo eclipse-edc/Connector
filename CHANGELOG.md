@@ -34,6 +34,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Add component tests coverage to the codecov coverage report (#1246)
 * Postgresql end to end test (#1278)
 * Add signing/publishing config (#1147)
+* Verify OpenAPI definitions (#1312)
 
 #### Changed
 
@@ -50,6 +51,8 @@ in the detailed section referring to by linking pull requests or issues.
 * Usage of `NooTransactionContext` in (SQL-)Tests (#1119)
 * Sanitize log messages (#1295)
 * Improve CosmosDB statement parser (#1282)
+* Updated the CodeQL version from v1 to v2
+* Update `slf4j-api` to `2.0.0-alpha7` (#1328)
 * Updated the CodeQL version from v1 to v2
 
 #### Removed
@@ -70,6 +73,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Throw exception if `IdentityProviderKeyResolver` cannot get keys at startup (#1266)
 * Make all the services injectable (#1285)
 * Fix CosmosDB Integration tests (#1313)
+* Remove ContractDef from Cosmos DB cache when deleting (#1330)
 
 ## [milestone-3] - 2022-04-08
 

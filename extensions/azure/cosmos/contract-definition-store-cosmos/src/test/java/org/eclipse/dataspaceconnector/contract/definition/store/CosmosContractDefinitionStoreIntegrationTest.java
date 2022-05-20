@@ -120,17 +120,17 @@ public class CosmosContractDefinitionStoreIntegrationTest {
     void findAll_emptyResult() {
         assertThat(store.findAll()).isNotNull().isEmpty();
     }
-    
+
     @Test
     void findById() {
         var doc = generateDocument(TEST_PARTITION_KEY);
         container.createItem(doc);
-        
+
         var result = store.findById(doc.getId());
-        
+
         assertThat(result).isNotNull().isEqualTo(doc.getWrappedInstance());
     }
-    
+
     @Test
     void findById_invalidId() {
         assertThat(store.findById("invalid-id")).isNull();
@@ -180,6 +180,17 @@ public class CosmosContractDefinitionStoreIntegrationTest {
         assertThat(allItems).hasSize(3);
         var allDefs = allItems.stream().map(this::convert);
         assertThat(allDefs).containsExactlyInAnyOrder(def1, def2, def3);
+    }
+
+    @Test
+    void save_delete_find_shouldNotExist() {
+        var def1 = generateDefinition();
+        store.save(def1);
+        assertThat(store.findAll()).containsOnly(def1);
+
+        store.deleteById(def1.getId());
+
+        assertThat(store.findAll()).doesNotContain(def1);
     }
 
     @Test

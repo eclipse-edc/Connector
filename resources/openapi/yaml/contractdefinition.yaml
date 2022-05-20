@@ -2,47 +2,45 @@ openapi: 3.0.1
 paths:
   /contractdefinitions:
     get:
-      tags:
-      - Contract Definition
       operationId: getAllContractDefinitions
       parameters:
-      - name: offset
-        in: query
+      - in: query
+        name: offset
         schema:
           type: integer
           format: int32
-      - name: limit
-        in: query
+      - in: query
+        name: limit
         schema:
           type: integer
           format: int32
-      - name: filter
-        in: query
+      - in: query
+        name: filter
         schema:
           type: string
-      - name: sort
-        in: query
+      - in: query
+        name: sort
         schema:
           type: string
           enum:
           - ASC
           - DESC
-      - name: sortField
-        in: query
+      - in: query
+        name: sortField
         schema:
           type: string
       responses:
         default:
-          description: default response
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/ContractDefinitionDto'
-    post:
+          description: default response
       tags:
       - Contract Definition
+    post:
       operationId: createContractDefinition
       requestBody:
         content:
@@ -51,50 +49,47 @@ paths:
               $ref: '#/components/schemas/ContractDefinitionDto'
       responses:
         default:
-          description: default response
           content:
             application/json: {}
-  /contractdefinitions/{id}:
-    get:
+          description: default response
       tags:
       - Contract Definition
-      operationId: getContractDefinition
+  /contractdefinitions/{id}:
+    delete:
+      operationId: deleteContractDefinition
       parameters:
-      - name: id
-        in: path
+      - in: path
+        name: id
         required: true
         schema:
           type: string
       responses:
         default:
+          content:
+            application/json: {}
           description: default response
+      tags:
+      - Contract Definition
+    get:
+      operationId: getContractDefinition
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContractDefinitionDto'
-    delete:
+          description: default response
       tags:
       - Contract Definition
-      operationId: deleteContractDefinition
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
 components:
   schemas:
     ContractDefinitionDto:
-      required:
-      - accessPolicyId
-      - contractPolicyId
-      - criteria
-      - id
       type: object
       properties:
         accessPolicyId:
@@ -107,6 +102,11 @@ components:
             $ref: '#/components/schemas/Criterion'
         id:
           type: string
+      required:
+      - accessPolicyId
+      - contractPolicyId
+      - criteria
+      - id
     Criterion:
       type: object
       properties:

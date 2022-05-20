@@ -2,12 +2,10 @@ openapi: 3.0.1
 paths:
   /callback/{processId}/deprovision:
     post:
-      tags:
-      - HTTP Provisioner Webhook
       operationId: callDeprovisionWebhook
       parameters:
-      - name: processId
-        in: path
+      - in: path
+        name: processId
         required: true
         schema:
           type: string
@@ -18,17 +16,17 @@ paths:
               $ref: '#/components/schemas/DeprovisionedResource'
       responses:
         default:
-          description: default response
           content:
             application/json: {}
-  /callback/{processId}/provision:
-    post:
+          description: default response
       tags:
       - HTTP Provisioner Webhook
+  /callback/{processId}/provision:
+    post:
       operationId: callProvisionWebhook
       parameters:
-      - name: processId
-        in: path
+      - in: path
+        name: processId
         required: true
         schema:
           type: string
@@ -39,22 +37,13 @@ paths:
               $ref: '#/components/schemas/ProvisionerWebhookRequest'
       responses:
         default:
-          description: default response
           content:
             application/json: {}
+          description: default response
+      tags:
+      - HTTP Provisioner Webhook
 components:
   schemas:
-    DeprovisionedResource:
-      type: object
-      properties:
-        provisionedResourceId:
-          type: string
-        inProcess:
-          type: boolean
-        error:
-          type: boolean
-        errorMessage:
-          type: string
     DataAddress:
       type: object
       properties:
@@ -62,23 +51,34 @@ components:
           type: object
           additionalProperties:
             type: string
+    DeprovisionedResource:
+      type: object
+      properties:
+        error:
+          type: boolean
+        errorMessage:
+          type: string
+        inProcess:
+          type: boolean
+        provisionedResourceId:
+          type: string
     ProvisionerWebhookRequest:
+      type: object
+      properties:
+        apiToken:
+          type: string
+        assetId:
+          type: string
+        contentDataAddress:
+          $ref: '#/components/schemas/DataAddress'
+        hasToken:
+          type: boolean
+        resourceDefinitionId:
+          type: string
+        resourceName:
+          type: string
       required:
       - assetId
       - contentDataAddress
       - resourceDefinitionId
       - resourceName
-      type: object
-      properties:
-        resourceDefinitionId:
-          type: string
-        assetId:
-          type: string
-        resourceName:
-          type: string
-        contentDataAddress:
-          $ref: '#/components/schemas/DataAddress'
-        apiToken:
-          type: string
-        hasToken:
-          type: boolean
