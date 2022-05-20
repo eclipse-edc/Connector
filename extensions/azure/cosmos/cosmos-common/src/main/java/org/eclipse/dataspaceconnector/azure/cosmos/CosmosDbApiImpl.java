@@ -25,6 +25,7 @@ import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.models.CosmosItemRequestOptions;
 import com.azure.cosmos.models.CosmosItemResponse;
 import com.azure.cosmos.models.CosmosQueryRequestOptions;
+import com.azure.cosmos.models.CosmosStoredProcedureProperties;
 import com.azure.cosmos.models.CosmosStoredProcedureRequestOptions;
 import com.azure.cosmos.models.CosmosStoredProcedureResponse;
 import com.azure.cosmos.models.PartitionKey;
@@ -42,6 +43,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -214,6 +216,27 @@ public class CosmosDbApiImpl implements CosmosDbApi {
 
         handleResponse(response.getStatusCode(), "Failed to invoke stored procedure: " + procedureName);
         return response.getResponseAsString();
+    }
+
+    @Override
+    public void uploadStoredProcedure(String name) {
+        // upload stored procedure
+        var is = Thread.currentThread().getContextClassLoader().getResourceAsStream(name + ".js");
+        if (is == null) {
+            throw new AssertionError("The input stream referring to the " + name + " file cannot be null!");
+        }
+
+        var s = new Scanner(is).useDelimiter("\\A");
+        if (!s.hasNext()) {
+            throw new IllegalArgumentException("Error loading resource with name " + ".js");
+        }
+        var body = s.next();
+        var props = new CosmosStoredProcedureProperties(name, body);
+
+        var scripts = container.getScripts();
+        if (scripts.readAllStoredProcedures().stream().noneMatch(sp -> sp.getId().equals(name))) {
+            scripts.createStoredProcedure(props);
+        }
     }
 
     @Override
