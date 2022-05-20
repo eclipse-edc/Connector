@@ -10,7 +10,7 @@ To have more detailed scan we decided to extend the CodeQL queries, by using the
 ```yaml
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v1
+        uses: github/codeql-action/init@v2
         with:
           languages: ${{ matrix.language }}
           queries: +security-and-quality
