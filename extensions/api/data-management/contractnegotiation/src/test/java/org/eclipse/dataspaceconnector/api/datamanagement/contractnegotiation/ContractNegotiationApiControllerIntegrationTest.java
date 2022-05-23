@@ -18,7 +18,6 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
@@ -36,7 +35,6 @@ import java.util.concurrent.CompletableFuture;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
-import static io.restassured.http.ContentType.TEXT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.TestFunctions.createOffer;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
@@ -83,6 +81,14 @@ class ContractNegotiationApiControllerIntegrationTest {
     }
 
     @Test
+    void getAll_invalidQuery() {
+        baseRequest()
+                .get("/contractnegotiations?limit=1&offset=-1&filter=&sortField=")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
     void getSingleContractNegotation(ContractNegotiationStore store) {
         store.save(createContractNegotiation("negotiationId"));
 
@@ -110,10 +116,10 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .get("/contractnegotiations/negotiationId/state")
                 .then()
                 .statusCode(200)
-                .contentType(TEXT)
+                .contentType(JSON)
                 .extract().asString();
 
-        assertThat(state).isEqualTo("REQUESTED");
+        assertThat(state).isEqualTo("{\"state\":\"REQUESTED\"}");
     }
 
     @Test
@@ -222,7 +228,7 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .providerAgentId(UUID.randomUUID().toString())
                 .consumerAgentId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
+                .policyId(UUID.randomUUID().toString())
                 .build();
     }
 

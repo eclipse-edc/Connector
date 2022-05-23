@@ -56,7 +56,7 @@ class AzureVaultExtensionTest {
 
     @Test
     void neitherSecretOrCertificateProvided_shouldThrowException() {
-        assertThrows(AzureVaultException.class, () -> extension.initializeVault(context));
+        assertThrows(AzureVaultException.class, () -> extension.initialize(context));
     }
 
     @Test
@@ -72,7 +72,7 @@ class AzureVaultExtensionTest {
                         return null;
                     });
 
-            extension.initializeVault(context);
+            extension.initialize(context);
 
             assertThat(l.await(TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
         }
@@ -90,7 +90,7 @@ class AzureVaultExtensionTest {
                         return null;
                     });
 
-            extension.initializeVault(context);
+            extension.initialize(context);
 
             assertThat(l.await(TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
         }
@@ -109,7 +109,7 @@ class AzureVaultExtensionTest {
                         return null;
                     });
 
-            extension.initializeVault(context);
+            extension.initialize(context);
 
             assertThat(l.await(TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
         }

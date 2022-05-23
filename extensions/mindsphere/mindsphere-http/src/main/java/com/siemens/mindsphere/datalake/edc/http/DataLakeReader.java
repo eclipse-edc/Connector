@@ -42,6 +42,7 @@ public class DataLakeReader implements DataReader {
     public Result<ByteArrayInputStream> read(DataAddress source) {
         // get target path
         final String targetPath = source.getProperty("path");
+        monitor.debug(targetPath);
         try {
             // get pre-signed URL
             final URL targetUrl = dataLakeClient.getPresignedUploadUrl(targetPath);

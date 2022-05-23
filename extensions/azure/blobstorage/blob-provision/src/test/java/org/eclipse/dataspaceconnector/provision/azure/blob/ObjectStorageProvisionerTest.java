@@ -93,6 +93,23 @@ class ObjectStorageProvisionerTest {
     }
 
     @Test
+    void provision_unique_name() {
+        var resourceDef = createResourceDefinitionBuilder().id("id").transferProcessId("tpId").build();
+        String accountName = resourceDef.getAccountName();
+        String containerName = resourceDef.getContainerName();
+        when(blobStoreApiMock.exists(accountName, containerName)).thenReturn(true);
+        when(blobStoreApiMock.createContainerSasToken(eq(accountName), eq(containerName), eq("w"), any())).thenReturn("some-sas");
+
+        var response = provisioner.provision(resourceDef, policy).join().getContent();
+
+        var resourceDef2 = createResourceDefinitionBuilder().id("id2").transferProcessId("tpId2").build();
+        var response2 = provisioner.provision(resourceDef2, policy).join().getContent();
+        var resource1 = (ObjectContainerProvisionedResource) response.getResource();
+        var resource2 = (ObjectContainerProvisionedResource) response2.getResource();
+        assertThat(resource2.getResourceName()).isNotEqualTo(resource1.getResourceName());
+    }
+
+    @Test
     void provision_container_already_exists() {
         var resourceDef = createResourceDefinitionBuilder().transferProcessId("tpId").build();
         String accountName = resourceDef.getAccountName();

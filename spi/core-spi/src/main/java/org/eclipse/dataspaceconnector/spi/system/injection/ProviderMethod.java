@@ -66,4 +66,9 @@ public class ProviderMethod {
             throw new EdcInjectionException(e);
         }
     }
+
+    @Override
+    public String toString() {
+        return getMethod().getName() + " :: " + getReturnType().getSimpleName();
+    }
 }

@@ -15,6 +15,8 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.policy;
 
+import jakarta.validation.Valid;
+import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -22,17 +24,17 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicyService;
 import org.eclipse.dataspaceconnector.api.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
+import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,32 +42,33 @@ import java.util.Optional;
 
 import static java.lang.String.format;
 
+@Produces({ MediaType.APPLICATION_JSON })
+@Consumes({ MediaType.APPLICATION_JSON })
 @Path("/policies")
 public class PolicyApiController implements PolicyApi {
 
     private final Monitor monitor;
     private final PolicyService policyService;
+    private final DtoTransformerRegistry transformerRegistry;
 
-    public PolicyApiController(Monitor monitor, PolicyService policyService) {
+    public PolicyApiController(Monitor monitor, PolicyService policyService, DtoTransformerRegistry transformerRegistry) {
         this.monitor = monitor;
         this.policyService = policyService;
+        this.transformerRegistry = transformerRegistry;
     }
 
     @GET
-    @Produces({ MediaType.APPLICATION_JSON })
     @Override
-    public List<Policy> getAllPolicies(@QueryParam("offset") Integer offset,
-                                       @QueryParam("limit") Integer limit,
-                                       @QueryParam("filter") String filterExpression,
-                                       @QueryParam("sort") SortOrder sortOrder,
-                                       @QueryParam("sortField") String sortField) {
-        var spec = QuerySpec.Builder.newInstance()
-                .offset(offset)
-                .limit(limit)
-                .sortField(sortField)
-                .filter(filterExpression)
-                .sortOrder(sortOrder).build();
-        monitor.debug(format("get all policys %s", spec));
+    public List<Policy> getAllPolicies(@Valid @BeanParam QuerySpecDto querySpecDto) {
+        var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
+        if (result.failed()) {
+            monitor.warning("Error transforming QuerySpec: " + String.join(", ", result.getFailureMessages()));
+            throw new IllegalArgumentException("Cannot transform QuerySpecDto object");
+        }
+
+        var spec = result.getContent();
+
+        monitor.debug(format("get all policies %s", spec));
 
         return new ArrayList<>(policyService.query(spec));
 
@@ -73,7 +76,6 @@ public class PolicyApiController implements PolicyApi {
 
     @GET
     @Path("{id}")
-    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public Policy getPolicy(@PathParam("id") String id) {
         monitor.debug(format("Attempting to return policy with ID %s", id));
@@ -83,7 +85,6 @@ public class PolicyApiController implements PolicyApi {
     }
 
     @POST
-    @Consumes({ MediaType.APPLICATION_JSON })
     @Override
     public void createPolicy(Policy policy) {
 

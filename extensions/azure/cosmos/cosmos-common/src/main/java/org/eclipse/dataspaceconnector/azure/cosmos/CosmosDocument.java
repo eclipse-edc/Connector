@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * <p>
  * Considerations when choosing a partition key:
  * Generally it's advisable to adhere to the <a href="https://docs.microsoft.com/en-us/azure/cosmos-db/partitioning-overview#choose-partitionkey">official documentation</a>.
- * <p><br/>
+ * <p><p>
  * Note that it is not possible to execute stored procedures across logical partitions, which makes using the item ID impossible
  * when an SP is used to query multiple items. In those cases it is recommended to use a static partition key, like a configuration value.
  */

@@ -17,6 +17,7 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
 import jakarta.validation.Valid;
+import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -24,19 +25,18 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetService;
 import org.eclipse.dataspaceconnector.api.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -47,6 +47,8 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path("/assets")
 public class AssetApiController implements AssetApi {
 
@@ -61,7 +63,6 @@ public class AssetApiController implements AssetApi {
     }
 
     @POST
-    @Consumes({ MediaType.APPLICATION_JSON })
     @Override
     public void createAsset(@Valid AssetEntryDto assetEntryDto) {
         var assetResult = transformerRegistry.transform(assetEntryDto.getAsset(), Asset.class);
@@ -84,20 +85,15 @@ public class AssetApiController implements AssetApi {
     }
 
     @GET
-    @Produces({ MediaType.APPLICATION_JSON })
     @Override
-    public List<AssetDto> getAllAssets(@QueryParam("offset") Integer offset,
-                                       @QueryParam("limit") Integer limit,
-                                       @QueryParam("filter") String filterExpression,
-                                       @QueryParam("sort") SortOrder sortOrder,
-                                       @QueryParam("sortField") String sortField) {
+    public List<AssetDto> getAllAssets(@Valid @BeanParam QuerySpecDto querySpecDto) {
+        var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
+        if (result.failed()) {
+            monitor.warning("Error transforming QuerySpec: " + String.join(", ", result.getFailureMessages()));
+            throw new IllegalArgumentException("Cannot transform QuerySpecDto object");
+        }
 
-        var spec = QuerySpec.Builder.newInstance()
-                .offset(offset)
-                .limit(limit)
-                .sortField(sortField)
-                .filter(filterExpression)
-                .sortOrder(sortOrder).build();
+        var spec = result.getContent();
 
         monitor.debug(format("get all Assets from %s", spec));
 
@@ -110,7 +106,6 @@ public class AssetApiController implements AssetApi {
 
     @GET
     @Path("{id}")
-    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public AssetDto getAsset(@PathParam("id") String id) {
         monitor.debug(format("Attempting to return Asset with id %s", id));

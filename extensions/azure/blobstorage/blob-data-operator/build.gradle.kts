@@ -22,6 +22,7 @@ dependencies {
     api(project(":spi"))
 
     implementation(project(":extensions:azure:blobstorage:blob-core"))
+    implementation("com.azure:azure-storage-blob:${storageBlobVersion}")
 }
 
 publishing {

@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.api;
 
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistryImpl;
+import org.eclipse.dataspaceconnector.api.transformer.QuerySpecDtoToQuerySpecTransformer;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -30,6 +31,8 @@ public class ApiCoreExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        context.registerService(DtoTransformerRegistry.class, new DtoTransformerRegistryImpl());
+        var transformerRegistry = new DtoTransformerRegistryImpl();
+        transformerRegistry.register(new QuerySpecDtoToQuerySpecTransformer());
+        context.registerService(DtoTransformerRegistry.class, transformerRegistry);
     }
 }

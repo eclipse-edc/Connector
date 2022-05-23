@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.client;
 
 import kotlin.NotImplementedError;
 import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
+import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -73,7 +74,8 @@ import static org.mockito.Mockito.mock;
 @Provides({
         AssetIndex.class, TransferProcessStore.class, ContractDefinitionStore.class, IdentityService.class,
         ContractNegotiationManager.class, ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class,
-        ContractOfferService.class, ContractValidationService.class, PolicyArchive.class
+        ContractOfferService.class, ContractValidationService.class, PolicyArchive.class,
+        ObjectMapperFactory.class
 })
 class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements ServiceExtension {
     private final List<Asset> assets;
@@ -97,7 +99,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
                         .providerAgentId("provider")
                         .consumerAgentId("consumer")
                         .assetId(UUID.randomUUID().toString())
-                        .policy(Policy.Builder.newInstance().build())
+                        .policyId("policyId")
                         .contractSigningDate(Instant.now().getEpochSecond())
                         .contractStartDate(Instant.now().getEpochSecond())
                         .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
@@ -118,6 +120,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         context.registerService(ProviderContractNegotiationManager.class, new FakeProviderContractNegotiationManager());
         context.registerService(ConsumerContractNegotiationManager.class, new FakeConsumerContractNegotiationManager());
         context.registerService(PolicyArchive.class, mock(PolicyArchive.class));
+        context.registerService(ObjectMapperFactory.class, new ObjectMapperFactory());
     }
 
     private static class FakeAssetIndex implements AssetIndex {
@@ -350,7 +353,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         }
 
         @Override
-        public StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId, ContractAgreement contract, String hash) {
+        public StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, Policy policy) {
             return StatusResult.success(fakeContractNegotiation());
         }
 

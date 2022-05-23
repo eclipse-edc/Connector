@@ -27,6 +27,7 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNeg
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
@@ -46,6 +47,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
     private final ContractValidationService validationService = mock(ContractValidationService.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     private final ContractNegotiationObservable observable = mock(ContractNegotiationObservable.class);
+    private final PolicyStore policyStore = mock(PolicyStore.class);
     private final Monitor monitor = mock(Monitor.class);
     private final String errorDetail = "Updated by command handler";
     private CommandQueue<ContractNegotiationCommand> commandQueue;
@@ -88,6 +90,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
                 .commandRunner(commandRunner)
                 .observable(observable)
                 .store(store)
+                .policyStore(policyStore)
                 .build();
 
         negotiationManager.start();
@@ -119,6 +122,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
                 .commandRunner(commandRunner)
                 .observable(observable)
                 .store(store)
+                .policyStore(policyStore)
                 .build();
         negotiationManager.start();
 

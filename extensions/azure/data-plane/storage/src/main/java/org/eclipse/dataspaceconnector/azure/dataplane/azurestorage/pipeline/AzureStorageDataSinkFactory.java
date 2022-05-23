@@ -14,13 +14,16 @@
 
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline;
 
-import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.adapter.BlobAdapterFactory;
-import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.schema.AzureBlobStoreSchema;
+import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
+import org.eclipse.dataspaceconnector.azure.blob.core.AzureSasToken;
+import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
@@ -29,24 +32,27 @@ import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.validator.AzureStorageValidator.validateAccountName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.validator.AzureStorageValidator.validateContainerName;
-import static org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.validator.AzureStorageValidator.validateSharedKey;
+import static org.eclipse.dataspaceconnector.azure.blob.core.validator.AzureStorageValidator.validateAccountName;
+import static org.eclipse.dataspaceconnector.azure.blob.core.validator.AzureStorageValidator.validateContainerName;
 
 /**
  * Instantiates {@link AzureStorageDataSink}s for requests whose source data type is {@link AzureBlobStoreSchema#TYPE}.
  */
 public class AzureStorageDataSinkFactory implements DataSinkFactory {
-    private final BlobAdapterFactory blobAdapterFactory;
+    private final BlobStoreApi blobStoreApi;
     private final ExecutorService executorService;
     private final int partitionSize;
     private final Monitor monitor;
+    private final Vault vault;
+    private final TypeManager typeManager;
 
-    public AzureStorageDataSinkFactory(BlobAdapterFactory blobAdapterFactory, ExecutorService executorService, int partitionSize, Monitor monitor) {
-        this.blobAdapterFactory = blobAdapterFactory;
+    public AzureStorageDataSinkFactory(BlobStoreApi blobStoreApi, ExecutorService executorService, int partitionSize, Monitor monitor, Vault vault, TypeManager typeManager) {
+        this.blobStoreApi = blobStoreApi;
         this.executorService = executorService;
         this.partitionSize = partitionSize;
         this.monitor = monitor;
+        this.vault = vault;
+        this.typeManager = typeManager;
     }
 
     @Override
@@ -61,7 +67,7 @@ public class AzureStorageDataSinkFactory implements DataSinkFactory {
         try {
             validateAccountName(properties.remove(AzureBlobStoreSchema.ACCOUNT_NAME));
             validateContainerName(properties.remove(AzureBlobStoreSchema.CONTAINER_NAME));
-            validateSharedKey(properties.remove(AzureBlobStoreSchema.SHARED_KEY));
+            properties.remove(DataAddress.KEY_NAME);
             properties.keySet().stream().filter(k -> !DataAddress.TYPE.equals(k)).findFirst().ifPresent(k -> {
                 throw new IllegalArgumentException(format("Unexpected property %s", k));
             });
@@ -81,13 +87,16 @@ public class AzureStorageDataSinkFactory implements DataSinkFactory {
         var dataAddress = request.getDestinationDataAddress();
         var requestId = request.getId();
 
+        var secret = vault.resolveSecret(dataAddress.getKeyName());
+        var token = typeManager.readValue(secret, AzureSasToken.class);
+
         return AzureStorageDataSink.Builder.newInstance()
                 .accountName(dataAddress.getProperty(AzureBlobStoreSchema.ACCOUNT_NAME))
                 .containerName(dataAddress.getProperty(AzureBlobStoreSchema.CONTAINER_NAME))
-                .sharedKey(dataAddress.getProperty(AzureBlobStoreSchema.SHARED_KEY))
+                .sharedAccessSignature(token.getSas())
                 .requestId(requestId)
                 .partitionSize(partitionSize)
-                .blobAdapterFactory(blobAdapterFactory)
+                .blobStoreApi(blobStoreApi)
                 .executorService(executorService)
                 .monitor(monitor)
                 .build();

@@ -22,11 +22,11 @@ import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.DataAddress
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetService;
 import org.eclipse.dataspaceconnector.api.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
-import org.eclipse.dataspaceconnector.spi.query.SortOrder;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -106,30 +106,38 @@ public class AssetApiControllerTest {
     @Test
     void getAllAssets() {
         when(service.query(any())).thenReturn(List.of(Asset.Builder.newInstance().build()));
-        when(transformerRegistry.transform(isA(Asset.class), eq(AssetDto.class))).thenReturn(Result.success(AssetDto.Builder.newInstance().build()));
+        when(transformerRegistry.transform(isA(Asset.class), eq(AssetDto.class)))
+                .thenReturn(Result.success(AssetDto.Builder.newInstance().build()));
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
+        var querySpec = QuerySpecDto.Builder.newInstance().build();
 
-        var allAssets = controller.getAllAssets(1, 10, "field=value", SortOrder.ASC, "field");
+        var allAssets = controller.getAllAssets(querySpec);
 
         assertThat(allAssets).hasSize(1);
-        verify(service).query(argThat(s ->
-                s.getOffset() == 1 &&
-                s.getLimit() == 10 &&
-                s.getFilterExpression().size() == 1 &&
-                s.getFilterExpression().get(0).equals(new Criterion("field", "=", "value")) &&
-                s.getSortOrder().equals(SortOrder.ASC) &&
-                s.getSortField().equals("field")
-        ));
+        verify(service).query(argThat(s -> s.getOffset() == 10));
         verify(transformerRegistry).transform(isA(Asset.class), eq(AssetDto.class));
+        verify(transformerRegistry).transform(isA(QuerySpecDto.class), eq(QuerySpec.class));
     }
 
     @Test
-    void getAllAssets_filtersOutFailedTransforms() {
+    void getAll_filtersOutFailedTransforms() {
         when(service.query(any())).thenReturn(List.of(Asset.Builder.newInstance().build()));
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
         when(transformerRegistry.transform(isA(Asset.class), eq(AssetDto.class))).thenReturn(Result.failure("failed to transform"));
 
-        var allAssets = controller.getAllAssets(1, 10, "field=value", SortOrder.ASC, "field");
+        var allAssets = controller.getAllAssets(QuerySpecDto.Builder.newInstance().build());
 
         assertThat(allAssets).isEmpty();
+    }
+
+    @Test
+    void getAll_throwsExceptionIfQuerySpecTransformFails() {
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.failure("Cannot transform"));
+
+        assertThatThrownBy(() -> controller.getAllAssets(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

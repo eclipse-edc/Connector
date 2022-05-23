@@ -26,8 +26,8 @@ dependencies {
     implementation(project(":common:util"))
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 
-    testImplementation(project(":extensions:in-memory:transfer-store-memory"))
     testImplementation(testFixtures(project(":common:util")))
+    testImplementation(project(":core:defaults")) //used in the component test
 }
 
 

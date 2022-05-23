@@ -22,19 +22,18 @@ import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.transfer.dataplane.client.DataPlaneTransferClient;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.client.DataPlaneTransferClient;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-import static java.lang.String.join;
-import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType.SYNC;
+import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType.HTTP_PROXY;
 
 /**
  * Implementation of {@link DataFlowController} that delegates data transfer to Data Plane instance.
  * Note that Data Plane can be embedded in current runtime (test, samples...) or accessed remotely.
  * The present {@link DataFlowController} is triggered when destination type in the {@link DataRequest} is different from
- * {@link org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType#SYNC}, as this one is reserved for synchronous data transfers.
+ * {@link org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType#HTTP_PROXY}, as this one is reserved for synchronous data transfers.
  */
 public class DataPlaneTransferFlowController implements DataFlowController {
     private final DataPlaneTransferClient client;
@@ -47,20 +46,20 @@ public class DataPlaneTransferFlowController implements DataFlowController {
     public boolean canHandle(DataRequest dataRequest, DataAddress contentAddress) {
         var type = dataRequest.getDestinationType();
         if (!StringUtils.isNullOrBlank(type)) {
-            return !SYNC.equals(dataRequest.getDestinationType());
+            return !HTTP_PROXY.equals(dataRequest.getDestinationType());
         }
         return false;
     }
 
     @Override
-    public @NotNull StatusResult<String> initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
+    public @NotNull StatusResult<Void> initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
         var dataFlowRequest = createRequest(dataRequest, contentAddress);
         var result = client.transfer(dataFlowRequest);
         if (result.failed()) {
             return StatusResult.failure(ResponseStatus.FATAL_ERROR,
-                    "Failed to delegate data transfer to Data Plane: " + join(", ", result.getFailureMessages()));
+                    "Failed to delegate data transfer to Data Plane: " + String.join(", ", result.getFailureMessages()));
         }
-        return StatusResult.success("");
+        return StatusResult.success();
     }
 
     private DataFlowRequest createRequest(DataRequest dataRequest, DataAddress sourceAddress) {

@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.cosmos.policy.store.model.ContractDefiniti
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -27,6 +28,9 @@ import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
 @Provides({ ContractDefinitionStore.class, ContractDefinitionLoader.class })
 public class CosmosContractDefinitionStoreExtension implements ServiceExtension {
+
+    @Inject
+    private Vault vault;
 
     @Override
     public String name() {
@@ -36,7 +40,6 @@ public class CosmosContractDefinitionStoreExtension implements ServiceExtension 
     @Override
     public void initialize(ServiceExtensionContext context) {
         var configuration = new CosmosContractDefinitionStoreConfig(context);
-        Vault vault = context.getService(Vault.class);
 
         var cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
 

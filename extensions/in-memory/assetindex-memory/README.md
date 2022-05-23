@@ -1,2 +1,0 @@
-This implements an ephemeral `AssetIndex` based purely on in-memory data structures and should be considered fine for
-development/testing purposes. It should not be considered suitable for production use.`

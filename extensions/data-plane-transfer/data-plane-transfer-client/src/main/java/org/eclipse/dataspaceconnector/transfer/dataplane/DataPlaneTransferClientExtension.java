@@ -24,10 +24,10 @@ import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
-import org.eclipse.dataspaceconnector.transfer.dataplane.client.DataPlaneTransferClient;
 import org.eclipse.dataspaceconnector.transfer.dataplane.client.EmbeddedDataPlaneTransferClient;
 import org.eclipse.dataspaceconnector.transfer.dataplane.client.RemoteDataPlaneTransferClient;
 import org.eclipse.dataspaceconnector.transfer.dataplane.flow.DataPlaneTransferFlowController;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.client.DataPlaneTransferClient;
 
 import java.util.Objects;
 
@@ -37,7 +37,7 @@ import java.util.Objects;
 public class DataPlaneTransferClientExtension implements ServiceExtension {
 
     @EdcSetting
-    private static final String DPF_SELECTOR_STRATEGY = "edc.dpf.selector.strategy";
+    private static final String DPF_SELECTOR_STRATEGY = "edc.transfer.client.selector.strategy";
 
     @Inject(required = false)
     private DataPlaneSelectorClient selectorClient;

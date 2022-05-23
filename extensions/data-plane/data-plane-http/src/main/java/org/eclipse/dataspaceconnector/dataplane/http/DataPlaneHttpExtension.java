@@ -43,6 +43,9 @@ public class DataPlaneHttpExtension implements ServiceExtension {
     @Inject
     private DataTransferExecutorServiceContainer executorContainer;
 
+    @Inject
+    private Vault vault;
+
     @Override
     public String name() {
         return "Data Plane HTTP";
@@ -50,7 +53,6 @@ public class DataPlaneHttpExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var vault = context.getService(Vault.class);
         var monitor = context.getMonitor();
 
         @SuppressWarnings("unchecked") var sourceFactory = new HttpDataSourceFactory(httpClient, retryPolicy, monitor, vault);

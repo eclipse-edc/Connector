@@ -17,27 +17,29 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 
 import jakarta.validation.Valid;
+import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractAgreementDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractNegotiationDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationId;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationState;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.service.ContractNegotiationService;
 import org.eclipse.dataspaceconnector.api.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
@@ -48,6 +50,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
 
 @Path("/contractnegotiations")
 public class ContractNegotiationApiController implements ContractNegotiationApi {
@@ -62,20 +67,15 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     }
 
     @GET
-    @Produces({ MediaType.APPLICATION_JSON })
     @Override
-    public List<ContractNegotiationDto> getNegotiations(@QueryParam("offset") Integer offset,
-                                                        @QueryParam("limit") Integer limit,
-                                                        @QueryParam("filter") String filterExpression,
-                                                        @QueryParam("sort") SortOrder sortOrder,
-                                                        @QueryParam("sortField") String sortField) {
-        var spec = QuerySpec.Builder.newInstance()
-                .offset(offset)
-                .limit(limit)
-                .sortField(sortField)
-                .filter(filterExpression)
-                .sortOrder(sortOrder)
-                .build();
+    public List<ContractNegotiationDto> getNegotiations(@Valid @BeanParam QuerySpecDto querySpecDto) {
+        var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
+        if (result.failed()) {
+            monitor.warning("Error transforming QuerySpec: " + String.join(", ", result.getFailureMessages()));
+            throw new IllegalArgumentException("Cannot transform QuerySpecDto object");
+        }
+
+        var spec = result.getContent();
 
         monitor.debug(format("Get all contract definitions %s", spec));
 
@@ -88,7 +88,6 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
 
     @GET
     @Path("/{id}")
-    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public ContractNegotiationDto getNegotiation(@PathParam("id") String id) {
         monitor.debug(format("Get contract negotiation with id %s", id));
@@ -103,18 +102,17 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
 
     @GET
     @Path("/{id}/state")
-    @Produces({ MediaType.TEXT_PLAIN })
     @Override
-    public String getNegotiationState(@PathParam("id") String id) {
+    public NegotiationState getNegotiationState(@PathParam("id") String id) {
         monitor.debug(format("Get contract negotiation state with id %s", id));
         return Optional.of(id)
                 .map(service::getState)
+                .map(NegotiationState::new)
                 .orElseThrow(() -> new ObjectNotFoundException(ContractDefinition.class, id));
     }
 
     @GET
     @Path("/{id}/agreement")
-    @Produces({ MediaType.APPLICATION_JSON })
     @Override
     public ContractAgreementDto getAgreementForNegotiation(@PathParam("id") String negotiationId) {
         monitor.debug(format("Get contract agreement of negotiation with id %s", negotiationId));
@@ -128,10 +126,8 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     }
 
     @POST
-    @Consumes({ MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.TEXT_PLAIN })
     @Override
-    public String initiateContractNegotiation(@Valid NegotiationInitiateRequestDto initiateDto) {
+    public NegotiationId initiateContractNegotiation(@Valid NegotiationInitiateRequestDto initiateDto) {
         if (!isValid(initiateDto)) {
             throw new IllegalArgumentException("Negotiation request is invalid");
         }
@@ -144,7 +140,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
         var request = transformResult.getContent();
 
         ContractNegotiation contractNegotiation = service.initiateNegotiation(request);
-        return contractNegotiation.getId();
+        return new NegotiationId(contractNegotiation.getId());
     }
 
     @POST

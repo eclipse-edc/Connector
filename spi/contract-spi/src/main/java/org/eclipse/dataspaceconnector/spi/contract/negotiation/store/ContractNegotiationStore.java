@@ -64,7 +64,7 @@ public interface ContractNegotiationStore extends StateEntityStore<ContractNegot
      * <p>
      * The general order of precedence of the query parameters is:
      * <pre>
-     * filter > sort > limit
+     * filter &gt; sort &gt; limit
      * </pre>
      * <p>
      *

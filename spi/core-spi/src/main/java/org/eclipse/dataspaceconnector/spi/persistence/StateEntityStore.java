@@ -25,18 +25,18 @@ public interface StateEntityStore<T> {
 
     /**
      * Returns a list of entities that are in a specific state.
-     * <br/>
-     * Implementors MUST handle these requirements: <br/>
+     * <p>
+     * Implementors MUST handle these requirements: <p>
      * <ul>
-     *     <il>
+     *     <li>
      *         * entities should be fetched from the oldest to the newest, by a timestamp that reports the last state transition on the entity
-     *         <br/><br/>
-     *     </il>
-     *     <il>
+     *         <p><p>
+     *     </li>
+     *     <li>
      *         * fetched entities should be leased for a configurable timeout, that will be released after the timeout expires or when the entity will be updated.
      *         This will avoid consecutive fetches in the state machine loop
-     *         <br/><br/>
-     *     </il>
+     *         <p><p>
+     *     </li>
      * </ul>
      *
      * @param state The state that the processes of interest should be in.

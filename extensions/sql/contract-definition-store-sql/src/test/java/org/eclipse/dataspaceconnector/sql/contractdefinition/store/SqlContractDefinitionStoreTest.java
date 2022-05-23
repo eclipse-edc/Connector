@@ -20,21 +20,12 @@ package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 
 import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
+import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
-import org.eclipse.dataspaceconnector.sql.datasource.ConnectionFactoryDataSource;
-import org.eclipse.dataspaceconnector.sql.datasource.ConnectionPoolDataSource;
-import org.eclipse.dataspaceconnector.sql.pool.ConnectionPool;
-import org.eclipse.dataspaceconnector.sql.pool.commons.CommonsConnectionPool;
-import org.eclipse.dataspaceconnector.sql.pool.commons.CommonsConnectionPoolConfig;
-import org.eclipse.dataspaceconnector.transaction.local.DataSourceResource;
-import org.eclipse.dataspaceconnector.transaction.local.LocalDataSourceRegistry;
-import org.eclipse.dataspaceconnector.transaction.local.LocalTransactionContext;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,15 +33,22 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collection;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 @ComponentTest
 public class SqlContractDefinitionStoreTest {
@@ -59,41 +57,36 @@ public class SqlContractDefinitionStoreTest {
 
     private DataSourceRegistry dataSourceRegistry;
     private SqlContractDefinitionStore sqlContractDefinitionStore;
-    private ConnectionPool connectionPool;
     private PostgresStatements statements;
+    private Connection connection;
 
     @BeforeEach
-    void setUp() throws SQLException {
-        var monitor = new Monitor() {
+    void setUp() throws SQLException, IOException {
+        var txManager = new NoopTransactionContext();
+        dataSourceRegistry = mock(DataSourceRegistry.class);
 
-        };
-        var txManager = new LocalTransactionContext(monitor);
-        dataSourceRegistry = new LocalDataSourceRegistry(txManager);
-        var transactionContext = (TransactionContext) txManager;
         var jdbcDataSource = new JdbcDataSource();
         jdbcDataSource.setURL("jdbc:h2:mem:");
 
-        var connection = jdbcDataSource.getConnection();
-        var dataSource = new ConnectionFactoryDataSource(() -> connection);
-        connectionPool = new CommonsConnectionPool(dataSource, CommonsConnectionPoolConfig.Builder.newInstance().build());
-        var poolDataSource = new ConnectionPoolDataSource(connectionPool);
-        dataSourceRegistry.register(DATASOURCE_NAME, poolDataSource);
-        txManager.registerResource(new DataSourceResource(poolDataSource));
+        // do not actually close
+        connection = spy(jdbcDataSource.getConnection());
+        doNothing().when(connection).close();
+
+        DataSource datasourceMock = mock(DataSource.class);
+        when(datasourceMock.getConnection()).thenReturn(connection);
+        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
+
         statements = new PostgresStatements();
-        sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, statements, new TypeManager());
+        sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, txManager, statements, new TypeManager());
 
-        try (var inputStream = getClass().getClassLoader().getResourceAsStream("schema.sql")) {
-            var schema = new String(Objects.requireNonNull(inputStream).readAllBytes(), StandardCharsets.UTF_8);
-            transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        var schema = Files.readString(Paths.get("./docs/schema.sql"));
+        txManager.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
     }
 
     @AfterEach
     void tearDown() throws Exception {
-        connectionPool.close();
+        doCallRealMethod().when(connection).close();
+        connection.close();
     }
 
     @Test

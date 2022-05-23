@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.spi.contract.negotiation;
 
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -42,5 +43,5 @@ public interface ConsumerContractNegotiationManager extends ContractNegotiationM
     /**
      * The negotiation has been confirmed by the provider and the final contract received.
      */
-    StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId, ContractAgreement contract, String hash);
+    StatusResult<ContractNegotiation> confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, Policy policy);
 }

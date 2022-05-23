@@ -67,9 +67,6 @@ jobs:
         with:
           command: ./gradlew test jacocoTestReport
 
-      - name: CodeCov
-        uses: codecov/codecov-action@v2
-
   Sanity-Check:
     runs-on: ubuntu-latest
     steps:
@@ -214,7 +211,9 @@ jobs:
       - name: Azure Storage Tests
         uses: ./.github/actions/run-tests
         with:
-          command: ./gradlew -p extensions/azure test -DincludeTags="AzureStorageIntegrationTest"
+          command: |
+            ./gradlew -p extensions/azure test -DincludeTags="AzureStorageIntegrationTest"
+            ./gradlew -p system-tests/azure-tests test -DincludeTags="AzureStorageIntegrationTest"
 
   Check-Cosmos-Key:
     runs-on: ubuntu-latest
@@ -303,6 +302,31 @@ jobs:
         with:
           command: ./gradlew -p extensions/iam/daps test -DincludeTags="DapsIntegrationTest"
 
+  Postgresql-Integration-Tests:
+    runs-on: ubuntu-latest
+
+    services:
+      minio:
+        image: postgres:14.2
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: password
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Postgresql Tests
+        uses: ./.github/actions/run-tests
+        with:
+          command: ./gradlew -p system-tests test -DincludeTags="PostgresqlIntegrationTest"
+
   End-To-End-Tests:
     runs-on: ubuntu-latest
     steps:
@@ -327,6 +351,8 @@ jobs:
           path: '**/build/reports/gatling/**'
 
   Component-Tests:
+    env:
+      JACOCO: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -340,7 +366,7 @@ jobs:
       - name: Component Tests
         uses: ./.github/actions/run-tests
         with:
-          command: ./gradlew test -DincludeTags="ComponentTest"
+          command: ./gradlew test jacocoTestReport -DincludeTags="ComponentTest"
 
   OpenTelemetry-Integration-Tests:
     runs-on: ubuntu-latest
@@ -369,6 +395,7 @@ jobs:
       - Aws-Integration-Tests
       - Daps-Integration-Tests
       - End-To-End-Tests
+      - Postgresql-Integration-Tests
       - Component-Tests
       - OpenTelemetry-Integration-Tests
     runs-on: ubuntu-latest
@@ -383,3 +410,19 @@ jobs:
         if: always()
         with:
           files: "**/test-results/**/*.xml"
+
+  Upload-Coverage-Report-To-Codecov:
+    needs:
+      - Unit-Tests
+      - Component-Tests
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      # Sources are needed for Codecov report
+      - uses: actions/checkout@v2
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: artifacts
+      - name: CodeCov
+        uses: codecov/codecov-action@v2

@@ -16,8 +16,8 @@ package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline;
 
 
 import net.jodah.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.adapter.BlobAdapter;
-import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.adapter.BlobAdapterFactory;
+import org.eclipse.dataspaceconnector.azure.blob.core.adapter.BlobAdapter;
+import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -38,7 +38,7 @@ public class AzureStorageDataSource implements DataSource {
     private String blobName;
     private String requestId;
     private RetryPolicy<Object> retryPolicy;
-    private BlobAdapterFactory blobAdapterFactory;
+    private BlobStoreApi blobStoreApi;
     private Monitor monitor;
 
     @Override
@@ -48,7 +48,7 @@ public class AzureStorageDataSource implements DataSource {
 
     private AzureStoragePart getPart() {
         try {
-            var adapter = blobAdapterFactory.getBlobAdapter(accountName, containerName, blobName, sharedKey);
+            var adapter = blobStoreApi.getBlobAdapter(accountName, containerName, blobName, sharedKey);
             return new AzureStoragePart(adapter);
         } catch (Exception e) {
             monitor.severe(format("Error accessing blob %s on account %s", blobName, accountName), e);
@@ -100,8 +100,8 @@ public class AzureStorageDataSource implements DataSource {
             return this;
         }
 
-        public Builder blobAdapterFactory(BlobAdapterFactory blobAdapterFactory) {
-            dataSource.blobAdapterFactory = blobAdapterFactory;
+        public Builder blobStoreApi(BlobStoreApi blobStoreApi) {
+            dataSource.blobStoreApi = blobStoreApi;
             return this;
         }
 
@@ -115,7 +115,7 @@ public class AzureStorageDataSource implements DataSource {
             Objects.requireNonNull(dataSource.containerName, "containerName");
             Objects.requireNonNull(dataSource.sharedKey, "sharedKey");
             Objects.requireNonNull(dataSource.requestId, "requestId");
-            Objects.requireNonNull(dataSource.blobAdapterFactory, "blobAdapterFactory");
+            Objects.requireNonNull(dataSource.blobStoreApi, "blobStoreApi");
             Objects.requireNonNull(dataSource.monitor, "monitor");
             Objects.requireNonNull(dataSource.retryPolicy, "retryPolicy");
             return dataSource;

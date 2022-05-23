@@ -5,7 +5,7 @@ work but might have unexpected side effects!_**
 
 ## Table schema DDL
 
-please refer to [ddl_postgres.sql](./ddl_postgres.sql):
+please refer to [schema.sql](./schema.sql):
 
 ## Translating the `TransferProcessStore` interface into SQL statements
 

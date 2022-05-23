@@ -326,7 +326,7 @@ class TransferProcessManagerImplTest {
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(transferProcessStore.nextForState(eq(PROVISIONED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success("any"));
+        when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success());
         var latch = countDownOnUpdateLatch();
 
         manager.start();
@@ -454,7 +454,7 @@ class TransferProcessManagerImplTest {
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
 
         when(transferProcessStore.nextForState(eq(IN_PROGRESS.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(statusCheckerRegistry.resolve(anyString())).thenReturn((i, l) -> true);
+        when(statusCheckerRegistry.resolve(anyString())).thenReturn((tp, resources) -> true);
 
         var latch = countDownOnUpdateLatch();
 
@@ -473,7 +473,7 @@ class TransferProcessManagerImplTest {
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
 
         when(transferProcessStore.nextForState(eq(IN_PROGRESS.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(statusCheckerRegistry.resolve(anyString())).thenReturn((i, l) -> true);
+        when(statusCheckerRegistry.resolve(anyString())).thenReturn((tp, resources) -> true);
         var latch = countDownOnUpdateLatch();
 
         manager.start();
@@ -484,26 +484,21 @@ class TransferProcessManagerImplTest {
     }
 
     @Test
-    @DisplayName("checkComplete: should not transition process if checker returns not yet completed")
+    @DisplayName("checkComplete: should break lease and not transition process if checker returns not yet completed")
     void verifyCompleted_notAllYetCompleted() throws InterruptedException {
         var process = createTransferProcess(IN_PROGRESS);
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
 
-        var latch = new CountDownLatch(1);
+        var latch = countDownOnUpdateLatch();
 
-        when(transferProcessStore.nextForState(eq(IN_PROGRESS.code()), anyInt())).thenAnswer(i -> {
-            latch.countDown();
-            return List.of(process);
-        });
-        doThrow(new AssertionError("update() should not be called as process was not updated"))
-                .when(transferProcessStore).update(process);
+        when(transferProcessStore.nextForState(eq(IN_PROGRESS.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(statusCheckerRegistry.resolve(anyString())).thenReturn((tp, resources) -> false);
 
         manager.start();
 
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(transferProcessStore, atLeastOnce()).nextForState(anyInt(), anyInt());
-        verify(transferProcessStore, never()).update(any());
+        verify(transferProcessStore).update(argThat(p -> p.getState() == IN_PROGRESS.code()));
     }
 
     @Test

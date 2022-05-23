@@ -16,8 +16,9 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractagreement;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.model.ContractAgreementDto;
-import org.eclipse.dataspaceconnector.spi.query.SortOrder;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 
 import java.util.List;
 
@@ -25,7 +26,7 @@ import java.util.List;
 @Tag(name = "Contract Agreement")
 public interface ContractAgreementApi {
 
-    List<ContractAgreementDto> getAllAgreements(Integer offset, Integer limit, String filterExpression, SortOrder sortOrder, String sortField);
+    List<ContractAgreementDto> getAllAgreements(@Valid QuerySpecDto querySpecDto);
 
     ContractAgreementDto getContractAgreement(String id);
 

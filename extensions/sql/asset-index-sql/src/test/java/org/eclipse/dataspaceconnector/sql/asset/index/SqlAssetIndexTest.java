@@ -20,23 +20,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.dataloading.AssetEntry;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
-import org.eclipse.dataspaceconnector.sql.datasource.ConnectionFactoryDataSource;
-import org.eclipse.dataspaceconnector.sql.datasource.ConnectionPoolDataSource;
-import org.eclipse.dataspaceconnector.sql.pool.ConnectionPool;
-import org.eclipse.dataspaceconnector.sql.pool.commons.CommonsConnectionPool;
-import org.eclipse.dataspaceconnector.sql.pool.commons.CommonsConnectionPoolConfig;
-import org.eclipse.dataspaceconnector.transaction.local.DataSourceResource;
-import org.eclipse.dataspaceconnector.transaction.local.LocalDataSourceRegistry;
-import org.eclipse.dataspaceconnector.transaction.local.LocalTransactionContext;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,18 +36,24 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.AbstractMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 @ComponentTest
 class SqlAssetIndexTest {
@@ -63,42 +61,40 @@ class SqlAssetIndexTest {
     private static final String DATASOURCE_NAME = "asset";
 
     private SqlAssetIndex sqlAssetIndex;
-    private ConnectionPool connectionPool;
     private DataSourceRegistry dataSourceRegistry;
     private PostgresSqlAssetQueries sqlAssetQueries;
     private TransactionContext transactionContext;
+    private Connection connection;
 
     @BeforeEach
-    void setUp() throws SQLException {
-        var monitor = new Monitor() {
-        };
-        var txManager = new LocalTransactionContext(monitor);
-        dataSourceRegistry = new LocalDataSourceRegistry(txManager);
+    void setUp() throws SQLException, IOException {
+        var txManager = new NoopTransactionContext();
+        dataSourceRegistry = mock(DataSourceRegistry.class);
+
         transactionContext = txManager;
         var jdbcDataSource = new JdbcDataSource();
         jdbcDataSource.setURL("jdbc:h2:mem:");
 
-        var connection = jdbcDataSource.getConnection();
-        var dataSource = new ConnectionFactoryDataSource(() -> connection);
-        connectionPool = new CommonsConnectionPool(dataSource, CommonsConnectionPoolConfig.Builder.newInstance().build());
-        var poolDataSource = new ConnectionPoolDataSource(connectionPool);
-        dataSourceRegistry.register(DATASOURCE_NAME, poolDataSource);
-        txManager.registerResource(new DataSourceResource(poolDataSource));
+        // do not actually close
+        connection = spy(jdbcDataSource.getConnection());
+        doNothing().when(connection).close();
+
+        DataSource datasourceMock = mock(DataSource.class);
+        when(datasourceMock.getConnection()).thenReturn(connection);
+        when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
+
         sqlAssetIndex = new SqlAssetIndex(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper(), new PostgresSqlAssetQueries());
 
-        try (var inputStream = getClass().getClassLoader().getResourceAsStream("schema.sql")) {
-            var schema = new String(Objects.requireNonNull(inputStream).readAllBytes(), StandardCharsets.UTF_8);
-            transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         sqlAssetQueries = new PostgresSqlAssetQueries();
+
+        var schema = Files.readString(Paths.get("./docs/schema.sql"));
+        transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
     }
 
     @AfterEach
     void tearDown() throws Exception {
-        connectionPool.close();
+        doCallRealMethod().when(connection).close();
+        connection.close();
     }
 
     @Test

@@ -10,6 +10,7 @@ in the detailed section referring to by linking pull requests or issues.
 ## [Unreleased]
 
 ### Overview
+
 * Bugfixing DataManagementApi
 * Build improvements
 * Improvements to Dependency Resolution
@@ -23,13 +24,32 @@ in the detailed section referring to by linking pull requests or issues.
 * Check to avoid duplicated module names (#1190)
 * Implement Catalog service for Data Management API (#1195)
 * Add strict body validation for REST endpoints (#1128)
+* Add validation on query endpoints (#1258)
 * Dependency injection using factory/provider methods (#1056)
+* Provisioned resource information in Data Management API (#1221)
+* Add custom Jackson (de)serializer for `XMLGregorianCalendar` (#1226)
+* Add contract validation rule (#1239)
+* Harmonize setting names in `data-plane-transfer` (#1164)
+* Add Blob transfer Architectural Decision Record (#1259)
+* Add component tests coverage to the codecov coverage report (#1246)
+* Postgresql end to end test (#1278)
+* Add signing/publishing config (#1147)
 
 #### Changed
 
 * Restructure sql extension folder tree (#1154)
 * Extract single `PolicyArchive` implementation (#1158)
 * Replace `accessPolicy` and `contractPolicy` with `accessPolicyId` and `contractPolicyId` on `ContractDefinition` (#1144)
+* Replace `policy` with `policyId` on `ContractAgreement` (#1220)
+* All DMgmt Api methods now produce and consume `APPLICATION_JSON` (#1175)
+* Make data-plane public api controller asynchronous (#1228)
+* Provide In-mem implementations by default (#1130)
+* Changed Catalog config keys and switched from minutes to seconds
+* Uniform all the sql schema files as `docs/schema.sql` (#1278)
+* Clean FCC store before updating
+* Usage of `NooTransactionContext` in (SQL-)Tests (#1119)
+* Sanitize log messages (#1295)
+* Improve CosmosDB statement parser (#1282)
 
 #### Removed
 
@@ -42,6 +62,13 @@ in the detailed section referring to by linking pull requests or issues.
 * Fix problem with interpreting contractId/negotiationId (#1140)
 * Fixed DMgmtApi content types (#1126)
 * Fix HTTPS termination in Jetty (#1133)
+* Break lease after TransferProcessManager status check (#1214)
+* Fix path conflicts between `CatalogApiController` and `FederatedCatalogApiController` (#1225)
+* Always use configured IDS API path in IDS webhook address (#1249)
+* Fix Azure storage transfer (#1245)
+* Throw exception if `IdentityProviderKeyResolver` cannot get keys at startup (#1266)
+* Make all the services injectable (#1285)
+* Fix CosmosDB Integration tests (#1313)
 
 ## [milestone-3] - 2022-04-08
 

@@ -29,7 +29,6 @@ import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
-import static io.restassured.http.ContentType.TEXT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
@@ -67,6 +66,14 @@ class TransferProcessApiControllerIntegrationTest {
     }
 
     @Test
+    void getAll_invalidQuery() {
+        baseRequest()
+                .get("/transferprocess?limit=1&offset=-1&filter=&sortField=")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
     void getSingleTransferProcess(TransferProcessStore store) {
         store.create(createTransferProcess(PROCESS_ID));
         baseRequest()
@@ -94,10 +101,10 @@ class TransferProcessApiControllerIntegrationTest {
                 .get("/transferprocess/" + PROCESS_ID + "/state")
                 .then()
                 .statusCode(200)
-                .contentType(TEXT)
+                .contentType(JSON)
                 .extract().asString();
 
-        assertThat(state).isEqualTo("PROVISIONING");
+        assertThat(state).isEqualTo("{\"state\":\"PROVISIONING\"}");
     }
 
     @Test

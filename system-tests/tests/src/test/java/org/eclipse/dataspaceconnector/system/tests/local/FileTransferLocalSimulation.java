@@ -14,41 +14,23 @@
 
 package org.eclipse.dataspaceconnector.system.tests.local;
 
-import io.gatling.javaapi.core.Simulation;
+import org.eclipse.dataspaceconnector.system.tests.FileTransferRequestFactory;
 
-import static io.gatling.javaapi.core.CoreDsl.atOnceUsers;
-import static io.gatling.javaapi.core.CoreDsl.global;
-import static io.gatling.javaapi.core.CoreDsl.scenario;
-import static io.gatling.javaapi.http.HttpDsl.http;
-import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
-import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.CONSUMER_ASSET_PATH;
-import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.CONSUMER_CONNECTOR_MANAGEMENT_URL;
-import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.CONSUMER_MANAGEMENT_PATH;
-import static org.eclipse.dataspaceconnector.system.tests.local.FileTransferIntegrationTest.PROVIDER_IDS_API;
-import static org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils.DESCRIPTION;
-import static org.eclipse.dataspaceconnector.system.tests.utils.FileTransferSimulationUtils.contractNegotiationAndFileTransfer;
+import java.io.File;
+
+import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.tempDirectory;
+import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils.PROVIDER_ASSET_FILE;
 
 /**
  * Runs a single iteration of contract negotiation and file transfer, getting settings from
  * {@see FileTransferIntegrationTest}.
  */
-public class FileTransferLocalSimulation extends Simulation {
-
-    private static final int REPEAT = Integer.parseInt(propOrEnv("repeat", "1"));
-    private static final int AT_ONCE_USERS = Integer.parseInt(propOrEnv("at.once.users", "1"));
-    private static final int MAX_RESPONSE_TIME = Integer.parseInt(propOrEnv("max.response.time", "5000"));
-    private static final double SUCCESS_PERCENTAGE = Double.parseDouble(propOrEnv("success.percentage", "100.0"));
+public class FileTransferLocalSimulation extends TransferLocalSimulation {
+    public static final String CONSUMER_ASSET_PATH = new File(tempDirectory(), "output.txt").getAbsolutePath();
+    public static final String PROVIDER_ASSET_PATH = format("%s/%s.txt", tempDirectory(), PROVIDER_ASSET_FILE);
 
     public FileTransferLocalSimulation() {
-
-        setUp(scenario(DESCRIPTION)
-                .repeat(REPEAT)
-                .on(contractNegotiationAndFileTransfer(PROVIDER_IDS_API, CONSUMER_ASSET_PATH))
-                .injectOpen(atOnceUsers(AT_ONCE_USERS)))
-                .protocols(http.baseUrl(CONSUMER_CONNECTOR_MANAGEMENT_URL + "/" + CONSUMER_MANAGEMENT_PATH))
-                .assertions(
-                        global().responseTime().max().lt(MAX_RESPONSE_TIME),
-                        global().successfulRequests().percent().is(SUCCESS_PERCENTAGE)
-                );
+        super(new FileTransferRequestFactory(CONSUMER_ASSET_PATH));
     }
 }

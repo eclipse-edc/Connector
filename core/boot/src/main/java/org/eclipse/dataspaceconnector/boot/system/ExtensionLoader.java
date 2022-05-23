@@ -22,21 +22,14 @@ import org.eclipse.dataspaceconnector.boot.system.injection.lifecycle.ExtensionL
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.monitor.MultiplexingMonitor;
-import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
-import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.MonitorExtension;
-import org.eclipse.dataspaceconnector.spi.system.NullVaultExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.injection.ProviderMethod;
 import org.eclipse.dataspaceconnector.spi.system.injection.ProviderMethodScanner;
 import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +38,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class ExtensionLoader {
-
 
     private final ServiceLocator serviceLocator;
 
@@ -86,33 +78,9 @@ public class ExtensionLoader {
         };
     }
 
-
-    /**
-     * Loads a vault extension.
-     */
-    public static void loadVault(ServiceExtensionContext context, ExtensionLoader loader) {
-        VaultExtension vaultExtension = loader.loadSingletonExtension(VaultExtension.class, false);
-        if (vaultExtension == null) {
-            vaultExtension = new NullVaultExtension();
-            context.getMonitor().info("Secrets vault not configured. Defaulting to null vault.");
-        }
-        vaultExtension.initialize(context.getMonitor());
-        context.getMonitor().info("Initialized " + vaultExtension.name());
-        vaultExtension.initializeVault(context);
-        context.registerService(Vault.class, vaultExtension.getVault());
-        context.registerService(PrivateKeyResolver.class, vaultExtension.getPrivateKeyResolver());
-        context.registerService(CertificateResolver.class, vaultExtension.getCertificateResolver());
-    }
-
     public static @NotNull Monitor loadMonitor() {
         var loader = ServiceLoader.load(MonitorExtension.class);
         return loadMonitor(loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toList()));
-    }
-
-    public static @NotNull Telemetry loadTelemetry() {
-        var loader = ServiceLoader.load(OpenTelemetry.class);
-        var openTelemetries = loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toList());
-        return new Telemetry(selectOpenTelemetryImpl(openTelemetries));
     }
 
     static @NotNull Monitor loadMonitor(List<MonitorExtension> availableMonitors) {
@@ -125,6 +93,12 @@ public class ExtensionLoader {
         }
 
         return availableMonitors.get(0).getMonitor();
+    }
+
+    public static @NotNull Telemetry loadTelemetry() {
+        var loader = ServiceLoader.load(OpenTelemetry.class);
+        var openTelemetries = loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toList());
+        return new Telemetry(selectOpenTelemetryImpl(openTelemetries));
     }
 
     static @NotNull OpenTelemetry selectOpenTelemetryImpl(List<OpenTelemetry> openTelemetries) {
@@ -148,15 +122,5 @@ public class ExtensionLoader {
     public <T> List<T> loadExtensions(Class<T> type, boolean required) {
         return serviceLocator.loadImplementors(type, required);
     }
-
-    /**
-     * Loads a single extension, raising an exception if one is not found.
-     */
-    @Nullable()
-    @Contract("_, true -> !null")
-    public <T> T loadSingletonExtension(Class<T> type, boolean required) {
-        return serviceLocator.loadSingletonImplementor(type, required);
-    }
-
 
 }

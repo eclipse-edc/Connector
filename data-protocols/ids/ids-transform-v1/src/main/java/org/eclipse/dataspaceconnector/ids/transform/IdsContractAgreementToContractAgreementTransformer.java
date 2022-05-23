@@ -15,8 +15,10 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
+import de.fraunhofer.iais.eis.Contract;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
+import org.eclipse.dataspaceconnector.ids.spi.transform.ContractAgreementTransformerOutput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
@@ -28,13 +30,15 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.Contra
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Transforms an IDS ContractAgreement into an {@link ContractAgreement}.
  */
-public class IdsContractAgreementToContractAgreementTransformer implements IdsTypeTransformer<ContractTransformerInput, ContractAgreement> {
+public class IdsContractAgreementToContractAgreementTransformer implements IdsTypeTransformer<ContractTransformerInput, ContractAgreementTransformerOutput> {
 
     @Override
     public Class<ContractTransformerInput> getInputType() {
@@ -42,12 +46,12 @@ public class IdsContractAgreementToContractAgreementTransformer implements IdsTy
     }
 
     @Override
-    public Class<ContractAgreement> getOutputType() {
-        return ContractAgreement.class;
+    public Class<ContractAgreementTransformerOutput> getOutputType() {
+        return ContractAgreementTransformerOutput.class;
     }
 
     @Override
-    public @Nullable ContractAgreement transform(ContractTransformerInput object, @NotNull TransformerContext context) {
+    public @Nullable ContractAgreementTransformerOutput transform(ContractTransformerInput object, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (object == null) {
             return null;
@@ -56,39 +60,32 @@ public class IdsContractAgreementToContractAgreementTransformer implements IdsTy
         var contractAgreement = (de.fraunhofer.iais.eis.ContractAgreement) object.getContract();
         var asset = object.getAsset();
 
-        var edcPermissions = new ArrayList<Permission>();
-        var edcProhibitions = new ArrayList<Prohibition>();
-        var edcObligations = new ArrayList<Duty>();
+        var edcPermissions = Optional.of(contractAgreement)
+                .map(Contract::getPermission)
+                .stream().flatMap(Collection::stream)
+                .map(it -> context.transform(it, Permission.class))
+                .collect(Collectors.toList());
 
-        if (contractAgreement.getPermission() != null) {
-            for (var edcPermission : contractAgreement.getPermission()) {
-                var idsPermission = context.transform(edcPermission, Permission.class);
-                edcPermissions.add(idsPermission);
-            }
-        }
+        var edcProhibitions = Optional.of(contractAgreement)
+                .map(Contract::getProhibition)
+                .stream().flatMap(Collection::stream)
+                .map(it -> context.transform(it, Prohibition.class))
+                .collect(Collectors.toList());
 
-        if (contractAgreement.getProhibition() != null) {
-            for (var edcProhibition : contractAgreement.getProhibition()) {
-                var idsProhibition = context.transform(edcProhibition, Prohibition.class);
-                edcProhibitions.add(idsProhibition);
-            }
-        }
+        var edcObligations = Optional.of(contractAgreement)
+                .map(Contract::getObligation)
+                .stream().flatMap(Collection::stream)
+                .map(it -> context.transform(it, Duty.class))
+                .collect(Collectors.toList());
 
-        if (contractAgreement.getObligation() != null) {
-            for (var edcObligation : contractAgreement.getObligation()) {
-                var idsObligation = context.transform(edcObligation, Duty.class);
-                edcObligations.add(idsObligation);
-            }
-        }
-
-        var policyBuilder = Policy.Builder.newInstance();
-
-        policyBuilder.duties(edcObligations);
-        policyBuilder.prohibitions(edcProhibitions);
-        policyBuilder.permissions(edcPermissions);
+        var policy = Policy.Builder.newInstance()
+                .duties(edcObligations)
+                .prohibitions(edcProhibitions)
+                .permissions(edcPermissions)
+                .build();
 
         var builder = ContractAgreement.Builder.newInstance()
-                .policy(policyBuilder.build())
+                .policyId(policy.getUid())
                 .consumerAgentId(String.valueOf(contractAgreement.getConsumer()))
                 .providerAgentId(String.valueOf(contractAgreement.getProvider()))
                 .assetId(asset.getId());
@@ -119,6 +116,10 @@ public class IdsContractAgreementToContractAgreementTransformer implements IdsTy
             builder.contractSigningDate(contractAgreement.getContractDate().toGregorianCalendar().toZonedDateTime().toEpochSecond());
         }
 
-        return builder.build();
+        var agreement = builder.build();
+        return ContractAgreementTransformerOutput.Builder.newInstance()
+                .contractAgreement(agreement)
+                .policy(policy)
+                .build();
     }
 }

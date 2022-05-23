@@ -1,0 +1,964 @@
+{
+	"info": {
+		"_postman_id": "d5ca39b5-14be-430d-b1ba-f6506702d079",
+		"name": "EDC",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "provider",
+			"item": [
+				{
+					"name": "Health",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrlProvider}}/default/api/check/health",
+							"host": [
+								"{{baseUrlProvider}}"
+							],
+							"path": [
+								"default",
+								"api",
+								"check",
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Asset",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var uuid = require('uuid');\r",
+									"var assetId = uuid.v4();\r",
+									"pm.collectionVariables.set(\"assetId\", assetId);\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"asset\": {\n        \"properties\": {\n            \"asset:prop:name\": \"{{sourceAssetName}}\",\n            \"asset:prop:description\": \"Description for asset: {{sourceAssetName}}\",\n            \"asset:prop:contenttype\": \"http\",\n            \"asset:prop:id\": \"{{assetId}}\"\n        }\n    },\n    \"dataAddress\": {\n        \"properties\": {\n            \"type\": \"http\",\n            \"url\": \"{{sourceUrl}}\"\n        }\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrlProvider}}/data/api/v1/data/assets",
+							"host": [
+								"{{baseUrlProvider}}"
+							],
+							"path": [
+								"data",
+								"api",
+								"v1",
+								"data",
+								"assets"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Created Asset",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrlProvider}}/data/api/v1/data/assets/:assetId",
+							"host": [
+								"{{baseUrlProvider}}"
+							],
+							"path": [
+								"data",
+								"api",
+								"v1",
+								"data",
+								"assets",
+								":assetId"
+							],
+							"query": [
+								{
+									"key": "offset",
+									"value": "5734126",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "5734126",
+									"disabled": true
+								},
+								{
+									"key": "filter",
+									"value": "te",
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "DESC",
+									"disabled": true
+								},
+								{
+									"key": "sortField",
+									"value": "tenant",
+									"disabled": true
+								}
+							],
+							"variable": [
+								{
+									"key": "assetId",
+									"value": "{{assetId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Assets",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrlProvider}}/data/api/v1/data/assets",
+							"host": [
+								"{{baseUrlProvider}}"
+							],
+							"path": [
+								"data",
+								"api",
+								"v1",
+								"data",
+								"assets"
+							],
+							"query": [
+								{
+									"key": "offset",
+									"value": "5734126",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "5734126",
+									"disabled": true
+								},
+								{
+									"key": "filter",
+									"value": "te",
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "DESC",
+									"disabled": true
+								},
+								{
+									"key": "sortField",
+									"value": "tenant",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Policy",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var uuid = require('uuid');\r",
+									"var policyId = uuid.v4();\r",
+									"var permissionId = uuid.v4();\r",
+									"pm.collectionVariables.set(\"policyId\", policyId);\r",
+									"pm.collectionVariables.set(\"permissionId\", permissionId);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"uid\": \"{{policyId}}\",\n    \"permissions\": [\n        {\n            \"edctype\": \"dataspaceconnector:permission\",\n            \"uid\": \"{{permissionId}}\",\n            \"target\": \"{{assetId}}\",\n            \"action\": {\n                \"type\": \"USE\"\n            }\n        }\n    ],\n    \"target\": \"{{assetId}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrlProvider}}/data/api/v1/data/policies",
+							"host": [
+								"{{baseUrlProvider}}"
+							],
+							"path": [
+								"data",
+								"api",
+								"v1",
+								"data",
+								"policies"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Created Policy",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrlProvider}}/data/api/v1/data/policies/:policyId",
+							"host": [
+								"{{baseUrlProvider}}"
+							],
+							"path": [
+								"data",
+								"api",
+								"v1",
+								"data",
+								"policies",
+								":policyId"
+							],
+							"variable": [
+								{
+									"key": "policyId",
+									"value": "{{policyId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Policies",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrlProvider}}/data/api/v1/data/policies",
+							"host": [
+								"{{baseUrlProvider}}"
+							],
+							"path": [
+								"data",
+								"api",
+								"v1",
+								"data",
+								"policies"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Contract Definition",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var uuid = require('uuid');\r",
+									"var contractDefinitionId = uuid.v4();\r",
+									"pm.collectionVariables.set(\"contractDefinitionId\", contractDefinitionId);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": " {\n        \"accessPolicyId\": \"{{policyId}}\",\n        \"contractPolicyId\": \"{{policyId}}\",\n        \"criteria\": [\n            {\n                \"left\": \"asset:prop:id\",\n                \"op\": \"=\",\n                \"right\": \"{{assetId}}\"\n            }\n        ],\n        \"id\": \"{{contractDefinitionId}}\"\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrlProvider}}/data/api/v1/data/contractdefinitions",
+							"host": [
+								"{{baseUrlProvider}}"
+							],
+							"path": [
+								"data",
+								"api",
+								"v1",
+								"data",
+								"contractdefinitions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Created Contract Definition",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrlProvider}}/data/api/v1/data/contractdefinitions/:contractDefinitionId",
+							"host": [
+								"{{baseUrlProvider}}"
+							],
+							"path": [
+								"data",
+								"api",
+								"v1",
+								"data",
+								"contractdefinitions",
+								":contractDefinitionId"
+							],
+							"variable": [
+								{
+									"key": "contractDefinitionId",
+									"value": "{{contractDefinitionId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Contract Definitions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrlProvider}}/data/api/v1/data/contractdefinitions",
+							"host": [
+								"{{baseUrlProvider}}"
+							],
+							"path": [
+								"data",
+								"api",
+								"v1",
+								"data",
+								"contractdefinitions"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "apikey",
+				"apikey": [
+					{
+						"key": "value",
+						"value": "datasecret",
+						"type": "string"
+					},
+					{
+						"key": "key",
+						"value": "X-Api-Key",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "consumer",
+			"item": [
+				{
+					"name": "Health",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrlConsumer}}/default/api/check/health",
+							"host": [
+								"{{baseUrlConsumer}}"
+							],
+							"path": [
+								"default",
+								"api",
+								"check",
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Offers Catalog",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseText = pm.response.text();\r",
+									"pm.test(\"Response is OK\", () => {\r",
+									"    pm.expect(responseText).to.be.not.empty\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"for (var i = 0; i < response.contractOffers.length; i++) {\r",
+									"    if (response.contractOffers[i].id.startsWith(pm.collectionVariables.get(\"contractDefinitionId\"))) {\r",
+									"        pm.collectionVariables.set(\"offerId\", response.contractOffers[i].id);\r",
+									"        pm.collectionVariables.set(\"policyBody\", JSON.stringify(response.contractOffers[i].policy));\r",
+									"        break;\r",
+									"    }\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-KEY",
+								"value": "secret",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrlConsumer}}/data/api/v1/data/catalog?providerUrl={{baseUrlProvider}}/ids/api/v1/ids/data",
+							"host": [
+								"{{baseUrlConsumer}}"
+							],
+							"path": [
+								"data",
+								"api",
+								"v1",
+								"data",
+								"catalog"
+							],
+							"query": [
+								{
+									"key": "providerUrl",
+									"value": "{{baseUrlProvider}}/ids/api/v1/ids/data"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Contract Negotiation (Negotiate Contract)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseText = pm.response.text();\r",
+									"pm.test(\"Response is OK\", () => {\r",
+									"    pm.expect(responseText).to.be.not.empty\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"pm.collectionVariables.set(\"contractNegotiationId\", response.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-KEY",
+								"value": "secret",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"protocol\": \"ids-multipart\",\r\n    \"connectorId\": \"consumer\",\r\n    \"connectorAddress\": \"{{baseUrlProvider}}/ids/api/v1/ids/data\",\r\n    \"offer\": {\r\n        \"assetId\": \"{{assetId}}\",\r\n        \"offerId\": \"{{offerId}}\",\r\n        \"policy\": {{policyBody}}\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrlConsumer}}/data/api/v1/data/contractnegotiations",
+							"host": [
+								"{{baseUrlConsumer}}"
+							],
+							"path": [
+								"data",
+								"api",
+								"v1",
+								"data",
+								"contractnegotiations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Created Contract Negotiations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseText = pm.response.text();\r",
+									"pm.test(\"Response is OK\", () => {\r",
+									"    pm.expect(responseText).to.be.not.empty\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"pm.test(\"State CONFIRMED\", () => {\r",
+									"    pm.expect(response.state).to.be.eq(\"CONFIRMED\")\r",
+									"});\r",
+									"\r",
+									"pm.collectionVariables.set(\"contractAgreementId\", response.contractAgreementId);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-KEY",
+								"value": "secret",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{baseUrlConsumer}}/data/api/v1/data/contractnegotiations/:contractNegotiationId",
+							"host": [
+								"{{baseUrlConsumer}}"
+							],
+							"path": [
+								"data",
+								"api",
+								"v1",
+								"data",
+								"contractnegotiations",
+								":contractNegotiationId"
+							],
+							"variable": [
+								{
+									"key": "contractNegotiationId",
+									"value": "{{contractNegotiationId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Contract Negotiations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-KEY",
+								"value": "secret",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{baseUrlConsumer}}/data/api/v1/data/contractnegotiations",
+							"host": [
+								"{{baseUrlConsumer}}"
+							],
+							"path": [
+								"data",
+								"api",
+								"v1",
+								"data",
+								"contractnegotiations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Transfer Process (Initiate Transfer)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseText = pm.response.text();\r",
+									"pm.test(\"Response is OK\", () => {\r",
+									"    pm.expect(responseText).to.be.not.empty\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"pm.collectionVariables.set(\"transferProcessId\", response.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-KEY",
+								"value": "secret",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"connectorAddress\": \"{{baseUrlProvider}}/ids/api/v1/ids/data\",\r\n    \"protocol\": \"ids-multipart\",\r\n    \"connectorId\": \"consumer\",\r\n    \"assetId\": \"{{assetId}}\",\r\n    \"contractId\": \"{{contractAgreementId}}\",\r\n    \"dataDestination\": {\r\n        \"properties\": {\r\n            \"keyName\": \"{{destinationAssetName}}\",\r\n            \"type\": \"http\",\r\n            \"url\": \"{{destinationUrl}}\"\r\n        }\r\n    },\r\n    \"managedResources\": false,\r\n    \"transferType\": {\r\n        \"contentType\": \"application/octet-stream\",\r\n        \"isFinite\": true\r\n    },\r\n    \"destinationType\": \"http\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrlConsumer}}/data/api/v1/data/transferprocess",
+							"host": [
+								"{{baseUrlConsumer}}"
+							],
+							"path": [
+								"data",
+								"api",
+								"v1",
+								"data",
+								"transferprocess"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Created Transfer Process",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseText = pm.response.text();\r",
+									"pm.test(\"Response is OK\", () => {\r",
+									"    pm.expect(responseText).to.be.not.empty\r",
+									"});\r",
+									"\r",
+									"const response = pm.response.json();\r",
+									"\r",
+									"pm.test(\"State COMPLETED\", () => {\r",
+									"    pm.expect(response.state).to.be.eq(\"COMPLETED\")\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-KEY",
+								"value": "secret",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{baseUrlConsumer}}/data/api/v1/data/transferprocess/:transferProcessId",
+							"host": [
+								"{{baseUrlConsumer}}"
+							],
+							"path": [
+								"data",
+								"api",
+								"v1",
+								"data",
+								"transferprocess",
+								":transferProcessId"
+							],
+							"variable": [
+								{
+									"key": "transferProcessId",
+									"value": "{{transferProcessId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Transfer Process",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-KEY",
+								"value": "secret",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{baseUrlConsumer}}/data/api/v1/data/transferprocess",
+							"host": [
+								"{{baseUrlConsumer}}"
+							],
+							"path": [
+								"data",
+								"api",
+								"v1",
+								"data",
+								"transferprocess"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "apikey",
+				"apikey": [
+					{
+						"key": "value",
+						"value": "datasecret",
+						"type": "string"
+					},
+					{
+						"key": "key",
+						"value": "X-Api-Key",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrlProvider",
+			"value": "https://develop.catenax.de/edcprovider",
+			"type": "string"
+		},
+		{
+			"key": "baseUrlConsumer",
+			"value": "https://develop.catenax.de/edcconsumer",
+			"type": "string"
+		},
+		{
+			"key": "sourceUrl",
+			"value": null,
+			"type": "string"
+		},
+		{
+			"key": "sourceAssetName",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "destinationAssetName",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "destinationUrl",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
