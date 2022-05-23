@@ -14,23 +14,11 @@
 
 package com.siemens.mindsphere.datalake.edc.http;
 
-import com.siemens.mindsphere.datalake.edc.http.provision.DestinationUrlProvisioner;
-import com.siemens.mindsphere.datalake.edc.http.provision.DestinationUrlResourceDefinitionGenerator;
-import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.inline.DataOperatorRegistry;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
-
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 
 public class DataLakeExtension implements ServiceExtension {
     @EdcSetting

@@ -15,10 +15,14 @@
 package com.siemens.mindsphere.datalake.edc.http;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.*;
+import okhttp3.Call;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -98,9 +102,6 @@ public class DataLakeClientImpl implements DataLakeClient {
 
     /**
      * see https://documentation.mindsphere.io/MindSphere/apis/iot-integrated-data-lake/api-integrated-data-lake-samples-download-data.html
-     * @param datalakePath
-     * @return
-     * @throws DataLakeException
      */
     @Override
     public URL getPresignedDownloadUrl(final String datalakePath) throws DataLakeException {
@@ -201,16 +202,16 @@ public class DataLakeClientImpl implements DataLakeClient {
 
     private Optional<String> getAccessToken(String tenant) throws IOException {
         TechnicalUserTokenRequestDto technicalUserTokenRequestDto = new TechnicalUserTokenRequestDto(oauthClientDetails.getTenant(),
-        tenant, oauthClientDetails.getClientAppName(), oauthClientDetails.getClientAppVersion());
+                tenant, oauthClientDetails.getClientAppName(), oauthClientDetails.getClientAppVersion());
 
         final String requestPayload = objectMapper.writeValueAsString(technicalUserTokenRequestDto);
         final RequestBody requestBody = RequestBody.create(requestPayload, MediaType.parse("application/json"));
 
 
         final Request tokenRequest = new Request.Builder().url(oauthClientDetails.getAccessTokenUrl())
-        .method("POST", requestBody)
-        .header(X_SPACE_AUTH_KEY, String.format("Bearer %s", oauthClientDetails.getBase64Credentials()))
-        .build();
+                .method("POST", requestBody)
+                .header(X_SPACE_AUTH_KEY, String.format("Bearer %s", oauthClientDetails.getBase64Credentials()))
+                .build();
 
         final Call call = client.newCall(tokenRequest);
         final Response response = call.execute();
