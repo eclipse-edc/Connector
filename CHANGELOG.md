@@ -51,6 +51,8 @@ in the detailed section referring to by linking pull requests or issues.
 * Usage of `NooTransactionContext` in (SQL-)Tests (#1119)
 * Sanitize log messages (#1295)
 * Improve CosmosDB statement parser (#1282)
+* Make `ContractDefinitionService` get definition by its id (#1325)
+* Update the CodeQL version from v1 to v2
 * Update `slf4j-api` to `2.0.0-alpha7` (#1328)
 
 #### Removed
@@ -73,6 +75,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Fix CosmosDB Integration tests (#1313)
 * Remove ContractDef from Cosmos DB cache when deleting (#1330)
 * Fix misleading warning message on initialization (#1336)
+* Auto-upload of Cosmos stored procedures (#1338)
 
 ## [milestone-3] - 2022-04-08
 

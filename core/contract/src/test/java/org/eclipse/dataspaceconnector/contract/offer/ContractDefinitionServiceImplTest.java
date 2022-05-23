@@ -126,7 +126,7 @@ class ContractDefinitionServiceImplTest {
                 .contractPolicyId("contract").selectorExpression(SELECT_ALL).build();
         when(policyStore.findById(any())).thenReturn(policy);
         when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), isA(Policy.class), isA(ParticipantAgent.class))).thenReturn(Result.success(policy));
-        when(definitionStore.findAll()).thenReturn(List.of(contractDefinition));
+        when(definitionStore.findById("1")).thenReturn(contractDefinition);
 
         var result = definitionService.definitionFor(agent, "1");
 
@@ -137,9 +137,7 @@ class ContractDefinitionServiceImplTest {
     @Test
     void definitionFor_notFound() {
         var agent = new ParticipantAgent(Map.of(), Map.of());
-        var contractDefinition = ContractDefinition.Builder.newInstance().id("1").accessPolicyId("access")
-                .contractPolicyId("contract").selectorExpression(SELECT_ALL).build();
-        when(definitionStore.findAll()).thenReturn(List.of(contractDefinition));
+        when(definitionStore.findById(any())).thenReturn(null);
 
         var result = definitionService.definitionFor(agent, "nodefinition");
 
