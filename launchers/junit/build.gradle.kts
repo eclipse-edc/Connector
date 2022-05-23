@@ -29,6 +29,7 @@ dependencies {
     api(project(":core:base"))
 
     testFixturesImplementation(project(":common:util"))
+    testFixturesImplementation(testFixtures(project(":common:util")))
 
     testFixturesImplementation("org.assertj:assertj-core:${assertj}")
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")

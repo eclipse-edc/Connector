@@ -64,8 +64,8 @@ public class BlobStoreApiImpl implements BlobStoreApi {
     }
 
     @Override
-    public String createContainerSasToken(String accountName, String containerName, String oermissionSpec, OffsetDateTime expiry) {
-        BlobContainerSasPermission permissions = BlobContainerSasPermission.parse(oermissionSpec);
+    public String createContainerSasToken(String accountName, String containerName, String permissionSpec, OffsetDateTime expiry) {
+        BlobContainerSasPermission permissions = BlobContainerSasPermission.parse(permissionSpec);
         BlobServiceSasSignatureValues vals = new BlobServiceSasSignatureValues(expiry, permissions);
         return getBlobServiceClient(accountName).getBlobContainerClient(containerName).generateSas(vals);
     }

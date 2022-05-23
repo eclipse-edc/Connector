@@ -67,6 +67,7 @@ public class QuerySpec {
     }
 
     public static final class Builder {
+        private static final String EQUALS_EXPRESSION_PATTERN = "[^\\s\\\\]*(\\s*)=(\\s*)[^\\s\\\\]*";
         private final QuerySpec querySpec;
         private boolean equalsAsContains = false;
 
@@ -127,7 +128,7 @@ public class QuerySpec {
         public Builder filter(String filterExpression) {
 
             if (filterExpression != null) {
-                if (Pattern.matches("[^\\s\\\\]*(\\s*)=(\\s*)[^\\s\\\\]*", filterExpression)) { // something like X = Y
+                if (Pattern.matches(EQUALS_EXPRESSION_PATTERN, filterExpression)) { // something like X = Y
                     // remove whitespaces
                     filterExpression = filterExpression.replace(" ", "");
                     // we'll interpret the "=" as "contains"

@@ -7,6 +7,11 @@ on:
     paths-ignore:
       - '**.md'
       - 'docs/**'
+# Grant permissions to obtain federated identity credentials
+# see https://docs.github.com/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-azure
+permissions:
+  id-token: write
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -215,6 +220,13 @@ jobs:
             ./gradlew -p extensions/azure test -DincludeTags="AzureStorageIntegrationTest"
             ./gradlew -p system-tests/azure-tests test -DincludeTags="AzureStorageIntegrationTest"
 
+      - name: "Publish Gatling report"
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: Gatling reports
+          path: '**/build/reports/gatling/**'
+
   Check-Cosmos-Key:
     runs-on: ubuntu-latest
     steps:
@@ -387,6 +399,63 @@ jobs:
             ./gradlew -p core/micrometer test -DincludeTags="OpenTelemetryIntegrationTest"
             ./gradlew -p system-tests/tests test -DincludeTags="OpenTelemetryIntegrationTest"
 
+  Check-Cloud-Environments:
+    environment: Azure-dev
+    runs-on: ubuntu-latest
+    steps:
+      - id: has-azure
+        env:
+          HAS_AZURE: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        if: "${{ env.HAS_AZURE != '' }}"
+        run: echo "::set-output name=defined::true"
+    outputs:
+      has-azure: ${{ steps.has-azure.outputs.defined }}
+
+  Azure-Cloud-Integration-Test:
+    needs: [ Check-Cloud-Environments ]
+    if: needs.Check-Cloud-Environments.outputs.has-azure == 'true'
+    environment: Azure-dev
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: 'Az CLI login'
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: "Fetch Terraform outputs"
+        run: printf "$RUNTIME_SETTINGS" > resources/azure/testing/runtime_settings.properties
+        env:
+          RUNTIME_SETTINGS: ${{ secrets.RUNTIME_SETTINGS }}
+
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'gradle'
+
+      - name: Data Plane Azure Data Factory Test
+        uses: ./.github/actions/run-tests
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        with:
+          command: |
+            ./gradlew -p extensions/azure/data-plane/data-factory test -DincludeTags="AzureDataFactoryIntegrationTest"
+            ./gradlew -p system-tests/azure-data-factory-tests test -DincludeTags="AzureDataFactoryIntegrationTest"
+
+      - name: "Publish Gatling report"
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: Gatling reports
+          path: '**/build/reports/gatling/**'
+
   Upload-Test-Report:
     needs:
       - Unit-Tests
@@ -398,6 +467,7 @@ jobs:
       - Postgresql-Integration-Tests
       - Component-Tests
       - OpenTelemetry-Integration-Tests
+      - Azure-Cloud-Integration-Test
     runs-on: ubuntu-latest
     if: always()
     steps:
