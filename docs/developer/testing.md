@@ -126,7 +126,7 @@ Cosmos DB integration tests are run by default against a locally running [Cosmos
 
 ### Running them in the CI pipeline
 
-All integration tests should go into the [verify workflow](../.github/workflows/verify.yaml), every
+All integration tests should go into the [verify workflow](/.github/workflows/verify.yaml), every
 "technology" should have its own job, and technology specific tests can be targeted using Junit tags with
 `-DincludeTags` property as described above in document.
 
@@ -220,9 +220,9 @@ To write a system test two parts are needed:
 - _runner_: a module that contains the test logic
 - _runtimes_: one or more modules that define a standalone runtime (e.g. a complete EDC definition)
 
-The runner can load an EDC runtime by using the `@RegisterExtension` annotation (example in [`FileTransferIntegrationTest`](../system-tests/tests/src/test/java/org/eclipse/dataspaceconnector/system/tests/local/FileTransferIntegrationTest.java)).
+The runner can load an EDC runtime by using the `@RegisterExtension` annotation (example in [`FileTransferIntegrationTest`](/system-tests/tests/src/test/java/org/eclipse/dataspaceconnector/system/tests/local/FileTransferIntegrationTest.java)).
 
-To make sure that the runtime extensions are correctly built and available, they need to be set as dependency of the runner module as `testCompileOnly`. (example in [`build.gradle.kts`](../system-tests/tests/build.gradle.kts)).
+To make sure that the runtime extensions are correctly built and available, they need to be set as dependency of the runner module as `testCompileOnly`. (example in [`build.gradle.kts`](/system-tests/tests/build.gradle.kts)).
 
 This would permit the dependency isolation between runtimes (very important the test need to run two different components like a control plane and a data plane).
 

@@ -2,48 +2,28 @@
 landing page of this section. Other subsections are placed below and can be linked separately. Feel
 free to add sections and subsections to this sidebar.)
 
-- [Home](README.md)
-- [Hands-on](samples.md)
+[comment]: <> (Html instead of markdown due to known issues: https://github.com/docsifyjs/docsify/issues/850
+and https://github.com/docsifyjs/docsify/issues/1139)
 
-- Architecture  
-  - [Overview](architecture/README.md)
-  - [Configuration](architecture/configuration.md)
-  - [Contracts](architecture/contracts.md)
-  - [Data Flow](diagrams/data-flow/README.md)
-  - [Domain Model](domain-model.md)
-  - [Policies](Policies.md)
-  - [Principles](architecture-principles.md)
-  - [Terminology](Terminology.md)
+- <a href="#/README">Home</a>
+
+- Getting Started
+  - <a href="#/overview/hands-on">First Steps</a>
+  - <a href="#/adopter/README">Adopter Documentation</a>
+  - <a href="#/developer/README">Developer Documentation</a>
+  - <a href="#/user/README">User Documentation</a>
+
+- General
+  - <a href="#/architecture/README">Architecture</a>
+  - <a href="#/architecture/catalog/README">Catalog</a>
+  - <a href="#/architecture/configuration/README">Configuration</a>
+  - <a href="#/architecture/data-transfer/README">Data Transfer</a>
+  - <a href="#/architecture/domain-model">Domain Model</a>
+  - <a href="#/architecture/identity-management/README">Identity Management</a>
+  - <a href="#/architecture/ids/README">IDS Standard</a>
+  - <a href="#/architecture/usage-control/README">Usage Control</a>
   
-- IDS
-  - [Overview](ids/README.md)
-  - [Architectural Alignment](ids/architectural-alignment.md)
-  - [Key Components](ids/key-components.md)
-
-- Developer
-  - [Command Queue](command-queue.md)
-  - [Dependency Resolution](developer/dependency_resolution.md)
-  - [DPF Selector](developer/dpf_selector.md)
-  - [DPF Transfer](developer/dpf_transfer.md)
-  - [Metrics](metrics.md)
-  - [Release Approach](developer/releases.md)
-  - [Writing Tests](testing.md)
-
-- Decision Records
-  - [2022-02-03 Integration Testing](developer/decision-records/2022-02-03-integration-testing/README.md)
-  - [2022-02-07 Micrometer Metrics](developer/decision-records/2022-02-07-micrometer-metrics/README.md)
-  - [2022-02-07 Tracing](developer/decision-records/2022-02-07-tracing/README.md)
-  - [2022-02-10 Code Coverage](developer/decision-records/2022-02-10-code-coverage/README.md)
-    - [Jacoco](developer/decision-records/2022-02-10-code-coverage/jacoco.md)
-    - [Jacoco with Codacy](developer/decision-records/2022-02-10-code-coverage/codacy.md)
-    - [Jacoco with Codecov](developer/decision-records/2022-02-10-code-coverage/codecov.md)
-    - [Jacoco with GitHub Actions](developer/decision-records/2022-02-10-code-coverage/jacoco_github_action.md)
-    - [Jacoco with Sonarqube](developer/decision-records/2022-02-10-code-coverage/sonarqube.md)
-  - [2022-02-11 CodeQL](developer/decision-records/2022-02-11-codeql/README.md)
-  - [2022-02-14 Helm Chart](developer/decision-records/2022-02-14-helm-chart/README.md)
-  - [2022-03-02 Performance Tests](developer/decision-records/2022-03-02-performance-tests/README.md)
-  - [2022-03-11 Story Issues](developer/decision-records/2022-03-11-story-issues/README.md)
-  - [2022-03-15 Policy Scopes](developer/decision-records/2022-03-15-policy-scopes/README.md)
-  - [2022-03-15 Swagger Annotations](developer/decision-records/2022-03-15-swagger-annotations/README.md)
-  - [2022-03-30 CosmosDB Lease Mechanism](developer/decision-records/2022-03-30-cosmosdb-lease-mechanism/README.md)
-  - [2022-04-21 DPF Blob Data Transfer](developer/decision-records/2022-04-21-dpf-blob-data-transfer/README.md)
+- Appendix
+  - <a href="#/overview/extensions">Extensions</a>
+  - <a href="#/overview/launchers">Launchers</a>
+  - <a href="#/overview/terminology">Terminology</a>

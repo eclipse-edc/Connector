@@ -1,16 +1,14 @@
 # Contracts
 
-**Please note**: Work in progress. All content reflects the current state of discussion, not final decisions.
-
 ## Offering
 
 The EDC connector is able to provide contract offers. This feature requires four different types of extensions:
 
-- [Core Contract Extension](../../core/contract/README.md)
+- [Core Contract Extension](/core/contract/README.md)
 - Extension that implements the **Asset Index**
-    - e.g. [Demo Asset Index](../../samples/demo-asset-index/README.md)
+    - e.g. [Demo Asset Index](/samples/demo-asset-index/README.md)
 - Extension that implements the **Contract Offer Framework**
-    - e.g. [Demo Contract Framework](../../samples/demo-contract-framework/README.md)
+    - e.g. [Demo Contract Framework](/samples/demo-contract-framework/README.md)
 - Extension that implements an API to access the offers
     - e.g. IDS extension
 
@@ -30,7 +28,7 @@ The EDC connector is able to provide contract offers. This feature requires four
 
 ### Prototypic Sequence for Contract Offer Creation
 
-![Offer Query](diagrams/offer-query.png)
+![Offer Query](architecture/catalog/diagrams/offer-query.png)
 *The consumer connector requests a description, that contains the contract offers, from the provider.*
 
 ## Negotiation
