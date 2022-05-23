@@ -28,10 +28,9 @@ Used to describe the normal flow of the application.
 Used to describe details of the normal flow that are not interesting for a production environment.
 
 ## What should be logged
-
-- every incoming call with `debug`
-- every state change with `info`
 - every exception with `severe` or `warning`
+- every important message that's not an error with `info`
+- other informative events like incoming calls at the API layer or state changes with `debug`
 
 ## What should be not logged
 
