@@ -51,9 +51,9 @@ in the detailed section referring to by linking pull requests or issues.
 * Usage of `NooTransactionContext` in (SQL-)Tests (#1119)
 * Sanitize log messages (#1295)
 * Improve CosmosDB statement parser (#1282)
-* Updated the CodeQL version from v1 to v2
+* Make `ContractDefinitionService` get definition by its id (#1325)
+* Update the CodeQL version from v1 to v2
 * Update `slf4j-api` to `2.0.0-alpha7` (#1328)
-* Updated the CodeQL version from v1 to v2
 
 #### Removed
 
