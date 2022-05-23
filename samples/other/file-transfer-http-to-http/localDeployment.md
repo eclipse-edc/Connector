@@ -4,10 +4,11 @@ In this tutorial, we will deploy 2 eclipse dataspace connectors (EDC): a provide
 
 ## Prerequisites
 
-1. Docker
-1. Postman
-1. Pre-signed URL for download (for HTTP GET)
-1. Pre-signed URL for upload (for HTTP PUT)
+- Docker
+- Postman
+- 2 Pre-signed URLs (Java code to generate [pre-signed URLs for AWS S3](https://code.siemens.com/-/snippets/2984)):
+    1. Pre-signed URL for download (for HTTP GET)
+    1. Pre-signed URL for upload (for HTTP PUT)
 
 ## Important Notes
 
