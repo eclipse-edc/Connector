@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Fraunhofer Institute for Software and Systems Engineering
+ *  Copyright (c) 2021, 2022 Siemens AG
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,17 +8,13 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
  *
  */
 
-package com.siemens.mindsphere.dataspaceconnector.extensions.api;
+package com.siemens.mindsphere;
 
-import net.jodah.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
-import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -37,7 +33,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchem
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.NAME;
 
-public class HttpFileTransferExtension implements ServiceExtension {
+public class PrepareContractExtension implements ServiceExtension {
 
     public static final String USE_POLICY = "use-eu";
 
@@ -45,40 +41,31 @@ public class HttpFileTransferExtension implements ServiceExtension {
     private static final String EDC_ASSET_URL = "edc.samples.04.asset.url";
 
     @Inject
-    private ContractDefinitionStore contractStore;
-    @Inject
-    private AssetLoader loader;
-    @Inject
-    private PipelineService pipelineService;
-    @Inject
-    private DataTransferExecutorServiceContainer executorContainer;
-    @Inject
     private PolicyStore policyStore;
 
     @Inject
-    private OkHttpClient httpClient;
+    private ContractDefinitionStore contractStore;
 
     @Inject
-    @SuppressWarnings("rawtypes")
-    private RetryPolicy retryPolicy;
+    private AssetLoader loader;
+
+
+    @Inject
+    private DataTransferExecutorServiceContainer executorContainer;
+
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var monitor = context.getMonitor();
-
-        var sinkFactory = new FileTransferDataSinkFactory(monitor, executorContainer.getExecutorService(), 5);
-        pipelineService.registerFactory(sinkFactory);
-
-        var sinkFactoryHttp = new HttpDataSinkFactory(httpClient, executorContainer.getExecutorService(), 1, monitor);//MUST BE 1 - we can handle only one part at a time
-        pipelineService.registerFactory(sinkFactoryHttp);
-
         var policy = createPolicy();
         policyStore.save(policy);
 
         registerDataEntries(context);
         registerContractDefinition(policy.getUid());
+    }
 
-        context.getMonitor().info("Http File Transfer Extension initialized!");
+    @Override
+    public String name() {
+        return "Default dataplane httpdata transfer with provision on consumer side";
     }
 
     private Policy createPolicy() {
@@ -94,16 +81,15 @@ public class HttpFileTransferExtension implements ServiceExtension {
     }
 
     private void registerDataEntries(ServiceExtensionContext context) {
-        var assetPathSetting = context.getSetting(EDC_ASSET_URL, "https://docs.oracle.com/javaee/5/firstcup/doc/firstcup.pdf");
+        var assetPathSetting = context.getSetting(EDC_ASSET_URL, "https://raw.githubusercontent.com/eclipse-dataspaceconnector/DataSpaceConnector/main/onboarding.md");
 
         var dataAddress = DataAddress.Builder.newInstance()
                 .property("type", HttpDataAddressSchema.TYPE)
-                .property("http", assetPathSetting)
-                .property(NAME, "")
                 .property(ENDPOINT, assetPathSetting)
+                .property(NAME, "")
                 .build();
 
-        var assetId = "onboarding";
+        var assetId = "onboard";
         var asset = Asset.Builder.newInstance().id(assetId).build();
 
         loader.accept(asset, dataAddress);
@@ -112,10 +98,10 @@ public class HttpFileTransferExtension implements ServiceExtension {
     private void registerContractDefinition(String uid) {
 
         var contractDefinition = ContractDefinition.Builder.newInstance()
-                .id("2")
+                .id("4")
                 .accessPolicyId(uid)
                 .contractPolicyId(uid)
-                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "onboarding").build())
+                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "onboard").build())
                 .build();
 
         contractStore.save(contractDefinition);

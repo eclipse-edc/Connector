@@ -127,7 +127,7 @@ we'll now find a file with the same content as the generated on the fly content 
 
 ## Second test
 
-For the second test we will do download a http file locally by:
+For the second test we will download a http file locally by:
 * Using dataplane
 * Create source as http (custom type httpfile)
 * Create sink/destination as file (copy content to local file)
@@ -144,4 +144,25 @@ curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @sa
 curl -X GET -H "Content-Type: application/json" -H "X-Api-Key: password"  "http://localhost:9192/api/v1/data/contractnegotiations"
 
 curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/other/file-transfer-provisioning/httpfiletransfer.json "http://localhost:9192/api/v1/data/transferprocess"
+```
+
+## Third test
+
+For the third test we will download a http file locally by:
+* Using dataplane
+* Use source as HttpData (default dataplane http implementation - see [extensions/data-plane/data-plane-http/src/main/java/org/eclipse/dataspaceconnector/dataplane/http/pipeline/HttpDataSinkFactory.java](extensions/data-plane/data-plane-http/src/main/java/org/eclipse/dataspaceconnector/dataplane/http/pipeline/HttpDataSinkFactory.java)
+* Create sink/destination as file (copy content to local file from the provider side, consumer does nothing)
+* Provisioning needed for the resource since mindsphere datalake is used as source - see https://documentation.mindsphere.io/MindSphere/apis/iot-integrated-data-lake/api-integrated-data-lake-samples-download-data.html
+
+For this test we've prepared two new json sample files:
+* datalakecontractoffer.json
+* datalakefiletransfer.json
+
+The order of curl calls are the same:
+```bash
+curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/other/file-transfer-provisioning/datalakecontractoffer.json "http://localhost:9192/api/v1/data/contractnegotiations"
+
+curl -X GET -H "Content-Type: application/json" -H "X-Api-Key: password"  "http://localhost:9192/api/v1/data/contractnegotiations"
+
+curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/other/file-transfer-provisioning/datalakefiletransfer_fs.json "http://localhost:9192/api/v1/data/transferprocess"
 ```

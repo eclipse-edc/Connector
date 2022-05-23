@@ -146,16 +146,16 @@ public class DataLakeClientImpl implements DataLakeClient {
     @Override
     public URL getPresignedUploadUrl(String datalakePath) throws DataLakeException {
         try {
-            final String path = objectMapper.writeValueAsString(new DatalakePaths()
-                    .setPaths(Collections.singletonList(new DatalakePath().setPath(datalakePath))));
-
-            final String extractedTenant = extractTenantFromPath(path)
+            final String extractedTenant = extractTenantFromPath(datalakePath)
                     .orElseThrow(() -> new DataLakeException("Could not identify tenant for path " + datalakePath));
+
+            final String filePath = extractFilePath(datalakePath)
+                    .orElseThrow(() -> new DataLakeException("Could not identify filepath for path " + datalakePath));
 
             final String accessToken = getAccessToken(extractedTenant)
                     .orElseThrow(() -> new DataLakeException("Getting token failed"));
 
-            final SignUrlRequestContainerDto requestContainerDto = SignUrlRequestContainerDto.composeForSinglePath(path);
+            final SignUrlRequestContainerDto requestContainerDto = SignUrlRequestContainerDto.composeForSinglePath(filePath);
             final String payloadString = objectMapper.writeValueAsString(requestContainerDto);
             final RequestBody requestPayload = RequestBody.create(payloadString, MediaType.parse("application/json"));
             final Request request = new Request.Builder()
@@ -178,6 +178,12 @@ public class DataLakeClientImpl implements DataLakeClient {
         } catch (IOException e) {
             throw new DataLakeException("Error getting signed URL", e);
         }
+    }
+
+    private Optional<String> extractFilePath(String path) {
+        final Optional<String> tenant = extractTenantFromPath(path);
+        return tenant
+                .map(s -> path.substring(path.indexOf(s) + s.length() + 1));
     }
 
     private Optional<String> extractTenantFromPath(String path) {

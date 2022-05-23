@@ -23,11 +23,9 @@ plugins {
 
 val jupiterVersion: String by project
 val rsApi: String by project
-val openTelemetryVersion: String by project
 
 dependencies {
     implementation(project(":core"))
-    implementation(project(":core:transfer"))
 
     implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:in-memory:policy-store-memory"))
@@ -45,36 +43,22 @@ dependencies {
 
     implementation(project(":data-protocols:ids"))
 
+    implementation(project(":extensions:mindsphere:mindsphere-http"))
+    implementation(project(":extensions:data-plane:data-plane-spi"))
+
     implementation(project(":extensions:data-plane-transfer:data-plane-transfer-client"))
     implementation(project(":extensions:data-plane-selector:selector-client"))
     implementation(project(":extensions:data-plane-selector:selector-core"))
     implementation(project(":extensions:data-plane-selector:selector-store"))
     implementation(project(":extensions:data-plane:data-plane-framework"))
-    implementation(project(":extensions:data-plane:data-plane-http"))
-    implementation(project(":extensions:aws:data-plane-s3"))
-    implementation(project(":extensions:aws:s3:s3-core"))
-
-    implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
-
-    implementation(project(":extensions:data-plane:data-plane-spi"))
-    implementation(project(":extensions:in-memory:assetindex-memory"))
-    implementation(project(":extensions:in-memory:policy-store-memory"))
-
-    implementation(project(":extensions:mindsphere:mindsphere-http"))
-
-    api(project(":extensions:dataloading"))
-
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-
-    implementation(project(":samples:04.0-file-transfer:transfer-file"))
 }
 
 application {
-    mainClass.set("com.siemens.mindsphere.ProviderBaseRuntime")
+    mainClass.set("com.siemens.mindsphere.ConsumerBaseRuntime")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     exclude("**/pom.properties", "**/pom.xm")
     mergeServiceFiles()
-    archiveFileName.set("provider.jar")
+    archiveFileName.set("consumer.jar")
 }

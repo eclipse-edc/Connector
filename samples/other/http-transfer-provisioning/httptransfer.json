@@ -1,0 +1,20 @@
+{
+  "protocol": "ids-multipart",
+  "assetId": "onboard",
+  "contractId": "4:4ca22304-030a-49e5-b48a-3a5453542c29",
+  "dataDestination": {
+    "properties": {
+      "datalakepath": "data/ten=castidev/onboard.md",
+      "name": "",
+      "endpoint": "https://s3.eu-central-1.amazonaws.com/s3%3A%2F%2F041167962674-eu-central-1-catena-x-fst-ro",
+      "type": "HttpData"
+    }
+  },
+  "transferType": {
+    "contentType": "application/octet-stream",
+    "isFinite": true
+  },
+  "managedResources": false,
+  "connectorAddress": "http://localhost:8282/api/v1/ids/data",
+  "connectorId": "consumer"
+}
