@@ -41,6 +41,16 @@ public class TransferProcessStoreCosmosConfig extends AbstractCosmosConfig {
         super(context);
     }
 
+    /**
+     * Boolean setting to allow or disallow auto-uploading any stored procedures that this extension needs.
+     * Disable to reduce startup times.
+     *
+     * @return the key of the setting
+     */
+    public String allowSprocAutoUploadSetting() {
+        return "edc.transfer-process-store.cosmos.allow.sproc.autoupload";
+    }
+
     @Override
     protected String getAccountNameSetting() {
         return COSMOS_ACCOUNTNAME_SETTING;
