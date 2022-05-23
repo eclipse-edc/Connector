@@ -174,35 +174,16 @@ in that area.
 We use milestones to set a common focus for a period of 6 to 8 weeks. 
 The group of committers chooses issues based on customer needs and contributions we expect.
 
-### Projects
-
-The [GitHub Projects page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/projects)
-provides a general overview of the project's working items. Every new issue must not but can be 
-assigned to the ["Dataspace Connector" project](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/projects/1),
-or any other project that is provided.
-
-There, an issue passes four stages: `Backlog`, `In progress`, `Review in progress`, and `Done`,
-independent of their association to a specific milestone.
-
-Issues that are not already assigned to a project can be filtered in the 
-[GitHub Issues page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues)
-using `is:issue is:open no:project`.
-
 ### Milestones
 
-Milestones are organized at the 
-[GitHub Milestones page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/milestones).
-They are numbered in ascending order.
+Milestones are organized at the [GitHub Milestones page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/milestones).
+They are numbered in ascending order. There, contributors, users, and adopters can track the progress.
 
-The due date of a milestone does not imply any guarantee that all linked issued will be resolved by 
-then. The milestone `Milestone Scoping` is a permanent milestone without a due date. Issues that 
-should be considered for future milestones but already need to be targeted for the current one will 
-be assigned here. This way, contributors, users, and adopters can track the progress.
+Please note that the due date of a milestone does not imply any guarantee that all linked issued will 
+be resolved by then. 
 
-When closing the current milestone, issues assigned to `Milestone Scoping` can stay there, be moved 
-to the next milestone, or get removed from all milestones. In general, issues that were not resolved 
-within a milestone phase will be reviewed to evaluate their relevance and priority, before being
-assigned to the next milestone.
+When closing the current milestone, issues that were not resolved within a milestone phase will be 
+reviewed to evaluate their relevance and priority, before being assigned to the next milestone.
 
 #### Issues
 
@@ -212,8 +193,18 @@ milestones.
 
 #### Pull Requests
 
-Pull requests are not assigned to milestones, as their linking to issues are sufficient to track 
+Pull requests are not assigned to milestones as their linking to issues is sufficient to track 
 the relations and progresses.
+
+### Projects
+
+The [GitHub Projects page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/projects)
+provides a general overview of the project's working items. Every new issue is automatically assigned
+to the ["Dataspace Connector" project](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/projects/1).
+It can be unassigned or moved to any other project that is provided.
+
+In every project, an issue passes four stages: `Backlog`, `In progress`, `Review in progress`, and `Done`,
+independent of their association to a specific milestone.
 
 ### Contact Us
 
