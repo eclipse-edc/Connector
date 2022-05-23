@@ -89,7 +89,7 @@ public class HttpDataSource implements DataSource {
                 }
                 return new HttpPart(name, responseBody.bytes());
             } else {
-                throw new EdcException(format("Received code transferring HTTP data for request %s: %s", requestId, response.code()));
+                throw new EdcException(format("Received code transferring HTTP data for request %s: %s - %s", requestId, response.code(), response.message()));
             }
         } catch (IOException e) {
             throw new EdcException(e);

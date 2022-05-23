@@ -37,7 +37,40 @@ public abstract class AbstractEndToEndTransfer {
     @Test
     void httpPullDataTransfer() {
         String definitionId = "1";
-        createAssetAndContractDefinitionOnProvider("asset-id", definitionId);
+        createAssetAndContractDefinitionOnProvider("asset-id", definitionId, "HttpData");
+
+        var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
+        assertThat(catalog.getContractOffers()).hasSize(1);
+
+        var contractOffer = catalog.getContractOffers().get(0);
+        var assetId = contractOffer.getAsset().getId();
+        var negotiationId = CONSUMER.negotiateContract(PROVIDER, contractOffer);
+        var contractAgreementId = CONSUMER.getContractAgreementId(negotiationId);
+
+        assertThat(contractAgreementId).isNotEmpty();
+
+        var transferProcessId = CONSUMER.dataRequest(contractAgreementId, assetId, PROVIDER, sync());
+
+        await().atMost(timeout).untilAsserted(() -> {
+            var state = CONSUMER.getTransferProcessState(transferProcessId);
+            assertThat(state).isEqualTo(COMPLETED.name());
+        });
+
+        await().atMost(timeout).untilAsserted(() -> {
+            given()
+                    .baseUri(CONSUMER.backendService().toString())
+                    .when()
+                    .get("/api/service/providerData")
+                    .then()
+                    .statusCode(200)
+                    .body("message", equalTo("some information"));
+        });
+    }
+
+    @Test
+    void httpPullDataTransferProvisioner() {
+        String definitionId = "1";
+        createAssetAndContractDefinitionOnProvider("asset-id", definitionId, "HttpProvision");
 
         await().atMost(timeout).untilAsserted(() -> {
             var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
@@ -74,7 +107,7 @@ public abstract class AbstractEndToEndTransfer {
     void httpPushDataTransfer() {
         PROVIDER.registerDataPlane();
         var definitionId = "1";
-        createAssetAndContractDefinitionOnProvider("asset-id", definitionId);
+        createAssetAndContractDefinitionOnProvider("asset-id", definitionId, "HttpData");
 
         var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
         assertThat(catalog.getContractOffers()).hasSize(1);
@@ -109,8 +142,8 @@ public abstract class AbstractEndToEndTransfer {
         });
     }
 
-    private void createAssetAndContractDefinitionOnProvider(String assetId, String definitionId) {
-        PROVIDER.createAsset(assetId);
+    private void createAssetAndContractDefinitionOnProvider(String assetId, String definitionId, String addressType) {
+        PROVIDER.createAsset(assetId, addressType);
         var policyId = PROVIDER.createPolicy(assetId);
         PROVIDER.createContractDefinition(policyId, assetId, definitionId);
     }

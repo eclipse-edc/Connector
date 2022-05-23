@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
 public class BackendServiceTestExtension implements ServiceExtension {
 
@@ -28,6 +29,9 @@ public class BackendServiceTestExtension implements ServiceExtension {
     @Inject
     private OkHttpClient okHttpClient;
 
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return "[TEST] Backend service";
@@ -35,6 +39,8 @@ public class BackendServiceTestExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var exposedHttpPort = context.getConfig().getInteger("web.http.port");
         webService.registerResource(new BackendServiceController(context.getMonitor(), okHttpClient));
+        webService.registerResource(new BackendServiceHttpProvisionerController(context.getMonitor(), okHttpClient, typeManager, exposedHttpPort));
     }
 }

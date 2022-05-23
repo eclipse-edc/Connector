@@ -33,6 +33,7 @@ public class HttpProvisionerRequest {
     private Policy policy;
     private String callbackAddress;
     private Type type = Type.PROVISION;
+    private String resourceDefinitionId;
 
     private HttpProvisionerRequest() {
     }
@@ -51,6 +52,10 @@ public class HttpProvisionerRequest {
 
     public String getCallbackAddress() {
         return callbackAddress;
+    }
+
+    public String getResourceDefinitionId() {
+        return resourceDefinitionId;
     }
 
     public enum Type {
@@ -100,10 +105,14 @@ public class HttpProvisionerRequest {
             return this;
         }
 
+        public Builder resourceDefinitionId(String resourceDefinitionId) {
+            request.resourceDefinitionId = resourceDefinitionId;
+            return this;
+        }
+
         public HttpProvisionerRequest build() {
             return request;
         }
-
     }
 
 }

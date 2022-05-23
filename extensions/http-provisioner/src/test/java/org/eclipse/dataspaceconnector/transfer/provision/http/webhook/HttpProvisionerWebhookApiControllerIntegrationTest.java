@@ -15,14 +15,9 @@
 package org.eclipse.dataspaceconnector.transfer.provision.http.webhook;
 
 import io.restassured.specification.RequestSpecification;
-import org.eclipse.dataspaceconnector.api.auth.AuthenticationService;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
-import org.eclipse.dataspaceconnector.spi.system.Provides;
-import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
-import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
-import org.eclipse.dataspaceconnector.transfer.provision.http.HttpWebhookExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,9 +48,6 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
 
     @BeforeEach
     void setUp(EdcExtension extension) {
-        extension.registerSystemExtension(ServiceExtension.class, new DummyAuthenticationExtension());
-        extension.registerSystemExtension(ServiceExtension.class, new HttpWebhookExtension());
-
         extension.setConfiguration(Map.of(
                 "web.http.provisioner.port", String.valueOf(port),
                 "web.http.provisioner.path", PROVISIONER_BASE_PATH,
@@ -145,7 +137,7 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
     private static class InvalidRequestParams implements ArgumentsProvider {
 
         @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
                     Arguments.of(null, dataAddress(), "resourcename", "resourcedef", "token"),
                     Arguments.of("assetid", null, "resourcename", "resourcedef", "token"),
@@ -160,11 +152,4 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
         }
     }
 
-    @Provides(AuthenticationService.class)
-    private static class DummyAuthenticationExtension implements ServiceExtension {
-        @Override
-        public void initialize(ServiceExtensionContext context) {
-            context.registerService(AuthenticationService.class, h -> true);
-        }
-    }
 }
