@@ -46,7 +46,7 @@ _Disclaimer: at the time of this writing we only have SNAPSHOT versions!_
 ### Using `SNAPSHOT` versions
 
 EDC regularly publishes new versions as snapshot versions, which are available at Sonatype's snapshot repository. In
-order
+order to add them to your build configuration, simply add this:
 to add them to your build configuration, simply add this:
 
 ```kotlin
