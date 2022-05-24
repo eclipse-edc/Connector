@@ -45,7 +45,7 @@ public class Policy extends Identifiable {
     @JsonProperty("@type")
     private PolicyType type = PolicyType.SET;
 
-    private Policy() {
+    protected Policy() {
     }
 
     public List<Permission> getPermissions() {
@@ -112,10 +112,6 @@ public class Policy extends Identifiable {
         return "Policy: " + uid;
     }
 
-    public interface Visitor<R> {
-        R visitPolicy(Policy policy);
-    }
-    
     /**
      * Returns a copy of this policy with the specified target.
      *
@@ -124,107 +120,111 @@ public class Policy extends Identifiable {
      */
     public Policy withTarget(String target) {
         return Builder.newInstance()
-                .id(this.uid)
-                .prohibitions(this.prohibitions.stream().map(p -> p.withTarget(target)).collect(Collectors.toList()))
-                .permissions(this.permissions.stream().map(p -> p.withTarget(target)).collect(Collectors.toList()))
-                .duties(this.obligations.stream().map(o -> o.withTarget(target)).collect(Collectors.toList()))
-                .assigner(this.assigner)
-                .assignee(this.assignee)
-                .inheritsFrom(this.inheritsFrom)
-                .type(this.type)
-                .extensibleProperties(this.extensibleProperties)
+                .id(uid)
+                .prohibitions(prohibitions.stream().map(p -> p.withTarget(target)).collect(Collectors.toList()))
+                .permissions(permissions.stream().map(p -> p.withTarget(target)).collect(Collectors.toList()))
+                .duties(obligations.stream().map(o -> o.withTarget(target)).collect(Collectors.toList()))
+                .assigner(assigner)
+                .assignee(assignee)
+                .inheritsFrom(inheritsFrom)
+                .type(type)
+                .extensibleProperties(extensibleProperties)
                 .target(target)
                 .build();
     }
 
-    @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder {
-        private final Policy policy;
+    public interface Visitor<R> {
+        R visitPolicy(Policy policy);
+    }
 
-        private Builder() {
-            policy = new Policy();
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder<B extends Builder<B>> {
+        protected final Policy policy;
+
+        protected Builder(Policy policy) {
+            this.policy = policy;
         }
 
         public static Builder newInstance() {
-            return new Builder();
+            return new Builder(new Policy());
         }
 
         @JsonProperty("uid")
-        public Builder id(String id) {
+        public B id(String id) {
             policy.uid = id;
-            return this;
+            return (B) this;
         }
 
-        public Builder prohibition(Prohibition prohibition) {
+        public B prohibition(Prohibition prohibition) {
             policy.prohibitions.add(prohibition);
-            return this;
+            return (B) this;
         }
 
-        public Builder prohibitions(List<Prohibition> prohibitions) {
+        public B prohibitions(List<Prohibition> prohibitions) {
             policy.prohibitions.addAll(prohibitions);
-            return this;
+            return (B) this;
         }
 
-        public Builder permission(Permission permission) {
+        public B permission(Permission permission) {
             policy.permissions.add(permission);
-            return this;
+            return (B) this;
         }
 
-        public Builder permissions(List<Permission> permissions) {
+        public B permissions(List<Permission> permissions) {
             policy.permissions.addAll(permissions);
-            return this;
+            return (B) this;
         }
 
-        public Builder duty(Duty duty) {
+        public B duty(Duty duty) {
             policy.obligations.add(duty);
-            return this;
+            return (B) this;
         }
 
         @JsonProperty("obligations")
-        public Builder duties(List<Duty> duties) {
+        public B duties(List<Duty> duties) {
             policy.obligations.addAll(duties);
-            return this;
+            return (B) this;
         }
 
-        public Builder duty(String inheritsFrom) {
+        public B duty(String inheritsFrom) {
             policy.inheritsFrom = inheritsFrom;
-            return this;
+            return (B) this;
         }
 
-        public Builder assigner(String assigner) {
+        public B assigner(String assigner) {
             policy.assigner = assigner;
-            return this;
+            return (B) this;
         }
 
-        public Builder assignee(String assignee) {
+        public B assignee(String assignee) {
             policy.assignee = assignee;
-            return this;
+            return (B) this;
         }
 
-        public Builder target(String target) {
+        public B target(String target) {
             policy.target = target;
-            return this;
+            return (B) this;
         }
 
-        public Builder inheritsFrom(String inheritsFrom) {
+        public B inheritsFrom(String inheritsFrom) {
             policy.inheritsFrom = inheritsFrom;
-            return this;
+            return (B) this;
         }
 
         @JsonProperty("@type")
-        public Builder type(PolicyType type) {
+        public B type(PolicyType type) {
             policy.type = type;
-            return this;
+            return (B) this;
         }
 
-        public Builder extensibleProperty(String key, Object value) {
+        public B extensibleProperty(String key, Object value) {
             policy.extensibleProperties.put(key, value);
-            return this;
+            return (B) this;
         }
 
-        public Builder extensibleProperties(Map<String, Object> properties) {
+        public B extensibleProperties(Map<String, Object> properties) {
             policy.extensibleProperties.putAll(properties);
-            return this;
+            return (B) this;
         }
 
         public Policy build() {
