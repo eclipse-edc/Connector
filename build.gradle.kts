@@ -153,11 +153,13 @@ allprojects {
                         }
                     }
                 }
+
                 publications {
                     create<MavenPublication>("mavenJava") {
                         java {
                             withJavadocJar()
                             withSourcesJar()
+                            from(components["java"])
                         }
                         pom {
                             name.set(project.name)
