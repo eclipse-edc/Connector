@@ -69,7 +69,8 @@ public class HttpFileTransferExtension implements ServiceExtension {
         var sinkFactory = new FileTransferDataSinkFactory(monitor, executorContainer.getExecutorService(), 5);
         pipelineService.registerFactory(sinkFactory);
 
-        var sinkFactoryHttp = new HttpDataSinkFactory(httpClient, executorContainer.getExecutorService(), 1, monitor);//MUST BE 1 - we can handle only one part at a time
+        //MUST BE 1 partition - we can handle only one part at a time
+        var sinkFactoryHttp = new HttpDataSinkFactory(httpClient, executorContainer.getExecutorService(), 1, monitor);
         pipelineService.registerFactory(sinkFactoryHttp);
 
         var policy = createPolicy();

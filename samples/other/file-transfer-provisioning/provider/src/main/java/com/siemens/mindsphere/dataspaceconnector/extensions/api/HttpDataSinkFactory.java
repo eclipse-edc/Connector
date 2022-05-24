@@ -27,7 +27,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.ExecutorService;
 
 import static org.eclipse.dataspaceconnector.spi.result.Result.failure;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.*;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
+
 
 /**
  * Instantiates {@link HttpDataSink}s for requests whose source data type is {@link HttpDataAddressSchema#TYPE}.

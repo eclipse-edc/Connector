@@ -18,7 +18,6 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import org.eclipse.dataspaceconnector.dataplane.http.pipeline.StreamingRequestBody;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.ParallelSink;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
@@ -45,22 +44,21 @@ public class HttpDataSink extends ParallelSink {
     @Override
     protected StatusResult<Void> transferParts(List<DataSource.Part> parts) {
         for (DataSource.Part part : parts) {
-            var requestBody = new StreamingRequestBody(part);
-
             var requestBuilder = new Request.Builder();
             if (authKey != null) {
                 requestBuilder.header(authKey, authCode);
             }
 
-            MediaType mediaType = MediaType.parse("text/plain");//TODO: refactor me
-            RequestBody body = null;//Modified by LT from post
+            //TODO: refactor me
+            MediaType mediaType = MediaType.parse("text/plain");
+            RequestBody body = null;
             try {
                 body = RequestBody.create(part.openStream().readAllBytes(), mediaType);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
 
-            var request = requestBuilder.url(endpoint).put(body).build();//Modified by LT from post
+            var request = requestBuilder.url(endpoint).put(body).build();
             try (var response = httpClient.newCall(request).execute()) {
                 if (!response.isSuccessful()) {
                     monitor.severe(format("Error {%s: %s} received writing HTTP data %s to endpoint %s for request: %s", response.code(), response.message(), part.name(), endpoint, request));

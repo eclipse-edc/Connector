@@ -15,7 +15,6 @@
 package com.siemens.mindsphere.dataspaceconnector.extensions.api;
 
 import okhttp3.OkHttpClient;
-
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.InputStreamDataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
