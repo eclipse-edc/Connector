@@ -72,7 +72,7 @@ subprojects {
     }
 
     tasks.register<DependencyReportTask>("allDependencies") {}
-    val f = File("docs/developer/modules.list")
+    val f = File("docs/developer/modules.md")
 
     afterEvaluate {
         publishing {

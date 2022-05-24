@@ -67,7 +67,7 @@ dependencies {
 }
 ```
 
-A comprehensive list of all available modules can be found [here](docs/developer/modules.list).
+A comprehensive list of all available modules can be found [here](docs/developer/modules.md).
 
 Please be aware of the following pitfalls:
 
