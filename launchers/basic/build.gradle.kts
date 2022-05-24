@@ -22,7 +22,9 @@ val jupiterVersion: String by project
 
 dependencies {
     implementation(project(":core"))
-    implementation(project(":data-protocols:ids"))
+    implementation(project(":data-protocols:ids")) {
+        exclude("org.eclipse.dataspaceconnector","ids-token-validation")
+    }
     implementation(project(":extensions:api:data-management"))
     implementation(project(":extensions:api:observability"))
     implementation(project(":extensions:api:data-management"))

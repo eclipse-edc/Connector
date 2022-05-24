@@ -19,7 +19,9 @@ plugins {
 dependencies {
     implementation(project(":common:token-generation-lib"))
     implementation(project(":core"))
-    implementation(project(":data-protocols:ids"))
+    implementation(project(":data-protocols:ids")) {
+        exclude("org.eclipse.dataspaceconnector","ids-token-validation")
+    }
     implementation(project(":extensions:filesystem:vault-fs"))
     implementation(project(":extensions:http"))
     implementation(project(":extensions:iam:iam-mock"))
