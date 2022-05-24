@@ -44,7 +44,7 @@ class HttpDataSinkFactoryTest {
     void verifyUpload() throws InterruptedException, ExecutionException {
         var dataAddress = DataAddress.Builder.newInstance()
                 .type(TYPE)
-                .property(ENDPOINT, "https://datalake-prod-a-castidev-1638992902776.s3.eu-central-1.amazonaws.com/data/ten%3Dcastidev/onboard.md?X-Amz-Security-Token=FwoGZXIvYXdzEIb%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaDMdNwzGQWwbgj2Uf7yK3BPSjLwEGjPo1rO6Mh53DLY%2Fo1nuF4Zef5K08seAd8bpEuAzLNyl%2FLzA5jIDdOXqnMa0uF%2FLF%2F4ZFSOU%2BKqIcy8sl%2F7DAN45eATqXA%2Fe26%2BiEbl5uBQa%2B9zhGQzIbmz09b2GBE9htwsSC5H3TOpGJAFblTikrs5KvEMshdFrhHiEzKAKd1vdt9ciDoQxmoLMRdJPJAD5eK7h%2F%2B%2B1R6C0ZtVlOuoOkzm17jcOsHgBqRqec5nVGyduMRyooT3PFlwbPTnnNG7D5uHfFzUeRLdodP%2Fk6tvecfOOgKZ2aM6O6uDzKRdbABS%2Fg9gfc2epxsNrT92BWdD5TSPqzKnFhdc0nfBxHFN0%2BnOh4on9V0FgteoZPdyMq3%2B9lUidLhMChw0Uy9ypTPE6JybXCT4eQR9A%2Fh7eDwojsVwThyGl0pzInT4KrKs9pj%2FabMlLzF%2B2g9H62fwzvW09taB6zS5tXPovRckV%2B5iefVS3A3he8svr6GxsA%2F%2FgD6DzoUDyvg1iXsr5bM4no4ybhaE8Rfd9HTShNsz9s1cF8WXqX1hnvwGXkTLIPCTpSkKdzJnNDP8n4o4UOiwW2W8bAkvWnPnjSVZnLp%2BFN7V8ydpVmXe51QdLPYrzf04Ywn2vD9QxCnTGcRdHFeyHyRWzds2BqN0UGvGqsfU94qiwPEvFKVJSAq1UdZiadp2sbbnHyLZedXVBFmzGTt2BjBXEHi6tXRtcUQ36jYLxy2NdR%2FhS33y1KoVRDaFMsnZuD6Of%2FdCju%2Ba2UBjIrTzOt7OfE1sqyI6RuLO7NzHgbpbmDknIvp%2BhHlSCcy9tFi%2FPsou7et7NU%2BQ%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20220523T123519Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=ASIAWX7P4S4D4AE5K55E%2F20220523%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Signature=ff3d75125dad200d652c11f358ecf2c834b9ecc61b3e96e78ccf91805bf6062b")
+                .property(ENDPOINT, "https://datalake-prod-a-castidev-1638992902776.s3.eu-central-1.amazonaws.com/data/ten%3Dcastidev/apache-groovy-sdk-4.0.2.zip?X-Amz-Security-Token=FwoGZXIvYXdzEJv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaDBi3LtIM2X0lrQG9GyK3BKI8WNRZKSbKGEPMtuspML2BCrWocEJcoNF%2BczjKLu%2Frk3k8OXriDb4jwkAxpELuM%2FX3nK12NB%2BvbgPk4iEXDC6Yq0wvme1KopjJVW9hrmpBVdH6K5omSaggW1gNGUUiwJh%2BxL2bGOo%2Bq4B5Wre6AKmGSf6bIT3gkp3iJL5J4NlFDLNvqirh9RExuJrT0RFlJSLTdHDZuHMmQQLIucyjxrA0ChfqxLwwToFyPgUo3i%2FA0%2FcfaeQTWZetnRT%2F0o4dg6mF0BYnYcG1yiFmt7hRYiVuFUam2ezE1AY8FD4PWcX2MJ9qqO6f2nKGpDEqFDPa2U3Bzw7lLCfNn%2B1EeO%2BS2MMq3J295oB79GXHK09%2FIvswrClpNdmNF05vFu1gLoGqaOlxwm7CWfKgTPB0ddtaJCJKAoOr0hvslg4ne35eYNKARLoWGCDz%2F6MJHRgC8J2R81RE3DE%2FXMFUjn%2FTJVNOLv8CUQrjSE5ePVt6vzZzeStzPnf2mx6MR8ajZpfwbmY2HzrpRoxRMYDAXdx2hz4Kf38JzFPAip09QIdCZjGp%2BFA3GTmUtxyPIfHSfuLZ8vN1lHN2G3HWSi2oo8uaWU3Hn%2B%2BrmQt1D3%2BR4HewG6HPJF8WTt9Mvbu5WtOLmI%2B6O8YcgrVwcx%2FWxyqsSwLktkZ5B%2BxpBRKCFjYXF4CUbX42Y72iiWbjz5p5O0DWtEHcEdhSwJAO5EqF9yjbg5pleMZmWh4JmUze%2BeeAJmGriEia6QkQzxBD9ifxgiiG1bKUBjIr6oEYyCwyYcsqdcmFcMbH9ywvEvcI01J8bGTXeNYmD0Xppbc0ydj9hJrM5Q%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20220524T100147Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=ASIAWX7P4S4DYQKEBE44%2F20220524%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Signature=9e577e60febfdfd652bcf654f5cf6b94321c9cfad9337edf4880a47b46b8cec3")
                 .build();
 
         var validRequest = createRequest(TYPE).destinationDataAddress(dataAddress).build();
@@ -52,6 +52,7 @@ class HttpDataSinkFactoryTest {
         var sink = factory.createSink(validRequest);
 
         var result = sink.transfer(new InputStreamDataSource("test", new ByteArrayInputStream("test".getBytes()))).get();
+        //var result = sink.transfer(new InputStreamDataSource("test", new FileInputStream("D:\\Kits\\apache-groovy-sdk-4.0.2.zip"))).get();
 
         assertThat(result.failed()).isFalse();
     }
@@ -83,7 +84,7 @@ class HttpDataSinkFactoryTest {
     @BeforeEach
     void setUp() {
         httpClient = new OkHttpClient();
-        factory = new HttpDataSinkFactory(httpClient, Executors.newFixedThreadPool(1), 5, mock(Monitor.class));
+        factory = new HttpDataSinkFactory(httpClient, Executors.newFixedThreadPool(1), 1, mock(Monitor.class));
     }
 
 

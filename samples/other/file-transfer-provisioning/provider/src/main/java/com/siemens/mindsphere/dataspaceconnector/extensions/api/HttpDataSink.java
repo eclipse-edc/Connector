@@ -14,7 +14,6 @@
 
 package com.siemens.mindsphere.dataspaceconnector.extensions.api;
 
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -49,13 +48,12 @@ public class HttpDataSink extends ParallelSink {
                 requestBuilder.header(authKey, authCode);
             }
 
-            //TODO: refactor me
-            MediaType mediaType = MediaType.parse("text/plain");
-            RequestBody body = null;
+            RequestBody body;
             try {
-                body = RequestBody.create(part.openStream().readAllBytes(), mediaType);
+                body = RequestBody.create(part.openStream().readAllBytes());
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                monitor.severe(format("Error reading bytes for HTTP part data %s", part.name()));
+                return StatusResult.failure(ERROR_RETRY, "Error reading part data");
             }
 
             var request = requestBuilder.url(endpoint).put(body).build();
