@@ -72,11 +72,11 @@ subprojects {
     }
 
     tasks.register<DependencyReportTask>("allDependencies") {}
+    val f = File("docs/developer/modules.list")
 
     afterEvaluate {
         publishing {
             publications.forEach { i ->
-                println(i.name)
                 val mp = (i as MavenPublication)
                 mp.pom {
                     name.set(project.name)
@@ -101,6 +101,7 @@ subprojects {
                         }
                     }
                 }
+                f.appendText("\n${mp.groupId}:${mp.artifactId}:${mp.version}")
             }
         }
     }
