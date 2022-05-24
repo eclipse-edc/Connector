@@ -82,6 +82,8 @@ In addition to the contribution guideline made available in the
 [Eclipse project handbook](https://www.eclipse.org/projects/handbook/#contributing),
 we would appreciate if your pull request applies to the following points:
 
+* Conform to [Pull-Request Etiquette](pr_etiquette.md)
+
 * Always apply the following copyright header to specific files in your work replacing the fields 
   enclosed by curly brackets "{}" with your own identifying information. (Don't include the curly 
   brackets!) Enclose the text in the appropriate comment syntax for the file format.
@@ -113,17 +115,7 @@ we would appreciate if your pull request applies to the following points:
   the [Developer Certificate of Origin.](https://www.eclipse.org/legal/DCO.php)
   As such, all parties involved in a contribution must have valid ECAs. Additionally, commits can 
   include a ["Signed-off-by" entry](https://wiki.eclipse.org/Development_Resources/Contributing_via_Git).
-* We prefer small changes and short living branches. Please do not combine independent things in one
-  pull request.
-
-
-* Excessive branching and merging can make git history confusing. With that in mind please
-
-    * [squash your commits](https://git-scm.com/book/en/v2/Git-Tools-Rewriting-History#_squashing)
-      down to a few commits, or one commit, before submitting a pull request and
-    * [rebase](https://git-scm.com/book/en/v2/Git-Branching-Rebasing) your pull request changes on 
-      top of the current master. Pull requests shouldn't include merge commits.
-
+  
 * Add meaningful tests to verify your submission acts as expected.
 
 * Where code is not self-explanatory, add documentation providing extra clarification.
@@ -144,7 +136,7 @@ we would appreciate if your pull request applies to the following points:
 * PR descriptions should use the current [PR template](.github/PULL_REQUEST_TEMPLATE.md)
 
 * Submit a draft pull request at early-stage and add people previously working on the same code as 
-  reviewer. Make sure automatically checks pass before marking it as "ready for review":
+  reviewer. Make sure automatic checks pass before marking it as "ready for review":
 
     * _Intellectual Property Validation_ verifying the [Eclipse CLA](#eclipse-contributor-agreement) 
       has been signed as well as commits have been signed-off and
