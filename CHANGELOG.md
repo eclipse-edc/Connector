@@ -55,6 +55,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Make `ContractDefinitionService` get definition by its id (#1325)
 * Update the CodeQL version from v1 to v2
 * Update `slf4j-api` to `2.0.0-alpha7` (#1328)
+* Added timestamps to TransferProcess DTO (#1350)
 
 #### Removed
 
