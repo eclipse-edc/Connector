@@ -73,6 +73,37 @@ subprojects {
 
     tasks.register<DependencyReportTask>("allDependencies") {}
 
+    afterEvaluate {
+        publishing {
+            publications.forEach { i ->
+                println(i.name)
+                val mp = (i as MavenPublication)
+                mp.pom {
+                    name.set(project.name)
+                    description.set("edc :: ${project.name}")
+                    url.set(edcWebsiteUrl)
+
+                    licenses {
+                        license {
+                            name.set("The Apache License, Version 2.0")
+                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        }
+                        developers {
+                            developer {
+                                id.set(edcDeveloperId)
+                                name.set(edcDeveloperName)
+                                email.set(edcDeveloperEmail)
+                            }
+                        }
+                        scm {
+                            connection.set(edcScmConnection)
+                            url.set(edcScmUrl)
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 buildscript {
@@ -154,40 +185,6 @@ allprojects {
                     }
                 }
 
-                publications {
-                    create<MavenPublication>("mavenJava") {
-                        java {
-                            withJavadocJar()
-                            withSourcesJar()
-                            from(components["java"])
-                        }
-                        pom {
-                            name.set(project.name)
-                            description.set("edc :: ${project.name}")
-                            url.set(edcWebsiteUrl)
-
-                            licenses {
-                                license {
-                                    name.set("The Apache License, Version 2.0")
-                                    url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                                }
-                                developers {
-                                    developer {
-                                        id.set(edcDeveloperId)
-                                        name.set(edcDeveloperName)
-                                        email.set(edcDeveloperEmail)
-                                    }
-                                }
-                                scm {
-                                    connection.set(edcScmConnection)
-                                    url.set(edcScmUrl)
-                                }
-                            }
-                        }
-                    }
-
-                }
-
                 signing {
                     useGpgCmd()
                     sign(publishing.publications)
@@ -196,6 +193,8 @@ allprojects {
         }
 
     }
+
+
 
     pluginManager.withPlugin("io.swagger.core.v3.swagger-gradle-plugin") {
 
