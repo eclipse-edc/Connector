@@ -127,7 +127,7 @@ public class DataLakeClientImpl implements DataLakeClient {
             final RequestBody requestPayload = RequestBody.create(payloadString, MediaType.parse("application/json"));
             final Request request = new Request.Builder()
                     .method("POST", requestPayload)
-                    .url(dataLakeBaseUrl + "/generateDownloadObjectUrls")
+                    .url(dataLakeBaseUrl + DATA_LAKE_SIGN_REQ_DOWNLOAD_URL)
                     .header(AUTHORIZATION, accessToken)
                     .build();
             final Response response = client.newCall(request).execute();
@@ -168,7 +168,7 @@ public class DataLakeClientImpl implements DataLakeClient {
             final RequestBody requestPayload = RequestBody.create(payloadString, MediaType.parse("application/json"));
             final Request request = new Request.Builder()
                     .method("POST", requestPayload)
-                    .url(dataLakeBaseUrl  + "/generateUploadObjectUrls")
+                    .url(dataLakeBaseUrl  + DATA_LAKE_SIGN_REQ_UPLOAD_URL)
                     .header(AUTHORIZATION, accessToken)
                     .build();
             final Response response = client.newCall(request).execute();
