@@ -70,10 +70,6 @@ public class HttpDataSink extends ParallelSink {
         return StatusResult.success();
     }
 
-    public static void main(String[] args) {
-
-    }
-
     private HttpDataSink() {
     }
 
