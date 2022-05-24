@@ -59,6 +59,7 @@ class TestFunctions {
         return TransferProcess.Builder.newInstance()
                 .id(processId)
                 .state(state.code())
+                .createdTimestamp(12314)
                 .type(TransferProcess.Type.CONSUMER)
                 .dataRequest(createDataRequest())
                 .contentDataAddress(DataAddress.Builder.newInstance().type("any").build())
