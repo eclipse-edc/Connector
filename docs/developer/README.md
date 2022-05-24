@@ -21,6 +21,7 @@ As a developer, I do not want to ...
 - [Cloud testing](cloud_testing.md)
 - [Command queue](command-queue.md)
 - [Contribution guidelines](../_helper/contributing.md)
+- [Customize policy engine](policy-engine.md)
 - [Dependency resolution](dependency_resolution.md)
 - [Data plane framework](data-plane-framework/README.md)
 - [Logging](logging.md)

@@ -28,6 +28,7 @@ As an adopter, I do not want to ...
 ## Important links
 
 - [Contribution guidelines](../_helper/contributing.md)
+- [Customize policy engine](../developer/policy-engine.md)
 - [List of extensions](../overview/extensions.md)
 - [List of launchers](../overview/launchers.md)
 - [OpenApi Documentation](_helper/openapi.md)
