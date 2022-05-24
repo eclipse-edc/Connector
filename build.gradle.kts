@@ -21,6 +21,7 @@ plugins {
     id("com.rameshkp.openapi-merger-gradle-plugin") version "1.0.4"
     id("org.eclipse.dataspaceconnector.module-names")
     id("com.autonomousapps.dependency-analysis") version "1.1.0" apply (false)
+    id("org.gradle.crypto.checksum") version "1.4.0"
 }
 
 repositories {
@@ -53,6 +54,12 @@ if (project.version == "unspecified") {
     logger.warn("")
 } else {
     edcVersion = project.version as String
+}
+
+var deployUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+
+if (edcVersion.contains("SNAPSHOT")) {
+    deployUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
 }
 
 subprojects {
@@ -139,7 +146,7 @@ allprojects {
                 repositories {
                     maven {
                         name = "OSSRH"
-                        setUrl("https://oss.sonatype.org/service/local/staging/deploy/maven2")
+                        setUrl(deployUrl)
                         credentials {
                             username = System.getenv("OSSRH_USER") ?: return@credentials
                             password = System.getenv("OSSRH_PASSWORD") ?: return@credentials
@@ -156,7 +163,7 @@ allprojects {
                             name.set(project.name)
                             description.set("edc :: ${project.name}")
                             url.set(edcWebsiteUrl)
-                            
+
                             licenses {
                                 license {
                                     name.set("The Apache License, Version 2.0")
