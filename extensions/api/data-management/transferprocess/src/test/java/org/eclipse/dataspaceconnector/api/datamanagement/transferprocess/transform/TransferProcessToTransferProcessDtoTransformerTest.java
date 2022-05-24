@@ -73,12 +73,15 @@ class TransferProcessToTransferProcessDtoTransformerTest {
         data.entity = TransferProcess.Builder.newInstance()
                 .id(data.id)
                 .type(data.type)
+                .stateTimestamp(data.stateTimestamp)
                 .dataRequest(data.dataRequest);
         data.dto
                 .dataDestination(
                         DataAddressInformationDto.Builder.newInstance()
                                 .properties(Map.of("type", data.dataDestinationType))
                                 .build())
+                .stateTimestamp(data.stateTimestamp)
+                .createdTimestamp(0L)
                 .errorDetail(null);
 
         assertThatEntityTransformsToDto();

@@ -151,6 +151,12 @@ components:
           type: string
         state:
           type: string
+        stateTimestamp:
+          type: integer
+          format: int64
+        createdTimestamp:
+          type: integer
+          format: int64
         errorDetail:
           type: string
         dataRequest:

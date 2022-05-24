@@ -44,8 +44,9 @@ public class PostgresStatements implements TransferProcessStoreStatements {
 
     @Override
     public String getInsertStatement() {
-        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
                 getTableName(), getIdColumn(), getStateColumn(), getStateCountColumn(), getStateTimestampColumn(),
+                getCreatedTimestampColumn(),
                 getTraceContextColumn(), getErrorDetailColumn(), getResourceManifestColumn(),
                 getProvisionedResourcesetColumn(), getContentDataAddressColumn(), getTypeColumn());
     }
