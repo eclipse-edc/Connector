@@ -11,14 +11,12 @@
  *
  */
 
-package com.siemens.mindsphere.provision;
+package com.siemens.mindsphere.datalake.edc.http.provision;
 
 import com.siemens.mindsphere.datalake.edc.http.DataLakeClientImpl;
 import com.siemens.mindsphere.datalake.edc.http.DataLakeException;
-import com.siemens.mindsphere.datalake.edc.http.OauthClientDetails;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
@@ -31,7 +29,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionRespons
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -43,32 +40,13 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddre
 public class SourceUrlProvisioner
         implements Provisioner<SourceUrlResourceDefinition, SourceUrlProvisionedResource> {
 
+    private final DataLakeClientImpl clientImpl;
 
-    @EdcSetting
-    private static final String TOKENMANAGEMENT_ADDRESS = "datalake.oauth.address";
-
-    @EdcSetting
-    private static final String TOKENMANAGEMENT_CLIENT_ID = "datalake.oauth.client.id";
-
-    @EdcSetting
-    private static final String TOKENMANAGEMENT_CLIENT_SECRET = "datalake.oauth.client.secret";
-
-    @EdcSetting
-    private static final String TOKENMANAGEMENT_CLIENT_APP_NAME = "datalake.oauth.client.app.name";
-
-    @EdcSetting
-    private static final String TOKENMANAGEMENT_CLIENT_APP_VERSION = "datalake.oauth.client.app.version";
-
-    @EdcSetting
-    private static final String APPLICATION_TENANT = "datalake.tenant";
-
-    @EdcSetting
-    private static final String DATALAKE_BASE_URL = "datalake.base.url.endpoint";
-
-    public SourceUrlProvisioner(ServiceExtensionContext context, RetryPolicy<Object> retryPolicy) {
+    public SourceUrlProvisioner(final DataLakeClientImpl clientImpl, final ServiceExtensionContext context, final RetryPolicy<Object> retryPolicy) {
         this.monitor = context.getMonitor();
         this.context = context;
         this.retryPolicy = retryPolicy;
+        this.clientImpl = clientImpl;
     }
 
     private final ServiceExtensionContext context;
@@ -92,7 +70,7 @@ public class SourceUrlProvisioner
             try {
                 final var response = ProvisionResponse
                         .Builder.newInstance()
-                        .resource(FileSystemProvisionedResource.Builder.newInstance()
+                        .resource(SourceUrlProvisionedResource.Builder.newInstance()
                                 .id(randomUUID().toString())
                                 .transferProcessId(resourceDefinition.getTransferProcessId())
                                 .resourceDefinitionId(resourceDefinition.getId())
@@ -102,7 +80,7 @@ public class SourceUrlProvisioner
                                                 Map.of(
                                                         ENDPOINT, createPresignedUrl(resourceDefinition.getDatalakePath()),
                                                         NAME, "",
-                                                        "datalakepath", resourceDefinition.getDatalakePath()))
+                                                        MindsphereSchema.DATALAKE_PATH, resourceDefinition.getDatalakePath()))
                                         .type(HttpDataAddressSchema.TYPE).build())
                                 .path(resourceDefinition.getDatalakePath())
                                 .build())
@@ -116,34 +94,12 @@ public class SourceUrlProvisioner
     }
 
     private String createPresignedUrl(final String datalakePath) {
-        final String tokenmanagementClientId = context.getSetting(TOKENMANAGEMENT_CLIENT_ID, "");
-        final String tokenmanagementClientSecret = context.getSetting(TOKENMANAGEMENT_CLIENT_SECRET, "");
-        final String tokenmanagementClientAppName = context.getSetting(TOKENMANAGEMENT_CLIENT_APP_NAME, "");
-        final String tokenmanagementClientAppVersion = context.getSetting(TOKENMANAGEMENT_CLIENT_APP_VERSION, "");
-        final String tokenmanagementAddress = context.getSetting(TOKENMANAGEMENT_ADDRESS, "");
-        final String dataLakeAddress = context.getSetting(DATALAKE_BASE_URL, "");
-
-        final String applicationTenant = context.getSetting(APPLICATION_TENANT, "presdev");
-
-        monitor.debug("datalake.oauth.clientId=" + tokenmanagementClientId);
-        monitor.debug("datalake.oauth.clientSecret=" + tokenmanagementClientSecret);
-        monitor.debug("datalake.tenant=" + applicationTenant);
-        monitor.debug("datalake.address=" + dataLakeAddress);
-
-        final URL url;
         try {
-            url = new URL(dataLakeAddress);
-
-            final OauthClientDetails oauthClientDetails = new OauthClientDetails(tokenmanagementClientId, tokenmanagementClientSecret,
-                    tokenmanagementClientAppName, tokenmanagementClientAppVersion, applicationTenant, new URL(tokenmanagementAddress));
-
-            final DataLakeClientImpl clientImpl = new DataLakeClientImpl(oauthClientDetails, url);
-
             final URL createdUrl = clientImpl.getPresignedDownloadUrl(datalakePath);
 
             monitor.debug("Created presigned url: " + createdUrl.toString());
             return createdUrl.toString();
-        } catch (MalformedURLException | DataLakeException e) {
+        } catch (DataLakeException e) {
             monitor.severe("Failed to generate presigned url for " + datalakePath, e);
             throw new IllegalArgumentException("Bad destination url given", e);
         }

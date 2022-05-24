@@ -58,6 +58,7 @@ public class TransferExtension implements ServiceExtension {
         var vault = context.getService(Vault.class);
         var monitor = context.getMonitor();
 
+        //Comment the below 3 lines out to remove the old way of copying files
         dataOperatorRegistry.registerWriter(new HttpWriter(monitor));
         dataOperatorRegistry.registerReader(new HttpReader(monitor));
 

@@ -29,6 +29,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * It has the responsibility to:
+ * - create upload presign url (used to upload files to)
+ * - create download presign url (used to get the file content from)
+ *
+ * It needs a
+ */
 public class DataLakeClientImpl implements DataLakeClient {
     public DataLakeClientImpl(URL dataLakeBaseUrl, OkHttpClient client, ObjectMapper objectMapper) {
         this.dataLakeBaseUrl = dataLakeBaseUrl;
@@ -120,7 +127,7 @@ public class DataLakeClientImpl implements DataLakeClient {
             final RequestBody requestPayload = RequestBody.create(payloadString, MediaType.parse("application/json"));
             final Request request = new Request.Builder()
                     .method("POST", requestPayload)
-                    .url(dataLakeBaseUrl)
+                    .url(dataLakeBaseUrl + "/generateDownloadObjectUrls")
                     .header(AUTHORIZATION, accessToken)
                     .build();
             final Response response = client.newCall(request).execute();
@@ -161,7 +168,7 @@ public class DataLakeClientImpl implements DataLakeClient {
             final RequestBody requestPayload = RequestBody.create(payloadString, MediaType.parse("application/json"));
             final Request request = new Request.Builder()
                     .method("POST", requestPayload)
-                    .url(dataLakeBaseUrl)
+                    .url(dataLakeBaseUrl  + "/generateUploadObjectUrls")
                     .header(AUTHORIZATION, accessToken)
                     .build();
             final Response response = client.newCall(request).execute();

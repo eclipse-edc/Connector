@@ -14,11 +14,23 @@
 
 package com.siemens.mindsphere.datalake.edc.http;
 
+import com.siemens.mindsphere.datalake.edc.http.provision.DestinationUrlProvisioner;
+import com.siemens.mindsphere.datalake.edc.http.provision.DestinationUrlResourceDefinitionGenerator;
+import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.inline.DataOperatorRegistry;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
+
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 public class DataLakeExtension implements ServiceExtension {
     @EdcSetting
@@ -29,7 +41,7 @@ public class DataLakeExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        /* Monitor monitor = context.getMonitor();
+        Monitor monitor = context.getMonitor();
 
         final String destinationUrl = context.getSetting(STUB_URL, "http://missing");
 
@@ -64,7 +76,6 @@ public class DataLakeExtension implements ServiceExtension {
         var statusCheckerReg = context.getService(StatusCheckerRegistry.class);
         //statusCheckerReg.register(HttpSchema.TYPE, new DataLakeStatusChecker(dataLakeClient, retryPolicy, monitor));
 
-         */
     }
 
     @Override

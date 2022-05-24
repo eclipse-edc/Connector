@@ -26,6 +26,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
+/**
+ * Intercepts any call on the provided http client and uses the oauth client details to add the authentication header
+ */
 public class DataLakeAuthInterceptor implements Interceptor {
     public DataLakeAuthInterceptor(OkHttpClient httpClient, OauthClientDetails oauthClientDetails, ObjectMapper objectMapper) {
         this.httpClient = httpClient;

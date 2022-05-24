@@ -63,7 +63,7 @@ public class DestinationUrlProvisioner
     private static final String APPLICATION_TENANT = "datalake.tenant";
 
     @EdcSetting
-    private static final String DATALAKE_DOWNLOAD_ADDRESS = "datalake.generatedownloadbjecturls.endpoint";
+    private static final String DATALAKE_BASE_URL = "datalake.base.url.endpoint";
 
     public DestinationUrlProvisioner(ServiceExtensionContext context, RetryPolicy<Object> retryPolicy) {
         this.monitor = context.getMonitor();
@@ -121,7 +121,7 @@ public class DestinationUrlProvisioner
         final String tokenmanagementClientAppName = context.getSetting(TOKENMANAGEMENT_CLIENT_APP_NAME, "");
         final String tokenmanagementClientAppVersion = context.getSetting(TOKENMANAGEMENT_CLIENT_APP_VERSION, "");
         final String tokenmanagementAddress = context.getSetting(TOKENMANAGEMENT_ADDRESS, "");
-        final String dataLakeAddress = context.getSetting(DATALAKE_DOWNLOAD_ADDRESS, "");
+        final String dataLakeAddress = context.getSetting(DATALAKE_BASE_URL, "");
 
         final String applicationTenant = context.getSetting(APPLICATION_TENANT, "presdev");
 

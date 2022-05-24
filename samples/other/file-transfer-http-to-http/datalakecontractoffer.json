@@ -1,0 +1,45 @@
+{
+  "connectorId": "provider",
+  "connectorAddress": "http://localhost:8282/api/v1/ids/data",
+  "protocol": "ids-multipart",
+  "offer": {
+    "offerId": "9:2a75736e-007d-4364-8b99-9808490ed998",
+    "assetId": "data.csv",
+    "policy": {
+      "uid": "996e172f-2de1-4501-8881-997a57fd0e69",
+      "permissions": [
+        {
+          "edctype": "dataspaceconnector:permission",
+          "uid": null,
+          "target": "data.csv",
+          "action": {
+            "type": "USE",
+            "includedIn": null,
+            "constraint": null
+          },
+          "assignee": null,
+          "assigner": null,
+          "constraints": [],
+          "duties": []
+        }
+      ],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "asset": {
+      "properties": {
+        "ids:byteSize": null,
+        "asset:prop:id": "data.csv",
+        "ids:fileName": null
+      }
+    }
+  }
+}
