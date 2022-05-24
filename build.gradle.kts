@@ -56,10 +56,10 @@ if (project.version == "unspecified") {
     edcVersion = project.version as String
 }
 
-var deployUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+var deployUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
 
 if (edcVersion.contains("SNAPSHOT")) {
-    deployUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+    deployUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
 }
 
 subprojects {
