@@ -79,8 +79,7 @@ public class BlobTransferUtils {
         seedProviderData(ASSETS_PATH, asset);
     }
 
-    @NotNull
-    public static String createPolicy() {
+    public static Policy createPolicy() {
         var policy = Policy.Builder.newInstance()
                 .permission(Permission.Builder.newInstance()
                         .target(PROVIDER_ASSET_ID)
@@ -91,7 +90,7 @@ public class BlobTransferUtils {
 
         seedProviderData(POLICIES_PATH, policy);
 
-        return policy.getUid();
+        return policy;
     }
 
     public static void createContractDefinition(String policyId) {

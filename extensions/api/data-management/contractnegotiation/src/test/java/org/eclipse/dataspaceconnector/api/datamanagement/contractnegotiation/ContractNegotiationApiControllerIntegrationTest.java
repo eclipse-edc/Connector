@@ -228,7 +228,7 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .providerAgentId(UUID.randomUUID().toString())
                 .consumerAgentId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
-                .policyId(UUID.randomUUID().toString())
+                .policy(UUID.randomUUID().toString())
                 .build();
     }
 

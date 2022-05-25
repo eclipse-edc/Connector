@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -144,7 +145,7 @@ public class EndToEndTest {
         var contractAgreement = ContractAgreement.Builder.newInstance()
                 .assetId(ASSET_ID)
                 .id(CONTRACT_ID)
-                .policyId(POLICY_ID)
+                .policy(POLICY_ID)
                 .consumerAgentId("consumer")
                 .providerAgentId("provider")
                 .build();
@@ -158,14 +159,14 @@ public class EndToEndTest {
                 .build();
         negotiationStore.save(contractNegotiation);
 
-        policyStore.save(Policy.Builder.newInstance().id(POLICY_ID).build());
+        policyStore.save(PolicyDefinition.Builder.newInstance().id(POLICY_ID).build());
     }
 
     @Provides(IdentityService.class)
     private static class TestServiceExtension implements ServiceExtension {
         @Inject
         private AssetLoader loader;
-        
+
         @Override
         public void initialize(ServiceExtensionContext context) {
             context.registerService(IdentityService.class, new IdentityService() {

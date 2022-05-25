@@ -39,7 +39,7 @@ class ContractAgreementToContractAgreementDtoTransformerTest {
                 .consumerAgentId("consumerAgentId")
                 .providerAgentId("providerAgentId")
                 .assetId("assetId")
-                .policyId("policyId")
+                .policy("policyId")
                 .contractStartDate(1)
                 .contractSigningDate(2)
                 .contractEndDate(3)
@@ -49,7 +49,7 @@ class ContractAgreementToContractAgreementDtoTransformerTest {
 
         assertThat(dto.getId()).isEqualTo("agreementId");
         assertThat(dto.getAssetId()).isEqualTo("assetId");
-        assertThat(dto.getPolicyId()).isEqualTo("policyId");
+        assertThat(dto.getPolicy()).isEqualTo("policyId");
         assertThat(dto.getContractStartDate()).isEqualTo(1);
         assertThat(dto.getContractSigningDate()).isEqualTo(2);
         assertThat(dto.getContractEndDate()).isEqualTo(3);

@@ -274,7 +274,7 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                             contractAgreement.getContractStartDate(),
                             contractAgreement.getContractEndDate(),
                             contractAgreement.getAssetId(),
-                            contractAgreement.getPolicyId()
+                            toJson(contractAgreement.getPolicy())
                     );
                 } else {
                     // update agreement
@@ -285,7 +285,7 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                             contractAgreement.getContractStartDate(),
                             contractAgreement.getContractEndDate(),
                             contractAgreement.getAssetId(),
-                            contractAgreement.getPolicyId(),
+                            toJson(contractAgreement.getPolicy()),
                             agrId);
                 }
 
@@ -311,7 +311,8 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                 .providerAgentId(resultSet.getString(statements.getProviderAgentColumn()))
                 .consumerAgentId(resultSet.getString(statements.getConsumerAgentColumn()))
                 .assetId(resultSet.getString(statements.getAssetIdColumn()))
-                .policyId(resultSet.getString(statements.getPolicyIdColumn()))
+                .policy(fromJson(resultSet.getString(statements.getPolicyColumn()), new TypeReference<>() {
+                }))
                 .contractStartDate(resultSet.getLong(statements.getStartDateColumn()))
                 .contractEndDate(resultSet.getLong(statements.getEndDateColumn()))
                 .contractSigningDate(resultSet.getLong(statements.getSigningDateColumn()))

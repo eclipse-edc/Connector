@@ -101,7 +101,7 @@ class ContractValidationRuleTest {
         return ContractAgreement.Builder.newInstance()
                 .id(contractId)
                 .assetId(UUID.randomUUID().toString())
-                .policyId(UUID.randomUUID().toString())
+                .policy(UUID.randomUUID().toString())
                 .contractEndDate(endDate.getEpochSecond())
                 .consumerAgentId("any")
                 .providerAgentId("any")

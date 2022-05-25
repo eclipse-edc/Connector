@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model;
 
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+
 public class ContractAgreementDto {
     private String id;
     private String providerAgentId;
@@ -22,7 +24,7 @@ public class ContractAgreementDto {
     private long contractStartDate;
     private long contractEndDate;
     private String assetId;
-    private String policyId;
+    private Policy policy;
 
     public String getId() {
         return id;
@@ -52,8 +54,8 @@ public class ContractAgreementDto {
         return assetId;
     }
 
-    public String getPolicyId() {
-        return policyId;
+    public Policy getPolicy() {
+        return policy;
     }
 
     public static final class Builder {
@@ -102,8 +104,8 @@ public class ContractAgreementDto {
             return this;
         }
 
-        public Builder policyId(String policyId) {
-            agreement.policyId = policyId;
+        public Builder policyId(Policy policy) {
+            agreement.policy = policy;
             return this;
         }
 

@@ -128,8 +128,8 @@ public interface ContractNegotiationStatements extends LeaseStatements {
         return "asset_id";
     }
 
-    default String getPolicyIdColumn() {
-        return "policy_id";
+    default String getPolicyColumn() {
+        return "contract_policy";
     }
 
     default String getContractAgreementIdFkColumn() {

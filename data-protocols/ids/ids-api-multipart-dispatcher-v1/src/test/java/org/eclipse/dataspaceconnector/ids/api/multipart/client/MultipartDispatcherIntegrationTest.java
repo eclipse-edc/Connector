@@ -196,7 +196,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
     void testSendContractAgreementMessage() throws Exception {
         var contractAgreement = ContractAgreement.Builder.newInstance()
                 .id("1:23456").consumerAgentId("consumer").providerAgentId("provider")
-                .policyId("policyId")
+                .policy("policyId")
                 .assetId(UUID.randomUUID().toString())
                 .build();
 

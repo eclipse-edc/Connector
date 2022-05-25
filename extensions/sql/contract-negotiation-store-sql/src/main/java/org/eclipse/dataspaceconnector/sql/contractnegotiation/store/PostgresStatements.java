@@ -95,19 +95,19 @@ public final class PostgresStatements implements ContractNegotiationStatements {
     public String getInsertAgreementTemplate() {
         return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
                 getContractAgreementTable(), getContractAgreementIdColumn(), getProviderAgentColumn(), getConsumerAgentColumn(),
-                getSigningDateColumn(), getStartDateColumn(), getEndDateColumn(), getAssetIdColumn(), getPolicyIdColumn());
+                getSigningDateColumn(), getStartDateColumn(), getEndDateColumn(), getAssetIdColumn(), getPolicyColumn());
     }
 
     @Override
     public String getSelectByPolicyIdTemplate() {
-        return format("SELECT DISTINCT %s FROM %s WHERE %s = ?", getPolicyColumnSeralized(), getContractAgreementTable(), getPolicyIdColumn());
+        return format("SELECT DISTINCT %s FROM %s WHERE %s = ?", getPolicyColumnSeralized(), getContractAgreementTable(), getPolicyColumn());
     }
 
     @Override
     public String getUpdateAgreementTemplate() {
         return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=? WHERE %s =?",
                 getContractAgreementTable(), getProviderAgentColumn(), getConsumerAgentColumn(), getSigningDateColumn(),
-                getStartDateColumn(), getEndDateColumn(), getAssetIdColumn(), getPolicyIdColumn(), getContractAgreementIdColumn());
+                getStartDateColumn(), getEndDateColumn(), getAssetIdColumn(), getPolicyColumn(), getContractAgreementIdColumn());
     }
 
     @Override

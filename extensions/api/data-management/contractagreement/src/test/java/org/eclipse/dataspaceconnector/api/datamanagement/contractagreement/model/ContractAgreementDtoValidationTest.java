@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.mode
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -54,7 +55,7 @@ class ContractAgreementDtoValidationTest {
     void validation_invalidProperty(String id, String assetId, String policyId, String consumerAgentId, String providerAgentId, long startDate, long endDate, long signingDate) {
         var agreement = ContractAgreementDto.Builder.newInstance()
                 .assetId(assetId)
-                .policyId(policyId)
+                .policy(Policy.Builder.newInstance().build())
                 .consumerAgentId(consumerAgentId)
                 .providerAgentId(providerAgentId)
                 .id(id)
@@ -70,7 +71,7 @@ class ContractAgreementDtoValidationTest {
     void validation_validDto() {
         var agreement = ContractAgreementDto.Builder.newInstance()
                 .assetId("Asset")
-                .policyId("policy")
+                .policy(Policy.Builder.newInstance().build())
                 .consumerAgentId("cons")
                 .providerAgentId("prov")
                 .id("someId")

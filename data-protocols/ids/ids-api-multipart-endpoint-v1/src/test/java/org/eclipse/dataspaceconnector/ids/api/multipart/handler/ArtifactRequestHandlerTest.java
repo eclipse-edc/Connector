@@ -59,6 +59,20 @@ class ArtifactRequestHandlerTest {
     private ContractValidationService contractValidationService;
     private ContractNegotiationStore contractNegotiationStore;
 
+    private static URI createUri(IdsType type, String value) {
+        return URI.create("urn:" + type.getValue() + ":" + value);
+    }
+
+    private static ContractAgreement createContractAgreement(String contractId, String assetId) {
+        return ContractAgreement.Builder.newInstance()
+                .id(contractId)
+                .providerAgentId("provider")
+                .consumerAgentId("consumer")
+                .assetId(assetId)
+                .policy("policyId")
+                .build();
+    }
+
     @BeforeEach
     public void setUp() {
         transferProcessManager = mock(TransferProcessManager.class);
@@ -100,7 +114,6 @@ class ArtifactRequestHandlerTest {
         assertThat(drCapture.getValue().getProperties()).containsExactlyEntriesOf(Map.of("foo", "bar"));
     }
 
-
     @Test
     @DisplayName("Verifies that a contract is not passed with a separate id")
     void verifyIllegalArtifactIdRequestTest() throws JsonProcessingException {
@@ -140,19 +153,5 @@ class ArtifactRequestHandlerTest {
                 .dataDestination(dataDestination)
                 .build();
         return MultipartRequest.Builder.newInstance().header(message).payload(new ObjectMapper().writeValueAsString(payload)).build();
-    }
-
-    private static URI createUri(IdsType type, String value) {
-        return URI.create("urn:" + type.getValue() + ":" + value);
-    }
-
-    private static ContractAgreement createContractAgreement(String contractId, String assetId) {
-        return ContractAgreement.Builder.newInstance()
-                .id(contractId)
-                .providerAgentId("provider")
-                .consumerAgentId("consumer")
-                .assetId(assetId)
-                .policyId("policyId")
-                .build();
     }
 }

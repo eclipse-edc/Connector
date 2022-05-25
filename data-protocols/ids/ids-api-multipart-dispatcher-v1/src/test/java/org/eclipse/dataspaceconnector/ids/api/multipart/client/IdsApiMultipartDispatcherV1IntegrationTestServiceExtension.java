@@ -99,7 +99,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
                         .providerAgentId("provider")
                         .consumerAgentId("consumer")
                         .assetId(UUID.randomUUID().toString())
-                        .policyId("policyId")
+                        .policy("policyId")
                         .contractSigningDate(Instant.now().getEpochSecond())
                         .contractStartDate(Instant.now().getEpochSecond())
                         .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
@@ -191,11 +191,6 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         }
 
         @Override
-        public @NotNull List<TransferProcess> nextForState(int state, int max) {
-            return Collections.EMPTY_LIST;
-        }
-
-        @Override
         public void create(TransferProcess process) {
         }
 
@@ -210,6 +205,11 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         @Override
         public Stream<TransferProcess> findAll(QuerySpec querySpec) {
             return null;
+        }
+
+        @Override
+        public @NotNull List<TransferProcess> nextForState(int state, int max) {
+            return Collections.EMPTY_LIST;
         }
     }
 
@@ -258,12 +258,12 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
             throw new UnsupportedOperationException();
         }
-    
+
         @Override
         public ContractDefinition findById(String definitionId) {
             throw new UnsupportedOperationException();
         }
-    
+
         @Override
         public void save(Collection<ContractDefinition> definitions) {
             contractDefinitions.addAll(definitions);

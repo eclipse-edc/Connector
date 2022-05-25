@@ -28,7 +28,7 @@ class PolicyArchiveImplTest {
 
     private final ContractNegotiationStore contractNegotiationStore = mock(ContractNegotiationStore.class);
     private final PolicyStore policyStore = mock(PolicyStore.class);
-    private final PolicyArchiveImpl policyArchive = new PolicyArchiveImpl(contractNegotiationStore, policyStore);
+    private final PolicyArchiveImpl policyArchive = new PolicyArchiveImpl(contractNegotiationStore);
 
     @Test
     void shouldGetPolicyFromAgreement() {
@@ -68,7 +68,7 @@ class PolicyArchiveImplTest {
                 .consumerAgentId("any")
                 .providerAgentId("any")
                 .assetId("any")
-                .policyId(policyId)
+                .policy(policyId)
                 .build();
     }
 }

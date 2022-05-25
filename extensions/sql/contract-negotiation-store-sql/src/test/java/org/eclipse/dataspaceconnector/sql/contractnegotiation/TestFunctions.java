@@ -67,15 +67,14 @@ public class TestFunctions {
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
                 .assetId(UUID.randomUUID().toString())
-                .policyId(UUID.randomUUID().toString())
+                .policy(createPolicy())
                 .contractStartDate(Instant.now().getEpochSecond())
                 .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(Instant.now().getEpochSecond());
     }
 
-    public static Policy createPolicy(String uid) {
+    public static Policy createPolicy() {
         return Policy.Builder.newInstance()
-                .id(uid)
                 .permission(Permission.Builder.newInstance()
                         .target("")
                         .action(Action.Builder.newInstance()

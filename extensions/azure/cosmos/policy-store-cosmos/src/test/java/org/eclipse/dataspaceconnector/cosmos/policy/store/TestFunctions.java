@@ -14,18 +14,18 @@
 
 package org.eclipse.dataspaceconnector.cosmos.policy.store;
 
-import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 
 import java.util.UUID;
 
 public class TestFunctions {
 
-    public static Policy generatePolicy() {
+    public static PolicyDefinition generatePolicy() {
         return generatePolicy(UUID.randomUUID().toString());
     }
 
-    public static Policy generatePolicy(String id) {
-        return Policy.Builder.newInstance()
+    public static PolicyDefinition generatePolicy(String id) {
+        return PolicyDefinition.Builder.newInstance()
                 .id(id)
                 .build();
     }

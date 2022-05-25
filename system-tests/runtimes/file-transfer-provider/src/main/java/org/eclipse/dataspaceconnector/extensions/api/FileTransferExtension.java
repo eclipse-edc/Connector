@@ -19,7 +19,7 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataTransferExecuto
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
@@ -67,13 +67,13 @@ public class FileTransferExtension implements ServiceExtension {
         context.getMonitor().info("File Transfer Extension initialized!");
     }
 
-    private Policy createPolicy() {
+    private PolicyDefinition createPolicy() {
 
         var usePermission = Permission.Builder.newInstance()
                 .action(Action.Builder.newInstance().type("idsc:USE").build())
                 .build();
 
-        return Policy.Builder.newInstance()
+        return PolicyDefinition.Builder.newInstance()
                 .id(USE_POLICY)
                 .permission(usePermission)
                 .target("test-document")

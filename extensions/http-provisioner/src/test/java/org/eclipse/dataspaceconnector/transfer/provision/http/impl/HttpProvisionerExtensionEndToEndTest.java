@@ -120,7 +120,7 @@ public class HttpProvisionerExtensionEndToEndTest {
         var contractAgreement = ContractAgreement.Builder.newInstance()
                 .assetId(ASSET_ID)
                 .id(CONTRACT_ID)
-                .policyId(POLICY_ID)
+                .policy(POLICY_ID)
                 .consumerAgentId("consumer")
                 .providerAgentId("provider")
                 .build();

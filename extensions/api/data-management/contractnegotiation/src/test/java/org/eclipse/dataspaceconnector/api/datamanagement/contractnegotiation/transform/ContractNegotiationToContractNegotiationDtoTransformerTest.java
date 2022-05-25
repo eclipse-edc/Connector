@@ -68,7 +68,7 @@ class ContractNegotiationToContractNegotiationDtoTransformerTest {
                 .consumerAgentId("any")
                 .providerAgentId("any")
                 .assetId(UUID.randomUUID().toString())
-                .policyId(UUID.randomUUID().toString())
+                .policy(UUID.randomUUID().toString())
                 .build();
     }
 

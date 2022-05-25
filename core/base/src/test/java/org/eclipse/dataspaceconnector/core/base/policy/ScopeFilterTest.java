@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ScopeFilterTest {
+    public static final String BOUND_SCOPE = "scope1";
     private static final Action REPORT_ACTION = Action.Builder.newInstance().type("report").build();
     private static final Action SUB_ACTION = Action.Builder.newInstance().type("subaction").build();
     private static final LiteralExpression BOUND_LITERAL = new LiteralExpression("bound");
@@ -38,8 +39,6 @@ class ScopeFilterTest {
     private static final LiteralExpression EMPTY_LITERAL = new LiteralExpression("");
     public static final AtomicConstraint BOUND_CONSTRAINT = AtomicConstraint.Builder.newInstance().leftExpression(BOUND_LITERAL).rightExpression(EMPTY_LITERAL).build();
     public static final AtomicConstraint UNBOUND_CONSTRAINT = AtomicConstraint.Builder.newInstance().leftExpression(UNBOUND_LITERAL).rightExpression(EMPTY_LITERAL).build();
-    public static final String BOUND_SCOPE = "scope1";
-
     private ScopeFilter scopeFilter;
     private RuleBindingRegistry registry;
 
@@ -59,7 +58,6 @@ class ScopeFilterTest {
         var prohibition = Prohibition.Builder.newInstance().action(REPORT_ACTION).build();
 
         var policy = Policy.Builder.newInstance()
-                .id("id")
                 .assignee("assignee")
                 .assigner("assigner")
                 .target("target")
@@ -74,7 +72,6 @@ class ScopeFilterTest {
         var filteredPolicy = scopeFilter.applyScope(policy, BOUND_SCOPE);
 
         assertThat(filteredPolicy).isNotNull();
-        assertThat(filteredPolicy.getUid()).isNotNull();
         assertThat(filteredPolicy.getAssignee()).isNotNull();
         assertThat(filteredPolicy.getAssigner()).isNotNull();
         assertThat(filteredPolicy.getTarget()).isNotNull();

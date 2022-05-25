@@ -23,7 +23,7 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
-import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -78,14 +78,14 @@ public class IdsContractAgreementToContractAgreementTransformer implements IdsTy
                 .map(it -> context.transform(it, Duty.class))
                 .collect(Collectors.toList());
 
-        var policy = PolicyDefinition.Builder.newInstance()
+        Policy policy = Policy.Builder.newInstance()
                 .duties(edcObligations)
                 .prohibitions(edcProhibitions)
                 .permissions(edcPermissions)
                 .build();
 
         var builder = ContractAgreement.Builder.newInstance()
-                .policyId(policy.getUid())
+                .policy(policy)
                 .consumerAgentId(String.valueOf(contractAgreement.getConsumer()))
                 .providerAgentId(String.valueOf(contractAgreement.getProvider()))
                 .assetId(asset.getId());

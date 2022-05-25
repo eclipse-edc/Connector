@@ -28,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.Map;
-import java.util.UUID;
 
 import static io.gatling.javaapi.core.CoreDsl.StringBody;
 import static io.gatling.javaapi.core.CoreDsl.doWhileDuring;
@@ -207,7 +206,6 @@ public abstract class TransferSimulationUtils {
 
     private static String loadContractAgreement(String providerUrl) {
         var policy = Policy.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
                 .permission(Permission.Builder.newInstance()
                         .target("test-document")
                         .action(Action.Builder.newInstance().type("USE").build())
