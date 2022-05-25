@@ -50,7 +50,7 @@ var edcVersion: String = "0.0.1-SNAPSHOT"
 
 if (project.version == "unspecified") {
     logger.warn("No version was specified, setting default 0.0.1-SNAPSHOT")
-    logger.warn("If you want to change this, supply the -Pversion=X.Y.Z parameter")
+    logger.warn("If you want to set a version, use the -Pversion=X.Y.Z parameter")
     logger.warn("")
 } else {
     edcVersion = project.version as String
@@ -73,7 +73,10 @@ subprojects {
 
     tasks.register<DependencyReportTask>("allDependencies") {}
     val f = File("docs/developer/modules.md")
-
+    if (f.exists()) {
+        f.delete()
+        f.createNewFile()
+    }
     afterEvaluate {
         publishing {
             publications.forEach { i ->
