@@ -15,7 +15,10 @@
   <a href="https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/discussions/1303">Q&A</a>
 </p>
 
-The Eclipse Dataspace Connector provides a framework for sovereign, inter-organizational data exchange. It will implement the International Data Spaces standard (IDS) as well as relevant protocols associated with GAIA-X. The connector is designed in an extensible way in order to support alternative protocols and integrate in various ecosystems.
+The Eclipse Dataspace Connector provides a framework for sovereign, inter-organizational data exchange. It will
+implement the International Data Spaces standard (IDS) as well as relevant protocols associated with GAIA-X. The
+connector is designed in an extensible way in order to support alternative protocols and integrate in various
+ecosystems.
 
 Please also refer to:
 
@@ -36,7 +39,50 @@ For detailed information about the project, please have a look at our [documenta
 
 # Getting Started
 
-## Checkout and build code
+## Add Maven dependencies
+
+_Disclaimer: at the time of this writing we only have SNAPSHOT versions!_
+
+### Using `SNAPSHOT` versions
+
+EDC regularly publishes new versions as snapshot versions, which are available at Sonatype's snapshot repository. In
+order to add them to your build configuration, simply add this:
+
+```kotlin
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+    }
+    // any other repos
+}
+```
+
+Then you can add all dependencies that are under the `org.eclipse.dataspaceconnector` group, for example:
+
+```kotlin
+dependencies {
+    implementation("org.eclipse.dataspaceconnector:spi:core-spi:0.0.1-SNAPSHOT")
+    // any other dependencies
+}
+```
+
+A comprehensive list of all available modules can be found [here](docs/developer/modules.md).
+
+Please be aware of the following pitfalls:
+
+- snapshots are by definition unstable - every new snapshot replaces an old one
+- this may cause unrepeatable builds
+- snapshots are created irregularly, we do not have any fixed publish schedule
+
+### Using release versions
+
+_We plan to have actual release versions starting some time mid 2022. Please check back soon._
+
+
+> For more information about versioning please refer to the [release documentation](docs/developer/releases.md)
+
+## Checkout and build from source
 
 The project requires JDK 11+. To get started:
 
@@ -144,7 +190,7 @@ in [architecture principles](docs/architecture/architecture-principles.md).
 ## Roadmap
 
 See [here](CONTRIBUTING.md#project-and-milestone-planning) for more information about project and
-milestone planning. Scheduled and ongoing milestones are listed 
+milestone planning. Scheduled and ongoing milestones are listed
 [here](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/milestones).
 
 ## Contributing
