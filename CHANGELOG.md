@@ -60,6 +60,7 @@ in the detailed section referring to by linking pull requests or issues.
 
 * Deprecated Control API (#1310)
 * Remove sample module `:extensions:policy:ids-policy` (#1348)
+* Unused `:launchers:basic` (#1360)
 
 #### Fixed
 
