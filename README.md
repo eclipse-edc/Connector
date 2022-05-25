@@ -60,14 +60,20 @@ _Note: the style guide will be checked/enforced in GitHub Actions._
 ## Run your first connector
 
 Connectors can be started using the concept of "launchers", which are essentially compositions of Java modules defined
-as gradle build files. There is a `basic` launcher, which launches a simple connector that has no cloud-based extensions
-whatsoever.
+as gradle build files. 
 
-In a shell run
+**It is expected that everyone who wants to use the EDC will create their own launcher, customized 
+to the implemented use cases.**
+
+There is an `ids-connector` launcher, which launches a simple connector that has no cloud-based extensions.
+However, it needs an IDS certificate and a running DAPS. So make sure to take a look at 
+[this guide](./launchers/ids-connector/README.md) first.
+
+Then run
 
 ```shell
-./gradlew :launchers:basic:shadowJar
-java -jar launchers/basic/build/libs/dataspaceconnector-basic.jar
+./gradlew :launchers:ids-connector:shadowJar
+java -jar launchers/ids-connector/build/libs/dataspace-connector.jar
 ```
 
 Once it says `"Dataspace Connector ready"` the connector is up and running.

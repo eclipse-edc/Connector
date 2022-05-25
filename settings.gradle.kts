@@ -143,7 +143,6 @@ include(":extensions:sql:pool:apache-commons-pool-sql")
 include(":extensions:sql:transfer-process-store-sql")
 
 // modules for launchers, i.e. runnable compositions of the app
-include(":launchers:basic")
 include(":launchers:junit")
 include(":launchers:test")
 include(":launchers:ids-connector")
