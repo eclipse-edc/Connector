@@ -70,12 +70,12 @@ subprojects {
             url = uri("https://maven.iais.fraunhofer.de/artifactory/eis-ids-public/")
         }
     }
-
     tasks.register<DependencyReportTask>("allDependencies") {}
-    val f = File("docs/developer/modules.md")
+
+    // (re-)create a file that contains all maven publications
+    val f = File("${project.rootDir.absolutePath}/docs/developer/modules.md")
     if (f.exists()) {
         f.delete()
-        f.createNewFile()
     }
     afterEvaluate {
         publishing {
