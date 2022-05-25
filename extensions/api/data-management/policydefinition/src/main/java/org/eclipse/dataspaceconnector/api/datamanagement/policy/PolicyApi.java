@@ -18,7 +18,7 @@ import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 
 import java.util.List;
 
@@ -26,11 +26,11 @@ import java.util.List;
 @Tag(name = "Policy")
 public interface PolicyApi {
 
-    List<Policy> getAllPolicies(@Valid QuerySpecDto querySpecDto);
+    List<PolicyDefinition> getAllPolicies(@Valid QuerySpecDto querySpecDto);
 
-    Policy getPolicy(String id);
+    PolicyDefinition getPolicy(String id);
 
-    void createPolicy(Policy policy);
+    void createPolicy(PolicyDefinition policy);
 
     void deletePolicy(String id);
 

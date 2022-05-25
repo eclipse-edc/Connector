@@ -25,14 +25,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
  * A collection of permissions, prohibitions, and obligations associated with an asset. Subtypes are defined by {@link PolicyType}.
  */
 @JsonDeserialize(builder = Policy.Builder.class)
-public class Policy extends Identifiable {
+public class Policy {
 
     private final List<Permission> permissions = new ArrayList<>();
     private final List<Prohibition> prohibitions = new ArrayList<>();
@@ -107,10 +106,6 @@ public class Policy extends Identifiable {
                 Objects.equals(inheritsFrom, policy.inheritsFrom) && Objects.equals(assigner, policy.assigner) && Objects.equals(assignee, policy.assignee) && Objects.equals(target, policy.target) && type == policy.type;
     }
 
-    @Override
-    public String toString() {
-        return "Policy: " + uid;
-    }
 
     /**
      * Returns a copy of this policy with the specified target.
@@ -120,7 +115,6 @@ public class Policy extends Identifiable {
      */
     public Policy withTarget(String target) {
         return Builder.newInstance()
-                .id(uid)
                 .prohibitions(prohibitions.stream().map(p -> p.withTarget(target)).collect(Collectors.toList()))
                 .permissions(permissions.stream().map(p -> p.withTarget(target)).collect(Collectors.toList()))
                 .duties(obligations.stream().map(o -> o.withTarget(target)).collect(Collectors.toList()))
@@ -149,11 +143,6 @@ public class Policy extends Identifiable {
             return new Builder(new Policy());
         }
 
-        @JsonProperty("uid")
-        public B id(String id) {
-            policy.uid = id;
-            return (B) this;
-        }
 
         public B prohibition(Prohibition prohibition) {
             policy.prohibitions.add(prohibition);
@@ -228,9 +217,6 @@ public class Policy extends Identifiable {
         }
 
         public Policy build() {
-            if (policy.uid == null) {
-                policy.uid = UUID.randomUUID().toString();
-            }
             return policy;
         }
     }

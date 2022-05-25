@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.cosmos.policy.store;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.query.QueryResolver;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -46,8 +46,8 @@ public class CosmosPolicyStore implements PolicyStore {
     private final RetryPolicy<Object> retryPolicy;
     private final LockManager lockManager;
     private final String partitionKey;
-    private final QueryResolver<Policy> queryResolver;
-    private final AtomicReference<Map<String, Policy>> objectCache;
+    private final QueryResolver<PolicyDefinition> queryResolver;
+    private final AtomicReference<Map<String, PolicyDefinition>> objectCache;
 
     public CosmosPolicyStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy, String partitionKey) {
         this.cosmosDbApi = cosmosDbApi;
@@ -55,22 +55,22 @@ public class CosmosPolicyStore implements PolicyStore {
         this.retryPolicy = retryPolicy;
         this.partitionKey = partitionKey;
         lockManager = new LockManager(new ReentrantReadWriteLock(true));
-        queryResolver = new ReflectionBasedQueryResolver<>(Policy.class);
+        queryResolver = new ReflectionBasedQueryResolver<>(PolicyDefinition.class);
         objectCache = new AtomicReference<>(new HashMap<>());
     }
 
     @Override
-    public @Nullable Policy findById(String policyId) {
+    public PolicyDefinition findById(String policyId) {
         return lockManager.readLock(() -> getCache().get(policyId));
     }
 
     @Override
-    public Stream<Policy> findAll(QuerySpec spec) {
+    public Stream<PolicyDefinition> findAll(QuerySpec spec) {
         return lockManager.readLock(() -> queryResolver.query(getCache().values().stream(), spec));
     }
 
     @Override
-    public void save(Policy policy) {
+    public void save(PolicyDefinition policy) {
         lockManager.writeLock(() -> {
             with(retryPolicy).run(() -> cosmosDbApi.saveItem(convertToDocument(policy)));
             storeInCache(policy);
@@ -79,7 +79,7 @@ public class CosmosPolicyStore implements PolicyStore {
     }
 
     @Override
-    public @Nullable Policy deleteById(String policyId) {
+    public @Nullable PolicyDefinition deleteById(String policyId) {
         return lockManager.writeLock(() -> {
             var deletedItem = cosmosDbApi.deleteItem(policyId);
             if (deletedItem == null) {
@@ -99,14 +99,14 @@ public class CosmosPolicyStore implements PolicyStore {
                     .get(() -> cosmosDbApi.queryAllItems())
                     .stream()
                     .map(this::convert)
-                    .collect(Collectors.toMap(Policy::getUid, cd -> cd));
+                    .collect(Collectors.toMap(PolicyDefinition::getUid, cd -> cd));
 
             objectCache.set(databaseObjects);
             return null;
         });
     }
 
-    private Policy removeFromCache(String policyId) {
+    private PolicyDefinition removeFromCache(String policyId) {
         return lockManager.readLock(() -> {
             var map = getCache();
             return map.remove(policyId);
@@ -114,23 +114,23 @@ public class CosmosPolicyStore implements PolicyStore {
 
     }
 
-    private void storeInCache(Policy definition) {
+    private void storeInCache(PolicyDefinition definition) {
         getCache().put(definition.getUid(), definition);
     }
 
     @NotNull
-    private PolicyDocument convertToDocument(Policy policy) {
+    private PolicyDocument convertToDocument(PolicyDefinition policy) {
         return new PolicyDocument(policy, partitionKey);
     }
 
-    private Map<String, Policy> getCache() {
+    private Map<String, PolicyDefinition> getCache() {
         if (objectCache.get().isEmpty()) {
             reload();
         }
         return objectCache.get();
     }
 
-    private Policy convert(Object object) {
+    private PolicyDefinition convert(Object object) {
         var json = typeManager.writeValueAsString(object);
         return typeManager.readValue(json, PolicyDocument.class).getWrappedInstance();
     }

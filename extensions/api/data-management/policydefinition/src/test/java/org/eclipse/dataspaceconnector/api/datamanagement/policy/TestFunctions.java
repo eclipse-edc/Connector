@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.policy;
 
-import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 
 import java.util.List;
@@ -22,8 +22,8 @@ import java.util.Map;
 
 public class TestFunctions {
 
-    static Policy createPolicy(String id) {
-        return Policy.Builder.newInstance()
+    static PolicyDefinition createPolicy(String id) {
+        return PolicyDefinition.Builder.newInstance()
                 .inheritsFrom("inheritant")
                 .assigner("the tester")
                 .assignee("the tested")

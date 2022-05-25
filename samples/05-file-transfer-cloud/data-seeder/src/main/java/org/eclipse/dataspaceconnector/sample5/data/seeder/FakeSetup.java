@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.sample5.data.seeder;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -68,7 +68,7 @@ public class FakeSetup {
     }
 
     public void setupContractOffers() {
-        Policy publicPolicy = Policy.Builder.newInstance()
+        var publicPolicy = PolicyDefinition.Builder.newInstance()
                 .permission(Permission.Builder.newInstance()
                         .action(Action.Builder.newInstance()
                                 .type("USE")

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * A collection of permissions, prohibitions, and obligations associated with an asset. Subtypes are defined by {@link PolicyType}.
@@ -67,11 +68,14 @@ public class PolicyDefinition extends Policy {
 
         @JsonProperty("uid")
         public PolicyDefinition.Builder id(String id) {
-            policy.uid = id;
+            ((PolicyDefinition) policy).uid = id;
             return this;
         }
 
         public PolicyDefinition build() {
+            if (policy == null) {
+                ((PolicyDefinition) policy).uid = UUID.randomUUID().toString();
+            }
             return (PolicyDefinition) policy;
         }
     }

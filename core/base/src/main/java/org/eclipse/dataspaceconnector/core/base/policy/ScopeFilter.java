@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.policy.model.MultiplicityConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.policy.model.Rule;
 import org.eclipse.dataspaceconnector.policy.model.XoneConstraint;
@@ -58,8 +59,8 @@ public class ScopeFilter {
         var filteredObligations = policy.getObligations().stream().map(d -> applyScope(d, scope)).filter(Objects::nonNull).collect(toList());
         var filteredPermissions = policy.getPermissions().stream().map(p -> applyScope(p, scope)).filter(Objects::nonNull).collect(toList());
         var filteredProhibitions = policy.getProhibitions().stream().map(p -> applyScope(p, scope)).filter(Objects::nonNull).collect(toList());
-        var policyBuilder = Policy.Builder.newInstance();
-        policyBuilder.id(policy.getUid())
+        var policyBuilder = PolicyDefinition.Builder.newInstance();
+        policyBuilder
                 .type(policy.getType())
                 .assignee(policy.getAssignee())
                 .assigner(policy.getAssigner())
