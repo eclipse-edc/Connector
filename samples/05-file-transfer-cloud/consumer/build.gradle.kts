@@ -41,7 +41,9 @@ dependencies {
     implementation(project(":extensions:api:auth-tokenbased"))
     implementation(project(":extensions:api:data-management"))
 
-    implementation(project(":data-protocols:ids"))
+    implementation(project(":data-protocols:ids")) {
+        exclude("org.eclipse.dataspaceconnector","ids-token-validation")
+    }
 
     implementation(project(":samples:05-file-transfer-cloud:api"))
 
