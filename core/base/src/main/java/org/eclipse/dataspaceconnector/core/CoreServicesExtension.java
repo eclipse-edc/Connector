@@ -31,9 +31,12 @@ import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.RuleBindingRegistry;
+import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.BaseExtension;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.system.Hostname;
@@ -43,6 +46,11 @@ import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
+import org.eclipse.dataspaceconnector.spi.system.vault.NoopCertificateResolver;
+import org.eclipse.dataspaceconnector.spi.system.vault.NoopPrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.system.vault.NoopVault;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
 import java.security.PrivateKey;
 import java.time.Duration;
@@ -52,16 +60,12 @@ import java.util.concurrent.TimeUnit;
 
 import static java.util.Optional.ofNullable;
 
-
 @BaseExtension
 @Provides({
         HealthCheckService.class,
-        Hostname.class,
-        OkHttpClient.class,
-        ParticipantAgentService.class,
-        PolicyEngine.class,
-        RemoteMessageDispatcherRegistry.class,
-        RuleBindingRegistry.class,
+        Monitor.class,
+        TypeManager.class,
+        Telemetry.class
 })
 public class CoreServicesExtension implements ServiceExtension {
 
@@ -98,6 +102,9 @@ public class CoreServicesExtension implements ServiceExtension {
     @Inject(required = false)
     private ExecutorInstrumentation executorInstrumentation;
 
+    @Inject
+    private PrivateKeyResolver privateKeyResolver;
+
     private HealthCheckServiceImpl healthCheckService;
     private RuleBindingRegistryImpl ruleBindingRegistry;
     private ScopeFilter scopeFilter;
@@ -109,7 +116,8 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        registerParser(context);
+        privateKeyResolver.addParser(PrivateKey.class, new DefaultPrivateKeyParseFunction());
+
         var config = getHealthCheckConfig(context);
 
         // health check service
@@ -177,7 +185,6 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @Provider
     public RuleBindingRegistry ruleBindingRegistry() {
-
         return ruleBindingRegistry;
     }
 
@@ -194,10 +201,22 @@ public class CoreServicesExtension implements ServiceExtension {
 
         ofNullable(okHttpEventListener).ifPresent(builder::eventListener);
 
-        var client = builder.build();
+        return builder.build();
+    }
 
-        context.registerService(OkHttpClient.class, client);
-        return client;
+    @Provider(isDefault = true)
+    public Vault vault() {
+        return new NoopVault();
+    }
+
+    @Provider(isDefault = true)
+    public PrivateKeyResolver privateKeyResolver() {
+        return new NoopPrivateKeyResolver();
+    }
+
+    @Provider(isDefault = true)
+    public CertificateResolver certificateResolver() {
+        return new NoopCertificateResolver();
     }
 
     private HealthCheckServiceConfiguration getHealthCheckConfig(ServiceExtensionContext context) {
@@ -211,9 +230,5 @@ public class CoreServicesExtension implements ServiceExtension {
                 .build();
     }
 
-    private void registerParser(ServiceExtensionContext context) {
-        var resolver = context.getService(PrivateKeyResolver.class);
-        resolver.addParser(PrivateKey.class, new DefaultPrivateKeyParseFunction());
-    }
-
 }
+

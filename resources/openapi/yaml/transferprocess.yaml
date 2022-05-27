@@ -1,80 +1,46 @@
 openapi: 3.0.1
 paths:
-  /transferprocess/{id}/cancel:
-    post:
-      tags:
-      - Transfer Process
-      operationId: cancelTransferProcess
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /transferprocess/{id}/deprovision:
-    post:
-      tags:
-      - Transfer Process
-      operationId: deprovisionTransferProcess
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
   /transferprocess:
     get:
-      tags:
-      - Transfer Process
       operationId: getAllTransferProcesses
       parameters:
-      - name: offset
-        in: query
+      - in: query
+        name: offset
         schema:
           type: integer
           format: int32
-      - name: limit
-        in: query
+      - in: query
+        name: limit
         schema:
           type: integer
           format: int32
-      - name: filter
-        in: query
+      - in: query
+        name: filter
         schema:
           type: string
-      - name: sort
-        in: query
+      - in: query
+        name: sort
         schema:
           type: string
           enum:
           - ASC
           - DESC
-      - name: sortField
-        in: query
+      - in: query
+        name: sortField
         schema:
           type: string
       responses:
         default:
-          description: default response
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/TransferProcessDto'
-    post:
+          description: default response
       tags:
       - Transfer Process
+    post:
       operationId: initiateTransfer
       requestBody:
         content:
@@ -83,49 +49,90 @@ paths:
               $ref: '#/components/schemas/TransferRequestDto'
       responses:
         default:
-          description: default response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TransferId'
-  /transferprocess/{id}:
-    get:
+          description: default response
       tags:
       - Transfer Process
+  /transferprocess/{id}:
+    get:
       operationId: getTransferProcess
       parameters:
-      - name: id
-        in: path
+      - in: path
+        name: id
         required: true
         schema:
           type: string
       responses:
         default:
-          description: default response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TransferProcessDto'
-  /transferprocess/{id}/state:
-    get:
+          description: default response
       tags:
       - Transfer Process
-      operationId: getTransferProcessState
+  /transferprocess/{id}/cancel:
+    post:
+      operationId: cancelTransferProcess
       parameters:
-      - name: id
-        in: path
+      - in: path
+        name: id
         required: true
         schema:
           type: string
       responses:
         default:
+          content:
+            application/json: {}
           description: default response
+      tags:
+      - Transfer Process
+  /transferprocess/{id}/deprovision:
+    post:
+      operationId: deprovisionTransferProcess
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      tags:
+      - Transfer Process
+  /transferprocess/{id}/state:
+    get:
+      operationId: getTransferProcessState
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TransferState'
+          description: default response
+      tags:
+      - Transfer Process
 components:
   schemas:
+    DataAddress:
+      type: object
+      properties:
+        properties:
+          type: object
+          additionalProperties:
+            type: string
     DataAddressInformationDto:
       type: object
       properties:
@@ -138,43 +145,55 @@ components:
       properties:
         assetId:
           type: string
-        contractId:
-          type: string
         connectorId:
           type: string
-    TransferProcessDto:
-      type: object
-      properties:
-        id:
-          type: string
-        type:
-          type: string
-        state:
-          type: string
-        errorDetail:
-          type: string
-        dataRequest:
-          $ref: '#/components/schemas/DataRequestDto'
-        dataDestination:
-          $ref: '#/components/schemas/DataAddressInformationDto'
-    TransferState:
-      type: object
-      properties:
-        state:
+        contractId:
           type: string
     TransferId:
       type: object
       properties:
         id:
           type: string
-    DataAddress:
+    TransferProcessDto:
       type: object
       properties:
+        dataDestination:
+          $ref: '#/components/schemas/DataAddressInformationDto'
+        dataRequest:
+          $ref: '#/components/schemas/DataRequestDto'
+        errorDetail:
+          type: string
+        id:
+          type: string
+        state:
+          type: string
+        type:
+          type: string
+    TransferRequestDto:
+      type: object
+      properties:
+        assetId:
+          type: string
+        connectorAddress:
+          type: string
+        connectorId:
+          type: string
+        contractId:
+          type: string
+        dataDestination:
+          $ref: '#/components/schemas/DataAddress'
+        id:
+          type: string
+        managedResources:
+          type: boolean
         properties:
           type: object
           additionalProperties:
             type: string
-    TransferRequestDto:
+        protocol:
+          type: string
+        transferType:
+          $ref: '#/components/schemas/TransferType'
       required:
       - assetId
       - connectorAddress
@@ -184,29 +203,10 @@ components:
       - id
       - protocol
       - transferType
+    TransferState:
       type: object
       properties:
-        connectorAddress:
-          type: string
-        id:
-          type: string
-        contractId:
-          type: string
-        dataDestination:
-          $ref: '#/components/schemas/DataAddress'
-        managedResources:
-          type: boolean
-        properties:
-          type: object
-          additionalProperties:
-            type: string
-        transferType:
-          $ref: '#/components/schemas/TransferType'
-        protocol:
-          type: string
-        connectorId:
-          type: string
-        assetId:
+        state:
           type: string
     TransferType:
       type: object

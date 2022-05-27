@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8" />
+    <title>Eclipse Dataspace Connector</title>
+    <link rel="icon" href="_media/favicon.ico" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="description" content="A scalable cloud data connector." />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0"/>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css" title="vue"/>
+    <style>
+      nav.app-nav li ul {
+        min-width: 100px;
+      }
+
+      .content {
+        overflow: auto;
+      }
+
+      .markdown-section code {
+        color: #8BC440;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app">Loading...</div>
+    <script>
+      window.$docsify = {
+        alias: {
+          '/.*/_sidebar.md': '/_sidebar.md',
+          '/.*/_navbar.md': '/_navbar.md',
+          '/.*/package.json': '/package.json',
+        },
+        auto2top: true,
+        coverpage: true,
+        el: '#app',
+        executeScript: true,
+        loadSidebar: true,
+        loadNavbar: true,
+        mustache: {
+          data: [
+            {
+              main: 'https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/tree/main/',
+              launchers: 'https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/tree/main/launchers/',
+              samples: 'https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/samples/',
+              extensions: 'https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/extensions/'
+            }
+          ]
+        },
+        name: 'Dataspace Connector',
+        nativeEmoji: true,
+        notFoundPage: true,
+        onlyCover: true,
+        relativePath: true,
+        remoteMarkdown: {
+          tag: 'remoteMarkdownUrl',
+        },
+        repo: 'eclipse-dataspaceconnector/DataSpaceConnector',
+        search: {
+          noData: {
+            '/': 'No results!',
+          },
+          paths: 'auto',
+          placeholder: {
+            '/': 'Search',
+          },
+          depth: 6,
+        },
+        subMaxLevel: 1,
+        themeColor: '#8BC440', // eclipse incubation orange: #f78e2c // edc blue: #27A9DE
+        timeUpdater: {
+          text: "_Last updated on {docsify-updated}_",
+          formatUpdated: "{YYYY}-{MM}-{DD}",
+          whereToPlace: "top"
+        },
+        topMargin: 90,
+      };
+    </script>
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/emoji.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-updated/src/time-updater.min.js"></script>
+
+    <script src="//unpkg.com/docsify-remote-markdown/dist/docsify-remote-markdown.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-mustache"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/front-matter.min.js"></script>
+  </body>
+</html>

@@ -27,12 +27,12 @@ This sequence diagram describes the flow if the 2 participants are using Azure b
 
 The sequence starts from the client triggering the transfer on the consumer side and finishes when the consumer deprovisions its resources.
 
-![blob-transfer](../../../diagrams/blob-transfer.png)
+![blob-transfer](architecture/data-transfer/diagrams/blob-transfer.png)
 
 1. The client calls the data management API to trigger a transfer process. The requested asset is identified by the `assetId` and the `contractId` from previous contract negotiation. The client get the `PROCESS_ID` corresponding to the `transferProcess`. This `PROCESS_ID` will be used to get the transfer status. For now, `managedResources` needs to be set to true, to make sure that the consumer provisions the blob container. `managedResources=false` would be used if the client wants to use a pre-existing container without creating a new one, but this feature is not supported yet.  
 2. Consumer gets the destination storage account access key in its Vault.  
 3. Consumer creates a container where the Provider DPF may write blobs. The container is created only if the client specifies `managedResources=true`.
-   The [ObjectStorageProvisioner](../../../../extensions/azure/blobstorage/blob-provision/src/main/java/org/eclipse/dataspaceconnector/provision/azure/blob/ObjectStorageProvisioner.java) is responsible for provisioning the container and for generating a SAS token to access the container. 
+   The [ObjectStorageProvisioner](/extensions/azure/blobstorage/blob-provision/src/main/java/org/eclipse/dataspaceconnector/provision/azure/blob/ObjectStorageProvisioner.java) is responsible for provisioning the container and for generating a SAS token to access the container. 
    To generate a [SAS token](https://docs.microsoft.com/en-us/azure/storage/common/storage-sas-overview), a storage account key is needed. This storage account key should be stored and retrieved in the Consumer Vault.
 4. Consumer stores the SAS token in its Vault.
 5. Consumer sends an IDS message to the Provider, containing the information needed to transfer data to the destination container, including the asset id, the destination blob account and container name and the SAS token needed to write a blob to the container.  

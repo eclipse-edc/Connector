@@ -1,18 +1,12 @@
-**Please note**
-
-### Work in progress
-
-All content reflects the current state of discussion, not final decisions.
-
----
-
 # Architecture
+
+- [Key Principles](architecture-principles.md)
 
 ## Configuration
 
 Each EDC extension may use its own configuration settings and should explain them in their corresponding README.md.
 
-For a more detailed explanation of the configuration itself please see [configuration.md](configuration.md).
+For a more detailed explanation of the configuration itself please see [configuration.md](configuration/README.md).
 
 ## Data Transfer
 
@@ -21,7 +15,7 @@ For a more detailed explanation of the configuration itself please see [configur
 Before each data transfer a contract must be offered from the provider. A consumer must negotiate an offer successfully,
 before its able to request data.
 
-These two processes (offering & negotation) are documented in the [contracts.md](contracts.md)
+These two processes (offering & negotation) are documented in the [contracts.md](usage-control/contracts.md)
 
 ### TransferProcessListener
 
@@ -32,4 +26,4 @@ transferProcessObservable = context.getService(TransferProcessObservable.class);
 transferProcessObservable.registerListener(myTransferProcessListener);
 ```
 
-A sample is available at [04.1-file-transfer-listener](../../samples/04.1-file-transfer-listener).
+A sample is available at [04.1-file-transfer-listener](/samples/04.1-file-transfer-listener).

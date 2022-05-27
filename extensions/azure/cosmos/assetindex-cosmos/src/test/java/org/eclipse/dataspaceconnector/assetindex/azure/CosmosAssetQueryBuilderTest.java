@@ -74,6 +74,6 @@ class CosmosAssetQueryBuilderTest {
                 .build();
 
         assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> builder.from(expression.getCriteria()))
-                .withMessage("Cannot build SqlParameter for operator: in");
+                .withMessage("Cannot build WHERE clause, reason: The \"in\" operator requires the right-hand operand to be of type interface java.lang.Iterable but was actually class java.lang.String");
     }
 }

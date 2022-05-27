@@ -52,6 +52,7 @@ class IdentityDidCoreExtensionTest {
         context.registerService(IdentityHubStore.class, hubStore);
         webserviceMock = mock(WebService.class);
         context.registerService(WebService.class, webserviceMock);
+        context.registerService(PrivateKeyResolver.class, mock(PrivateKeyResolver.class));
         extension = factory.constructInstance(IdentityDidCoreExtension.class);
     }
 

@@ -14,6 +14,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Bugfixing DataManagementApi
 * Build improvements
 * Improvements to Dependency Resolution
+* Improve and extend documentation
 
 ### Detailed Changes
 
@@ -33,6 +34,8 @@ in the detailed section referring to by linking pull requests or issues.
 * Add Blob transfer Architectural Decision Record (#1259)
 * Add component tests coverage to the codecov coverage report (#1246)
 * Postgresql end to end test (#1278)
+* Add signing/publishing config (#1147)
+* Verify OpenAPI definitions (#1312)
 
 #### Changed
 
@@ -47,10 +50,15 @@ in the detailed section referring to by linking pull requests or issues.
 * Uniform all the sql schema files as `docs/schema.sql` (#1278)
 * Clean FCC store before updating
 * Usage of `NooTransactionContext` in (SQL-)Tests (#1119)
+* Sanitize log messages (#1295)
+* Improve CosmosDB statement parser (#1282)
+* Make `ContractDefinitionService` get definition by its id (#1325)
+* Update the CodeQL version from v1 to v2
+* Update `slf4j-api` to `2.0.0-alpha7` (#1328)
 
 #### Removed
 
-*
+* Deprecated Control API (#1310)
 
 #### Fixed
 
@@ -64,6 +72,11 @@ in the detailed section referring to by linking pull requests or issues.
 * Always use configured IDS API path in IDS webhook address (#1249)
 * Fix Azure storage transfer (#1245)
 * Throw exception if `IdentityProviderKeyResolver` cannot get keys at startup (#1266)
+* Make all the services injectable (#1285)
+* Fix CosmosDB Integration tests (#1313)
+* Remove ContractDef from Cosmos DB cache when deleting (#1330)
+* Fix misleading warning message on initialization (#1336)
+* Auto-upload of Cosmos stored procedures (#1338)
 
 ## [milestone-3] - 2022-04-08
 
@@ -110,6 +123,8 @@ in the detailed section referring to by linking pull requests or issues.
 * CosmosDb based `PolicyStore` (#826)
 * Implement SQL-based PolicyStore (#866)
 * Http Provisioner Webhook endpoint (#1039)
+* Add Junit tags to categorize tests (#868)
+* Add Azure Data Factory extension (#910)
 * Add `PolicyService` and Rest endpoints in Data Management API (#1025)
 * Add dependency checks (#1000)
 * Add `ContractAgreement` query methods on `ContractNegotiationStore` (#1044)

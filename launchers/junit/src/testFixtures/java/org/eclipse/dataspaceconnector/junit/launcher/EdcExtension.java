@@ -21,7 +21,6 @@ import org.eclipse.dataspaceconnector.boot.system.ServiceLocatorImpl;
 import org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -105,11 +104,8 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
         super.initializeContext(context);
     }
 
-    @Override
-    protected void initializeVault(ServiceExtensionContext context) {
-        if (!serviceMocks.containsKey(Vault.class)) {
-            super.initializeVault(context);
-        }
+    public DefaultServiceExtensionContext getContext() {
+        return context;
     }
 
     @Override

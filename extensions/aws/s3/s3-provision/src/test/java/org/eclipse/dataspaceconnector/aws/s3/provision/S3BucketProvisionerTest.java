@@ -68,8 +68,7 @@ class S3BucketProvisionerTest {
 
         var configuration = new S3BucketProvisionerConfiguration(2, 3600);
 
-        provisioner = new S3BucketProvisioner(clientProvider, new Monitor() {
-        }, new RetryPolicy<>(), configuration);
+        provisioner = new S3BucketProvisioner(clientProvider, mock(Monitor.class), new RetryPolicy<>(), configuration);
     }
 
     @Test

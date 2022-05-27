@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
@@ -38,8 +39,12 @@ public class DecentralizedIdentityServiceExtension implements ServiceExtension {
 
     @Inject
     private DidResolverRegistry resolverRegistry;
+
     @Inject
     private CredentialsVerifier credentialsVerifier;
+
+    @Inject
+    private PrivateKeyResolver privateKeyResolver;
 
     @Override
     public String name() {
@@ -67,8 +72,8 @@ public class DecentralizedIdentityServiceExtension implements ServiceExtension {
         return () -> {
             // we'll use the connector name to restore the Private Key
             var connectorName = context.getConnectorId();
-            var resolver = context.getService(PrivateKeyResolver.class);
-            var privateKeyString = resolver.resolvePrivateKey(connectorName, ECKey.class); //to get the private key
+            var privateKeyString = privateKeyResolver.resolvePrivateKey(connectorName, ECKey.class); //to get the private key
+            Objects.requireNonNull(privateKeyString, "Couldn't resolve private key for " + connectorName);
 
             // we cannot store the VerifiableCredential in the Vault, because it has an expiry date
             // the Issuer claim must contain the DID URL

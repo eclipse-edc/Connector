@@ -25,6 +25,7 @@ import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.transfer.store.cosmos.model.TransferProcessDocument;
 
+
 /**
  * Provides an in-memory implementation of the {@link org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore} for testing.
  */
@@ -35,6 +36,8 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
     private RetryPolicy<Object> retryPolicy;
     @Inject
     private HealthCheckService healthService;
+    @Inject
+    private Vault vault;
 
     @Override
     public String name() {
@@ -45,8 +48,6 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 
-
-        var vault = context.getService(Vault.class);
         var connectorId = context.getConnectorId();
 
         retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
@@ -59,6 +60,10 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
 
         healthService.addReadinessProvider(() -> cosmosDbApi.get().forComponent(name()));
 
+        if (context.getSetting(configuration.allowSprocAutoUploadSetting(), true)) {
+            cosmosDbApi.uploadStoredProcedure("nextForState");
+            cosmosDbApi.uploadStoredProcedure("lease");
+        }
     }
 }
 

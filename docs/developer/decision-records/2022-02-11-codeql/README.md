@@ -2,7 +2,7 @@
 CodeQL is a semantic code analysis engine developed by GitHub to automate security checks. A database is extracted from source code that can be analysed with a powerful query language. Each single query can be thought of as a “check” or “rule” representing a distinct security vulnerability that is being searched for. There is an available set of standard CodeQL queries, written by GitHub researchers and community contributors, and custom ones can be written too. See [Writing queries](https://codeql.github.com/docs/writing-codeql-queries/codeql-queries/) in the CodeQL docs for more information.
 
 ## Extending the scope of CodeQL queries scan
-CodeQL is integrated in the EDC CI build in a dedicated [Github workflow](.github/workflows/codeql-analysis.yml).
+CodeQL is integrated in the EDC CI build in a dedicated [Github workflow](../.github/workflows/codeql-analysis.yml).
 Currently the workflow runs on PRs and commits to the main branch and runs the default set of queries as provided by CodeQL.
 
 To have more detailed scan we decided to extend the CodeQL queries, by using the built in CodeQL query suite: [security-and-quality](https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs).
@@ -10,7 +10,7 @@ To have more detailed scan we decided to extend the CodeQL queries, by using the
 ```yaml
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v1
+        uses: github/codeql-action/init@v2
         with:
           languages: ${{ matrix.language }}
           queries: +security-and-quality

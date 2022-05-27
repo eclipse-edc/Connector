@@ -34,6 +34,7 @@ import java.util.Objects;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
+import static org.mockito.Mockito.mock;
 
 class SqlLeaseContextTest {
 
@@ -47,9 +48,7 @@ class SqlLeaseContextTest {
 
     @BeforeEach
     void setUp() throws SQLException {
-        var monitor = new Monitor() {
-        };
-        var txManager = new LocalTransactionContext(monitor);
+        var txManager = new LocalTransactionContext(mock(Monitor.class));
         var dataSourceRegistry = new LocalDataSourceRegistry(txManager);
         transactionContext = txManager;
         var jdbcDataSource = new JdbcDataSource();

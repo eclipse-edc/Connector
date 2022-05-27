@@ -17,22 +17,15 @@
 package org.eclipse.dataspaceconnector.system.tests.local;
 
 import com.azure.core.util.BinaryData;
-import io.restassured.specification.RequestSpecification;
-import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.azure.testfixtures.AbstractAzureBlobTest;
 import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureStorageIntegrationTest;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcRuntimeExtension;
 import org.eclipse.dataspaceconnector.junit.launcher.MockVault;
-import org.eclipse.dataspaceconnector.policy.model.Action;
-import org.eclipse.dataspaceconnector.policy.model.Permission;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.policy.model.PolicyType;
-import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.system.NullVaultExtension;
-import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.system.vault.NoopCertificateResolver;
+import org.eclipse.dataspaceconnector.spi.system.vault.NoopPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -41,19 +34,19 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import java.util.Map;
 import java.util.UUID;
 
-import static io.restassured.RestAssured.given;
-import static io.restassured.http.ContentType.JSON;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.system.tests.local.BlobTransferLocalSimulation.ACCOUNT_NAME_PROPERTY;
-import static org.eclipse.dataspaceconnector.system.tests.local.TransferLocalSimulation.CONSUMER_CONNECTOR_MANAGEMENT_URL;
+import static org.eclipse.dataspaceconnector.system.tests.local.BlobTransferUtils.createAsset;
+import static org.eclipse.dataspaceconnector.system.tests.local.BlobTransferUtils.createContractDefinition;
+import static org.eclipse.dataspaceconnector.system.tests.local.BlobTransferUtils.createPolicy;
+import static org.eclipse.dataspaceconnector.system.tests.local.BlobTransferUtils.getProvisionedContainerName;
 import static org.eclipse.dataspaceconnector.system.tests.local.TransferLocalSimulation.CONSUMER_CONNECTOR_PATH;
 import static org.eclipse.dataspaceconnector.system.tests.local.TransferLocalSimulation.CONSUMER_CONNECTOR_PORT;
 import static org.eclipse.dataspaceconnector.system.tests.local.TransferLocalSimulation.CONSUMER_IDS_API;
 import static org.eclipse.dataspaceconnector.system.tests.local.TransferLocalSimulation.CONSUMER_IDS_API_PORT;
 import static org.eclipse.dataspaceconnector.system.tests.local.TransferLocalSimulation.CONSUMER_MANAGEMENT_PATH;
 import static org.eclipse.dataspaceconnector.system.tests.local.TransferLocalSimulation.CONSUMER_MANAGEMENT_PORT;
-import static org.eclipse.dataspaceconnector.system.tests.local.TransferLocalSimulation.PROVIDER_CONNECTOR_MANAGEMENT_URL;
 import static org.eclipse.dataspaceconnector.system.tests.local.TransferLocalSimulation.PROVIDER_CONNECTOR_PATH;
 import static org.eclipse.dataspaceconnector.system.tests.local.TransferLocalSimulation.PROVIDER_CONNECTOR_PORT;
 import static org.eclipse.dataspaceconnector.system.tests.local.TransferLocalSimulation.PROVIDER_IDS_API;
@@ -63,16 +56,11 @@ import static org.eclipse.dataspaceconnector.system.tests.local.TransferLocalSim
 import static org.eclipse.dataspaceconnector.system.tests.utils.GatlingUtils.runGatling;
 import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils.IDS_PATH;
 import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils.PROVIDER_ASSET_FILE;
-import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils.PROVIDER_ASSET_ID;
-import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils.TRANSFER_PROCESSES_PATH;
 
 @AzureStorageIntegrationTest
 public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
     private static final Vault CONSUMER_VAULT = new MockVault();
     private static final Vault PROVIDER_VAULT = new MockVault();
-    private static final String ASSETS_PATH = "/assets";
-    private static final String POLICIES_PATH = "/policies";
-    private static final String CONTRACT_DEFINITIONS_PATH = "/contractdefinitions";
     private static final String PROVIDER_CONTAINER_NAME = UUID.randomUUID().toString();
 
     @RegisterExtension
@@ -113,8 +101,8 @@ public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
 
     private static void setUpMockVault(EdcRuntimeExtension consumer, Vault vault) {
         consumer.registerServiceMock(Vault.class, vault);
-        consumer.registerServiceMock(PrivateKeyResolver.class, new NullVaultExtension().getPrivateKeyResolver());
-        consumer.registerServiceMock(CertificateResolver.class, new NullVaultExtension().getCertificateResolver());
+        consumer.registerServiceMock(PrivateKeyResolver.class, new NoopPrivateKeyResolver());
+        consumer.registerServiceMock(CertificateResolver.class, new NoopCertificateResolver());
     }
 
     @Test
@@ -128,7 +116,7 @@ public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
                 .upload(BinaryData.fromString(blobContent));
 
         // Seed data to provider
-        createAsset();
+        createAsset(account1Name, PROVIDER_CONTAINER_NAME);
         var policyId = createPolicy();
         createContractDefinition(policyId);
 
@@ -153,86 +141,4 @@ public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
                 .isEqualTo(blobContent);
     }
 
-    private String getProvisionedContainerName() {
-        return given()
-                .baseUri(CONSUMER_CONNECTOR_MANAGEMENT_URL + CONSUMER_MANAGEMENT_PATH)
-                .when()
-                .get(TRANSFER_PROCESSES_PATH)
-                .then()
-                .statusCode(200)
-                .extract().body()
-                .jsonPath().getString("[0].dataDestination.properties.container");
-    }
-
-    private void createAsset() {
-        var asset = Map.of(
-                "asset", Map.of(
-                        "properties", Map.of(
-                                "asset:prop:name", PROVIDER_ASSET_ID,
-                                "asset:prop:contenttype", "text/plain",
-                                "asset:prop:version", "1.0",
-                                "asset:prop:id", PROVIDER_ASSET_ID,
-                                "type", "AzureStorage"
-                        )
-                ),
-                "dataAddress", Map.of(
-                        "properties", Map.of(
-                                "type", AzureBlobStoreSchema.TYPE,
-                                AzureBlobStoreSchema.ACCOUNT_NAME, account1Name,
-                                AzureBlobStoreSchema.CONTAINER_NAME, PROVIDER_CONTAINER_NAME,
-                                AzureBlobStoreSchema.BLOB_NAME, PROVIDER_ASSET_FILE,
-                                DataAddress.KEY_NAME, format("%s-key1", account1Name)
-                        )
-                )
-        );
-
-        seedProviderData(ASSETS_PATH, asset);
-    }
-
-    private String createPolicy() {
-        var policy = Policy.Builder.newInstance()
-                .permission(Permission.Builder.newInstance()
-                        .target(PROVIDER_ASSET_ID)
-                        .action(Action.Builder.newInstance().type("USE").build())
-                        .build())
-                .type(PolicyType.SET)
-                .build();
-
-        seedProviderData(POLICIES_PATH, policy);
-
-        return policy.getUid();
-    }
-
-    private void createContractDefinition(String policyId) {
-
-        var criteria = AssetSelectorExpression.Builder.newInstance()
-                .constraint("asset:prop:id",
-                        "=",
-                        PROVIDER_ASSET_ID)
-                .build();
-
-        var contractDefinition = Map.of(
-                "id", "1",
-                "accessPolicyId", policyId,
-                "contractPolicyId", policyId,
-                "criteria", criteria.getCriteria()
-        );
-
-        seedProviderData(CONTRACT_DEFINITIONS_PATH, contractDefinition);
-    }
-
-    private void seedProviderData(String path, Object requestBody) {
-        givenProviderBaseRequest()
-                .contentType(JSON)
-                .body(requestBody)
-                .when()
-                .post(path)
-                .then()
-                .statusCode(204);
-    }
-
-    private RequestSpecification givenProviderBaseRequest() {
-        return given()
-                .baseUri(PROVIDER_CONNECTOR_MANAGEMENT_URL + PROVIDER_MANAGEMENT_PATH);
-    }
 }

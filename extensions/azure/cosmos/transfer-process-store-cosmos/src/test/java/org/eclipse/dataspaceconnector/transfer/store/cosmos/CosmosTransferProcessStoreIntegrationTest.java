@@ -54,7 +54,6 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.dataspaceconnector.azure.cosmos.util.StoredProcedureTestUtils.uploadStoredProcedure;
 import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.createTransferProcess;
 import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.createTransferProcessDocument;
 
@@ -98,10 +97,11 @@ class CosmosTransferProcessStoreIntegrationTest {
         var containerName = CONTAINER_PREFIX + UUID.randomUUID();
         var containerIfNotExists = database.createContainerIfNotExists(containerName, "/partitionKey");
         container = database.getContainer(containerIfNotExists.getProperties().getId());
-        uploadStoredProcedure(container, "nextForState");
-        uploadStoredProcedure(container, "lease");
+
         var retryPolicy = new RetryPolicy<>().withMaxRetries(5).withBackoff(1, 3, ChronoUnit.SECONDS);
         var cosmosDbApi = new CosmosDbApiImpl(container, false);
+        cosmosDbApi.uploadStoredProcedure("nextForState");
+        cosmosDbApi.uploadStoredProcedure("lease");
         store = new CosmosTransferProcessStore(cosmosDbApi, typeManager, partitionKey, connectorId, retryPolicy);
     }
 
@@ -169,7 +169,7 @@ class CosmosTransferProcessStoreIntegrationTest {
         String id1 = UUID.randomUUID().toString();
         var tp = createTransferProcess(id1, TransferProcessStates.INITIAL);
         TransferProcessDocument item = new TransferProcessDocument(tp, partitionKey);
-        Duration leaseDuration = Duration.ofSeconds(2);
+        Duration leaseDuration = Duration.ofSeconds(10);
         item.acquireLease("another-connector", leaseDuration);
         container.upsertItem(item);
 
@@ -177,7 +177,7 @@ class CosmosTransferProcessStoreIntegrationTest {
         assertThat(processesBeforeLeaseBreak).isEmpty();
 
         await()
-                .atMost(Duration.ofSeconds(10))
+                .atMost(Duration.ofSeconds(20))
                 .pollInterval(Duration.ofMillis(500))
                 .pollDelay(leaseDuration) //give the lease time to expire
                 .untilAsserted(() -> {
@@ -564,7 +564,7 @@ class CosmosTransferProcessStoreIntegrationTest {
 
         var query = QuerySpec.Builder.newInstance().filter("something contains other").build();
 
-        assertThatThrownBy(() -> store.findAll(query)).isInstanceOfAny(IllegalArgumentException.class).hasMessage("Cannot build SqlParameter for operator: contains");
+        assertThatThrownBy(() -> store.findAll(query)).isInstanceOfAny(IllegalArgumentException.class).hasMessage("Cannot build WHERE clause, reason: unsupported operator contains");
     }
 
     @Test

@@ -1,6 +1,21 @@
-# About The Project
+<h1 align="center">
+  <br>
+    <img alt="Logo" width="200" src="docs/_media/icon.png"/>
+  <br>
+      Eclipse Dataspace Connector
+  <br>
+</h1>
 
-> The Eclipse Dataspace Connector provides a framework for sovereign, inter-organizational data exchange. It will implement the International Data Spaces standard (IDS) as well as relevant protocols associated with GAIA-X. The connector is designed in an extensible way in order to support alternative protocols and integrate in various ecosystems.
+
+<p align="center">
+  <a href="#contributing">Contribute</a> •
+  <a href="https://eclipse-dataspaceconnector.github.io/DataSpaceConnector/">Docs</a> •
+  <a href="https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues">Issues</a> •
+  <a href="https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/LICENSE">License</a> •
+  <a href="https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/discussions/1303">Q&A</a>
+</p>
+
+The Eclipse Dataspace Connector provides a framework for sovereign, inter-organizational data exchange. It will implement the International Data Spaces standard (IDS) as well as relevant protocols associated with GAIA-X. The connector is designed in an extensible way in order to support alternative protocols and integrate in various ecosystems.
 
 Please also refer to:
 
@@ -8,8 +23,6 @@ Please also refer to:
 - [International Data Spaces](https://www.internationaldataspaces.org)
 - The [GAIA-X](https://gaia-x.eu) project
 - The [Onboarding Guide](onboarding.md)
-
-_Note: items marked with [TBW] indicate that the respective documentation is yet to be written_
 
 ## Built with
 
@@ -19,7 +32,7 @@ dependencies onto our users, so we aim to avoid any of the big frameworks. Of co
 can add them to your extensions (see: [TBW]). The connector is a plain Java application built with Gradle, but it can be
 embedded into any form of application deployment.
 
-For detailed information about the project, please have a look at our [Documentation](/docs/README.md).
+For detailed information about the project, please have a look at our [documentation](/docs/README.md).
 
 # Getting Started
 
@@ -126,7 +139,7 @@ Contains several scripts to deploy a connector in an AKS cluster on Microsoft Az
 ## Code style & Patterns
 
 Please refer to the dedicated [style guide](styleguide.md) and the patterns we documented
-in [architecture principles](docs/architecture-principles.md).
+in [architecture principles](docs/architecture/architecture-principles.md).
 
 ## Roadmap
 
