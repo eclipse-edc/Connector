@@ -312,13 +312,7 @@ jobs:
           POSTGRES_PASSWORD: password
 
     steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions/setup-java@v2
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'gradle'
+      - uses: ./.github/actions/setup-build
 
       - name: Postgresql Tests
         uses: ./.github/actions/run-tests
@@ -390,7 +384,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: ./.github/actions/setup-build
 
       - name: 'Az CLI login'
         uses: azure/login@v1
@@ -403,12 +397,6 @@ jobs:
         run: printf "$RUNTIME_SETTINGS" > resources/azure/testing/runtime_settings.properties
         env:
           RUNTIME_SETTINGS: ${{ secrets.RUNTIME_SETTINGS }}
-
-      - uses: actions/setup-java@v2
-        with:
-          distribution: 'temurin'
-          java-version: '11'
-          cache: 'gradle'
 
       - name: Data Plane Azure Data Factory Test
         uses: ./.github/actions/run-tests
