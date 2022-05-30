@@ -39,6 +39,8 @@ public class TransferProcessTransformerTestData {
     String id = faker.lorem().word();
     TransferProcess.Type type = faker.options().option(TransferProcess.Type.class);
     TransferProcessStates state = faker.options().option(TransferProcessStates.class);
+    long stateTimestamp = faker.random().nextLong();
+    long createdTimestamp = faker.random().nextLong();
     String errorDetail = faker.lorem().word();
 
     Map<String, String> dataDestinationProperties = Map.of(faker.lorem().word(), faker.lorem().word());
@@ -53,6 +55,8 @@ public class TransferProcessTransformerTestData {
             .id(id)
             .type(type)
             .state(state.code())
+            .stateTimestamp(stateTimestamp)
+            .createdTimestamp(createdTimestamp)
             .errorDetail(errorDetail)
             .dataRequest(dataRequest);
 
@@ -60,6 +64,8 @@ public class TransferProcessTransformerTestData {
             .id(id)
             .type(type.name())
             .state(state.name())
+            .stateTimestamp(stateTimestamp)
+            .createdTimestamp(createdTimestamp)
             .errorDetail(errorDetail)
             .dataRequest(dataRequestDto)
             .dataDestination(

@@ -20,12 +20,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
-      - uses: actions/setup-java@v2
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-          cache: 'gradle'
+      - uses: ./.github/actions/setup-build
 
       - name: Performance Tests
         run: ./gradlew -p system-tests/tests test -DincludeTags="PerformanceTest"

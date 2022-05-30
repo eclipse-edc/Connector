@@ -161,9 +161,8 @@ java -Dedc.fs.config=<path-to-config.properties> \
 
 This launcher provides a [Dockerfile](./Dockerfile), which builds the connector and uses environment 
 variables for setting the system properties from the `java` command. Thus, the image only has to be 
-built once and can then be used for different deployments. By default, no custom truststore is 
-supplied in the Dockerfile. If you need to use a custom truststore, please add the system properties 
-`JAVAX_NET_SSL_TRUSTSTORE` and `JAVAX_NET_SSL_TRUSTSTOREPASSWORD`in the Dockerfile using `ENV`.
+built once and can then be used for different deployments. By default, no custom truststore is supplied in the
+Dockerfile. If you need to use a custom truststore, please have a look at [this section](#custom-truststore). 
 
 To build the image, run the following command in the root directory of the project:
 
@@ -174,7 +173,8 @@ docker build -t edc-ids-connector -f launchers/ids-connector/Dockerfile .
 Before running the image, you need to create an `.env` file supplying the system properties. You can 
 adjust the [ids-connector.env](./ids-connector.env) supplied in this sample. The paths to the 
 properties and keystore files should not point to your local environment this time, but to the 
-location where you mount the files in the container. Therefore, make sure that the paths match the mount paths in the command below.
+location where you mount the files in the container. Therefore, make sure that the paths match the mount paths in the
+command below.
 
 In the following command, adjust the port if you changed it in your `config.properties` and adjust 
 the mounted volumes to match your environment. The mounted volumes should contain the 
@@ -182,10 +182,46 @@ the mounted volumes to match your environment. The mounted volumes should contai
 truststore to the `Dockerfile`, make sure to mount the truststore as well.
 
 ```shell
-docker run -p 8181:8181 \
+docker run -p 8181:8181 -p 8282:8282 \
     --env-file ./launchers/ids-connector/ids-connector.env \
     -v '/directory/with/properties:/config/config.properties' \
     -v '/directory/with/keystore:/config/keystore.p12' \
+    edc-ids-connector
+```
+
+#### Custom truststore
+
+If you need to use a custom truststore, add the properties `-Djavax.net.ssl.trustStore` and
+`-Djavax.net.ssl.trustStorePassword` to the `ENTRYPOINT` in the Dockerfile:
+
+```Dockerfile
+ENTRYPOINT java \
+    -Djava.security.edg=file:/dev/.urandom \
+    -Dedc.ids.id="urn:connector:edc-connector-24" \
+    -Dedc.ids.title="Eclipse Dataspace Connector" \
+    -Dedc.ids.description="Eclipse Dataspace Connector with IDS extensions" \
+    -Dedc.ids.maintainer="https://example.maintainer.com" \
+    -Dedc.ids.curator="https://example.maintainer.com" \
+    -Djavax.net.ssl.trustStore=$JAVA_TRUSTSTORE \
+    -Djavax.net.ssl.trustStorePassword=$JAVA_TRUSTSTORE_PASSWORD \
+    -jar dataspace-connector.jar
+```
+
+The corresponding values are added to the `env` file:
+
+```env
+JAVA_TRUSTSTORE=/config/truststore.p12
+JAVA_TRUSTSTORE_PASSWORD=<truststore-password>
+```
+
+When running the image, make sure to mount the truststore:
+
+```shell
+docker run -p 8181:8181 -p 8282:8282 \
+    --env-file ./launchers/ids-connector/ids-connector.env \
+    -v '/directory/with/properties:/config/config.properties' \
+    -v '/directory/with/keystore:/config/keystore.p12' \
+    -v '/directory/with/truststore:/config/truststore.p12' \
     edc-ids-connector
 ```
 

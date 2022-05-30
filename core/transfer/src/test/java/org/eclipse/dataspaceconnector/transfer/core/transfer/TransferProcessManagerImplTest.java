@@ -57,12 +57,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
@@ -156,6 +159,20 @@ class TransferProcessManagerImplTest {
 
         verify(transferProcessStore, times(1)).create(isA(TransferProcess.class));
         verify(transferProcessStore, times(2)).processIdForTransferId(anyString());
+    }
+
+    @Test
+    void verifyCreatedTimestamp() {
+        when(transferProcessStore.processIdForTransferId("1")).thenReturn(null, "2");
+        DataRequest dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
+
+        var currentTime = 1343411;
+        manager.clock = Clock.fixed(Instant.ofEpochMilli(currentTime), UTC);
+        manager.start();
+        manager.initiateProviderRequest(dataRequest);
+        manager.stop();
+
+        verify(transferProcessStore, times(1)).create(argThat(p -> p.getCreatedTimestamp() == currentTime));
     }
 
     @Test
