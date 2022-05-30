@@ -17,6 +17,16 @@ package org.eclipse.dataspaceconnector.azure.cosmos;
 import com.azure.cosmos.CosmosClient;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 
+/**
+ * Provides a `CosmosClient` instance
+ */
 public interface CosmosClientProvider {
+    /**
+     * Create a CosmosDB client
+     *
+     * @param vault the vault instance
+     * @param configuration the configuration
+     * @return a CosmosDB client instance
+     */
     CosmosClient createClient(Vault vault, AbstractCosmosConfig configuration);
 }

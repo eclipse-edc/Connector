@@ -12,8 +12,6 @@
  *
  */
 
-val cosmosSdkVersion: String by project
-
 plugins {
     `java-library`
 }
@@ -22,5 +20,4 @@ dependencies {
     implementation(project(":system-tests:e2e-transfer-test:control-plane"))
     implementation(project(":extensions:azure:cosmos"))
     implementation(testFixtures(project(":extensions:azure:azure-test")))
-    implementation("com.azure:azure-cosmos:${cosmosSdkVersion}")
 }
