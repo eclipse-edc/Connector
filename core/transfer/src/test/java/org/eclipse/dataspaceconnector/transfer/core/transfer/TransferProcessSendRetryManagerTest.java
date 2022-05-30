@@ -27,10 +27,10 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTING;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -46,8 +46,9 @@ class TransferProcessSendRetryManagerTest {
     final WaitStrategy delayStrategy = mock(WaitStrategy.class);
     final int sendRetryLimit = faker.number().numberBetween(5, 10);
 
+    private Instant currentInstant;
     final TransferProcessSendRetryManager sendRetryManager =
-            new TransferProcessSendRetryManager(monitor, () -> delayStrategy, sendRetryLimit);
+            new TransferProcessSendRetryManager(monitor, () -> delayStrategy, new CurrentInstantClock(), sendRetryLimit);
 
     @ParameterizedTest
     @MethodSource("delayArgs")
@@ -68,7 +69,7 @@ class TransferProcessSendRetryManagerTest {
                     return retryDelay;
                 }).thenThrow(new RuntimeException("should call only once"));
 
-        sendRetryManager.clock = Clock.fixed(Instant.ofEpochMilli(currentTime), UTC);
+        currentInstant = Instant.ofEpochMilli(currentTime);
 
         assertThat(sendRetryManager.shouldDelay(process))
                 .isEqualTo(shouldDelay);
@@ -101,5 +102,22 @@ class TransferProcessSendRetryManagerTest {
         var expected = retriesLeft < 0;
         assertThat(sendRetryManager.retriesExhausted(process))
                 .isEqualTo(expected);
+    }
+
+    private class CurrentInstantClock extends Clock {
+        @Override
+        public ZoneId getZone() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Clock withZone(ZoneId zone) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Instant instant() {
+            return currentInstant;
+        }
     }
 }

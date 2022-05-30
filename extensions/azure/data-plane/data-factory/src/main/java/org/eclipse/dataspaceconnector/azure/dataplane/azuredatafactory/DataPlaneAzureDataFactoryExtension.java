@@ -61,8 +61,8 @@ public class DataPlaneAzureDataFactoryExtension implements ServiceExtension {
     @Inject
     private BlobStoreApi blobStoreApi;
 
-    @Inject(required = false)
-    private final Clock clock = Clock.systemUTC();
+    @Inject
+    private Clock clock;
 
     @Override
     public String name() {
