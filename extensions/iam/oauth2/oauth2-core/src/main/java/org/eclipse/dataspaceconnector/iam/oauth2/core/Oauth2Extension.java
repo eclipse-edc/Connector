@@ -97,7 +97,7 @@ public class Oauth2Extension implements ServiceExtension {
 
         var configuration = createConfig(context);
 
-        var defaultDecorator = new DefaultJwtDecorator(configuration.getProviderAudience(), configuration.getClientId(), getEncodedClientCertificate(configuration), TOKEN_EXPIRATION);
+        var defaultDecorator = new DefaultJwtDecorator(configuration.getProviderAudience(), configuration.getClientId(), getEncodedClientCertificate(configuration), context.getClock(), TOKEN_EXPIRATION);
         var jwtDecoratorRegistry = new Oauth2JwtDecoratorRegistryRegistryImpl();
         jwtDecoratorRegistry.register(defaultDecorator);
         context.registerService(Oauth2JwtDecoratorRegistry.class, jwtDecoratorRegistry);

@@ -54,7 +54,7 @@ public class DecentralizedIdentityServiceExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var vcProvider = createSupplier(context);
-        var identityService = new DecentralizedIdentityService(vcProvider, resolverRegistry, credentialsVerifier, context.getMonitor());
+        var identityService = new DecentralizedIdentityService(vcProvider, resolverRegistry, credentialsVerifier, context.getMonitor(), context.getClock());
         context.registerService(IdentityService.class, identityService);
     }
 

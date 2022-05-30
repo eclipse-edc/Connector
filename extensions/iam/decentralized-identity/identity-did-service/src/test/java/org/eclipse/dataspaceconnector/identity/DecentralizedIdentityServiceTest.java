@@ -42,6 +42,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -115,7 +116,7 @@ abstract class DecentralizedIdentityServiceTest {
 
         CredentialsVerifier verifier = (document, url) -> Result.success(Map.of("region", "eu"));
         Supplier<SignedJWT> signedJwtSupplier = () -> VerifiableCredentialFactory.create(privateKey, Map.of("region", "us"), "test-issuer");
-        identityService = new DecentralizedIdentityService(signedJwtSupplier, didResolver, verifier, mock(Monitor.class));
+        identityService = new DecentralizedIdentityService(signedJwtSupplier, didResolver, verifier, mock(Monitor.class), Clock.systemUTC());
 
     }
 
