@@ -81,11 +81,12 @@ public class PartitionConfiguration {
                 initialDelaySeconds = 0;
             }
         }
+        var monitor = context.getMonitor();
         if (periodSeconds < LOW_EXECUTION_PERIOD_SECONDS_THRESHOLD) {
-            context.getMonitor().warning(format("An execution period of %d seconds is very low (threshold = %d). This might result in the work queue to fill up, especially on small queues (current capacity: %d)." +
+            monitor.warning(format("An execution period of %d seconds is very low (threshold = %d). This might result in the work queue to fill up, especially on small queues (current capacity: %d)." +
                     " A longer execution period should be considered.", periodSeconds, LOW_EXECUTION_PERIOD_SECONDS_THRESHOLD, getWorkItemQueueSize()));
         }
-        return new RecurringExecutionPlan(Duration.ofSeconds(periodSeconds), Duration.ofSeconds(initialDelaySeconds));
+        return new RecurringExecutionPlan(Duration.ofSeconds(periodSeconds), Duration.ofSeconds(initialDelaySeconds), monitor);
     }
 
     private int randomSeconds() {
