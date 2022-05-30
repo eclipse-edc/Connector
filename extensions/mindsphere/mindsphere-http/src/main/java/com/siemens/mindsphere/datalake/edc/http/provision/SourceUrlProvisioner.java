@@ -37,6 +37,9 @@ import static java.util.UUID.randomUUID;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.NAME;
 
+/**
+ * Generates HttpData schema with the download presign URL created
+ */
 public class SourceUrlProvisioner
         implements Provisioner<SourceUrlResourceDefinition, SourceUrlProvisionedResource> {
 

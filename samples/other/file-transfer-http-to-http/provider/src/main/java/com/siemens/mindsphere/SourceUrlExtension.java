@@ -17,7 +17,11 @@ package com.siemens.mindsphere;
 import com.siemens.mindsphere.datalake.edc.http.DataLakeClientImpl;
 import com.siemens.mindsphere.datalake.edc.http.OauthClientDetails;
 import com.siemens.mindsphere.datalake.edc.http.dataplane.DatalakeHttpDataSinkFactory;
-import com.siemens.mindsphere.datalake.edc.http.provision.*;
+import com.siemens.mindsphere.datalake.edc.http.provision.DestinationUrlProvisioner;
+import com.siemens.mindsphere.datalake.edc.http.provision.MindsphereSchema;
+import com.siemens.mindsphere.datalake.edc.http.provision.SourceUrlProvisionedResource;
+import com.siemens.mindsphere.datalake.edc.http.provision.SourceUrlResourceDefinition;
+import com.siemens.mindsphere.datalake.edc.http.provision.SourceUrlResourceDefinitionGenerator;
 import net.jodah.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
@@ -44,6 +48,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchem
 
 import java.net.URL;
 
+/**
+ * It is possible to be called from outside without any JWT token passed
+ */
 public class SourceUrlExtension implements ServiceExtension {
 
     @Inject
@@ -98,7 +105,6 @@ public class SourceUrlExtension implements ServiceExtension {
         Monitor monitor = context.getMonitor();
 
         try {
-
             final String tokenmanagementClientId = context.getSetting(TOKENMANAGEMENT_CLIENT_ID, "");
             final String tokenmanagementClientSecret = context.getSetting(TOKENMANAGEMENT_CLIENT_SECRET, "");
             final String tokenmanagementClientAppName = context.getSetting(TOKENMANAGEMENT_CLIENT_APP_NAME, "");
@@ -134,7 +140,7 @@ public class SourceUrlExtension implements ServiceExtension {
             // register provision specific classes
             registerTypes(context.getTypeManager());
         } catch (Exception e) {
-            monitor.severe("Failed to register datalake source url provisioning");
+            monitor.severe("Failed to register datalake source url provisioning due to exception ", e);
         }
 
         addTestData(context);
@@ -143,14 +149,12 @@ public class SourceUrlExtension implements ServiceExtension {
     /**
      * Added only for testing
      * Use the below curl commands to test
-     *
+     * <p>
      * curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/other/file-transfer-http-to-http/datalakecontractoffer.json "http://localhost:9192/api/v1/data/contractnegotiations"
-     *
+     * <p>
      * curl -X GET -H "Content-Type: application/json" -H "X-Api-Key: password"  "http://localhost:9192/api/v1/data/contractnegotiations"
-     *
+     * <p>
      * curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/other/file-transfer-http-to-http/datalaketransfer.json "http://localhost:9192/api/v1/data/transferprocess"
-     *
-     * @param context
      */
     private void addTestData(ServiceExtensionContext context) {
         var policy = createPolicy();

@@ -15,6 +15,9 @@ package com.siemens.mindsphere;
 
 import org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime;
 
+/**
+ * Download happens only from UI and there is a JWT token there that can be passed through (no need to use the technical user)
+ */
 public class ConsumerBaseRuntime extends BaseRuntime {
 
     /**
