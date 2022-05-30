@@ -15,10 +15,9 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.policy.service;
 
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -35,8 +34,7 @@ public interface PolicyService {
      * @return the policy, null if it's not found
      */
 
-    @Nullable
-    Policy findById(String policyId);
+    PolicyDefinition findById(String policyId);
 
     /**
      * Query policies
@@ -46,7 +44,7 @@ public interface PolicyService {
      */
 
     @NotNull
-    Collection<Policy> query(QuerySpec query);
+    Collection<PolicyDefinition> query(QuerySpec query);
 
     /**
      * Delete a policy
@@ -56,7 +54,7 @@ public interface PolicyService {
      */
 
     @NotNull
-    ServiceResult<Policy> deleteById(String policyId);
+    ServiceResult<PolicyDefinition> deleteById(String policyId);
 
     /**
      * Create an policy
@@ -65,5 +63,5 @@ public interface PolicyService {
      */
 
     @NotNull
-    ServiceResult<Policy> create(Policy policy);
+    ServiceResult<PolicyDefinition> create(PolicyDefinition policy);
 }

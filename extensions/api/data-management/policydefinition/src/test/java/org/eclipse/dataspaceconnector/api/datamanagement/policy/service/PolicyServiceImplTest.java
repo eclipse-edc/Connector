@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.policy.service;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
@@ -64,7 +65,7 @@ public class PolicyServiceImplTest {
 
     @Test
     void createPolicy_shouldCreatePolicyIfItDoesNotAlreadyExist() {
-        Policy policy = createPolicy("policyId");
+        var policy = createPolicy("policyId");
         when(policyStore.findById("policyId")).thenReturn(null);
 
         var inserted = policyServiceImpl.create(policy);
@@ -149,11 +150,11 @@ public class PolicyServiceImplTest {
 
 
     @NotNull
-    private Predicate<Policy> hasId(String policyId) {
+    private Predicate<PolicyDefinition> hasId(String policyId) {
         return it -> policyId.equals(it.getUid());
     }
 
-    private Policy createPolicy(String policyId) {
-        return Policy.Builder.newInstance().id(policyId).build();
+    private PolicyDefinition createPolicy(String policyId) {
+        return PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).uid(policyId).build();
     }
 }

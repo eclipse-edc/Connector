@@ -35,7 +35,7 @@ public class PolicyDefinition {
 
     @Override
     public int hashCode() {
-        return Objects.hash(uid, policy);
+        return Objects.hash(Objects.hash(uid), policy.hashCode());
     }
 
     @Override

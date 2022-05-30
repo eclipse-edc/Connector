@@ -18,6 +18,7 @@ import okhttp3.Interceptor;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
@@ -120,7 +121,7 @@ public class HttpProvisionerExtensionEndToEndTest {
         var contractAgreement = ContractAgreement.Builder.newInstance()
                 .assetId(ASSET_ID)
                 .id(CONTRACT_ID)
-                .policyId(POLICY_ID)
+                .policy(Policy.Builder.newInstance().build())
                 .consumerAgentId("consumer")
                 .providerAgentId("provider")
                 .build();
@@ -134,7 +135,7 @@ public class HttpProvisionerExtensionEndToEndTest {
                 .build();
         negotiationStore.save(contractNegotiation);
 
-        policyStore.save(Policy.Builder.newInstance().id(POLICY_ID).build());
+        policyStore.save(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).uid(POLICY_ID).build());
     }
 
     private void loadAsset(AssetLoader loader) {

@@ -81,15 +81,15 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return Result.failure("Invalid target: " + offer.getAsset());
         }
 
-        var contractPolicy = policyStore.findById(contractDefinition.getContractPolicyId());
-        if (contractPolicy == null) {
+        var contractPolicyDef = policyStore.findById(contractDefinition.getContractPolicyId());
+        if (contractPolicyDef == null) {
             return Result.failure(format("Policy %s not found", contractDefinition.getContractPolicyId()));
         }
 
         var validatedOffer = ContractOffer.Builder.newInstance()
                 .id(offer.getId())
                 .asset(targetAsset)
-                .policy(contractPolicy)
+                .policy(contractPolicyDef.getPolicy())
                 .build();
 
         return Result.success(validatedOffer);

@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -101,13 +102,17 @@ class SqlPolicyStoreTest {
     @DisplayName("Save (update) a single policy that already exists")
     void save_alreadyExists() {
         var id = getRandomId();
-        Policy policy1 = Policy.Builder.newInstance()
-                .id(id)
-                .target("Target1")
+        var policy1 = PolicyDefinition.Builder.newInstance()
+                .policy(Policy.Builder.newInstance()
+                        .target("Target1")
+                        .build())
+                .uid(id)
                 .build();
-        Policy policy2 = Policy.Builder.newInstance()
-                .id(id)
-                .target("Target2")
+        var policy2 = PolicyDefinition.Builder.newInstance()
+                .policy(Policy.Builder.newInstance()
+                        .target("Target2")
+                        .build())
+                .uid(id)
                 .build();
         var spec = QuerySpec.Builder.newInstance().build();
 
@@ -116,13 +121,13 @@ class SqlPolicyStoreTest {
         var policyFromDb = sqlPolicyStore.findAll(spec).collect(Collectors.toList());
 
         assertThat(1).isEqualTo(policyFromDb.size());
-        assertThat("Target2").isEqualTo(policyFromDb.get(0).getTarget());
+        assertThat("Target2").isEqualTo(policyFromDb.get(0).getPolicy().getTarget());
     }
 
     @Test
     @DisplayName("Find policy by ID that exists")
     void findById_whenPresent() {
-        Policy policy = getDummyPolicy(getRandomId());
+        var policy = getDummyPolicy(getRandomId());
         sqlPolicyStore.save(policy);
 
         var policyFromDb = sqlPolicyStore.findById(policy.getUid());
@@ -210,7 +215,7 @@ class SqlPolicyStoreTest {
         return UUID.randomUUID().toString();
     }
 
-    private Policy getDummyPolicy(String id) {
+    private PolicyDefinition getDummyPolicy(String id) {
         var permission = Permission.Builder.newInstance()
                 .uid(id)
                 .build();
@@ -223,8 +228,7 @@ class SqlPolicyStoreTest {
                 .uid(id)
                 .build();
 
-        return Policy.Builder.newInstance()
-                .id(id)
+        var p = Policy.Builder.newInstance()
                 .permission(permission)
                 .prohibition(prohibition)
                 .duties(List.of(duty))
@@ -234,9 +238,10 @@ class SqlPolicyStoreTest {
                 .target("sampleTarget")
                 .type(PolicyType.SET)
                 .build();
+        return PolicyDefinition.Builder.newInstance().uid(id).policy(p).build();
     }
 
-    private List<Policy> getDummyPolicies(int count) {
+    private List<PolicyDefinition> getDummyPolicies(int count) {
         return IntStream.range(0, count).mapToObj(i -> getDummyPolicy(getRandomId())).collect(Collectors.toList());
     }
 

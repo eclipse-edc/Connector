@@ -84,16 +84,11 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         }
     }
 
-    @Override
-    public void enqueueCommand(ContractNegotiationCommand command) {
-        commandQueue.enqueue(command);
-    }
-
     /**
      * Tells this manager that a {@link ContractNegotiation} has been declined by the counter-party.
      * Transitions the corresponding ContractNegotiation to state DECLINED.
      *
-     * @param token Claim token of the consumer that sent the rejection.
+     * @param token         Claim token of the consumer that sent the rejection.
      * @param correlationId Id of the ContractNegotiation on consumer side.
      * @return a {@link StatusResult}: OK, if successfully transitioned to declined;
      *         FATAL_ERROR, if no match found for Id.
@@ -120,13 +115,9 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         return StatusResult.success(negotiation);
     }
 
-    private ContractNegotiation findContractNegotiationById(String negotiationId) {
-        var negotiation = negotiationStore.find(negotiationId);
-        if (negotiation == null) {
-            negotiation = negotiationStore.findForCorrelationId(negotiationId);
-        }
-
-        return negotiation;
+    @Override
+    public void enqueueCommand(ContractNegotiationCommand command) {
+        commandQueue.enqueue(command);
     }
 
     /**
@@ -134,7 +125,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * persisted, which moves it to state REQUESTED. It is then validated and transitioned to
      * CONFIRMING, PROVIDER_OFFERING or DECLINING.
      *
-     * @param token Claim token of the consumer that send the contract request.
+     * @param token   Claim token of the consumer that send the contract request.
      * @param request Container object containing all relevant request parameters.
      * @return a {@link StatusResult}: OK
      */
@@ -166,10 +157,10 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * {@link ContractNegotiation}. The offer is validated and the ContractNegotiation is
      * transitioned to CONFIRMING, PROVIDER_OFFERING or DECLINING.
      *
-     * @param token Claim token of the consumer that send the contract request.
+     * @param token         Claim token of the consumer that send the contract request.
      * @param correlationId Id of the ContractNegotiation on consumer side.
-     * @param offer The contract offer.
-     * @param hash A hash of all previous contract offers.
+     * @param offer         The contract offer.
+     * @param hash          A hash of all previous contract offers.
      * @return a {@link StatusResult}: FATAL_ERROR, if no match found for Id; OK otherwise
      */
     @WithSpan
@@ -184,13 +175,47 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     /**
+     * Tells this manager that a previously sent contract offer has been approved by the consumer.
+     * Transitions the corresponding {@link ContractNegotiation} to state CONFIRMING.
+     *
+     * @param token         Claim token of the consumer that send the contract request.
+     * @param correlationId Id of the ContractNegotiation on consumer side.
+     * @param agreement     Agreement sent by consumer.
+     * @param hash          A hash of all previous contract offers.
+     * @return a {@link StatusResult}: FATAL_ERROR, if no match found for Id; OK otherwise
+     */
+    @Override
+    public StatusResult<ContractNegotiation> consumerApproved(ClaimToken token, String correlationId, ContractAgreement agreement, String hash) {
+        var negotiation = negotiationStore.findForCorrelationId(correlationId);
+        if (negotiation == null) {
+            return StatusResult.failure(FATAL_ERROR);
+        }
+
+        monitor.debug("[Provider] Contract offer has been approved by consumer.");
+        negotiation.transitionConfirming();
+        update(negotiation, l -> l.preConfirming(negotiation));
+        monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
+                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+        return StatusResult.success(negotiation);
+    }
+
+    private ContractNegotiation findContractNegotiationById(String negotiationId) {
+        var negotiation = negotiationStore.find(negotiationId);
+        if (negotiation == null) {
+            negotiation = negotiationStore.findForCorrelationId(negotiationId);
+        }
+
+        return negotiation;
+    }
+
+    /**
      * Processes an incoming offer for a {@link ContractNegotiation}. The offer is validated and
      * the corresponding ContractNegotiation is transitioned to CONFIRMING, PROVIDER_OFFERING or
      * DECLINING.
      *
      * @param negotiation The ContractNegotiation.
-     * @param token Claim token of the consumer that send the contract request.
-     * @param offer The contract offer.
+     * @param token       Claim token of the consumer that send the contract request.
+     * @param offer       The contract offer.
      * @return a {@link StatusResult}: OK
      */
     private StatusResult<ContractNegotiation> processIncomingOffer(ContractNegotiation negotiation, ClaimToken token, ContractOffer offer) {
@@ -222,31 +247,6 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
-        return StatusResult.success(negotiation);
-    }
-
-    /**
-     * Tells this manager that a previously sent contract offer has been approved by the consumer.
-     * Transitions the corresponding {@link ContractNegotiation} to state CONFIRMING.
-     *
-     * @param token Claim token of the consumer that send the contract request.
-     * @param correlationId Id of the ContractNegotiation on consumer side.
-     * @param agreement Agreement sent by consumer.
-     * @param hash A hash of all previous contract offers.
-     * @return a {@link StatusResult}: FATAL_ERROR, if no match found for Id; OK otherwise
-     */
-    @Override
-    public StatusResult<ContractNegotiation> consumerApproved(ClaimToken token, String correlationId, ContractAgreement agreement, String hash) {
-        var negotiation = negotiationStore.findForCorrelationId(correlationId);
-        if (negotiation == null) {
-            return StatusResult.failure(FATAL_ERROR);
-        }
-
-        monitor.debug("[Provider] Contract offer has been approved by consumer.");
-        negotiation.transitionConfirming();
-        update(negotiation, l -> l.preConfirming(negotiation));
-        monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
-                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         return StatusResult.success(negotiation);
     }
 
@@ -391,12 +391,12 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                     .contractSigningDate(Instant.now().getEpochSecond())
                     .providerAgentId(String.valueOf(lastOffer.getProvider()))
                     .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
-                    .policyId(policy.getUid())
+                    .policy(policy)
                     .assetId(lastOffer.getAsset().getId())
                     .build();
         } else {
             agreement = retrievedAgreement;
-            policy = policyStore.findById(agreement.getPolicyId());
+            policy = agreement.getPolicy();
         }
 
         var request = ContractAgreementRequest.Builder.newInstance()

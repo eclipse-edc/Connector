@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.test.e2e;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -87,12 +88,14 @@ public class Participant {
     }
 
     public String createPolicy(String assetId) {
-        var policy = Policy.Builder.newInstance()
-                .permission(Permission.Builder.newInstance()
-                        .target(assetId)
-                        .action(Action.Builder.newInstance().type("USE").build())
+        var policy = PolicyDefinition.Builder.newInstance()
+                .policy(Policy.Builder.newInstance()
+                        .permission(Permission.Builder.newInstance()
+                                .target(assetId)
+                                .action(Action.Builder.newInstance().type("USE").build())
+                                .build())
+                        .type(PolicyType.SET)
                         .build())
-                .type(PolicyType.SET)
                 .build();
 
         given()

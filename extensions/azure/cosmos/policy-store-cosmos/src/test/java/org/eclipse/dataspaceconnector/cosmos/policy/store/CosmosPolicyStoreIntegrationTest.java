@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -152,8 +153,8 @@ public class CosmosPolicyStoreIntegrationTest {
         var policyToUpdate = doc1.getWrappedInstance();
 
         //modify a single field
-        policyToUpdate.getPermissions().add(Permission.Builder.newInstance().target("test-permission-target").build());
-        policyToUpdate.getObligations().add(Duty.Builder.newInstance().uid("test-obligation-id").build());
+        policyToUpdate.getPolicy().getPermissions().add(Permission.Builder.newInstance().target("test-permission-target").build());
+        policyToUpdate.getPolicy().getObligations().add(Duty.Builder.newInstance().uid("test-obligation-id").build());
 
 
         store.save(policyToUpdate);
@@ -162,8 +163,8 @@ public class CosmosPolicyStoreIntegrationTest {
 
         var first = convert(actual.stream().findFirst().get());
 
-        assertThat(first.getPermissions()).hasSize(1).extracting(Permission::getTarget).containsOnly("test-permission-target");
-        assertThat(first.getObligations()).hasSize(1).extracting(Duty::getUid).containsOnly("test-obligation-id");
+        assertThat(first.getPolicy().getPermissions()).hasSize(1).extracting(Permission::getTarget).containsOnly("test-permission-target");
+        assertThat(first.getPolicy().getObligations()).hasSize(1).extracting(Duty::getUid).containsOnly("test-obligation-id");
 
     }
 
@@ -194,7 +195,7 @@ public class CosmosPolicyStoreIntegrationTest {
         container.createItem(doc1);
         container.createItem(doc2);
 
-        assertThat(store.findAll(QuerySpec.none())).hasSize(2).extracting(Policy::getUid).containsExactlyInAnyOrder(doc1.getId(), doc2.getId());
+        assertThat(store.findAll(QuerySpec.none())).hasSize(2).extracting(PolicyDefinition::getUid).containsExactlyInAnyOrder(doc1.getId(), doc2.getId());
     }
 
     @Test
@@ -203,7 +204,7 @@ public class CosmosPolicyStoreIntegrationTest {
         var all = IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PARTITION_KEY)).peek(d -> container.createItem(d)).map(PolicyDocument::getId).collect(Collectors.toList());
 
         // page size fits
-        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4).extracting(Policy::getUid).isSubsetOf(all);
+        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4).extracting(PolicyDefinition::getUid).isSubsetOf(all);
 
     }
 
@@ -213,7 +214,7 @@ public class CosmosPolicyStoreIntegrationTest {
         var all = IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PARTITION_KEY)).peek(d -> container.createItem(d)).map(PolicyDocument::getId).collect(Collectors.toList());
 
         // page size fits
-        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(40).build())).hasSize(7).extracting(Policy::getUid).isSubsetOf(all);
+        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(40).build())).hasSize(7).extracting(PolicyDefinition::getUid).isSubsetOf(all);
     }
 
     @Test
@@ -223,7 +224,7 @@ public class CosmosPolicyStoreIntegrationTest {
         var expectedId = documents.get(3).getId();
 
         var query = QuerySpec.Builder.newInstance().filter("uid=" + expectedId).build();
-        assertThat(store.findAll(query)).extracting(Policy::getUid).containsOnly(expectedId);
+        assertThat(store.findAll(query)).extracting(PolicyDefinition::getUid).containsOnly(expectedId);
     }
 
     @Test
@@ -251,7 +252,7 @@ public class CosmosPolicyStoreIntegrationTest {
         IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PARTITION_KEY)).forEach(d -> container.createItem(d));
 
         var ascendingQuery = QuerySpec.Builder.newInstance().sortField("uid").sortOrder(SortOrder.ASC).build();
-        assertThat(store.findAll(ascendingQuery)).hasSize(10).isSortedAccordingTo(Comparator.comparing(Policy::getUid));
+        assertThat(store.findAll(ascendingQuery)).hasSize(10).isSortedAccordingTo(Comparator.comparing(PolicyDefinition::getUid));
         var descendingQuery = QuerySpec.Builder.newInstance().sortField("uid").sortOrder(SortOrder.DESC).build();
         assertThat(store.findAll(descendingQuery)).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getUid().compareTo(c1.getUid()));
     }
@@ -276,14 +277,17 @@ public class CosmosPolicyStoreIntegrationTest {
         assertThat(store.findAll(QuerySpec.none())).containsExactly(policy);
 
         // modify the object
-        var modifiedPolicy = Policy.Builder.newInstance()
-                .id(policy.getUid())
-                .permission(Permission.Builder.newInstance()
-                        .target("test-asset-id")
-                        .action(Action.Builder.newInstance()
-                                .type("USE")
+        var modifiedPolicy = PolicyDefinition.Builder.newInstance()
+                .policy(Policy.Builder.newInstance()
+
+                        .permission(Permission.Builder.newInstance()
+                                .target("test-asset-id")
+                                .action(Action.Builder.newInstance()
+                                        .type("USE")
+                                        .build())
                                 .build())
                         .build())
+                .uid(policy.getUid())
                 .build();
 
         store.save(modifiedPolicy);
@@ -294,7 +298,7 @@ public class CosmosPolicyStoreIntegrationTest {
 
     }
 
-    private Policy convert(Object object) {
+    private PolicyDefinition convert(Object object) {
         var json = typeManager.writeValueAsString(object);
         return typeManager.readValue(json, PolicyDocument.class).getWrappedInstance();
     }

@@ -65,7 +65,8 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
 
     private StateMachine stateMachine;
 
-    private ConsumerContractNegotiationManagerImpl() { }
+    private ConsumerContractNegotiationManagerImpl() {
+    }
 
     public void start() {
         stateMachine = StateMachine.Builder.newInstance("consumer-contract-negotiation", monitor, executorInstrumentation, waitStrategy)
@@ -84,11 +85,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         if (stateMachine != null) {
             stateMachine.stop();
         }
-    }
-
-    @Override
-    public void enqueueCommand(ContractNegotiationCommand command) {
-        commandQueue.enqueue(command);
     }
 
     /**
@@ -125,10 +121,10 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      * ContractNegotiation and transitions the ContractNegotiation to CONSUMER_APPROVING,
      * CONSUMER_OFFERING or DECLINING.
      *
-     * @param token Claim token of the consumer that send the contract request.
+     * @param token         Claim token of the consumer that send the contract request.
      * @param negotiationId Id of the ContractNegotiation.
      * @param contractOffer The contract offer.
-     * @param hash A hash of all previous contract offers.
+     * @param hash          A hash of all previous contract offers.
      * @return a {@link StatusResult}: FATAL_ERROR, if no match found for Id or no last
      *         offer found for negotiation; OK otherwise
      */
@@ -173,10 +169,10 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      * Validates the contract agreement sent by the provider against the last contract offer and
      * transitions the corresponding {@link ContractNegotiation} to state CONFIRMED or DECLINING.
      *
-     * @param token Claim token of the consumer that send the contract request.
+     * @param token         Claim token of the consumer that send the contract request.
      * @param negotiationId Id of the ContractNegotiation.
-     * @param agreement Agreement sent by provider.
-     * @param policy the policy
+     * @param agreement     Agreement sent by provider.
+     * @param policy        the policy
      * @return a {@link StatusResult}: FATAL_ERROR, if no match found for Id or no last
      *         offer found for negotiation; OK otherwise
      */
@@ -215,7 +211,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
             // TODO: otherwise will fail. But should do it, since it's already confirmed? A duplicated message received shouldn't be an issue
             negotiation.transitionConfirmed();
         }
-        policyStore.save(policy);
         update(negotiation, l -> l.preConfirmed(negotiation));
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
@@ -227,7 +222,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      * Tells this manager that a {@link ContractNegotiation} has been declined by the counter-party.
      * Transitions the corresponding ContractNegotiation to state DECLINED.
      *
-     * @param token Claim token of the consumer that sent the rejection.
+     * @param token         Claim token of the consumer that sent the rejection.
      * @param negotiationId Id of the ContractNegotiation.
      * @return a {@link StatusResult}: OK, if successfully transitioned to declined;
      *         FATAL_ERROR, if no match found for Id.
@@ -248,6 +243,11 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         return StatusResult.success(negotiation);
     }
 
+    @Override
+    public void enqueueCommand(ContractNegotiationCommand command) {
+        commandQueue.enqueue(command);
+    }
+
     private ContractNegotiation findContractNegotiationById(String negotiationId) {
         var negotiation = negotiationStore.find(negotiationId);
         if (negotiation == null) {
@@ -261,7 +261,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      * Builds and sends a {@link ContractOfferRequest} for a given {@link ContractNegotiation} and
      * {@link ContractOffer}.
      *
-     * @param offer The contract offer.
+     * @param offer   The contract offer.
      * @param process The contract negotiation.
      * @return The response to the sent message.
      */
@@ -400,7 +400,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .contractSigningDate(Instant.now().getEpochSecond())
                 .providerAgentId(String.valueOf(lastOffer.getProvider()))
                 .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
-                .policyId(policy.getUid())
+                .policy(policy)
                 .assetId(lastOffer.getAsset().getId())
                 .build();
 

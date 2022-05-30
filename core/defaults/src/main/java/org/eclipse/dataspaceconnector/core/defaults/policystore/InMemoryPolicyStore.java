@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.core.defaults.policystore;
 
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.query.QueryResolver;
@@ -34,15 +34,15 @@ import java.util.stream.Stream;
 public class InMemoryPolicyStore implements PolicyStore {
 
     private final LockManager lockManager;
-    private final Map<String, Policy> policiesById = new HashMap<>();
-    private final QueryResolver<Policy> queryResolver = new ReflectionBasedQueryResolver<>(Policy.class);
+    private final Map<String, PolicyDefinition> policiesById = new HashMap<>();
+    private final QueryResolver<PolicyDefinition> queryResolver = new ReflectionBasedQueryResolver<>(PolicyDefinition.class);
 
     public InMemoryPolicyStore(LockManager lockManager) {
         this.lockManager = lockManager;
     }
 
     @Override
-    public @Nullable Policy findById(String policyId) {
+    public PolicyDefinition findById(String policyId) {
         try {
             return lockManager.readLock(() -> policiesById.get(policyId));
         } catch (Exception e) {
@@ -51,7 +51,7 @@ public class InMemoryPolicyStore implements PolicyStore {
     }
 
     @Override
-    public Stream<Policy> findAll(QuerySpec spec) {
+    public Stream<PolicyDefinition> findAll(QuerySpec spec) {
         try {
             return lockManager.readLock(() -> queryResolver.query(policiesById.values().stream(), spec));
         } catch (Exception e) {
@@ -60,7 +60,7 @@ public class InMemoryPolicyStore implements PolicyStore {
     }
 
     @Override
-    public void save(Policy policy) {
+    public void save(PolicyDefinition policy) {
         try {
             lockManager.writeLock(() -> policiesById.put(policy.getUid(), policy));
         } catch (Exception e) {
@@ -69,7 +69,7 @@ public class InMemoryPolicyStore implements PolicyStore {
     }
 
     @Override
-    public Policy deleteById(String policyId) {
+    public @Nullable PolicyDefinition deleteById(String policyId) {
         try {
             return lockManager.writeLock(() -> policiesById.remove(policyId));
         } catch (Exception e) {

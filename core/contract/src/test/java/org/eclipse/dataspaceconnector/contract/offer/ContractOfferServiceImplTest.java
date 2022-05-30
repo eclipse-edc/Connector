@@ -16,6 +16,7 @@
 package org.eclipse.dataspaceconnector.contract.offer;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
@@ -67,7 +68,7 @@ class ContractOfferServiceImplTest {
         when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenReturn(Stream.of(contractDefinition));
         var assetStream = Stream.of(Asset.Builder.newInstance().build(), Asset.Builder.newInstance().build());
         when(assetIndex.queryAssets(isA(AssetSelectorExpression.class))).thenReturn(assetStream);
-        when(policyStore.findById(any())).thenReturn(Policy.Builder.newInstance().build());
+        when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
 
         var query = ContractOfferQuery.builder().claimToken(ClaimToken.Builder.newInstance().build()).build();
 

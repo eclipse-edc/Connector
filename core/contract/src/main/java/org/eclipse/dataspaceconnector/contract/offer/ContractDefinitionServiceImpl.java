@@ -34,8 +34,10 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 
 /**
- * Determines the contract definitions applicable to a {@link ParticipantAgent} by evaluating the access control and usage policies associated with a set of assets as defined by
- * {@link ContractDefinition}s. On the distinction between access control and usage policy, see {@link ContractDefinition}.
+ * Determines the contract definitions applicable to a {@link ParticipantAgent} by evaluating the access control and
+ * usage policies associated with a set of assets as defined by
+ * {@link ContractDefinition}s. On the distinction between access control and usage policy, see
+ * {@link ContractDefinition}.
  */
 public class ContractDefinitionServiceImpl implements ContractDefinitionService {
     private final PolicyEngine policyEngine;
@@ -45,7 +47,7 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
 
     public ContractDefinitionServiceImpl(Monitor monitor, ContractDefinitionStore contractDefinitionStore, PolicyEngine policyEngine, PolicyStore policyStore) {
         this.monitor = monitor;
-        this.definitionStore = contractDefinitionStore;
+        definitionStore = contractDefinitionStore;
         this.policyEngine = policyEngine;
         this.policyStore = policyStore;
     }
@@ -67,7 +69,8 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
     }
 
     /**
-     * Determines the applicability of a definition to an agent by evaluating the union of its access control and usage policies.
+     * Determines the applicability of a definition to an agent by evaluating the union of its access control and usage
+     * policies.
      */
     private boolean evaluatePolicies(ContractDefinition definition, ParticipantAgent agent) {
         var accessResult = evaluate(definition.getAccessPolicyId(), agent);
@@ -91,7 +94,7 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
     private Result<Policy> evaluate(String policyId, ParticipantAgent agent) {
         return Optional.of(policyId)
                 .map(policyStore::findById)
-                .map(policy -> policyEngine.evaluate(NEGOTIATION_SCOPE, policy, agent))
+                .map(policy -> policyEngine.evaluate(NEGOTIATION_SCOPE, policy.getPolicy(), agent))
                 .orElse(Result.failure(format("Policy %s not found", policyId)));
     }
 }

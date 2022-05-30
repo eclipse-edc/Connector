@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.jetbrains.annotations.NotNull;
@@ -81,12 +82,14 @@ public class BlobTransferUtils {
 
     @NotNull
     public static String createPolicy() {
-        var policy = Policy.Builder.newInstance()
-                .permission(Permission.Builder.newInstance()
-                        .target(PROVIDER_ASSET_ID)
-                        .action(Action.Builder.newInstance().type("USE").build())
+        var policy = PolicyDefinition.Builder.newInstance()
+                .policy(Policy.Builder.newInstance()
+                        .permission(Permission.Builder.newInstance()
+                                .target(PROVIDER_ASSET_ID)
+                                .action(Action.Builder.newInstance().type("USE").build())
+                                .build())
+                        .type(PolicyType.SET)
                         .build())
-                .type(PolicyType.SET)
                 .build();
 
         seedProviderData(POLICIES_PATH, policy);

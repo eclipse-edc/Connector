@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.transform;
 
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.junit.jupiter.api.Test;
@@ -34,12 +35,13 @@ class ContractAgreementToContractAgreementDtoTransformerTest {
     @Test
     void transform() {
         var context = mock(TransformerContext.class);
+        var policy = Policy.Builder.newInstance().build();
         var contractAgreement = ContractAgreement.Builder.newInstance()
                 .id("agreementId")
                 .consumerAgentId("consumerAgentId")
                 .providerAgentId("providerAgentId")
                 .assetId("assetId")
-                .policyId("policyId")
+                .policy(policy)
                 .contractStartDate(1)
                 .contractSigningDate(2)
                 .contractEndDate(3)
@@ -49,7 +51,7 @@ class ContractAgreementToContractAgreementDtoTransformerTest {
 
         assertThat(dto.getId()).isEqualTo("agreementId");
         assertThat(dto.getAssetId()).isEqualTo("assetId");
-        assertThat(dto.getPolicyId()).isEqualTo("policyId");
+        assertThat(dto.getPolicy()).isEqualTo(policy);
         assertThat(dto.getContractStartDate()).isEqualTo(1);
         assertThat(dto.getContractSigningDate()).isEqualTo(2);
         assertThat(dto.getContractEndDate()).isEqualTo(3);

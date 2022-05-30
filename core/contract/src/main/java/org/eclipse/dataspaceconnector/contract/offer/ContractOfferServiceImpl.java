@@ -60,7 +60,7 @@ public class ContractOfferServiceImpl implements ContractOfferService {
                     var assets = assetIndex.queryAssets(definition.getSelectorExpression());
                     return Optional.of(definition.getContractPolicyId())
                             .map(policyStore::findById)
-                            .map(policy -> assets.map(asset -> createContractOffer(definition, policy, asset)))
+                            .map(policy -> assets.map(asset -> createContractOffer(definition, policy.getPolicy(), asset)))
                             .orElseGet(Stream::empty);
                 });
     }

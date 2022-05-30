@@ -15,12 +15,9 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.transform;
 
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
-import org.eclipse.dataspaceconnector.policy.model.Identifiable;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.junit.jupiter.api.Test;
-
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.TestFunctions.createOffer;
@@ -60,7 +57,7 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
 
     @Test
     void transform_customPolicy() {
-        var policy = Policy.Builder.newInstance().id(UUID.randomUUID().toString()).build();
+        var policy = Policy.Builder.newInstance().build();
         var dto = NegotiationInitiateRequestDto.Builder.newInstance()
                 .connectorId("connectorId")
                 .connectorAddress("address")
@@ -75,6 +72,5 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
         assertThat(request.getProtocol()).isEqualTo("protocol");
         assertThat(request.getType()).isEqualTo(INITIAL);
         assertThat(request.getContractOffer().getPolicyId()).isNull();
-        assertThat(request.getContractOffer().getPolicy()).extracting(Identifiable::getUid).isEqualTo(policy.getUid());
     }
 }

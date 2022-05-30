@@ -28,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.Map;
-import java.util.UUID;
 
 import static io.gatling.javaapi.core.CoreDsl.StringBody;
 import static io.gatling.javaapi.core.CoreDsl.doWhileDuring;
@@ -104,7 +103,8 @@ public abstract class TransferSimulationUtils {
      * Gatling chain for calling ContractNegotiation status endpoint repeatedly until a CONFIRMED state is
      * attained, or a timeout is reached.
      * <p>
-     * Expects the Contract Negotiation Request ID to be provided in the {@see CONTRACT_NEGOTIATION_REQUEST_ID} session key.
+     * Expects the Contract Negotiation Request ID to be provided in the {@see CONTRACT_NEGOTIATION_REQUEST_ID} session
+     * key.
      * <p>
      * Saves the Contract Agreement ID into the {@see CONTRACT_AGREEMENT_ID} session key.
      */
@@ -207,7 +207,6 @@ public abstract class TransferSimulationUtils {
 
     private static String loadContractAgreement(String providerUrl) {
         var policy = Policy.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
                 .permission(Permission.Builder.newInstance()
                         .target("test-document")
                         .action(Action.Builder.newInstance().type("USE").build())

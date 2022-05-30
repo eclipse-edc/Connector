@@ -32,6 +32,7 @@ import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -59,7 +60,7 @@ public class PolicyApiController implements PolicyApi {
 
     @GET
     @Override
-    public List<Policy> getAllPolicies(@Valid @BeanParam QuerySpecDto querySpecDto) {
+    public List<PolicyDefinition> getAllPolicies(@Valid @BeanParam QuerySpecDto querySpecDto) {
         var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
         if (result.failed()) {
             monitor.warning("Error transforming QuerySpec: " + String.join(", ", result.getFailureMessages()));
@@ -77,7 +78,7 @@ public class PolicyApiController implements PolicyApi {
     @GET
     @Path("{id}")
     @Override
-    public Policy getPolicy(@PathParam("id") String id) {
+    public PolicyDefinition getPolicy(@PathParam("id") String id) {
         monitor.debug(format("Attempting to return policy with ID %s", id));
         return Optional.of(id)
                 .map(it -> policyService.findById(id))
@@ -86,7 +87,7 @@ public class PolicyApiController implements PolicyApi {
 
     @POST
     @Override
-    public void createPolicy(Policy policy) {
+    public void createPolicy(PolicyDefinition policy) {
 
         var result = policyService.create(policy);
 
@@ -110,7 +111,7 @@ public class PolicyApiController implements PolicyApi {
         }
     }
 
-    private void handleFailedResult(ServiceResult<Policy> result, String id) {
+    private void handleFailedResult(ServiceResult<PolicyDefinition> result, String id) {
         switch (result.reason()) {
             case NOT_FOUND:
                 throw new ObjectNotFoundException(Policy.class, id);
