@@ -60,6 +60,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Added timestamps to TransferProcess DTO (#1350)
 * Make Helm charts more generic (#1363)
 * Make `ParticipantAgent` claims more generic (#1405)
+* Introduced a `PolicyDefinition` object (#1340)
 
 #### Removed
 
