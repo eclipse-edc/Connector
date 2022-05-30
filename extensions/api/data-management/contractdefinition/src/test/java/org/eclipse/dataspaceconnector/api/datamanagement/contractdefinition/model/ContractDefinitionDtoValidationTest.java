@@ -27,6 +27,7 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -60,7 +61,7 @@ class ContractDefinitionDtoValidationTest {
     @Test
     void validate_nullCriteria() {
         var dto = ContractDefinitionDto.Builder.newInstance()
-                .id("id")
+                .id(UUID.randomUUID().toString())
                 .accessPolicyId("accessPolicyId")
                 .contractPolicyId("contractPolicyId")
                 .criteria(null)
@@ -73,8 +74,8 @@ class ContractDefinitionDtoValidationTest {
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
             return Stream.of(
                     Arguments.of(null, "accessPolicy", "contractPolicy"),
-                    Arguments.of("id", null, "contractPolicy"),
-                    Arguments.of("id", "accessPolicy", null)
+                    Arguments.of(UUID.randomUUID().toString(), null, "contractPolicy"),
+                    Arguments.of(UUID.randomUUID().toString(), "accessPolicy", null)
             );
         }
     }
