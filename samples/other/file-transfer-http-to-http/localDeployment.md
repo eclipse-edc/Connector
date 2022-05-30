@@ -29,19 +29,21 @@ In this tutorial, we will deploy 2 eclipse dataspace connectors (EDC): a provide
 
     1. Health check: To check if the provider is alive.
     1. Create asset: To create an asset for the file that we want to share. Edit the following:
-        - `asset:prop:id`: The asset ID. Let this ID = 2 for this example.
+        - `asset:prop:id`: The asset ID. Let this value as is for this example.
         - `asset:prop:name`: The file name.
         - `url`: The address of the file. Add here the pre-signed URL for download (see Prerequisites section).
-    1. Get all assets: To list all the assets. The asset we created has ID = 2.
+    1. Get all assets: To list all the assets. The asset we created has ID = 0002.
     1. Create policy: To create a new policy for our asset. Do not modify for this example.
     1. Get all policies: To list all the policies.
     1. Create Contract: To create a new contract for our asset. Do not modify for this example.
-    1. Get all contracts: To list all the contracts. The contract we created has ID = 2 and the contractPolicyId that we put in step 4.
+    1. Get all contracts: To list all the contracts. The contract we created has ID = 0002 and the contractPolicyId that we put in step 4.
+    1. (Optional) Register digital twin: To register the created asset with a digital twin registry.
 
 1. In the folder Consumer, we can do the following requests:
 
     1. Health check: To check if the consumer is alive.
-    1. Get offers: To list the assets of the provider EDC. In the reponse, find the contract offer that has `asset:prop:id` = 2 (which we created earlier), and take a note of the contract offer `id`, and the policy `uid`.
+    1. (Optional) Get all digital twins: To list all the assets that have been registered with the digital twin registry. In the response, you can see the IP of the provider EDC for every registered asset.
+    1. Get offers: To list the assets of the provider EDC. In the reponse, find the contract offer that has `asset:prop:id` = 0002 (which we created earlier), and take a note of the contract offer `id`, and the policy `uid`.
     1. Negotiate contract: To request the asset from the provider.
         1. Copy the contract offer `id` from the previous step to the field `offerId`.
         1. Copy the policy `uid` from the previous step to the field `uid` of the policy.
@@ -52,8 +54,3 @@ In this tutorial, we will deploy 2 eclipse dataspace connectors (EDC): a provide
         - Change the `keyName` to the file name.
         - Change the `url` to the pre-signed upload URL (see prerequisites section).
     1. Get status of all transfers: To check the status of all the transfers. 
-
-
-
-
-
