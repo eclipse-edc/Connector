@@ -169,10 +169,7 @@ jobs:
       POSTGRES_PWD: ${{ secrets.POSTGRES_PASSWORD }}
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
-        with:
-          java-version: '17'
+      - uses: ./.github/actions/setup-build
 
       - name: Postgres Tests   #just an example!
         uses: ./.github/actions/run-tests
