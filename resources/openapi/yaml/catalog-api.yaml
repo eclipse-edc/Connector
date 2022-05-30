@@ -159,8 +159,6 @@ components:
             $ref: '#/components/schemas/Prohibition'
         target:
           type: string
-        uid:
-          type: string
     Prohibition:
       type: object
       properties:

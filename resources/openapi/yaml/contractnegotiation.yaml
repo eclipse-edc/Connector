@@ -180,8 +180,8 @@ components:
           format: int64
         id:
           type: string
-        policyId:
-          type: string
+        policy:
+          $ref: '#/components/schemas/Policy'
         providerAgentId:
           type: string
     ContractNegotiationDto:
@@ -318,8 +318,6 @@ components:
           items:
             $ref: '#/components/schemas/Prohibition'
         target:
-          type: string
-        uid:
           type: string
     Prohibition:
       type: object
