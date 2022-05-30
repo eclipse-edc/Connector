@@ -184,6 +184,12 @@ components:
           $ref: '#/components/schemas/Policy'
         providerAgentId:
           type: string
+      required:
+      - assetId
+      - consumerAgentId
+      - id
+      - policy
+      - providerAgentId
     ContractNegotiationDto:
       type: object
       properties:

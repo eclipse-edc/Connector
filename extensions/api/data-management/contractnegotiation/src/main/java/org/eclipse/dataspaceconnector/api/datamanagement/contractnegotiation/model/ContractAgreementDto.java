@@ -14,17 +14,38 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 
 public class ContractAgreementDto {
+    @NotNull
     private String id;
+    @NotNull
     private String providerAgentId;
+    @NotNull
     private String consumerAgentId;
+    @Positive
     private long contractSigningDate;
+    @Positive
     private long contractStartDate;
+    @Positive
     private long contractEndDate;
+    @NotNull
     private String assetId;
+    @NotNull
     private Policy policy;
+
+    @AssertTrue
+    @JsonIgnore
+    public boolean isDatesValid() {
+
+        return contractStartDate < contractEndDate &&
+                contractSigningDate < contractEndDate;
+    }
+
 
     public String getId() {
         return id;
