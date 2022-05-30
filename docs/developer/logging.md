@@ -1,16 +1,17 @@
 # Logging
 
-This document describes how the EDC code should be logged and why.
+A comprehensive and consistent way of logging is a crucial pillar for operability. Therefore, the following rules should be followed:
 
 ## Logging component
 
-Logs can be produced using the [`Monitor`](../../spi/core-spi/src/main/java/org/eclipse/dataspaceconnector/spi/monitor/Monitor.java) service, 
-that offers 4 different log levels:
+Logs must only be produced using the [`Monitor`](../../spi/core-spi/src/main/java/org/eclipse/dataspaceconnector/spi/monitor/Monitor.java) service, 
+which offers 4 different log levels:
 
 ### `severe` 
 > Error events that might lead the application to abort or still allow it to continue running.
 
-Used in case of an unexpected interruption of the flow.
+Used in case of an unexpected interruption of the flow or when something is broken, i.e. an operator has to take action. 
+e.g. service crashes, database in illegal state, ... even if there is chance of self recovery.
 
 ### `warning`
 > Potentially harmful situations messages.
@@ -29,11 +30,12 @@ Used to describe details of the normal flow that are not interesting for a produ
 
 ## What should be logged
 - every exception with `severe` or `warning`
-- every important message that's not an error with `info`
+- every `Result` object evaluated as `failed` with `severe` if this is something that someone should take care of, `warning` otherwise  
+- every important message that's not an error with `info`, e.g. entity state changes
 - other informative events like incoming calls at the API layer or state changes with `debug`
 
 ## What should be not logged
 
-- logging secrets and sensitive data
+- secrets and any other potentially sensitive data, like the payload that is passed through the `data-plane`
 - an exception that will be thrown in the same block
 - not strictly necessary information, like "entering method X", "leaving block Y", "returning HTTP 200"
