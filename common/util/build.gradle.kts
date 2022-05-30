@@ -21,8 +21,11 @@ plugins {
 val jupiterVersion: String by project
 val mockitoVersion: String by project
 val okHttpVersion: String by project
+val jakartaValidationApi: String by project
 
 dependencies {
+    implementation("jakarta.validation:jakarta.validation-api:${jakartaValidationApi}")
+
     testFixturesImplementation("org.mockito:mockito-core:${mockitoVersion}")
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")

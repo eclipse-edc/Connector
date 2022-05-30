@@ -104,7 +104,7 @@ public class ContractDefinitionApiControllerIntegrationTest {
 
     @Test
     void postContractDefinition(ContractDefinitionStore store) {
-        var dto = createDto("definitionId");
+        var dto = createDto(UUID.randomUUID().toString());
 
         baseRequest()
                 .body(dto)
@@ -118,7 +118,7 @@ public class ContractDefinitionApiControllerIntegrationTest {
     @Test
     void postContractDefinition_invalidBody(ContractDefinitionStore store) {
         var dto = ContractDefinitionDto.Builder.newInstance()
-                .id("test-id")
+                .id(UUID.randomUUID().toString())
                 .contractPolicyId(null)
                 .accessPolicyId(UUID.randomUUID().toString())
                 .build();
@@ -133,9 +133,27 @@ public class ContractDefinitionApiControllerIntegrationTest {
     }
 
     @Test
+    void postContractDefinition_invalidContractDefinitionId(ContractDefinitionStore store) {
+        var dto = ContractDefinitionDto.Builder.newInstance()
+                .id("invalid-id")
+                .contractPolicyId(UUID.randomUUID().toString())
+                .accessPolicyId(UUID.randomUUID().toString())
+                .build();
+
+        baseRequest()
+                .body(dto)
+                .contentType(JSON)
+                .post("/contractdefinitions")
+                .then()
+                .statusCode(400);
+        assertThat(store.findAll()).isEmpty();
+    }
+
+    @Test
     void postContractDefinition_alreadyExists(ContractDefinitionLoader loader, ContractDefinitionStore store) {
-        loader.accept(createContractDefinition("definitionId"));
-        var dto = createDto("definitionId");
+        String id = UUID.randomUUID().toString();
+        loader.accept(createContractDefinition(id));
+        var dto = createDto(id);
 
         baseRequest()
                 .body(dto)

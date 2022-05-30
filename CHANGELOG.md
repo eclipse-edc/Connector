@@ -36,6 +36,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Postgresql end to end test (#1278)
 * Add signing/publishing config (#1147)
 * Verify OpenAPI definitions (#1312)
+* Add validation to contract definition id (#1347)
 
 #### Changed
 

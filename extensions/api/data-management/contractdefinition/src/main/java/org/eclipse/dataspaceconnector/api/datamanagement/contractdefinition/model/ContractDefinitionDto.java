@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.constraints.NotNull;
+import org.eclipse.dataspaceconnector.common.annotations.Uuid;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ public class ContractDefinitionDto {
     private String contractPolicyId;
     @NotNull
     private List<Criterion> criteria = new ArrayList<>();
-    @NotNull
+    @Uuid
     private String id;
 
     private ContractDefinitionDto() {
