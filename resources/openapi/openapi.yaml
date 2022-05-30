@@ -1344,6 +1344,9 @@ components:
     TransferProcessDto:
       type: object
       properties:
+        createdTimestamp:
+          type: integer
+          format: int64
         dataDestination:
           $ref: '#/components/schemas/DataAddressInformationDto'
         dataRequest:
@@ -1354,6 +1357,9 @@ components:
           type: string
         state:
           type: string
+        stateTimestamp:
+          type: integer
+          format: int64
         type:
           type: string
     TransferRequestDto:
