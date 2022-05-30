@@ -59,16 +59,6 @@ public class CosmosDbApiImpl implements CosmosDbApi {
         this(getContainer(config, client), config.isQueryMetricsEnabled());
     }
 
-    private static void handleResponse(CosmosItemResponse<?> response, String error) {
-        handleResponse(response.getStatusCode(), error);
-    }
-
-    private static void handleResponse(int code, String error) {
-        if (code < 200 || code >= 300) {
-            throw new EdcException(error + " (status code: " + code + ")");
-        }
-    }
-
     private static CosmosContainer getContainer(AbstractCosmosConfig config, CosmosClient client) {
         CosmosDatabase database = getDatabase(client, config.getDbName());
         if (database.readAllContainers().stream().noneMatch(sp -> sp.getId().equals(config.getContainerName()))) {
@@ -125,7 +115,6 @@ public class CosmosDbApiImpl implements CosmosDbApi {
         } catch (CosmosException e) {
             throw new EdcException(e);
         }
-
     }
 
     @Override
@@ -229,4 +218,15 @@ public class CosmosDbApiImpl implements CosmosDbApi {
     private CosmosStoredProcedure getStoredProcedure(String sprocName) {
         return container.getScripts().getStoredProcedure(sprocName);
     }
+
+    private void handleResponse(CosmosItemResponse<?> response, String error) {
+        handleResponse(response.getStatusCode(), error);
+    }
+
+    private void handleResponse(int code, String error) {
+        if (code < 200 || code >= 300) {
+            throw new EdcException(error + " (status code: " + code + ")");
+        }
+    }
+
 }
