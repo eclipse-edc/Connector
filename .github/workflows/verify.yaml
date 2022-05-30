@@ -433,6 +433,12 @@ jobs:
     environment: Azure-dev
     runs-on: ubuntu-latest
 
+    # Grant permissions to obtain federated identity credentials
+    # see https://docs.github.com/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-azure
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
       - uses: actions/checkout@v2
 
