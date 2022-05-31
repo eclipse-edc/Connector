@@ -44,6 +44,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
@@ -67,6 +68,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     private static final String TEST_ID = UUID.randomUUID().toString();
     private static final String DATABASE_NAME = "connector-itest-" + TEST_ID;
     private static final String CONTAINER_PREFIX = "ContractNegotiationStore-";
+    private final Clock clock = Clock.systemUTC();
     private static CosmosContainer container;
     private static CosmosDatabase database;
     private final String partitionKey = CONNECTOR_ID;
@@ -210,7 +212,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     void save_leasedByOther_shouldRaiseException() {
         var negotiation = generateNegotiation("test-id", ContractNegotiationStates.CONFIRMED);
         var item = new ContractNegotiationDocument(negotiation, partitionKey);
-        item.acquireLease("someone-else");
+        item.acquireLease("someone-else", clock);
         container.createItem(item);
 
         negotiation.transitionError("test-error");
@@ -222,7 +224,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     void delete_leasedByOther_shouldRaiseException() {
         var negotiation = generateNegotiation("test-id", ContractNegotiationStates.CONFIRMED);
         var item = new ContractNegotiationDocument(negotiation, partitionKey);
-        item.acquireLease("someone-else");
+        item.acquireLease("someone-else", clock);
         container.createItem(item);
 
         assertThatThrownBy(() -> store.delete(negotiation.getId())).isInstanceOf(EdcException.class).hasRootCauseInstanceOf(BadRequestException.class);
@@ -275,7 +277,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
         var n3 = generateNegotiation(state);
         var doc3 = new ContractNegotiationDocument(n3, partitionKey);
-        doc3.acquireLease("another-connector");
+        doc3.acquireLease("another-connector", clock);
         container.createItem(doc3);
 
         var result = store.nextForState(state.code(), 10);
@@ -306,7 +308,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
         var n = generateNegotiation(state);
         var doc = new ContractNegotiationDocument(n, partitionKey);
         Duration leaseDuration = Duration.ofSeconds(10); // give it some time to compensate for TOF delays
-        doc.acquireLease("another-connector", leaseDuration);
+        doc.acquireLease("another-connector", clock, leaseDuration);
         container.createItem(doc);
 
         // before the lease expired

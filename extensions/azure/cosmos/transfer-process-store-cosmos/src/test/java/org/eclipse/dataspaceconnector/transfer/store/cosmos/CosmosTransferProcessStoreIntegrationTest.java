@@ -42,6 +42,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -65,6 +66,7 @@ class CosmosTransferProcessStoreIntegrationTest {
     private static final String CONTAINER_PREFIX = "container_";
     private static CosmosContainer container;
     private static CosmosDatabase database;
+    private final Clock clock = Clock.systemUTC();
     private final String partitionKey = "testpartition";
     private final String connectorId = "test-connector";
     private CosmosTransferProcessStore store;
@@ -170,7 +172,7 @@ class CosmosTransferProcessStoreIntegrationTest {
         var tp = createTransferProcess(id1, TransferProcessStates.INITIAL);
         TransferProcessDocument item = new TransferProcessDocument(tp, partitionKey);
         Duration leaseDuration = Duration.ofSeconds(10);
-        item.acquireLease("another-connector", leaseDuration);
+        item.acquireLease("another-connector", clock, leaseDuration);
         container.upsertItem(item);
 
         List<TransferProcess> processesBeforeLeaseBreak = store.nextForState(TransferProcessStates.INITIAL.code(), 10);
@@ -197,7 +199,7 @@ class CosmosTransferProcessStoreIntegrationTest {
         store.create(tp);
         store.create(tp2);
         TransferProcessDocument item = readDocument(id2);
-        item.acquireLease("test-leaser");
+        item.acquireLease("test-leaser", clock);
         container.upsertItem(item);
 
         //act - one should be ignored
@@ -210,7 +212,7 @@ class CosmosTransferProcessStoreIntegrationTest {
     void nextForState_selfCannotLeaseAgain() {
         var tp1 = createTransferProcess("process1", TransferProcessStates.INITIAL);
         var doc = new TransferProcessDocument(tp1, partitionKey);
-        doc.acquireLease(connectorId);
+        doc.acquireLease(connectorId, clock);
         var originalTimestamp = doc.getLease().getLeasedAt();
         container.upsertItem(doc);
 
@@ -233,9 +235,9 @@ class CosmosTransferProcessStoreIntegrationTest {
         var tp2 = createTransferProcess(id2, TransferProcessStates.INITIAL);
 
         var d1 = new TransferProcessDocument(tp, partitionKey);
-        d1.acquireLease("another-connector");
+        d1.acquireLease("another-connector", clock);
         var d2 = new TransferProcessDocument(tp2, partitionKey);
-        d2.acquireLease("a-third-connector");
+        d2.acquireLease("a-third-connector", clock);
 
         container.upsertItem(d1);
         container.upsertItem(d2);
@@ -417,7 +419,7 @@ class CosmosTransferProcessStoreIntegrationTest {
 
         var doc = new TransferProcessDocument(tp, partitionKey);
         container.upsertItem(doc).getItem();
-        doc.acquireLease(connectorId);
+        doc.acquireLease(connectorId, clock);
         container.upsertItem(doc);
 
         tp.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
@@ -434,7 +436,7 @@ class CosmosTransferProcessStoreIntegrationTest {
         var doc = new TransferProcessDocument(tp, partitionKey);
         container.upsertItem(doc).getItem();
 
-        doc.acquireLease("another-connector");
+        doc.acquireLease("another-connector", clock);
         container.upsertItem(doc);
 
         //act
@@ -461,7 +463,7 @@ class CosmosTransferProcessStoreIntegrationTest {
         final String processId = "test-process-id";
         var tp = createTransferProcess(processId);
         var doc = new TransferProcessDocument(tp, partitionKey);
-        doc.acquireLease("some-other-connector");
+        doc.acquireLease("some-other-connector", clock);
         container.upsertItem(doc);
 
         assertThatThrownBy(() -> store.delete(processId)).isInstanceOf(EdcException.class).hasRootCauseInstanceOf(BadRequestException.class);
@@ -472,7 +474,7 @@ class CosmosTransferProcessStoreIntegrationTest {
         final String processId = "test-process-id";
         var tp = createTransferProcess(processId);
         var doc = new TransferProcessDocument(tp, partitionKey);
-        doc.acquireLease(connectorId);
+        doc.acquireLease(connectorId, clock);
         container.upsertItem(doc);
 
         store.delete(processId);
