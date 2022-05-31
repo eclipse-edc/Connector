@@ -28,8 +28,8 @@ import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -38,11 +38,17 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
-// has to be "public", otherwise quartz won't be able to access is
 public class CrawlerJob implements Job {
 
     private static final String DIDS_PATH = "dids";
+    private static final Clock CLOCK = Clock.systemUTC();
     private String ionApiUrl;
+
+    /**
+     * Public no-argument constructor required by Quartz.
+     */
+    public CrawlerJob() {
+    }
 
     @Override
     public void execute(JobExecutionContext context) {
@@ -54,7 +60,7 @@ public class CrawlerJob implements Job {
 
         monitor.info("CrawlerJob: browsing ION to obtain GaiaX DIDs");
 
-        var start = Instant.now();
+        var start = CLOCK.instant();
         var newDidFutures = getDidDocumentsFromBlockchainAsync(cc);
 
         List<DidDocument> newDids = newDidFutures.parallelStream()
@@ -64,7 +70,7 @@ public class CrawlerJob implements Job {
                 .map(Result::getContent)
                 .collect(Collectors.toList());
 
-        monitor.info("CrawlerJob: Found " + newDids.size() + " new DIDs on ION, took " + (Duration.between(start, Instant.now()).toString()
+        monitor.info("CrawlerJob: Found " + newDids.size() + " new DIDs on ION, took " + (Duration.between(start, CLOCK.instant()).toString()
                 .substring(2)
                 .replaceAll("(\\d[HMS])(?!$)", "$1 ")
                 .toLowerCase()));
@@ -87,7 +93,7 @@ public class CrawlerJob implements Job {
      * queries the ION Core API that maps Bitcoin transactions to IPFS CoreIndexFiles which have a "type" field equal to
      * the {@code type} parameter and returns the resulting DID suffixes (=IDs).
      *
-     * @param type The type to look up. Should be "Z3hp" for GaiaX
+     * @param type        The type to look up. Should be "Z3hp" for GaiaX
      * @param typeManager the type manager
      * @return A list of DID IDs in the form {@code did:ion:.....}
      */
@@ -109,7 +115,8 @@ public class CrawlerJob implements Job {
         try (var response = client.newCall(request).execute()) {
             if (response.isSuccessful()) {
                 var json = Objects.requireNonNull(response.body()).string();
-                var typeReference = new TypeReference<List<String>>() {};
+                var typeReference = new TypeReference<List<String>>() {
+                };
                 return typeManager.readValue(json, typeReference);
             } else {
                 throw new EdcException(format("Could not get DIDs: error=%s, message=%s", response.code(), response.body().string()));
@@ -122,7 +129,7 @@ public class CrawlerJob implements Job {
     /**
      * Attempts to resolve a DID from ION
      *
-     * @param didId The canonical ID (="suffix", "short form URI") of the DID. Must be in the form "did:ion:..."
+     * @param didId            The canonical ID (="suffix", "short form URI") of the DID. Must be in the form "did:ion:..."
      * @param resolverRegistry The resolver registry
      * @return A {@link DidDocument} if found, {@code null} otherwise
      */
@@ -137,7 +144,7 @@ public class CrawlerJob implements Job {
     /**
      * Attempts to resolve a DID from ION asynchronously. Basically a wrapper around {@link CrawlerJob#resolveDid(String, DidResolverRegistry)}
      *
-     * @param didId The canonical ID (="suffix", "short form URI") of the DID. Must be in the form "did:ion:..."
+     * @param didId            The canonical ID (="suffix", "short form URI") of the DID. Must be in the form "did:ion:..."
      * @param resolverRegistry An ION implementation
      * @return A {@code CompletableFuture<DidDocument>} if found, {@code null} otherwise
      */
