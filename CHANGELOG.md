@@ -80,6 +80,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Remove ContractDef from Cosmos DB cache when deleting (#1330)
 * Fix misleading warning message on initialization (#1336)
 * Auto-upload of Cosmos stored procedures (#1338)
+* Resiliency against exceptions in the `PartitionManagerImpl` (#1366)
 
 ## [milestone-3] - 2022-04-08
 
