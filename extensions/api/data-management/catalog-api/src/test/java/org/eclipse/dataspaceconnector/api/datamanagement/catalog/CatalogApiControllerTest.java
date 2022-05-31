@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.catalog;
 import com.github.javafaker.Faker;
 import jakarta.ws.rs.container.AsyncResponse;
 import org.eclipse.dataspaceconnector.api.datamanagement.catalog.service.CatalogService;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -44,7 +45,7 @@ class CatalogApiControllerTest {
         var response = mock(AsyncResponse.class);
         var offer = ContractOffer.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .policyId(UUID.randomUUID().toString())
+                .policy(Policy.Builder.newInstance().build())
                 .assetId(UUID.randomUUID().toString())
                 .build();
         var catalog = Catalog.Builder.newInstance().id("any").contractOffers(List.of(offer)).build();

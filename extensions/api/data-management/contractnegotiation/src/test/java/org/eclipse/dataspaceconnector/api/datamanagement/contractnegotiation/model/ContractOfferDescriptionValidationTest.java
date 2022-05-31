@@ -48,26 +48,24 @@ class ContractOfferDescriptionValidationTest {
 
     @ParameterizedTest
     @ArgumentsSource(value = InvalidPropertiesProvider.class)
-    void validate_invalidProperties(String offerId, String assetId, String policyId, Policy policy) {
-        var desc = new ContractOfferDescription(offerId, assetId, policyId, policy);
+    void validate_invalidProperties(String offerId, String assetId, Policy policy) {
+        var desc = new ContractOfferDescription(offerId, assetId, policy);
 
         assertThat(validator.validate(desc)).hasSize(1);
     }
 
     @Test
     void validate_validProperties() {
-        assertThat(validator.validate(new ContractOfferDescription("offer", "asset", "policy", null))).isEmpty();
-        assertThat(validator.validate(new ContractOfferDescription("offer", "asset", null, policy()))).isEmpty();
+        assertThat(validator.validate(new ContractOfferDescription("offer", "asset", policy()))).isEmpty();
     }
 
     private static class InvalidPropertiesProvider implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    Arguments.of(null, "asset", "policy", null),
-                    Arguments.of("offer", null, "policy", null),
-                    Arguments.of("offer", "asset", null, null),
-                    Arguments.of("offer", "asset", "policy", policy())
+                    Arguments.of(null, "asset", policy()),
+                    Arguments.of("offer", null, policy()),
+                    Arguments.of("offer", "asset", null)
             );
         }
     }

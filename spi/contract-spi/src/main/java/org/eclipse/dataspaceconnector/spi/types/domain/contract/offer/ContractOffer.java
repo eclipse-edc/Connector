@@ -27,7 +27,8 @@ import java.time.ZonedDateTime;
 import java.util.Objects;
 
 /**
- * A contract offer is exchanged between two participant agents. It describes the which assets the consumer may use, and the rules and policies that apply to each asset.
+ * A contract offer is exchanged between two participant agents. It describes the which assets the consumer may use, and
+ * the rules and policies that apply to each asset.
  */
 @JsonDeserialize(builder = ContractOffer.Builder.class)
 public class ContractOffer {
@@ -35,7 +36,6 @@ public class ContractOffer {
 
     /**
      * The policy that describes the usage conditions of the assets
-     * Must be mutually exclusive with {@link ContractOffer#getPolicyId()}
      */
     private Policy policy;
 
@@ -45,13 +45,8 @@ public class ContractOffer {
      */
     private Asset asset;
     /**
-     * Refers to the policy which should be involved in the negotiation. This is only used when <em>initiating</em>
-     * a negotiation and indicates, that an existing policy is to be used.
-     * Must be mutually exclusive with {@link ContractOffer#getPolicy()}
-     */
-    private String policyId;
-    /**
-     * Refers to the asset that is offered. Note that this is only to be used during the actual negotiation and cannot be
+     * Refers to the asset that is offered. Note that this is only to be used during the actual negotiation and cannot
+     * be
      * used in the initial offer from the provider to the consumer.
      * Must be mutually exclusive with {@link ContractOffer#getAsset()}
      */
@@ -80,11 +75,6 @@ public class ContractOffer {
      * Timestamp defining the end date when the contract becomes terminated
      */
     private ZonedDateTime contractEnd;
-
-    @Nullable
-    public String getPolicyId() {
-        return policyId;
-    }
 
     @Nullable
     public String getAssetId() {
@@ -137,6 +127,11 @@ public class ContractOffer {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(id, policy, asset, provider, consumer, offerStart, offerEnd, contractStart, contractEnd);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -148,11 +143,6 @@ public class ContractOffer {
         return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(asset, that.asset) && Objects.equals(provider, that.provider) &&
                 Objects.equals(consumer, that.consumer) && Objects.equals(offerStart, that.offerStart) && Objects.equals(offerEnd, that.offerEnd) &&
                 Objects.equals(contractStart, that.contractStart) && Objects.equals(contractEnd, that.contractEnd);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, policy, asset, provider, consumer, offerStart, offerEnd, contractStart, contractEnd);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -167,7 +157,6 @@ public class ContractOffer {
         private ZonedDateTime contractStart;
         private ZonedDateTime contractEnd;
         private String assetId;
-        private String policyId;
 
         private Builder() {
         }
@@ -222,10 +211,6 @@ public class ContractOffer {
             return this;
         }
 
-        public Builder policyId(String policyId) {
-            this.policyId = policyId;
-            return this;
-        }
 
         public Builder assetId(String assetId) {
             this.assetId = assetId;
@@ -235,16 +220,12 @@ public class ContractOffer {
         public ContractOffer build() {
             Objects.requireNonNull(id);
 
-            // check mutual exclusivity
-            if (policyId != null && policy != null) {
-                throw new IllegalArgumentException("policy and policyId are mutually exclusive");
-            }
             if (assetId != null && asset != null) {
-                throw new IllegalArgumentException("asset and assetId are mutually exclusive");
+                throw new IllegalArgumentException("Asset and AssetId are mutually exclusive");
             }
 
-            if (policy == null && policyId == null) {
-                throw new IllegalArgumentException("either policy or policyId must be set");
+            if (policy == null) {
+                throw new IllegalArgumentException("Policy must not be null!");
             }
 
             ContractOffer offer = new ContractOffer();
@@ -258,7 +239,6 @@ public class ContractOffer {
             offer.contractStart = contractStart;
             offer.contractEnd = contractEnd;
             offer.assetId = assetId;
-            offer.policyId = policyId;
             return offer;
         }
     }
