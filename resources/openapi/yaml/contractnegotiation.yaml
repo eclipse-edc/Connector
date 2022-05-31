@@ -219,11 +219,10 @@ components:
           type: string
         policy:
           $ref: '#/components/schemas/Policy'
-        policyId:
-          type: string
       required:
       - assetId
       - offerId
+      - policy
     Duty:
       type: object
       properties:

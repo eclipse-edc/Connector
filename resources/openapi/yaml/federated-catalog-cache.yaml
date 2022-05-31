@@ -70,8 +70,6 @@ components:
           format: date-time
         policy:
           $ref: '#/components/schemas/Policy'
-        policyId:
-          type: string
         provider:
           type: string
           format: uri
