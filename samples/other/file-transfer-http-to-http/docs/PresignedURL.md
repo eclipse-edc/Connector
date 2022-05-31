@@ -64,6 +64,54 @@ Process DEPROVISIONING transfer
 
     
 ## Sample call
+
+Note that [samples/other/file-transfer-http-to-http/provider/src/main/java/com/siemens/mindsphere/SourceUrlExtension.java](../provider/src/main/java/com/siemens/mindsphere/SourceUrlExtension.java) contains:
+* Sample policy
+* Sample asset 
+    * datalakepath equal to data/ten=castidev/data.csv
+    * type HttpData so that it is handled by [extensions/data-plane/data-plane-http/src/main/java/org/eclipse/dataspaceconnector/dataplane/http/pipeline/HttpDataSourceFactory.java](../../../../extensions/data-plane/data-plane-http/src/main/java/org/eclipse/dataspaceconnector/dataplane/http/pipeline/HttpDataSourceFactory.java)
+* Sample contract definition 
+    * id 9
+    * selector on the asset above called data.csv
+
+The [extensions/mindsphere/mindsphere-http/src/main/java/com/siemens/mindsphere/datalake/edc/http/dataplane/DatalakeHttpDataSinkFactory.java](../../../../extensions/mindsphere/mindsphere-http/src/main/java/com/siemens/mindsphere/datalake/edc/http/dataplane/DatalakeHttpDataSinkFactory.java) datalake specific dataplane sink is used to flush the data to Mindsphere integration datalake.
+It is selected by type "mindsphere", which gets set inside the [com.siemens.mindsphere.datalake.edc.http.provision.SourceUrlProvisioner.provision](../../../../extensions/mindsphere/mindsphere-http/src/main/java/com/siemens/mindsphere/datalake/edc/http/provision/SourceUrlProvisioner.java) method.
+
+The call flow is the following:
+* call consumer to negociate a contract
+    * ```curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: passwordConsumer" -d @samples/other/file-transfer-http-to-http/datalakecontractoffer.json "http://localhost:9192/api/v1/data/contractnegotiations"```
+* call consumer to find the newly negociated contract agreement id (e.g. [{"contractAgreementId":"9:1bd6da05-bb4c-43e8-ba37-dd8854b95c6b","counterPartyAddress":"http://localhost:8282/api/v1/ids/data","errorDetail":null)
+    * ```curl -X GET -H "Content-Type: application/json" -H "X-Api-Key: passwordConsumer"  "http://localhost:9192/api/v1/data/contractnegotiations"```
+* modify [samples/other/file-transfer-http-to-http/datalaketransfer.json](../datalaketransfer.json) by replacing existing contractId with the newly created one
+* call consumer to trigger transfer process
+    * ```curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: passwordConsumer" -d @samples/other/file-transfer-http-to-http/datalaketransfer.json "http://localhost:9192/api/v1/data/transferprocess"```
+    
+---
+**NOTE**
+We tested using a destination on the same mindsphere tenant with another name. We generated the destination url using the below code (put inside [extensions/mindsphere/mindsphere-http/src/main/java/com/siemens/mindsphere/datalake/edc/http/DataLakeClientImpl.java](../../../../extensions/mindsphere/mindsphere-http/src/main/java/com/siemens/mindsphere/datalake/edc/http/DataLakeClientImpl.java)):
+```java
+    public static void main(String[] args) throws MalformedURLException, DataLakeException {
+        final String tokenmanagementClientId = "REPLACE ME";
+        final String tokenmanagementClientSecret = "REPLACE ME";
+        final String tokenmanagementClientAppName = "REPLACE ME";
+        final String tokenmanagementClientAppVersion = "v1.0.0";
+        final String tokenmanagementAddress = "https://gateway.eu1.mindsphere.io/api/technicaltokenmanager/v3/oauth/token";
+        final String datalakePath = "data/ten=castidev/data_dataplane1.csv";
+        final String dataLakeAddress = "https://gateway.eu1.mindsphere.io/api/datalake/v3";
+
+        final String applicationTenant = "castiop";
+
+        final URL url = new URL(dataLakeAddress);
+
+        final OauthClientDetails oauthClientDetails = new OauthClientDetails(tokenmanagementClientId, tokenmanagementClientSecret,
+                tokenmanagementClientAppName, tokenmanagementClientAppVersion, applicationTenant, new URL(tokenmanagementAddress));
+        final DataLakeClientImpl clientImpl = new DataLakeClientImpl(oauthClientDetails, url);
+        final URL createdUrl = clientImpl.getPresignedUploadUrl(datalakePath);
+
+        System.out.println("Created presigned url: " + createdUrl.toString());
+    }
+```
+---...
     
 ![File Transfer HTTP MVP](mvp.png) 
 

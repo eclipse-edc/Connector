@@ -24,15 +24,17 @@ box Consumer http 9191 data 9192 ids 9292 #ConsumerColor
     participant ConnectorConsumer as "Eclipse\nDataspace\nConnector" #white
 end box
 
-box "Data Eco System (e.g. IDS)"
-    participant Broker as "Metadata Catalog\n(IDS Broker)"
-    participant DAPS as "Identity Provider\n(IDS DAPS & ParIS)"
+box "Mindsphere"
+    database FileShare2 as "AWS S3"
+    participant MindsphereAPI as "Mindsphere API "
 end box
 
 box Provider http 8181 data 8182 ids 8282 #ProviderColor
     participant ConnectorProvider as "Eclipse\nDataspace\nConnector" #white
+    participant HttpDataSource as "HttpDataSource" #white
+    participant DatalakeHttpDataSink as "DatalakeHttpDataSink" #white
+    participant SourceUrlProvisioner as "SourceUrlProvisioner" #white
     database AssetCatalogProvider as "Asset\nCatalog" #white
-    database FileShare2 as "Fileshare"
     actor Partner2 as "Partner" #white
 end box
 
@@ -84,20 +86,18 @@ d @samples/04.0-file-transfer/filetransfer.json
 "http://localhost:9192/api/v1/data/transferprocess"
 end note
 
-alt push
-    ConnectorConsumer -> ConnectorProvider ++: Data Request Message
-    ConnectorProvider -> FileShare2 ++ : Download
-    return AssetData
-    ?<- ConnectorProvider --: Push to fileshare/database/...
-else pull
-    ConnectorConsumer -> ConnectorProvider ++: Data Request Message
-    ConnectorProvider -> ConnectorProvider : Policy Validation
-        ConnectorProvider -> FileShare2 ++: Download
-        return AssetData
-    return Data Response Message
-    ConnectorConsumer -> ConnectorConsumer : Policy Validation
-    ConnectorConsumer -> FileShare1 : Upload AssetData
-end alt
+
+ConnectorConsumer -> ConnectorProvider : Data Request Message
+ConnectorProvider -> SourceUrlProvisioner : Provision transfer
+SourceUrlProvisioner -> MindsphereAPI : Generate presigned URL
+return Presigned URL
+SourceUrlProvisioner -> HttpDataSource : Provide presigned URL
+HttpDataSource -> FileShare2 : Read content from S3
+return Data Content Parts
+HttpDataSource -> DatalakeHttpDataSink : Provide read parts
+DatalakeHttpDataSink -> ConnectorProvider : Push data
+FileShare1  <- ConnectorProvider : Push to fileshare/database/...
+
 Partner1 -> FileShare1 : Access AssetData
 
 

@@ -48,7 +48,7 @@ public class DatalakeHttpDataSink extends ParallelSink {
                 requestBuilder.header(authKey, authCode);
             }
 
-            monitor.debug(format("Transferring  %s  to endpoint %s ", parts.toString(), endpoint));
+            monitor.debug(() -> format("Transferring  %s  to endpoint %s ", part.name(), endpoint));
 
             RequestBody body;
             try {
@@ -68,7 +68,10 @@ public class DatalakeHttpDataSink extends ParallelSink {
                 monitor.severe(format("Error writing HTTP data %s to endpoint %s for request: %s", part.name(), endpoint, request), e);
                 return StatusResult.failure(ERROR_RETRY, "Error writing data");
             }
+
+            monitor.debug(() -> format("Transferring  %s  to endpoint %s done", part.name(), endpoint));
         }
+
         return StatusResult.success();
     }
 
