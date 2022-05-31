@@ -79,7 +79,6 @@ org.eclipse.dataspaceconnector:jetty-micrometer:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:iam-daps:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:decentralized-identity:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:iam-mock:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:ids-policy:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:asset-index-sql:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:common-sql:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:contractdefinition-store-sql:0.0.1-SNAPSHOT
