@@ -78,7 +78,7 @@ class SqlTransferProcessStoreTest {
         when(datasourceMock.getConnection()).thenReturn(connection);
         when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
         var statements = new PostgresStatements();
-        store = new SqlTransferProcessStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper(), statements, CONNECTOR_NAME, Clock.systemUTC());
+        store = new SqlTransferProcessStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper(), statements, CONNECTOR_NAME, Clock.systemUTC(), clock1);
 
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
         transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));

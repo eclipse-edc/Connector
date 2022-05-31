@@ -43,6 +43,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
+import java.time.Clock;
 import java.util.function.Supplier;
 
 
@@ -57,6 +58,9 @@ public class IdentityDidCoreExtension implements ServiceExtension {
 
     @Inject
     private PrivateKeyResolver privateKeyResolver;
+
+    @Inject
+    private Clock clock;
 
     @Override
     public String name() {
@@ -102,7 +106,7 @@ public class IdentityDidCoreExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public DidStore defaultDidDocumentStore() {
-        return new InMemoryDidDocumentStore();
+        return new InMemoryDidDocumentStore(clock);
     }
 
     private void registerParsers(PrivateKeyResolver resolver) {

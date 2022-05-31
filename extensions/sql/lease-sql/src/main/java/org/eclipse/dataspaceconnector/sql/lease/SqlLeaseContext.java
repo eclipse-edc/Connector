@@ -77,7 +77,7 @@ public class SqlLeaseContext implements LeaseContext {
 
             var lease = getLease(entityId);
 
-            if (lease != null && !lease.isExpired()) {
+            if (lease != null && !lease.isExpired(clock)) {
                 throw new IllegalStateException("Entity is currently leased!");
             }
 

@@ -23,6 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.security.SecureRandom;
+import java.time.Clock;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Random;
@@ -35,7 +36,7 @@ class InMemoryDidDocumentStoreTest {
 
     @BeforeEach
     void setUp() {
-        store = new InMemoryDidDocumentStore();
+        store = new InMemoryDidDocumentStore(Clock.systemUTC());
     }
 
     @Test
