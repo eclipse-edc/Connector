@@ -29,7 +29,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 
 import java.text.ParseException;
-import java.time.Instant;
+import java.time.Clock;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.Date;
@@ -46,21 +46,22 @@ public class VerifiableCredentialFactory {
 
     /**
      * Creates a signed JWT {@link SignedJWT} that contains a set of claims and an issuer.
-     *
+     * <p>
      * Although all private key types are possible, in the context of Distributed Identity and ION using an Elliptic Curve key ({@code prime256v1}) is advisable. This can be
      * achieved using OpenSSL CLI:
-     *
+     * <p>
      * {@code openssl ecparam -name prime256v1 -genkey -noout -out prime256v1-key.pem}
      *
      * @param privateKeyPemContent The contents of a private key stored in PEM format.
-     * @param claims a list of key-value-pairs that contain claims
-     * @param issuer the "owner" of the VC, in most cases this will be the connector ID. The VC will store this in the "iss" claim
+     * @param claims               a list of key-value-pairs that contain claims
+     * @param issuer               the "owner" of the VC, in most cases this will be the connector ID. The VC will store this in the "iss" claim
+     * @param clock                clock used to get current time
      * @return a {@code SignedJWT} that is signed with the private key and contains all claims listed
      */
-    public static SignedJWT create(String privateKeyPemContent, Map<String, String> claims, String issuer) {
+    public static SignedJWT create(String privateKeyPemContent, Map<String, String> claims, String issuer, Clock clock) {
         try {
             var key = ECKey.parseFromPEMEncodedObjects(privateKeyPemContent);
-            return create((ECKey) key, claims, issuer);
+            return create((ECKey) key, claims, issuer, clock);
         } catch (JOSEException e) {
             throw new CryptoException(e);
         }
@@ -71,12 +72,13 @@ public class VerifiableCredentialFactory {
      * and ION using an Elliptic Curve key ({@code P-256}) is advisable.
      *
      * @param privateKey A Private Key represented as {@link ECKey}.
-     * @param claims a list of key-value-pairs that contain claims
-     * @param issuer the "owner" of the VC, in most cases this will be the DID ID. The VC will store this in the "iss" claim
+     * @param claims     a list of key-value-pairs that contain claims
+     * @param issuer     the "owner" of the VC, in most cases this will be the DID ID. The VC will store this in the "iss" claim
+     * @param clock      clock used to get current time
      * @return a {@code SignedJWT} that is signed with the private key and contains all claims listed
      */
-    public static SignedJWT create(ECKey privateKey, Map<String, String> claims, String issuer) {
-        return create(new EcPrivateKeyWrapper(privateKey), claims, issuer);
+    public static SignedJWT create(ECKey privateKey, Map<String, String> claims, String issuer, Clock clock) {
+        return create(new EcPrivateKeyWrapper(privateKey), claims, issuer, clock);
     }
 
     /**
@@ -84,17 +86,18 @@ public class VerifiableCredentialFactory {
      * using an Elliptic Curve key ({@code P-256}) is advisable.
      *
      * @param privateKey A Private Key represented as {@link PrivateKeyWrapper}.
-     * @param claims a list of key-value-pairs that contain claims
-     * @param issuer the "owner" of the VC, in most cases this will be the DID ID. The VC will store this in the "iss" claim
+     * @param claims     a list of key-value-pairs that contain claims
+     * @param issuer     the "owner" of the VC, in most cases this will be the DID ID. The VC will store this in the "iss" claim
+     * @param clock      clock used to get current time
      * @return a {@code SignedJWT} that is signed with the private key and contains all claims listed
      */
-    public static SignedJWT create(PrivateKeyWrapper privateKey, Map<String, String> claims, String issuer) {
+    public static SignedJWT create(PrivateKeyWrapper privateKey, Map<String, String> claims, String issuer, Clock clock) {
         var claimssetBuilder = new JWTClaimsSet.Builder();
 
         claims.forEach(claimssetBuilder::claim);
         var claimsSet = claimssetBuilder.issuer(issuer)
                 .subject("verifiable-credential")
-                .expirationTime(Date.from(Instant.now().plus(10, ChronoUnit.MINUTES)))
+                .expirationTime(Date.from(clock.instant().plus(10, ChronoUnit.MINUTES)))
                 .jwtID(UUID.randomUUID().toString())
                 .build();
 
@@ -119,7 +122,7 @@ public class VerifiableCredentialFactory {
      * Verifies a VerifiableCredential using the issuer's public key
      *
      * @param verifiableCredential a {@link SignedJWT} that was sent by the claiming party.
-     * @param publicKey The claiming party's public key
+     * @param publicKey            The claiming party's public key
      * @return true if verified, false otherwise
      */
     public static boolean verify(SignedJWT verifiableCredential, ECKey publicKey) {
@@ -134,7 +137,7 @@ public class VerifiableCredentialFactory {
      * Verifies a VerifiableCredential using the issuer's public key
      *
      * @param verifiableCredential a {@link SignedJWT} that was sent by the claiming party.
-     * @param publicKey The claiming party's public key, passed as a {@link PublicKeyWrapper}
+     * @param publicKey            The claiming party's public key, passed as a {@link PublicKeyWrapper}
      * @return true if verified, false otherwise
      */
     public static boolean verify(SignedJWT verifiableCredential, PublicKeyWrapper publicKey) {
@@ -149,7 +152,7 @@ public class VerifiableCredentialFactory {
      * Verifies a VerifiableCredential using the issuer's public key
      *
      * @param verifiableCredential a {@link SignedJWT} that was sent by the claiming party.
-     * @param publicKeyPemContent The claiming party's public key, i.e. the contents of the public key PEM file.
+     * @param publicKeyPemContent  The claiming party's public key, i.e. the contents of the public key PEM file.
      * @return true if verified, false otherwise
      */
     public static boolean verify(SignedJWT verifiableCredential, String publicKeyPemContent) {
@@ -174,12 +177,5 @@ public class VerifiableCredentialFactory {
         } catch (ParseException e) {
             throw new CryptoException(e);
         }
-    }
-
-    /**
-     * A helper method to construct the name of the secret in the vault, which contains the VC.
-     */
-    public static String getVaultSecretName(String issuer) {
-        return issuer + "-vc";
     }
 }
