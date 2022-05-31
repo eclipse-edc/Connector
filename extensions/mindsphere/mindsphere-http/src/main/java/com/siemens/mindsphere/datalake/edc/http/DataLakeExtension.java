@@ -18,8 +18,8 @@ import com.siemens.mindsphere.datalake.edc.http.dataplane.DatalakeHttpDataSinkFa
 import com.siemens.mindsphere.datalake.edc.http.provision.DestinationUrlProvisionedResource;
 import com.siemens.mindsphere.datalake.edc.http.provision.DestinationUrlProvisioner;
 import com.siemens.mindsphere.datalake.edc.http.provision.DestinationUrlResourceDefinition;
-import com.siemens.mindsphere.datalake.edc.http.provision.SourceUrlProvisioner;
 import com.siemens.mindsphere.datalake.edc.http.provision.SourceUrlProvisionedResource;
+import com.siemens.mindsphere.datalake.edc.http.provision.SourceUrlProvisioner;
 import com.siemens.mindsphere.datalake.edc.http.provision.SourceUrlResourceDefinition;
 import com.siemens.mindsphere.datalake.edc.http.provision.SourceUrlResourceDefinitionGenerator;
 import net.jodah.failsafe.RetryPolicy;
