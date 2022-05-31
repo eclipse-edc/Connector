@@ -34,9 +34,10 @@ For more information please refer to the Javadoc of `CosmosDbApi` and `CosmosDbA
 ## Using document wrappers
 
 CosmosDB can essentially store any arbitrary JSON documents. However, for the purposes of EDC we've introduced a wrapper
-object, i.e. the `CosmosDocument`.
+object, named the `CosmosDocument` and as a subclass the `LeaseableCosmosDocument`. Both offer a unified way of
+interacting with CosmosDB documents.
 
-All documents stored using EDC's CosmosDB implementation must have:
+All documents stored using EDC's CosmosDB stores must have:
 
 - an ID
 - a partition key
@@ -44,7 +45,7 @@ All documents stored using EDC's CosmosDB implementation must have:
 
 ### A word on partition keys
 
-Partition keys are used to help CosmosDB determining how data should be physically partitioned.
+Partition keys are used to help CosmosDB determine how data should be partitioned physically.
 While CosmosDB suggests
 to [use an item's ID as partition keys](https://docs.microsoft.com/en-us/azure/cosmos-db/partitioning-overview#choose-partitionkey)
 ,
@@ -52,28 +53,31 @@ this will simply not be possible in our use case, because [stored procedures](RE
 for [pessimistic locking](README.md#pessimistic-locking),
 only work _within_ the same partition.
 
-We therefore generally recommend to use a static partition key for all items in a particular store.
+We therefore generally recommend to use a static partition key for all items in a particular store, especially if there
+are stored procedures involved.
 
 ## SQL statement creation
 
 CosmosDB offers an SQL-like API, which we use for queries. The `cosmos-common` module offers an easy way to fluently
-create SQL statements from a `Criterion`, or rather, a `List<Criterion>`.
+create SQL statements from a `Criterion`, or rather, a `List<Criterion>`. The entrypoint to every SQL statement should
+be the `SqlStatement`
+class ([here](cosmos-common/src/main/java/org/eclipse/dataspaceconnector/azure/cosmos/dialect/SqlStatement.java)).
 
 ## Pessimistic locking
 
-Some CosmosDB-based stores that ship with EDC, more specifically, the `CosmosTransferProcessStore`
-and `CosmosContractNegotiationStore`, require that items are locked against mutual access. For example, when
+Some CosmosDB-based stores that are included in EDC, more specifically, the `CosmosTransferProcessStore`
+and `CosmosContractNegotiationStore`, require that items are locked against simultaneous access. For example, when
 the `TransferProcessManager` fetches the next couple of `TransferProcess` items for processing, it needs to be
 guaranteed that no other process
 modifies the same item in the meantime. This would lead to corrupted states and therefore invalid state transitions.
 The same is true for the `ContractNegotiationManager` (or rather: it's subtypes).
 
-This means that the `read`-operation on the DB must lock the item to guard against illegal modifications. In the context
+As a consequence, the `read`-operation on the DB must lock the item to guard against illegal modifications. In the
+context
 of EDC we call this a `"lease"`.
 
-Clients such as the `CosmosTransferProcessStore` reference a `LeaseContext`, which allows them to acquire the lease _
-explicitly_, by calling
-`LeaseContext#acquireLease()`, or _implicitly_.
+Clients such as the `CosmosTransferProcessStore` reference a `LeaseContext`, which allows them to acquire the lease
+_explicitly_ by calling `LeaseContext#acquireLease()`, or _implicitly_.
 
 ### Explicit leases
 
@@ -105,14 +109,33 @@ dialect.
 In CosmosDB, the only way to achieve atomic operations is through UDFs (User-defined functions) and SPROCs (Stored
 Procedures), the latter of which is far more powerful and versatile.
 
-This means that for stores, that require that sort of pessimistic locking, the recommended way is to use SPROCs.
+This means that for stores that require that sort of pessimistic locking, we've implemented (and recommend the use of)
+SPROCs.
+
+Both _explicit_ and _implicit_ leases expire after some time (default = 60 seconds), at which point they can be
+re-leased.
 
 ## Stored Procedures
 
 **Please be aware, that if the SPROCs mentioned below are not uploaded to the CosmosDB container, the CosmosDB
 implementations provided by EDC won't work! Most likely logs will show repeated 404 errors.**
 
-Currently, there are two different stored procedures available for
-use, [`lease.js`](cosmos-common/src/main/resources/lease.js)
-and [`nextForState.js`](cosmos-common/src/main/resources/nextForState.js). Both are written in Javascript and are
+Currently, there are two different stored procedures available for use. Both are written in Javascript and are
 provided as resources in the `cosmos-common` module.
+
+- [lease.js](cosmos-common/src/main/resources/lease.js): used for explicit leases. Simply updates the `lease` property
+  of a `LeaseableCosmosDocument`.
+  Will fail if the lease cannot be acquired.
+- [nextForState.js](cosmos-common/src/main/resources/nextForState.js): used for explicit leases when performing "lease
+  and return" operations.
+
+## Module-specific configuration
+
+Please find the specific configuration values for each module in the respective sub-folder:
+
+- [AssetIndex](assetindex-cosmos/README.md)
+- [ContractDefinitionStore](contract-definition-store-cosmos/README.md)
+- [ContractNegotiationStore](contract-negotiation-store-cosmos/README.md)
+- [FederatedCache Node directory](fcc-node-directory-cosmos/README.md)
+- [PolicyStore](policy-store-cosmos/README.md)
+- [TransferProcessStore](transfer-process-store-cosmos/README.md)
