@@ -51,9 +51,9 @@ public interface DataPlaneInstance extends Polymorphic {
     int getTurnCount();
 
     /**
-     * The last time a particular instance was selected in POSIX time. If it has never been selected before, this returns 0.
+     * The last time a particular instance was selected in POSIX time. If it has never been selected before, this returns null.
      */
-    long getLastActive();
+    Long getLastActive();
 
     /**
      * A list of extensible properties, for example this could contain a DPF's public-facing API.

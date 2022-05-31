@@ -36,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +55,7 @@ public class SqlTransferProcessStore implements TransferProcessStore {
     private final String leaseHolderName;
     private final SqlLeaseContextBuilder leaseContext;
 
-    public SqlTransferProcessStore(DataSourceRegistry dataSourceRegistry, String datasourceName, TransactionContext transactionContext, ObjectMapper objectMapper, TransferProcessStoreStatements statements, String leaseHolderName) {
+    public SqlTransferProcessStore(DataSourceRegistry dataSourceRegistry, String datasourceName, TransactionContext transactionContext, ObjectMapper objectMapper, TransferProcessStoreStatements statements, String leaseHolderName, Clock clock) {
 
         this.dataSourceRegistry = dataSourceRegistry;
         this.datasourceName = datasourceName;
@@ -62,7 +63,7 @@ public class SqlTransferProcessStore implements TransferProcessStore {
         this.objectMapper = objectMapper;
         this.statements = statements;
         this.leaseHolderName = leaseHolderName;
-        leaseContext = SqlLeaseContextBuilder.with(transactionContext, leaseHolderName, statements);
+        leaseContext = SqlLeaseContextBuilder.with(transactionContext, leaseHolderName, statements, clock);
     }
 
     @Override

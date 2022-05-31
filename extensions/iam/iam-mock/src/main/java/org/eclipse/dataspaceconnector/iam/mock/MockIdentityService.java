@@ -20,12 +20,14 @@ import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 
-import java.time.Instant;
+import java.time.Clock;
 
 public class MockIdentityService implements IdentityService {
     private final String region;
+    private final Clock clock;
 
-    public MockIdentityService(String region) {
+    public MockIdentityService(Clock clock, String region) {
+        this.clock = clock;
         this.region = region;
     }
 
@@ -33,7 +35,7 @@ public class MockIdentityService implements IdentityService {
     public Result<TokenRepresentation> obtainClientCredentials(String scope) {
         TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance()
                 .token("mock-" + region)
-                .expiresIn(Instant.now().plusSeconds(10_0000).toEpochMilli())
+                .expiresIn(clock.instant().plusSeconds(10_0000).toEpochMilli())
                 .build();
         return Result.success(tokenRepresentation);
     }

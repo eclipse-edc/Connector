@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.sql.lease;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 
 import java.sql.Connection;
+import java.time.Clock;
 import java.time.Duration;
 import java.util.Objects;
 
@@ -41,20 +42,22 @@ import java.util.Objects;
 public class SqlLeaseContextBuilder {
     private final TransactionContext trxContext;
     private final LeaseStatements statements;
+    private final Clock clock;
     private String leaseHolder;
     private Duration leaseDuration;
 
-    private SqlLeaseContextBuilder(TransactionContext trxContext, LeaseStatements statements, String leaseHolder) {
+    private SqlLeaseContextBuilder(TransactionContext trxContext, LeaseStatements statements, String leaseHolder, Clock clock) {
         this.trxContext = trxContext;
         this.statements = statements;
         this.leaseHolder = leaseHolder;
+        this.clock = clock;
     }
 
-    public static SqlLeaseContextBuilder with(TransactionContext trxContext, String leaseHolder, LeaseStatements statements) {
+    public static SqlLeaseContextBuilder with(TransactionContext trxContext, String leaseHolder, LeaseStatements statements, Clock clock) {
         Objects.requireNonNull(trxContext, "trxContext");
         Objects.requireNonNull(leaseHolder, "leaseHolder");
         Objects.requireNonNull(statements, "statements");
-        return new SqlLeaseContextBuilder(trxContext, statements, leaseHolder);
+        return new SqlLeaseContextBuilder(trxContext, statements, leaseHolder, clock);
     }
 
     /**
@@ -79,6 +82,6 @@ public class SqlLeaseContextBuilder {
      */
     public SqlLeaseContext withConnection(Connection connection) {
         Objects.requireNonNull(connection, "connection");
-        return new SqlLeaseContext(trxContext, statements, leaseHolder, leaseDuration, connection);
+        return new SqlLeaseContext(trxContext, statements, leaseHolder, clock, leaseDuration, connection);
     }
 }

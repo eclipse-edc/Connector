@@ -24,7 +24,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -47,13 +46,12 @@ public class DataPlaneInstanceImpl implements DataPlaneInstance {
     @JsonProperty("allowedDestTypes")
     private Set<String> allowedDestTypes;
     private int turnCount;
-    private long lastActive;
+    private Long lastActive;
     private URL url;
     private String id;
 
     private DataPlaneInstanceImpl() {
         turnCount = 0;
-        lastActive = Instant.now().toEpochMilli();
         properties = new HashMap<>();
         url = null;
 
@@ -92,7 +90,7 @@ public class DataPlaneInstanceImpl implements DataPlaneInstance {
     }
 
     @Override
-    public long getLastActive() {
+    public Long getLastActive() {
         return lastActive;
     }
 

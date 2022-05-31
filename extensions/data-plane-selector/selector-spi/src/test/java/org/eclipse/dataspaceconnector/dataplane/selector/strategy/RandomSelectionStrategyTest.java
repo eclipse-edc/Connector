@@ -15,18 +15,15 @@
 package org.eclipse.dataspaceconnector.dataplane.selector.strategy;
 
 import org.eclipse.dataspaceconnector.dataplane.selector.instance.DataPlaneInstance;
-import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
 
-import java.net.URL;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.Mockito.mock;
 
 class RandomSelectionStrategyTest {
     private static List<DataPlaneInstance> instances;
@@ -34,41 +31,7 @@ class RandomSelectionStrategyTest {
 
     @BeforeAll
     static void prepare() {
-        instances = IntStream.range(0, 1000).mapToObj(RandomSelectionStrategyTest::createInstance).collect(Collectors.toList());
-    }
-
-    private static DataPlaneInstance createInstance(int i) {
-        return new DataPlaneInstance() {
-            @Override
-            public String getId() {
-                return null;
-            }
-
-            @Override
-            public boolean canHandle(DataAddress sourceAddress, DataAddress destinationAddress) {
-                return false;
-            }
-
-            @Override
-            public URL getUrl() {
-                return null;
-            }
-
-            @Override
-            public int getTurnCount() {
-                return 0;
-            }
-
-            @Override
-            public long getLastActive() {
-                return 0;
-            }
-
-            @Override
-            public Map<String, Object> getProperties() {
-                return null;
-            }
-        };
+        instances = Collections.nCopies(1000, mock(DataPlaneInstance.class));
     }
 
     @BeforeEach

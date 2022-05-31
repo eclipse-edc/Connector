@@ -37,7 +37,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.comm
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -386,9 +385,9 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
             //TODO move to own service
             agreement = ContractAgreement.Builder.newInstance()
                     .id(ContractId.createContractId(definitionId))
-                    .contractStartDate(Instant.now().getEpochSecond())
-                    .contractEndDate(Instant.now().plus(365, ChronoUnit.DAYS).getEpochSecond()) // TODO Make configurable (issue #722)
-                    .contractSigningDate(Instant.now().getEpochSecond())
+                    .contractStartDate(clock.instant().getEpochSecond())
+                    .contractEndDate(clock.instant().plus(365, ChronoUnit.DAYS).getEpochSecond()) // TODO Make configurable (issue #722)
+                    .contractSigningDate(clock.instant().getEpochSecond())
                     .providerAgentId(String.valueOf(lastOffer.getProvider()))
                     .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
                     .policyId(policy.getUid())

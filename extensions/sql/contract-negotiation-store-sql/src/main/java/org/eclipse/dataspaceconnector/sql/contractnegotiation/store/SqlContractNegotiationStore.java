@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
@@ -53,13 +54,13 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
     private final ContractNegotiationStatements statements;
     private final SqlLeaseContextBuilder leaseContext;
 
-    public SqlContractNegotiationStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, TypeManager manager, ContractNegotiationStatements statements, String connectorId) {
+    public SqlContractNegotiationStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, TypeManager manager, ContractNegotiationStatements statements, String connectorId, Clock clock) {
         typeManager = manager;
         this.dataSourceRegistry = dataSourceRegistry;
         this.dataSourceName = dataSourceName;
         this.transactionContext = transactionContext;
         this.statements = statements;
-        leaseContext = SqlLeaseContextBuilder.with(transactionContext, connectorId, statements);
+        leaseContext = SqlLeaseContextBuilder.with(transactionContext, connectorId, statements, clock);
     }
 
     @Override
