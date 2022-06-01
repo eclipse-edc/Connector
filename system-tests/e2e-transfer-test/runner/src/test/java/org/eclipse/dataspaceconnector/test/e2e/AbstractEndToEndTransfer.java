@@ -39,8 +39,11 @@ public abstract class AbstractEndToEndTransfer {
         String definitionId = "1";
         createAssetAndContractDefinitionOnProvider("asset-id", definitionId);
 
+        await().atMost(timeout).untilAsserted(() -> {
+            var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
+            assertThat(catalog.getContractOffers()).hasSize(1);
+        });
         var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
-        assertThat(catalog.getContractOffers()).hasSize(1);
 
         var contractOffer = catalog.getContractOffers().get(0);
         var assetId = contractOffer.getAsset().getId();

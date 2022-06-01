@@ -447,7 +447,9 @@ class CosmosContractNegotiationStoreIntegrationTest {
         IntStream.range(0, 10).mapToObj(i -> generateDocument()).forEach(d -> container.createItem(d));
 
         var query = QuerySpec.Builder.newInstance().sortField("xyz").sortOrder(SortOrder.ASC).build();
-        assertThat(store.queryNegotiations(query)).hasSize(10);
+        var negotiations = store.queryNegotiations(query);
+
+        assertThat(negotiations).isEmpty();
     }
 
     @Test
@@ -537,8 +539,9 @@ class CosmosContractNegotiationStoreIntegrationTest {
         });
 
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
+        var agreements = store.queryAgreements(query);
 
-        assertThat(store.queryAgreements(query)).hasSize(10);
+        assertThat(agreements).isEmpty();
     }
 
     private ContractNegotiationDocument toDocument(Object object) {
