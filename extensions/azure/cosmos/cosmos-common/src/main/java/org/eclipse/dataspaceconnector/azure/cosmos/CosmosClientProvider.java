@@ -18,7 +18,8 @@ import com.azure.cosmos.CosmosClient;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 
 /**
- * Provides a `CosmosClient` instance
+ * Provides a `CosmosClient` instance. 
+ * This is mainly intended for usage in test scenarios, where a {@code CosmosClient} is used, that requires special setup (for example with the emulator).
  */
 public interface CosmosClientProvider {
     /**
