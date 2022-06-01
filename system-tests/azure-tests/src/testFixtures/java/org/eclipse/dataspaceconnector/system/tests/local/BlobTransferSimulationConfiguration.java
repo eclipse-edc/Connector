@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.system.tests.local;
 
+import com.azure.storage.blob.BlobServiceClient;
+import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -24,6 +26,9 @@ import org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationConfi
 import java.time.Duration;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.azure.testfixtures.AbstractAzureBlobTest.getBlobServiceClient;
+import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils.PROVIDER_ASSET_FILE;
 import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils.PROVIDER_ASSET_ID;
 
 /**
@@ -32,11 +37,12 @@ import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulati
  */
 public class BlobTransferSimulationConfiguration implements TransferSimulationConfiguration {
 
-    private final String accountName;
-    private final Integer maxSeconds;
+    private final BlobServiceClient blobServiceClient;
+    private final int maxSeconds;
+    static final String BLOB_CONTENT = Faker.instance().lorem().sentence();
 
-    public BlobTransferSimulationConfiguration(String accountName, Integer maxSeconds) {
-        this.accountName = accountName;
+    public BlobTransferSimulationConfiguration(String accountName, String accountKey, String accountEndpoint, int maxSeconds) {
+        this.blobServiceClient = getBlobServiceClient(accountName, accountKey, accountEndpoint);
         this.maxSeconds = maxSeconds;
     }
 
@@ -50,7 +56,7 @@ public class BlobTransferSimulationConfiguration implements TransferSimulationCo
                 "protocol", "ids-multipart",
                 "dataDestination", DataAddress.Builder.newInstance()
                         .type(AzureBlobStoreSchema.TYPE)
-                        .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)
+                        .property(AzureBlobStoreSchema.ACCOUNT_NAME, blobServiceClient.getAccountName())
                         .build(),
                 "managedResources", true,
                 "transferType", TransferType.Builder.transferType()
@@ -62,8 +68,23 @@ public class BlobTransferSimulationConfiguration implements TransferSimulationCo
         return new TypeManager().writeValueAsString(request);
     }
 
-    @Override
     public Duration copyMaxDuration() {
         return Duration.ofSeconds(maxSeconds);
+    }
+
+    @Override
+    public boolean verifyTransferResult(Map<String, String> dataDestinationProperties) {
+        // Assert
+        var container = dataDestinationProperties.get("container");
+        var destinationBlob = blobServiceClient.getBlobContainerClient(container)
+                .getBlobClient(PROVIDER_ASSET_FILE);
+        assertThat(destinationBlob.exists())
+                .withFailMessage("Destination blob %s not created", destinationBlob.getBlobUrl())
+                .isTrue();
+        var actualBlobContent = destinationBlob.downloadContent().toString();
+        assertThat(actualBlobContent)
+                .withFailMessage("Transferred file contents are not same as the source file")
+                .isEqualTo(BLOB_CONTENT);
+        return true;
     }
 }

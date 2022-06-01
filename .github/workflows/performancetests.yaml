@@ -15,7 +15,7 @@ jobs:
     env:
       REPEAT: 5
       AT_ONCE_USERS: 10
-      MAX_RESPONSE_TIME: 5000
+      MAX_RESPONSE_TIME: 10000
       SUCCESS_PERCENTAGE: 100.0
 
     steps:

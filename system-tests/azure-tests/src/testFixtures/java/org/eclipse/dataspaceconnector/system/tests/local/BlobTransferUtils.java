@@ -42,18 +42,6 @@ public class BlobTransferUtils {
     private static final String POLICIES_PATH = "/policies";
     private static final String CONTRACT_DEFINITIONS_PATH = "/contractdefinitions";
 
-    @NotNull
-    public static String getProvisionedContainerName() {
-        return given()
-                .baseUri(CONSUMER_CONNECTOR_MANAGEMENT_URL + CONSUMER_MANAGEMENT_PATH)
-                .when()
-                .get(TRANSFER_PROCESSES_PATH)
-                .then()
-                .statusCode(200)
-                .extract().body()
-                .jsonPath().getString("[0].dataDestination.properties.container");
-    }
-
     public static void createAsset(String accountName, String containerName) {
         var asset = Map.of(
                 "asset", Map.of(

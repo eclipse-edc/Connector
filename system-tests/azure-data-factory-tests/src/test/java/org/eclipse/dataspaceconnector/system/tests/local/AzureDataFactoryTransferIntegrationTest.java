@@ -35,13 +35,15 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.UUID;
 
+import static java.lang.String.format;
 import static java.lang.String.valueOf;
 import static java.lang.System.getenv;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.system.tests.local.BlobTransferSimulationConfiguration.BLOB_CONTENT;
 import static org.eclipse.dataspaceconnector.system.tests.local.BlobTransferUtils.createAsset;
 import static org.eclipse.dataspaceconnector.system.tests.local.BlobTransferUtils.createContractDefinition;
 import static org.eclipse.dataspaceconnector.system.tests.local.BlobTransferUtils.createPolicy;
@@ -135,13 +137,12 @@ public class AzureDataFactoryTransferIntegrationTest {
     public void transferBlob_success() {
         // Arrange
         var vault = AzureVault.authenticateWithSecret(new ConsoleMonitor(), AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_CLIENT_SECRET, KEY_VAULT_NAME);
+        var account2Key = Objects.requireNonNull(vault.resolveSecret(format("%s-key1", CONSUMER_STORAGE_ACCOUNT_NAME)));
         var blobStoreApi = new BlobStoreApiImpl(vault, BLOB_STORE_ENDPOINT_TEMPLATE);
 
         // Upload a blob with test data on provider blob container
-        var blobContent = "AzureDataFactoryTransferIntegrationTest-" + UUID.randomUUID();
-
         blobStoreApi.createContainer(PROVIDER_STORAGE_ACCOUNT_NAME, PROVIDER_CONTAINER_NAME);
-        blobStoreApi.putBlob(PROVIDER_STORAGE_ACCOUNT_NAME, PROVIDER_CONTAINER_NAME, PROVIDER_ASSET_FILE, blobContent.getBytes(UTF_8));
+        blobStoreApi.putBlob(PROVIDER_STORAGE_ACCOUNT_NAME, PROVIDER_CONTAINER_NAME, PROVIDER_ASSET_FILE, BLOB_CONTENT.getBytes(UTF_8));
         // Add for cleanup
         CONTAINER_CLEANUP.add(() -> blobStoreApi.deleteContainer(PROVIDER_STORAGE_ACCOUNT_NAME, PROVIDER_CONTAINER_NAME));
 
@@ -152,22 +153,10 @@ public class AzureDataFactoryTransferIntegrationTest {
 
         // Act
         System.setProperty(BlobTransferLocalSimulation.ACCOUNT_NAME_PROPERTY, CONSUMER_STORAGE_ACCOUNT_NAME);
+        System.setProperty(BlobTransferLocalSimulation.ACCOUNT_KEY_PROPERTY, account2Key);
+        System.setProperty(BlobTransferLocalSimulation.ACCOUNT_ENDPOINT_PROPERTY, format("https://%s.blob.core.windows.net", CONSUMER_STORAGE_ACCOUNT_NAME));
         System.setProperty(BlobTransferLocalSimulation.MAX_DURATION_SECONDS_PROPERTY, "360"); // ADF SLA is to initiate copy within 4 minutes
         runGatling(BlobTransferLocalSimulation.class, TransferSimulationUtils.DESCRIPTION);
-
-        // Assert
-        var provisionedContainerName = BlobTransferUtils.getProvisionedContainerName();
-        // Add for cleanup
-        CONTAINER_CLEANUP.add(() -> blobStoreApi.deleteContainer(CONSUMER_STORAGE_ACCOUNT_NAME, provisionedContainerName));
-
-        var actualBlobContent = blobStoreApi.getBlob(CONSUMER_STORAGE_ACCOUNT_NAME, provisionedContainerName, PROVIDER_ASSET_FILE);
-        assertThat(actualBlobContent.length)
-                .withFailMessage("Destination blob %s not created", PROVIDER_ASSET_FILE)
-                .isGreaterThan(0);
-        assertThat(new String(actualBlobContent))
-                .withFailMessage("Transferred file contents are not same as the source file")
-                .isEqualTo(blobContent);
-
     }
 
     @NotNull

@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.system.tests.utils;
 
 import java.time.Duration;
+import java.util.Map;
 
 /**
  * Pluggable definition for {@link org.eclipse.dataspaceconnector.system.tests.local.TransferLocalSimulation}
@@ -25,5 +26,9 @@ public interface TransferSimulationConfiguration {
 
     default Duration copyMaxDuration() {
         return Duration.ofSeconds(30);
+    }
+
+    default boolean verifyTransferResult(Map<String, String> dataDestinationProperties) {
+        return true;
     }
 }
