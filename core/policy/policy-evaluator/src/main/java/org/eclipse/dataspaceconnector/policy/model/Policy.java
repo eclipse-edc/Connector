@@ -28,8 +28,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * A collection of permissions, prohibitions, and obligations associated with an asset. Subtypes are defined by
+ * A collection of permissions, prohibitions, and obligations. Subtypes are defined by
  * {@link PolicyType}.
+ * This is a value object. In order to have it identifiable and individually addressable, consider the use of
+ * {@link PolicyDefinition}.
  */
 @JsonDeserialize(builder = Policy.Builder.class)
 public class Policy {

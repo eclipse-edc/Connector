@@ -21,6 +21,16 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * A {@link PolicyDefinition} is a container for a {@link Policy} and a unique identifier. Policies by themselves do
+ * not have and identity, they are value objects.
+ * However, most connector runtimes will need to keep a set of policies as their reference or master data, which
+ * requires them to be identifiable and addressable. In most cases this also means that they have a stable, unique
+ * identity, potentially across systems. In such cases a {@link Policy} should be enveloped in a
+ * {@link PolicyDefinition}.
+ * <p>
+ * <em>Many external Policy formats like ODRL also require policies to have an ID.</em>
+ */
 @JsonDeserialize(builder = PolicyDefinition.Builder.class)
 public class PolicyDefinition {
     private String uid;
