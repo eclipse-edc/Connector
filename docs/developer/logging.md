@@ -32,7 +32,7 @@ Used to describe details of the normal flow that are not interesting for a produ
 - every exception with `severe` or `warning`
 - every `Result` object evaluated as `failed`: 
   - with `severe` if this is something that interrupts the flow and someone should take care of immediately
-  - with `warning` if this is something that doesn't interrupts the flow but someone should take care of, because it could give worse results in the future
+  - with `warning` if this is something that doesn't interrupt the flow but someone should take care of, because it could give worse results in the future
 - every important message that's not an error with `info`, e.g. entity state changes
 - other informative events like incoming calls at the API layer or state changes with `debug`
 
