@@ -33,9 +33,11 @@ in the detailed section referring to by linking pull requests or issues.
 * Harmonize setting names in `data-plane-transfer` (#1164)
 * Add Blob transfer Architectural Decision Record (#1259)
 * Add component tests coverage to the codecov coverage report (#1246)
-* Postgresql end to end test (#1278)
+* Postgresql end-to-end test (#1278)
+* CosmosDB end-to-end test (#1346)
 * Add signing/publishing config (#1147)
 * Verify OpenAPI definitions (#1312)
+* Documentation for CosmosDB (#1334)
 
 #### Changed
 
@@ -80,6 +82,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Remove ContractDef from Cosmos DB cache when deleting (#1330)
 * Fix misleading warning message on initialization (#1336)
 * Auto-upload of Cosmos stored procedures (#1338)
+* Resiliency against exceptions in the `PartitionManagerImpl` (#1366)
 
 ## [milestone-3] - 2022-04-08
 

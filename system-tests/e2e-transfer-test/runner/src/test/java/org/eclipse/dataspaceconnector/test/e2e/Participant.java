@@ -261,7 +261,15 @@ public class Participant {
                 put("edc.transfer.proxy.token.signer.privatekey.alias", "1");
                 put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
                 put("edc.transfer.proxy.endpoint", dataPlanePublic.toString());
+            }
+        };
+    }
 
+    public Map<String, String> controlPlanePostgresConfiguration() {
+        var baseConfiguration = controlPlaneConfiguration();
+
+        var postgresConfiguration = new HashMap<String, String>() {
+            {
                 put("edc.datasource.asset.name", "asset");
                 put("edc.datasource.asset.url", jdbcUrl());
                 put("edc.datasource.asset.user", PostgresqlLocalInstance.USER);
@@ -284,7 +292,42 @@ public class Participant {
                 put("edc.datasource.transferprocess.password", PostgresqlLocalInstance.PASSWORD);
             }
         };
+        baseConfiguration.putAll(postgresConfiguration);
+
+        return baseConfiguration;
     }
+
+
+    public Map<String, String> controlPlaneCosmosDbConfiguration() {
+        var baseConfiguration = controlPlaneConfiguration();
+
+        var cosmosDbConfiguration = new HashMap<String, String>() {
+            {
+                put("edc.assetindex.cosmos.account-name", "test");
+                put("edc.assetindex.cosmos.database-name", "e2e-transfer-test");
+                put("edc.assetindex.cosmos.container-name", "assetindex");
+                put("edc.contractdefinitionstore.cosmos.account-name", "test");
+                put("edc.contractdefinitionstore.cosmos.database-name", "e2e-transfer-test");
+                put("edc.contractdefinitionstore.cosmos.container-name", "contractdefinitionstore");
+                put("edc.contractnegotiationstore.cosmos.account-name", "test");
+                put("edc.contractnegotiationstore.cosmos.database-name", "e2e-transfer-test");
+                put("edc.contractnegotiationstore.cosmos.container-name", "contractnegotiationstore");
+                put("edc.node.directory.cosmos.account.name", "test");
+                put("edc.node.directory.cosmos.database.name", "e2e-transfer-test");
+                put("edc.node.directory.cosmos.container.name", "nodedirectory");
+                put("edc.policystore.cosmos.account-name", "test");
+                put("edc.policystore.cosmos.database-name", "e2e-transfer-test");
+                put("edc.policystore.cosmos.container-name", "policystore");
+                put("edc.transfer-process-store.cosmos.account.name", "test");
+                put("edc.transfer-process-store.database.name", "e2e-transfer-test");
+                put("edc.transfer-process-store.cosmos.container-name", "transfer-process-store");
+            }
+        };
+        baseConfiguration.putAll(cosmosDbConfiguration);
+
+        return baseConfiguration;
+    }
+
 
     @NotNull
     public String jdbcUrl() {

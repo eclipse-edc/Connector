@@ -32,6 +32,8 @@ import java.util.function.Supplier;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createWorkItem;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -42,6 +44,7 @@ public class PartitionManagerImplTest {
 
     private final Monitor monitorMock = mock(Monitor.class);
     private final WorkItemQueue workItemQueueMock = mock(WorkItemQueue.class);
+
     private PartitionManagerImpl partitionManager;
     private List<WorkItem> staticWorkload;
 
@@ -100,4 +103,57 @@ public class PartitionManagerImplTest {
         verify(queueSourceMock, times(3)).get();
     }
 
+    @Test
+    void schedule_planThrowsIllegalStateException_shouldLogException() throws InterruptedException {
+        var plan = mock(ExecutionPlan.class);
+        when(workItemQueueMock.addAll(any()))
+                .thenReturn(true) // first time works
+                .thenThrow(new IllegalStateException("Queue full")); //second time fails
+
+        var latch = new CountDownLatch(2);
+        doAnswer(invocation -> {
+            var runnable = (Runnable) invocation.getArgument(0);
+            runnable.run();
+            latch.countDown();
+            Thread.sleep(100);
+            runnable.run();
+            latch.countDown();
+            return null;
+        }).when(plan).run(any());
+        partitionManager.schedule(plan);
+
+        // assert exception was thrown and logged
+        verify(workItemQueueMock, times(2)).addAll(any());
+        assertThat(latch.await(1000, TimeUnit.MILLISECONDS)).isTrue();
+        verify(workItemQueueMock, times(2)).lock();
+        verify(workItemQueueMock, times(2)).unlock();
+        verify(monitorMock).warning(startsWith("Cannot add 1 elements to the queue"), isA(IllegalStateException.class));
+    }
+
+    @Test
+    void schedule_planThrowsAnyException_shouldLogException() throws InterruptedException {
+        var plan = mock(ExecutionPlan.class);
+        when(workItemQueueMock.addAll(any()))
+                .thenReturn(true) // first time works
+                .thenThrow(new RuntimeException("Any random error")); //second time fails
+
+        var latch = new CountDownLatch(2);
+        doAnswer(invocation -> {
+            var runnable = (Runnable) invocation.getArgument(0);
+            runnable.run();
+            latch.countDown();
+            Thread.sleep(100);
+            runnable.run();
+            latch.countDown();
+            return null;
+        }).when(plan).run(any());
+        partitionManager.schedule(plan);
+
+        // assert exception was thrown and logged
+        verify(workItemQueueMock, times(2)).addAll(any());
+        assertThat(latch.await(1000, TimeUnit.MILLISECONDS)).isTrue();
+        verify(workItemQueueMock, times(2)).lock();
+        verify(workItemQueueMock, times(2)).unlock();
+        verify(monitorMock).severe(startsWith("Error populating the queue"), isA(RuntimeException.class));
+    }
 }

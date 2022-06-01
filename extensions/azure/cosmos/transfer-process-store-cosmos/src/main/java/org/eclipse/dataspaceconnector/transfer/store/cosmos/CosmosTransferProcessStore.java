@@ -113,7 +113,6 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     @Override
     public void create(TransferProcess process) {
         Objects.requireNonNull(process.getId(), "TransferProcesses must have an ID!");
-        process.transitionInitial();
 
         //todo: configure indexing
         var document = new TransferProcessDocument(process, partitionKey);

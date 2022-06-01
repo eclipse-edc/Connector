@@ -65,7 +65,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
-@Provides({Crawler.class, LoaderManager.class, QueryEngine.class, NodeQueryAdapterRegistry.class, CacheQueryAdapterRegistry.class})
+@Provides({ Crawler.class, LoaderManager.class, QueryEngine.class, NodeQueryAdapterRegistry.class, CacheQueryAdapterRegistry.class })
 public class FederatedCatalogCacheExtension implements ServiceExtension {
     public static final int DEFAULT_NUM_CRAWLERS = 1;
     private static final int DEFAULT_QUEUE_LENGTH = 50;
@@ -170,7 +170,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
                 .map(n -> new WorkItem(n.getTargetUrl(), selectProtocol(n.getSupportedProtocols()))).collect(Collectors.toList());
 
         return new PartitionManagerImpl(monitor,
-                new DefaultWorkItemQueue(partitionManagerConfig.getWorkItemQueueSize(10)),
+                new DefaultWorkItemQueue(partitionManagerConfig.getWorkItemQueueSize()),
                 workItems -> createCrawler(workItems, context, protocolAdapterRegistry, updateResponseQueue),
                 partitionManagerConfig.getNumCrawlers(DEFAULT_NUM_CRAWLERS),
                 nodes);

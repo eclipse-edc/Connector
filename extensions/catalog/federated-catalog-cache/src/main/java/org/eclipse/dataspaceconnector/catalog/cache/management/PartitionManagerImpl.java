@@ -29,6 +29,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static java.lang.String.format;
+
 public class PartitionManagerImpl implements PartitionManager {
     private final Monitor monitor;
     private final Function<WorkItemQueue, Crawler> crawlerGenerator;
@@ -44,8 +46,10 @@ public class PartitionManagerImpl implements PartitionManager {
      * @param workQueue        An implementation of a blocking {@link WorkItemQueue}
      * @param crawlerGenerator A generator function that MUST create a new instance of a {@link Crawler}
      * @param numCrawlers      A number indicating how many {@code Crawler} instances should be generated.
-     *                         Note that the PartitionManager may choose to generate more or less, e.g. because of constrained system resources.
-     * @param workloadSource   A fixed list of {@link WorkItem} instances that need to be processed on every execution run. This list is treated as immutable,
+     *                         Note that the PartitionManager may choose to generate more or less, e.g. because of
+     *                         constrained system resources.
+     * @param workloadSource   A fixed list of {@link WorkItem} instances that need to be processed on every execution
+     *                         run. This list is treated as immutable,
      */
     public PartitionManagerImpl(Monitor monitor, WorkItemQueue workQueue, Function<WorkItemQueue, Crawler> crawlerGenerator, int numCrawlers, Supplier<List<WorkItem>> workloadSource) {
         this.monitor = monitor;
@@ -64,14 +68,27 @@ public class PartitionManagerImpl implements PartitionManager {
     @Override
     public void schedule(ExecutionPlan executionPlan) {
         executionPlan.run(() -> {
-            // obtain latest node directory contents before scheduling the work
             var currentList = workloadSource.get();
+
+
             monitor.debug("Partition manager: execute plan - waiting for queue lock");
             workQueue.lock();
-            monitor.debug("Partition manager: execute plan - adding workload " + currentList.size());
-            workQueue.addAll(currentList);
-            workQueue.unlock();
-            monitor.debug("Partition manager: unlocked queue");
+
+            var size = currentList.size();
+            try {
+                monitor.debug("Partition manager: execute plan - adding workload " + size);
+                // obtain latest node directory contents before scheduling the work
+                workQueue.addAll(currentList);
+
+            } catch (IllegalStateException ex) {
+                //thrown by workQueue.
+                monitor.warning(format("Cannot add %s elements to the queue", size), ex);
+            } catch (Throwable thr) {
+                monitor.severe("Error populating the queue", thr);
+            } finally {
+                workQueue.unlock();
+                monitor.debug("Partition manager: unlocked queue");
+            }
         });
     }
 
