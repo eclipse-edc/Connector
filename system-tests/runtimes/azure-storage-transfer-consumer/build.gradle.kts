@@ -31,7 +31,9 @@ dependencies {
 
     implementation(project(":extensions:api:data-management"))
 
-    implementation(project(":data-protocols:ids"))
+    implementation(project(":data-protocols:ids")) {
+        exclude("org.eclipse.dataspaceconnector","ids-token-validation")
+    }
 
     implementation(project(":extensions:azure:blobstorage"))
 

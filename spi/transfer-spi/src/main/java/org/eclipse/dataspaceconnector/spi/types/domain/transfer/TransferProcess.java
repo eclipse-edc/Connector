@@ -100,6 +100,7 @@ public class TransferProcess implements TraceCarrier {
 
     private String id;
     private Type type = Type.CONSUMER;
+    private long createdTimestamp;
     private int state;
     private int stateCount = UNSAVED.code();
     private long stateTimestamp;
@@ -116,6 +117,10 @@ public class TransferProcess implements TraceCarrier {
 
     public String getId() {
         return id;
+    }
+
+    public long getCreatedTimestamp() {
+        return createdTimestamp;
     }
 
     public Type getType() {
@@ -340,6 +345,7 @@ public class TransferProcess implements TraceCarrier {
                 .contentDataAddress(contentDataAddress)
                 .traceContext(traceContext)
                 .type(type)
+                .createdTimestamp(createdTimestamp)
                 .errorDetail(errorDetail)
                 .build();
     }
@@ -416,6 +422,11 @@ public class TransferProcess implements TraceCarrier {
 
         public Builder type(Type type) {
             process.type = type;
+            return this;
+        }
+
+        public Builder createdTimestamp(long value) {
+            process.createdTimestamp = value;
             return this;
         }
 

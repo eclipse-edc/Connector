@@ -60,9 +60,8 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
     @Nullable
     @Override
     public ContractDefinition definitionFor(ParticipantAgent agent, String definitionId) {
-        return definitionStore.findAll().stream()
-                .filter(d -> d.getId().equals(definitionId))
-                .findFirst()
+        return Optional.of(definitionId)
+                .map(definitionStore::findById)
                 .filter(definition -> evaluatePolicies(definition, agent))
                 .orElse(null);
     }

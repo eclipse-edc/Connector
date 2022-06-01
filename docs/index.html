@@ -17,6 +17,10 @@
       .content {
         overflow: auto;
       }
+
+      .markdown-section code {
+        color: #8BC440;
+      }
     </style>
   </head>
 
@@ -25,9 +29,9 @@
     <script>
       window.$docsify = {
         alias: {
-          '.*?/changelog':
-            'https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/CHANGELOG.md',
           '/.*/_sidebar.md': '/_sidebar.md',
+          '/.*/_navbar.md': '/_navbar.md',
+          '/.*/package.json': '/package.json',
         },
         auto2top: true,
         coverpage: true,
@@ -35,11 +39,24 @@
         executeScript: true,
         loadSidebar: true,
         loadNavbar: true,
+        mustache: {
+          data: [
+            {
+              main: 'https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/tree/main/',
+              launchers: 'https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/tree/main/launchers/',
+              samples: 'https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/samples/',
+              extensions: 'https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/extensions/'
+            }
+          ]
+        },
         name: 'Dataspace Connector',
         nativeEmoji: true,
         notFoundPage: true,
         onlyCover: true,
-        relativePath: false,
+        relativePath: true,
+        remoteMarkdown: {
+          tag: 'remoteMarkdownUrl',
+        },
         repo: 'eclipse-dataspaceconnector/DataSpaceConnector',
         search: {
           noData: {
@@ -67,6 +84,10 @@
     <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
     <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
     <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/docsify-updated/src/time-updater.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-updated/src/time-updater.min.js"></script>
+
+    <script src="//unpkg.com/docsify-remote-markdown/dist/docsify-remote-markdown.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-mustache"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/front-matter.min.js"></script>
   </body>
 </html>

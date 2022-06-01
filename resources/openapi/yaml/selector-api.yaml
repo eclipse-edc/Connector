@@ -2,21 +2,19 @@ openapi: 3.0.1
 paths:
   /instances:
     get:
-      tags:
-      - Dataplane Selector
       operationId: getAll
       responses:
         default:
-          description: default response
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/DataPlaneInstance'
-    post:
+          description: default response
       tags:
       - Dataplane Selector
+    post:
       operationId: addEntry
       requestBody:
         content:
@@ -25,13 +23,13 @@ paths:
               $ref: '#/components/schemas/DataPlaneInstance'
       responses:
         default:
-          description: default response
           content:
             application/json: {}
-  /instances/select:
-    post:
+          description: default response
       tags:
       - Dataplane Selector
+  /instances/select:
+    post:
       operationId: find
       requestBody:
         content:
@@ -40,31 +38,15 @@ paths:
               $ref: '#/components/schemas/SelectionRequest'
       responses:
         default:
-          description: default response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DataPlaneInstance'
+          description: default response
+      tags:
+      - Dataplane Selector
 components:
   schemas:
-    DataPlaneInstance:
-      type: object
-      properties:
-        id:
-          type: string
-        url:
-          type: string
-          format: url
-        turnCount:
-          type: integer
-          format: int32
-        lastActive:
-          type: integer
-          format: int64
-        properties:
-          type: object
-          additionalProperties:
-            type: object
     DataAddress:
       type: object
       properties:
@@ -72,12 +54,30 @@ components:
           type: object
           additionalProperties:
             type: string
+    DataPlaneInstance:
+      type: object
+      properties:
+        id:
+          type: string
+        lastActive:
+          type: integer
+          format: int64
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+        turnCount:
+          type: integer
+          format: int32
+        url:
+          type: string
+          format: url
     SelectionRequest:
       type: object
       properties:
-        source:
-          $ref: '#/components/schemas/DataAddress'
         destination:
+          $ref: '#/components/schemas/DataAddress'
+        source:
           $ref: '#/components/schemas/DataAddress'
         strategy:
           type: string

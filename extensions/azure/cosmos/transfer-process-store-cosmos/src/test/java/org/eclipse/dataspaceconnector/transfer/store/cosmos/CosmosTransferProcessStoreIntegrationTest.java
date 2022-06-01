@@ -54,7 +54,6 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.dataspaceconnector.azure.cosmos.util.StoredProcedureTestUtils.uploadStoredProcedure;
 import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.createTransferProcess;
 import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.createTransferProcessDocument;
 
@@ -98,10 +97,11 @@ class CosmosTransferProcessStoreIntegrationTest {
         var containerName = CONTAINER_PREFIX + UUID.randomUUID();
         var containerIfNotExists = database.createContainerIfNotExists(containerName, "/partitionKey");
         container = database.getContainer(containerIfNotExists.getProperties().getId());
-        uploadStoredProcedure(container, "nextForState");
-        uploadStoredProcedure(container, "lease");
+
         var retryPolicy = new RetryPolicy<>().withMaxRetries(5).withBackoff(1, 3, ChronoUnit.SECONDS);
         var cosmosDbApi = new CosmosDbApiImpl(container, false);
+        cosmosDbApi.uploadStoredProcedure("nextForState");
+        cosmosDbApi.uploadStoredProcedure("lease");
         store = new CosmosTransferProcessStore(cosmosDbApi, typeManager, partitionKey, connectorId, retryPolicy);
     }
 

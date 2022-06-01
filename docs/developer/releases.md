@@ -139,3 +139,5 @@ Examples:
 org.eclipse.dataspaceconnector:spi
 org.eclipse.dataspaceconnector:common-util
 ```
+
+A comprehensive list can be found [here](modules.md)

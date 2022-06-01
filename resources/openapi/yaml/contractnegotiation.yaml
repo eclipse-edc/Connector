@@ -1,134 +1,46 @@
 openapi: 3.0.1
 paths:
-  /contractnegotiations/{id}/cancel:
-    post:
-      tags:
-      - Contract Negotiation
-      operationId: cancelNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /contractnegotiations/{id}/decline:
-    post:
-      tags:
-      - Contract Negotiation
-      operationId: declineNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /contractnegotiations/{id}/agreement:
-    get:
-      tags:
-      - Contract Negotiation
-      operationId: getAgreementForNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContractAgreementDto'
-  /contractnegotiations/{id}:
-    get:
-      tags:
-      - Contract Negotiation
-      operationId: getNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContractNegotiationDto'
-  /contractnegotiations/{id}/state:
-    get:
-      tags:
-      - Contract Negotiation
-      operationId: getNegotiationState
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NegotiationState'
   /contractnegotiations:
     get:
-      tags:
-      - Contract Negotiation
       operationId: getNegotiations
       parameters:
-      - name: offset
-        in: query
+      - in: query
+        name: offset
         schema:
           type: integer
           format: int32
-      - name: limit
-        in: query
+      - in: query
+        name: limit
         schema:
           type: integer
           format: int32
-      - name: filter
-        in: query
+      - in: query
+        name: filter
         schema:
           type: string
-      - name: sort
-        in: query
+      - in: query
+        name: sort
         schema:
           type: string
           enum:
           - ASC
           - DESC
-      - name: sortField
-        in: query
+      - in: query
+        name: sortField
         schema:
           type: string
       responses:
         default:
-          description: default response
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/ContractNegotiationDto'
-    post:
+          description: default response
       tags:
       - Contract Negotiation
+    post:
       operationId: initiateContractNegotiation
       requestBody:
         content:
@@ -137,34 +49,140 @@ paths:
               $ref: '#/components/schemas/NegotiationInitiateRequestDto'
       responses:
         default:
-          description: default response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NegotiationId'
+          description: default response
+      tags:
+      - Contract Negotiation
+  /contractnegotiations/{id}:
+    get:
+      operationId: getNegotiation
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractNegotiationDto'
+          description: default response
+      tags:
+      - Contract Negotiation
+  /contractnegotiations/{id}/agreement:
+    get:
+      operationId: getAgreementForNegotiation
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractAgreementDto'
+          description: default response
+      tags:
+      - Contract Negotiation
+  /contractnegotiations/{id}/cancel:
+    post:
+      operationId: cancelNegotiation
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      tags:
+      - Contract Negotiation
+  /contractnegotiations/{id}/decline:
+    post:
+      operationId: declineNegotiation
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      tags:
+      - Contract Negotiation
+  /contractnegotiations/{id}/state:
+    get:
+      operationId: getNegotiationState
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NegotiationState'
+          description: default response
+      tags:
+      - Contract Negotiation
 components:
   schemas:
+    Action:
+      type: object
+      properties:
+        constraint:
+          $ref: '#/components/schemas/Constraint'
+        includedIn:
+          type: string
+        type:
+          type: string
+    Constraint:
+      type: object
+      discriminator:
+        propertyName: edctype
+      properties:
+        edctype:
+          type: string
+      required:
+      - edctype
     ContractAgreementDto:
       type: object
       properties:
-        id:
-          type: string
-        providerAgentId:
+        assetId:
           type: string
         consumerAgentId:
           type: string
+        contractEndDate:
+          type: integer
+          format: int64
         contractSigningDate:
           type: integer
           format: int64
         contractStartDate:
           type: integer
           format: int64
-        contractEndDate:
-          type: integer
-          format: int64
-        assetId:
+        id:
           type: string
         policyId:
+          type: string
+        providerAgentId:
           type: string
     ContractNegotiationDto:
       type: object
@@ -186,92 +204,70 @@ components:
           enum:
           - CONSUMER
           - PROVIDER
-    NegotiationState:
-      type: object
-      properties:
-        state:
-          type: string
-    NegotiationId:
-      type: object
-      properties:
-        id:
-          type: string
-    Action:
-      type: object
-      properties:
-        type:
-          type: string
-        includedIn:
-          type: string
-        constraint:
-          $ref: '#/components/schemas/Constraint'
-    Constraint:
-      required:
-      - edctype
-      type: object
-      properties:
-        edctype:
-          type: string
-      discriminator:
-        propertyName: edctype
     ContractOfferDescription:
-      required:
-      - assetId
-      - offerId
       type: object
       properties:
-        offerId:
-          type: string
         assetId:
           type: string
-        policyId:
+        offerId:
           type: string
         policy:
           $ref: '#/components/schemas/Policy'
+        policyId:
+          type: string
+      required:
+      - assetId
+      - offerId
     Duty:
       type: object
       properties:
-        uid:
-          type: string
-        target:
-          type: string
         action:
           $ref: '#/components/schemas/Action'
         assignee:
           type: string
         assigner:
           type: string
+        consequence:
+          $ref: '#/components/schemas/Duty'
         constraints:
           type: array
           items:
             $ref: '#/components/schemas/Constraint'
         parentPermission:
           $ref: '#/components/schemas/Permission'
-        consequence:
-          $ref: '#/components/schemas/Duty'
+        target:
+          type: string
+        uid:
+          type: string
+    NegotiationId:
+      type: object
+      properties:
+        id:
+          type: string
     NegotiationInitiateRequestDto:
-      required:
-      - connectorAddress
-      - connectorId
-      - offer
-      - protocol
       type: object
       properties:
         connectorAddress:
-          type: string
-        protocol:
           type: string
         connectorId:
           type: string
         offer:
           $ref: '#/components/schemas/ContractOfferDescription'
+        protocol:
+          type: string
+      required:
+      - connectorAddress
+      - connectorId
+      - offer
+      - protocol
+    NegotiationState:
+      type: object
+      properties:
+        state:
+          type: string
     Permission:
       type: object
       properties:
-        uid:
-          type: string
-        target:
-          type: string
         action:
           $ref: '#/components/schemas/Action'
         assignee:
@@ -286,11 +282,33 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Duty'
+        target:
+          type: string
+        uid:
+          type: string
     Policy:
       type: object
       properties:
-        uid:
+        '@type':
           type: string
+          enum:
+          - SET
+          - OFFER
+          - CONTRACT
+        assignee:
+          type: string
+        assigner:
+          type: string
+        extensibleProperties:
+          type: object
+          additionalProperties:
+            type: object
+        inheritsFrom:
+          type: string
+        obligations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Duty'
         permissions:
           type: array
           items:
@@ -299,35 +317,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Prohibition'
-        obligations:
-          type: array
-          items:
-            $ref: '#/components/schemas/Duty'
-        extensibleProperties:
-          type: object
-          additionalProperties:
-            type: object
-        inheritsFrom:
-          type: string
-        assigner:
-          type: string
-        assignee:
-          type: string
         target:
           type: string
-        '@type':
+        uid:
           type: string
-          enum:
-          - SET
-          - OFFER
-          - CONTRACT
     Prohibition:
       type: object
       properties:
-        uid:
-          type: string
-        target:
-          type: string
         action:
           $ref: '#/components/schemas/Action'
         assignee:
@@ -338,3 +334,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Constraint'
+        target:
+          type: string
+        uid:
+          type: string
