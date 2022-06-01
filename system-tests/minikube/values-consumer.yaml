@@ -1,9 +1,10 @@
 image:
   repository: consumer
   tag: latest
+
 service:
   type: NodePort
-  port: 8181
+
 edc:
   env:
     IDS_WEBHOOK_ADDRESS: http://consumer-dataspace-connector:8282
