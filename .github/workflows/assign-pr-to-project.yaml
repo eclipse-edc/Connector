@@ -9,6 +9,8 @@ env:
 jobs:
   assign-project:
     runs-on: ubuntu-latest
+    permissions:
+      repository-projects: write
     steps:
       - name: Assign to basic project
         uses: srggrs/assign-one-project-github-action@1.3.1
