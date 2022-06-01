@@ -396,13 +396,12 @@ class CosmosTransferProcessStoreIntegrationTest {
     void update_notExist_shouldCreate() {
         var tp = createTransferProcess("process-id");
 
-        tp.transitionInitial();
         tp.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
         store.update(tp);
 
-        CosmosItemResponse<Object> response = container.readItem(tp.getId(), new PartitionKey(partitionKey), Object.class);
+        var response = container.readItem(tp.getId(), new PartitionKey(partitionKey), Object.class);
 
-        TransferProcessDocument stored = convert(response.getItem());
+        var stored = convert(response.getItem());
         assertThat(stored.getWrappedInstance()).isEqualTo(tp);
         assertThat(stored.getWrappedInstance().getState()).isEqualTo(TransferProcessStates.PROVISIONING.code());
         assertThat(stored.getLease()).isNull();
