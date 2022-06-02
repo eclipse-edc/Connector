@@ -1,7 +1,8 @@
-name: Close inactive issues
+name: Close Inactive Issues
 on:
   schedule:
     - cron: "30 1 * * *" # once a day (1:30 UTC)
+  workflow_dispatch: # allow manual trigger
 
 jobs:
   close-issues-without-assignee:
