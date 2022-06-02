@@ -21,6 +21,7 @@ org.eclipse.dataspaceconnector:http:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:http-provisioner:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:http-receiver:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:jdk-logger-monitor:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:mindsphere:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:sql:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:dataloader-cli:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-server:0.0.1-SNAPSHOT
@@ -79,6 +80,7 @@ org.eclipse.dataspaceconnector:jetty-micrometer:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:iam-daps:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:decentralized-identity:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:iam-mock:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:mindsphere-http:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:asset-index-sql:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:common-sql:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:contractdefinition-store-sql:0.0.1-SNAPSHOT
