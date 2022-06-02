@@ -63,12 +63,6 @@ import static java.util.Optional.ofNullable;
 @BaseExtension
 @Provides({
         HealthCheckService.class,
-        Hostname.class,
-        OkHttpClient.class,
-        ParticipantAgentService.class,
-        PolicyEngine.class,
-        RemoteMessageDispatcherRegistry.class,
-        RuleBindingRegistry.class,
         Monitor.class,
         TypeManager.class,
         Telemetry.class

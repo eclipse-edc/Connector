@@ -22,8 +22,9 @@ val jupiterVersion: String by project
 
 dependencies {
     api(project(":core:boot"))
-    implementation(project(":data-protocols:ids"))
-
+    implementation(project(":data-protocols:ids")) {
+        exclude("org.eclipse.dataspaceconnector","ids-token-validation")
+    }
 
     implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:filesystem:configuration-fs"))

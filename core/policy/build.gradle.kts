@@ -12,8 +12,6 @@
  *
  */
 
-val slf4jVersion: String by project
-
 plugins {
     `java-library`
     `maven-publish`

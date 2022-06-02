@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS edc_transfer_process
     state                    INTEGER           NOT NULL,
     state_count              INTEGER DEFAULT 0 NOT NULL,
     state_time_stamp         BIGINT,
+    created_time_stamp       BIGINT,
     trace_context            VARCHAR,
     error_detail             VARCHAR,
     resource_manifest        VARCHAR,

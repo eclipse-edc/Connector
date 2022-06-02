@@ -12,7 +12,7 @@ Extend the existing `EdcExtension` JUnit facility (that can currently run a sing
 
 The need to provide an integration test harness that supports multiple runtimes emerges from multiple needs:
 
-- Stabilizing [samples](../../samples) that run multiple connectors, which have been breaking frequently.
+- Stabilizing [samples](/samples) that run multiple connectors, which have been breaking frequently.
 - Testing system behavior when multiple connectors interact, e.g. the contract negotiation process.
 - Testing system behavior upon component failure.
 - Providing a test facility for factoring out application components to separate runtimes (e.g. [DPF](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/463)).
@@ -38,7 +38,7 @@ The approach used is not limited to the Dataspace Connector, it can be used to r
 
 ## Spikes
 
-We have performed technical spikes on [sample 04.0-file-transfer](../../../samples/04.0-file-transfer/README.md), that runs two EDC connectors, a Consumer and a Provider. [Spike code is in a forked repository](https://github.com/agera-edc/DataSpaceConnector/pull/3/files). The test requires three components:
+We have performed technical spikes on [sample 04.0-file-transfer](/samples/04.0-file-transfer/README.md), that runs two EDC connectors, a Consumer and a Provider. [Spike code is in a forked repository](https://github.com/agera-edc/DataSpaceConnector/pull/3/files). The test requires three components:
 
 - Consumer EDC connector
 - Provider EDC connector

@@ -1,6 +1,7 @@
 image:
   repository: provider
   tag: latest
+
 edc:
   env:
     IDS_WEBHOOK_ADDRESS: http://provider-dataspace-connector:8282

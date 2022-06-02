@@ -41,7 +41,7 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
     static EdcRuntimeExtension consumerControlPlane = new EdcRuntimeExtension(
             ":system-tests:e2e-transfer-test:control-plane-postgresql",
             "consumer-control-plane",
-            CONSUMER.controlPlaneConfiguration()
+            CONSUMER.controlPlanePostgresConfiguration()
     );
 
     @RegisterExtension
@@ -73,7 +73,7 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
     static EdcRuntimeExtension providerControlPlane = new EdcRuntimeExtension(
             ":system-tests:e2e-transfer-test:control-plane-postgresql",
             "provider-control-plane",
-            PROVIDER.controlPlaneConfiguration()
+            PROVIDER.controlPlanePostgresConfiguration()
     );
 
     @RegisterExtension

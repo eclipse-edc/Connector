@@ -57,3 +57,7 @@ resources/charts/values.develop.consumer.yaml
 resources/charts/values.develop.provider.yaml
 resources/charts/values.default.consumer.yaml
 resources/charts/values.default.provider.yaml
+
+.env
+runtime_settings.properties
+generated_backend.tf

@@ -58,6 +58,7 @@ class TransferProcessTest {
                 .newInstance()
                 .id(UUID.randomUUID().toString())
                 .type(TransferProcess.Type.PROVIDER)
+                .createdTimestamp(3)
                 .state(TransferProcessStates.COMPLETED.code())
                 .contentDataAddress(DataAddress.Builder.newInstance().type("test").build())
                 .stateCount(1)
@@ -68,6 +69,7 @@ class TransferProcessTest {
 
         assertEquals(process.getState(), copy.getState());
         assertEquals(process.getType(), copy.getType());
+        assertEquals(process.getCreatedTimestamp(), copy.getCreatedTimestamp());
         assertEquals(process.getStateCount(), copy.getStateCount());
         assertEquals(process.getStateTimestamp(), copy.getStateTimestamp());
         assertNotNull(process.getContentDataAddress());

@@ -56,7 +56,7 @@ public class TestHelper {
     }
 
     public static TransferProcess createTransferProcess(String processId) {
-        return createTransferProcess(processId, TransferProcessStates.UNSAVED);
+        return createTransferProcess(processId, TransferProcessStates.INITIAL);
     }
 
     public static TransferProcessDocument createTransferProcessDocument(String id, String partitionKey) {

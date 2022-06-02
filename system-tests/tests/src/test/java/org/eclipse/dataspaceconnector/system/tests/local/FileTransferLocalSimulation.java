@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.system.tests.local;
 
-import org.eclipse.dataspaceconnector.system.tests.FileTransferRequestFactory;
+import org.eclipse.dataspaceconnector.system.tests.FileTransferSimulationConfiguration;
 
 import java.io.File;
 
@@ -31,6 +31,6 @@ public class FileTransferLocalSimulation extends TransferLocalSimulation {
     public static final String PROVIDER_ASSET_PATH = format("%s/%s.txt", tempDirectory(), PROVIDER_ASSET_FILE);
 
     public FileTransferLocalSimulation() {
-        super(new FileTransferRequestFactory(CONSUMER_ASSET_PATH));
+        super(new FileTransferSimulationConfiguration(CONSUMER_ASSET_PATH));
     }
 }

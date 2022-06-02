@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.system.tests.remote;
 
 import io.gatling.javaapi.core.Simulation;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.dataspaceconnector.system.tests.FileTransferRequestFactory;
+import org.eclipse.dataspaceconnector.system.tests.FileTransferSimulationConfiguration;
 
 import java.util.Objects;
 
@@ -39,7 +39,7 @@ public class FileTransferAsClientSimulation extends Simulation {
                 .on(
                         contractNegotiationAndTransfer(
                                 getFromEnv("PROVIDER_URL"),
-                                new FileTransferRequestFactory(getFromEnv("DESTINATION_PATH")))
+                                new FileTransferSimulationConfiguration(getFromEnv("DESTINATION_PATH")))
                 )
                 .injectOpen(atOnceUsers(1)))
                 .protocols(http

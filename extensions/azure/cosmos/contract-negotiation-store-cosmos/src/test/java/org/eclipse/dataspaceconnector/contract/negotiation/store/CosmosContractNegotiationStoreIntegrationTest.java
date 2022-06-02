@@ -305,7 +305,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
         var state = ContractNegotiationStates.CONFIRMED;
         var n = generateNegotiation(state);
         var doc = new ContractNegotiationDocument(n, partitionKey);
-        Duration leaseDuration = Duration.ofSeconds(2);
+        Duration leaseDuration = Duration.ofSeconds(10); // give it some time to compensate for TOF delays
         doc.acquireLease("another-connector", leaseDuration);
         container.createItem(doc);
 
@@ -314,7 +314,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
         assertThat(negotiationsBeforeLeaseExpired).isEmpty();
         // after the lease expired
         await()
-                .atMost(Duration.ofSeconds(10))
+                .atMost(Duration.ofSeconds(20))
                 .pollInterval(Duration.ofMillis(500))
                 .pollDelay(leaseDuration) //give the lease time to expire
                 .untilAsserted(() -> {
@@ -420,7 +420,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
         var query = QuerySpec.Builder.newInstance().filter("something contains other").build();
 
-        assertThatThrownBy(() -> store.queryNegotiations(query)).isInstanceOfAny(IllegalArgumentException.class).hasMessage("Cannot build SqlParameter for operator: contains");
+        assertThatThrownBy(() -> store.queryNegotiations(query)).isInstanceOfAny(IllegalArgumentException.class).hasMessage("Cannot build WHERE clause, reason: unsupported operator contains");
     }
 
     @Test
@@ -447,7 +447,9 @@ class CosmosContractNegotiationStoreIntegrationTest {
         IntStream.range(0, 10).mapToObj(i -> generateDocument()).forEach(d -> container.createItem(d));
 
         var query = QuerySpec.Builder.newInstance().sortField("xyz").sortOrder(SortOrder.ASC).build();
-        assertThat(store.queryNegotiations(query)).isEmpty();
+        var negotiations = store.queryNegotiations(query);
+
+        assertThat(negotiations).isEmpty();
     }
 
     @Test
@@ -537,8 +539,9 @@ class CosmosContractNegotiationStoreIntegrationTest {
         });
 
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
+        var agreements = store.queryAgreements(query);
 
-        assertThat(store.queryAgreements(query)).isEmpty();
+        assertThat(agreements).isEmpty();
     }
 
     private ContractNegotiationDocument toDocument(Object object) {

@@ -26,6 +26,8 @@ dependencies {
     testImplementation(project(":extensions:sql:common-sql"))
 
     testImplementation(testFixtures(project(":common:util")))
+    testImplementation(testFixtures(project(":extensions:azure:azure-test")))
+    testImplementation(testFixtures(project(":extensions:azure:cosmos:cosmos-common")))
     testImplementation(testFixtures(project(":launchers:junit")))
 
     testImplementation("org.postgresql:postgresql:42.2.6")
