@@ -123,7 +123,7 @@ class AzureDataFactoryCopyIntegrationTest {
                 .keyName(providerStorage.name + "-key1")
                 .build();
 
-        var destSecretKeyName = consumerStorage.name + "-ittest-sas";
+        var destSecretKeyName = consumerStorage.name + "-ittest-sas-" + UUID.randomUUID();
         var destination = DataAddress.Builder.newInstance()
                 .type(TYPE)
                 .property(ACCOUNT_NAME, consumerStorage.name)
