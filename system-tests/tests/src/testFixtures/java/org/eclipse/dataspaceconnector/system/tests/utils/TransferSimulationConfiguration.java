@@ -28,7 +28,7 @@ public interface TransferSimulationConfiguration {
         return Duration.ofSeconds(30);
     }
 
-    default boolean verifyTransferResult(Map<String, String> dataDestinationProperties) {
+    default boolean isTransferResultValid(Map<String, String> dataDestinationProperties) {
         return true;
     }
 }

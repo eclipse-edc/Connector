@@ -92,7 +92,7 @@ public abstract class TransferSimulationUtils {
 
     private static boolean verifyTransferResult(TransferSimulationConfiguration simulationConfiguration, Session s) {
         try {
-            return simulationConfiguration.verifyTransferResult(TYPE_MANAGER.readValue(s.get("dataDestinationProperties"), new TypeReference<>() {
+            return simulationConfiguration.isTransferResultValid(TYPE_MANAGER.readValue(s.get("dataDestinationProperties"), new TypeReference<>() {
             }));
         } catch (Throwable t) {
             t.printStackTrace(); // print e.g. assertion error for debugging

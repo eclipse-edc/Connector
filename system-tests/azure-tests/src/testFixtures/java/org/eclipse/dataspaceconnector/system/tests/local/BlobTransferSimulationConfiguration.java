@@ -73,7 +73,7 @@ public class BlobTransferSimulationConfiguration implements TransferSimulationCo
     }
 
     @Override
-    public boolean verifyTransferResult(Map<String, String> dataDestinationProperties) {
+    public boolean isTransferResultValid(Map<String, String> dataDestinationProperties) {
         // Assert
         var container = dataDestinationProperties.get("container");
         var destinationBlob = blobServiceClient.getBlobContainerClient(container)
