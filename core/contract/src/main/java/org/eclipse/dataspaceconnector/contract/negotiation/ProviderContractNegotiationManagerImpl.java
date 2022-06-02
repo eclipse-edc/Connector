@@ -85,13 +85,13 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     /**
-     * Tells this manager that a {@link ContractNegotiation} has been declined by the counter-party.
-     * Transitions the corresponding ContractNegotiation to state DECLINED.
+     * Tells this manager that a {@link ContractNegotiation} has been declined by the counter-party. Transitions the
+     * corresponding ContractNegotiation to state DECLINED.
      *
-     * @param token         Claim token of the consumer that sent the rejection.
+     * @param token Claim token of the consumer that sent the rejection.
      * @param correlationId Id of the ContractNegotiation on consumer side.
-     * @return a {@link StatusResult}: OK, if successfully transitioned to declined;
-     *         FATAL_ERROR, if no match found for Id.
+     * @return a {@link StatusResult}: OK, if successfully transitioned to declined; FATAL_ERROR, if no match found for
+     *         Id.
      */
     @WithSpan
     @Override
@@ -121,11 +121,10 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     /**
-     * Initiates a new {@link ContractNegotiation}. The ContractNegotiation is created and
-     * persisted, which moves it to state REQUESTED. It is then validated and transitioned to
-     * CONFIRMING, PROVIDER_OFFERING or DECLINING.
+     * Initiates a new {@link ContractNegotiation}. The ContractNegotiation is created and persisted, which moves it to
+     * state REQUESTED. It is then validated and transitioned to CONFIRMING, PROVIDER_OFFERING or DECLINING.
      *
-     * @param token   Claim token of the consumer that send the contract request.
+     * @param token Claim token of the consumer that send the contract request.
      * @param request Container object containing all relevant request parameters.
      * @return a {@link StatusResult}: OK
      */
@@ -153,14 +152,13 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     /**
-     * Tells this manager that a new contract offer has been received for a
-     * {@link ContractNegotiation}. The offer is validated and the ContractNegotiation is
-     * transitioned to CONFIRMING, PROVIDER_OFFERING or DECLINING.
+     * Tells this manager that a new contract offer has been received for a {@link ContractNegotiation}. The offer is
+     * validated and the ContractNegotiation is transitioned to CONFIRMING, PROVIDER_OFFERING or DECLINING.
      *
-     * @param token         Claim token of the consumer that send the contract request.
+     * @param token Claim token of the consumer that send the contract request.
      * @param correlationId Id of the ContractNegotiation on consumer side.
-     * @param offer         The contract offer.
-     * @param hash          A hash of all previous contract offers.
+     * @param offer The contract offer.
+     * @param hash A hash of all previous contract offers.
      * @return a {@link StatusResult}: FATAL_ERROR, if no match found for Id; OK otherwise
      */
     @WithSpan
@@ -175,13 +173,13 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     /**
-     * Tells this manager that a previously sent contract offer has been approved by the consumer.
-     * Transitions the corresponding {@link ContractNegotiation} to state CONFIRMING.
+     * Tells this manager that a previously sent contract offer has been approved by the consumer. Transitions the
+     * corresponding {@link ContractNegotiation} to state CONFIRMING.
      *
-     * @param token         Claim token of the consumer that send the contract request.
+     * @param token Claim token of the consumer that send the contract request.
      * @param correlationId Id of the ContractNegotiation on consumer side.
-     * @param agreement     Agreement sent by consumer.
-     * @param hash          A hash of all previous contract offers.
+     * @param agreement Agreement sent by consumer.
+     * @param hash A hash of all previous contract offers.
      * @return a {@link StatusResult}: FATAL_ERROR, if no match found for Id; OK otherwise
      */
     @Override
@@ -209,13 +207,12 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     /**
-     * Processes an incoming offer for a {@link ContractNegotiation}. The offer is validated and
-     * the corresponding ContractNegotiation is transitioned to CONFIRMING, PROVIDER_OFFERING or
-     * DECLINING.
+     * Processes an incoming offer for a {@link ContractNegotiation}. The offer is validated and the corresponding
+     * ContractNegotiation is transitioned to CONFIRMING, PROVIDER_OFFERING or DECLINING.
      *
      * @param negotiation The ContractNegotiation.
-     * @param token       Claim token of the consumer that send the contract request.
-     * @param offer       The contract offer.
+     * @param token Claim token of the consumer that send the contract request.
+     * @param offer The contract offer.
      * @return a {@link StatusResult}: OK
      */
     private StatusResult<ContractNegotiation> processIncomingOffer(ContractNegotiation negotiation, ClaimToken token, ContractOffer offer) {
@@ -263,9 +260,9 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     /**
-     * Processes {@link ContractNegotiation} in state PROVIDER_OFFERING. Tries to send the current
-     * offer to the respective consumer. If this succeeds, the ContractNegotiation is transitioned
-     * to state PROVIDER_OFFERED. Else, it is transitioned to PROVIDER_OFFERING for a retry.
+     * Processes {@link ContractNegotiation} in state PROVIDER_OFFERING. Tries to send the current offer to the
+     * respective consumer. If this succeeds, the ContractNegotiation is transitioned to state PROVIDER_OFFERED. Else,
+     * it is transitioned to PROVIDER_OFFERING for a retry.
      *
      * @return true if processed, false elsewhere
      */
@@ -312,9 +309,9 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     /**
-     * Processes {@link ContractNegotiation} in state DECLINING. Tries to send a contract rejection
-     * to the respective consumer. If this succeeds, the ContractNegotiation is transitioned
-     * to state DECLINED. Else, it is transitioned to DECLINING for a retry.
+     * Processes {@link ContractNegotiation} in state DECLINING. Tries to send a contract rejection to the respective
+     * consumer. If this succeeds, the ContractNegotiation is transitioned to state DECLINED. Else, it is transitioned
+     * to DECLINING for a retry.
      *
      * @return true if processed, false elsewhere
      */
@@ -360,9 +357,9 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     }
 
     /**
-     * Processes {@link ContractNegotiation} in state CONFIRMING. Tries to send a contract
-     * agreement to the respective consumer. If this succeeds, the ContractNegotiation is
-     * transitioned to state CONFIRMED. Else, it is transitioned to CONFIRMING for a retry.
+     * Processes {@link ContractNegotiation} in state CONFIRMING. Tries to send a contract agreement to the respective
+     * consumer. If this succeeds, the ContractNegotiation is transitioned to state CONFIRMED. Else, it is transitioned
+     * to CONFIRMING for a retry.
      *
      * @return true if processed, false elsewhere
      */
