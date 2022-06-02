@@ -54,7 +54,7 @@ class ContractDefinitionDtoValidationTest {
                 .contractPolicyId(contractPolicyId)
                 .criteria(crit)
                 .build();
-        assertThat(validator.validate(dto)).hasSize(1);
+        assertThat(validator.validate(dto)).hasSizeGreaterThan(0);
     }
 
     @Test
@@ -74,7 +74,8 @@ class ContractDefinitionDtoValidationTest {
             return Stream.of(
                     Arguments.of(null, "accessPolicy", "contractPolicy"),
                     Arguments.of("id", null, "contractPolicy"),
-                    Arguments.of("id", "accessPolicy", null)
+                    Arguments.of("id", "accessPolicy", null),
+                    Arguments.of("id:123", "accessPolicy", "contractPolicy")
             );
         }
     }

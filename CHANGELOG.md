@@ -62,6 +62,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Add signing/publishing config (#1147)
 * Verify OpenAPI definitions (#1312)
 * Documentation for CosmosDB (#1334)
+* Add validation to contract definition id (#1347)
 
 #### Changed
 
