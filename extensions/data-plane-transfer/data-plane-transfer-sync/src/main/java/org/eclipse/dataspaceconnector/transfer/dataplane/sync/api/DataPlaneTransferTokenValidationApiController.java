@@ -58,7 +58,7 @@ public class DataPlaneTransferTokenValidationApiController {
         var validToken = validationResult.getContent();
 
         // decrypt data address
-        validToken.getClaims().computeIfPresent(DATA_ADDRESS, (s, s2) -> dataEncrypter.decrypt(s2));
+        validToken.getClaims().computeIfPresent(DATA_ADDRESS, (s, s2) -> dataEncrypter.decrypt((String) s2));
 
         return Response.ok(validToken).build();
     }
