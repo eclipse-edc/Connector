@@ -54,7 +54,7 @@ public abstract class AbstractAzureBlobTest {
     }
 
     @NotNull
-    public static BlobServiceClient getBlobServiceClient(String accountName, String key) {
+    private static BlobServiceClient getBlobServiceClient(String accountName, String key) {
         return getBlobServiceClient(accountName, key, getEndpoint(accountName));
     }
 
