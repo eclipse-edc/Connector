@@ -192,6 +192,25 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
     }
 
     @Override
+    public Stream<ContractNegotiation> getNegotiationsWithAgreementOnAsset(String assetId) {
+        var statement = "\n" +
+                "SELECT *\n" +
+                "FROM edc_contract_negotiation\n" +
+                "INNER JOIN edc_contract_agreement eca on edc_contract_negotiation.contract_agreement_id = eca.agreement_id\n" +
+                "WHERE edc_contract_negotiation.contract_agreement_id in (SELECT agreement_id\n" +
+                "                                                         FROM edc_contract_agreement\n" +
+                "                                                         WHERE asset_id = ?);\n";
+
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                return executeQuery(connection, this::mapContractNegotiation, statement, assetId).stream();
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
+    @Override
     public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {

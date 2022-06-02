@@ -402,6 +402,43 @@ class SqlContractNegotiationStoreTest {
     }
 
     @Test
+    void getNegotiationsWithAgreementOnAsset_negotiationWithAgreement() {
+        var agreement = createContract("contract1");
+        var negotiation = createNegotiation("negotiation1", agreement);
+        var assetId = agreement.getAssetId();
+
+        store.save(negotiation);
+
+        var result = store.getNegotiationsWithAgreementOnAsset(assetId).collect(Collectors.toList());
+
+        assertThat(result).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsOnly(negotiation);
+
+    }
+
+    @Test
+    void getNegotiationsWithAgreementOnAsset_negotiationWithoutAgreement() {
+        var assetId = UUID.randomUUID().toString();
+        var negotiation = ContractNegotiation.Builder.newInstance()
+                .type(ContractNegotiation.Type.CONSUMER)
+                .id("negotiation1")
+                .contractAgreement(null)
+                .correlationId("corr-negotiation1")
+                .state(ContractNegotiationStates.REQUESTED.code())
+                .counterPartyAddress("consumer")
+                .counterPartyId("consumerId")
+                .protocol("ids-multipart")
+                .build();
+
+        store.save(negotiation);
+
+        var result = store.getNegotiationsWithAgreementOnAsset(assetId).collect(Collectors.toList());
+
+        assertThat(result).isEmpty();
+        assertThat(store.queryAgreements(QuerySpec.none())).isEmpty();
+
+    }
+
+    @Test
     @DisplayName("Verify that paging is used")
     void queryNegotiations_withAgreement() {
         var querySpec = QuerySpec.Builder.newInstance().limit(10).offset(5).build();

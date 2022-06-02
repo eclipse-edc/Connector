@@ -544,6 +544,41 @@ class CosmosContractNegotiationStoreIntegrationTest {
         assertThat(agreements).isEmpty();
     }
 
+    @Test
+    void getNegotiationsWithAgreementOnAsset_negotiationWithAgreement() {
+        var agreement = generateAgreementBuilder().id("contract1").build();
+        var negotiation = generateNegotiationBuilder("negotiation1").contractAgreement(agreement).build();
+        var assetId = agreement.getAssetId();
+
+        store.save(negotiation);
+
+        var result = store.getNegotiationsWithAgreementOnAsset(assetId).collect(Collectors.toList());
+
+        assertThat(result).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsOnly(negotiation);
+    }
+
+    @Test
+    void getNegotiationsWithAgreementOnAsset_negotiationWithoutAgreement() {
+        var assetId = UUID.randomUUID().toString();
+        var negotiation = ContractNegotiation.Builder.newInstance()
+                .type(ContractNegotiation.Type.CONSUMER)
+                .id("negotiation1")
+                .contractAgreement(null)
+                .correlationId("corr-negotiation1")
+                .state(ContractNegotiationStates.REQUESTED.code())
+                .counterPartyAddress("consumer")
+                .counterPartyId("consumerId")
+                .protocol("ids-multipart")
+                .build();
+
+        store.save(negotiation);
+
+        var result = store.getNegotiationsWithAgreementOnAsset(assetId).collect(Collectors.toList());
+
+        assertThat(result).isEmpty();
+        assertThat(store.queryAgreements(QuerySpec.none())).isEmpty();
+    }
+
     private ContractNegotiationDocument toDocument(Object object) {
         var json = typeManager.writeValueAsString(object);
         return typeManager.readValue(json, ContractNegotiationDocument.class);
