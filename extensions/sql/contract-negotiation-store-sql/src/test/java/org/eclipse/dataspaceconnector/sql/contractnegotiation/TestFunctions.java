@@ -27,27 +27,13 @@ import java.util.UUID;
 public class TestFunctions {
 
     public static ContractNegotiation createNegotiation(String id) {
-        return ContractNegotiation.Builder.newInstance()
-                .type(ContractNegotiation.Type.CONSUMER)
-                .id(id)
-                .contractAgreement(null)
-                .correlationId("corr-" + id)
-                .state(ContractNegotiationStates.REQUESTED.code())
-                .counterPartyAddress("consumer")
-                .counterPartyId("consumerId")
-                .protocol("ids-multipart")
+        return createNegotiationBuilder(id)
                 .build();
     }
 
     public static ContractNegotiation createNegotiation(String id, ContractAgreement agreement) {
-        return ContractNegotiation.Builder.newInstance()
-                .type(ContractNegotiation.Type.CONSUMER)
-                .id(id)
+        return createNegotiationBuilder(id)
                 .contractAgreement(agreement)
-                .correlationId("corr-" + id)
-                .counterPartyAddress("consumer")
-                .counterPartyId("consumerId")
-                .protocol("ids-multipart")
                 .build();
     }
 
@@ -62,10 +48,38 @@ public class TestFunctions {
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
                 .assetId(UUID.randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
+                .policy(Policy.Builder.newInstance().build()))
                 .contractStartDate(Instant.now().getEpochSecond())
                 .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(Instant.now().getEpochSecond());
     }
 
+    public static ContractNegotiation.Builder createNegotiationBuilder(String id) {
+        return ContractNegotiation.Builder.newInstance()
+                .type(ContractNegotiation.Type.CONSUMER)
+                .id(id)
+                .contractAgreement(null)
+                .correlationId("corr-" + id)
+                .state(ContractNegotiationStates.REQUESTED.code())
+                .counterPartyAddress("consumer")
+                .counterPartyId("consumerId")
+                .protocol("ids-multipart");
+    }
+
+    public static Policy createPolicy(String uid) {
+        return Policy.Builder.newInstance()
+                .id(uid)
+                .permission(Permission.Builder.newInstance()
+                        .target("")
+                        .action(Action.Builder.newInstance()
+                                .type("USE")
+                                .build())
+                        .constraint(AtomicConstraint.Builder.newInstance()
+                                .leftExpression(new LiteralExpression("foo"))
+                                .operator(Operator.EQ)
+                                .rightExpression(new LiteralExpression("bar"))
+                                .build())
+                        .build())
+                .build();
+    }
 }

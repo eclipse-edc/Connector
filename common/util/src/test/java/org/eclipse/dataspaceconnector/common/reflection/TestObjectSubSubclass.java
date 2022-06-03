@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.common.reflection;
 
 public class TestObjectSubSubclass extends TestObjectSubclass {
     private final String description;
+    private AnotherObject anotherObject;
 
     public TestObjectSubSubclass(String description, int priority, String testProperty) {
         super(description, priority, testProperty);
@@ -25,5 +26,13 @@ public class TestObjectSubSubclass extends TestObjectSubclass {
     @Override
     public String getDescription() {
         return description;
+    }
+
+    public AnotherObject getAnotherObject() {
+        return anotherObject;
+    }
+
+    public void setAnotherObject(AnotherObject anotherObject) {
+        this.anotherObject = anotherObject;
     }
 }

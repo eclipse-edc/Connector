@@ -357,6 +357,22 @@ class InMemoryContractNegotiationStoreTest {
         assertThat(store.queryAgreements(QuerySpec.none())).isEmpty();
     }
 
+    @Test
+    void getNegotiationsWithAgreementOnAsset_multipleNegotiationsSameAsset() {
+        var assetId = UUID.randomUUID().toString();
+        var negotiation1 = createNegotiationBuilder("negotiation1").contractAgreement(createAgreementBuilder().id("contract1").assetId(assetId).build()).build();
+        var negotiation2 = createNegotiationBuilder("negotiation2").contractAgreement(createAgreementBuilder().id("contract2").assetId(assetId).build()).build();
+
+        store.save(negotiation1);
+        store.save(negotiation2);
+
+        var result = store.getNegotiationsWithAgreementOnAsset(assetId).collect(Collectors.toList());
+
+        assertThat(result).hasSize(2)
+                .extracting(ContractNegotiation::getId).containsExactlyInAnyOrder("negotiation1", "negotiation2");
+
+    }
+
     @NotNull
     private ContractNegotiation requestingNegotiation() {
         var negotiation = createNegotiation(UUID.randomUUID().toString());
