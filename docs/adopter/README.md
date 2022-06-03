@@ -1,6 +1,6 @@
 # Adopter Documentation
 
-Adopters may also want to check out the [user documentation](user/README.md) and [developer documentation](developer/README.md)
+Adopters may also want to check out the [user documentation](../user/README.md) and [developer documentation](../developer/README.md)
 as they mainly want to use and integrate the EDC into their own products and services, and therefore need to implement
 against existing interfaces while adhering to existing standards and coding style guides.
 

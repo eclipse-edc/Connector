@@ -1,0 +1,66 @@
+name: Close Inactive Issues
+on:
+  schedule:
+    - cron: "30 1 * * *" # once a day (1:30 UTC)
+  workflow_dispatch: # allow manual trigger
+
+jobs:
+  close-issues-without-assignee:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/stale@v5
+        with:
+          operations-per-run: 200
+          days-before-issue-stale: 14
+          days-before-issue-close: 7
+          stale-issue-label: "stale"
+          stale-issue-message: "This issue is stale because it has been open for 14 days with no activity."
+          close-issue-message: "This issue was closed because it has been inactive for 7 days since being marked as stale."
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          remove-issue-stale-when-updated: true
+          exempt-all-issue-milestones: true # issues with assigned milestones will be ignored
+          exempt-all-issue-assignees: true # issues with assignees will be ignored
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          debug-only: true
+
+  close-issues-with-assignee:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/stale@v5
+        with:
+          operations-per-run: 200
+          days-before-issue-stale: 28
+          days-before-issue-close: 7
+          stale-issue-label: "stale"
+          stale-issue-message: "This issue is stale because it has been open for 28 days with no activity."
+          close-issue-message: "This issue was closed because it has been inactive for 7 days since being marked as stale."
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          remove-issue-stale-when-updated: true
+          exempt-all-issue-milestones: true # issues with assigned milestones will be ignored
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          debug-only: true
+
+  close-inactive-pull-requests:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/stale@v5
+        with:
+          operations-per-run: 200
+          days-before-issue-stale: -1
+          days-before-issue-close: -1
+          stale-pr-label: "stale"
+          stale-pr-message: "This pull request is stale because it has been open for 7 days with no activity."
+          close-pr-message: "This pull request was closed because it has been inactive for 7 days since being marked as stale."
+          days-before-pr-stale: 7
+          days-before-pr-close: 7
+          remove-pr-stale-when-updated: true
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          debug-only: true
