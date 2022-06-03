@@ -18,6 +18,7 @@ package org.eclipse.dataspaceconnector.system.tests.local;
 
 import com.azure.core.util.BinaryData;
 import org.eclipse.dataspaceconnector.azure.testfixtures.AbstractAzureBlobTest;
+import org.eclipse.dataspaceconnector.azure.testfixtures.TestFunctions;
 import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureStorageIntegrationTest;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcRuntimeExtension;
 import org.eclipse.dataspaceconnector.junit.launcher.MockVault;
@@ -127,7 +128,7 @@ public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
         // Act
         System.setProperty(ACCOUNT_NAME_PROPERTY, account2Name);
         System.setProperty(ACCOUNT_KEY_PROPERTY, account2Key);
-        System.setProperty(ACCOUNT_ENDPOINT_PROPERTY, getEndpoint(account2Name));
+        System.setProperty(ACCOUNT_ENDPOINT_PROPERTY, TestFunctions.getBlobServiceTestEndpoint(account2Name));
         runGatling(BlobTransferLocalSimulation.class, TransferSimulationUtils.DESCRIPTION);
     }
 

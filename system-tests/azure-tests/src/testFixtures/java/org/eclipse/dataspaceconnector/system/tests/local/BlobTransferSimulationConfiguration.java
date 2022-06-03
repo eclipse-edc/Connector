@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.system.tests.local;
 import com.azure.storage.blob.BlobServiceClient;
 import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
+import org.eclipse.dataspaceconnector.azure.testfixtures.TestFunctions;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
@@ -27,7 +28,6 @@ import java.time.Duration;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.azure.testfixtures.AbstractAzureBlobTest.getBlobServiceClient;
 import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils.PROVIDER_ASSET_FILE;
 import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils.PROVIDER_ASSET_ID;
 
@@ -42,7 +42,7 @@ public class BlobTransferSimulationConfiguration implements TransferSimulationCo
     static final String BLOB_CONTENT = Faker.instance().lorem().sentence();
 
     public BlobTransferSimulationConfiguration(String accountName, String accountKey, String accountEndpoint, int maxSeconds) {
-        this.blobServiceClient = getBlobServiceClient(accountName, accountKey, accountEndpoint);
+        this.blobServiceClient = TestFunctions.getBlobServiceClient(accountName, accountKey, accountEndpoint);
         this.maxSeconds = maxSeconds;
     }
 
