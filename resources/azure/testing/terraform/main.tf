@@ -124,7 +124,7 @@ resource "azurerm_key_vault_secret" "consumer_storage_key" {
 ## CosmosDB account for integration testing. No need to create databases or containers,
 ## they are created by the tests
 resource "azurerm_cosmosdb_account" "cosmosdb_integrationtest" {
-  name                = "cosmos-edc-itest"
+    name                     = "${var.prefix}-cosmosdb"
   location            = "westeurope"
   resource_group_name = azurerm_resource_group.main.name
   offer_type          = "Standard"
