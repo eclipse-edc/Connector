@@ -84,6 +84,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Fix misleading warning message on initialization (#1336)
 * Auto-upload of Cosmos stored procedures (#1338)
 * Resiliency against exceptions in the `PartitionManagerImpl` (#1366)
+* QuerySpec when right-op contains "=" or " " (#1380)
 
 ## [milestone-3] - 2022-04-08
 

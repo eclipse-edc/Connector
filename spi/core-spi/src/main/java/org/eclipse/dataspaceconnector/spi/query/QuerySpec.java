@@ -67,7 +67,7 @@ public class QuerySpec {
     }
 
     public static final class Builder {
-        private static final String EQUALS_EXPRESSION_PATTERN = "[^\\s\\\\]*(\\s*)=(\\s*)[^\\s\\\\]*";
+        private static final String EQUALS_EXPRESSION_PATTERN = "[^\\s\\\\]*(\\s*)=(\\s*)[^\\\\]*";
         private final QuerySpec querySpec;
         private boolean equalsAsContains = false;
 
@@ -129,13 +129,14 @@ public class QuerySpec {
 
             if (filterExpression != null) {
                 if (Pattern.matches(EQUALS_EXPRESSION_PATTERN, filterExpression)) { // something like X = Y
-                    // remove whitespaces
-                    filterExpression = filterExpression.replace(" ", "");
-                    // we'll interpret the "=" as "contains"
-                    var tokens = filterExpression.split("=");
-                    querySpec.filterExpression = List.of(new Criterion(tokens[0], equalsAsContains ? "contains" : "=", tokens[1]));
+                    // we'll interpret the "=" as "contains" if desired
+                    var tokens = filterExpression.split("=", 2);
+                    var left = tokens[0].trim();
+                    var right = tokens[1].trim();
+                    var op = equalsAsContains ? "contains" : "=";
+                    querySpec.filterExpression = List.of(new Criterion(left, op, right));
                 } else {
-                    var s = filterExpression.split(" +");
+                    var s = filterExpression.split(" +", 3);
 
                     //generic LEFT OPERAND RIGHT expression
                     if (s.length >= 3) {
