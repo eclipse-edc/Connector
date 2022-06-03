@@ -128,7 +128,6 @@ resource "azurerm_cosmosdb_account" "cosmosdb_integrationtest" {
   location            = "westeurope"
   resource_group_name = azurerm_resource_group.main.name
   offer_type          = "Standard"
-  kind                = "GlobalDocumentDB"
 
   enable_automatic_failover = false
   enable_free_tier          = true
