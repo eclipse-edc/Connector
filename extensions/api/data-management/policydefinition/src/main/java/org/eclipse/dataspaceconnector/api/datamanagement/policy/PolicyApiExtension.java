@@ -19,7 +19,7 @@ import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicySe
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -39,7 +39,7 @@ public class PolicyApiExtension implements ServiceExtension {
     @Inject
     private DataManagementApiConfiguration configuration;
     @Inject
-    private PolicyStore policyStore;
+    private PolicyDefinitionStore policyStore;
     @Inject
     private ContractDefinitionStore contractDefinitionStore;
 

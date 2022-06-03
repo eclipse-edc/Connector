@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.core.defaults.policystore;
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QueryResolver;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.ReflectionBasedQueryResolver;
@@ -28,16 +28,15 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 /**
- * An in-memory, threadsafe policy store.
- * This implementation is intended for testing purposes only.
+ * An in-memory, threadsafe policy store. This implementation is intended for testing purposes only.
  */
-public class InMemoryPolicyStore implements PolicyStore {
+public class InMemoryPolicyDefinitionStore implements PolicyDefinitionStore {
 
     private final LockManager lockManager;
     private final Map<String, PolicyDefinition> policiesById = new HashMap<>();
     private final QueryResolver<PolicyDefinition> queryResolver = new ReflectionBasedQueryResolver<>(PolicyDefinition.class);
 
-    public InMemoryPolicyStore(LockManager lockManager) {
+    public InMemoryPolicyDefinitionStore(LockManager lockManager) {
         this.lockManager = lockManager;
     }
 

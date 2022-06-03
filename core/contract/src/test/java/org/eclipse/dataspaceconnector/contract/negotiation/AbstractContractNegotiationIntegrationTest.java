@@ -32,7 +32,7 @@ import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
@@ -60,7 +60,7 @@ import static org.mockito.Mockito.when;
  */
 public abstract class AbstractContractNegotiationIntegrationTest {
 
-    protected final PolicyStore policyStore = mock(PolicyStore.class);
+    protected final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     protected ProviderContractNegotiationManagerImpl providerManager;
     protected ConsumerContractNegotiationManagerImpl consumerManager;
     protected ContractNegotiationObservable providerObservable = new ContractNegotiationObservableImpl();
@@ -199,8 +199,8 @@ public abstract class AbstractContractNegotiationIntegrationTest {
     }
 
     /**
-     * Implementation of the ContractNegotiationListener that signals a CountDownLatch when the
-     * confirmed state has been reached.
+     * Implementation of the ContractNegotiationListener that signals a CountDownLatch when the confirmed state has been
+     * reached.
      */
     protected static class ConfirmedContractNegotiationListener implements ContractNegotiationListener {
 
@@ -217,8 +217,8 @@ public abstract class AbstractContractNegotiationIntegrationTest {
     }
 
     /**
-     * Implementation of the ContractNegotiationListener that signals a CountDownLatch when the
-     * declined state has been reached.
+     * Implementation of the ContractNegotiationListener that signals a CountDownLatch when the declined state has been
+     * reached.
      */
     protected static class DeclinedContractNegotiationListener implements ContractNegotiationListener {
 
@@ -235,8 +235,8 @@ public abstract class AbstractContractNegotiationIntegrationTest {
     }
 
     /**
-     * Implementation of the RemoteMessageDispatcherRegistry for the provider that delegates
-     * the requests to the consumer negotiation manager directly.
+     * Implementation of the RemoteMessageDispatcherRegistry for the provider that delegates the requests to the
+     * consumer negotiation manager directly.
      */
     protected class FakeProviderDispatcherRegistry implements RemoteMessageDispatcherRegistry {
 
@@ -277,8 +277,8 @@ public abstract class AbstractContractNegotiationIntegrationTest {
     }
 
     /**
-     * Implementation of the RemoteMessageDispatcherRegistry for the consumer that delegates
-     * the requests to the provider negotiation manager directly.
+     * Implementation of the RemoteMessageDispatcherRegistry for the consumer that delegates the requests to the
+     * provider negotiation manager directly.
      */
     protected class FakeConsumerDispatcherRegistry implements RemoteMessageDispatcherRegistry {
 

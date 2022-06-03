@@ -18,7 +18,7 @@ import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QueryResolver;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.ReflectionBasedQueryResolver;
@@ -36,12 +36,11 @@ import java.util.stream.Stream;
 import static net.jodah.failsafe.Failsafe.with;
 
 /**
- * Implementation of the {@link PolicyStore} based on CosmosDB. This store implements simple write-through
+ * Implementation of the {@link PolicyDefinitionStore} based on CosmosDB. This store implements simple write-through
  * caching mechanics: read operations (e.g. findAll) always hit the cache, while write operations affect both the cache
- * AND the
- * database.
+ * AND the database.
  */
-public class CosmosPolicyStore implements PolicyStore {
+public class CosmosPolicyDefinitionStore implements PolicyDefinitionStore {
     private final CosmosDbApi cosmosDbApi;
     private final TypeManager typeManager;
     private final RetryPolicy<Object> retryPolicy;
@@ -50,7 +49,7 @@ public class CosmosPolicyStore implements PolicyStore {
     private final QueryResolver<PolicyDefinition> queryResolver;
     private final AtomicReference<Map<String, PolicyDefinition>> objectCache;
 
-    public CosmosPolicyStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy, String partitionKey) {
+    public CosmosPolicyDefinitionStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy, String partitionKey) {
         this.cosmosDbApi = cosmosDbApi;
         this.typeManager = typeManager;
         this.retryPolicy = retryPolicy;

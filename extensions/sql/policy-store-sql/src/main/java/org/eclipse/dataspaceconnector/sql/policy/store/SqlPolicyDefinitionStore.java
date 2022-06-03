@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
@@ -39,7 +39,7 @@ import javax.sql.DataSource;
 
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
-public class SqlPolicyStore implements PolicyStore {
+public class SqlPolicyDefinitionStore implements PolicyDefinitionStore {
 
     private final DataSourceRegistry dataSourceRegistry;
     private final String dataSourceName;
@@ -47,8 +47,8 @@ public class SqlPolicyStore implements PolicyStore {
     private final TypeManager typeManager;
     private final SqlPolicyStoreStatements sqlPolicyStoreStatements;
 
-    public SqlPolicyStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                          TypeManager typeManager, SqlPolicyStoreStatements sqlPolicyStoreStatements) {
+    public SqlPolicyDefinitionStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
+                                    TypeManager typeManager, SqlPolicyStoreStatements sqlPolicyStoreStatements) {
         this.dataSourceRegistry = Objects.requireNonNull(dataSourceRegistry);
         this.dataSourceName = Objects.requireNonNull(dataSourceName);
         this.transactionContext = Objects.requireNonNull(transactionContext);
@@ -180,8 +180,8 @@ public class SqlPolicyStore implements PolicyStore {
     }
 
     /**
-     * Returns either a single element from the list, or null if empty.
-     * Throws an IllegalStateException if the list has more than 1 element
+     * Returns either a single element from the list, or null if empty. Throws an IllegalStateException if the list has
+     * more than 1 element
      */
     @Nullable
     private <T> T single(List<T> list) {

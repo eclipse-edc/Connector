@@ -18,7 +18,7 @@ import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,14 +33,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 
-class InMemoryPolicyStoreTest {
-    private PolicyStore store;
+class InMemoryPolicyDefinitionStoreTest {
+    private PolicyDefinitionStore store;
     private LockManager manager;
 
     @BeforeEach
     void setUp() {
         manager = spy(new LockManager(new ReentrantReadWriteLock(true)));
-        store = new InMemoryPolicyStore(manager);
+        store = new InMemoryPolicyDefinitionStore(manager);
     }
 
     @Test

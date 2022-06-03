@@ -44,7 +44,7 @@ import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistr
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.system.CoreExtension;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
@@ -92,7 +92,7 @@ public class ContractServiceExtension implements ServiceExtension {
     private PolicyEngine policyEngine;
 
     @Inject
-    private PolicyStore policyStore;
+    private PolicyDefinitionStore policyStore;
 
     @Override
     public String name() {

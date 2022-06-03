@@ -27,7 +27,7 @@ import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegis
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.eclipse.dataspaceconnector.sql.policy.store.PostgressStatements;
-import org.eclipse.dataspaceconnector.sql.policy.store.SqlPolicyStore;
+import org.eclipse.dataspaceconnector.sql.policy.store.SqlPolicyDefinitionStore;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,11 +53,11 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-class SqlPolicyStoreTest {
+class SqlPolicyDefinitionStoreTest {
 
     private static final String DATASOURCE_NAME = "policy";
 
-    private SqlPolicyStore sqlPolicyStore;
+    private SqlPolicyDefinitionStore sqlPolicyStore;
     private Connection connection;
 
     @BeforeEach
@@ -75,7 +75,7 @@ class SqlPolicyStoreTest {
         var datasourceMock = mock(DataSource.class);
         when(datasourceMock.getConnection()).thenReturn(connection);
         when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
-        sqlPolicyStore = new SqlPolicyStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new TypeManager(), new PostgressStatements());
+        sqlPolicyStore = new SqlPolicyDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new TypeManager(), new PostgressStatements());
 
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
         transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));

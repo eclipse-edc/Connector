@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 /**
  * Persists {@link Policy}.
  */
-public interface PolicyStore {
+public interface PolicyDefinitionStore {
 
     /**
      * Finds the policy by id.

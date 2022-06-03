@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.policy.service;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.jetbrains.annotations.NotNull;
@@ -30,10 +30,10 @@ import static java.util.stream.Collectors.toList;
 public class PolicyServiceImpl implements PolicyService {
 
     private final TransactionContext transactionContext;
-    private final PolicyStore policyStore;
+    private final PolicyDefinitionStore policyStore;
     private final ContractDefinitionStore contractDefinitionStore;
 
-    public PolicyServiceImpl(TransactionContext transactionContext, PolicyStore policyStore, ContractDefinitionStore contractDefinitionStore) {
+    public PolicyServiceImpl(TransactionContext transactionContext, PolicyDefinitionStore policyStore, ContractDefinitionStore contractDefinitionStore) {
         this.transactionContext = transactionContext;
         this.policyStore = policyStore;
         this.contractDefinitionStore = contractDefinitionStore;

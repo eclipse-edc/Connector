@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.contract.policy;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 class PolicyArchiveImplTest {
 
     private final ContractNegotiationStore contractNegotiationStore = mock(ContractNegotiationStore.class);
-    private final PolicyStore policyStore = mock(PolicyStore.class);
+    private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final PolicyArchiveImpl policyArchive = new PolicyArchiveImpl(contractNegotiationStore);
 
     @Test

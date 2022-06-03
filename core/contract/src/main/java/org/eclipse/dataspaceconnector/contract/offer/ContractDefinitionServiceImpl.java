@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionServi
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
@@ -35,17 +35,16 @@ import static java.lang.String.format;
 
 /**
  * Determines the contract definitions applicable to a {@link ParticipantAgent} by evaluating the access control and
- * usage policies associated with a set of assets as defined by
- * {@link ContractDefinition}s. On the distinction between access control and usage policy, see
- * {@link ContractDefinition}.
+ * usage policies associated with a set of assets as defined by {@link ContractDefinition}s. On the distinction between
+ * access control and usage policy, see {@link ContractDefinition}.
  */
 public class ContractDefinitionServiceImpl implements ContractDefinitionService {
     private final PolicyEngine policyEngine;
-    private final PolicyStore policyStore;
+    private final PolicyDefinitionStore policyStore;
     private final Monitor monitor;
     private final ContractDefinitionStore definitionStore;
 
-    public ContractDefinitionServiceImpl(Monitor monitor, ContractDefinitionStore contractDefinitionStore, PolicyEngine policyEngine, PolicyStore policyStore) {
+    public ContractDefinitionServiceImpl(Monitor monitor, ContractDefinitionStore contractDefinitionStore, PolicyEngine policyEngine, PolicyDefinitionStore policyStore) {
         this.monitor = monitor;
         definitionStore = contractDefinitionStore;
         this.policyEngine = policyEngine;

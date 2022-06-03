@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
@@ -35,9 +35,9 @@ public class FakeSetup {
     private final Monitor monitor;
     private final AssetLoader assetIndexLoader;
     private final ContractDefinitionStore contractDefinitionStore;
-    private final PolicyStore policyStore;
+    private final PolicyDefinitionStore policyStore;
 
-    public FakeSetup(@NotNull Monitor monitor, @NotNull AssetLoader assetIndexLoader, @NotNull ContractDefinitionStore contractDefinitionStore, PolicyStore policyStore) {
+    public FakeSetup(@NotNull Monitor monitor, @NotNull AssetLoader assetIndexLoader, @NotNull ContractDefinitionStore contractDefinitionStore, PolicyDefinitionStore policyStore) {
         this.monitor = Objects.requireNonNull(monitor);
         this.assetIndexLoader = Objects.requireNonNull(assetIndexLoader);
         this.contractDefinitionStore = Objects.requireNonNull(contractDefinitionStore);

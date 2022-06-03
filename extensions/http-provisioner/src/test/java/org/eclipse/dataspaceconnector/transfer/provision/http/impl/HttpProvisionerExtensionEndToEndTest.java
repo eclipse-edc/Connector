@@ -20,7 +20,7 @@ import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -74,7 +74,7 @@ public class HttpProvisionerExtensionEndToEndTest {
     void processProviderRequestRetry(TransferProcessManager processManager,
                                      ContractNegotiationStore negotiationStore,
                                      AssetLoader loader,
-                                     TransferProcessStore store, PolicyStore policyStore) throws Exception {
+                                     TransferProcessStore store, PolicyDefinitionStore policyStore) throws Exception {
         var latch = new CountDownLatch(1);
 
         when(delegate.intercept(any()))
@@ -117,7 +117,7 @@ public class HttpProvisionerExtensionEndToEndTest {
         });
     }
 
-    private void loadNegotiation(ContractNegotiationStore negotiationStore, PolicyStore policyStore) {
+    private void loadNegotiation(ContractNegotiationStore negotiationStore, PolicyDefinitionStore policyStore) {
         var contractAgreement = ContractAgreement.Builder.newInstance()
                 .assetId(ASSET_ID)
                 .id(CONTRACT_ID)

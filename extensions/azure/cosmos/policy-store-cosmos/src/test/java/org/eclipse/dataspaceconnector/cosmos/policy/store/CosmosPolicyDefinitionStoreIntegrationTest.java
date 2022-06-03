@@ -50,7 +50,7 @@ import static org.eclipse.dataspaceconnector.cosmos.policy.store.TestFunctions.g
 import static org.eclipse.dataspaceconnector.cosmos.policy.store.TestFunctions.generatePolicy;
 
 @AzureCosmosDbIntegrationTest
-public class CosmosPolicyStoreIntegrationTest {
+public class CosmosPolicyDefinitionStoreIntegrationTest {
     private static final String TEST_ID = UUID.randomUUID().toString();
     private static final String DATABASE_NAME = "connector-itest-" + TEST_ID;
     private static final String CONTAINER_PREFIX = "ContractDefinitionStore-";
@@ -58,7 +58,7 @@ public class CosmosPolicyStoreIntegrationTest {
     private static CosmosContainer container;
     private static CosmosDatabase database;
     private static TypeManager typeManager;
-    private CosmosPolicyStore store;
+    private CosmosPolicyDefinitionStore store;
 
     @BeforeAll
     static void prepareCosmosClient() {
@@ -86,7 +86,7 @@ public class CosmosPolicyStoreIntegrationTest {
         assertThat(database).describedAs("CosmosDB database is null - did something go wrong during initialization?").isNotNull();
 
         var cosmosDbApi = new CosmosDbApiImpl(container, true);
-        store = new CosmosPolicyStore(cosmosDbApi, typeManager, new RetryPolicy<>().withMaxRetries(3).withBackoff(1, 5, ChronoUnit.SECONDS), TEST_PARTITION_KEY);
+        store = new CosmosPolicyDefinitionStore(cosmosDbApi, typeManager, new RetryPolicy<>().withMaxRetries(3).withBackoff(1, 5, ChronoUnit.SECONDS), TEST_PARTITION_KEY);
     }
 
     @AfterEach

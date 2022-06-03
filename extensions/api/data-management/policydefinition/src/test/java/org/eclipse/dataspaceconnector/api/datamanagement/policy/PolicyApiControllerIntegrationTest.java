@@ -18,7 +18,7 @@ import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,7 +50,7 @@ public class PolicyApiControllerIntegrationTest {
     }
 
     @Test
-    void getAllPolicies(PolicyStore policyStore) {
+    void getAllPolicies(PolicyDefinitionStore policyStore) {
         var policy = createPolicy("id");
 
         policyStore.save(policy);
@@ -72,7 +72,7 @@ public class PolicyApiControllerIntegrationTest {
     }
 
     @Test
-    void getSinglePolicy(PolicyStore policyStore) {
+    void getSinglePolicy(PolicyDefinitionStore policyStore) {
         var policy = createPolicy("id");
         policyStore.save(policy);
 
@@ -93,7 +93,7 @@ public class PolicyApiControllerIntegrationTest {
     }
 
     @Test
-    void postPolicy(PolicyStore policyStore) {
+    void postPolicy(PolicyDefinitionStore policyStore) {
 
         baseRequest()
                 .body(createPolicy("id"))
@@ -105,7 +105,7 @@ public class PolicyApiControllerIntegrationTest {
     }
 
     @Test
-    void postPolicyId_alreadyExists(PolicyStore policyStore) {
+    void postPolicyId_alreadyExists(PolicyDefinitionStore policyStore) {
         policyStore.save(createPolicy("id"));
 
         baseRequest()
@@ -117,7 +117,7 @@ public class PolicyApiControllerIntegrationTest {
     }
 
     @Test
-    void deletePolicy(PolicyStore policyStore) {
+    void deletePolicy(PolicyDefinitionStore policyStore) {
         var policy = createPolicy("id");
 
         policyStore.save(policy);
@@ -151,7 +151,7 @@ public class PolicyApiControllerIntegrationTest {
     }
 
     @Test
-    void deletePolicy_alreadyReferencedInContractDefinition(ContractDefinitionStore contractDefinitionStore, PolicyStore policyStore) {
+    void deletePolicy_alreadyReferencedInContractDefinition(ContractDefinitionStore contractDefinitionStore, PolicyDefinitionStore policyStore) {
         var policy = createPolicy("access");
         policyStore.save(policy);
         contractDefinitionStore.save(createContractDefinition(policy.getUid()));

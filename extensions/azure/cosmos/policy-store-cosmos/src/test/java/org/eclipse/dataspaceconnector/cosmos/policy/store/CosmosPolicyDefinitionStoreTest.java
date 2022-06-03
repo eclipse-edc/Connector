@@ -46,9 +46,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-class CosmosPolicyStoreTest {
+class CosmosPolicyDefinitionStoreTest {
     private static final String TEST_PART_KEY = "test_part_key";
-    private CosmosPolicyStore store;
+    private CosmosPolicyDefinitionStore store;
     private CosmosDbApi cosmosDbApiMock;
 
     @BeforeEach
@@ -56,7 +56,7 @@ class CosmosPolicyStoreTest {
         cosmosDbApiMock = mock(CosmosDbApi.class);
         var typeManager = new TypeManager();
         var retryPolicy = new RetryPolicy<>();
-        store = new CosmosPolicyStore(cosmosDbApiMock, typeManager, retryPolicy, TEST_PART_KEY);
+        store = new CosmosPolicyDefinitionStore(cosmosDbApiMock, typeManager, retryPolicy, TEST_PART_KEY);
     }
 
     @Test

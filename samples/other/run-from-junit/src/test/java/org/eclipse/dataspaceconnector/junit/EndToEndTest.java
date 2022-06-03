@@ -27,7 +27,7 @@ import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
@@ -98,7 +98,7 @@ public class EndToEndTest {
                                 DataFlowManager dataFlowManager,
                                 ContractNegotiationStore negotiationStore,
                                 AssetLoader loader,
-                                PolicyStore policyStore) throws InterruptedException {
+                                PolicyDefinitionStore policyStore) throws InterruptedException {
         var latch = new CountDownLatch(1);
 
         var controllerMock = mock(DataFlowController.class);
@@ -141,7 +141,7 @@ public class EndToEndTest {
         extension.registerSystemExtension(ServiceExtension.class, new TestServiceExtension());
     }
 
-    private void loadNegotiation(ContractNegotiationStore negotiationStore, PolicyStore policyStore) {
+    private void loadNegotiation(ContractNegotiationStore negotiationStore, PolicyDefinitionStore policyStore) {
         var contractAgreement = ContractAgreement.Builder.newInstance()
                 .assetId(ASSET_ID)
                 .id(CONTRACT_ID)

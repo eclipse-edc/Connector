@@ -18,7 +18,7 @@ import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
 import org.eclipse.dataspaceconnector.core.defaults.assetindex.InMemoryAssetIndex;
 import org.eclipse.dataspaceconnector.core.defaults.contractdefinition.InMemoryContractDefinitionStore;
 import org.eclipse.dataspaceconnector.core.defaults.negotiationstore.InMemoryContractNegotiationStore;
-import org.eclipse.dataspaceconnector.core.defaults.policystore.InMemoryPolicyStore;
+import org.eclipse.dataspaceconnector.core.defaults.policystore.InMemoryPolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.core.defaults.transferprocessstore.InMemoryTransferProcessStore;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
@@ -26,7 +26,7 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
@@ -34,8 +34,8 @@ import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * Provides (in-mem) defaults for various stores, registries etc.
- * Provider methods are only invoked if no other implementation was found on the classpath.
+ * Provides (in-mem) defaults for various stores, registries etc. Provider methods are only invoked if no other
+ * implementation was found on the classpath.
  */
 public class DefaultServicesExtension implements ServiceExtension {
 
@@ -66,13 +66,6 @@ public class DefaultServicesExtension implements ServiceExtension {
         return getContractDefinitionStore();
     }
 
-    private ContractDefinitionStore getContractDefinitionStore() {
-        if (contractDefinitionStore == null) {
-            contractDefinitionStore = new InMemoryContractDefinitionStore();
-        }
-        return contractDefinitionStore;
-    }
-
     @Provider(isDefault = true)
     public ContractDefinitionLoader defaultContractDefinitionLoader() {
         return getContractDefinitionStore()::save;
@@ -89,8 +82,15 @@ public class DefaultServicesExtension implements ServiceExtension {
     }
 
     @Provider(isDefault = true)
-    public PolicyStore defaultPolicyStore() {
-        return new InMemoryPolicyStore(new LockManager(new ReentrantReadWriteLock(true)));
+    public PolicyDefinitionStore defaultPolicyStore() {
+        return new InMemoryPolicyDefinitionStore(new LockManager(new ReentrantReadWriteLock(true)));
+    }
+
+    private ContractDefinitionStore getContractDefinitionStore() {
+        if (contractDefinitionStore == null) {
+            contractDefinitionStore = new InMemoryContractDefinitionStore();
+        }
+        return contractDefinitionStore;
     }
 
     private InMemoryAssetIndex getAssetIndex() {
