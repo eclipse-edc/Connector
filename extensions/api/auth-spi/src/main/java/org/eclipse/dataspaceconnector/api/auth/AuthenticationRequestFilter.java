@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.api.auth;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
-import org.eclipse.dataspaceconnector.api.exception.NotAuthorizedException;
+import org.eclipse.dataspaceconnector.spi.exception.NotAuthorizedException;
 
 import java.util.Map;
 import java.util.stream.Collectors;

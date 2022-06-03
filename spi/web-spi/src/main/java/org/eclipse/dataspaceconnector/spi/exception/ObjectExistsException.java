@@ -12,12 +12,13 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api.exception;
+package org.eclipse.dataspaceconnector.spi.exception;
 
-import org.eclipse.dataspaceconnector.spi.EdcException;
+import static java.lang.String.format;
 
-public class NotAuthorizedException extends EdcException {
-    public NotAuthorizedException() {
-        super("This request could not be authorized");
+public class ObjectExistsException extends EdcApiException {
+
+    public ObjectExistsException(Class<?> objectType, String objectId) {
+        super(format("Object of type %s already exists with ID = %s", objectType.getSimpleName(), objectId));
     }
 }

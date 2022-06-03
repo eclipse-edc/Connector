@@ -18,6 +18,10 @@ plugins {
 }
 
 publishing {
+    dependencies {
+        api(project(":spi:core-spi"))
+    }
+
     publications {
         create<MavenPublication>("web-spi") {
             artifactId = "web-spi"

@@ -226,7 +226,7 @@ public class JerseyRestServiceTest {
         JettyConfiguration config = new JettyConfiguration(null, null);
         Arrays.stream(mapping).forEach(config::portMapping);
         jettyService = new JettyService(config, monitorMock);
-        jerseyRestService = new JerseyRestService(jettyService, new TypeManager(), CorsFilterConfiguration.none(), monitorMock);
+        jerseyRestService = new JerseyRestService(jettyService, new TypeManager(), JerseyConfiguration.none(), monitorMock);
         jettyService.start();
     }
 

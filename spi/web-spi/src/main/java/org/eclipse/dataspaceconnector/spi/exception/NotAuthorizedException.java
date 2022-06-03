@@ -12,13 +12,12 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api.exception;
+package org.eclipse.dataspaceconnector.spi.exception;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
-//marker class
-public abstract class EdcApiException extends EdcException {
-    public EdcApiException(String message) {
-        super(message);
+public class NotAuthorizedException extends EdcException {
+    public NotAuthorizedException() {
+        super("This request could not be authorized");
     }
 }

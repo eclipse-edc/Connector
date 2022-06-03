@@ -15,12 +15,11 @@
 package org.eclipse.dataspaceconnector.dataplane.selector.client;
 
 import net.jodah.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.api.exception.mappers.EdcApiExceptionMapper;
 import org.eclipse.dataspaceconnector.dataplane.selector.DataPlaneSelectorService;
 import org.eclipse.dataspaceconnector.dataplane.selector.api.DataplaneSelectorApiController;
 import org.eclipse.dataspaceconnector.dataplane.selector.instance.DataPlaneInstance;
 import org.eclipse.dataspaceconnector.dataplane.selector.instance.DataPlaneInstanceImpl;
-import org.eclipse.dataspaceconnector.extension.jersey.CorsFilterConfiguration;
+import org.eclipse.dataspaceconnector.extension.jersey.JerseyConfiguration;
 import org.eclipse.dataspaceconnector.extension.jersey.JerseyRestService;
 import org.eclipse.dataspaceconnector.extension.jetty.JettyConfiguration;
 import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
@@ -116,11 +115,10 @@ class RemoteDataPlaneSelectorClientTest {
         var jetty = new JettyService(config, monitor);
 
 
-        var jerseyService = new JerseyRestService(jetty, typeManager, mock(CorsFilterConfiguration.class), monitor);
+        var jerseyService = new JerseyRestService(jetty, typeManager, mock(JerseyConfiguration.class), monitor);
         jetty.start();
 
         jerseyService.registerResource("dataplane", controller);
-        jerseyService.registerResource("dataplane", new EdcApiExceptionMapper());
         jerseyService.start();
         return jetty;
     }

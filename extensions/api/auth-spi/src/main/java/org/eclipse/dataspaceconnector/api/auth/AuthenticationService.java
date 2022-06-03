@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.auth;
 
-import org.eclipse.dataspaceconnector.api.exception.AuthenticationFailedException;
+import org.eclipse.dataspaceconnector.spi.exception.AuthenticationFailedException;
 
 import java.util.List;
 import java.util.Map;

@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.transfer.provision.http;
 import org.eclipse.dataspaceconnector.api.auth.AllPassAuthenticationService;
 import org.eclipse.dataspaceconnector.api.auth.AuthenticationRequestFilter;
 import org.eclipse.dataspaceconnector.api.auth.AuthenticationService;
-import org.eclipse.dataspaceconnector.api.exception.mappers.EdcApiExceptionMapper;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.WebServer;
 import org.eclipse.dataspaceconnector.spi.WebService;
@@ -82,7 +81,6 @@ public class HttpWebhookExtension implements ServiceExtension {
 
         webService.registerResource(alias, new HttpProvisionerWebhookApiController(transferProcessManager));
         webService.registerResource(alias, new AuthenticationRequestFilter(authService));
-        webService.registerResource(alias, new EdcApiExceptionMapper());
     }
 
     private void registerCallbackUrl(ServiceExtensionContext context, String path, int port) {

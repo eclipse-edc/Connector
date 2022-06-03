@@ -13,18 +13,18 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api.exception.mappers;
+package org.eclipse.dataspaceconnector.extension.jersey.mapper;
 
 import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.NotSupportedException;
-import org.eclipse.dataspaceconnector.api.exception.AuthenticationFailedException;
-import org.eclipse.dataspaceconnector.api.exception.NotAuthorizedException;
-import org.eclipse.dataspaceconnector.api.exception.ObjectExistsException;
-import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
-import org.eclipse.dataspaceconnector.api.exception.ObjectNotModifiableException;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.exception.AuthenticationFailedException;
+import org.eclipse.dataspaceconnector.spi.exception.NotAuthorizedException;
+import org.eclipse.dataspaceconnector.spi.exception.ObjectExistsException;
+import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
+import org.eclipse.dataspaceconnector.spi.exception.ObjectNotModifiableException;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -37,19 +37,33 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class EdcApiExceptionMapperTest {
 
-    private final EdcApiExceptionMapper mapper = new EdcApiExceptionMapper();
-
     @ParameterizedTest
-    @ArgumentsSource(EdcApiExceptions.class)
+    @ArgumentsSource(EdcExceptions.class)
     @ArgumentsSource(JakartaApiExceptions.class)
-    void toResponse(Throwable throwable, int expectedCode) {
+    @ArgumentsSource(JavaExceptions.class)
+    void toResponseNotVerbose(Throwable throwable, int expectedCode) {
+        var mapper = new EdcApiExceptionMapper(false);
+
         var response = mapper.toResponse(throwable);
 
         assertThat(response.getStatus()).isEqualTo(expectedCode);
         assertThat(response.getStatusInfo().getReasonPhrase()).isNotBlank();
+        assertThat(response.getEntity()).isNull();
     }
 
-    private static class EdcApiExceptions implements ArgumentsProvider {
+    @ParameterizedTest
+    @ArgumentsSource(EdcExceptions.class)
+    void toResponseVerbose(Throwable throwable, int expectedCode) {
+        var mapper = new EdcApiExceptionMapper(true);
+
+        var response = mapper.toResponse(throwable);
+
+        assertThat(response.getStatus()).isEqualTo(expectedCode);
+        assertThat(response.getStatusInfo().getReasonPhrase()).isNotBlank();
+        assertThat(response.getEntity()).isNotNull();
+    }
+
+    private static class EdcExceptions implements ArgumentsProvider {
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
@@ -58,12 +72,21 @@ class EdcApiExceptionMapperTest {
                     Arguments.of(new AuthenticationFailedException(), 401),
                     Arguments.of(new ObjectExistsException(Object.class, "test-object-id"), 409),
                     Arguments.of(new ObjectNotFoundException(Object.class, "test-object-id"), 404),
-                    Arguments.of(new IllegalStateException("foo"), 503),
-                    Arguments.of(new IllegalArgumentException("foo"), 400),
-                    Arguments.of(new UnsupportedOperationException("foo"), 501),
-                    Arguments.of(new NullPointerException("foo"), 400),
                     Arguments.of(new EdcException("foo"), 503),
                     Arguments.of(new NotAuthorizedException(), 403)
+            );
+        }
+    }
+
+    private static class JavaExceptions implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+            return Stream.of(
+                    Arguments.of(new IllegalArgumentException("foo"), 400),
+                    Arguments.of(new NullPointerException("foo"), 400),
+                    Arguments.of(new UnsupportedOperationException("foo"), 501),
+                    Arguments.of(new IllegalStateException("foo"), 503)
             );
         }
     }

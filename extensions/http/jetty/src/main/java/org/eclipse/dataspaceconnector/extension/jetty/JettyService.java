@@ -91,10 +91,9 @@ public class JettyService implements WebServer {
                 connector.setName(mapping.getName());
                 server.addConnector(connector);
 
-                ServletContextHandler handler = createHandler(mapping);
+                var handler = createHandler(mapping);
                 handlers.put(mapping.getPath(), handler);
             });
-            server.setErrorHandler(new JettyErrorHandler());
             server.setHandler(new ContextHandlerCollection(handlers.values().toArray(ServletContextHandler[]::new)));
             server.start();
             monitor.debug("Port mappings: " + configuration.getPortMappings().stream().map(PortMapping::toString).collect(Collectors.joining(", ")));
@@ -116,7 +115,7 @@ public class JettyService implements WebServer {
     }
 
     public void registerServlet(String contextName, Servlet servlet) {
-        ServletHolder servletHolder = new ServletHolder(Source.EMBEDDED);
+        var servletHolder = new ServletHolder(Source.EMBEDDED);
         servletHolder.setName("EDC-" + contextName); //must be unique
         servletHolder.setServlet(servlet);
         servletHolder.setInitOrder(1);
@@ -146,10 +145,6 @@ public class JettyService implements WebServer {
             return;
         }
         configuration.getPortMappings().add(portMapping);
-    }
-
-    public ServletContextHandler getHandler(String path) {
-        return handlers.get(path);
     }
 
     public void addConnectorConfigurationCallback(Consumer<ServerConnector> callback) {

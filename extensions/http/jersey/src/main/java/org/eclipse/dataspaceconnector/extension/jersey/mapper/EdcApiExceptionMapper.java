@@ -13,17 +13,19 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api.exception.mappers;
+package org.eclipse.dataspaceconnector.extension.jersey.mapper;
 
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
-import org.eclipse.dataspaceconnector.api.exception.AuthenticationFailedException;
-import org.eclipse.dataspaceconnector.api.exception.NotAuthorizedException;
-import org.eclipse.dataspaceconnector.api.exception.ObjectExistsException;
-import org.eclipse.dataspaceconnector.api.exception.ObjectNotFoundException;
-import org.eclipse.dataspaceconnector.api.exception.ObjectNotModifiableException;
+import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.exception.AuthenticationFailedException;
+import org.eclipse.dataspaceconnector.spi.exception.NotAuthorizedException;
+import org.eclipse.dataspaceconnector.spi.exception.ObjectExistsException;
+import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
+import org.eclipse.dataspaceconnector.spi.exception.ObjectNotModifiableException;
 
+import java.util.List;
 import java.util.Map;
 
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -36,8 +38,10 @@ import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 public class EdcApiExceptionMapper implements ExceptionMapper<Throwable> {
     private final Map<Class<? extends Throwable>, Response.Status> exceptionMap;
+    private final boolean verboseResponse;
 
-    public EdcApiExceptionMapper() {
+    public EdcApiExceptionMapper(boolean verboseResponse) {
+        this.verboseResponse = verboseResponse;
         exceptionMap = Map.of(
                 IllegalArgumentException.class, BAD_REQUEST,
                 NullPointerException.class, BAD_REQUEST,
@@ -57,6 +61,13 @@ public class EdcApiExceptionMapper implements ExceptionMapper<Throwable> {
         }
 
         var status = exceptionMap.getOrDefault(exception.getClass(), SERVICE_UNAVAILABLE);
+
+        if (exception instanceof EdcException && verboseResponse) {
+            var edcApiException = (EdcException) exception;
+            var responseBody = List.of(Map.of("message", edcApiException.getMessage()));
+            return Response.status(status).entity(responseBody).build();
+        }
+
         return Response.status(status).build();
     }
 }
