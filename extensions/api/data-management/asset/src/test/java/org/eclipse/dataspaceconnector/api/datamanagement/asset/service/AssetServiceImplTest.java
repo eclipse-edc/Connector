@@ -40,6 +40,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class AssetServiceImplTest {
@@ -73,15 +74,17 @@ class AssetServiceImplTest {
 
     @Test
     void createAsset_shouldCreateAssetIfItDoesNotAlreadyExist() {
-        var asset = createAsset("assetId");
-        when(index.findById("assetId")).thenReturn(null);
-        var dataAddress = DataAddress.Builder.newInstance().type("addressType").build();
+        var assetId = "assetId";
+        var asset = createAsset(assetId);
+        when(index.findById(assetId)).thenReturn(null);
+        var addressType = "addressType";
+        var dataAddress = DataAddress.Builder.newInstance().type(addressType).build();
 
         var inserted = service.create(asset, dataAddress);
 
         assertThat(inserted.succeeded()).isTrue();
-        assertThat(inserted.getContent()).matches(hasId("assetId"));
-        verify(loader).accept(argThat(it -> "assetId".equals(it.getId())), argThat(it -> "addressType".equals(it.getType())));
+        assertThat(inserted.getContent()).matches(hasId(assetId));
+        verify(loader).accept(argThat(it -> assetId.equals(it.getId())), argThat(it -> addressType.equals(it.getType())));
     }
 
     @Test
@@ -120,16 +123,17 @@ class AssetServiceImplTest {
                         .id(UUID.randomUUID().toString())
                         .providerAgentId(UUID.randomUUID().toString())
                         .consumerAgentId(UUID.randomUUID().toString())
-                        .assetId("assetId")
-                        .policy(Policy.Builder.newInstance().build())
-                        .build())
+                        .assetId(asset.getId())
+                        .policy(Policy.Builder.newInstance().build())                        .build())
                 .build();
-        when(contractNegotiationStore.queryNegotiations(any())).thenReturn(Stream.of(contractNegotiation));
+        when(contractNegotiationStore.getNegotiationsWithAgreementOnAsset(any())).thenReturn(Stream.of(contractNegotiation));
 
         var deleted = service.delete("assetId");
 
         assertThat(deleted.failed()).isTrue();
         assertThat(deleted.getFailure().getReason()).isEqualTo(CONFLICT);
+        verify(contractNegotiationStore).getNegotiationsWithAgreementOnAsset(any());
+        verifyNoMoreInteractions(contractNegotiationStore);
     }
 
     @Test
