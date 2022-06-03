@@ -92,3 +92,7 @@ public class EventRouterImpl implements EventRouter {
 ```
 
 At this point, at the extension level, a `EventListener` can be registered to the `EventRouter` and it will be able to get all the EDC events, filter them, publish them to some external event infrastructure.
+
+Note that this implementation does not respect the "at-least-one" rule, as something can happen between event creation and its dispatch. 
+To achieve such a behavior events should be persisted. With this implementation we would have events that will be delivered "at most once", they
+should not be used to trigger important business logic but only to give insights on what's happening in the EDC.
