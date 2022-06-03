@@ -17,6 +17,7 @@
 package org.eclipse.dataspaceconnector.contract.offer;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
@@ -93,7 +94,8 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
     private Result<Policy> evaluate(String policyId, ParticipantAgent agent) {
         return Optional.of(policyId)
                 .map(policyStore::findById)
-                .map(policy -> policyEngine.evaluate(NEGOTIATION_SCOPE, policy.getPolicy(), agent))
+                .map(PolicyDefinition::getPolicy)
+                .map(policy -> policyEngine.evaluate(NEGOTIATION_SCOPE, policy, agent))
                 .orElse(Result.failure(format("Policy %s not found", policyId)));
     }
 }
