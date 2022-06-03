@@ -27,6 +27,7 @@ spec:
   {{- end }}
   rules:
     {{- range .Values.ingress.hosts }}
+    {{ if .paths }}
     - host: {{ .host | quote }}
       http:
         paths:
@@ -34,10 +35,16 @@ spec:
           - path: {{ .path }}
             pathType: {{ .pathType }}
             backend:
+              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
               service:
                 name: {{ $fullName }}
                 port:
-                  number: {{ $svcPort }}
+                  number: {{ .port }}
+              {{- else }}
+              serviceName: {{ $fullName }}
+              servicePort: {{ .port }}
+              {{- end }}
           {{- end }}
+    {{ end }}
     {{- end }}
   {{- end }}
