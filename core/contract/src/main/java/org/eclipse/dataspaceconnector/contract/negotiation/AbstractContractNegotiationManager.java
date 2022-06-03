@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 
+import java.time.Clock;
 import java.util.Objects;
 
 public abstract class AbstractContractNegotiationManager {
@@ -40,6 +41,7 @@ public abstract class AbstractContractNegotiationManager {
     protected CommandRunner<ContractNegotiationCommand> commandRunner;
     protected CommandProcessor<ContractNegotiationCommand> commandProcessor;
     protected Monitor monitor;
+    protected Clock clock;
     protected Telemetry telemetry;
     protected ExecutorInstrumentation executorInstrumentation;
     protected int batchSize = 5;
@@ -52,6 +54,7 @@ public abstract class AbstractContractNegotiationManager {
 
         protected Builder(T manager) {
             this.manager = manager;
+            this.manager.clock = Clock.systemUTC(); // default implementation
             this.manager.telemetry = new Telemetry(); // default noop implementation
             this.manager.executorInstrumentation = ExecutorInstrumentation.noop(); // default noop implementation
         }
@@ -91,6 +94,11 @@ public abstract class AbstractContractNegotiationManager {
             return this;
         }
 
+        public Builder<T> clock(Clock clock) {
+            manager.clock = clock;
+            return this;
+        }
+
         public Builder<T> telemetry(Telemetry telemetry) {
             manager.telemetry = telemetry;
             return this;
@@ -123,6 +131,7 @@ public abstract class AbstractContractNegotiationManager {
             Objects.requireNonNull(manager.commandQueue, "commandQueue");
             Objects.requireNonNull(manager.commandRunner, "commandRunner");
             Objects.requireNonNull(manager.observable, "observable");
+            Objects.requireNonNull(manager.clock, "clock");
             Objects.requireNonNull(manager.telemetry, "telemetry");
             Objects.requireNonNull(manager.executorInstrumentation, "executorInstrumentation");
             Objects.requireNonNull(manager.negotiationStore, "store");

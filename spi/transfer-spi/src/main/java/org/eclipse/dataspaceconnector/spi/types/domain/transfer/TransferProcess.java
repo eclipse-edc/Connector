@@ -26,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -111,6 +112,7 @@ public class TransferProcess implements TraceCarrier {
     private ResourceManifest resourceManifest;
     private ProvisionedResourceSet provisionedResourceSet;
     private List<DeprovisionedResource> deprovisionedResources = new ArrayList<>();
+    private Clock clock = Clock.systemUTC();
 
     private TransferProcess() {
     }
@@ -326,13 +328,6 @@ public class TransferProcess implements TraceCarrier {
         updateStateTimestamp();
     }
 
-
-    public void rollbackState(TransferProcessStates state) {
-        this.state = state.code();
-        stateCount = 1;
-        updateStateTimestamp();
-    }
-
     public TransferProcess copy() {
         return Builder.newInstance()
                 .id(id)
@@ -347,6 +342,7 @@ public class TransferProcess implements TraceCarrier {
                 .type(type)
                 .createdTimestamp(createdTimestamp)
                 .errorDetail(errorDetail)
+                .clock(clock)
                 .build();
     }
 
@@ -380,8 +376,13 @@ public class TransferProcess implements TraceCarrier {
                 '}';
     }
 
+    /**
+     * Sets the state timestamp to the clock time.
+     *
+     * @see Builder#clock(Clock)
+     */
     public void updateStateTimestamp() {
-        stateTimestamp = Instant.now().toEpochMilli();
+        stateTimestamp = clock.millis();
     }
 
     private void transition(TransferProcessStates end, TransferProcessStates... starts) {
@@ -422,6 +423,11 @@ public class TransferProcess implements TraceCarrier {
 
         public Builder type(Type type) {
             process.type = type;
+            return this;
+        }
+
+        public Builder clock(Clock clock) {
+            process.clock = clock;
             return this;
         }
 
@@ -482,8 +488,9 @@ public class TransferProcess implements TraceCarrier {
 
         public TransferProcess build() {
             Objects.requireNonNull(process.id, "id");
+            Objects.requireNonNull(process.clock, "clock");
             if (process.state == UNSAVED.code() && process.stateTimestamp == 0) {
-                process.stateTimestamp = Instant.now().toEpochMilli();
+                process.stateTimestamp = process.clock.millis();
             }
             if (process.resourceManifest != null) {
                 process.resourceManifest.setTransferProcessId(process.id);

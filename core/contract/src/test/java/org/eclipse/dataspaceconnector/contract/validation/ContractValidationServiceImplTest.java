@@ -16,6 +16,7 @@
 
 package org.eclipse.dataspaceconnector.contract.validation;
 
+import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
@@ -33,13 +34,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static java.time.Instant.EPOCH;
 import static java.time.Instant.MAX;
 import static java.time.Instant.MIN;
+import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,15 +56,19 @@ import static org.mockito.Mockito.when;
 
 class ContractValidationServiceImplTest {
 
+    private static final Faker FAKER = new Faker();
+    private final Instant now = Instant.now();
+
     private final ParticipantAgentService agentService = mock(ParticipantAgentService.class);
     private final ContractDefinitionService definitionService = mock(ContractDefinitionService.class);
     private final AssetIndex assetIndex = mock(AssetIndex.class);
     private final PolicyStore policyStore = mock(PolicyStore.class);
+    private final Clock clock = Clock.fixed(now, UTC);
     private ContractValidationServiceImpl validationService;
 
     @BeforeEach
     void setUp() {
-        validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore);
+        validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, clock);
     }
 
     @Test
@@ -119,9 +128,9 @@ class ContractValidationServiceImplTest {
                 .consumerAgentId("consumer")
                 .policyId("policy")
                 .assetId(UUID.randomUUID().toString())
-                .contractStartDate(Instant.now().getEpochSecond())
-                .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
-                .contractSigningDate(Instant.now().getEpochSecond())
+                .contractStartDate(now.getEpochSecond())
+                .contractEndDate(now.plus(1, ChronoUnit.DAYS).getEpochSecond())
+                .contractSigningDate(now.getEpochSecond())
                 .id("1:2").build();
 
         assertThat(validationService.validate(claimToken, agreement)).isTrue();
@@ -131,8 +140,9 @@ class ContractValidationServiceImplTest {
 
     @Test
     void verifyContractAgreementExpired() {
+        var past = FAKER.date().between(Date.from(EPOCH), Date.from(now)).toInstant().getEpochSecond();
         var isValid =
-                validateAgreementDate(MIN.getEpochSecond(), MIN.getEpochSecond(), Instant.now().getEpochSecond() - 1);
+                validateAgreementDate(MIN.getEpochSecond(), MIN.getEpochSecond(), past);
 
         assertThat(isValid).isFalse();
     }

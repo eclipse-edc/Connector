@@ -52,8 +52,11 @@ import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
+
+import java.time.Clock;
 
 @Provides({
         ContractOfferService.class, ContractValidationService.class, ConsumerContractNegotiationManager.class,
@@ -63,7 +66,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.comm
 public class ContractServiceExtension implements ServiceExtension {
 
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
-    private Monitor monitor;
     private ConsumerContractNegotiationManagerImpl consumerNegotiationManager;
     private ProviderContractNegotiationManagerImpl providerNegotiationManager;
 
@@ -97,6 +99,15 @@ public class ContractServiceExtension implements ServiceExtension {
     @Inject
     private PolicyStore policyStore;
 
+    @Inject
+    private Monitor monitor;
+
+    @Inject
+    private Telemetry telemetry;
+
+    @Inject
+    private Clock clock;
+
     @Override
     public String name() {
         return "Core Contract Service";
@@ -104,8 +115,6 @@ public class ContractServiceExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
-
         registerTypes(context);
         registerServices(context);
     }
@@ -134,7 +143,7 @@ public class ContractServiceExtension implements ServiceExtension {
         var contractOfferService = new ContractOfferServiceImpl(agentService, definitionService, assetIndex, policyStore);
         context.registerService(ContractOfferService.class, contractOfferService);
 
-        var validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore);
+        var validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, clock);
         context.registerService(ContractValidationService.class, validationService);
 
         var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);
@@ -142,7 +151,6 @@ public class ContractServiceExtension implements ServiceExtension {
         CommandQueue<ContractNegotiationCommand> commandQueue = new BoundedCommandQueue<>(10);
         CommandRunner<ContractNegotiationCommand> commandRunner = new CommandRunner<>(commandHandlerRegistry, monitor);
 
-        var telemetry = context.getTelemetry();
         var observable = new ContractNegotiationObservableImpl();
         context.registerService(ContractNegotiationObservable.class, observable);
 
@@ -156,6 +164,7 @@ public class ContractServiceExtension implements ServiceExtension {
                 .commandQueue(commandQueue)
                 .commandRunner(commandRunner)
                 .observable(observable)
+                .clock(clock)
                 .telemetry(telemetry)
                 .executorInstrumentation(context.getService(ExecutorInstrumentation.class))
                 .store(store)
@@ -171,6 +180,7 @@ public class ContractServiceExtension implements ServiceExtension {
                 .commandQueue(commandQueue)
                 .commandRunner(commandRunner)
                 .observable(observable)
+                .clock(clock)
                 .telemetry(telemetry)
                 .executorInstrumentation(context.getService(ExecutorInstrumentation.class))
                 .store(store)

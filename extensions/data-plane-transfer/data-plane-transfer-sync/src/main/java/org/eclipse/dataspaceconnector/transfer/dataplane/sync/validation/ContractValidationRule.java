@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.ParseException;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Map;
 
@@ -34,9 +35,11 @@ import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.CO
 public class ContractValidationRule implements TokenValidationRule {
 
     private final ContractNegotiationStore contractNegotiationStore;
+    private final Clock clock;
 
-    public ContractValidationRule(ContractNegotiationStore contractNegotiationStore) {
+    public ContractValidationRule(ContractNegotiationStore contractNegotiationStore, Clock clock) {
         this.contractNegotiationStore = contractNegotiationStore;
+        this.clock = clock;
     }
 
     @Override
@@ -57,7 +60,7 @@ public class ContractValidationRule implements TokenValidationRule {
             return Result.failure("No contract agreement found for id: " + contractId);
         }
 
-        if (Instant.now().isAfter(Instant.ofEpochSecond(contractAgreement.getContractEndDate()))) {
+        if (clock.instant().isAfter(Instant.ofEpochSecond(contractAgreement.getContractEndDate()))) {
             return Result.failure("Contract has expired");
         }
 

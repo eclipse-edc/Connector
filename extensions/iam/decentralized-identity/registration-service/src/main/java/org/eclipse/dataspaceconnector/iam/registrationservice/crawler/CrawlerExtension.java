@@ -31,6 +31,7 @@ import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 import org.quartz.impl.StdSchedulerFactory;
 
+import java.time.Clock;
 import java.util.Map;
 
 import static org.quartz.JobBuilder.newJob;
@@ -53,6 +54,8 @@ public class CrawlerExtension implements ServiceExtension {
     private DidResolverRegistry resolverRegistry;
     @Inject
     private Vault vault;
+    @Inject
+    private Clock clock;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -99,6 +102,7 @@ public class CrawlerExtension implements ServiceExtension {
                 .ionHost(context.getSetting(ION_URL_SETTING, "http://gx-ion-node.westeurope.cloudapp.azure.com:3000/"))
                 .monitor(context.getMonitor())
                 .typeManager(context.getTypeManager())
+                .clock(clock)
                 .publisher(publisher)
                 .didTypes(context.getSetting(ION_CRAWLER_TYPE_SETTING, "aW9u"))
                 .resolverRegistry(resolverRegistry)

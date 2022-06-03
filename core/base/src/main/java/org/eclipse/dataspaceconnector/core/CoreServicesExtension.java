@@ -53,6 +53,7 @@ import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
 import java.security.PrivateKey;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutorService;
@@ -65,6 +66,7 @@ import static java.util.Optional.ofNullable;
         HealthCheckService.class,
         Monitor.class,
         TypeManager.class,
+        Clock.class,
         Telemetry.class
 })
 public class CoreServicesExtension implements ServiceExtension {

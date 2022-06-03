@@ -19,7 +19,7 @@ import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import org.eclipse.dataspaceconnector.common.token.JwtDecorator;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.Date;
 import java.util.UUID;
 
@@ -30,12 +30,14 @@ public class DefaultJwtDecorator implements JwtDecorator {
     private final String audience;
     private final String clientId;
     private final byte[] encodedCertificate;
+    private final Clock clock;
     private final long expiration;
 
-    public DefaultJwtDecorator(String audience, String clientId, byte[] encodedCertificate, long expiration) {
+    public DefaultJwtDecorator(String audience, String clientId, byte[] encodedCertificate, Clock clock, long expiration) {
         this.audience = audience;
         this.clientId = clientId;
         this.encodedCertificate = encodedCertificate;
+        this.clock = clock;
         this.expiration = expiration;
     }
 
@@ -46,8 +48,7 @@ public class DefaultJwtDecorator implements JwtDecorator {
                 .issuer(clientId)
                 .subject(clientId)
                 .jwtID(UUID.randomUUID().toString())
-                .notBeforeTime(new Date())
-                .issueTime(new Date())
-                .expirationTime(Date.from(Instant.now().plusSeconds(expiration)));
+                .issueTime(Date.from(clock.instant()))
+                .expirationTime(Date.from(clock.instant().plusSeconds(expiration)));
     }
 }

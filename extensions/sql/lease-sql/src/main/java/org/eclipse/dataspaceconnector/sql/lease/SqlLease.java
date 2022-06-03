@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.sql.lease;
 
 import org.eclipse.dataspaceconnector.spi.persistence.Lease;
 
+import java.time.Clock;
 import java.time.Instant;
 
 /**
@@ -36,7 +37,7 @@ public class SqlLease extends Lease {
         this.leaseId = leaseId;
     }
 
-    public boolean isExpired() {
-        return getLeasedAt() + getLeaseDuration() < Instant.now().toEpochMilli();
+    public boolean isExpired(Clock clock) {
+        return getLeasedAt() + getLeaseDuration() < clock.millis();
     }
 }

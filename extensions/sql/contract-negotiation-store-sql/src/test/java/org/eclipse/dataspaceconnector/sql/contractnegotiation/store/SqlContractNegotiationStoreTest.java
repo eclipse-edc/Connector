@@ -37,6 +37,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.Clock;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.UUID;
@@ -85,12 +86,12 @@ class SqlContractNegotiationStoreTest {
         TypeManager manager = new TypeManager();
 
         manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
-        store = new SqlContractNegotiationStore(dataSourceRegistry, DATASOURCE_NAME, txManager, manager, statements, CONNECTOR_NAME);
+        store = new SqlContractNegotiationStore(dataSourceRegistry, DATASOURCE_NAME, txManager, manager, statements, CONNECTOR_NAME, Clock.systemUTC());
 
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
         txManager.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
 
-        leaseUtil = new LeaseUtil(txManager, this::getConnection, statements);
+        leaseUtil = new LeaseUtil(txManager, this::getConnection, statements, Clock.systemUTC());
     }
 
     @AfterEach
