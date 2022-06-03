@@ -65,3 +65,7 @@ output "EDC_COSMOS_ITEST_KEY" {
   sensitive   = true
 }
 
+output "EDC_COSMOS_ITEST_URL" {
+  value       = azurerm_cosmosdb_account.cosmosdb_integrationtest.endpoint
+  description = "Public endpoint for the CosmosDB Account used in testing"
+}
