@@ -56,7 +56,6 @@ import static org.mockito.Mockito.when;
 class SqlPolicyDefinitionStoreTest {
 
     private static final String DATASOURCE_NAME = "policy";
-
     private SqlPolicyDefinitionStore sqlPolicyStore;
     private Connection connection;
 

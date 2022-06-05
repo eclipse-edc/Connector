@@ -14,28 +14,30 @@
 
 package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 
+import static java.lang.String.format;
+
 class PostgresStatements implements ContractDefinitionStatements {
     @Override
     public String getDeleteByIdTemplate() {
-        return String.format("DELETE FROM %s WHERE %s = ?",
+        return format("DELETE FROM %s WHERE %s = ?",
                 getContractDefinitionTable(),
                 getIdColumn());
     }
 
     @Override
     public String getSelectAllTemplate() {
-        return String.format("SELECT * from %s LIMIT ? OFFSET ?",
+        return format("SELECT * from %s LIMIT ? OFFSET ?",
                 getContractDefinitionTable());
     }
 
     @Override
     public String getFindByTemplate() {
-        return String.format("SELECT * FROM %s WHERE %s = ?", getContractDefinitionTable(), getIdColumn());
+        return format("SELECT * FROM %s WHERE %s = ?", getContractDefinitionTable(), getIdColumn());
     }
 
     @Override
     public String getInsertTemplate() {
-        return String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)",
+        return format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)",
                 getContractDefinitionTable(),
                 getIdColumn(),
                 getAccessPolicyIdColumn(),
@@ -46,7 +48,7 @@ class PostgresStatements implements ContractDefinitionStatements {
     @Override
 
     public String getCountTemplate() {
-        return String.format("SELECT COUNT (%s) FROM %s WHERE %s = ?",
+        return format("SELECT COUNT (%s) FROM %s WHERE %s = ?",
                 getIdColumn(),
                 getContractDefinitionTable(),
                 getIdColumn());
@@ -54,12 +56,17 @@ class PostgresStatements implements ContractDefinitionStatements {
 
     @Override
     public String getUpdateTemplate() {
-        return String.format("UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = ? WHERE %s = ?",
+        return format("UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = ? WHERE %s = ?",
                 getContractDefinitionTable(),
                 getIdColumn(),
                 getAccessPolicyIdColumn(),
                 getContractPolicyIdColumn(),
                 getSelectorExpressionColumn(),
                 getIdColumn());
+    }
+
+    @Override
+    public String getIsPolicyReferencedTemplate() {
+        return format("SELECT * FROM %s WHERE (%s=? OR %s=?);", getContractDefinitionTable(), getAccessPolicyIdColumn(), getContractPolicyIdColumn());
     }
 }
