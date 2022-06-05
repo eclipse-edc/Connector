@@ -15,6 +15,11 @@
 
 package org.eclipse.dataspaceconnector.sql.contractnegotiation;
 
+import org.eclipse.dataspaceconnector.policy.model.Action;
+import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
+import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
+import org.eclipse.dataspaceconnector.policy.model.Operator;
+import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -48,7 +53,7 @@ public class TestFunctions {
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
                 .assetId(UUID.randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build()))
+                .policy(createPolicy())
                 .contractStartDate(Instant.now().getEpochSecond())
                 .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(Instant.now().getEpochSecond());
@@ -66,9 +71,8 @@ public class TestFunctions {
                 .protocol("ids-multipart");
     }
 
-    public static Policy createPolicy(String uid) {
+    public static Policy createPolicy() {
         return Policy.Builder.newInstance()
-                .id(uid)
                 .permission(Permission.Builder.newInstance()
                         .target("")
                         .action(Action.Builder.newInstance()

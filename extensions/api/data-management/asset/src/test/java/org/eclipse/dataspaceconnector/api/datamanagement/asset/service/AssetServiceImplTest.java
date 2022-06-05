@@ -124,7 +124,8 @@ class AssetServiceImplTest {
                         .providerAgentId(UUID.randomUUID().toString())
                         .consumerAgentId(UUID.randomUUID().toString())
                         .assetId(asset.getId())
-                        .policy(Policy.Builder.newInstance().build())                        .build())
+                        .policy(Policy.Builder.newInstance().build())
+                        .build())
                 .build();
         when(contractNegotiationStore.getNegotiationsWithAgreementOnAsset(any())).thenReturn(Stream.of(contractNegotiation));
 

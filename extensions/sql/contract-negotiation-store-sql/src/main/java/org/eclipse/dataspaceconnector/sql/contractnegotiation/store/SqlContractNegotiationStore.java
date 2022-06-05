@@ -193,13 +193,7 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
 
     @Override
     public Stream<ContractNegotiation> getNegotiationsWithAgreementOnAsset(String assetId) {
-        var statement = "\n" +
-                "SELECT *\n" +
-                "FROM edc_contract_negotiation\n" +
-                "INNER JOIN edc_contract_agreement eca on edc_contract_negotiation.contract_agreement_id = eca.agreement_id\n" +
-                "WHERE edc_contract_negotiation.contract_agreement_id in (SELECT agreement_id\n" +
-                "                                                         FROM edc_contract_agreement\n" +
-                "                                                         WHERE asset_id = ?);\n";
+        var statement = statements.getNegotiationWitghAgreementOnAssetTemplate();
 
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
