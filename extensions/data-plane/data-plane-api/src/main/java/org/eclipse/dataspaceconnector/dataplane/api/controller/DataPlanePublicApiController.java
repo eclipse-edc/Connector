@@ -165,7 +165,7 @@ public class DataPlanePublicApiController {
      * Create a {@link DataFlowRequest} based on the decoded claim token and the request content.
      */
     private DataFlowRequest createDataFlowRequest(ClaimToken claims, Map<String, String> properties) {
-        var dataAddress = typeManager.readValue(claims.getClaims().get(DataPlaneConstants.DATA_ADDRESS), DataAddress.class);
+        var dataAddress = typeManager.readValue((String) claims.getClaims().get(DataPlaneConstants.DATA_ADDRESS), DataAddress.class);
         return DataFlowRequest.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(dataAddress)

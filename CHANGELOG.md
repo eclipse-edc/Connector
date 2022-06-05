@@ -59,6 +59,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Update `slf4j-api` to `2.0.0-alpha7` (#1328)
 * Added timestamps to TransferProcess DTO (#1350)
 * Make Helm charts more generic (#1363)
+* Make `ParticipantAgent` claims more generic (#1405)
 
 #### Removed
 
