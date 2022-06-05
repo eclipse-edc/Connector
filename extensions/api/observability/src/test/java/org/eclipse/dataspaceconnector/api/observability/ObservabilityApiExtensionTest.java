@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.observability;
 
-import org.eclipse.dataspaceconnector.junit.launcher.DependencyInjectionExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.common.annotations;
+package org.eclipse.dataspaceconnector.common.util.junit.annotations;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 /**
  * Common annotation for integration testing.  It applies integration-test Junit Tag.
  */
-@Target({ElementType.TYPE})
+@Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Test
 @Tag("IntegrationTest")

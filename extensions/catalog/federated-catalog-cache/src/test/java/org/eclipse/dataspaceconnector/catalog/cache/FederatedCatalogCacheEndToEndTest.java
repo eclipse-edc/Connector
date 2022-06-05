@@ -21,7 +21,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
-import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.AfterAll;
@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createOffer;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOkHttpClient;
 
 
 @ExtendWith(EdcExtension.class)

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *  Copyright (c) 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,8 +12,9 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.common.testfixtures;
+package org.eclipse.dataspaceconnector.common.junit.testfixtures;
 
+import org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;

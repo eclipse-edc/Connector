@@ -17,7 +17,7 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart;
 
 import kotlin.NotImplementedError;
-import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
+import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;

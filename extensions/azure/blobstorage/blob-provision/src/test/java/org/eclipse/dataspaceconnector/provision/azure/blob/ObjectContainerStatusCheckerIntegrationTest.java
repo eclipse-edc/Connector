@@ -20,7 +20,7 @@ import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApiImpl;
 import org.eclipse.dataspaceconnector.azure.testfixtures.AbstractAzureBlobTest;
 import org.eclipse.dataspaceconnector.azure.testfixtures.TestFunctions;
 import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureStorageIntegrationTest;
-import org.eclipse.dataspaceconnector.common.testfixtures.TestUtils;
+import org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;

@@ -28,8 +28,11 @@ dependencies {
     implementation(project(":extensions:transaction:transaction-datasource-spi"))
     implementation(project(":extensions:sql:common-sql"))
 
-    testImplementation(testFixtures(project(":common:util")))
+
     testImplementation("com.h2database:h2:${h2Version}")
+    testImplementation(project(":junit"))
+    testImplementation(testFixtures(project(":common:util")))
+
 }
 
 publishing {

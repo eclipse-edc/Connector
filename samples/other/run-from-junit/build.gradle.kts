@@ -29,7 +29,7 @@ dependencies {
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
-    testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(project(":junit"))
 
 
 }

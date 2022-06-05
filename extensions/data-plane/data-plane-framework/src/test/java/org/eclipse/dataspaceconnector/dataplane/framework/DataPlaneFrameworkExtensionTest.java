@@ -20,7 +20,7 @@ import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.dataspaceconnector.dataplane.spi.registry.TransferServiceRegistry;
-import org.eclipse.dataspaceconnector.junit.launcher.DependencyInjectionExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.injection.ObjectFactory;

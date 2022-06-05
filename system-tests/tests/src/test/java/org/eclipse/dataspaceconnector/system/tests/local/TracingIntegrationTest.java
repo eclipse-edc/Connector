@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.system.tests.local;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import io.opentelemetry.proto.trace.v1.Span;
-import org.eclipse.dataspaceconnector.common.annotations.OpenTelemetryIntegrationTest;
+import org.eclipse.dataspaceconnector.common.util.junit.annotations.OpenTelemetryIntegrationTest;
 import org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -47,9 +47,8 @@ import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.stop.Stop.stopQuietly;
 
 /**
- * The role of this class is to test the opentelemetry traces.
- * It only works if the opentelemetry java agent is attached.
- * The java agent trace exporter is configured to use the otlp exporter with http/protobuf protocol with the
+ * The role of this class is to test the opentelemetry traces. It only works if the opentelemetry java agent is
+ * attached. The java agent trace exporter is configured to use the otlp exporter with http/protobuf protocol with the
  * otel.exporter.otlp.protocol jvm argument.
  */
 @OpenTelemetryIntegrationTest
@@ -102,17 +101,17 @@ public class TracingIntegrationTest extends FileTransferEdcRuntime {
 
         // Assert
         await().atMost(30, SECONDS).untilAsserted(() -> {
-            // Get exported spans.
-            var requests = traceCollectorServer.retrieveRecordedRequests(request());
-            var spans = extractSpansFromRequests(requests);
-            // Assert that expected spans are present.
-            List<Span> contractNegotiationSpans = filterSpansByName(spans, contractNegotiationSpanNames);
-            List<Span> transferProcessSpans = filterSpansByName(spans, transferProcessSpanNames);
+                    // Get exported spans.
+                    var requests = traceCollectorServer.retrieveRecordedRequests(request());
+                    var spans = extractSpansFromRequests(requests);
+                    // Assert that expected spans are present.
+                    List<Span> contractNegotiationSpans = filterSpansByName(spans, contractNegotiationSpanNames);
+                    List<Span> transferProcessSpans = filterSpansByName(spans, transferProcessSpanNames);
 
-            // Assert that spans are part of the right trace.
-            assertSpansHaveSameTrace(contractNegotiationSpans);
-            assertSpansHaveSameTrace(transferProcessSpans);
-        }
+                    // Assert that spans are part of the right trace.
+                    assertSpansHaveSameTrace(contractNegotiationSpans);
+                    assertSpansHaveSameTrace(transferProcessSpans);
+                }
         );
     }
 
@@ -124,17 +123,17 @@ public class TracingIntegrationTest extends FileTransferEdcRuntime {
      */
     private List<Span> extractSpansFromRequests(HttpRequest[] requests) {
         return Arrays.stream(requests).map(HttpRequest::getBody)
-            .map(body -> {
-                try {
-                    return ExportTraceServiceRequest.parseFrom(body.getRawBytes());
-                } catch (InvalidProtocolBufferException e) {
-                    throw new UncheckedIOException(e);
-                }
-            })
-            .flatMap(r -> r.getResourceSpansList().stream())
-            .flatMap(r -> r.getInstrumentationLibrarySpansList().stream())
-            .flatMap(r -> r.getSpansList().stream())
-            .collect(Collectors.toList());
+                .map(body -> {
+                    try {
+                        return ExportTraceServiceRequest.parseFrom(body.getRawBytes());
+                    } catch (InvalidProtocolBufferException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                })
+                .flatMap(r -> r.getResourceSpansList().stream())
+                .flatMap(r -> r.getInstrumentationLibrarySpansList().stream())
+                .flatMap(r -> r.getSpansList().stream())
+                .collect(Collectors.toList());
     }
 
     private List<Span> filterSpansByName(List<Span> spans, List<String> spanNames) {

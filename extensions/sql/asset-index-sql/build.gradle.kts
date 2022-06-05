@@ -27,11 +27,12 @@ dependencies {
     implementation(project(":extensions:transaction:transaction-datasource-spi"))
     implementation(project(":extensions:sql:common-sql"))
 
-    testImplementation(testFixtures(project(":launchers:junit")))
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(project(":junit"))
+
     testImplementation(project(":core:base"))
     testImplementation("com.h2database:h2:${h2Version}")
     testImplementation("org.assertj:assertj-core:${assertj}")
+    testImplementation(testFixtures(project(":common:util")))
 }
 
 publishing {

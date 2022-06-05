@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.contract;
 
 import org.eclipse.dataspaceconnector.contract.policy.PolicyArchiveImpl;
-import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

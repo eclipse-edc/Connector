@@ -17,9 +17,9 @@ package org.eclipse.dataspaceconnector.metrics.micrometer;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.eclipse.dataspaceconnector.common.annotations.OpenTelemetryIntegrationTest;
-import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
-import org.eclipse.dataspaceconnector.junit.launcher.OpenTelemetryExtension;
+import org.eclipse.dataspaceconnector.common.util.junit.annotations.OpenTelemetryIntegrationTest;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.OpenTelemetryExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,15 +28,15 @@ import java.io.IOException;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 
 @OpenTelemetryIntegrationTest
-@ExtendWith(value = {EdcExtension.class, OpenTelemetryExtension.class})
+@ExtendWith(value = { EdcExtension.class, OpenTelemetryExtension.class })
 public class MicrometerExtensionIntegrationTest {
     static final int CONNECTOR_PORT = getFreePort();
     static final String HEALTH_ENDPOINT = String.format("http://localhost:%s/api/check/health", CONNECTOR_PORT);
     static final String METRICS_ENDPOINT = "http://localhost:9464/metrics";
-    static final String[] METRIC_PREFIXES = new String[] {
+    static final String[] METRIC_PREFIXES = new String[]{
             "executor_", // ExecutorMetrics added by MicrometerExtension
             "jvm_memory_", // JvmMemoryMetrics added by MicrometerExtension
             "jvm_gc", // JvmGcMetrics added by MicrometerExtension
@@ -44,7 +44,7 @@ public class MicrometerExtensionIntegrationTest {
             "jvm_threads_", // JvmThreadMetrics added by MicrometerExtension
             "jetty_", // Added by JettyMicrometerExtension
             "jersey_", // Added by JerseyMicrometerExtension
-            "http_client_"}; // OkHttp metrics
+            "http_client_" }; // OkHttp metrics
 
     @BeforeEach
     void before(EdcExtension extension) {

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.junit.launcher;
+package org.eclipse.dataspaceconnector.junit.extensions;
 
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;

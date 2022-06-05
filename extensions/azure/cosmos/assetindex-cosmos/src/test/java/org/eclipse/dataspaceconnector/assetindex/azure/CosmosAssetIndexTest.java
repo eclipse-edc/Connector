@@ -19,7 +19,7 @@ import com.azure.cosmos.models.SqlQuerySpec;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
-import org.eclipse.dataspaceconnector.common.matchers.PredicateMatcher;
+import org.eclipse.dataspaceconnector.junit.matchers.PredicateMatcher;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;

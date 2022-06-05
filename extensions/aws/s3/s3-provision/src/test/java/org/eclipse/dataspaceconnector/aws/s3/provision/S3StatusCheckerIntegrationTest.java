@@ -33,7 +33,7 @@ import java.util.function.Supplier;
 
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFileFromResourceName;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFileFromResourceName;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;

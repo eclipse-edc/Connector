@@ -19,6 +19,7 @@ rootProject.name = "dataspaceconnector"
 // modules for common/util code
 
 include(":common:util")
+include(":junit")
 include(":common:state-machine-lib")
 include(":common:token-generation-lib")
 include(":common:token-validation-lib")
@@ -143,7 +144,6 @@ include(":extensions:sql:pool:apache-commons-pool-sql")
 include(":extensions:sql:transfer-process-store-sql")
 
 // modules for launchers, i.e. runnable compositions of the app
-include(":launchers:junit")
 include(":launchers:test")
 include(":launchers:ids-connector")
 include(":launchers:registration-service-app")

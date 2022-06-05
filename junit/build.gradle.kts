@@ -18,28 +18,29 @@ plugins {
     `maven-publish`
 }
 
-
 val jupiterVersion: String by project
+val mockitoVersion: String by project
+val okHttpVersion: String by project
 val assertj: String by project
 
 dependencies {
     api(project(":spi"))
-
     api(project(":core:boot"))
     api(project(":core:base"))
+    api(project(":common:util"))
+    implementation("org.mockito:mockito-core:${mockitoVersion}")
+    implementation("org.assertj:assertj-core:${assertj}")
 
-    testFixturesImplementation(project(":common:util"))
-    testFixturesImplementation(testFixtures(project(":common:util")))
-
-    testFixturesImplementation("org.assertj:assertj-core:${assertj}")
-    testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
-    testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
+    implementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
+    runtimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
+    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    implementation("org.junit-pioneer:junit-pioneer:1.6.2")
 }
 
 publishing {
     publications {
-        create<MavenPublication>("junit-extension") {
-            artifactId = "junit-extension"
+        create<MavenPublication>("junit") {
+            artifactId = "junit"
             from(components["java"])
         }
     }

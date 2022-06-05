@@ -44,7 +44,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRespons
 import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
-import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
@@ -60,22 +60,22 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 
 @ExtendWith(EdcExtension.class)
 abstract class AbstractMultipartControllerIntegrationTest {
     public static final String HEADER = "header";
     public static final String PAYLOAD = "payload";
-    // TODO needs to be replaced by an objectmapper capable to understand IDS JSON-LD
-    //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
-    private static ObjectMapper objectMapper;
     private static final AtomicReference<Integer> PORT = new AtomicReference<>();
     private static final AtomicReference<Integer> IDS_PORT = new AtomicReference<>();
     private static final List<Asset> ASSETS = new LinkedList<>();
-    
+    // TODO needs to be replaced by an objectmapper capable to understand IDS JSON-LD
+    //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+    private static final ObjectMapper OBJECT_MAPPER;
+
     static {
-        objectMapper = new ObjectMapperFactory().getObjectMapper();
+        OBJECT_MAPPER = new ObjectMapperFactory().getObjectMapper();
     }
 
     @AfterEach
@@ -125,11 +125,11 @@ abstract class AbstractMultipartControllerIntegrationTest {
     }
 
     protected String toJson(Message message) throws Exception {
-        return objectMapper.writeValueAsString(message);
+        return OBJECT_MAPPER.writeValueAsString(message);
     }
 
     protected String toJson(Contract contract) throws Exception {
-        return objectMapper.writeValueAsString(contract);
+        return OBJECT_MAPPER.writeValueAsString(contract);
     }
 
     protected DescriptionRequestMessage getDescriptionRequestMessage() {
@@ -241,7 +241,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 }
 
                 if (multipartName.equalsIgnoreCase(HEADER)) {
-                    header = objectMapper.readValue(part.body().inputStream(), Message.class);
+                    header = OBJECT_MAPPER.readValue(part.body().inputStream(), Message.class);
                 } else if (multipartName.equalsIgnoreCase(PAYLOAD)) {
                     payload = part.body().readByteArray();
                 }

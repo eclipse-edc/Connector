@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.common.matchers;
+package org.eclipse.dataspaceconnector.junit.matchers;
 
 import org.mockito.ArgumentMatcher;
 

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.junit.launcher;
+package org.eclipse.dataspaceconnector.junit.extensions;
 
 import org.eclipse.dataspaceconnector.boot.system.injection.InjectorImpl;
 import org.eclipse.dataspaceconnector.boot.system.injection.ReflectiveObjectFactory;
@@ -30,10 +30,12 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
 
 /**
- * A JUnit extension for running an embedded EDC dependency injection container as part of a test fixture.
- * This extension attaches a dependency injection container to the test lifecycle. Parameter injection of runtime services is supported.
+ * A JUnit extension for running an embedded EDC dependency injection container as part of a test fixture. This
+ * extension attaches a dependency injection container to the test lifecycle. Parameter injection of runtime services is
+ * supported.
  * <p>
- * If additional lifecycle services are needed (detection, loading and booting of extensions), use {@link EdcExtension} instead.
+ * If additional lifecycle services are needed (detection, loading and booting of extensions), use {@link EdcExtension}
+ * instead.
  */
 public class DependencyInjectionExtension extends BaseRuntime implements BeforeEachCallback, ParameterResolver {
     private ServiceExtensionContext context;
@@ -48,11 +50,6 @@ public class DependencyInjectionExtension extends BaseRuntime implements BeforeE
                 new InjectionPointScanner(),
                 context
         );
-    }
-
-    @Override
-    protected @NotNull ServiceExtensionContext createServiceExtensionContext() {
-        return context;
     }
 
     @Override
@@ -79,5 +76,10 @@ public class DependencyInjectionExtension extends BaseRuntime implements BeforeE
             return context.getService(cast(type));
         }
         return null;
+    }
+
+    @Override
+    protected @NotNull ServiceExtensionContext createServiceExtensionContext() {
+        return context;
     }
 }

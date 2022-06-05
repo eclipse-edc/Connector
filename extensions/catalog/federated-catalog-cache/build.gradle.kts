@@ -34,8 +34,8 @@ dependencies {
     implementation("net.jodah:failsafe:${jodahFailsafeVersion}")
 
     // required for integration test
-    testImplementation(testFixtures(project(":launchers:junit")))
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(project(":junit"))
+
     testImplementation(project(":extensions:http"))
     testImplementation(project(":data-protocols:ids:ids-spi"))
 }

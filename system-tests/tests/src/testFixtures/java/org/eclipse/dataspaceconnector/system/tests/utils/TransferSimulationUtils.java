@@ -68,7 +68,7 @@ public abstract class TransferSimulationUtils {
     /**
      * Gatling chain for performing contract negotiation and file transfer.
      *
-     * @param providerUrl             URL for the Provider API, as accessed from the Consumer runtime.
+     * @param providerUrl URL for the Provider API, as accessed from the Consumer runtime.
      * @param simulationConfiguration Configuration for transfers.
      */
     public static ChainBuilder contractNegotiationAndTransfer(String providerUrl, TransferSimulationConfiguration simulationConfiguration) {
@@ -188,7 +188,7 @@ public abstract class TransferSimulationUtils {
      * <p>
      * Saves the Transfer Process ID into the {@see TRANSFER_PROCESS_ID} session key.
      *
-     * @param providerUrl             URL for the Provider API, as accessed from the Consumer runtime.
+     * @param providerUrl URL for the Provider API, as accessed from the Consumer runtime.
      * @param simulationConfiguration Configuration for transfers.
      */
     private static ChainBuilder startTransfer(String providerUrl, TransferSimulationConfiguration simulationConfiguration) {
