@@ -16,14 +16,16 @@ package org.eclipse.dataspaceconnector.core.defaults.policystore;
 
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -31,22 +33,23 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 
-class InMemoryPolicyStoreTest {
-    private PolicyStore store;
+class InMemoryPolicyDefinitionStoreTest {
+    private PolicyDefinitionStore store;
     private LockManager manager;
 
     @BeforeEach
     void setUp() {
         manager = spy(new LockManager(new ReentrantReadWriteLock(true)));
-        store = new InMemoryPolicyStore(manager);
+        store = new InMemoryPolicyDefinitionStore(manager);
     }
 
     @Test
     void findById_whenPresent() {
-        Policy policy = Policy.Builder.newInstance().build();
-        store.save(policy);
+        var def = createPolicyDef();
+        var policy = def.getPolicy();
+        store.save(def);
 
-        assertThat(store.findById(policy.getUid())).isEqualTo(policy);
+        assertThat(store.findById(def.getUid())).extracting(PolicyDefinition::getPolicy).isEqualTo(policy);
     }
 
     @Test
@@ -56,21 +59,22 @@ class InMemoryPolicyStoreTest {
 
     @Test
     void findAll_whenNoFiltersWithLimitAndOffset() {
-        Policy policy1 = Policy.Builder.newInstance().build();
-        Policy policy2 = Policy.Builder.newInstance().build();
-        Policy policy3 = Policy.Builder.newInstance().build();
+        var policy1 = createPolicyDef();
+        var policy2 = createPolicyDef();
+        var policy3 = createPolicyDef();
         store.save(policy1);
         store.save(policy2);
         store.save(policy3);
 
-        assertThat(store.findAll(QuerySpec.Builder.newInstance().limit(3).offset(1).build())).containsExactlyInAnyOrder(policy2, policy3);
+        var list = store.findAll(QuerySpec.Builder.newInstance().limit(3).offset(1).build()).collect(Collectors.toList());
+        assertThat(list).hasSize(2).isSubsetOf(policy1, policy2, policy3);
     }
 
     @Test
     void findAll_whenEqualFilter() {
-        Policy policy1 = Policy.Builder.newInstance().build();
-        Policy policy2 = Policy.Builder.newInstance().build();
-        Policy policy3 = Policy.Builder.newInstance().build();
+        var policy1 = createPolicyDef();
+        var policy2 = createPolicyDef();
+        var policy3 = createPolicyDef();
         store.save(policy1);
         store.save(policy2);
         store.save(policy3);
@@ -80,15 +84,10 @@ class InMemoryPolicyStoreTest {
 
     @Test
     void findAll_whenSort() {
-        Policy policy1 = Policy.Builder.newInstance()
-                .id("C")
-                .build();
-        Policy policy2 = Policy.Builder.newInstance()
-                .id("A")
-                .build();
-        Policy policy3 = Policy.Builder.newInstance()
-                .id("B")
-                .build();
+        var policy1 = createPolicyDef("C");
+        var policy2 = createPolicyDef("A");
+        var policy3 = createPolicyDef("B");
+
         store.save(policy1);
         store.save(policy2);
         store.save(policy3);
@@ -98,26 +97,11 @@ class InMemoryPolicyStoreTest {
 
     @Test
     void findAll_allFilters() {
-        Policy policy1 = Policy.Builder.newInstance()
-                .target("target1")
-                .id("1C")
-                .build();
-        Policy policy2 = Policy.Builder.newInstance()
-                .target("target1")
-                .id("1A")
-                .build();
-        Policy policy3 = Policy.Builder.newInstance()
-                .target("target1")
-                .id("1B")
-                .build();
-        Policy policyX = Policy.Builder.newInstance()
-                .target("target2")
-                .id("2X")
-                .build();
-        Policy policyY = Policy.Builder.newInstance()
-                .target("target2")
-                .id("2Y")
-                .build();
+        var policy1 = createPolicyDef("1C", "target1");
+        var policy2 = createPolicyDef("1A", "target1");
+        var policy3 = createPolicyDef("1B", "target1");
+        var policyX = createPolicyDef("2X", "target2");
+        var policyY = createPolicyDef("2Y", "target2");
         store.save(policy1);
         store.save(policy2);
         store.save(policy3);
@@ -125,7 +109,7 @@ class InMemoryPolicyStoreTest {
         store.save(policyY);
 
         QuerySpec uid = QuerySpec.Builder.newInstance()
-                .filter("target=target1")
+                .filter("policy.target=target1")
                 .sortField("uid")
                 .sortOrder(SortOrder.DESC)
                 .offset(1)
@@ -136,7 +120,7 @@ class InMemoryPolicyStoreTest {
 
     @Test
     void deleteById_whenPresent() {
-        Policy policy = Policy.Builder.newInstance().build();
+        var policy = createPolicyDef();
         store.save(policy);
         assertThat(store.findById(policy.getUid())).isEqualTo(policy);
 
@@ -167,7 +151,7 @@ class InMemoryPolicyStoreTest {
     void save_exceptionThrown() {
         doThrow(new RuntimeException()).when(manager).writeLock(any());
 
-        assertThatExceptionOfType(EdcPersistenceException.class).isThrownBy(() -> store.save(Policy.Builder.newInstance().build()));
+        assertThatExceptionOfType(EdcPersistenceException.class).isThrownBy(() -> store.save(createPolicyDef()));
     }
 
     @Test
@@ -175,5 +159,20 @@ class InMemoryPolicyStoreTest {
         doThrow(new RuntimeException()).when(manager).writeLock(any());
 
         assertThatExceptionOfType(EdcPersistenceException.class).isThrownBy(() -> store.deleteById("any-policy-id"));
+    }
+
+    private PolicyDefinition createPolicyDef() {
+        return PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
+    }
+
+    private PolicyDefinition createPolicyDef(String id) {
+        return PolicyDefinition.Builder.newInstance()
+                .uid(id)
+                .policy(Policy.Builder.newInstance().build())
+                .build();
+    }
+
+    private PolicyDefinition createPolicyDef(String id, String target) {
+        return PolicyDefinition.Builder.newInstance().uid(id).policy(Policy.Builder.newInstance().target(target).build()).build();
     }
 }

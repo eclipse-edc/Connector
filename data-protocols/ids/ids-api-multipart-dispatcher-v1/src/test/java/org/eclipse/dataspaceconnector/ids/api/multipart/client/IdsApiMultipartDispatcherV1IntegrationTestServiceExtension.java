@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
@@ -99,7 +100,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
                         .providerAgentId("provider")
                         .consumerAgentId("consumer")
                         .assetId(UUID.randomUUID().toString())
-                        .policyId("policyId")
+                        .policy(Policy.Builder.newInstance().build())
                         .contractSigningDate(Instant.now().getEpochSecond())
                         .contractStartDate(Instant.now().getEpochSecond())
                         .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
@@ -191,11 +192,6 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         }
 
         @Override
-        public @NotNull List<TransferProcess> nextForState(int state, int max) {
-            return Collections.EMPTY_LIST;
-        }
-
-        @Override
         public void create(TransferProcess process) {
         }
 
@@ -210,6 +206,11 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         @Override
         public Stream<TransferProcess> findAll(QuerySpec querySpec) {
             return null;
+        }
+
+        @Override
+        public @NotNull List<TransferProcess> nextForState(int state, int max) {
+            return Collections.EMPTY_LIST;
         }
     }
 
@@ -230,11 +231,13 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         private final List<ContractDefinition> contractDefinitions = new ArrayList<>();
 
         FakeContractDefinitionStore() {
-            Policy publicPolicy = Policy.Builder.newInstance()
-                    .permission(Permission.Builder.newInstance()
-                            .target("2")
-                            .action(Action.Builder.newInstance()
-                                    .type("USE")
+            var publicPolicy = PolicyDefinition.Builder.newInstance()
+                    .policy(Policy.Builder.newInstance()
+                            .permission(Permission.Builder.newInstance()
+                                    .target("2")
+                                    .action(Action.Builder.newInstance()
+                                            .type("USE")
+                                            .build())
                                     .build())
                             .build())
                     .build();
@@ -258,12 +261,12 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
             throw new UnsupportedOperationException();
         }
-    
+
         @Override
         public ContractDefinition findById(String definitionId) {
             throw new UnsupportedOperationException();
         }
-    
+
         @Override
         public void save(Collection<ContractDefinition> definitions) {
             contractDefinitions.addAll(definitions);

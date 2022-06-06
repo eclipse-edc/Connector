@@ -1,6 +1,6 @@
 openapi: 3.0.1
 paths:
-  /policies:
+  /policydefinitions:
     get:
       operationId: getAllPolicies
       parameters:
@@ -36,7 +36,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Policy'
+                  $ref: '#/components/schemas/PolicyDefinition'
           description: default response
       tags:
       - Policy
@@ -46,7 +46,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Policy'
+              $ref: '#/components/schemas/PolicyDefinition'
       responses:
         default:
           content:
@@ -54,7 +54,7 @@ paths:
           description: default response
       tags:
       - Policy
-  /policies/{id}:
+  /policydefinitions/{id}:
     delete:
       operationId: deletePolicy
       parameters:
@@ -83,7 +83,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Policy'
+                $ref: '#/components/schemas/PolicyDefinition'
           description: default response
       tags:
       - Policy
@@ -182,6 +182,11 @@ components:
             $ref: '#/components/schemas/Prohibition'
         target:
           type: string
+    PolicyDefinition:
+      type: object
+      properties:
+        policy:
+          $ref: '#/components/schemas/Policy'
         uid:
           type: string
     Prohibition:

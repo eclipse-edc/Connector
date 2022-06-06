@@ -60,7 +60,7 @@ public class TestFunctions {
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
                 .assetId(UUID.randomUUID().toString())
-                .policyId(UUID.randomUUID().toString())
+                .policy(Policy.Builder.newInstance().build())
                 .contractStartDate(Instant.now().getEpochSecond())
                 .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(Instant.now().getEpochSecond());
@@ -68,7 +68,6 @@ public class TestFunctions {
 
     public static Policy createPolicy(String uid) {
         return Policy.Builder.newInstance()
-                .id(uid)
                 .permission(Permission.Builder.newInstance()
                         .target("")
                         .action(Action.Builder.newInstance()

@@ -18,10 +18,11 @@ import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
@@ -34,9 +35,9 @@ public class FakeSetup {
     private final Monitor monitor;
     private final AssetLoader assetIndexLoader;
     private final ContractDefinitionStore contractDefinitionStore;
-    private final PolicyStore policyStore;
+    private final PolicyDefinitionStore policyStore;
 
-    public FakeSetup(@NotNull Monitor monitor, @NotNull AssetLoader assetIndexLoader, @NotNull ContractDefinitionStore contractDefinitionStore, PolicyStore policyStore) {
+    public FakeSetup(@NotNull Monitor monitor, @NotNull AssetLoader assetIndexLoader, @NotNull ContractDefinitionStore contractDefinitionStore, PolicyDefinitionStore policyStore) {
         this.monitor = Objects.requireNonNull(monitor);
         this.assetIndexLoader = Objects.requireNonNull(assetIndexLoader);
         this.contractDefinitionStore = Objects.requireNonNull(contractDefinitionStore);
@@ -76,19 +77,21 @@ public class FakeSetup {
                         .build())
                 .build();
 
-        policyStore.save(publicPolicy);
+        var def = PolicyDefinition.Builder.newInstance().policy(publicPolicy).build();
+
+        policyStore.save(def);
 
         ContractDefinition contractDefinition1 = ContractDefinition.Builder.newInstance()
                 .id("1")
-                .accessPolicyId(publicPolicy.getUid())
-                .contractPolicyId(publicPolicy.getUid())
+                .accessPolicyId(def.getUid())
+                .contractPolicyId(def.getUid())
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "1").build())
                 .build();
 
         ContractDefinition contractDefinition2 = ContractDefinition.Builder.newInstance()
                 .id("2")
-                .accessPolicyId(publicPolicy.getUid())
-                .contractPolicyId(publicPolicy.getUid())
+                .accessPolicyId(def.getUid())
+                .contractPolicyId(def.getUid())
                 .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "2").build())
                 .build();
 

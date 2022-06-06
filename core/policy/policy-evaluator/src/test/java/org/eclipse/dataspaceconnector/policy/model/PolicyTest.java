@@ -35,7 +35,7 @@ class PolicyTest {
         var serialized = mapper.writeValueAsString(policy);
         assertThat(mapper.readValue(serialized, Policy.class).getPermissions()).isNotEmpty();
     }
-    
+
     @Test
     void withTarget() {
         var target = "target-id";
@@ -43,7 +43,6 @@ class PolicyTest {
         var prohibition = Prohibition.Builder.newInstance().action(Action.Builder.newInstance().type("MODIFY").build()).build();
         var duty = Duty.Builder.newInstance().action(Action.Builder.newInstance().type("DELETE").build()).build();
         var policy = Policy.Builder.newInstance()
-                .id("id")
                 .permission(permission)
                 .prohibition(prohibition)
                 .duty(duty)
@@ -53,10 +52,9 @@ class PolicyTest {
                 .type(PolicyType.SET)
                 .extensibleProperties(new HashMap<>())
                 .build();
-        
+
         var copy = policy.withTarget(target);
-        
-        assertThat(copy.getUid()).isEqualTo(policy.getUid());
+
         assertThat(copy.getPermissions().size()).isEqualTo(policy.getPermissions().size());
         copy.getPermissions().forEach(p -> assertThat(p.getTarget()).isEqualTo(target));
         copy.getProhibitions().forEach(p -> assertThat(p.getTarget()).isEqualTo(target));

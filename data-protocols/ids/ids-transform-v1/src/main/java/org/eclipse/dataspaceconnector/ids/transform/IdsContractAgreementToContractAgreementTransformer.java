@@ -85,7 +85,7 @@ public class IdsContractAgreementToContractAgreementTransformer implements IdsTy
                 .build();
 
         var builder = ContractAgreement.Builder.newInstance()
-                .policyId(policy.getUid())
+                .policy(policy)
                 .consumerAgentId(String.valueOf(contractAgreement.getConsumer()))
                 .providerAgentId(String.valueOf(contractAgreement.getProvider()))
                 .assetId(asset.getId());

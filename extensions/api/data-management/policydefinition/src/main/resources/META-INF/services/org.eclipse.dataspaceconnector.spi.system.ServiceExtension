@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.dataspaceconnector.api.datamanagement.policy.PolicyApiExtension
+org.eclipse.dataspaceconnector.api.datamanagement.policy.PolicyDefinitionApiExtension

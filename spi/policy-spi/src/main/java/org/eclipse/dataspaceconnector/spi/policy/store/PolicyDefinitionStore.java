@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.spi.policy.store;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +25,7 @@ import java.util.stream.Stream;
 /**
  * Persists {@link Policy}.
  */
-public interface PolicyStore {
+public interface PolicyDefinitionStore {
 
     /**
      * Finds the policy by id.
@@ -33,8 +34,7 @@ public interface PolicyStore {
      * @return {@link Policy} or null if not found.
      * @throws EdcPersistenceException if something goes wrong.
      */
-    @Nullable
-    Policy findById(String policyId);
+    PolicyDefinition findById(String policyId);
 
     /**
      * Find stream of policies in the store based on query spec.
@@ -43,7 +43,7 @@ public interface PolicyStore {
      * @return A {@link Stream} of {@link Policy}. Might be empty, never null.
      * @throws EdcPersistenceException if something goes wrong.
      */
-    Stream<Policy> findAll(QuerySpec spec);
+    Stream<PolicyDefinition> findAll(QuerySpec spec);
 
     /**
      * Persists the policy.
@@ -51,7 +51,7 @@ public interface PolicyStore {
      * @param policy to be saved.
      * @throws EdcPersistenceException if something goes wrong.
      */
-    void save(Policy policy);
+    void save(PolicyDefinition policy);
 
     /**
      * Deletes a policy for the given id.
@@ -61,7 +61,7 @@ public interface PolicyStore {
      * @throws EdcPersistenceException if something goes wrong.
      */
     @Nullable
-    Policy deleteById(String policyId);
+    PolicyDefinition deleteById(String policyId);
 
     /**
      * If the store implementation supports caching, this method triggers a cache-reload.

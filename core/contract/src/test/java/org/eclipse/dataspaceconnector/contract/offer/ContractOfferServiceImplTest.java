@@ -16,6 +16,7 @@
 package org.eclipse.dataspaceconnector.contract.offer;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
@@ -24,7 +25,7 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionServi
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +46,7 @@ class ContractOfferServiceImplTest {
     private final ContractDefinitionService contractDefinitionService = mock(ContractDefinitionService.class);
     private final AssetIndex assetIndex = mock(AssetIndex.class);
     private final ParticipantAgentService agentService = mock(ParticipantAgentService.class);
-    private final PolicyStore policyStore = mock(PolicyStore.class);
+    private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
 
     private ContractOfferService contractOfferService;
 
@@ -67,7 +68,7 @@ class ContractOfferServiceImplTest {
         when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenReturn(Stream.of(contractDefinition));
         var assetStream = Stream.of(Asset.Builder.newInstance().build(), Asset.Builder.newInstance().build());
         when(assetIndex.queryAssets(isA(AssetSelectorExpression.class))).thenReturn(assetStream);
-        when(policyStore.findById(any())).thenReturn(Policy.Builder.newInstance().build());
+        when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
 
         var query = ContractOfferQuery.builder().claimToken(ClaimToken.Builder.newInstance().build()).build();
 

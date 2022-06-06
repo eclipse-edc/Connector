@@ -18,8 +18,9 @@ import okhttp3.Interceptor;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -73,7 +74,7 @@ public class HttpProvisionerExtensionEndToEndTest {
     void processProviderRequestRetry(TransferProcessManager processManager,
                                      ContractNegotiationStore negotiationStore,
                                      AssetLoader loader,
-                                     TransferProcessStore store, PolicyStore policyStore) throws Exception {
+                                     TransferProcessStore store, PolicyDefinitionStore policyStore) throws Exception {
         var latch = new CountDownLatch(1);
 
         when(delegate.intercept(any()))
@@ -116,11 +117,11 @@ public class HttpProvisionerExtensionEndToEndTest {
         });
     }
 
-    private void loadNegotiation(ContractNegotiationStore negotiationStore, PolicyStore policyStore) {
+    private void loadNegotiation(ContractNegotiationStore negotiationStore, PolicyDefinitionStore policyStore) {
         var contractAgreement = ContractAgreement.Builder.newInstance()
                 .assetId(ASSET_ID)
                 .id(CONTRACT_ID)
-                .policyId(POLICY_ID)
+                .policy(Policy.Builder.newInstance().build())
                 .consumerAgentId("consumer")
                 .providerAgentId("provider")
                 .build();
@@ -134,7 +135,7 @@ public class HttpProvisionerExtensionEndToEndTest {
                 .build();
         negotiationStore.save(contractNegotiation);
 
-        policyStore.save(Policy.Builder.newInstance().id(POLICY_ID).build());
+        policyStore.save(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).uid(POLICY_ID).build());
     }
 
     private void loadAsset(AssetLoader loader) {
