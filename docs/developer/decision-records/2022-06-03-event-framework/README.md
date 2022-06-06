@@ -22,9 +22,10 @@ An event is a representation of something that happened in the past, and has ver
 - it describes which layer emitted the event: domain, system, security, and so on...
 
 #### Main differences between Events and Callbacks
-- Callbacks are always correlated with a request, events don't
+- Callbacks are always correlated with a request, events are not
 - Callbacks are unicast, events are multicast
 - Callbacks are at the protocol level, events can be at a different level
+- Callbacks are critical for the correct operation of a connector, where events are optional
 
 ## Approach
 
@@ -49,9 +50,24 @@ public interface TransferProcessEventListener {
 }
 ```
 
-The `Listener` would have a single implementation that will take care of generate the event class and pass it to the `EventRouter` component.
-`Event` will be the abstract class that represents all the events, and every event class will extend it.
+`Event` will be the superclass that represents all the events, and every event class will extend it.
+```java
+public abstract class Event {
+    private final long createdAt;
 
+    ...
+}
+```
+
+Event example implementation:
+```java
+public class TransferProcessCreatedEvent extends Event {
+    private String id;
+    ...
+}
+```
+
+The `Listener` would have a single implementation that will take care of generate the event class and pass it to the `EventRouter` component.
 
 ```java
 
