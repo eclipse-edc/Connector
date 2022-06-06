@@ -24,7 +24,7 @@ import java.util.List;
 
 @OpenAPIDefinition
 @Tag(name = "Policy")
-public interface PolicyApi {
+public interface PolicyDefinitionApi {
 
     List<PolicyDefinition> getAllPolicies(@Valid QuerySpecDto querySpecDto);
 

@@ -28,12 +28,12 @@ import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 
 import static java.util.Optional.ofNullable;
 
-public class PolicyApiExtension implements ServiceExtension {
+public class PolicyDefinitionApiExtension implements ServiceExtension {
 
     @Inject
-    DtoTransformerRegistry transformerRegistry;
+    private DtoTransformerRegistry transformerRegistry;
     @Inject(required = false)
-    TransactionContext transactionContext;
+    private TransactionContext transactionContext;
     @Inject
     private WebService webService;
     @Inject
@@ -59,6 +59,6 @@ public class PolicyApiExtension implements ServiceExtension {
                 });
         var service = new PolicyServiceImpl(transactionContextImpl, policyStore, contractDefinitionStore);
 
-        webService.registerResource(configuration.getContextAlias(), new PolicyApiController(monitor, service, transformerRegistry));
+        webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionApiController(monitor, service, transformerRegistry));
     }
 }

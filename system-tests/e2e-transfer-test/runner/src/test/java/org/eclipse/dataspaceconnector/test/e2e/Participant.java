@@ -103,7 +103,7 @@ public class Participant {
                 .contentType(JSON)
                 .body(policy)
                 .when()
-                .post("/api/policies")
+                .post("/api/policydefinitions")
                 .then();
 
         return policy.getUid();

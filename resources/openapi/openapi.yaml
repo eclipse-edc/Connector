@@ -163,51 +163,6 @@ paths:
           description: default response
           content:
             application/json: {}
-  /instances:
-    get:
-      tags:
-      - Dataplane Selector
-      operationId: getAll
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DataPlaneInstance'
-    post:
-      tags:
-      - Dataplane Selector
-      operationId: addEntry
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DataPlaneInstance'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /instances/select:
-    post:
-      tags:
-      - Dataplane Selector
-      operationId: find
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SelectionRequest'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DataPlaneInstance'
   /assets:
     get:
       tags:
@@ -420,6 +375,51 @@ paths:
           description: default response
           content:
             application/json: {}
+  /instances:
+    get:
+      tags:
+      - Dataplane Selector
+      operationId: getAll
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataPlaneInstance'
+    post:
+      tags:
+      - Dataplane Selector
+      operationId: addEntry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataPlaneInstance'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /instances/select:
+    post:
+      tags:
+      - Dataplane Selector
+      operationId: find
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SelectionRequest'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataPlaneInstance'
   /transferprocess:
     get:
       tags:
@@ -846,7 +846,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ContractOffer'
-  /policies:
+  /policydefinitions:
     get:
       tags:
       - Policy
@@ -915,7 +915,7 @@ paths:
           description: default response
           content:
             application/json: {}
-  /policies/{id}:
+  /policydefinitions/{id}:
     get:
       tags:
       - Policy

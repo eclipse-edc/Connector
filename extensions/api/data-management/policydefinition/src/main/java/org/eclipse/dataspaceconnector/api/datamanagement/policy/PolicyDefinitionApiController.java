@@ -45,14 +45,14 @@ import static java.lang.String.format;
 
 @Produces({ MediaType.APPLICATION_JSON })
 @Consumes({ MediaType.APPLICATION_JSON })
-@Path("/policies")
-public class PolicyApiController implements PolicyApi {
+@Path("/policydefinitions")
+public class PolicyDefinitionApiController implements PolicyDefinitionApi {
 
     private final Monitor monitor;
     private final PolicyService policyService;
     private final DtoTransformerRegistry transformerRegistry;
 
-    public PolicyApiController(Monitor monitor, PolicyService policyService, DtoTransformerRegistry transformerRegistry) {
+    public PolicyDefinitionApiController(Monitor monitor, PolicyService policyService, DtoTransformerRegistry transformerRegistry) {
         this.monitor = monitor;
         this.policyService = policyService;
         this.transformerRegistry = transformerRegistry;

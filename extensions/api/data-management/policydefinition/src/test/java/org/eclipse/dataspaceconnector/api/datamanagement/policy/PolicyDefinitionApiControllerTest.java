@@ -41,16 +41,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class PolicyApiControllerTest {
+class PolicyDefinitionApiControllerTest {
 
     private final PolicyService service = mock(PolicyService.class);
     private final DtoTransformerRegistry transformerRegistry = mock(DtoTransformerRegistry.class);
-    private PolicyApiController controller;
+    private PolicyDefinitionApiController controller;
 
     @BeforeEach
     void setup() {
         var monitor = mock(Monitor.class);
-        controller = new PolicyApiController(monitor, service, transformerRegistry);
+        controller = new PolicyDefinitionApiController(monitor, service, transformerRegistry);
     }
 
     @Test

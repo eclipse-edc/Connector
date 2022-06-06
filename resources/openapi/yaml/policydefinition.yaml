@@ -1,6 +1,6 @@
 openapi: 3.0.1
 paths:
-  /policies:
+  /policydefinitions:
     get:
       operationId: getAllPolicies
       parameters:
@@ -54,7 +54,7 @@ paths:
           description: default response
       tags:
       - Policy
-  /policies/{id}:
+  /policydefinitions/{id}:
     delete:
       operationId: deletePolicy
       parameters:

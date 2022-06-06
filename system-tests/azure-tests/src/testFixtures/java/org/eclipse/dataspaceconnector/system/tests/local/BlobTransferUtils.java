@@ -40,7 +40,7 @@ import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulati
 public class BlobTransferUtils {
 
     private static final String ASSETS_PATH = "/assets";
-    private static final String POLICIES_PATH = "/policies";
+    private static final String POLICIES_PATH = "/policydefinitions";
     private static final String CONTRACT_DEFINITIONS_PATH = "/contractdefinitions";
 
     @NotNull

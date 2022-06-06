@@ -35,7 +35,7 @@ import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFr
 import static org.hamcrest.Matchers.is;
 
 @ExtendWith(EdcExtension.class)
-public class PolicyApiControllerIntegrationTest {
+public class PolicyDefinitionApiControllerIntegrationTest {
 
     private final int port = getFreePort();
     private final String authKey = "123456";
@@ -50,13 +50,13 @@ public class PolicyApiControllerIntegrationTest {
     }
 
     @Test
-    void getAllPolicies(PolicyDefinitionStore policyStore) {
+    void getAllpolicydefinitions(PolicyDefinitionStore policyStore) {
         var policy = createPolicy("id");
 
         policyStore.save(policy);
 
         baseRequest()
-                .get("/policies")
+                .get("/policydefinitions")
                 .then()
                 .statusCode(200)
                 .contentType(ContentType.JSON)
@@ -66,7 +66,7 @@ public class PolicyApiControllerIntegrationTest {
     @Test
     void getAll_invalidQuery() {
         baseRequest()
-                .get("/policies?limit=1&offset=-1&filter=&sortField=")
+                .get("/policydefinitions?limit=1&offset=-1&filter=&sortField=")
                 .then()
                 .statusCode(400);
     }
@@ -77,7 +77,7 @@ public class PolicyApiControllerIntegrationTest {
         policyStore.save(policy);
 
         baseRequest()
-                .get("/policies/id")
+                .get("/policydefinitions/id")
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
@@ -87,7 +87,7 @@ public class PolicyApiControllerIntegrationTest {
     @Test
     void getSinglePolicy_notFound() {
         baseRequest()
-                .get("/policies/not-existent-id")
+                .get("/policydefinitions/not-existent-id")
                 .then()
                 .statusCode(404);
     }
@@ -98,7 +98,7 @@ public class PolicyApiControllerIntegrationTest {
         baseRequest()
                 .body(createPolicy("id"))
                 .contentType(JSON)
-                .post("/policies")
+                .post("/policydefinitions")
                 .then()
                 .statusCode(204);
         assertThat(policyStore.findById("id")).isNotNull();
@@ -111,7 +111,7 @@ public class PolicyApiControllerIntegrationTest {
         baseRequest()
                 .body(createPolicy("id"))
                 .contentType(JSON)
-                .post("/policies")
+                .post("/policydefinitions")
                 .then()
                 .statusCode(409);
     }
@@ -124,7 +124,7 @@ public class PolicyApiControllerIntegrationTest {
 
         baseRequest()
                 .contentType(JSON)
-                .delete("/policies/id")
+                .delete("/policydefinitions/id")
                 .then()
                 .statusCode(204);
         assertThat(policyStore.findById("id")).isNull();
@@ -134,7 +134,7 @@ public class PolicyApiControllerIntegrationTest {
     void deletePolicy_notExists() {
         baseRequest()
                 .contentType(JSON)
-                .delete("/policies/not-existent-id")
+                .delete("/policydefinitions/not-existent-id")
                 .then()
                 .statusCode(404);
     }
@@ -145,7 +145,7 @@ public class PolicyApiControllerIntegrationTest {
         contractDefinitionStore.save(createContractDefinition(policy.getUid()));
         baseRequest()
                 .contentType(JSON)
-                .delete("/policies/access")
+                .delete("/policydefinitions/access")
                 .then()
                 .statusCode(404);
     }
@@ -158,7 +158,7 @@ public class PolicyApiControllerIntegrationTest {
 
         baseRequest()
                 .contentType(JSON)
-                .delete("/policies/access")
+                .delete("/policydefinitions/access")
                 .then()
                 .statusCode(409);
     }
