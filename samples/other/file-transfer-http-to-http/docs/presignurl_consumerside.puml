@@ -1,0 +1,98 @@
+@startuml
+
+autonumber
+
+skinparam BoxPadding 50
+
+skinParam NoteBackgroundColor WhiteSmoke
+skinParam NoteFontColor Black
+skinParam ParticipantBackgroundColor WhiteSmoke
+skinParam ActorBackgroundColor WhiteSmoke
+skinParam AgentBackgroundColor White
+skinParam AgentBorderColor SkyBlue
+skinparam shadowing false
+
+!define ConsumerColor ffebe6
+!define ProviderColor ccffcc
+!define WarningColor Business
+!define LeadColor Technology
+
+box Custom Consumer http 9191 data 9192 ids 9292 #ConsumerColor
+    actor Partner1 as "Partner" #white
+    database AssetCatalogConsumer as "Asset\nCatalog" #white
+    participant ConnectorConsumer as "Eclipse\nDataspace\nConnector" #white
+    participant HttpDataSource as "HttpDataSource" #white
+    participant CustomHttpDataSink as "CustomHttpDataSink" #white
+    participant CustomProvisioner as "CustomProvisioner" #white
+end box
+
+box "Consumer Mindsphere"
+    database FileShare2 as "AWS S3"
+    participant MindsphereAPI as "Mindsphere API "
+end box
+
+box Defaul EDC Build Provider http 8181 data 8182 ids 8282 #ProviderColor
+    database FileShareProvider
+    participant ConnectorProvider as "Eclipse\nDataspace\nConnector" #white
+    database AssetCatalogProvider as "Asset\nCatalog" #white
+    actor Partner2 as "Partner" #white
+end box
+
+== Contract Offering ==
+
+Partner2 -> FileShare2 : Insert AssetData
+Partner2 -> ConnectorProvider : Configure Contract Offer Framework
+rnote right Partner2 #yellow
+no changes here
+end note
+Partner2 -> AssetCatalogProvider : Create Asset
+
+== Contract Negotiation ==
+Partner1 -> ConnectorConsumer : Accept Contract for Data Asset
+ConnectorConsumer <--> ConnectorProvider : Negotiate Contract
+rnote right ConnectorConsumer #yellow
+no changes here
+end note
+== Data Transfer ==
+Partner1 -> ConnectorConsumer : Initiate Data Transfer of Asset
+
+rnote right Partner1 #yellow
+No changes here
+/api/v1/data/transferprocess gets called on consumer side
+to trigger the transfer process
+end note
+
+
+ConnectorConsumer -> ConnectorProvider : Data Request Message
+rnote right ConnectorProvider #yellow
+This failed in my case because the asse type is Custom and unknown to the provider
+    - would it be ok to add the code to the main EDC repo ?
+
+CustomHttpDataSink vs HttpDataSink difference are only in:
+
+var request = requestBuilder.url(endpoint).put(body).build();//used to push data to an AWS upload presigned url
+
+vs
+
+var request = requestBuilder.url(endpoint + "/" + part.name()).post(requestBody).build();
+
+
+Alternative1 - this step could be bypassed (consumer does not call provider?)
+Alternative2 - use the pull mechanism (consumer pull the data from provider and saves it to it's own fileshare)
+             - how does this work? type should be HttpData and the sink/source linked?
+end note
+
+return Response Message (maybe Data Response Message)
+
+
+ConnectorConsumer -> CustomProvisioner : Provision transfer
+CustomProvisioner -> MindsphereAPI : Generate upload presigned URL
+CustomProvisioner <-- MindsphereAPI : Return upload presigned URL
+ConnectorConsumer <-- CustomProvisioner : Modified Data Destination type (custom) and endpoint (presigned url)
+
+ConnectorConsumer -> HttpDataSource : Read from destination
+HttpDataSource -> CustomHttpDataSink : Provide read parts
+CustomHttpDataSink -> FileShare2 : Push to fileshare/database/...
+ConnectorConsumer <-- FileShare2 : Data Available in AWS
+
+@enduml
