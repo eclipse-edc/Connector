@@ -365,6 +365,8 @@ if (project.hasProperty("dependency.analysis")) {
 nexusPublishing {
     repositories {
         sonatype {
+            nexusUrl.set(uri("https://oss.sonatype.org/service/local"))
+            snapshotRepositoryUrl.set(uri("https://oss.sonatype.org/content/repositories/snapshots/"))
             username.set(System.getenv("OSSRH_USER") ?: return@sonatype)
             password.set(System.getenv("OSSRH_PASSWORD") ?: return@sonatype)
         }
