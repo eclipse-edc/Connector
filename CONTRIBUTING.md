@@ -144,6 +144,24 @@ we would appreciate if your pull request applies to the following points:
       has been signed as well as commits have been signed-off and
     * _Continuous Integration_ performing various test conventions.
 
+### Stale issues and PRs
+
+In order to keep our backlog clean we are using a bot that helps us label and eventually close old issues and PRs. The
+following table shows the particular timings.
+
+|                        | `stale` after | closed after days `stale` |
+|------------------------|---------------|---------------------------|
+| Issue without assignee | 14            | 7                         |
+| Issue with assignee    | 28            | 7                         |
+| PR                     | 7             | 7                         |
+
+Note that updating an issue, e.g. by commenting, will remove the `stale` label again and reset the counters. However,
+we ask the community **not to abuse** this feature (e.g. commenting "what's the status?" every X days would certainly 
+be qualified as abuse). If an issue receives no attention, there usually
+are reasons for it. It is therefore advisable to clarify in advance whether any particular feature fits into EDC's
+planning schedule and roadmap. For that, we recommend opening a discussion. Discussions serve us as a system of record, that 
+means we monitor them more closely, and do not close them automatically.
+
 ### Add Documentation
 
 Every decision record, launcher, extension, or any type of module has to provide documentation that covers at least
