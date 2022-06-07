@@ -38,7 +38,8 @@ public interface ContractDefinitionStore {
      * Returns all the definitions in the store that are covered by a given {@link QuerySpec}.
      * <p>
      * Note: supplying a sort field that does not exist on the {@link ContractDefinition} may cause some implementations
-     * to return an empty Stream, others will return an unsorted Stream, depending on the backing storage implementation.
+     * to return an empty Stream, others will return an unsorted Stream, depending on the backing storage
+     * implementation.
      */
     @NotNull
     Stream<ContractDefinition> findAll(QuerySpec spec);
@@ -72,9 +73,18 @@ public interface ContractDefinitionStore {
     ContractDefinition deleteById(String id);
 
     /**
-     * Signals the store should reload its internal cache if updates were made. If the implementation does not implement caching, this method will do nothing.
+     * Signals the store should reload its internal cache if updates were made. If the implementation does not implement
+     * caching, this method will do nothing.
      */
     default void reload() {
     }
 
+    /**
+     * Checks whether the given policy is referenced by any {@link ContractDefinition}, either via
+     * {@link ContractDefinition#getAccessPolicyId()} or via {@link ContractDefinition#getContractPolicyId()}.
+     *
+     * @param policyId The ID of the policy
+     * @return a {@link Stream} of contract definitions, that reference the given policy.
+     */
+    Stream<ContractDefinition> isReferenced(String policyId);
 }
