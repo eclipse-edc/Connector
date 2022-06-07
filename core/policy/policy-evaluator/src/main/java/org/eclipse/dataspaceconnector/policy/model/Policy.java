@@ -25,14 +25,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * A collection of permissions, prohibitions, and obligations associated with an asset. Subtypes are defined by {@link PolicyType}.
+ * A collection of permissions, prohibitions, and obligations. Subtypes are defined by
+ * {@link PolicyType}.
+ * This is a value object. In order to have it identifiable and individually addressable, consider the use of
+ * {@link PolicyDefinition}.
  */
 @JsonDeserialize(builder = Policy.Builder.class)
-public class Policy extends Identifiable {
+public class Policy {
 
     private final List<Permission> permissions = new ArrayList<>();
     private final List<Prohibition> prohibitions = new ArrayList<>();
@@ -107,15 +109,7 @@ public class Policy extends Identifiable {
                 Objects.equals(inheritsFrom, policy.inheritsFrom) && Objects.equals(assigner, policy.assigner) && Objects.equals(assignee, policy.assignee) && Objects.equals(target, policy.target) && type == policy.type;
     }
 
-    @Override
-    public String toString() {
-        return "Policy: " + uid;
-    }
 
-    public interface Visitor<R> {
-        R visitPolicy(Policy policy);
-    }
-    
     /**
      * Returns a copy of this policy with the specified target.
      *
@@ -124,17 +118,20 @@ public class Policy extends Identifiable {
      */
     public Policy withTarget(String target) {
         return Builder.newInstance()
-                .id(this.uid)
-                .prohibitions(this.prohibitions.stream().map(p -> p.withTarget(target)).collect(Collectors.toList()))
-                .permissions(this.permissions.stream().map(p -> p.withTarget(target)).collect(Collectors.toList()))
-                .duties(this.obligations.stream().map(o -> o.withTarget(target)).collect(Collectors.toList()))
-                .assigner(this.assigner)
-                .assignee(this.assignee)
-                .inheritsFrom(this.inheritsFrom)
-                .type(this.type)
-                .extensibleProperties(this.extensibleProperties)
+                .prohibitions(prohibitions.stream().map(p -> p.withTarget(target)).collect(Collectors.toList()))
+                .permissions(permissions.stream().map(p -> p.withTarget(target)).collect(Collectors.toList()))
+                .duties(obligations.stream().map(o -> o.withTarget(target)).collect(Collectors.toList()))
+                .assigner(assigner)
+                .assignee(assignee)
+                .inheritsFrom(inheritsFrom)
+                .type(type)
+                .extensibleProperties(extensibleProperties)
                 .target(target)
                 .build();
+    }
+
+    public interface Visitor<R> {
+        R visitPolicy(Policy policy);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -147,12 +144,6 @@ public class Policy extends Identifiable {
 
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        @JsonProperty("uid")
-        public Builder id(String id) {
-            policy.uid = id;
-            return this;
         }
 
         public Builder prohibition(Prohibition prohibition) {
@@ -228,9 +219,6 @@ public class Policy extends Identifiable {
         }
 
         public Policy build() {
-            if (policy.uid == null) {
-                policy.uid = UUID.randomUUID().toString();
-            }
             return policy;
         }
     }

@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.sample5.data.seeder;
 
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -29,7 +29,7 @@ public class DataSeederServiceExtension implements ServiceExtension {
     @Inject
     private ContractDefinitionStore contractDefinitionStore;
     @Inject
-    private PolicyStore policyStore;
+    private PolicyDefinitionStore policyStore;
 
     @Override
     public String name() {

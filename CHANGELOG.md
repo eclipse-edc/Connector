@@ -60,12 +60,14 @@ in the detailed section referring to by linking pull requests or issues.
 * Added timestamps to TransferProcess DTO (#1350)
 * Make Helm charts more generic (#1363)
 * Make `ParticipantAgent` claims more generic (#1405)
+* Introduced a `PolicyDefinition` object (#1340)
 
 #### Removed
 
 * Deprecated Control API (#1310)
 * Remove sample module `:extensions:policy:ids-policy` (#1348)
 * Unused `:launchers:basic` (#1360)
+* Dependency onto `token-validation` from IDS BOM (#1387)
 
 #### Fixed
 

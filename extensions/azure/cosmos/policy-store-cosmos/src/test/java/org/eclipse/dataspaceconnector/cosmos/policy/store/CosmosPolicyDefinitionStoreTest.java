@@ -18,7 +18,7 @@ import com.azure.cosmos.models.SqlQuerySpec;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
@@ -46,9 +46,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-class CosmosPolicyStoreTest {
+class CosmosPolicyDefinitionStoreTest {
     private static final String TEST_PART_KEY = "test_part_key";
-    private CosmosPolicyStore store;
+    private CosmosPolicyDefinitionStore store;
     private CosmosDbApi cosmosDbApiMock;
 
     @BeforeEach
@@ -56,7 +56,7 @@ class CosmosPolicyStoreTest {
         cosmosDbApiMock = mock(CosmosDbApi.class);
         var typeManager = new TypeManager();
         var retryPolicy = new RetryPolicy<>();
-        store = new CosmosPolicyStore(cosmosDbApiMock, typeManager, retryPolicy, TEST_PART_KEY);
+        store = new CosmosPolicyDefinitionStore(cosmosDbApiMock, typeManager, retryPolicy, TEST_PART_KEY);
     }
 
     @Test
@@ -106,7 +106,7 @@ class CosmosPolicyStoreTest {
 
         var all = store.findAll(QuerySpec.none());
 
-        assertThat(all).isNotEmpty().containsExactlyInAnyOrder((Policy) captor.getValue().getWrappedInstance());
+        assertThat(all).isNotEmpty().containsExactlyInAnyOrder((PolicyDefinition) captor.getValue().getWrappedInstance());
         verify(cosmosDbApiMock).queryAllItems();
         verify(cosmosDbApiMock).saveItem(captor.capture());
     }
@@ -188,7 +188,7 @@ class CosmosPolicyStoreTest {
         store.reload();
 
         var all = store.findAll(QuerySpec.Builder.newInstance().filter("uid=" + doc.getId()).build());
-        assertThat(all).hasSize(1).extracting(Policy::getUid).containsOnly(doc.getId());
+        assertThat(all).hasSize(1).extracting(PolicyDefinition::getUid).containsOnly(doc.getId());
         verify(cosmosDbApiMock).queryAllItems();
         verifyNoMoreInteractions(cosmosDbApiMock);
     }
@@ -216,7 +216,7 @@ class CosmosPolicyStoreTest {
         store.reload();
 
         var all = store.findAll(QuerySpec.Builder.newInstance().sortField("uid").sortOrder(SortOrder.ASC).build()).collect(Collectors.toList());
-        assertThat(all).hasSize(10).isSortedAccordingTo(Comparator.comparing(Policy::getUid));
+        assertThat(all).hasSize(10).isSortedAccordingTo(Comparator.comparing(PolicyDefinition::getUid));
 
         verify(cosmosDbApiMock).queryAllItems();
         verifyNoMoreInteractions(cosmosDbApiMock);

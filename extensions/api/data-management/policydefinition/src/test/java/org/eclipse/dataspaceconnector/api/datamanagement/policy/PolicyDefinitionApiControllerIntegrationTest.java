@@ -18,7 +18,7 @@ import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,7 +35,7 @@ import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFr
 import static org.hamcrest.Matchers.is;
 
 @ExtendWith(EdcExtension.class)
-public class PolicyApiControllerIntegrationTest {
+public class PolicyDefinitionApiControllerIntegrationTest {
 
     private final int port = getFreePort();
     private final String authKey = "123456";
@@ -50,13 +50,13 @@ public class PolicyApiControllerIntegrationTest {
     }
 
     @Test
-    void getAllPolicies(PolicyStore policyStore) {
+    void getAllpolicydefinitions(PolicyDefinitionStore policyStore) {
         var policy = createPolicy("id");
 
         policyStore.save(policy);
 
         baseRequest()
-                .get("/policies")
+                .get("/policydefinitions")
                 .then()
                 .statusCode(200)
                 .contentType(ContentType.JSON)
@@ -66,18 +66,18 @@ public class PolicyApiControllerIntegrationTest {
     @Test
     void getAll_invalidQuery() {
         baseRequest()
-                .get("/policies?limit=1&offset=-1&filter=&sortField=")
+                .get("/policydefinitions?limit=1&offset=-1&filter=&sortField=")
                 .then()
                 .statusCode(400);
     }
 
     @Test
-    void getSinglePolicy(PolicyStore policyStore) {
+    void getSinglePolicy(PolicyDefinitionStore policyStore) {
         var policy = createPolicy("id");
         policyStore.save(policy);
 
         baseRequest()
-                .get("/policies/id")
+                .get("/policydefinitions/id")
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
@@ -87,44 +87,44 @@ public class PolicyApiControllerIntegrationTest {
     @Test
     void getSinglePolicy_notFound() {
         baseRequest()
-                .get("/policies/not-existent-id")
+                .get("/policydefinitions/not-existent-id")
                 .then()
                 .statusCode(404);
     }
 
     @Test
-    void postPolicy(PolicyStore policyStore) {
+    void postPolicy(PolicyDefinitionStore policyStore) {
 
         baseRequest()
                 .body(createPolicy("id"))
                 .contentType(JSON)
-                .post("/policies")
+                .post("/policydefinitions")
                 .then()
                 .statusCode(204);
         assertThat(policyStore.findById("id")).isNotNull();
     }
 
     @Test
-    void postPolicyId_alreadyExists(PolicyStore policyStore) {
+    void postPolicyId_alreadyExists(PolicyDefinitionStore policyStore) {
         policyStore.save(createPolicy("id"));
 
         baseRequest()
                 .body(createPolicy("id"))
                 .contentType(JSON)
-                .post("/policies")
+                .post("/policydefinitions")
                 .then()
                 .statusCode(409);
     }
 
     @Test
-    void deletePolicy(PolicyStore policyStore) {
+    void deletePolicy(PolicyDefinitionStore policyStore) {
         var policy = createPolicy("id");
 
         policyStore.save(policy);
 
         baseRequest()
                 .contentType(JSON)
-                .delete("/policies/id")
+                .delete("/policydefinitions/id")
                 .then()
                 .statusCode(204);
         assertThat(policyStore.findById("id")).isNull();
@@ -134,7 +134,7 @@ public class PolicyApiControllerIntegrationTest {
     void deletePolicy_notExists() {
         baseRequest()
                 .contentType(JSON)
-                .delete("/policies/not-existent-id")
+                .delete("/policydefinitions/not-existent-id")
                 .then()
                 .statusCode(404);
     }
@@ -145,20 +145,20 @@ public class PolicyApiControllerIntegrationTest {
         contractDefinitionStore.save(createContractDefinition(policy.getUid()));
         baseRequest()
                 .contentType(JSON)
-                .delete("/policies/access")
+                .delete("/policydefinitions/access")
                 .then()
                 .statusCode(404);
     }
 
     @Test
-    void deletePolicy_alreadyReferencedInContractDefinition(ContractDefinitionStore contractDefinitionStore, PolicyStore policyStore) {
+    void deletePolicy_alreadyReferencedInContractDefinition(ContractDefinitionStore contractDefinitionStore, PolicyDefinitionStore policyStore) {
         var policy = createPolicy("access");
         policyStore.save(policy);
         contractDefinitionStore.save(createContractDefinition(policy.getUid()));
 
         baseRequest()
                 .contentType(JSON)
-                .delete("/policies/access")
+                .delete("/policydefinitions/access")
                 .then()
                 .statusCode(409);
     }

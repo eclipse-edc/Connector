@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.mode
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,7 +34,7 @@ class ContractAgreementDtoTest {
                 .contractSigningDate(5432L)
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
-                .policyId("policy-id")
+                .policy(Policy.Builder.newInstance().build())
                 .build();
 
         var json = om.writeValueAsString(dto);

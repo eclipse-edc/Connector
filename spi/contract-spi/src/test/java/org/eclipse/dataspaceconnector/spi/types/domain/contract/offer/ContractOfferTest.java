@@ -31,15 +31,14 @@ class ContractOfferTest {
     void verifyMutualExclusivity() {
         var p = ContractOffer.Builder.newInstance().id("test-offer");
 
-        assertThatThrownBy(() -> p.asset(Asset.Builder.newInstance().id("test-asset").build())
-                .assetId("another-asset").build())
+        assertThatThrownBy(() -> ContractOffer.Builder.newInstance()
+                .id("some-id")
+                .policy(Policy.Builder.newInstance().build())
+                .asset(Asset.Builder.newInstance().build())
+                .assetId("violating-id")
+                .build())
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("asset and assetId are mutually exclusive");
-
-        assertThatThrownBy(() -> p.policy(Policy.Builder.newInstance().build())
-                .policyId("some-policy").build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("policy and policyId are mutually exclusive");
+                .hasMessage("Asset and AssetId are mutually exclusive");
     }
 
     @Test
@@ -47,14 +46,9 @@ class ContractOfferTest {
         assertThatThrownBy(() -> ContractOffer.Builder.newInstance().build()).isInstanceOf(NullPointerException.class);
 
         assertThatThrownBy(() -> ContractOffer.Builder.newInstance().id("some-id")
-                .build())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("either policy or policyId must be set");
-
-        assertThatThrownBy(() -> ContractOffer.Builder.newInstance().id("some-id")
                 .assetId("test-assetId")
                 .build())
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("either policy or policyId must be set");
+                .hasMessage("Policy must not be null!");
     }
 }

@@ -16,9 +16,7 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 
@@ -27,24 +25,16 @@ public class ContractOfferDescription {
     private final String offerId;
     @NotNull
     private final String assetId;
-    private final String policyId;
+    @NotNull
     private final Policy policy;
 
     @JsonCreator
     public ContractOfferDescription(@JsonProperty("offerId") String offerId,
                                     @JsonProperty("assetId") String assetId,
-                                    @JsonProperty("policyId") String policyId,
                                     @JsonProperty("policy") Policy policy) {
         this.offerId = offerId;
         this.assetId = assetId;
-        this.policyId = policyId;
         this.policy = policy;
-    }
-
-    @AssertTrue
-    @JsonIgnore
-    public boolean isValidPolicy() {
-        return policy != null ^ policyId != null; //either one or the other
     }
 
     public String getOfferId() {
@@ -53,10 +43,6 @@ public class ContractOfferDescription {
 
     public String getAssetId() {
         return assetId;
-    }
-
-    public String getPolicyId() {
-        return policyId;
     }
 
     public Policy getPolicy() {

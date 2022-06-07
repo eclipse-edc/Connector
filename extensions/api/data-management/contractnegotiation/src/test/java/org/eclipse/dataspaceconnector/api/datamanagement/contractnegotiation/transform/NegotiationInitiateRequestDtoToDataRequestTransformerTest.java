@@ -15,12 +15,8 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.transform;
 
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
-import org.eclipse.dataspaceconnector.policy.model.Identifiable;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.junit.jupiter.api.Test;
-
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.TestFunctions.createOffer;
@@ -39,12 +35,12 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
     }
 
     @Test
-    void transform_policyId() {
+    void verify_transform() {
         var dto = NegotiationInitiateRequestDto.Builder.newInstance()
                 .connectorId("connectorId")
                 .connectorAddress("address")
                 .protocol("protocol")
-                .offer(createOffer("offerId", "assetId", "policyId"))
+                .offer(createOffer("offerId", "assetId"))
                 .build();
 
         var request = transformer.transform(dto, context);
@@ -54,27 +50,6 @@ class NegotiationInitiateRequestDtoToDataRequestTransformerTest {
         assertThat(request.getProtocol()).isEqualTo("protocol");
         assertThat(request.getType()).isEqualTo(INITIAL);
         assertThat(request.getContractOffer().getId()).isEqualTo("offerId");
-        assertThat(request.getContractOffer().getPolicyId()).isEqualTo("policyId");
-        assertThat(request.getContractOffer().getPolicy()).isNull();
-    }
-
-    @Test
-    void transform_customPolicy() {
-        var policy = Policy.Builder.newInstance().id(UUID.randomUUID().toString()).build();
-        var dto = NegotiationInitiateRequestDto.Builder.newInstance()
-                .connectorId("connectorId")
-                .connectorAddress("address")
-                .protocol("protocol")
-                .offer(createOffer(policy))
-                .build();
-
-        var request = transformer.transform(dto, context);
-
-        assertThat(request.getConnectorId()).isEqualTo("connectorId");
-        assertThat(request.getConnectorAddress()).isEqualTo("address");
-        assertThat(request.getProtocol()).isEqualTo("protocol");
-        assertThat(request.getType()).isEqualTo(INITIAL);
-        assertThat(request.getContractOffer().getPolicyId()).isNull();
-        assertThat(request.getContractOffer().getPolicy()).extracting(Identifiable::getUid).isEqualTo(policy.getUid());
+        assertThat(request.getContractOffer().getPolicy()).isNotNull();
     }
 }

@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
@@ -26,7 +27,7 @@ import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidation
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -75,10 +76,9 @@ class ProviderContractNegotiationManagerImplTest {
     private final ContractNegotiationStore store = mock(ContractNegotiationStore.class);
     private final ContractValidationService validationService = mock(ContractValidationService.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
-    private final PolicyStore policyStore = mock(PolicyStore.class);
-    private ProviderContractNegotiationManagerImpl negotiationManager;
-
+    private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final String correlationId = "correlationId";
+    private ProviderContractNegotiationManagerImpl negotiationManager;
 
     @BeforeEach
     void setUp() {
@@ -118,12 +118,12 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(result.succeeded()).isTrue();
         verify(store, atLeastOnce()).save(argThat(n ->
                 n.getState() == ContractNegotiationStates.CONFIRMING.code() &&
-                n.getCounterPartyId().equals(request.getConnectorId()) &&
-                n.getCounterPartyAddress().equals(request.getConnectorAddress()) &&
-                n.getProtocol().equals(request.getProtocol()) &&
-                n.getCorrelationId().equals(request.getCorrelationId()) &&
-                n.getContractOffers().size() == 1 &&
-                n.getLastContractOffer().equals(contractOffer)
+                        n.getCounterPartyId().equals(request.getConnectorId()) &&
+                        n.getCounterPartyAddress().equals(request.getConnectorAddress()) &&
+                        n.getProtocol().equals(request.getProtocol()) &&
+                        n.getCorrelationId().equals(request.getCorrelationId()) &&
+                        n.getContractOffers().size() == 1 &&
+                        n.getLastContractOffer().equals(contractOffer)
         ));
         verify(validationService).validate(token, contractOffer);
     }
@@ -147,12 +147,12 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(result.succeeded()).isTrue();
         verify(store, atLeastOnce()).save(argThat(n ->
                 n.getState() == ContractNegotiationStates.DECLINING.code() &&
-                n.getCounterPartyId().equals(request.getConnectorId()) &&
-                n.getCounterPartyAddress().equals(request.getConnectorAddress()) &&
-                n.getProtocol().equals(request.getProtocol()) &&
-                n.getCorrelationId().equals(request.getCorrelationId()) &&
-                n.getContractOffers().size() == 1 &&
-                n.getLastContractOffer().equals(contractOffer)
+                        n.getCounterPartyId().equals(request.getConnectorId()) &&
+                        n.getCounterPartyAddress().equals(request.getConnectorAddress()) &&
+                        n.getProtocol().equals(request.getProtocol()) &&
+                        n.getCorrelationId().equals(request.getCorrelationId()) &&
+                        n.getContractOffers().size() == 1 &&
+                        n.getLastContractOffer().equals(contractOffer)
         ));
         verify(validationService).validate(token, contractOffer);
     }
@@ -178,13 +178,13 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(result.succeeded()).isTrue();
         verify(store).save(argThat(n ->
                 n.getState() == PROVIDER_OFFERING.code() &&
-                n.getCounterPartyId().equals(request.getConnectorId()) &&
-                n.getCounterPartyAddress().equals(request.getConnectorAddress()) &&
-                n.getProtocol().equals(request.getProtocol()) &&
-                n.getCorrelationId().equals(request.getCorrelationId()) &&
-                n.getContractOffers().size() == 2 &&
-                n.getContractOffers().get(0).equals(contractOffer) &&
-                n.getContractOffers().get(1).equals(counterOffer)
+                        n.getCounterPartyId().equals(request.getConnectorId()) &&
+                        n.getCounterPartyAddress().equals(request.getConnectorAddress()) &&
+                        n.getProtocol().equals(request.getProtocol()) &&
+                        n.getCorrelationId().equals(request.getCorrelationId()) &&
+                        n.getContractOffers().size() == 2 &&
+                        n.getContractOffers().get(0).equals(contractOffer) &&
+                        n.getContractOffers().get(1).equals(counterOffer)
         ));
         verify(validationService).validate(token, contractOffer);
     }
@@ -214,8 +214,8 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(result.succeeded()).isTrue();
         verify(store, atLeastOnce()).save(argThat(n ->
                 n.getState() == ContractNegotiationStates.CONFIRMING.code() &&
-                n.getContractOffers().size() == 2 &&
-                n.getContractOffers().get(1).equals(contractOffer)
+                        n.getContractOffers().size() == 2 &&
+                        n.getContractOffers().get(1).equals(contractOffer)
         ));
         verify(validationService).validate(eq(token), eq(contractOffer), any(ContractOffer.class));
     }
@@ -235,8 +235,8 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(result.succeeded()).isTrue();
         verify(store, atLeastOnce()).save(argThat(n ->
                 n.getState() == ContractNegotiationStates.DECLINING.code() &&
-                n.getContractOffers().size() == 2 &&
-                n.getContractOffers().get(1).equals(contractOffer)
+                        n.getContractOffers().size() == 2 &&
+                        n.getContractOffers().get(1).equals(contractOffer)
         ));
         verify(validationService).validate(eq(token), eq(contractOffer), any(ContractOffer.class));
     }
@@ -257,9 +257,9 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(result.succeeded()).isTrue();
         verify(store).save(argThat(n ->
                 n.getState() == PROVIDER_OFFERING.code() &&
-                n.getContractOffers().size() == 3 &&
-                n.getContractOffers().get(1).equals(contractOffer) &&
-                n.getContractOffers().get(2).equals(counterOffer)
+                        n.getContractOffers().size() == 3 &&
+                        n.getContractOffers().get(1).equals(contractOffer) &&
+                        n.getContractOffers().get(2).equals(counterOffer)
         ));
         verify(validationService).validate(eq(token), eq(contractOffer), any(ContractOffer.class));
     }
@@ -287,7 +287,7 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(result.succeeded()).isTrue();
         verify(store, atLeastOnce()).save(argThat(n ->
                 n.getState() == ContractNegotiationStates.CONFIRMING.code() &&
-                n.getContractAgreement() == null
+                        n.getContractAgreement() == null
         ));
     }
 
@@ -373,12 +373,12 @@ class ProviderContractNegotiationManagerImplTest {
         var negotiation = contractNegotiationBuilder()
                 .state(CONFIRMING.code())
                 .contractOffer(contractOffer())
-                .contractAgreement(contractAgreementBuilder().policyId("policyId").build())
+                .contractAgreement(contractAgreementBuilder().policy(Policy.Builder.newInstance().build()).build())
                 .build();
         when(store.nextForState(eq(CONFIRMING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any(), any())).thenReturn(completedFuture(null));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        when(policyStore.findById("policyId")).thenReturn(Policy.Builder.newInstance().id("policyId").build());
+        when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).uid("policyId").build());
         var latch = countDownOnUpdateLatch();
 
         negotiationManager.start();
@@ -386,7 +386,6 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(latch.await(5, SECONDS)).isTrue();
         verify(store).save(argThat(p -> p.getState() == CONFIRMED.code()));
         verify(dispatcherRegistry, only()).send(any(), isA(ContractAgreementRequest.class), any());
-        verify(policyStore).findById("policyId");
     }
 
     @Test
@@ -458,7 +457,7 @@ class ProviderContractNegotiationManagerImplTest {
                 .providerAgentId("any")
                 .consumerAgentId("any")
                 .assetId("default")
-                .policyId("default");
+                .policy(Policy.Builder.newInstance().build());
     }
 
     private ContractOffer contractOffer() {
