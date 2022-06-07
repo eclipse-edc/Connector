@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.sql.lease;
 import org.eclipse.dataspaceconnector.spi.persistence.Lease;
 
 import java.time.Clock;
-import java.time.Instant;
 
 /**
  * SQL-based implementation of a {@linkplain Lease}. Adds the {@code leaseId} property for use with RDBMS (PK, index,...)

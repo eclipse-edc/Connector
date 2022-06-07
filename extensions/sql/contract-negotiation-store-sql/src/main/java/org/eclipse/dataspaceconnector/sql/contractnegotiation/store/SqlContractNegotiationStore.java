@@ -28,7 +28,6 @@ import org.eclipse.dataspaceconnector.sql.lease.SqlLeaseContextBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -36,6 +35,7 @@ import java.time.Clock;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
+import javax.sql.DataSource;
 
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
