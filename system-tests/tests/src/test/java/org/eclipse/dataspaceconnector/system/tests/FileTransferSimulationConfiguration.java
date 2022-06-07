@@ -27,6 +27,9 @@ import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulati
 /**
  * Configuration for File transfer used in
  * {@link org.eclipse.dataspaceconnector.system.tests.local.FileTransferLocalSimulation}.
+ * <p>
+ * The result file content is not verified, as it would not work when running in minikube.
+ * File content is verified in local integration test.
  */
 public class FileTransferSimulationConfiguration implements TransferSimulationConfiguration {
 

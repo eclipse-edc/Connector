@@ -16,9 +16,6 @@ package org.eclipse.dataspaceconnector.azure.testfixtures;
 
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
-import com.azure.storage.blob.BlobServiceClientBuilder;
-import com.azure.storage.common.StorageSharedKeyCredential;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -47,26 +44,10 @@ public abstract class AbstractAzureBlobTest {
     public void setupClient() {
         account1ContainerName = "storage-container-" + testRunId;
 
-        blobServiceClient1 = getBlobServiceClient(account1Name, account1Key);
-        blobServiceClient2 = getBlobServiceClient(account2Name, account2Key);
+        blobServiceClient1 = TestFunctions.getBlobServiceClient(account1Name, account1Key);
+        blobServiceClient2 = TestFunctions.getBlobServiceClient(account2Name, account2Key);
 
         createContainer(blobServiceClient1, account1ContainerName);
-    }
-
-    @NotNull
-    private BlobServiceClient getBlobServiceClient(String accountName, String key) {
-        var client = new BlobServiceClientBuilder()
-                .credential(new StorageSharedKeyCredential(accountName, key))
-                .endpoint(getEndpoint(accountName))
-                .buildClient();
-
-        client.getAccountInfo();
-        return client;
-    }
-
-    @NotNull
-    protected String getEndpoint(String accountName) {
-        return "http://127.0.0.1:10000/" + accountName;
     }
 
     protected void createContainer(BlobServiceClient client, String containerName) {

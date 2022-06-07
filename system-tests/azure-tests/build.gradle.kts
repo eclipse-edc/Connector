@@ -22,6 +22,8 @@ plugins {
 val gatlingVersion: String by project
 val storageBlobVersion: String by project
 val restAssured: String by project
+val assertj: String by project
+val faker: String by project
 
 dependencies {
     testImplementation("io.gatling.highcharts:gatling-charts-highcharts:${gatlingVersion}") {
@@ -41,8 +43,11 @@ dependencies {
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(testFixtures(project(":system-tests:tests")))
-    testFixturesImplementation(testFixtures(project(":system-tests:tests")))
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))
+    testFixturesImplementation(testFixtures(project(":system-tests:tests")))
+    testFixturesImplementation(testFixtures(project(":extensions:azure:azure-test")))
+    testFixturesImplementation("org.assertj:assertj-core:${assertj}")
+    testFixturesImplementation("com.github.javafaker:javafaker:${faker}")
     testImplementation("com.azure:azure-storage-blob:${storageBlobVersion}")
     testFixturesImplementation("io.rest-assured:rest-assured:${restAssured}")
 
