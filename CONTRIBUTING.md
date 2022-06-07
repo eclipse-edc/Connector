@@ -157,9 +157,9 @@ following table shows the particular timings.
 
 Note that updating an issue, e.g. by commenting, will remove the `stale` label again and reset the counters. However,
 we ask the community **not to abuse** this feature (e.g. commenting "what's the status?" every X days would certainly 
-be seen as abuse). If an issue receives no attention, there usually
+be qualified as abuse). If an issue receives no attention, there usually
 are reasons for it. It is therefore advisable to clarify in advance whether any particular feature fits into EDC's
-planning schedule and roadmap. For that, we recommend opening a discussion. They serve us as a system of record, that 
+planning schedule and roadmap. For that, we recommend opening a discussion. Discussions serve us as a system of record, that 
 means we monitor them more closely, and do not close them automatically.
 
 ### Add Documentation
