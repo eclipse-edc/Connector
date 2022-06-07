@@ -42,6 +42,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 import static net.jodah.failsafe.Failsafe.with;
 
@@ -160,6 +161,14 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
                 .map(this::toNegotiation)
                 .map(ContractNegotiation::getContractAgreement)
                 .filter(Objects::nonNull);
+    }
+
+    @Override
+    public Stream<ContractNegotiation> getNegotiationsWithAgreementOnAsset(String assetId) {
+        var filter = format("contractAgreement.assetId = %s", assetId);
+        var query = QuerySpec.Builder.newInstance().filter(filter).build();
+
+        return queryNegotiations(query);
     }
 
     @Override

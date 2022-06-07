@@ -192,6 +192,19 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
     }
 
     @Override
+    public Stream<ContractNegotiation> getNegotiationsWithAgreementOnAsset(String assetId) {
+        var statement = statements.getNegotiationWitghAgreementOnAssetTemplate();
+
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                return executeQuery(connection, this::mapContractNegotiation, statement, assetId).stream();
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
+    @Override
     public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {

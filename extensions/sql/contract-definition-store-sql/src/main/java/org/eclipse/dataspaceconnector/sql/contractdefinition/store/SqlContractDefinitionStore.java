@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
- *       Microsoft Corporation - refactoring
+ *       Microsoft Corporation - refactoring, bugfixing
  *       Fraunhofer Institute for Software and Systems Engineering - added method
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
@@ -143,6 +143,20 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
             }
         });
 
+    }
+
+    @Override
+    public Stream<ContractDefinition> isReferenced(String policyId) {
+        var stmt = statements.getIsPolicyReferencedTemplate();
+
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                var definitions = executeQuery(connection, this::mapResultSet, stmt, policyId, policyId);
+                return definitions.stream();
+            } catch (Exception exception) {
+                throw new EdcPersistenceException(exception);
+            }
+        });
     }
 
     private void insertInternal(Connection connection, ContractDefinition definition) {

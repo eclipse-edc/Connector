@@ -11,6 +11,7 @@
  *       Daimler TSS GmbH - Initial Tests
  *       Microsoft Corporation - Method signature change
  *       Microsoft Corporation - refactoring
+ *       Microsoft Corporation - added tests
  *       Fraunhofer Institute for Software and Systems Engineering - added tests
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
@@ -38,6 +39,7 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.sql.DataSource;
@@ -280,6 +282,45 @@ public class SqlContractDefinitionStoreTest {
     void delete_whenNotExist() {
         var deleted = sqlContractDefinitionStore.deleteById("test-id1");
         assertThat(deleted).isNull();
+    }
+
+    @Test
+    void isReferenced_notReferenced() {
+        var definitionsExpected = getContractDefinition("def1", "apol1", "cpol1");
+        sqlContractDefinitionStore.save(definitionsExpected);
+
+        assertThat(sqlContractDefinitionStore.isReferenced("testpol1")).isEmpty();
+    }
+
+    @Test
+    void isReferenced_asAccessPolicy() {
+        var definitionExpected = getContractDefinition("def1", "apol1", "cpol1");
+        sqlContractDefinitionStore.save(definitionExpected);
+
+        assertThat(sqlContractDefinitionStore.isReferenced("apol1")).usingRecursiveFieldByFieldElementComparator().containsOnly(definitionExpected);
+    }
+
+    @Test
+    void isReferenced_asContractPolicy() {
+        var definitionExpected = getContractDefinition("def1", "apol1", "cpol1");
+        sqlContractDefinitionStore.save(definitionExpected);
+
+        assertThat(sqlContractDefinitionStore.isReferenced("cpol1")).usingRecursiveFieldByFieldElementComparator().containsOnly(definitionExpected);
+    }
+
+    @Test
+    void isReferenced_byMultipleDefinitions() {
+        var def1 = getContractDefinition("def1", "apol1", "cpol1");
+        var def2 = getContractDefinition("def2", "apol1", "cpol2");
+        var def3 = getContractDefinition("def3", "apol1", "cpol3");
+        var def4 = getContractDefinition("def4", "apol2", "cpol4");
+        var def5 = getContractDefinition("def5", "apol2", "cpol1");
+
+        sqlContractDefinitionStore.save(List.of(def1, def2, def3, def4, def5));
+
+        assertThat(sqlContractDefinitionStore.isReferenced("apol1")).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(def1, def2, def3);
+        assertThat(sqlContractDefinitionStore.isReferenced("cpol1")).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(def1, def5);
+
     }
 
     private ContractDefinition getContractDefinition(String id, String accessPolicyId, String contractPolicyId) {

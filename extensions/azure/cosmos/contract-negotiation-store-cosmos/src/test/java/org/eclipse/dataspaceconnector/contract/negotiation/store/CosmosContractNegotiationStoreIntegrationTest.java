@@ -56,10 +56,10 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateAgreementBuilder;
+import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.createContractBuilder;
+import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.createNegotiation;
+import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.createNegotiationBuilder;
 import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateDocument;
-import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateNegotiation;
-import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateNegotiationBuilder;
 
 @AzureCosmosDbIntegrationTest
 class CosmosContractNegotiationStoreIntegrationTest {
@@ -178,7 +178,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
     @Test
     void save_notExists_shouldCreate() {
-        var negotiation = generateNegotiation();
+        var negotiation = TestFunctions.createNegotiation();
         store.save(negotiation);
 
         var allObjs = container.readAllItems(new PartitionKey(partitionKey), Object.class);
@@ -188,7 +188,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
     @Test
     void save_exists_shouldUpdate() {
-        var negotiation = generateNegotiation();
+        var negotiation = TestFunctions.createNegotiation();
         container.createItem(new ContractNegotiationDocument(negotiation, partitionKey));
 
         assertThat(container.readAllItems(new PartitionKey(partitionKey), Object.class)).hasSize(1);
@@ -208,7 +208,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
     @Test
     void save_leasedByOther_shouldRaiseException() {
-        var negotiation = generateNegotiation("test-id", ContractNegotiationStates.CONFIRMED);
+        var negotiation = createNegotiation("test-id", ContractNegotiationStates.CONFIRMED);
         var item = new ContractNegotiationDocument(negotiation, partitionKey);
         item.acquireLease("someone-else");
         container.createItem(item);
@@ -220,7 +220,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
     @Test
     void delete_leasedByOther_shouldRaiseException() {
-        var negotiation = generateNegotiation("test-id", ContractNegotiationStates.CONFIRMED);
+        var negotiation = createNegotiation("test-id", ContractNegotiationStates.CONFIRMED);
         var item = new ContractNegotiationDocument(negotiation, partitionKey);
         item.acquireLease("someone-else");
         container.createItem(item);
@@ -231,7 +231,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     @Test
     void nextForState() {
         var state = ContractNegotiationStates.CONFIRMED;
-        var n = generateNegotiation(state);
+        var n = TestFunctions.createNegotiation(state);
         container.createItem(new ContractNegotiationDocument(n, partitionKey));
 
         var result = store.nextForState(state.code(), 10);
@@ -244,7 +244,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
         var numElements = 10;
 
         var preparedNegotiations = IntStream.range(0, numElements)
-                .mapToObj(i -> generateNegotiation(state))
+                .mapToObj(i -> TestFunctions.createNegotiation(state))
                 .peek(n -> container.createItem(new ContractNegotiationDocument(n, partitionKey)))
                 .collect(Collectors.toList());
 
@@ -255,7 +255,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     @Test
     void nextForState_noResult() {
         var state = ContractNegotiationStates.CONFIRMED;
-        var n = generateNegotiation(state);
+        var n = TestFunctions.createNegotiation(state);
         container.createItem(new ContractNegotiationDocument(n, partitionKey));
 
         var result = store.nextForState(ContractNegotiationStates.PROVIDER_OFFERING.code(), 10);
@@ -265,15 +265,15 @@ class CosmosContractNegotiationStoreIntegrationTest {
     @Test
     void nextForState_onlyReturnsFreeItems() {
         var state = ContractNegotiationStates.CONFIRMED;
-        var n1 = generateNegotiation(state);
+        var n1 = TestFunctions.createNegotiation(state);
         var doc1 = new ContractNegotiationDocument(n1, partitionKey);
         container.createItem(doc1);
 
-        var n2 = generateNegotiation(state);
+        var n2 = TestFunctions.createNegotiation(state);
         var doc2 = new ContractNegotiationDocument(n2, partitionKey);
         container.createItem(doc2);
 
-        var n3 = generateNegotiation(state);
+        var n3 = TestFunctions.createNegotiation(state);
         var doc3 = new ContractNegotiationDocument(n3, partitionKey);
         doc3.acquireLease("another-connector");
         container.createItem(doc3);
@@ -285,7 +285,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     @Test
     void nextForState_leasedBySelf() {
         var state = ContractNegotiationStates.CONFIRMED;
-        var n = generateNegotiation(state);
+        var n = TestFunctions.createNegotiation(state);
         var doc = new ContractNegotiationDocument(n, partitionKey);
         container.createItem(doc);
 
@@ -303,7 +303,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     @Test
     void nextForState_leasedByAnotherExpired() {
         var state = ContractNegotiationStates.CONFIRMED;
-        var n = generateNegotiation(state);
+        var n = TestFunctions.createNegotiation(state);
         var doc = new ContractNegotiationDocument(n, partitionKey);
         Duration leaseDuration = Duration.ofSeconds(10); // give it some time to compensate for TOF delays
         doc.acquireLease("another-connector", leaseDuration);
@@ -325,7 +325,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
     @Test
     void nextForState_verifySaveClearsLease() {
-        var n = generateNegotiation("test-id", ContractNegotiationStates.CONSUMER_OFFERED);
+        var n = createNegotiation("test-id", ContractNegotiationStates.CONSUMER_OFFERED);
         var doc = new ContractNegotiationDocument(n, partitionKey);
         container.createItem(doc);
 
@@ -351,7 +351,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     @Test
     @DisplayName("Verify that a leased entity can still be deleted")
     void nextForState_verifyDelete() {
-        var n = generateNegotiation("test-id", ContractNegotiationStates.CONSUMER_OFFERED);
+        var n = createNegotiation("test-id", ContractNegotiationStates.CONSUMER_OFFERED);
         var doc = new ContractNegotiationDocument(n, partitionKey);
         container.createItem(doc);
 
@@ -454,8 +454,8 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
     @Test
     void getAgreementsForDefinitionId() {
-        var contractAgreement = generateAgreementBuilder().id(ContractId.createContractId("definitionId")).build();
-        var negotiation = generateNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
+        var contractAgreement = createContractBuilder().id(ContractId.createContractId("definitionId")).build();
+        var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
         store.save(negotiation);
 
         var result = store.getAgreementsForDefinitionId("definitionId");
@@ -465,8 +465,8 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
     @Test
     void getAgreementsForDefinitionId_notFound() {
-        var contractAgreement = generateAgreementBuilder().id(ContractId.createContractId("otherDefinitionId")).build();
-        var negotiation = generateNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
+        var contractAgreement = createContractBuilder().id(ContractId.createContractId("otherDefinitionId")).build();
+        var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
         store.save(negotiation);
 
         var result = store.getAgreementsForDefinitionId("definitionId");
@@ -477,8 +477,8 @@ class CosmosContractNegotiationStoreIntegrationTest {
     @Test
     void queryAgreements_noQuerySpec() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = generateAgreementBuilder().id(ContractId.createContractId(UUID.randomUUID().toString())).build();
-            var negotiation = generateNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
+            var contractAgreement = createContractBuilder().id(ContractId.createContractId(UUID.randomUUID().toString())).build();
+            var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
             store.save(negotiation);
         });
 
@@ -490,8 +490,8 @@ class CosmosContractNegotiationStoreIntegrationTest {
     @Test
     void queryAgreements_verifyPaging() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = generateAgreementBuilder().id(ContractId.createContractId(UUID.randomUUID().toString())).build();
-            var negotiation = generateNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
+            var contractAgreement = createContractBuilder().id(ContractId.createContractId(UUID.randomUUID().toString())).build();
+            var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
             store.save(negotiation);
         });
 
@@ -505,8 +505,8 @@ class CosmosContractNegotiationStoreIntegrationTest {
     @Test
     void queryAgreements_verifyFiltering() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = generateAgreementBuilder().id(i + ":" + i).build();
-            var negotiation = generateNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
+            var contractAgreement = createContractBuilder().id(i + ":" + i).build();
+            var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
             store.save(negotiation);
         });
         var query = QuerySpec.Builder.newInstance().equalsAsContains(false).filter("id=3:3").build();
@@ -519,8 +519,8 @@ class CosmosContractNegotiationStoreIntegrationTest {
     @Test
     void queryAgreements_verifySorting() {
         IntStream.range(0, 9).forEach(i -> {
-            var contractAgreement = generateAgreementBuilder().id(i + ":" + i).build();
-            var negotiation = generateNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
+            var contractAgreement = createContractBuilder().id(i + ":" + i).build();
+            var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
             store.save(negotiation);
         });
 
@@ -533,8 +533,8 @@ class CosmosContractNegotiationStoreIntegrationTest {
     @Test
     void queryAgreements_verifySorting_invalidProperty() {
         IntStream.range(0, 10).forEach(i -> {
-            var contractAgreement = generateAgreementBuilder().id(i + ":" + i).build();
-            var negotiation = generateNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
+            var contractAgreement = createContractBuilder().id(i + ":" + i).build();
+            var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
             store.save(negotiation);
         });
 
@@ -542,6 +542,57 @@ class CosmosContractNegotiationStoreIntegrationTest {
         var agreements = store.queryAgreements(query);
 
         assertThat(agreements).isEmpty();
+    }
+
+    @Test
+    void getNegotiationsWithAgreementOnAsset_negotiationWithAgreement() {
+        var agreement = createContractBuilder().id("contract1").build();
+        var negotiation = createNegotiationBuilder("negotiation1").contractAgreement(agreement).build();
+        var assetId = agreement.getAssetId();
+
+        store.save(negotiation);
+
+        var result = store.getNegotiationsWithAgreementOnAsset(assetId).collect(Collectors.toList());
+
+        assertThat(result).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsOnly(negotiation);
+    }
+
+    @Test
+    void getNegotiationsWithAgreementOnAsset_negotiationWithoutAgreement() {
+        var assetId = UUID.randomUUID().toString();
+        var negotiation = ContractNegotiation.Builder.newInstance()
+                .type(ContractNegotiation.Type.CONSUMER)
+                .id("negotiation1")
+                .contractAgreement(null)
+                .correlationId("corr-negotiation1")
+                .state(ContractNegotiationStates.REQUESTED.code())
+                .counterPartyAddress("consumer")
+                .counterPartyId("consumerId")
+                .protocol("ids-multipart")
+                .build();
+
+        store.save(negotiation);
+
+        var result = store.getNegotiationsWithAgreementOnAsset(assetId).collect(Collectors.toList());
+
+        assertThat(result).isEmpty();
+        assertThat(store.queryAgreements(QuerySpec.none())).isEmpty();
+    }
+
+    @Test
+    void getNegotiationsWithAgreementOnAsset_multipleNegotiationsSameAsset() {
+        var assetId = UUID.randomUUID().toString();
+        var negotiation1 = createNegotiation("negotiation1", createContractBuilder("contract1").assetId(assetId).build());
+        var negotiation2 = createNegotiation("negotiation2", createContractBuilder("contract2").assetId(assetId).build());
+
+        store.save(negotiation1);
+        store.save(negotiation2);
+
+        var result = store.getNegotiationsWithAgreementOnAsset(assetId).collect(Collectors.toList());
+
+        assertThat(result).hasSize(2)
+                .extracting(ContractNegotiation::getId).containsExactlyInAnyOrder("negotiation1", "negotiation2");
+
     }
 
     private ContractNegotiationDocument toDocument(Object object) {

@@ -28,8 +28,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
+
 /**
- * The default store implementation used when no extension is configured in a runtime. {@link ContractDefinition}s are stored ephemerally in memory.
+ * The default store implementation used when no extension is configured in a runtime. {@link ContractDefinition}s are
+ * stored ephemerally in memory.
  */
 public class InMemoryContractDefinitionStore implements ContractDefinitionStore {
     private final Map<String, ContractDefinition> cache = new ConcurrentHashMap<>();
@@ -75,6 +78,15 @@ public class InMemoryContractDefinitionStore implements ContractDefinitionStore 
     @Override
     public void reload() {
         // no-op
+    }
+
+    @Override
+    public Stream<ContractDefinition> isReferenced(String policyId) {
+
+        var queryAccessPolicyFilter = QuerySpec.Builder.newInstance().filter(format("accessPolicyId = %s ", policyId)).build();
+        var queryContractPolicyFilter = QuerySpec.Builder.newInstance().filter(format("contractPolicyId = %s ", policyId)).build();
+
+        return Stream.concat(findAll(queryAccessPolicyFilter), findAll(queryContractPolicyFilter));
     }
 
 }

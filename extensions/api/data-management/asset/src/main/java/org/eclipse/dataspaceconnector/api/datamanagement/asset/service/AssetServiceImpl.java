@@ -52,12 +52,22 @@ public class AssetServiceImpl implements AssetService {
     }
 
     @Override
+    public ServiceResult<Asset> create(Asset asset, DataAddress dataAddress) {
+        return transactionContext.execute(() -> {
+            if (findById(asset.getId()) == null) {
+                loader.accept(asset, dataAddress);
+                return ServiceResult.success(asset);
+            } else {
+                return ServiceResult.conflict(format("Asset %s cannot be created because it already exist", asset.getId()));
+            }
+        });
+    }
+
+    @Override
     public ServiceResult<Asset> delete(String assetId) {
         return transactionContext.execute(() -> {
-            var filter = format("contractAgreement.assetId = %s", assetId);
-            var query = QuerySpec.Builder.newInstance().filter(filter).build();
 
-            var negotiationsOnAsset = contractNegotiationStore.queryNegotiations(query);
+            var negotiationsOnAsset = contractNegotiationStore.getNegotiationsWithAgreementOnAsset(assetId);
             if (negotiationsOnAsset.findAny().isPresent()) {
                 return ServiceResult.conflict(format("Asset %s cannot be deleted as it is referenced by at least one contract agreement", assetId));
             }
@@ -68,18 +78,6 @@ public class AssetServiceImpl implements AssetService {
             }
 
             return ServiceResult.success(deleted);
-        });
-    }
-
-    @Override
-    public ServiceResult<Asset> create(Asset asset, DataAddress dataAddress) {
-        return transactionContext.execute(() -> {
-            if (findById(asset.getId()) == null) {
-                loader.accept(asset, dataAddress);
-                return ServiceResult.success(asset);
-            } else {
-                return ServiceResult.conflict(format("Asset %s cannot be created because it already exist", asset.getId()));
-            }
         });
     }
 }
