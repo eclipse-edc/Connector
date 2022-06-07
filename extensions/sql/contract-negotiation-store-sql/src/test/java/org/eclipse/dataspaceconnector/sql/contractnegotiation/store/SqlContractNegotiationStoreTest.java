@@ -298,7 +298,7 @@ class SqlContractNegotiationStoreTest {
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(agreement);
 
-        assertThat(Objects.requireNonNull(store.find(negotiationId)).getContractAgreement()).isEqualTo(agreement);
+        assertThat(Objects.requireNonNull(store.find(negotiationId)).getContractAgreement()).usingRecursiveComparison().isEqualTo(agreement);
     }
 
     @Test
