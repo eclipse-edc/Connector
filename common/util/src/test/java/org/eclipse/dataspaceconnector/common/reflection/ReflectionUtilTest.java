@@ -159,6 +159,24 @@ class ReflectionUtilTest {
     }
 
     @Test
+    void getFieldValue_whenParentExist() {
+        var to = new TestObjectSubSubclass("test-desc", 1, "foobar");
+        to.setAnotherObject(new AnotherObject("another-desc"));
+
+        String fieldValue = ReflectionUtil.getFieldValue("anotherObject.anotherDescription", to);
+        assertThat(fieldValue).isEqualTo("another-desc");
+    }
+
+    @Test
+    void getFieldValue_whenParentNotExist() {
+        var to = new TestObjectSubSubclass("test-desc", 1, "foobar");
+        to.setAnotherObject(null);
+
+        String fieldValue = ReflectionUtil.getFieldValue("anotherObject.anotherDescription", to);
+        assertThat(fieldValue).isNull();
+    }
+
+    @Test
     void getFieldValue_withArrayIndex() {
         var to1 = new TestObject("to1", 420);
         var o = new TestObjectWithList("test-desc", 0, List.of(to1, new TestObject("to2", 69)));

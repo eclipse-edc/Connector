@@ -35,6 +35,7 @@ publishing {
         create<MavenPublication>("common-util") {
             artifactId = "common-util"
             from(components["java"])
+            artifacts.forEach { a -> println(a.file) }
         }
     }
 }
