@@ -19,10 +19,11 @@ import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -49,7 +50,7 @@ public class TransferExtension implements ServiceExtension {
     @Inject
     private ContractDefinitionLoader contractDefinitionLoader;
     @Inject
-    private PolicyStore policyStore;
+    private PolicyDefinitionStore policyStore;
     @Inject
     private AssetLoader assetLoader;
 
@@ -73,8 +74,8 @@ public class TransferExtension implements ServiceExtension {
         context.getMonitor().info("HTTP Transfer Extension initialized!");
     }
 
-    private Policy createPolicy(String assetId) {
-        return Policy.Builder.newInstance()
+    private PolicyDefinition createPolicy(String assetId) {
+        var policy = Policy.Builder.newInstance()
                 .target(assetId)
                 .permission(Permission.Builder.newInstance()
                         .target(assetId)
@@ -82,6 +83,10 @@ public class TransferExtension implements ServiceExtension {
                                 .type("USE")
                                 .build())
                         .build())
+                .build();
+
+        return PolicyDefinition.Builder.newInstance()
+                .policy(policy)
                 .build();
     }
 
