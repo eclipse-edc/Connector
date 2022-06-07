@@ -33,9 +33,11 @@ in the detailed section referring to by linking pull requests or issues.
 * Harmonize setting names in `data-plane-transfer` (#1164)
 * Add Blob transfer Architectural Decision Record (#1259)
 * Add component tests coverage to the codecov coverage report (#1246)
-* Postgresql end to end test (#1278)
+* Postgresql end-to-end test (#1278)
+* CosmosDB end-to-end test (#1346)
 * Add signing/publishing config (#1147)
 * Verify OpenAPI definitions (#1312)
+* Documentation for CosmosDB (#1334)
 
 #### Changed
 
@@ -56,12 +58,16 @@ in the detailed section referring to by linking pull requests or issues.
 * Update the CodeQL version from v1 to v2
 * Update `slf4j-api` to `2.0.0-alpha7` (#1328)
 * Added timestamps to TransferProcess DTO (#1350)
+* Make Helm charts more generic (#1363)
+* Make `ParticipantAgent` claims more generic (#1405)
+* Introduced a `PolicyDefinition` object (#1340)
 
 #### Removed
 
 * Deprecated Control API (#1310)
 * Remove sample module `:extensions:policy:ids-policy` (#1348)
 * Unused `:launchers:basic` (#1360)
+* Dependency onto `token-validation` from IDS BOM (#1387)
 
 #### Fixed
 
@@ -80,6 +86,9 @@ in the detailed section referring to by linking pull requests or issues.
 * Remove ContractDef from Cosmos DB cache when deleting (#1330)
 * Fix misleading warning message on initialization (#1336)
 * Auto-upload of Cosmos stored procedures (#1338)
+* Resiliency against exceptions in the `PartitionManagerImpl` (#1366)
+* QuerySpec when right-op contains "=" or " " (#1380)
+* Fix check whether policy can be deleted (#1410)
 
 ## [milestone-3] - 2022-04-08
 

@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -318,6 +320,57 @@ class InMemoryContractNegotiationStoreTest {
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 
         assertThat(store.queryAgreements(query)).isEmpty();
+    }
+
+    @Test
+    void getNegotiationsWithAgreementOnAsset_negotiationWithAgreement() {
+        var agreement = createAgreementBuilder().id("contract1").build();
+        var negotiation = createNegotiationBuilder("negotiation1").contractAgreement(agreement).build();
+        var assetId = agreement.getAssetId();
+
+        store.save(negotiation);
+
+        var result = store.getNegotiationsWithAgreementOnAsset(assetId).collect(Collectors.toList());
+
+        assertThat(result).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsOnly(negotiation);
+    }
+
+    @Test
+    void getNegotiationsWithAgreementOnAsset_negotiationWithoutAgreement() {
+        var assetId = UUID.randomUUID().toString();
+        var negotiation = ContractNegotiation.Builder.newInstance()
+                .type(ContractNegotiation.Type.CONSUMER)
+                .id("negotiation1")
+                .contractAgreement(null)
+                .correlationId("corr-negotiation1")
+                .state(ContractNegotiationStates.REQUESTED.code())
+                .counterPartyAddress("consumer")
+                .counterPartyId("consumerId")
+                .protocol("ids-multipart")
+                .build();
+
+        store.save(negotiation);
+
+        var result = store.getNegotiationsWithAgreementOnAsset(assetId).collect(Collectors.toList());
+
+        assertThat(result).isEmpty();
+        assertThat(store.queryAgreements(QuerySpec.none())).isEmpty();
+    }
+
+    @Test
+    void getNegotiationsWithAgreementOnAsset_multipleNegotiationsSameAsset() {
+        var assetId = UUID.randomUUID().toString();
+        var negotiation1 = createNegotiationBuilder("negotiation1").contractAgreement(createAgreementBuilder().id("contract1").assetId(assetId).build()).build();
+        var negotiation2 = createNegotiationBuilder("negotiation2").contractAgreement(createAgreementBuilder().id("contract2").assetId(assetId).build()).build();
+
+        store.save(negotiation1);
+        store.save(negotiation2);
+
+        var result = store.getNegotiationsWithAgreementOnAsset(assetId).collect(Collectors.toList());
+
+        assertThat(result).hasSize(2)
+                .extracting(ContractNegotiation::getId).containsExactlyInAnyOrder("negotiation1", "negotiation2");
+
     }
 
     @NotNull

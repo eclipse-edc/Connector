@@ -18,13 +18,13 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 
 @JsonTypeName("dataspaceconnector:policydocument")
-public class PolicyDocument extends CosmosDocument<Policy> {
+public class PolicyDocument extends CosmosDocument<PolicyDefinition> {
 
     @JsonCreator
-    public PolicyDocument(@JsonProperty("wrappedInstance") Policy policy,
+    public PolicyDocument(@JsonProperty("wrappedInstance") PolicyDefinition policy,
                           @JsonProperty("partitionKey") String partitionKey) {
         super(policy, partitionKey);
     }

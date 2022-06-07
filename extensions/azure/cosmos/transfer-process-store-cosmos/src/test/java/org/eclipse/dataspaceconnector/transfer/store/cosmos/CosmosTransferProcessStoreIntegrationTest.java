@@ -78,7 +78,6 @@ class CosmosTransferProcessStoreIntegrationTest {
 
         var response = client.createDatabaseIfNotExists(DATABASE_NAME);
         database = client.getDatabase(response.getProperties().getId());
-
     }
 
     @AfterAll
@@ -145,14 +144,14 @@ class CosmosTransferProcessStoreIntegrationTest {
     void nextForState_fetchMaxNewest() throws InterruptedException {
 
         String id1 = UUID.randomUUID().toString();
-        var tp = createTransferProcess(id1, TransferProcessStates.UNSAVED);
+        var tp = createTransferProcess(id1, TransferProcessStates.INITIAL);
 
         String id2 = UUID.randomUUID().toString();
-        var tp2 = createTransferProcess(id2, TransferProcessStates.UNSAVED);
+        var tp2 = createTransferProcess(id2, TransferProcessStates.INITIAL);
 
         Thread.sleep(500); //make sure the third process is the youngest - should not get fetched
         String id3 = UUID.randomUUID().toString();
-        var tp3 = createTransferProcess(id3, TransferProcessStates.UNSAVED);
+        var tp3 = createTransferProcess(id3, TransferProcessStates.INITIAL);
 
         store.create(tp);
         store.create(tp2);
@@ -191,10 +190,10 @@ class CosmosTransferProcessStoreIntegrationTest {
     @Test
     void nextForState_shouldOnlyReturnFreeItems() {
         String id1 = "process1";
-        var tp = createTransferProcess(id1, TransferProcessStates.UNSAVED);
+        var tp = createTransferProcess(id1, TransferProcessStates.INITIAL);
 
         String id2 = "process2";
-        var tp2 = createTransferProcess(id2, TransferProcessStates.UNSAVED);
+        var tp2 = createTransferProcess(id2, TransferProcessStates.INITIAL);
 
         store.create(tp);
         store.create(tp2);
@@ -269,7 +268,7 @@ class CosmosTransferProcessStoreIntegrationTest {
     @Test
     void nextForState_batchSizeLimits() {
         for (var i = 0; i < 5; i++) {
-            var tp = createTransferProcess("process_" + i, TransferProcessStates.UNSAVED);
+            var tp = createTransferProcess("process_" + i, TransferProcessStates.INITIAL);
             store.create(tp);
         }
 
@@ -335,8 +334,6 @@ class CosmosTransferProcessStoreIntegrationTest {
         var tp = createTransferProcess("test-id", TransferProcessStates.IN_PROGRESS);
         var doc = new TransferProcessDocument(tp, partitionKey);
 
-        var initialTimestamp = tp.getStateTimestamp();
-
         container.upsertItem(doc);
         var result = store.nextForState(TransferProcessStates.IN_PROGRESS.code(), 5);
         assertThat(result).hasSize(1);
@@ -401,13 +398,12 @@ class CosmosTransferProcessStoreIntegrationTest {
     void update_notExist_shouldCreate() {
         var tp = createTransferProcess("process-id");
 
-        tp.transitionInitial();
         tp.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
         store.update(tp);
 
-        CosmosItemResponse<Object> response = container.readItem(tp.getId(), new PartitionKey(partitionKey), Object.class);
+        var response = container.readItem(tp.getId(), new PartitionKey(partitionKey), Object.class);
 
-        TransferProcessDocument stored = convert(response.getItem());
+        var stored = convert(response.getItem());
         assertThat(stored.getWrappedInstance()).isEqualTo(tp);
         assertThat(stored.getWrappedInstance().getState()).isEqualTo(TransferProcessStates.PROVISIONING.code());
         assertThat(stored.getLease()).isNull();

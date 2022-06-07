@@ -18,13 +18,14 @@ package org.eclipse.dataspaceconnector.contract.validation;
 
 import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -62,7 +63,7 @@ class ContractValidationServiceImplTest {
     private final ParticipantAgentService agentService = mock(ParticipantAgentService.class);
     private final ContractDefinitionService definitionService = mock(ContractDefinitionService.class);
     private final AssetIndex assetIndex = mock(AssetIndex.class);
-    private final PolicyStore policyStore = mock(PolicyStore.class);
+    private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final Clock clock = Clock.fixed(now, UTC);
     private ContractValidationServiceImpl validationService;
 
@@ -85,8 +86,8 @@ class ContractValidationServiceImplTest {
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
-        when(policyStore.findById("access")).thenReturn(Policy.Builder.newInstance().build());
-        when(policyStore.findById("contract")).thenReturn(newPolicy);
+        when(policyStore.findById("access")).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
+        when(policyStore.findById("contract")).thenReturn(PolicyDefinition.Builder.newInstance().policy(newPolicy).build());
         when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(Stream.of(asset));
 
         var claimToken = ClaimToken.Builder.newInstance().build();
@@ -119,14 +120,14 @@ class ContractValidationServiceImplTest {
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
-        when(policyStore.findById("access")).thenReturn(Policy.Builder.newInstance().build());
-        when(policyStore.findById("contract")).thenReturn(newPolicy);
+        when(policyStore.findById("access")).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
+        when(policyStore.findById("contract")).thenReturn(PolicyDefinition.Builder.newInstance().policy(newPolicy).build());
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = ContractAgreement.Builder.newInstance().id("1")
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
-                .policyId("policy")
+                .policy(Policy.Builder.newInstance().build())
                 .assetId(UUID.randomUUID().toString())
                 .contractStartDate(now.getEpochSecond())
                 .contractEndDate(now.plus(1, ChronoUnit.DAYS).getEpochSecond())
@@ -190,7 +191,7 @@ class ContractValidationServiceImplTest {
         var agreement = ContractAgreement.Builder.newInstance().id("1")
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
-                .policyId("policy")
+                .policy(Policy.Builder.newInstance().build())
                 .assetId(UUID.randomUUID().toString())
                 .contractSigningDate(signingDate)
                 .contractStartDate(startDate)

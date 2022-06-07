@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNeg
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
@@ -46,7 +46,7 @@ public abstract class AbstractContractNegotiationManager {
     protected ExecutorInstrumentation executorInstrumentation;
     protected int batchSize = 5;
     protected WaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
-    protected PolicyStore policyStore;
+    protected PolicyDefinitionStore policyStore;
 
     public static class Builder<T extends AbstractContractNegotiationManager> {
 
@@ -119,7 +119,7 @@ public abstract class AbstractContractNegotiationManager {
             return this;
         }
 
-        public Builder<T> policyStore(PolicyStore policyStore) {
+        public Builder<T> policyStore(PolicyDefinitionStore policyStore) {
             manager.policyStore = policyStore;
             return this;
         }

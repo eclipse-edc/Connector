@@ -44,7 +44,7 @@ import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistr
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.system.CoreExtension;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
@@ -66,15 +66,12 @@ import java.time.Clock;
 public class ContractServiceExtension implements ServiceExtension {
 
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
-    private ConsumerContractNegotiationManagerImpl consumerNegotiationManager;
-    private ProviderContractNegotiationManagerImpl providerNegotiationManager;
-
     @EdcSetting
     private static final String NEGOTIATION_CONSUMER_STATE_MACHINE_BATCH_SIZE = "edc.negotiation.consumer.state-machine.batch-size";
-
     @EdcSetting
     private static final String NEGOTIATION_PROVIDER_STATE_MACHINE_BATCH_SIZE = "edc.negotiation.provider.state-machine.batch-size";
-
+    private ConsumerContractNegotiationManagerImpl consumerNegotiationManager;
+    private ProviderContractNegotiationManagerImpl providerNegotiationManager;
     @Inject
     private AssetIndex assetIndex;
 
@@ -97,7 +94,7 @@ public class ContractServiceExtension implements ServiceExtension {
     private PolicyEngine policyEngine;
 
     @Inject
-    private PolicyStore policyStore;
+    private PolicyDefinitionStore policyStore;
 
     @Inject
     private Monitor monitor;
@@ -154,7 +151,7 @@ public class ContractServiceExtension implements ServiceExtension {
         var observable = new ContractNegotiationObservableImpl();
         context.registerService(ContractNegotiationObservable.class, observable);
 
-        context.registerService(PolicyArchive.class, new PolicyArchiveImpl(store, policyStore));
+        context.registerService(PolicyArchive.class, new PolicyArchiveImpl(store));
 
         consumerNegotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)

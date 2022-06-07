@@ -51,7 +51,7 @@ public abstract class TransferLocalSimulation extends Simulation {
     public static final String IDS_PATH = "/api/v1/ids";
     private static final int REPEAT = Integer.parseInt(propOrEnv("repeat", "1"));
     private static final int AT_ONCE_USERS = Integer.parseInt(propOrEnv("at.once.users", "1"));
-    private static final int MAX_RESPONSE_TIME = Integer.parseInt(propOrEnv("max.response.time", "5000"));
+    private static final int MAX_RESPONSE_TIME = Integer.parseInt(propOrEnv("max.response.time", "10000"));
     private static final double SUCCESS_PERCENTAGE = Double.parseDouble(propOrEnv("success.percentage", "100.0"));
 
     public TransferLocalSimulation(TransferSimulationConfiguration simulationConfiguration) {

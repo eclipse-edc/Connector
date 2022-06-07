@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.sql.policy;
 
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -23,10 +23,10 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.sql.policy.store.PostgressStatements;
-import org.eclipse.dataspaceconnector.sql.policy.store.SqlPolicyStore;
+import org.eclipse.dataspaceconnector.sql.policy.store.SqlPolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.sql.policy.store.SqlPolicyStoreStatements;
 
-@Provides(PolicyStore.class)
+@Provides(PolicyDefinitionStore.class)
 public class SqlPolicyStoreExtension implements ServiceExtension {
 
     @EdcSetting(required = true)
@@ -44,9 +44,9 @@ public class SqlPolicyStoreExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
 
-        var sqlPolicyStore = new SqlPolicyStore(dataSourceRegistry, getDataSourceName(context), transactionContext, context.getTypeManager(), getStatementImpl());
+        var sqlPolicyStore = new SqlPolicyDefinitionStore(dataSourceRegistry, getDataSourceName(context), transactionContext, context.getTypeManager(), getStatementImpl());
 
-        context.registerService(PolicyStore.class, sqlPolicyStore);
+        context.registerService(PolicyDefinitionStore.class, sqlPolicyStore);
     }
 
     /**

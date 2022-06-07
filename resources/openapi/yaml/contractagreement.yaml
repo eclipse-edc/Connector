@@ -60,6 +60,24 @@ paths:
       - Contract Agreement
 components:
   schemas:
+    Action:
+      type: object
+      properties:
+        constraint:
+          $ref: '#/components/schemas/Constraint'
+        includedIn:
+          type: string
+        type:
+          type: string
+    Constraint:
+      type: object
+      discriminator:
+        propertyName: edctype
+      properties:
+        edctype:
+          type: string
+      required:
+      - edctype
     ContractAgreementDto:
       type: object
       properties:
@@ -78,13 +96,105 @@ components:
           format: int64
         id:
           type: string
-        policyId:
-          type: string
+        policy:
+          $ref: '#/components/schemas/Policy'
         providerAgentId:
           type: string
       required:
       - assetId
       - consumerAgentId
       - id
-      - policyId
+      - policy
       - providerAgentId
+    Duty:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/Action'
+        assignee:
+          type: string
+        assigner:
+          type: string
+        consequence:
+          $ref: '#/components/schemas/Duty'
+        constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/Constraint'
+        parentPermission:
+          $ref: '#/components/schemas/Permission'
+        target:
+          type: string
+        uid:
+          type: string
+    Permission:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/Action'
+        assignee:
+          type: string
+        assigner:
+          type: string
+        constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/Constraint'
+        duties:
+          type: array
+          items:
+            $ref: '#/components/schemas/Duty'
+        target:
+          type: string
+        uid:
+          type: string
+    Policy:
+      type: object
+      properties:
+        '@type':
+          type: string
+          enum:
+          - SET
+          - OFFER
+          - CONTRACT
+        assignee:
+          type: string
+        assigner:
+          type: string
+        extensibleProperties:
+          type: object
+          additionalProperties:
+            type: object
+        inheritsFrom:
+          type: string
+        obligations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Duty'
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Permission'
+        prohibitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Prohibition'
+        target:
+          type: string
+    Prohibition:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/Action'
+        assignee:
+          type: string
+        assigner:
+          type: string
+        constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/Constraint'
+        target:
+          type: string
+        uid:
+          type: string

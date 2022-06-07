@@ -49,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createContract;
+import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createContractBuilder;
 import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createNegotiation;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
@@ -298,7 +299,7 @@ class SqlContractNegotiationStoreTest {
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(agreement);
 
-        assertThat(Objects.requireNonNull(store.find(negotiationId)).getContractAgreement()).isEqualTo(agreement);
+        assertThat(Objects.requireNonNull(store.find(negotiationId)).getContractAgreement()).usingRecursiveComparison().isEqualTo(agreement);
     }
 
     @Test
@@ -400,6 +401,50 @@ class SqlContractNegotiationStoreTest {
                 .extracting(ContractNegotiation::getId)
                 .map(Integer::parseInt)
                 .allMatch(i -> i > 4 && i < 15);
+    }
+
+    @Test
+    void getNegotiationsWithAgreementOnAsset_negotiationWithAgreement() {
+        var agreement = createContract("contract1");
+        var negotiation = createNegotiation("negotiation1", agreement);
+        var assetId = agreement.getAssetId();
+
+        store.save(negotiation);
+
+        var result = store.getNegotiationsWithAgreementOnAsset(assetId).collect(Collectors.toList());
+
+        assertThat(result).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsOnly(negotiation);
+
+    }
+
+    @Test
+    void getNegotiationsWithAgreementOnAsset_negotiationWithoutAgreement() {
+        var assetId = UUID.randomUUID().toString();
+        var negotiation = createNegotiation("negotiation1");
+
+        store.save(negotiation);
+
+        var result = store.getNegotiationsWithAgreementOnAsset(assetId).collect(Collectors.toList());
+
+        assertThat(result).isEmpty();
+        assertThat(store.queryAgreements(QuerySpec.none())).isEmpty();
+
+    }
+
+    @Test
+    void getNegotiationsWithAgreementOnAsset_multipleNegotiationsSameAsset() {
+        var assetId = UUID.randomUUID().toString();
+        var negotiation1 = createNegotiation("negotiation1", createContractBuilder("contract1").assetId(assetId).build());
+        var negotiation2 = createNegotiation("negotiation2", createContractBuilder("contract2").assetId(assetId).build());
+
+        store.save(negotiation1);
+        store.save(negotiation2);
+
+        var result = store.getNegotiationsWithAgreementOnAsset(assetId).collect(Collectors.toList());
+
+        assertThat(result).hasSize(2)
+                .extracting(ContractNegotiation::getId).containsExactlyInAnyOrder("negotiation1", "negotiation2");
+
     }
 
     @Test

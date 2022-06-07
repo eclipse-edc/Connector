@@ -36,11 +36,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
 /**
- * An in-memory, threadsafe process store.
- * This implementation is intended for testing purposes only.
+ * An in-memory, threadsafe process store. This implementation is intended for testing purposes only.
  */
 public class InMemoryContractNegotiationStore implements ContractNegotiationStore {
 
@@ -122,6 +122,14 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
     @Override
     public @NotNull Stream<ContractAgreement> queryAgreements(QuerySpec querySpec) {
         return lockManager.readLock(() -> agreementQueryResolver.query(getAgreements(), querySpec));
+    }
+
+    @Override
+    public Stream<ContractNegotiation> getNegotiationsWithAgreementOnAsset(String assetId) {
+        var filter = format("contractAgreement.assetId = %s", assetId);
+        var query = QuerySpec.Builder.newInstance().filter(filter).build();
+
+        return queryNegotiations(query);
     }
 
     @Override

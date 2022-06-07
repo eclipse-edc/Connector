@@ -36,7 +36,6 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateDocument;
-import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateNegotiation;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -103,7 +102,7 @@ class CosmosContractNegotiationStoreTest {
 
     @Test
     void save() {
-        var negotiation = generateNegotiation();
+        var negotiation = TestFunctions.createNegotiation();
 
         store.save(negotiation);
 

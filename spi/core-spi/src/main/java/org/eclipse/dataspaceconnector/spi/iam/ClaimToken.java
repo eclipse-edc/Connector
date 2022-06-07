@@ -22,7 +22,7 @@ import java.util.Map;
  * Currently only a String representation of claims values is supported.
  */
 public class ClaimToken {
-    private final Map<String, String> claims = new HashMap<>();
+    private final Map<String, Object> claims = new HashMap<>();
 
     private ClaimToken() {
     }
@@ -30,7 +30,7 @@ public class ClaimToken {
     /**
      * Returns the claims.
      */
-    public Map<String, String> getClaims() {
+    public Map<String, Object> getClaims() {
         return claims;
     }
 
@@ -45,12 +45,12 @@ public class ClaimToken {
             return new Builder();
         }
 
-        public Builder claim(String key, String value) {
+        public Builder claim(String key, Object value) {
             token.claims.put(key, value);
             return this;
         }
 
-        public Builder claims(Map<String, String> map) {
+        public Builder claims(Map<String, Object> map) {
             token.claims.putAll(map);
             return this;
         }

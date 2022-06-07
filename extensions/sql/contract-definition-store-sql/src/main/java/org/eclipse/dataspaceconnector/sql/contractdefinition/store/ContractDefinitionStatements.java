@@ -50,4 +50,6 @@ public interface ContractDefinitionStatements {
     String getCountTemplate();
 
     String getUpdateTemplate();
+
+    String getIsPolicyReferencedTemplate();
 }

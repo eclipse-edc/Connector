@@ -32,6 +32,6 @@ public interface CredentialsVerifier {
      * @param hubBaseUrl the hub base url
      * @param publicKey  the hub's public key to encrypt messages with
      */
-    Result<Map<String, String>> verifyCredentials(String hubBaseUrl, PublicKeyWrapper publicKey);
+    Result<Map<String, Object>> verifyCredentials(String hubBaseUrl, PublicKeyWrapper publicKey);
 
 }

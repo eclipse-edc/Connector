@@ -19,6 +19,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.jetbrains.annotations.NotNull;
@@ -105,7 +106,7 @@ class ContractValidationRuleTest {
         return ContractAgreement.Builder.newInstance()
                 .id(contractId)
                 .assetId(UUID.randomUUID().toString())
-                .policyId(UUID.randomUUID().toString())
+                .policy(Policy.Builder.newInstance().build())
                 .contractEndDate(endDate.getEpochSecond())
                 .consumerAgentId("any")
                 .providerAgentId("any")

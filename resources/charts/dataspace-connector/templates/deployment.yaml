@@ -20,6 +20,10 @@ spec:
       labels:
         {{- include "dataspace-connector.selectorLabels" . | nindent 8 }}
     spec:
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -33,17 +37,10 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: http
-              containerPort: {{ .Values.edc.port }}
-              protocol: TCP
-            - name: http-ids
-              containerPort: {{ .Values.edc.idsApi.port }}
-              protocol: TCP
-            {{ if .Values.edc.managementApi.enabled }}
-            - name: http-mgmt
-              containerPort: {{ .Values.edc.managementApi.port }}
-              protocol: TCP
-            {{ end }}
+            {{- range $k, $v := .Values.ports }}
+            - containerPort: {{ $v.containerPort }}
+              name: {{ $k }}
+            {{- end }}
           envFrom:
             - configMapRef:
                 name: {{ include "dataspace-connector.fullname" . }}-envvars
@@ -67,6 +64,8 @@ spec:
             initialDelaySeconds: 10
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            {{- toYaml .Values.edc.volumeMounts | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

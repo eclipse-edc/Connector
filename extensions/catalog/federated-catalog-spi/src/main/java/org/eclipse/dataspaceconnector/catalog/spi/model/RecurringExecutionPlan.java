@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.catalog.spi.model;
 
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+
 import java.time.Duration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -24,16 +26,19 @@ import java.util.concurrent.TimeUnit;
 public class RecurringExecutionPlan implements ExecutionPlan {
     private final Duration schedule;
     private final Duration withInitialDelay;
+    private final Monitor monitor;
 
     /**
      * Instantiates the {@code RecurringExecutionPlan}.
      *
      * @param schedule     A time span used for initial delay and for the period.
-     * @param initialDelay Specifies whether the execution plan should run right away or after an initial delay passes. .
+     * @param initialDelay Specifies whether the execution plan should run right away or after an initial delay passes.
+     *                     .
      */
-    public RecurringExecutionPlan(Duration schedule, Duration initialDelay) {
+    public RecurringExecutionPlan(Duration schedule, Duration initialDelay, Monitor monitor) {
         this.schedule = schedule;
         withInitialDelay = initialDelay;
+        this.monitor = monitor;
     }
 
     /**
@@ -41,8 +46,8 @@ public class RecurringExecutionPlan implements ExecutionPlan {
      *
      * @param schedule A time span used for initial delay and for the period.
      */
-    public RecurringExecutionPlan(Duration schedule) {
-        this(schedule, Duration.ofSeconds(0));
+    public RecurringExecutionPlan(Duration schedule, Monitor monitor) {
+        this(schedule, Duration.ofSeconds(0), monitor);
     }
 
 
@@ -54,6 +59,16 @@ public class RecurringExecutionPlan implements ExecutionPlan {
     @Override
     public void run(Runnable task) {
         var ses = Executors.newSingleThreadScheduledExecutor();
-        ses.scheduleAtFixedRate(task, withInitialDelay.toMillis(), schedule.toMillis(), TimeUnit.MILLISECONDS);
+        ses.scheduleAtFixedRate(catchExceptions(task), withInitialDelay.toMillis(), schedule.toMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    private Runnable catchExceptions(Runnable original) {
+        return () -> {
+            try {
+                original.run();
+            } catch (Throwable thr) {
+                monitor.severe("Unexpected error during plan execution", thr);
+            }
+        };
     }
 }

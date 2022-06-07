@@ -27,7 +27,7 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNeg
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
@@ -47,7 +47,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
     private final ContractValidationService validationService = mock(ContractValidationService.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     private final ContractNegotiationObservable observable = mock(ContractNegotiationObservable.class);
-    private final PolicyStore policyStore = mock(PolicyStore.class);
+    private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final Monitor monitor = mock(Monitor.class);
     private final String errorDetail = "Updated by command handler";
     private CommandQueue<ContractNegotiationCommand> commandQueue;
@@ -161,13 +161,13 @@ class ContractNegotiationCommandQueueIntegrationTest {
     }
 
     /**
-     * Handler for the {@link TestCommand}. Will transition the specific {@link ContractNegotiation}
-     * to the error state and set a custom error detail.
+     * Handler for the {@link TestCommand}. Will transition the specific {@link ContractNegotiation} to the error state
+     * and set a custom error detail.
      */
     private static class TestCommandHandler extends SingleContractNegotiationCommandHandler<TestCommand> {
 
-        private CountDownLatch countDownLatch;
-        private String errorDetail;
+        private final CountDownLatch countDownLatch;
+        private final String errorDetail;
 
         TestCommandHandler(ContractNegotiationStore store, CountDownLatch countDownLatch, String errorDetail) {
             super(store);
@@ -176,16 +176,16 @@ class ContractNegotiationCommandQueueIntegrationTest {
         }
 
         @Override
+        public Class<TestCommand> getType() {
+            return TestCommand.class;
+        }
+
+        @Override
         protected boolean modify(ContractNegotiation negotiation) {
             negotiation.transitionError(errorDetail);
             store.save(negotiation);
             countDownLatch.countDown();
             return true;
-        }
-
-        @Override
-        public Class<TestCommand> getType() {
-            return TestCommand.class;
         }
     }
 

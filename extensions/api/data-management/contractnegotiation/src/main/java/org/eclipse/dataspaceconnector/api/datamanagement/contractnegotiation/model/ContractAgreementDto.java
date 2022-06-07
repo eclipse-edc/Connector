@@ -14,15 +14,38 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+
 public class ContractAgreementDto {
+    @NotNull
     private String id;
+    @NotNull
     private String providerAgentId;
+    @NotNull
     private String consumerAgentId;
+    @Positive
     private long contractSigningDate;
+    @Positive
     private long contractStartDate;
+    @Positive
     private long contractEndDate;
+    @NotNull
     private String assetId;
-    private String policyId;
+    @NotNull
+    private Policy policy;
+
+    @AssertTrue
+    @JsonIgnore
+    public boolean isDatesValid() {
+
+        return contractStartDate < contractEndDate &&
+                contractSigningDate < contractEndDate;
+    }
+
 
     public String getId() {
         return id;
@@ -52,8 +75,8 @@ public class ContractAgreementDto {
         return assetId;
     }
 
-    public String getPolicyId() {
-        return policyId;
+    public Policy getPolicy() {
+        return policy;
     }
 
     public static final class Builder {
@@ -102,8 +125,8 @@ public class ContractAgreementDto {
             return this;
         }
 
-        public Builder policyId(String policyId) {
-            agreement.policyId = policyId;
+        public Builder policy(Policy policy) {
+            agreement.policy = policy;
             return this;
         }
 

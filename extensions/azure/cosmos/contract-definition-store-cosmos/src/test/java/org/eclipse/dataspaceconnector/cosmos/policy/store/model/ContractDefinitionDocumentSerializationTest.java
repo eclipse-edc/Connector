@@ -58,4 +58,5 @@ class ContractDefinitionDocumentSerializationTest {
         var transferProcessDeserialized = typeManager.readValue(json, ContractDefinitionDocument.class);
         assertThat(transferProcessDeserialized).usingRecursiveComparison().isEqualTo(document);
     }
+
 }

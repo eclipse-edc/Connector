@@ -16,6 +16,7 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
@@ -25,7 +26,7 @@ import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidation
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -73,7 +74,7 @@ class ConsumerContractNegotiationManagerImplTest {
     private final ContractValidationService validationService = mock(ContractValidationService.class);
     private final ContractNegotiationStore store = mock(ContractNegotiationStore.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
-    private final PolicyStore policyStore = mock(PolicyStore.class);
+    private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private ConsumerContractNegotiationManagerImpl negotiationManager;
 
     @BeforeEach
@@ -111,12 +112,12 @@ class ConsumerContractNegotiationManagerImplTest {
         assertThat(result.succeeded()).isTrue();
         verify(store).save(argThat(negotiation ->
                 negotiation.getState() == INITIAL.code() &&
-                negotiation.getCounterPartyId().equals(request.getConnectorId()) &&
-                negotiation.getCounterPartyAddress().equals(request.getConnectorAddress()) &&
-                negotiation.getProtocol().equals(request.getProtocol()) &&
-                negotiation.getCorrelationId() == null &&
-                negotiation.getContractOffers().size() == 1 &&
-                negotiation.getLastContractOffer().equals(contractOffer))
+                        negotiation.getCounterPartyId().equals(request.getConnectorId()) &&
+                        negotiation.getCounterPartyAddress().equals(request.getConnectorAddress()) &&
+                        negotiation.getProtocol().equals(request.getProtocol()) &&
+                        negotiation.getCorrelationId() == null &&
+                        negotiation.getContractOffers().size() == 1 &&
+                        negotiation.getLastContractOffer().equals(contractOffer))
         );
     }
 
@@ -144,8 +145,8 @@ class ConsumerContractNegotiationManagerImplTest {
         assertThat(result.succeeded()).isTrue();
         verify(store).save(argThat(negotiation ->
                 negotiation.getState() == CONSUMER_APPROVING.code() &&
-                negotiation.getContractOffers().size() == 2 &&
-                negotiation.getContractOffers().get(1).equals(contractOffer)
+                        negotiation.getContractOffers().size() == 2 &&
+                        negotiation.getContractOffers().get(1).equals(contractOffer)
         ));
         verify(validationService).validate(eq(token), eq(contractOffer), any(ContractOffer.class));
     }
@@ -164,8 +165,8 @@ class ConsumerContractNegotiationManagerImplTest {
         assertThat(result.succeeded()).isTrue();
         verify(store).save(argThat(negotiation ->
                 negotiation.getState() == DECLINING.code() &&
-                negotiation.getContractOffers().size() == 2 &&
-                negotiation.getContractOffers().get(1).equals(contractOffer)
+                        negotiation.getContractOffers().size() == 2 &&
+                        negotiation.getContractOffers().get(1).equals(contractOffer)
         ));
         verify(validationService).validate(eq(token), eq(contractOffer), any(ContractOffer.class));
     }
@@ -188,18 +189,17 @@ class ConsumerContractNegotiationManagerImplTest {
         var negotiationConsumerOffered = createContractNegotiationConsumerOffered();
         var token = ClaimToken.Builder.newInstance().build();
         var contractAgreement = mock(ContractAgreement.class);
-        var policy = Policy.Builder.newInstance().build();
+        var def = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
         when(store.find(negotiationConsumerOffered.getId())).thenReturn(negotiationConsumerOffered);
         when(validationService.validate(eq(token), eq(contractAgreement), any(ContractOffer.class))).thenReturn(true);
 
-        var result = negotiationManager.confirmed(token, negotiationConsumerOffered.getId(), contractAgreement, policy);
+        var result = negotiationManager.confirmed(token, negotiationConsumerOffered.getId(), contractAgreement, def.getPolicy());
 
         assertThat(result.succeeded()).isTrue();
         verify(store).save(argThat(negotiation ->
                 negotiation.getState() == CONFIRMED.code() &&
-                negotiation.getContractAgreement() == contractAgreement
+                        negotiation.getContractAgreement() == contractAgreement
         ));
-        verify(policyStore).save(argThat(p -> p.getUid().equals(policy.getUid())));
         verify(validationService).validate(eq(token), eq(contractAgreement), any(ContractOffer.class));
     }
 
@@ -217,7 +217,7 @@ class ConsumerContractNegotiationManagerImplTest {
         assertThat(result.succeeded()).isTrue();
         verify(store).save(argThat(negotiation ->
                 negotiation.getState() == DECLINING.code() &&
-                negotiation.getContractAgreement() == null
+                        negotiation.getContractAgreement() == null
         ));
         verify(validationService).validate(eq(token), eq(contractAgreement), any(ContractOffer.class));
     }

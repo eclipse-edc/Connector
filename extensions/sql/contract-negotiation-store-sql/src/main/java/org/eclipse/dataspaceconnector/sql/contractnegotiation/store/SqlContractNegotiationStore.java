@@ -194,6 +194,19 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
     }
 
     @Override
+    public Stream<ContractNegotiation> getNegotiationsWithAgreementOnAsset(String assetId) {
+        var statement = statements.getNegotiationWitghAgreementOnAssetTemplate();
+
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                return executeQuery(connection, this::mapContractNegotiation, statement, assetId).stream();
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
+    @Override
     public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
@@ -276,7 +289,7 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                             contractAgreement.getContractStartDate(),
                             contractAgreement.getContractEndDate(),
                             contractAgreement.getAssetId(),
-                            contractAgreement.getPolicyId()
+                            toJson(contractAgreement.getPolicy())
                     );
                 } else {
                     // update agreement
@@ -287,7 +300,7 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                             contractAgreement.getContractStartDate(),
                             contractAgreement.getContractEndDate(),
                             contractAgreement.getAssetId(),
-                            contractAgreement.getPolicyId(),
+                            toJson(contractAgreement.getPolicy()),
                             agrId);
                 }
 
@@ -313,7 +326,8 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                 .providerAgentId(resultSet.getString(statements.getProviderAgentColumn()))
                 .consumerAgentId(resultSet.getString(statements.getConsumerAgentColumn()))
                 .assetId(resultSet.getString(statements.getAssetIdColumn()))
-                .policyId(resultSet.getString(statements.getPolicyIdColumn()))
+                .policy(fromJson(resultSet.getString(statements.getPolicyIdColumn()), new TypeReference<>() {
+                }))
                 .contractStartDate(resultSet.getLong(statements.getStartDateColumn()))
                 .contractEndDate(resultSet.getLong(statements.getEndDateColumn()))
                 .contractSigningDate(resultSet.getLong(statements.getSigningDateColumn()))

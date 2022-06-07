@@ -111,6 +111,19 @@ public final class PostgresStatements implements ContractNegotiationStatements {
     }
 
     @Override
+    public String getNegotiationWitghAgreementOnAssetTemplate() {
+        return format("SELECT * FROM %s\n" +
+                        "INNER JOIN %s eca on %s.%s = eca.%s\n" +
+                        "WHERE %s.%s in (SELECT %s\n" +
+                        "FROM %s\n" +
+                        "WHERE %s = ?);\n",
+                getContractNegotiationTable(), getContractAgreementTable(), getContractNegotiationTable(), getContractAgreementIdFkColumn(),
+                getContractAgreementIdColumn(),
+                getContractNegotiationTable(), getContractAgreementIdFkColumn(), getContractAgreementIdColumn(), getContractAgreementTable(),
+                getAssetIdColumn());
+    }
+
+    @Override
     public String getDeleteLeaseTemplate() {
         return format("DELETE FROM %s WHERE %s=?", getLeaseTableName(), getLeaseIdColumn());
     }

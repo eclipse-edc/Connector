@@ -14,12 +14,12 @@
 
 package org.eclipse.dataspaceconnector.contract.negotiation.store.model;
 
+import org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateNegotiation;
 
 class ContractNegotiationDocumentSerializationTest {
 
@@ -34,7 +34,7 @@ class ContractNegotiationDocumentSerializationTest {
 
     @Test
     void testSerialization() {
-        var def = generateNegotiation();
+        var def = TestFunctions.createNegotiation();
         var pk = def.getState();
 
         var document = new ContractNegotiationDocument(def, partitionKey);
@@ -49,7 +49,7 @@ class ContractNegotiationDocumentSerializationTest {
 
     @Test
     void testDeserialization() {
-        var def = generateNegotiation();
+        var def = TestFunctions.createNegotiation();
 
         var document = new ContractNegotiationDocument(def, partitionKey);
         String json = typeManager.writeValueAsString(document);

@@ -35,7 +35,7 @@ class NegotiationInitiateRequestDtoValidationTest {
 
     @NotNull
     private static ContractOfferDescription validOffer() {
-        return new ContractOfferDescription("offerId", "assetid", "policyId", null);
+        return new ContractOfferDescription("offerId", "assetid", null);
     }
 
     @BeforeEach
