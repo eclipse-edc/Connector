@@ -22,6 +22,7 @@ plugins {
     id("org.eclipse.dataspaceconnector.module-names")
     id("com.autonomousapps.dependency-analysis") version "1.1.0" apply (false)
     id("org.gradle.crypto.checksum") version "1.4.0"
+    id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
 }
 
 repositories {
@@ -55,6 +56,9 @@ if (project.version == "unspecified") {
 } else {
     edcVersion = project.version as String
 }
+
+// required by the nexus publishing plugin
+project.version = edcVersion
 
 var deployUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
 
@@ -354,6 +358,15 @@ if (project.hasProperty("dependency.analysis")) {
                     "io\\.opentelemetry\\.extension\\.annotations\\.WithSpan",
                 )
             }
+        }
+    }
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            username.set(System.getenv("OSSRH_USER") ?: return@sonatype)
+            password.set(System.getenv("OSSRH_PASSWORD") ?: return@sonatype)
         }
     }
 }
