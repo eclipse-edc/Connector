@@ -155,8 +155,6 @@ allprojects {
         group = groupId
         version = projectVersion
 
-        println("selecting version $projectVersion for module $name")
-
         dependencies {
             api("org.jetbrains:annotations:${jetBrainsAnnotationsVersion}")
             api("com.fasterxml.jackson.core:jackson-core:${jacksonVersion}")
