@@ -74,7 +74,7 @@ will then perform the data transfer.
 
 ### Flow diagram
 
-![alt text](IdeaProjects/EclipseDataspaceConnector/docs/architecture/data-transfer/diagrams/data-plane-transfer-sync.png)
+![alt text](../../architecture/data-transfer/diagrams/data-plane-transfer-sync.png)
 
 ## Provider push
 
@@ -105,7 +105,7 @@ transfer from the present runtime.
 
 If no `DataPlaneManager` is embarked within the Control Plane runtime, then it delegates the data transfer to a DPF
 runtime. This is performed by the `RemoteDataPlaneTransferClient`. First this client resolves which DPF instance will
-perform the data transfer by calling the Plane Selector API (see [here](IdeaProjects/EclipseDataspaceConnector/docs/developer/data-plane-framework/dpf_selector.mdlipseDataspaceConnector/docs/developer/dpf/dpf_selector.md) for more details) which
+perform the data transfer by calling the Plane Selector API (see [here](./dpf_selector.md) for more details) which
 resolves the source/destination data address pair into a `DataPlaneInstance`. Note that if no DPF instance can process
 the data transfer, then an error is returned.
 
@@ -113,4 +113,4 @@ Once a DPF instance has been found, the client simply sends the `DataFlowRequest
 
 ### Flow diagram
 
-![alt text](architecture/data-transfer/diagrams/data-plane-transfer-client.png) 
+![alt text](../../architecture/data-transfer/diagrams/data-plane-transfer-client.png) 
