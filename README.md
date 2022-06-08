@@ -43,7 +43,7 @@ For detailed information about the project, please have a look at our [documenta
 
 Official versions are available through [MavenCentral](https://search.maven.org/search?q=org.eclipse.dataspaceconnector)
 .
-In your `build.gradle[.kts]` file please add the following (if not already present):
+Please add the following instructions in your `build.gradle[.kts]` file (if not already present):
 
 ```kotlin
 repositories {
@@ -66,7 +66,7 @@ dependencies {
 
 ### Using `SNAPSHOT` versions
 
-In addition, EDC regularly publishes new versions as snapshot versions, which are available at Sonatype's snapshot
+In addition, EDC regularly publishes snapshot versions, which are available at Sonatype's snapshot
 repository. In
 order to add them to your build configuration, simply add this:
 
