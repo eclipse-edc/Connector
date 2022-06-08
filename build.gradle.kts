@@ -50,7 +50,7 @@ val groupId: String by project
 val defaultVersion: String by project
 
 // required by the nexus publishing plugin
-val projectVersion: String = (project.findProperty("version") ?: defaultVersion) as String
+val projectVersion: String = (project.findProperty("edcVersion") ?: defaultVersion) as String
 
 var deployUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
 
