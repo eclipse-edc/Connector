@@ -206,7 +206,6 @@ components:
       - connectorId
       - contractId
       - dataDestination
-      - id
       - protocol
       - transferType
     TransferState:
