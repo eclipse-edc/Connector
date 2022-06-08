@@ -47,22 +47,19 @@ val edcScmConnection: String by project
 val edcWebsiteUrl: String by project
 val edcScmUrl: String by project
 val groupId: String = "org.eclipse.dataspaceconnector"
-var edcVersion: String = "0.0.1-SNAPSHOT"
 
 if (project.version == "unspecified") {
     logger.warn("No version was specified, setting default 0.0.1-SNAPSHOT")
     logger.warn("If you want to set a version, use the -Pversion=X.Y.Z parameter")
     logger.warn("")
-} else {
-    edcVersion = project.version as String
+    project.version = "0.0.1-SNAPSHOT"
 }
 
 // required by the nexus publishing plugin
-project.version = edcVersion
 
 var deployUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
 
-if (edcVersion.contains("SNAPSHOT")) {
+if (project.version.toString().contains("SNAPSHOT")) {
     deployUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
 }
 
@@ -161,7 +158,7 @@ allprojects {
 
     pluginManager.withPlugin("java-library") {
         group = groupId
-        version = edcVersion
+        version = project.version
 
         dependencies {
             api("org.jetbrains:annotations:${jetBrainsAnnotationsVersion}")
