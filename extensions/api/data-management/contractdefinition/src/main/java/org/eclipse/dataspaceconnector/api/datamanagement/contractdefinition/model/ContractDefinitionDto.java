@@ -16,8 +16,10 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 
@@ -34,6 +36,12 @@ public class ContractDefinitionDto {
     private List<Criterion> criteria = new ArrayList<>();
     @NotNull
     private String id;
+
+    @AssertTrue
+    @JsonIgnore
+    public boolean isIdValid() {
+        return id != null && !id.contains(":");
+    }
 
     private ContractDefinitionDto() {
     }

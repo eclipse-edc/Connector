@@ -29,7 +29,6 @@ public class TransferRequestDto {
 
     @NotNull
     private String connectorAddress;
-    @NotNull
     private String id;
     @NotNull
     private String contractId;

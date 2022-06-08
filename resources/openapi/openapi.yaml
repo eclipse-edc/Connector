@@ -1377,7 +1377,6 @@ components:
       - connectorId
       - contractId
       - dataDestination
-      - id
       - protocol
       - transferType
       type: object
