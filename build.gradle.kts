@@ -22,6 +22,7 @@ plugins {
     id("org.eclipse.dataspaceconnector.module-names")
     id("com.autonomousapps.dependency-analysis") version "1.1.0" apply (false)
     id("org.gradle.crypto.checksum") version "1.4.0"
+    id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
 }
 
 repositories {
@@ -46,19 +47,19 @@ val edcScmConnection: String by project
 val edcWebsiteUrl: String by project
 val edcScmUrl: String by project
 val groupId: String = "org.eclipse.dataspaceconnector"
-var edcVersion: String = "0.0.1-SNAPSHOT"
 
 if (project.version == "unspecified") {
     logger.warn("No version was specified, setting default 0.0.1-SNAPSHOT")
     logger.warn("If you want to set a version, use the -Pversion=X.Y.Z parameter")
     logger.warn("")
-} else {
-    edcVersion = project.version as String
+    project.version = "0.0.1-SNAPSHOT"
 }
+
+// required by the nexus publishing plugin
 
 var deployUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
 
-if (edcVersion.contains("SNAPSHOT")) {
+if (project.version.toString().contains("SNAPSHOT")) {
     deployUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
 }
 
@@ -157,7 +158,7 @@ allprojects {
 
     pluginManager.withPlugin("java-library") {
         group = groupId
-        version = edcVersion
+        version = project.version
 
         dependencies {
             api("org.jetbrains:annotations:${jetBrainsAnnotationsVersion}")
@@ -354,6 +355,17 @@ if (project.hasProperty("dependency.analysis")) {
                     "io\\.opentelemetry\\.extension\\.annotations\\.WithSpan",
                 )
             }
+        }
+    }
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("https://oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://oss.sonatype.org/content/repositories/snapshots/"))
+            username.set(System.getenv("OSSRH_USER") ?: return@sonatype)
+            password.set(System.getenv("OSSRH_PASSWORD") ?: return@sonatype)
         }
     }
 }
