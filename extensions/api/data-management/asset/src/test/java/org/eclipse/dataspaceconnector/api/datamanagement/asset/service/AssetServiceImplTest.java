@@ -49,8 +49,9 @@ class AssetServiceImplTest {
     private final AssetLoader loader = mock(AssetLoader.class);
     private final ContractNegotiationStore contractNegotiationStore = mock(ContractNegotiationStore.class);
     private final TransactionContext dummyTransactionContext = new NoopTransactionContext();
+    private final AssetObservable observable = mock(AssetObservable.class);
 
-    private final AssetServiceImpl service = new AssetServiceImpl(index, loader, contractNegotiationStore, dummyTransactionContext);
+    private final AssetServiceImpl service = new AssetServiceImpl(index, loader, contractNegotiationStore, dummyTransactionContext, observable);
 
     @Test
     void findById_shouldRelyOnAssetIndex() {

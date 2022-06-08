@@ -64,7 +64,33 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
     }
 
     @Override
-    public void accept(Asset asset, DataAddress dataAddress) {
+    public Asset deleteById(String assetId) {
+        Objects.requireNonNull(assetId);
+
+        try (var connection = getConnection()) {
+            var asset = findById(assetId);
+            if (asset == null) {
+                return null;
+            }
+
+            transactionContext.execute(() -> {
+                executeQuery(connection, sqlAssetQueries.getSqlAssetDeleteByIdClause(), assetId);
+                executeQuery(connection, sqlAssetQueries.getSqlDataAddressDeleteByIdClause(), assetId);
+                executeQuery(connection, sqlAssetQueries.getSqlPropertyDeleteByIdClause(), assetId);
+            });
+
+            return asset;
+        } catch (Exception e) {
+            throw new EdcPersistenceException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void accept(AssetEntry item) {
+        Objects.requireNonNull(item);
+        var asset = item.getAsset();
+        var dataAddress = item.getDataAddress();
+
         Objects.requireNonNull(asset);
         Objects.requireNonNull(dataAddress);
 
@@ -101,35 +127,6 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
             }
             throw new EdcPersistenceException(e.getMessage(), e);
         }
-    }
-
-    @Override
-    public Asset deleteById(String assetId) {
-        Objects.requireNonNull(assetId);
-
-        try (var connection = getConnection()) {
-            var asset = findById(assetId);
-            if (asset == null) {
-                return null;
-            }
-
-            transactionContext.execute(() -> {
-                executeQuery(connection, sqlAssetQueries.getSqlAssetDeleteByIdClause(), assetId);
-                executeQuery(connection, sqlAssetQueries.getSqlDataAddressDeleteByIdClause(), assetId);
-                executeQuery(connection, sqlAssetQueries.getSqlPropertyDeleteByIdClause(), assetId);
-            });
-
-            return asset;
-        } catch (Exception e) {
-            throw new EdcPersistenceException(e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public void accept(AssetEntry item) {
-        Objects.requireNonNull(item);
-
-        accept(item.getAsset(), item.getDataAddress());
     }
 
     @Override
