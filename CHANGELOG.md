@@ -25,7 +25,7 @@ in the detailed section referring to by linking pull requests or issues.
 
 #### Removed
 
-*
+* Old RegistrationService (was used for a PoC) (#164)
 
 #### Fixed
 
