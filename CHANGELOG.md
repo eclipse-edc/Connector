@@ -11,6 +11,30 @@ in the detailed section referring to by linking pull requests or issues.
 
 ### Overview
 
+*
+
+### Detailed Changes
+
+#### Added
+
+*
+
+#### Changed
+
+*
+
+#### Removed
+
+*
+
+#### Fixed
+
+*
+
+## [milestone-4] - 2022-06-07
+
+### Overview
+
 * Bugfixing DataManagementApi
 * Build improvements
 * Improvements to Dependency Resolution
