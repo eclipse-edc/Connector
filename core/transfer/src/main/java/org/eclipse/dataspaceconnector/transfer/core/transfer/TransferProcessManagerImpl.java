@@ -115,7 +115,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private DataAddressResolver addressResolver;
     private PolicyArchive policyArchive;
     private SendRetryManager<TransferProcess> sendRetryManager;
-    protected Clock clock = Clock.systemUTC();
+    private Clock clock;
 
     private TransferProcessManagerImpl() {
     }
@@ -709,6 +709,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         public Builder executorInstrumentation(ExecutorInstrumentation executorInstrumentation) {
             manager.executorInstrumentation = executorInstrumentation;
+            return this;
+        }
+
+        public Builder clock(Clock clock) {
+            manager.clock = clock;
             return this;
         }
 

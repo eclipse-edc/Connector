@@ -33,6 +33,6 @@ public class IamMockExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var region = context.getSetting("edc.mock.region", "eu");
-        context.registerService(IdentityService.class, new MockIdentityService(region));
+        context.registerService(IdentityService.class, new MockIdentityService(context.getClock(), region));
     }
 }

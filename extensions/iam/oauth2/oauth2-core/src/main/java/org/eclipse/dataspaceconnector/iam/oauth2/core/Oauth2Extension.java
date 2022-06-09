@@ -38,6 +38,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
+import java.time.Clock;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -83,6 +84,9 @@ public class Oauth2Extension implements ServiceExtension {
     @Inject
     private CertificateResolver certificateResolver;
 
+    @Inject
+    private Clock clock;
+
     @Override
     public String name() {
         return "OAuth2";
@@ -97,12 +101,12 @@ public class Oauth2Extension implements ServiceExtension {
 
         var configuration = createConfig(context);
 
-        var defaultDecorator = new DefaultJwtDecorator(configuration.getProviderAudience(), configuration.getClientId(), getEncodedClientCertificate(configuration), TOKEN_EXPIRATION);
+        var defaultDecorator = new DefaultJwtDecorator(configuration.getProviderAudience(), configuration.getClientId(), getEncodedClientCertificate(configuration), context.getClock(), TOKEN_EXPIRATION);
         var jwtDecoratorRegistry = new Oauth2JwtDecoratorRegistryRegistryImpl();
         jwtDecoratorRegistry.register(defaultDecorator);
         context.registerService(Oauth2JwtDecoratorRegistry.class, jwtDecoratorRegistry);
 
-        var validationRulesRegistry = new Oauth2ValidationRulesRegistryImpl(configuration);
+        var validationRulesRegistry = new Oauth2ValidationRulesRegistryImpl(configuration, clock);
         context.registerService(Oauth2ValidationRulesRegistry.class, validationRulesRegistry);
 
         var tokenValidationService = new TokenValidationServiceImpl(configuration.getIdentityProviderKeyResolver(), validationRulesRegistry);

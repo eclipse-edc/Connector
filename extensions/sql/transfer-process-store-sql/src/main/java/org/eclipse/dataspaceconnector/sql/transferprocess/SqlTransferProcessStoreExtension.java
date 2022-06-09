@@ -26,6 +26,8 @@ import org.eclipse.dataspaceconnector.sql.transferprocess.store.PostgresStatemen
 import org.eclipse.dataspaceconnector.sql.transferprocess.store.SqlTransferProcessStore;
 import org.eclipse.dataspaceconnector.sql.transferprocess.store.TransferProcessStoreStatements;
 
+import java.time.Clock;
+
 @Provides(TransferProcessStore.class)
 public class SqlTransferProcessStoreExtension implements ServiceExtension {
 
@@ -37,13 +39,15 @@ public class SqlTransferProcessStoreExtension implements ServiceExtension {
     private DataSourceRegistry dataSourceRegistry;
     @Inject
     private TransactionContext trxContext;
+    @Inject
+    private Clock clock;
 
     @Inject(required = false)
     private TransferProcessStoreStatements statements;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var store = new SqlTransferProcessStore(dataSourceRegistry, getDataSourceName(context), trxContext, context.getTypeManager().getMapper(), getStatementImpl(), context.getConnectorId());
+        var store = new SqlTransferProcessStore(dataSourceRegistry, getDataSourceName(context), trxContext, context.getTypeManager().getMapper(), getStatementImpl(), context.getConnectorId(), clock);
         context.registerService(TransferProcessStore.class, store);
     }
 

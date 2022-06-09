@@ -20,20 +20,19 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
+import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DefaultJwtDecoratorTest {
 
     private static final long TOKEN_EXPIRATION = 500;
-
-    private static final long DELTA_MILLISECONDS = TimeUnit.SECONDS.toMillis(1);
 
     private String audience;
     private String clientId;
@@ -48,7 +47,8 @@ class DefaultJwtDecoratorTest {
         byte[] certificate = new byte[50];
         new Random().nextBytes(certificate);
         now = Instant.now();
-        decorator = new DefaultJwtDecorator(audience, clientId, certificate, TOKEN_EXPIRATION);
+        var clock = Clock.fixed(now, UTC);
+        decorator = new DefaultJwtDecorator(audience, clientId, certificate, clock, TOKEN_EXPIRATION);
     }
 
     @Test
@@ -67,12 +67,11 @@ class DefaultJwtDecoratorTest {
                 .hasFieldOrPropertyWithValue("iss", clientId)
                 .hasFieldOrPropertyWithValue("sub", clientId)
                 .containsKey("jti")
-                .hasEntrySatisfying("iat", issueDate -> assertDatesAreClose((Date) issueDate, Date.from(now)))
-                .hasEntrySatisfying("nbf", notBefore -> assertDatesAreClose((Date) notBefore, Date.from(now)))
-                .hasEntrySatisfying("exp", expiration -> assertDatesAreClose((Date) expiration, Date.from(now.plusSeconds(TOKEN_EXPIRATION))));
+                .hasEntrySatisfying("iat", issueDate -> assertDateIs((Date) issueDate, now))
+                .hasEntrySatisfying("exp", expiration -> assertDateIs((Date) expiration, now.plusSeconds(TOKEN_EXPIRATION)));
     }
 
-    private static void assertDatesAreClose(Date date1, Date date2) {
-        assertThat(date1).isCloseTo(date2, DELTA_MILLISECONDS);
+    private static void assertDateIs(Date date1, Instant date2) {
+        assertThat(date1).isEqualTo(Date.from(date2));
     }
 }
