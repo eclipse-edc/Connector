@@ -35,7 +35,8 @@ public interface ContractAgreementApi {
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractAgreementDto.class)))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed")
-            })
+            }
+    )
     List<ContractAgreementDto> getAllAgreements(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets an contract agreement with the given ID",
@@ -43,7 +44,8 @@ public interface ContractAgreementApi {
                     @ApiResponse(responseCode = "200", description = "The contract agreement", content = @Content(schema = @Schema(implementation = ContractAgreementDto.class))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null"),
                     @ApiResponse(responseCode = "404", description = "An contract agreement with the given ID does not exist")
-            })
+            }
+    )
     ContractAgreementDto getContractAgreement(String id);
 
 }
