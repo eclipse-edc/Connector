@@ -18,6 +18,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.dataspaceconnector.api.exception.mappers.EdcApiExceptionMapper;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -28,9 +29,14 @@ public class DummyApiExtension implements ServiceExtension {
     @Inject
     WebService webService;
 
+    @Inject//(required = false)
+    private AuthenticationService service;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         webService.registerResource("data", new DummyApiController());
+        webService.registerResource("data", new AuthenticationRequestFilter(service));
+        webService.registerResource("data", new EdcApiExceptionMapper());
     }
 
     @Consumes({ MediaType.APPLICATION_JSON })
