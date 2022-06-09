@@ -30,7 +30,7 @@ dependencies {
     testImplementation(project(":extensions:data-plane-selector:selector-api"))
     testImplementation(project(":extensions:api:api-core"))
 
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
 }
 
 publishing {

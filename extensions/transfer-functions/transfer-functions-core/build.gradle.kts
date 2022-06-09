@@ -26,7 +26,7 @@ dependencies {
     testImplementation(project(":core:transfer"))
     testImplementation(project(":core:defaults"))
 
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
 
 }
 

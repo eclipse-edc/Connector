@@ -29,7 +29,7 @@ dependencies {
     api(project(":spi"))
 
     testFixturesApi("software.amazon.awssdk:s3:${awsVersion}")
-    testFixturesApi(project(":junit"))
+    testFixturesApi(project(":extensions:junit"))
 
     testFixturesImplementation(project(":extensions:aws:s3:s3-core"))
 

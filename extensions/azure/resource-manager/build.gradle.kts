@@ -28,7 +28,7 @@ dependencies {
 
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))
 
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
 }
 
 publishing {

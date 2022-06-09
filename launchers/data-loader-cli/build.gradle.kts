@@ -37,7 +37,7 @@ dependencies {
     // lightweight lib for CLI args
     implementation("info.picocli:picocli:4.6.2")
 
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
 
 }
 

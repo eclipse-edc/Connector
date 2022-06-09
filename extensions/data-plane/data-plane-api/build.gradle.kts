@@ -38,7 +38,7 @@ dependencies {
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
     testImplementation("com.github.javafaker:javafaker:${faker}")
 
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
 }
 
 publishing {

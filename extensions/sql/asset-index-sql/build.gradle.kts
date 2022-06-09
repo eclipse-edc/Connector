@@ -27,7 +27,7 @@ dependencies {
     implementation(project(":extensions:transaction:transaction-datasource-spi"))
     implementation(project(":extensions:sql:common-sql"))
 
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
 
     testImplementation(project(":core:base"))
     testImplementation("com.h2database:h2:${h2Version}")

@@ -31,7 +31,7 @@ dependencies {
     testImplementation(project(":extensions:iam:oauth2:oauth2-core"))
 
 
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))
 }
 

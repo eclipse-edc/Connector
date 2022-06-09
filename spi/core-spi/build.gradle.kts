@@ -31,7 +31,7 @@ dependencies {
     implementation("io.opentelemetry:opentelemetry-api:${openTelemetryVersion}")
 
     implementation(project(":common:util"))
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
 }
 
 publishing {

@@ -37,7 +37,7 @@ dependencies {
         exclude(group = "io.gatling", module = "gatling-graphite")
     }
 
-    testFixturesApi(project(":junit"))
+    testFixturesApi(project(":extensions:junit"))
     testFixturesApi(project(":common:util"))
     testFixturesApi(testFixtures(project(":common:util")))
 

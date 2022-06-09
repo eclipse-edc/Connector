@@ -39,7 +39,7 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))
     testImplementation(testFixtures(project(":extensions:azure:blobstorage:blob-core")))
 
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
     testImplementation("org.awaitility:awaitility:${awaitility}")
     testImplementation("org.bouncycastle:bcprov-jdk15on:${bouncycastleVersion}")
 }

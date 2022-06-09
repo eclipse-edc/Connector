@@ -30,7 +30,7 @@ dependencies {
     testImplementation(project(":extensions:data-plane:data-plane-framework"))
     testImplementation(testFixtures(project(":extensions:aws:aws-test")))
 
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
 
 }
 

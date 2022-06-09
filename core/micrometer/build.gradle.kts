@@ -27,7 +27,7 @@ dependencies {
 
     testImplementation(project(":extensions:api:observability"))
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))
 
 

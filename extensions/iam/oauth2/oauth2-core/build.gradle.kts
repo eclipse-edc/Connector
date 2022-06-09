@@ -27,7 +27,7 @@ dependencies {
     implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
 
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
 
 }
 

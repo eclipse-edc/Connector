@@ -28,7 +28,7 @@ dependencies {
 
     implementation("org.apache.commons:commons-pool2:${apacheCommonsPool2Version}")
 
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
     testImplementation(project(":core:base"))
     testImplementation(project(":extensions:transaction:transaction-local"))
 

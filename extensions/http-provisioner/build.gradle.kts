@@ -39,7 +39,7 @@ dependencies {
     testImplementation(project(":core:defaults"))
 
 
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
     testRuntimeOnly("org.glassfish.jersey.ext:jersey-bean-validation:${jerseyVersion}") //for validation
 }

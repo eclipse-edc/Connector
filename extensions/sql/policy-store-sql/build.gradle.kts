@@ -30,7 +30,7 @@ dependencies {
 
 
     testImplementation("com.h2database:h2:${h2Version}")
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))
 
 }

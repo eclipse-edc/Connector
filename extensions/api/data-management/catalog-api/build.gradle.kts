@@ -31,7 +31,7 @@ dependencies {
     testImplementation(project(":extensions:http"))
     testImplementation(project(":extensions:iam:iam-mock"))
 
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
 }
 

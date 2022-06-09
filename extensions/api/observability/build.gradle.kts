@@ -29,7 +29,7 @@ dependencies {
     testImplementation(project(":data-protocols:ids"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
 }
 
 publishing {

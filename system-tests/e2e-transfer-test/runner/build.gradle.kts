@@ -27,7 +27,7 @@ dependencies {
 
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))
     testImplementation(testFixtures(project(":extensions:azure:cosmos:cosmos-common")))
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
 
     testImplementation("org.postgresql:postgresql:42.2.6")
     testImplementation("io.rest-assured:rest-assured:${restAssured}")

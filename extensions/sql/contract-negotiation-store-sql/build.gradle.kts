@@ -30,7 +30,7 @@ dependencies {
     implementation(project(":extensions:sql:lease-sql"))
 
 
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
     testImplementation(project(":core:base"))
     testImplementation(project(":core:contract"))
     testImplementation(testFixtures(project(":extensions:sql:lease-sql")))

@@ -40,7 +40,7 @@ dependencies {
 
     testImplementation(project(":extensions:azure:blobstorage:blob-core"))
     testFixturesImplementation(project(":extensions:azure:blobstorage:blob-core"))
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":system-tests:tests")))
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))
     testFixturesImplementation(testFixtures(project(":system-tests:tests")))

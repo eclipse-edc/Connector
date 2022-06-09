@@ -32,7 +32,7 @@ dependencies {
     implementation(project(":extensions:sql:lease-sql"))
 
 
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":extensions:sql:lease-sql")))
     testImplementation(project(":core:base"))
     testImplementation("com.h2database:h2:${h2Version}")

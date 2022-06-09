@@ -38,7 +38,7 @@ dependencies {
 
     testImplementation(project(":extensions:transaction:transaction-local"))
 
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
 }
 

@@ -39,7 +39,7 @@ dependencies {
     testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     testImplementation(project(":extensions:http"))
 
-    testImplementation(project(":junit"))
+    testImplementation(project(":extensions:junit"))
 
 }
 

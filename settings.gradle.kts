@@ -19,7 +19,7 @@ rootProject.name = "dataspaceconnector"
 // modules for common/util code
 
 include(":common:util")
-include(":junit")
+include(":extensions:junit")
 include(":common:state-machine-lib")
 include(":common:token-generation-lib")
 include(":common:token-validation-lib")
