@@ -1,0 +1,21 @@
+name: 'Commit Message Check'
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  check-commit-message:
+    name: Check Commit Message
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    steps:
+      - name: Check Format of Commit Message
+        uses: gsactions/commit-message-checker@v1
+        with:
+          pattern: '^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\(\w+((,|\/|\\)?\s?\w+)+\))?!?: [\S ]{1,80}[^\.]$'
+          error: 'Please stick to conventional commit syntax (https://www.conventionalcommits.org/en/v1.0.0/) with max line length of 80 chars.'
+          excludeDescription: 'true' # excludes the description body of a pull request
+          excludeTitle: 'true' # excludes the title of a pull request
+          checkAllCommitMessages: 'false' # checks all commits associated with a pull request
+          accessToken: ${{ secrets.GITHUB_TOKEN }} # only required if checkAllCommitMessages is true

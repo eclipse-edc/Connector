@@ -101,10 +101,13 @@ we would appreciate if your pull request applies to the following points:
       {name} - {description}
     ```
 
-* The git commit messages should comply to the following format:
+* We encourage all contributors to stick to the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) 
+  specification. Use the [imperative mood](https://github.com/git/git/blob/master/Documentation/SubmittingPatches)
+  as in "fix bug" or "add feature" rather than "fixed bug" or "added feature". A quick overview of the schema:
     ```
     <prefix>(<scope>): <description>
     ```
+  Types: `fix`, `feat`, `chore`, `test`, `refactor`, `docs`, `release`. Append `!` for breaking changes to a type.
 
   Use the [imperative mood](https://github.com/git/git/blob/master/Documentation/SubmittingPatches)
   as in "Fix bug" or "Add feature" rather than "Fixed bug" or "Added feature" and
