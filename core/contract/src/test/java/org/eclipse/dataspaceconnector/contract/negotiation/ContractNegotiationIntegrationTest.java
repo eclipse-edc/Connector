@@ -32,7 +32,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ComponentTest
 class ContractNegotiationIntegrationTest extends AbstractContractNegotiationIntegrationTest {
 
     @Test

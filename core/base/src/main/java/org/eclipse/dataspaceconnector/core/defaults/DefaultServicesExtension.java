@@ -31,7 +31,6 @@ import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 
-import java.time.Clock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -85,11 +84,6 @@ public class DefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public PolicyDefinitionStore defaultPolicyStore() {
         return new InMemoryPolicyDefinitionStore(new LockManager(new ReentrantReadWriteLock(true)));
-    }
-
-    @Provider(isDefault = true)
-    public Clock defaultClock() {
-        return Clock.systemUTC();
     }
 
     private ContractDefinitionStore getContractDefinitionStore() {
