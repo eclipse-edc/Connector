@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 ZF Friedrichshafen AG
+ * Copyright (c) 2020 - 2022 ZF Friedrichshafen AG
  *
  * This program and the accompanying materials are made available under the
  * terms of the Apache License, Version 2.0 which is available at
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(EdcExtension.class)
 public class BasicAuthenticationServiceIntegrationTest {
 
-    private static final int port = getFreePort();
+    private static final int PORT = getFreePort();
     private final Vault vault = mock(Vault.class);
     private final DummyApiExtension dummyApiExtension = new DummyApiExtension();
 
@@ -41,7 +41,7 @@ public class BasicAuthenticationServiceIntegrationTest {
         extension.registerServiceMock(Vault.class, vault);
         extension.registerSystemExtension(ServiceExtension.class, dummyApiExtension);
         extension.setConfiguration(Map.of(
-                "web.http.data.port", String.valueOf(port),
+                "web.http.data.port", String.valueOf(PORT),
                 "web.http.data.path", "/api/v1/data",
                 "edc.api.auth.basic.vault-keys.hello", "api-basic-auth-hello"
         ));
@@ -79,7 +79,7 @@ public class BasicAuthenticationServiceIntegrationTest {
 
     private RequestSpecification baseRequest() {
         return given()
-                .baseUri("http://localhost:" + port)
+                .baseUri("http://localhost:" + PORT)
                 .basePath("/api/v1/data")
                 .when();
     }
