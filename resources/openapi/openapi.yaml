@@ -9,11 +9,165 @@ info:
 servers:
 - url: /
 paths:
-  /assets:
+  /identity-hub/collections:
+    post:
+      tags:
+      - Identity Hub
+      operationId: write
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: string
+  /identity-hub/collections-commit:
+    post:
+      tags:
+      - Identity Hub
+      operationId: writeCommit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /identity-hub/query-commits:
+    post:
+      tags:
+      - Identity Hub
+      operationId: queryCommits
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: string
+  /identity-hub/query-objects:
+    post:
+      tags:
+      - Identity Hub
+      operationId: queryObjects
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: string
+  /callback/{processId}/deprovision:
+    post:
+      tags:
+      - HTTP Provisioner Webhook
+      operationId: callDeprovisionWebhook
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeprovisionedResource'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /callback/{processId}/provision:
+    post:
+      tags:
+      - HTTP Provisioner Webhook
+      operationId: callProvisionWebhook
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProvisionerWebhookRequest'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /check/health:
     get:
       tags:
-      - Asset
-      operationId: getAllAssets
+      - Application Observability
+      operationId: checkHealth
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /check/liveness:
+    get:
+      tags:
+      - Application Observability
+      operationId: getLiveness
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /check/readiness:
+    get:
+      tags:
+      - Application Observability
+      operationId: getReadiness
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /check/startup:
+    get:
+      tags:
+      - Application Observability
+      operationId: getStartup
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /contractdefinitions:
+    get:
+      tags:
+      - Contract Definition
+      operationId: getAllContractDefinitions
       parameters:
       - name: offset
         in: query
@@ -63,26 +217,26 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AssetDto'
+                  $ref: '#/components/schemas/ContractDefinitionDto'
     post:
       tags:
-      - Asset
-      operationId: createAsset
+      - Contract Definition
+      operationId: createContractDefinition
       requestBody:
         content:
-          application/json:
+          '*/*':
             schema:
-              $ref: '#/components/schemas/AssetEntryDto'
+              $ref: '#/components/schemas/ContractDefinitionDto'
       responses:
         default:
           description: default response
           content:
             application/json: {}
-  /assets/{id}:
+  /contractdefinitions/{id}:
     get:
       tags:
-      - Asset
-      operationId: getAsset
+      - Contract Definition
+      operationId: getContractDefinition
       parameters:
       - name: id
         in: path
@@ -97,11 +251,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AssetDto'
+                $ref: '#/components/schemas/ContractDefinitionDto'
     delete:
       tags:
-      - Asset
-      operationId: removeAsset
+      - Contract Definition
+      operationId: deleteContractDefinition
       parameters:
       - name: id
         in: path
@@ -110,66 +264,6 @@ paths:
         explode: false
         schema:
           type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /catalog:
-    get:
-      tags:
-      - Catalog
-      operationId: getCatalog
-      parameters:
-      - name: providerUrl
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: Gets contract offers (=catalog) of a single connector
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Catalog'
-  /check/health:
-    get:
-      tags:
-      - Application Observability
-      operationId: checkHealth
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /check/liveness:
-    get:
-      tags:
-      - Application Observability
-      operationId: getLiveness
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /check/readiness:
-    get:
-      tags:
-      - Application Observability
-      operationId: getReadiness
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /check/startup:
-    get:
-      tags:
-      - Application Observability
-      operationId: getStartup
       responses:
         default:
           description: default response
@@ -220,6 +314,101 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DataPlaneInstance'
+  /catalog:
+    get:
+      tags:
+      - Catalog
+      operationId: getCatalog
+      parameters:
+      - name: providerUrl
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: Gets contract offers (=catalog) of a single connector
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalog'
+  /contractagreements:
+    get:
+      tags:
+      - Contract Agreement
+      operationId: getAllAgreements
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: limit
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: filter
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - name: sortField
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContractAgreementDto'
+  /contractagreements/{id}:
+    get:
+      tags:
+      - Contract Agreement
+      operationId: getContractAgreement
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractAgreementDto'
   /contractnegotiations:
     get:
       tags:
@@ -387,226 +576,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NegotiationState'
-  /callback/{processId}/deprovision:
-    post:
-      tags:
-      - HTTP Provisioner Webhook
-      operationId: callDeprovisionWebhook
-      parameters:
-      - name: processId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DeprovisionedResource'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /callback/{processId}/provision:
-    post:
-      tags:
-      - HTTP Provisioner Webhook
-      operationId: callProvisionWebhook
-      parameters:
-      - name: processId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ProvisionerWebhookRequest'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /contractdefinitions:
-    get:
-      tags:
-      - Contract Definition
-      operationId: getAllContractDefinitions
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ContractDefinitionDto'
-    post:
-      tags:
-      - Contract Definition
-      operationId: createContractDefinition
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/ContractDefinitionDto'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /contractdefinitions/{id}:
-    get:
-      tags:
-      - Contract Definition
-      operationId: getContractDefinition
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContractDefinitionDto'
-    delete:
-      tags:
-      - Contract Definition
-      operationId: deleteContractDefinition
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /identity-hub/collections:
-    post:
-      tags:
-      - Identity Hub
-      operationId: write
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: string
-  /identity-hub/collections-commit:
-    post:
-      tags:
-      - Identity Hub
-      operationId: writeCommit
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              additionalProperties:
-                type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /identity-hub/query-commits:
-    post:
-      tags:
-      - Identity Hub
-      operationId: queryCommits
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: string
-  /identity-hub/query-objects:
-    post:
-      tags:
-      - Identity Hub
-      operationId: queryObjects
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: string
   /federatedcatalog:
     post:
       operationId: getCachedCatalog
@@ -730,81 +699,6 @@ paths:
           description: default response
           content:
             application/json: {}
-  /contractagreements:
-    get:
-      tags:
-      - Contract Agreement
-      operationId: getAllAgreements
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ContractAgreementDto'
-  /contractagreements/{id}:
-    get:
-      tags:
-      - Contract Agreement
-      operationId: getContractAgreement
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContractAgreementDto'
   /transferprocess:
     get:
       tags:
@@ -952,6 +846,127 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TransferState'
+  /assets:
+    get:
+      tags:
+      - Asset
+      summary: Returns all assets based on a specific query.
+      operationId: getAllAssets
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: limit
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: filter
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - name: sortField
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AssetDto'
+        "400":
+          description: "The request body was not formatted properly, e.g. required\
+            \ fields were not found"
+    post:
+      tags:
+      - Asset
+      summary: Creates a new asset together with a data address
+      operationId: createAsset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetEntryDto'
+      responses:
+        "400":
+          description: "The request body was not formatted properly, e.g. required\
+            \ fields were not found"
+        "409":
+          description: "An asset with that ID cannot be created, because it already\
+            \ exists"
+  /assets/{id}:
+    get:
+      tags:
+      - Asset
+      summary: Get asset with the specified ID
+      operationId: getAsset
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: finds an asset by ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetDto'
+        "400":
+          description: The request was improperly formatted
+        "404":
+          description: Asset was not found
+    delete:
+      tags:
+      - Asset
+      summary: Creates a new asset together with a data address
+      operationId: removeAsset
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Object was deleted successfully
+        "400":
+          description: The request was improperly formatted
+        "409":
+          description: The asset could not be deleted because it is already used in
+            a contract agreement
 components:
   schemas:
     Action:
@@ -1317,14 +1332,13 @@ components:
           type: string
     ProvisionerWebhookRequest:
       required:
-      - apiKeyJwt
       - assetId
       - contentDataAddress
       - resourceDefinitionId
       - resourceName
       type: object
       properties:
-        apiKeyJwt:
+        apiToken:
           type: string
         assetId:
           type: string

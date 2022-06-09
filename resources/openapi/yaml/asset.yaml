@@ -30,14 +30,17 @@ paths:
         schema:
           type: string
       responses:
-        default:
+        "200":
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/AssetDto'
-          description: default response
+        "400":
+          description: "The request body was not formatted properly, e.g. required\
+            \ fields were not found"
+      summary: Returns all assets based on a specific query.
       tags:
       - Asset
     post:
@@ -48,10 +51,13 @@ paths:
             schema:
               $ref: '#/components/schemas/AssetEntryDto'
       responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
+        "400":
+          description: "The request body was not formatted properly, e.g. required\
+            \ fields were not found"
+        "409":
+          description: "An asset with that ID cannot be created, because it already\
+            \ exists"
+      summary: Creates a new asset together with a data address
       tags:
       - Asset
   /assets/{id}:
@@ -64,10 +70,14 @@ paths:
         schema:
           type: string
       responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
+        "200":
+          description: Object was deleted successfully
+        "400":
+          description: The request was improperly formatted
+        "409":
+          description: The asset could not be deleted because it is already used in
+            a contract agreement
+      summary: Deletes an asset with the given ID
       tags:
       - Asset
     get:
@@ -79,12 +89,17 @@ paths:
         schema:
           type: string
       responses:
-        default:
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetDto'
-          description: default response
+          description: finds an asset by ID
+        "400":
+          description: The request was improperly formatted
+        "404":
+          description: Asset was not found
+      summary: Get asset with the specified ID
       tags:
       - Asset
 components:
