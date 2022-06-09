@@ -28,14 +28,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.time.Clock;
-import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.time.ZoneOffset.UTC;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -55,7 +52,6 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
     }
 
     protected IdentityService identityService;
-    protected Instant now = Instant.now();
 
     @AfterEach
     void after() {
@@ -86,7 +82,6 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
 
         extension.registerSystemExtension(ServiceExtension.class,
                 new IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(ASSETS, identityService));
-        extension.registerServiceMock(Clock.class, Clock.fixed(now, UTC));
     }
 
     protected void addAsset(Asset asset) {
