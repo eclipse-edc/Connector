@@ -28,8 +28,6 @@ import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.SqlContractN
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.time.Clock;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
@@ -43,7 +41,6 @@ class SqlContractNegotiationStoreExtensionTest {
     void initialize(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(DataSourceRegistry.class, mock(DataSourceRegistry.class));
         context.registerService(TransactionContext.class, mock(TransactionContext.class));
-        context.registerService(Clock.class, Clock.systemUTC());
 
         extension = factory.constructInstance(SqlContractNegotiationStoreExtension.class);
 
@@ -58,7 +55,6 @@ class SqlContractNegotiationStoreExtensionTest {
     void initialize_withCustomSqlDialect(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(DataSourceRegistry.class, mock(DataSourceRegistry.class));
         context.registerService(TransactionContext.class, mock(TransactionContext.class));
-        context.registerService(Clock.class, Clock.systemUTC());
         var customSqlDialect = mock(ContractNegotiationStatements.class);
         context.registerService(ContractNegotiationStatements.class, customSqlDialect);
 
