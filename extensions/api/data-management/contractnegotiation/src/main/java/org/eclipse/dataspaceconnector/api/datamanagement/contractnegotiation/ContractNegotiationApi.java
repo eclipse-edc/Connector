@@ -88,7 +88,8 @@ public interface ContractNegotiationApi {
     @Operation(description = "Requests aborting the contract negotiation. Due to the asynchronous nature of contract negotiations, a successful " +
             "response only indicates that the request was successfully received. Clients must poll the /{id}/state endpoint to track the state.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Request to cancel the Contract negotiation was successfully received"),
+                    @ApiResponse(responseCode = "200", description = "Request to cancel the Contract negotiation was successfully received",
+                            links = @Link(name = "poll-state", operationId = "getNegotiationState")),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null"),
                     @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist")
             })
@@ -97,9 +98,11 @@ public interface ContractNegotiationApi {
     @Operation(description = "Requests cancelling the contract negotiation. Due to the asynchronous nature of contract negotiations, a successful " +
             "response only indicates that the request was successfully received. Clients must poll the /{id}/state endpoint to track the state.",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Request to decline the Contract negotiation was successfully received"),
+                    @ApiResponse(responseCode = "200", description = "Request to decline the Contract negotiation was successfully received",
+                            links = @Link(name = "poll-state", operationId = "getNegotiationState")),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null"),
                     @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist")
-            })
+            }
+    )
     void declineNegotiation(String id);
 }

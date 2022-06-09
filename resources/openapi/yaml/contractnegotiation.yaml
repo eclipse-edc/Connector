@@ -62,7 +62,7 @@ paths:
           description: The negotiation was successfully initiated. Returns the contract
             negotiation ID
           links:
-            poll:
+            poll-state:
               operationId: getNegotiationState
               parameters:
                 id: $response.body#/id
@@ -120,6 +120,10 @@ paths:
       - Contract Negotiation
   /contractnegotiations/{id}/cancel:
     post:
+      description: "Requests aborting the contract negotiation. Due to the asynchronous\
+        \ nature of contract negotiations, a successful response only indicates that\
+        \ the request was successfully received. Clients must poll the /{id}/state\
+        \ endpoint to track the state."
       operationId: cancelNegotiation
       parameters:
       - in: path
@@ -128,14 +132,24 @@ paths:
         schema:
           type: string
       responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
+        "200":
+          description: Request to cancel the Contract negotiation was successfully
+            received
+          links:
+            poll-state:
+              operationId: getNegotiationState
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: A contract negotiation with the given ID does not exist
       tags:
       - Contract Negotiation
   /contractnegotiations/{id}/decline:
     post:
+      description: "Requests cancelling the contract negotiation. Due to the asynchronous\
+        \ nature of contract negotiations, a successful response only indicates that\
+        \ the request was successfully received. Clients must poll the /{id}/state\
+        \ endpoint to track the state."
       operationId: declineNegotiation
       parameters:
       - in: path
@@ -144,10 +158,16 @@ paths:
         schema:
           type: string
       responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
+        "200":
+          description: Request to decline the Contract negotiation was successfully
+            received
+          links:
+            poll-state:
+              operationId: getNegotiationState
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: A contract negotiation with the given ID does not exist
       tags:
       - Contract Negotiation
   /contractnegotiations/{id}/state:
