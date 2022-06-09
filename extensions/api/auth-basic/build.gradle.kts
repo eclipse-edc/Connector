@@ -28,7 +28,6 @@ dependencies {
     implementation("org.junit.jupiter:junit-jupiter:5.8.1")
     testImplementation("org.assertj:assertj-core:3.21.0")
     testImplementation("org.mockito:mockito-inline:3.6.28")
-    testImplementation(project(":extensions:api:data-management:asset"))
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(testFixtures(project(":common:util")))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
