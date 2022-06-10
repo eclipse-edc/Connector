@@ -125,7 +125,7 @@ resource "azurerm_key_vault_secret" "consumer_storage_key" {
 ## they are created by the tests
 resource "azurerm_cosmosdb_account" "cosmosdb_integrationtest" {
     name                     = "${var.prefix}-cosmosdb"
-  location            = "westeurope"
+  location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
   offer_type          = "Standard"
 
