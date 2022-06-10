@@ -63,6 +63,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Verify OpenAPI definitions (#1312)
 * Documentation for CosmosDB (#1334)
 * Add validation to contract definition id (#1347)
+* Add Integration test for auth-basic extension (#1442)
 
 #### Changed
 
