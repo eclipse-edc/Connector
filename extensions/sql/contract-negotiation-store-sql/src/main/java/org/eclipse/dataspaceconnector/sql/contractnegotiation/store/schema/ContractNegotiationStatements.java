@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *  Copyright (c) 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,18 +12,18 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.contractnegotiation.store;
+package org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema;
 
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.sql.lease.LeaseStatements;
+import org.eclipse.dataspaceconnector.sql.translation.SqlQueryStatement;
 
 /**
- * Provides names for database columns, table names and statement templates. Methods to compose statements must be
- * overridden by implementors.
+ * Provides database-related constants, such as column names, table names and statement templates. Methods to compose
+ * statements must be overridden by implementors.
  */
 public interface ContractNegotiationStatements extends LeaseStatements {
     String getFindTemplate();
-
-    String getFindByCorrelationIdTemplate();
 
     String getFindContractAgreementTemplate();
 
@@ -37,17 +37,13 @@ public interface ContractNegotiationStatements extends LeaseStatements {
 
     String getNextForStateTemplate();
 
-    String getQueryNegotiationsTemplate();
-
-    String getQueryAgreementsTemplate();
+    String getSelectFromAgreementsTemplate();
 
     String getInsertAgreementTemplate();
 
-    String getSelectByPolicyIdTemplate();
-
     String getUpdateAgreementTemplate();
 
-    String getNegotiationWitghAgreementOnAssetTemplate();
+    String getSelectFromViewTemplate();
 
     @Override
     default String getLeasedByColumn() {
@@ -69,10 +65,6 @@ public interface ContractNegotiationStatements extends LeaseStatements {
         return "lease_id";
     }
 
-
-    default String getPolicyColumnSeralized() {
-        return "serialized_policy";
-    }
 
     default String getContractNegotiationTable() {
         return "edc_contract_negotiation";
@@ -130,12 +122,12 @@ public interface ContractNegotiationStatements extends LeaseStatements {
         return "asset_id";
     }
 
-    default String getPolicyIdColumn() {
-        return "policy_id";
+    default String getPolicyColumn() {
+        return "policy";
     }
 
     default String getContractAgreementIdFkColumn() {
-        return "contract_agreement_id";
+        return "agreement_id";
     }
 
     default String getStateColumn() {
@@ -165,4 +157,12 @@ public interface ContractNegotiationStatements extends LeaseStatements {
     default String getTypeColumn() {
         return "type";
     }
+
+    default String getViewName() {
+        return "edc_contract_negotiation_view";
+    }
+
+    SqlQueryStatement createNegotiationsQuery(QuerySpec querySpec);
+
+    SqlQueryStatement createAgreementsQuery(QuerySpec querySpec);
 }

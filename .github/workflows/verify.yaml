@@ -288,7 +288,7 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      minio:
+      postgres:
         image: postgres:14.2
         ports:
           - 5432:5432
@@ -302,7 +302,7 @@ jobs:
       - name: Postgresql Tests
         uses: ./.github/actions/run-tests
         with:
-          command: ./gradlew -p system-tests test -DincludeTags="PostgresqlIntegrationTest"
+          command: ./gradlew test -DincludeTags="PostgresqlIntegrationTest"
 
   End-To-End-Tests:
     runs-on: ubuntu-latest

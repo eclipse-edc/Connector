@@ -94,12 +94,4 @@ public interface ContractNegotiationStore extends StateEntityStore<ContractNegot
      */
     @NotNull
     Stream<ContractAgreement> queryAgreements(QuerySpec querySpec);
-
-    /**
-     * Finds all negotiations, that have agreements targeting the given asset
-     *
-     * @param assetId The asset for which the negotiations + agreements are wanted.
-     * @return A stream of contract negotiations, or empty
-     */
-    Stream<ContractNegotiation> getNegotiationsWithAgreementOnAsset(String assetId);
 }

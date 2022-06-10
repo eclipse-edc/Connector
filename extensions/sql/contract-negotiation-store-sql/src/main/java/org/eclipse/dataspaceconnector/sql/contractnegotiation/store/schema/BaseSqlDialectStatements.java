@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *  Copyright (c) 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,24 +12,22 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.contractnegotiation.store;
+package org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema;
+
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.sql.translation.SqlQueryStatement;
 
 import static java.lang.String.format;
 
 /**
- * Provides statements required by the ContractNegotiationStore in Postgres dialect
+ * Provides statements required by the ContractNegotiationStore in generic SQL, that is not specific to a particular
+ * database. This class is abstract, because there are some statements that cannot be expressed in a generic way.
  */
-public final class PostgresStatements implements ContractNegotiationStatements {
+public class BaseSqlDialectStatements implements ContractNegotiationStatements {
     @Override
     public String getFindTemplate() {
         return format("SELECT * FROM %s LEFT OUTER JOIN %s ON %s.%s = %s.%s WHERE %s.%s = ?;", getContractNegotiationTable(), getContractAgreementTable(),
                 getContractNegotiationTable(), getContractAgreementIdFkColumn(), getContractAgreementTable(), getContractAgreementIdColumn(), getContractNegotiationTable(), getIdColumn());
-    }
-
-    @Override
-    public String getFindByCorrelationIdTemplate() {
-        return format("SELECT * FROM %s LEFT OUTER JOIN %s ON %s.%s = %s WHERE %s.%s = ?;", getContractNegotiationTable(), getContractAgreementTable(), getContractNegotiationTable(), getContractAgreementIdFkColumn(),
-                getContractAgreementIdColumn(), getContractNegotiationTable(), getCorrelationIdColumn());
     }
 
     @Override
@@ -49,19 +47,19 @@ public final class PostgresStatements implements ContractNegotiationStatements {
                         "    %s=?,\n" +
                         "    %s=?,\n" +
                         "    %s=?,\n" +
-                        "    %s=?,\n" +
-                        "    %s=?,\n" +
+                        "    %s=?%s,\n" +
+                        "    %s=?%s,\n" +
                         "    %s=?\n" +
                         "WHERE id = ?;", getContractNegotiationTable(), getStateColumn(), getStateCountColumn(), getStateTimestampColumn(),
-                getErrorDetailColumn(), getContractOffersColumn(), getTraceContextColumn(), getContractAgreementIdFkColumn());
+                getErrorDetailColumn(), getContractOffersColumn(), getFormatJsonOperator(), getTraceContextColumn(), getFormatJsonOperator(), getContractAgreementIdFkColumn());
     }
 
     @Override
     public String getInsertNegotiationTemplate() {
         return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)\n" +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?); ",
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? %s, ?%s); ",
                 getContractNegotiationTable(), getIdColumn(), getCorrelationIdColumn(), getCounterPartyIdColumn(), getCounterPartyAddressColumn(), getTypeColumn(), getProtocolColumn(), getStateColumn(), getStateCountColumn(),
-                getStateTimestampColumn(), getErrorDetailColumn(), getContractAgreementIdFkColumn(), getContractOffersColumn(), getTraceContextColumn()
+                getStateTimestampColumn(), getErrorDetailColumn(), getContractAgreementIdFkColumn(), getContractOffersColumn(), getTraceContextColumn(), getFormatJsonOperator(), getFormatJsonOperator()
         );
     }
 
@@ -79,48 +77,48 @@ public final class PostgresStatements implements ContractNegotiationStatements {
     }
 
     @Override
-    public String getQueryNegotiationsTemplate() {
+    public String getSelectFromAgreementsTemplate() {
         // todo: add WHERE ... AND ... ORDER BY... statements here
-        return format("SELECT * FROM %s LEFT OUTER JOIN %s ON %s.%s = %s.%s LIMIT ? OFFSET ?;", getContractNegotiationTable(), getContractAgreementTable(),
-                getContractNegotiationTable(), getContractAgreementIdFkColumn(), getContractAgreementTable(), getContractAgreementIdColumn());
-    }
-
-    @Override
-    public String getQueryAgreementsTemplate() {
-        // todo: add WHERE ... AND ... ORDER BY... statements here
-        return format("SELECT * FROM %s LIMIT ? OFFSET ?;", getContractAgreementTable());
+        return format("SELECT * FROM %s", getContractAgreementTable());
     }
 
     @Override
     public String getInsertAgreementTemplate() {
-        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
+        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?%s);",
                 getContractAgreementTable(), getContractAgreementIdColumn(), getProviderAgentColumn(), getConsumerAgentColumn(),
-                getSigningDateColumn(), getStartDateColumn(), getEndDateColumn(), getAssetIdColumn(), getPolicyIdColumn());
-    }
-
-    @Override
-    public String getSelectByPolicyIdTemplate() {
-        return format("SELECT DISTINCT %s FROM %s WHERE %s = ?", getPolicyColumnSeralized(), getContractAgreementTable(), getPolicyIdColumn());
+                getSigningDateColumn(), getStartDateColumn(), getEndDateColumn(), getAssetIdColumn(), getPolicyColumn(), getFormatJsonOperator());
     }
 
     @Override
     public String getUpdateAgreementTemplate() {
         return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=? WHERE %s =?",
                 getContractAgreementTable(), getProviderAgentColumn(), getConsumerAgentColumn(), getSigningDateColumn(),
-                getStartDateColumn(), getEndDateColumn(), getAssetIdColumn(), getPolicyIdColumn(), getContractAgreementIdColumn());
+                getStartDateColumn(), getEndDateColumn(), getAssetIdColumn(), getPolicyColumn(), getContractAgreementIdColumn());
     }
 
     @Override
-    public String getNegotiationWitghAgreementOnAssetTemplate() {
-        return format("SELECT * FROM %s\n" +
-                        "INNER JOIN %s eca on %s.%s = eca.%s\n" +
-                        "WHERE %s.%s in (SELECT %s\n" +
-                        "FROM %s\n" +
-                        "WHERE %s = ?);\n",
-                getContractNegotiationTable(), getContractAgreementTable(), getContractNegotiationTable(), getContractAgreementIdFkColumn(),
-                getContractAgreementIdColumn(),
-                getContractNegotiationTable(), getContractAgreementIdFkColumn(), getContractAgreementIdColumn(), getContractAgreementTable(),
-                getAssetIdColumn());
+    public String getSelectFromViewTemplate() {
+        return format("SELECT * FROM %s", getViewName());
+    }
+
+    @Override
+    public SqlQueryStatement createNegotiationsQuery(QuerySpec querySpec) {
+        // for generic SQL, only the limit and offset fields are used!
+        var sql = "SELECT * FROM " + getViewName();
+        var stmt = new SqlQueryStatement(sql);
+        stmt.addParameter(querySpec.getLimit());
+        stmt.addParameter(querySpec.getOffset());
+        return stmt;
+    }
+
+    @Override
+    public SqlQueryStatement createAgreementsQuery(QuerySpec querySpec) {
+        // for generic SQL, only the limit and offset fields are used!
+        var sql = "SELECT * FROM " + getContractAgreementTable();
+        var stmt = new SqlQueryStatement(sql);
+        stmt.addParameter(querySpec.getLimit());
+        stmt.addParameter(querySpec.getOffset());
+        return stmt;
     }
 
     @Override
@@ -143,6 +141,13 @@ public final class PostgresStatements implements ContractNegotiationStatements {
     public String getFindLeaseByEntityTemplate() {
         return format("SELECT * FROM %s  WHERE %s = (SELECT lease_id FROM %s WHERE %s=? )",
                 getLeaseTableName(), getLeaseIdColumn(), getContractNegotiationTable(), getIdColumn());
+    }
+
+    /**
+     * Overridable operator to convert strings to JSON. For postgres, this is the "::json" operator
+     */
+    protected String getFormatJsonOperator() {
+        return " FORMAT JSON";
     }
 
 }

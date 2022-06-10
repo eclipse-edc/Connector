@@ -129,13 +129,13 @@ class AssetServiceImplTest {
                         .policy(Policy.Builder.newInstance().build())
                         .build())
                 .build();
-        when(contractNegotiationStore.getNegotiationsWithAgreementOnAsset(any())).thenReturn(Stream.of(contractNegotiation));
+        when(contractNegotiationStore.queryNegotiations(any())).thenReturn(Stream.of(contractNegotiation));
 
         var deleted = service.delete("assetId");
 
         assertThat(deleted.failed()).isTrue();
         assertThat(deleted.getFailure().getReason()).isEqualTo(CONFLICT);
-        verify(contractNegotiationStore).getNegotiationsWithAgreementOnAsset(any());
+        verify(contractNegotiationStore).queryNegotiations(any());
         verifyNoMoreInteractions(contractNegotiationStore);
     }
 
