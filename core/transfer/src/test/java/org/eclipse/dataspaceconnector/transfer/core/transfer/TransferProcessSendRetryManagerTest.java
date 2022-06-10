@@ -26,11 +26,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.Clock;
-import java.time.Instant;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTING;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -46,8 +44,9 @@ class TransferProcessSendRetryManagerTest {
     final WaitStrategy delayStrategy = mock(WaitStrategy.class);
     final int sendRetryLimit = faker.number().numberBetween(5, 10);
 
+    final Clock clock = mock(Clock.class);
     final TransferProcessSendRetryManager sendRetryManager =
-            new TransferProcessSendRetryManager(monitor, () -> delayStrategy, sendRetryLimit);
+            new TransferProcessSendRetryManager(monitor, () -> delayStrategy, clock, sendRetryLimit);
 
     @ParameterizedTest
     @MethodSource("delayArgs")
@@ -68,7 +67,7 @@ class TransferProcessSendRetryManagerTest {
                     return retryDelay;
                 }).thenThrow(new RuntimeException("should call only once"));
 
-        sendRetryManager.clock = Clock.fixed(Instant.ofEpochMilli(currentTime), UTC);
+        when(clock.millis()).thenReturn(currentTime);
 
         assertThat(sendRetryManager.shouldDelay(process))
                 .isEqualTo(shouldDelay);

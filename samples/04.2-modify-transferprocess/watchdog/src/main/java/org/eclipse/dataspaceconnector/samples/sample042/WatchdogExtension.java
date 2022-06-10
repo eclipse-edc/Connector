@@ -35,7 +35,7 @@ public class WatchdogExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        commandHandlerRegistry.register(new CheckTimeoutCommandHandler(store, context.getMonitor()));
+        commandHandlerRegistry.register(new CheckTimeoutCommandHandler(store, context.getClock(), context.getMonitor()));
         wd = new Watchdog(manager, context.getMonitor());
     }
 

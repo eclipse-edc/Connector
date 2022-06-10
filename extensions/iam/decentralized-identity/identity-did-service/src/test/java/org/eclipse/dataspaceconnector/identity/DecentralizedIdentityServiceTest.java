@@ -42,11 +42,14 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+import static java.time.ZoneOffset.UTC;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -57,6 +60,8 @@ import static org.mockito.Mockito.mock;
  */
 
 abstract class DecentralizedIdentityServiceTest {
+    private final Instant now = Instant.now();
+    private final Clock clock = Clock.fixed(now, UTC);
     private DecentralizedIdentityService identityService;
     private PrivateKeyWrapper privateKey;
     private PublicKeyWrapper publicKey;
@@ -84,11 +89,10 @@ abstract class DecentralizedIdentityServiceTest {
     void verifyJwtToken() throws Exception {
         var signer = privateKey.signer();
 
-        var expiration = new Date().getTime() + TimeUnit.MINUTES.toMillis(10);
         var claimsSet = new JWTClaimsSet.Builder()
                 .subject("foo")
                 .issuer("did:ion:123abc")
-                .expirationTime(new Date(expiration))
+                .expirationTime(Date.from(now.plus(Duration.ofMinutes(10))))
                 .build();
 
         var jwt = new SignedJWT(new JWSHeader.Builder(getHeaderAlgorithm()).keyID("primary").build(), claimsSet);
@@ -114,8 +118,8 @@ abstract class DecentralizedIdentityServiceTest {
         DidResolverRegistry didResolver = new TestResolverRegistry(hubUrlDid, keyPair);
 
         CredentialsVerifier verifier = (document, url) -> Result.success(Map.of("region", "eu"));
-        Supplier<SignedJWT> signedJwtSupplier = () -> VerifiableCredentialFactory.create(privateKey, Map.of("region", "us"), "test-issuer");
-        identityService = new DecentralizedIdentityService(signedJwtSupplier, didResolver, verifier, mock(Monitor.class));
+        Supplier<SignedJWT> signedJwtSupplier = () -> VerifiableCredentialFactory.create(privateKey, Map.of("region", "us"), "test-issuer", clock);
+        identityService = new DecentralizedIdentityService(signedJwtSupplier, didResolver, verifier, mock(Monitor.class), Clock.systemUTC());
 
     }
 

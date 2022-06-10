@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.ParseException;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -34,9 +35,11 @@ import static java.time.ZoneOffset.UTC;
 
 public class Oauth2ValidationRule implements TokenValidationRule {
     private final Oauth2Configuration configuration;
+    private final Clock clock;
 
-    public Oauth2ValidationRule(Oauth2Configuration configuration) {
+    public Oauth2ValidationRule(Oauth2Configuration configuration, Clock clock) {
         this.configuration = configuration;
+        this.clock = clock;
     }
 
     /**
@@ -58,8 +61,8 @@ public class Oauth2ValidationRule implements TokenValidationRule {
                 errors.add("Token audience (aud) claim did not contain connector audience: " + audience);
             }
 
-            Instant nowUtc = Instant.now();
-            var leewayNow = nowUtc.plusSeconds(configuration.getNotBeforeValidationLeeway());
+            Instant now = clock.instant();
+            var leewayNow = now.plusSeconds(configuration.getNotBeforeValidationLeeway());
             var notBefore = claimsSet.getNotBeforeTime();
             if (notBefore == null) {
                 errors.add("Required not before (nbf) claim is missing in token");
@@ -71,7 +74,7 @@ public class Oauth2ValidationRule implements TokenValidationRule {
             var expiresSet = expires != null;
             if (!expiresSet) {
                 errors.add("Required expiration time (exp) claim is missing in token");
-            } else if (nowUtc.isAfter(convertToUtcTime(expires))) {
+            } else if (now.isAfter(convertToUtcTime(expires))) {
                 errors.add("Token has expired (exp)");
             }
 
@@ -79,7 +82,7 @@ public class Oauth2ValidationRule implements TokenValidationRule {
             if (issuedAt != null) {
                 if (expiresSet && issuedAt.toInstant().isAfter(expires.toInstant())) {
                     errors.add("Issued at (iat) claim is after expiration time (exp) claim in token");
-                } else if (nowUtc.isBefore(convertToUtcTime(issuedAt))) {
+                } else if (now.isBefore(convertToUtcTime(issuedAt))) {
                     errors.add("Current date/time before issued at (iat) claim in token");
                 }
             }

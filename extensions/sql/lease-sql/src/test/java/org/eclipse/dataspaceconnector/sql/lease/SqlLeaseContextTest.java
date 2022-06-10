@@ -28,9 +28,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Objects;
 
+import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
@@ -41,6 +43,7 @@ class SqlLeaseContextTest {
 
     private static final String DATASOURCE_NAME = "lease-test";
     private static final String LEASE_HOLDER = "test-leaser";
+    private Instant now = Instant.now();
     private SqlLeaseContext leaseContext;
     private Connection connection;
     private TransactionContext transactionContext;
@@ -66,7 +69,7 @@ class SqlLeaseContextTest {
             throw new RuntimeException(e);
         }
         var statements = new TestEntityLeaseStatements();
-        builder = SqlLeaseContextBuilder.with(transactionContext, LEASE_HOLDER, statements);
+        builder = SqlLeaseContextBuilder.with(transactionContext, LEASE_HOLDER, statements, Clock.fixed(now, UTC));
         leaseContext = builder.withConnection(connection);
     }
 
@@ -109,7 +112,7 @@ class SqlLeaseContextTest {
         var leaseAssert = assertThat(leaseContext.getLease(id));
         leaseAssert.extracting(SqlLease::getLeaseId).isNotNull();
         leaseAssert.extracting(SqlLease::getLeasedBy).isEqualTo(LEASE_HOLDER);
-        leaseAssert.extracting(SqlLease::getLeasedAt).matches(l -> l <= Instant.now().toEpochMilli());
+        leaseAssert.extracting(SqlLease::getLeasedAt).matches(l -> l <= now.toEpochMilli());
         leaseAssert.extracting(SqlLease::getLeaseDuration).isEqualTo(60_000L);
     }
 

@@ -26,7 +26,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -79,6 +79,7 @@ public class ContractNegotiation implements TraceCarrier {
     private ContractAgreement contractAgreement;
     private List<ContractOffer> contractOffers = new ArrayList<>();
     private Map<String, String> traceContext = new HashMap<>();
+    private Clock clock = Clock.systemUTC();
 
     public Type getType() {
         return type;
@@ -337,33 +338,25 @@ public class ContractNegotiation implements TraceCarrier {
     }
 
     /**
-     * Reset to an arbitrary state.
-     *
-     * @param state The desired state.
-     */
-    public void rollbackState(ContractNegotiationStates state) {
-        this.state = state.code();
-        stateCount = 1;
-        updateStateTimestamp();
-    }
-
-    /**
      * Create a copy of this negotiation.
      *
      * @return The copy.
      */
     public ContractNegotiation copy() {
         return Builder.newInstance().id(id).correlationId(correlationId).counterPartyId(counterPartyId)
+                .clock(clock)
                 .counterPartyAddress(counterPartyAddress).protocol(protocol).type(type).state(state).stateCount(stateCount)
                 .stateTimestamp(stateTimestamp).errorDetail(errorDetail).contractAgreement(contractAgreement)
                 .contractOffers(contractOffers).traceContext(traceContext).build();
     }
 
     /**
-     * Sets the state timestamp to the current time.
+     * Sets the state timestamp to the clock time.
+     *
+     * @see Builder#clock(Clock)
      */
     public void updateStateTimestamp() {
-        stateTimestamp = Instant.now().toEpochMilli();
+        stateTimestamp = clock.millis();
     }
 
     @Override
@@ -377,13 +370,14 @@ public class ContractNegotiation implements TraceCarrier {
         ContractNegotiation that = (ContractNegotiation) o;
         return state == that.state && stateCount == that.stateCount && stateTimestamp == that.stateTimestamp && Objects.equals(id, that.id) &&
                 Objects.equals(correlationId, that.correlationId) && Objects.equals(counterPartyId, that.counterPartyId) &&
+                Objects.equals(clock, that.clock) &&
                 Objects.equals(protocol, that.protocol) && Objects.equals(traceContext, that.traceContext) &&
                 type == that.type && Objects.equals(contractAgreement, that.contractAgreement) && Objects.equals(contractOffers, that.contractOffers);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, correlationId, counterPartyId, protocol, traceContext, type, state, stateCount, stateTimestamp, contractAgreement, contractOffers);
+        return Objects.hash(id, correlationId, counterPartyId, clock, protocol, traceContext, type, state, stateCount, stateTimestamp, contractAgreement, contractOffers);
     }
 
     private void checkState(int... legalStates) {
@@ -457,6 +451,11 @@ public class ContractNegotiation implements TraceCarrier {
             return this;
         }
 
+        public Builder clock(Clock clock) {
+            negotiation.clock = clock;
+            return this;
+        }
+
         public Builder counterPartyId(String id) {
             negotiation.counterPartyId = id;
             return this;
@@ -505,6 +504,7 @@ public class ContractNegotiation implements TraceCarrier {
 
         public ContractNegotiation build() {
             Objects.requireNonNull(negotiation.id);
+            Objects.requireNonNull(negotiation.clock);
             Objects.requireNonNull(negotiation.counterPartyId);
             Objects.requireNonNull(negotiation.counterPartyAddress);
             Objects.requireNonNull(negotiation.protocol);

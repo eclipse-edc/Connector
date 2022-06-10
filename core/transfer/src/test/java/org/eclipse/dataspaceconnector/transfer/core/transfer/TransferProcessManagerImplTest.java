@@ -107,6 +107,8 @@ class TransferProcessManagerImplTest {
     private static final int TRANSFER_MANAGER_BATCHSIZE = 10;
     private static final String PROVISIONED_RESOURCE_ID = "1";
 
+    private final long currentTime = 1343411;
+
     private final ProvisionManager provisionManager = mock(ProvisionManager.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     private final StatusCheckerRegistry statusCheckerRegistry = mock(StatusCheckerRegistry.class);
@@ -134,6 +136,7 @@ class TransferProcessManagerImplTest {
                 .commandQueue(mock(CommandQueue.class))
                 .commandRunner(mock(CommandRunner.class))
                 .typeManager(new TypeManager())
+                .clock(Clock.fixed(Instant.ofEpochMilli(currentTime), UTC))
                 .statusCheckerRegistry(statusCheckerRegistry)
                 .observable(mock(TransferProcessObservable.class))
                 .transferProcessStore(transferProcessStore)
@@ -166,8 +169,6 @@ class TransferProcessManagerImplTest {
         when(transferProcessStore.processIdForTransferId("1")).thenReturn(null, "2");
         DataRequest dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
 
-        var currentTime = 1343411;
-        manager.clock = Clock.fixed(Instant.ofEpochMilli(currentTime), UTC);
         manager.start();
         manager.initiateProviderRequest(dataRequest);
         manager.stop();
