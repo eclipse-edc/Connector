@@ -69,7 +69,7 @@ public class BackendServiceHttpProvisionerController {
         );
         var callbackRequest = new Request.Builder()
                 .url(completeUrl)
-                .post(RequestBody.create(typeManager.writeValueAsBytes(requestBody), get("application/json")))
+                .post(RequestBody.create(typeManager.writeValueAsString(requestBody), get("application/json")))
                 .build();
 
         try (var response = httpClient.newCall(callbackRequest).execute()) {

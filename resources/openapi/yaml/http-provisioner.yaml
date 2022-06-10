@@ -65,7 +65,7 @@ components:
     ProvisionerWebhookRequest:
       type: object
       properties:
-        apiToken:
+        apiKeyJwt:
           type: string
         assetId:
           type: string
@@ -78,6 +78,7 @@ components:
         resourceName:
           type: string
       required:
+      - apiKeyJwt
       - assetId
       - contentDataAddress
       - resourceDefinitionId

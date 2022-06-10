@@ -63,7 +63,7 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
                 .assetId(assetId)
                 .contentDataAddress(cda)
                 .resourceName(resName)
-                .apiToken(token)
+                .apiKeyJwt(token)
                 .resourceDefinitionId(resDefId)
                 .build();
 
@@ -81,7 +81,7 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
         var rq = ProvisionerWebhookRequest.Builder.newInstance()
                 .assetId("test-asset")
                 .contentDataAddress(dataAddress())
-                .apiToken("test-token")
+                .apiKeyJwt("test-token")
                 .resourceName("resource-name")
                 .resourceDefinitionId("resource-definition")
                 .build();
