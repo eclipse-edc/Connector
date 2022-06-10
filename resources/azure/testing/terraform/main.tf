@@ -106,7 +106,7 @@ resource "azurerm_key_vault_secret" "provider_storage_key" {
   name         = "${azurerm_storage_account.provider.name}-key1"
   value        = azurerm_storage_account.provider.primary_access_key
   key_vault_id = azurerm_key_vault.main.id
-  depends_on = [
+  depends_on   = [
     azurerm_role_assignment.ci_key_vault
   ]
 }
@@ -116,7 +116,32 @@ resource "azurerm_key_vault_secret" "consumer_storage_key" {
   name         = "${azurerm_storage_account.consumer.name}-key1"
   value        = azurerm_storage_account.consumer.primary_access_key
   key_vault_id = azurerm_key_vault.main.id
-  depends_on = [
+  depends_on   = [
     azurerm_role_assignment.ci_key_vault
   ]
+}
+
+## CosmosDB account for integration testing. No need to create databases or containers,
+## they are created by the tests
+resource "azurerm_cosmosdb_account" "cosmosdb_integrationtest" {
+  name                = "${var.prefix}-cosmosdb"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  offer_type          = "Standard"
+
+  enable_automatic_failover = false
+  enable_free_tier          = true
+
+  capabilities {
+    name = "EnableAggregationPipeline"
+  }
+
+  consistency_policy {
+    consistency_level = "Strong"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.main.location
+    failover_priority = 0
+  }
 }

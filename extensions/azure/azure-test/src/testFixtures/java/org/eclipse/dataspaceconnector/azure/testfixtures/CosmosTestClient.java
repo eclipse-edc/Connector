@@ -43,7 +43,7 @@ public interface CosmosTestClient {
     static CosmosClient createClient() {
         var cosmosKey = propOrEnv("COSMOS_KEY", null);
         if (!StringUtils.isNullOrBlank(cosmosKey)) {
-            String endpoint = propOrEnv("COSMOS_URL", "https://cosmos-itest.documents.azure.com:443/");
+            String endpoint = propOrEnv("COSMOS_URL", "https://edcintdev-cosmosdb.documents.azure.com:443/");
             return azureClient(cosmosKey, endpoint);
         } else {
             return localClient();

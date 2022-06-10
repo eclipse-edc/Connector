@@ -28,6 +28,8 @@ echo "== Collecting terraform outputs =="
 terraform output -raw ci_client_id | $gh secret set AZURE_CLIENT_ID
 terraform output -raw EDC_AZURE_SUBSCRIPTION_ID | $gh secret set AZURE_SUBSCRIPTION_ID
 terraform output -raw EDC_AZURE_TENANT_ID | $gh secret set AZURE_TENANT_ID
+terraform output -raw EDC_COSMOS_ITEST_KEY | $gh secret set COSMOS_KEY
+terraform output -raw EDC_COSMOS_ITEST_URL | $gh secret set COSMOS_URL
 
 cd ..
 
