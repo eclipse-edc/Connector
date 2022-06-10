@@ -14,8 +14,8 @@
 package org.eclipse.dataspaceconnector.api.auth;
 
 import io.restassured.http.Header;
-import io.restassured.specification.RequestSpecification;
-import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import io.restassured.response.Response;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -71,11 +71,11 @@ public class BasicAuthenticationServiceIntegrationTest {
                 .statusCode(200);
     }
 
-    private RequestSpecification request(Header header) {
+    private Response request(Header header) {
         return given()
                 .header(header)
                 .baseUri("http://localhost:" + PORT)
-                .basePath("/api/v1/data/dummy")
-                .when();
+                .when()
+                .get("/api/v1/data/dummy");
     }
 }
