@@ -14,6 +14,10 @@
 
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.javafaker.Faker;
+import io.netty.handler.codec.http.HttpMethod;
 import net.jodah.failsafe.RetryPolicy;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
@@ -32,23 +36,24 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static okhttp3.Protocol.HTTP_1_1;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.dataplane.http.pipeline.HttpDataSourceTest.CustomInterceptor.JSON_RESPONSE;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOkHttpClient;
 import static org.mockito.Mockito.mock;
 
 class HttpDataSourceTest {
+    private static final Faker FAKER = new Faker();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private static final String TEST_ENDPOINT = "http://example.com";
-    private static final String GET = "GET";
-    private static final String POST = "POST";
-    private static final String FILE_NAME = "testfile.txt";
-    private static final String TEST_QUERY_PARAMS = "foo=bar&hello=world";
+    private String endpoint;
+    private String name;
+    private String path;
+    private String queryParams;
 
     private CustomInterceptor interceptor;
 
@@ -64,66 +69,86 @@ class HttpDataSourceTest {
     }
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws JsonProcessingException {
+        endpoint = "http://" + FAKER.internet().domainName();
+        name = FAKER.lorem().word();
+        path = FAKER.lorem().word();
+        queryParams = FAKER.lorem().word();
         interceptor = new CustomInterceptor();
     }
 
     @ParameterizedTest
     @NullAndEmptySource
-    void sourceWithNameBlankOrNull_shouldIgnore(String name) {
-        var source = defaultBuilder().method(GET).name(name).build();
+    void sourceWithNameBlankOrNull_shouldIgnore(String p) {
+        var source = defaultBuilder()
+                .method(HttpMethod.GET.name())
+                .path(p)
+                .build();
 
         source.openPartStream();
 
         var request = interceptor.getInterceptedRequest();
-        assertThat(request.url()).hasToString(TEST_ENDPOINT + "/");
-        assertThat(request.method()).isEqualTo(GET);
+        assertThat(request.url())
+                .hasToString(endpoint + "/");
+        assertThat(request.method()).isEqualTo(HttpMethod.GET.name());
     }
 
     @ParameterizedTest
     @NullAndEmptySource
-    void sourceWithQueryParamsBlankOrNull_shouldIgnore(String queryParams) {
-        var source = defaultBuilder().method(GET).name(FILE_NAME).queryParams(queryParams).build();
+    void sourceWithQueryParamsBlankOrNull_shouldIgnore(String qp) {
+        var source = defaultBuilder()
+                .method(HttpMethod.GET.name())
+                .path(path)
+                .queryParams(qp)
+                .build();
 
         source.openPartStream();
 
         var request = interceptor.getInterceptedRequest();
-        assertThat(request.url()).hasToString(TEST_ENDPOINT + "/" + FILE_NAME);
-        assertThat(request.method()).isEqualTo(GET);
+        assertThat(request.url()).hasToString(endpoint + "/" + path);
+        assertThat(request.method()).isEqualTo(HttpMethod.GET.name());
     }
 
     @Test
     void sourceWithNameAndQueryParams() {
-        var source = defaultBuilder().method(GET).name(FILE_NAME).queryParams(TEST_QUERY_PARAMS).build();
+        var source = defaultBuilder()
+                .method(HttpMethod.GET.name())
+                .path(path)
+                .queryParams(queryParams)
+                .build();
 
         source.openPartStream();
 
         var request = interceptor.getInterceptedRequest();
-        assertThat(request.url()).hasToString(String.format("%s/%s?%s", TEST_ENDPOINT, FILE_NAME, TEST_QUERY_PARAMS));
-        assertThat(request.method()).isEqualTo(GET);
+        assertThat(request.url()).hasToString(String.format("%s/%s?%s", endpoint, path, queryParams));
+        assertThat(request.method()).isEqualTo(HttpMethod.GET.name());
     }
 
     @Test
-    void sourceWithBody() {
-        var json = "{ \"foo\" : \"bar\" }";
-        var source = defaultBuilder().method(POST).requestBody(MediaType.get("application/json"), json).build();
+    void sourceWithBody() throws JsonProcessingException {
+        var json = createBody();
+        var source = defaultBuilder()
+                .method(HttpMethod.POST.name())
+                .requestBody(MediaType.get("application/json"), json).build();
 
         source.openPartStream();
 
         var request = interceptor.getInterceptedRequest();
-        assertThat(request.url()).hasToString(TEST_ENDPOINT + "/");
-        assertThat(request.method()).isEqualTo(POST);
+        assertThat(request.url()).hasToString(endpoint + "/");
+        assertThat(request.method()).isEqualTo(HttpMethod.POST.name());
         assertThat(extractRequestBody(request)).isEqualTo(json);
     }
 
     @Test
     void verifyOpenPartStream() {
-        var source = defaultBuilder().method(GET).build();
+        var source = defaultBuilder().method(HttpMethod.GET.name()).build();
 
         var parts = source.openPartStream().collect(Collectors.toList());
 
         assertThat(parts).hasSize(1);
-        assertThat(parts.get(0).openStream()).hasContent(JSON_RESPONSE);
+        var part = parts.get(0);
+        assertThat(part.name()).isEqualTo(name);
+        assertThat(part.openStream()).hasContent(interceptor.getJsonResponse());
     }
 
     private HttpDataSource.Builder defaultBuilder() {
@@ -133,17 +158,21 @@ class HttpDataSourceTest {
         return HttpDataSource.Builder.newInstance()
                 .httpClient(httpClient)
                 .monitor(monitor)
-                .sourceUrl(TEST_ENDPOINT)
+                .name(name)
+                .sourceUrl(endpoint)
                 .requestId(UUID.randomUUID().toString())
                 .retryPolicy(retryPolicy);
     }
 
 
     static final class CustomInterceptor implements Interceptor {
-
-        public static final String JSON_RESPONSE = "{\"hello\" : \"world\"}";
+        private final String jsonResponse;
 
         private final List<Request> requests = new ArrayList<>();
+
+        CustomInterceptor() throws JsonProcessingException {
+            jsonResponse = createBody();
+        }
 
         @NotNull
         @Override
@@ -152,7 +181,7 @@ class HttpDataSourceTest {
             return new Response.Builder()
                     .request(chain.request())
                     .protocol(HTTP_1_1).code(200)
-                    .body(ResponseBody.create(JSON_RESPONSE, MediaType.get("application/json"))).message("ok")
+                    .body(ResponseBody.create(jsonResponse, MediaType.get("application/json"))).message("ok")
                     .build();
         }
 
@@ -161,5 +190,13 @@ class HttpDataSourceTest {
                     .findFirst()
                     .orElseThrow(() -> new AssertionError("No request intercepted"));
         }
+
+        public String getJsonResponse() {
+            return jsonResponse;
+        }
+    }
+
+    private static String createBody() throws JsonProcessingException {
+        return MAPPER.writeValueAsString(Map.of(FAKER.lorem().word(), FAKER.lorem().word()));
     }
 }

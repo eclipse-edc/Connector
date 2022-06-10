@@ -32,6 +32,7 @@ in the detailed section referring to by linking pull requests or issues.
 #### Fixed
 
 * Fixed a dead link in contributor documentation (#1477)
+* Fix usage of `NAME` property in `HttpDataSourceFactory` (#1460)
 
 ## [milestone-4] - 2022-06-07
 

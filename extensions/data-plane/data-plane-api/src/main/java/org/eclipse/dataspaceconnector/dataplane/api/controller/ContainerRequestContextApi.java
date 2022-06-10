@@ -15,22 +15,23 @@
 package org.eclipse.dataspaceconnector.dataplane.api.controller;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
 /**
- * This class provides a set of API wrapping a {@link ContainerRequestContext}.
+ * Wrapper around {@link ContainerRequestContext} enabling mocking.
  */
 public interface ContainerRequestContextApi {
-    /**
-     * Return the value of the auth header provided in the request.
-     */
-    @Nullable
-    String authHeader(ContainerRequestContext context);
 
-    /**
-     * Map the properties (query params, method...) of the request into a readable map.
-     */
-    Map<String, String> properties(ContainerRequestContext context);
+    Map<String, String> headers(ContainerRequestContext context);
+
+    String queryParams(ContainerRequestContext context);
+
+    String body(ContainerRequestContext context);
+
+    String path(ContainerRequestContext context);
+
+    String mediaType(ContainerRequestContext context);
+
+    String method(ContainerRequestContext context);
 }

@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.CONTRACT_ID;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.BASE_URL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_BODY;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_METHOD;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_PATH;
@@ -81,7 +81,7 @@ class DataPlaneTransferConsumerProxyTransformerTest {
         assertThat(proxyCreationRequest.getProperties()).containsExactlyInAnyOrderEntriesOf(inputEdr.getProperties());
         assertThat(proxyCreationRequest.getContentAddress()).satisfies(address -> {
             assertThat(address.getType()).isEqualTo(TYPE);
-            assertThat(address.getProperty(ENDPOINT)).isEqualTo(inputEdr.getEndpoint());
+            assertThat(address.getProperty(BASE_URL)).isEqualTo(inputEdr.getEndpoint());
             assertThat(address.getProperty(AUTHENTICATION_KEY)).isEqualTo(inputEdr.getAuthKey());
             assertThat(address.getProperty(AUTHENTICATION_CODE)).isEqualTo(inputEdr.getAuthCode());
             assertThat(address.getProperty(PROXY_QUERY_PARAMS)).isEqualTo(Boolean.TRUE.toString());

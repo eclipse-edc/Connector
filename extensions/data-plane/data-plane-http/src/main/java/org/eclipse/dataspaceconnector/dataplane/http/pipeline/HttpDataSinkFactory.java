@@ -29,7 +29,7 @@ import java.util.concurrent.ExecutorService;
 import static org.eclipse.dataspaceconnector.spi.result.Result.failure;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.BASE_URL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
 
 /**
@@ -56,7 +56,7 @@ public class HttpDataSinkFactory implements DataSinkFactory {
     @Override
     public @NotNull Result<Boolean> validate(DataFlowRequest request) {
         var dataAddress = request.getDestinationDataAddress();
-        if (dataAddress == null || !dataAddress.getProperties().containsKey(ENDPOINT)) {
+        if (dataAddress == null || !dataAddress.getProperties().containsKey(BASE_URL)) {
             return failure("HTTP data sink endpoint not provided for request: " + request.getId());
         }
         return VALID;
@@ -66,7 +66,7 @@ public class HttpDataSinkFactory implements DataSinkFactory {
     public DataSink createSink(DataFlowRequest request) {
         var dataAddress = request.getDestinationDataAddress();
         var requestId = request.getId();
-        var endpoint = dataAddress.getProperty(ENDPOINT);
+        var endpoint = dataAddress.getProperty(BASE_URL);
         if (endpoint == null) {
             throw new EdcException("HTTP data destination endpoint not provided for request: " + requestId);
         }

@@ -25,14 +25,14 @@ public interface HttpDataAddressSchema {
     String TYPE = "HttpData";
 
     /**
-     * The http endpoint.
-     */
-    String ENDPOINT = "endpoint";
-
-    /**
-     * The name associated with the HTTP data, typically a filename (optional).
+     * Name of the data address.
      */
     String NAME = "name";
+
+    /**
+     * The url from which data will be retrieved.
+     */
+    String BASE_URL = "baseUrl";
 
     /**
      * The authentication key property name (optional).

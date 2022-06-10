@@ -30,7 +30,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -40,8 +39,9 @@ import static net.jodah.failsafe.Failsafe.with;
  * Pulls data from a source using an HTTP GET.
  */
 public class HttpDataSource implements DataSource {
-    private String sourceEndpoint;
     private String name;
+    private String sourceEndpoint;
+    private String path;
     private String queryParams;
     private MediaType mediaType;
     private String body;
@@ -58,15 +58,14 @@ public class HttpDataSource implements DataSource {
     }
 
     private String createUrl() {
-        return sourceEndpoint +
-                Optional.ofNullable(name)
-                        .filter(s -> !s.isBlank())
-                        .map(s -> "/" + name)
-                        .orElse("") +
-                Optional.ofNullable(queryParams)
-                        .filter(qp -> !qp.isBlank())
-                        .map(s -> "?" + queryParams)
-                        .orElse("");
+        var url = sourceEndpoint;
+        if (path != null && !path.isBlank()) {
+            url += "/" + path;
+        }
+        if (queryParams != null && !queryParams.isBlank()) {
+            url += "?" + queryParams;
+        }
+        return url;
     }
 
     private boolean hasValidRequestBody() {
@@ -134,6 +133,11 @@ public class HttpDataSource implements DataSource {
 
         public Builder name(String name) {
             dataSource.name = name;
+            return this;
+        }
+
+        public Builder path(String path) {
+            dataSource.path = path;
             return this;
         }
 

@@ -19,6 +19,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
@@ -27,26 +28,25 @@ import org.eclipse.dataspaceconnector.transfer.dataplane.spi.security.DataEncryp
 
 import static java.lang.String.join;
 import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.DATA_ADDRESS;
-import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.PUBLIC_API_AUTH_HEADER;
 
-@Consumes({MediaType.APPLICATION_JSON})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path("/token")
 public class DataPlaneTransferTokenValidationApiController {
 
     private final Monitor monitor;
-    private final TokenValidationService tokenValidationService;
+    private final TokenValidationService service;
     private final DataEncrypter dataEncrypter;
 
-    public DataPlaneTransferTokenValidationApiController(Monitor monitor, TokenValidationService tokenValidationService, DataEncrypter dataEncrypter) {
+    public DataPlaneTransferTokenValidationApiController(Monitor monitor, TokenValidationService service, DataEncrypter dataEncrypter) {
         this.monitor = monitor;
-        this.tokenValidationService = tokenValidationService;
+        this.service = service;
         this.dataEncrypter = dataEncrypter;
     }
 
     @GET
-    public Response validate(@HeaderParam(PUBLIC_API_AUTH_HEADER) String token) {
-        var validationResult = tokenValidationService.validate(token);
+    public Response validate(@HeaderParam(HttpHeaders.AUTHORIZATION) String token) {
+        var validationResult = service.validate(token);
         if (validationResult.failed()) {
             var failure = "Token validation failed: " + join(", ", validationResult.getFailureMessages());
             monitor.debug(failure);

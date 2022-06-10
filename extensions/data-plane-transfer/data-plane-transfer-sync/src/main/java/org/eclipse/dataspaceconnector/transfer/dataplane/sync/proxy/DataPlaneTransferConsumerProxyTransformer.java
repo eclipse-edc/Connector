@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.CONTRACT_ID;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.BASE_URL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_BODY;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_METHOD;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_PATH;
@@ -76,7 +76,7 @@ public class DataPlaneTransferConsumerProxyTransformer implements EndpointDataRe
     private static DataAddress toHttpDataAddress(EndpointDataReference edr) {
         return DataAddress.Builder.newInstance()
                 .type(TYPE)
-                .property(ENDPOINT, edr.getEndpoint())
+                .property(BASE_URL, edr.getEndpoint())
                 .property(AUTHENTICATION_KEY, edr.getAuthKey())
                 .property(AUTHENTICATION_CODE, edr.getAuthCode())
                 .property(PROXY_QUERY_PARAMS, Boolean.TRUE.toString())

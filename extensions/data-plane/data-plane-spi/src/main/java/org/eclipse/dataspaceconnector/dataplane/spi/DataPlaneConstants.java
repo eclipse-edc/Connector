@@ -15,8 +15,6 @@
 package org.eclipse.dataspaceconnector.dataplane.spi;
 
 public interface DataPlaneConstants {
-    String PUBLIC_API_AUTH_HEADER = "Authorization";
-
     /**
      * The Data Plane public API takes as input a signed bearer token which essentially contains as claims:
      * - the contract id

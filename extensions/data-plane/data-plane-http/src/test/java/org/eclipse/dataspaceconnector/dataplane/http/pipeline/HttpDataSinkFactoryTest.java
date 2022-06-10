@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
+import com.github.javafaker.Faker;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -34,7 +35,7 @@ import static org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures.cre
 import static org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures.createRequest;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.BASE_URL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.isA;
@@ -43,13 +44,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class HttpDataSinkFactoryTest {
+
+    private static final Faker FAKER = new Faker();
+
     private HttpDataSinkFactory factory;
     private OkHttpClient httpClient;
 
     @Test
     void verifyCanHandle() {
         var httpRequest = createRequest(TYPE).build();
-        var nonHttpRequest = createRequest("Unknown").build();
+        var nonHttpRequest = createRequest(FAKER.lorem().word()).build();
 
         assertThat(factory.canHandle(httpRequest)).isTrue();
         assertThat(factory.canHandle(nonHttpRequest)).isFalse();
@@ -57,19 +61,28 @@ class HttpDataSinkFactoryTest {
 
     @Test
     void verifyValidation() {
-        var dataAddress = DataAddress.Builder.newInstance().property(ENDPOINT, "http://example.com").type(TYPE).build();
+        var dataAddress = DataAddress.Builder.newInstance()
+                .property(BASE_URL, FAKER.internet()
+                        .url())
+                .type(TYPE)
+                .build();
+
         var validRequest = createRequest(TYPE).destinationDataAddress(dataAddress).build();
         assertThat(factory.validate(validRequest).succeeded()).isTrue();
 
-        var missingEndpointRequest = createRequest("Unknown").build();
+        var missingEndpointRequest = createRequest(FAKER.lorem().word()).build();
         assertThat(factory.validate(missingEndpointRequest).failed()).isTrue();
     }
 
     @Test
     void verifyCreateSource() {
-        var dataAddress = DataAddress.Builder.newInstance().property(ENDPOINT, "http://example.com").type(TYPE).build();
+        var dataAddress = DataAddress.Builder.newInstance()
+                .property(BASE_URL, FAKER.internet().url())
+                .type(TYPE)
+                .build();
+
         var validRequest = createRequest(TYPE).destinationDataAddress(dataAddress).build();
-        var missingEndpointRequest = createRequest("Unknown").build();
+        var missingEndpointRequest = createRequest(FAKER.lorem().word()).build();
 
         assertThat(factory.createSink(validRequest)).isNotNull();
         assertThrows(EdcException.class, () -> factory.createSink(missingEndpointRequest));
@@ -77,11 +90,13 @@ class HttpDataSinkFactoryTest {
 
     @Test
     void verifyCreateAuthenticatingSource() throws InterruptedException, ExecutionException, IOException {
+        var authKey = FAKER.lorem().word();
+        var authCode = FAKER.internet().uuid();
         var dataAddress = DataAddress.Builder.newInstance()
                 .type(TYPE)
-                .property(ENDPOINT, "http://example.com")
-                .property(AUTHENTICATION_KEY, "x-api-key")
-                .property(AUTHENTICATION_CODE, "123")
+                .property(BASE_URL, "http://example.com")
+                .property(AUTHENTICATION_KEY, authKey)
+                .property(AUTHENTICATION_CODE, authCode)
                 .build();
 
         var validRequest = createRequest(TYPE).destinationDataAddress(dataAddress).build();
@@ -90,7 +105,7 @@ class HttpDataSinkFactoryTest {
         when(call.execute()).thenReturn(createHttpResponse().build());
 
         when(httpClient.newCall(isA(Request.class))).thenAnswer(r -> {
-            assertThat(((Request) r.getArgument(0)).headers("x-api-key").get(0)).isEqualTo("123");  // verify auth header set
+            assertThat(((Request) r.getArgument(0)).headers(authKey).get(0)).isEqualTo(authCode);  // verify auth header set
             return call;
         });
 

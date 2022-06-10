@@ -40,7 +40,7 @@ import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowReques
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.BASE_URL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.NAME;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_BODY;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_METHOD;
@@ -87,8 +87,8 @@ public class HttpDataSourceFactory implements DataSourceFactory {
 
     private Result<HttpDataSource> createDataSource(DataFlowRequest request) {
         var dataAddress = request.getSourceDataAddress();
-        var endpoint = dataAddress.getProperty(ENDPOINT);
-        if (StringUtils.isNullOrBlank(endpoint)) {
+        var url = dataAddress.getProperty(BASE_URL);
+        if (StringUtils.isNullOrBlank(url)) {
             return Result.failure("Missing endpoint for request: " + request.getId());
         }
 
@@ -100,24 +100,18 @@ public class HttpDataSourceFactory implements DataSourceFactory {
             }
         }
 
-        var path = dataAddress.getProperty(NAME);
-        if (Boolean.parseBoolean(dataAddress.getProperty(PROXY_PATH))) {
-            path = request.getProperties().get(PATH);
-            if (path == null) {
-                return Result.failure(format("No path provided for request: %s", request.getId()));
-            }
-        }
-
-        String queryParams = null;
-        if (Boolean.parseBoolean(dataAddress.getProperty(PROXY_QUERY_PARAMS))) {
-            queryParams = request.getProperties().get(QUERY_PARAMS);
-        }
+        var name = dataAddress.getProperty(NAME);
+        var path = Boolean.parseBoolean(dataAddress.getProperty(PROXY_PATH)) ?
+                request.getProperties().get(PATH) : null;
+        var queryParams = Boolean.parseBoolean(dataAddress.getProperty(PROXY_QUERY_PARAMS)) ?
+                request.getProperties().get(QUERY_PARAMS) : null;
 
         var builder = HttpDataSource.Builder.newInstance()
                 .httpClient(httpClient)
                 .requestId(request.getId())
-                .sourceUrl(endpoint)
-                .name(path)
+                .sourceUrl(url)
+                .name(name)
+                .path(path)
                 .method(method)
                 .queryParams(queryParams)
                 .retryPolicy(retryPolicy)

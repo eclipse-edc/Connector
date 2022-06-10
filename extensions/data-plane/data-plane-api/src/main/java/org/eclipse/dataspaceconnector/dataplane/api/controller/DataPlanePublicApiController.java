@@ -26,6 +26,7 @@ import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
 import org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants;
@@ -39,8 +40,10 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
 import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
@@ -49,6 +52,11 @@ import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunc
 import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunctions.success;
 import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunctions.validationError;
 import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunctions.validationErrors;
+import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.BODY;
+import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.MEDIA_TYPE;
+import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
+import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.PATH;
+import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
 
 /**
  * Controller exposing the public endpoint of the Data Plane used to query data (synchronous data pull).
@@ -57,24 +65,23 @@ import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunc
 @Produces(MediaType.APPLICATION_JSON)
 public class DataPlanePublicApiController {
 
-
     private final DataPlaneManager dataPlaneManager;
     private final TokenValidationService tokenValidationService;
     private final Monitor monitor;
-    private final ContainerRequestContextApi requestContextApi;
+    private final ContainerRequestContextApi contextApi;
     private final TypeManager typeManager;
     private final ExecutorService executorService;
 
     public DataPlanePublicApiController(DataPlaneManager dataPlaneManager,
                                         TokenValidationService tokenValidationService,
                                         Monitor monitor,
-                                        ContainerRequestContextApi wrapper,
+                                        ContainerRequestContextApi contextApi,
                                         TypeManager typeManager,
                                         ExecutorService executorService) {
         this.dataPlaneManager = dataPlaneManager;
         this.tokenValidationService = tokenValidationService;
         this.monitor = monitor;
-        this.requestContextApi = wrapper;
+        this.contextApi = contextApi;
         this.typeManager = typeManager;
         this.executorService = executorService;
     }
@@ -119,8 +126,8 @@ public class DataPlanePublicApiController {
         handle(requestContext, response);
     }
 
-    private void handle(ContainerRequestContext requestContext, AsyncResponse response) {
-        var bearerToken = requestContextApi.authHeader(requestContext);
+    private void handle(ContainerRequestContext context, AsyncResponse response) {
+        var bearerToken = contextApi.headers(context).get(HttpHeaders.AUTHORIZATION);
         if (bearerToken == null) {
             response.resume(notAuthorizedErrors(List.of("Missing bearer token")));
             return;
@@ -132,7 +139,7 @@ public class DataPlanePublicApiController {
             return;
         }
 
-        var properties = requestContextApi.properties(requestContext);
+        var properties = mapRequestProperties(context);
         var dataFlowRequest = createDataFlowRequest(tokenValidationResult.getContent(), properties);
 
         var validationResult = dataPlaneManager.validate(dataFlowRequest);
@@ -176,5 +183,21 @@ public class DataPlanePublicApiController {
                 .id(UUID.randomUUID().toString())
                 .properties(properties)
                 .build();
+    }
+
+    /**
+     * Put all properties of the incoming request (method, request body, query params...) into a map.
+     */
+    private Map<String, String> mapRequestProperties(ContainerRequestContext context) {
+        var props = new HashMap<String, String>();
+        props.put(METHOD, contextApi.method(context));
+        props.put(QUERY_PARAMS, contextApi.queryParams(context));
+        props.put(PATH, contextApi.path(context));
+        Optional.ofNullable(contextApi.mediaType(context))
+                .ifPresent(mediaType -> {
+                    props.put(MEDIA_TYPE, mediaType);
+                    props.put(BODY, contextApi.body(context));
+                });
+        return props;
     }
 }
