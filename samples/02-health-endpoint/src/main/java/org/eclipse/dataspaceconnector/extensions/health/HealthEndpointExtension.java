@@ -28,6 +28,4 @@ public class HealthEndpointExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         webService.registerResource(new HealthApiController(context.getMonitor()));
     }
-
-
 }
