@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 - 2022 ZF Friedrichshafen AG
+ * Copyright (c) 2020 - 2022 ZF Friedrichshafen AG.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Apache License, Version 2.0 which is available at
@@ -49,9 +49,7 @@ public class BasicAuthenticationServiceIntegrationTest {
 
     @Test
     void noAuthHeader() {
-        baseRequest()
-                .header(new Header("NoAuth", "user aGVsbG86bXlQYXNzd29yZAp="))
-                .get("/dummy")
+        request(new Header("NoAuth", "user aGVsbG86bXlQYXNzd29yZAp="))
                 .then()
                 .statusCode(403);
     }
@@ -59,9 +57,7 @@ public class BasicAuthenticationServiceIntegrationTest {
     @Test
     void validateIncorrectAuthHeaderCredentials() {
 
-        baseRequest()
-                .header(new Header("Authorization", "user aGVsbG86bXlQYXNzd29yZAp="))
-                .get("/dummy")
+        request(new Header("Authorization", "user aGVsbG86bXlQYXNzd29yZAp="))
                 .then()
                 .statusCode(403);
     }
@@ -70,17 +66,16 @@ public class BasicAuthenticationServiceIntegrationTest {
     void validateCorrectAuthCredentials() {
         when(vault.resolveSecret("api-basic-auth-hello")).thenReturn("myPassword");
 
-        baseRequest()
-                .header(new Header("Authorization", "Basic aGVsbG86bXlQYXNzd29yZA=="))
-                .get("/dummy")
+        request(new Header("Authorization", "Basic aGVsbG86bXlQYXNzd29yZA=="))
                 .then()
                 .statusCode(200);
     }
 
-    private RequestSpecification baseRequest() {
+    private RequestSpecification request(Header header) {
         return given()
+                .header(header)
                 .baseUri("http://localhost:" + PORT)
-                .basePath("/api/v1/data")
+                .basePath("/api/v1/data/dummy")
                 .when();
     }
 }
