@@ -24,14 +24,14 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:transaction-spi"))
     api(project(":spi:transfer-spi"))
     implementation(project(":common:util"))
     implementation(project(":extensions:api:api-core"))
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation(project(":extensions:api:data-management:api-configuration"))
-    implementation(project(":extensions:transaction:transaction-spi"))
 
-    testImplementation(project(":spi:core-spi"))
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+
     testImplementation(project(":core:contract"))
     testImplementation(project(":core:transfer"))
     testImplementation(project(":extensions:http"))

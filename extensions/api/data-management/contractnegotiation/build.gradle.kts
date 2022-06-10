@@ -21,20 +21,19 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":spi:contract-spi"))
-    implementation(project(":spi:transfer-spi"))
+    api(project(":spi:contract-spi"))
+    api(project(":spi:transfer-spi"))
+    api(project(":spi:transaction-spi"))
     implementation(project(":core:contract"))
     implementation(project(":extensions:api:api-core"))
     implementation(project(":extensions:api:data-management:api-configuration"))
-    implementation(project(":extensions:transaction:transaction-spi"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
-    testImplementation(project(":extensions:junit"))
-
     testImplementation(project(":common:util"))
-    testImplementation(project(":extensions:http"))
     testImplementation(project(":core:defaults"))
+    testImplementation(project(":extensions:http"))
+    testImplementation(project(":extensions:junit"))
 
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
 }

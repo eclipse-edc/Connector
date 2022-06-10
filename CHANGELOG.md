@@ -21,7 +21,7 @@ in the detailed section referring to by linking pull requests or issues.
 
 #### Changed
 
-*
+* Provided default no-op `TransactionContext` (#1461)
 
 #### Removed
 

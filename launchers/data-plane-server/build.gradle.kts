@@ -22,7 +22,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":spi:web-spi"))
+    api(project(":spi:web-spi"))
     implementation(project(":core:base"))
     implementation(project(":core:boot"))
     implementation(project(":core:micrometer"))

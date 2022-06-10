@@ -29,13 +29,16 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitio
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
+import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * Provides (in-mem) defaults for various stores, registries etc. Provider methods are only invoked if no other
- * implementation was found on the classpath.
+ * Provides (in-mem & no-op) defaults for various stores, registries etc.
+ * Provider methods are only invoked if no other implementation was found on the classpath.
  */
 public class DefaultServicesExtension implements ServiceExtension {
 
@@ -60,7 +63,6 @@ public class DefaultServicesExtension implements ServiceExtension {
         return getAssetIndex();
     }
 
-
     @Provider(isDefault = true)
     public ContractDefinitionStore defaultContractDefinitionStore() {
         return getContractDefinitionStore();
@@ -84,6 +86,12 @@ public class DefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public PolicyDefinitionStore defaultPolicyStore() {
         return new InMemoryPolicyDefinitionStore(new LockManager(new ReentrantReadWriteLock(true)));
+    }
+
+    @Provider(isDefault = true)
+    public TransactionContext defaultTransactionContext(ServiceExtensionContext context) {
+        context.getMonitor().warning("No TransactionContext registered, a no-op implementation will be used, not suitable for production environments");
+        return new NoopTransactionContext();
     }
 
     private ContractDefinitionStore getContractDefinitionStore() {

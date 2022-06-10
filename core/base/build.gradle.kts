@@ -26,13 +26,15 @@ val bouncycastleVersion: String by project
 
 dependencies {
     api(project(":spi:core-spi"))
-
-    api("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    api("net.jodah:failsafe:${jodahFailsafeVersion}")
-    api("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
-    api(project(":core:defaults"))
-
+    api(project(":spi:transaction-spi"))
+    implementation(project(":common:util"))
+    implementation(project(":core:defaults"))
     implementation(project(":core:policy:policy-engine"))
+    implementation(project(":extensions:dataloading"))
+
+    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    implementation("net.jodah:failsafe:${jodahFailsafeVersion}")
+    implementation("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
 
     testImplementation(project(":extensions:junit"))
     testImplementation("org.awaitility:awaitility:${awaitility}")
