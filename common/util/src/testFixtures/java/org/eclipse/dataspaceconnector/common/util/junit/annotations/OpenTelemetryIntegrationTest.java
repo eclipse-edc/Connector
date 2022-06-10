@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.common.annotations;
+package org.eclipse.dataspaceconnector.common.util.junit.annotations;
 
 import org.junit.jupiter.api.Tag;
 
@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
 /**
  * Composite annotation for OpenTelemetry integration testing. It applies specific Junit Tag.
  */
-@Target({ElementType.TYPE})
+@Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Tag("OpenTelemetryIntegrationTest")
 @IntegrationTest

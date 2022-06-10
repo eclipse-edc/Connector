@@ -26,8 +26,9 @@ dependencies {
     implementation(project(":common:util"))
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(project(":extensions:junit"))
     testImplementation(project(":core:defaults")) //used in the component test
+    testImplementation(testFixtures(project(":common:util")))
 }
 
 

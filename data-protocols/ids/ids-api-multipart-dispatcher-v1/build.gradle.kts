@@ -37,8 +37,9 @@ dependencies {
     testImplementation(project(":core:defaults"))
 
     testImplementation(project(":data-protocols:ids:ids-api-multipart-endpoint-v1"))
+
+    testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))
-    testImplementation(testFixtures(project(":launchers:junit")))
 }
 
 publishing {

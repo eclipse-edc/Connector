@@ -16,9 +16,9 @@ package org.eclipse.dataspaceconnector.system.tests.local;
 
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApiImpl;
 import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureDataFactoryIntegrationTest;
-import org.eclipse.dataspaceconnector.common.testfixtures.TestUtils;
 import org.eclipse.dataspaceconnector.core.security.azure.AzureVault;
-import org.eclipse.dataspaceconnector.junit.launcher.EdcRuntimeExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils;
 import org.jetbrains.annotations.NotNull;
@@ -133,6 +133,23 @@ public class AzureDataFactoryTransferIntegrationTest {
         CONTAINER_CLEANUP.parallelStream().forEach(Runnable::run);
     }
 
+    @NotNull
+    private static String runtimeSettingsPath() {
+        return new File(TestUtils.findBuildRoot(), "resources/azure/testing/runtime_settings.properties").getAbsolutePath();
+    }
+
+    @NotNull
+    private static Properties runtimeSettingsProperties() {
+        try (InputStream input = new FileInputStream(runtimeSettingsPath())) {
+            Properties prop = new Properties();
+            prop.load(input);
+
+            return prop;
+        } catch (IOException e) {
+            throw new RuntimeException("Error in loading runtime settings properties", e);
+        }
+    }
+
     @Test
     public void transferBlob_success() {
         // Arrange
@@ -157,22 +174,5 @@ public class AzureDataFactoryTransferIntegrationTest {
         System.setProperty(BlobTransferLocalSimulation.ACCOUNT_ENDPOINT_PROPERTY, format("https://%s.blob.core.windows.net", CONSUMER_STORAGE_ACCOUNT_NAME));
         System.setProperty(BlobTransferLocalSimulation.MAX_DURATION_SECONDS_PROPERTY, "360"); // ADF SLA is to initiate copy within 4 minutes
         runGatling(BlobTransferLocalSimulation.class, TransferSimulationUtils.DESCRIPTION);
-    }
-
-    @NotNull
-    private static String runtimeSettingsPath() {
-        return new File(TestUtils.findBuildRoot(), "resources/azure/testing/runtime_settings.properties").getAbsolutePath();
-    }
-
-    @NotNull
-    private static Properties runtimeSettingsProperties() {
-        try (InputStream input = new FileInputStream(runtimeSettingsPath())) {
-            Properties prop = new Properties();
-            prop.load(input);
-
-            return prop;
-        } catch (IOException e) {
-            throw new RuntimeException("Error in loading runtime settings properties", e);
-        }
     }
 }

@@ -26,8 +26,8 @@ dependencies {
     testImplementation(project(":core:transfer"))
     testImplementation(project(":core:defaults"))
 
-    testImplementation(testFixtures(project(":launchers:junit")))
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(project(":extensions:junit"))
+
 }
 
 publishing {

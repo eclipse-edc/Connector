@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.common.testfixtures;
+package org.eclipse.dataspaceconnector.junit.testfixtures;
 
 import okhttp3.OkHttpClient;
 
@@ -32,9 +32,9 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestUtils {
     public static final int MAX_TCP_PORT = 65_535;
+    public static final String GRADLE_WRAPPER;
     private static final String GRADLE_WRAPPER_UNIX = "gradlew";
     private static final String GRADLE_WRAPPER_WINDOWS = "gradlew.bat";
-    public static final String GRADLE_WRAPPER;
 
     static {
         GRADLE_WRAPPER = (System.getProperty("os.name").toLowerCase().contains("win")) ? GRADLE_WRAPPER_WINDOWS : GRADLE_WRAPPER_UNIX;

@@ -16,7 +16,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
-import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
+import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.core.defaults.transferprocessstore.InMemoryTransferProcessStore;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
@@ -73,7 +73,6 @@ class TransferProcessManagerImplIntegrationTest {
     private final TransferProcessStore store = new InMemoryTransferProcessStore();
     private TransferProcessManagerImpl transferProcessManager;
 
-    @SuppressWarnings("unchecked")
     @BeforeEach
     void setup() {
         var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();

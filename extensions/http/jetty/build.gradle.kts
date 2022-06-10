@@ -35,7 +35,7 @@ dependencies {
     testImplementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
     testImplementation("org.glassfish.jersey.inject:jersey-hk2:${jerseyVersion}")
     testImplementation("org.glassfish.jersey.containers:jersey-container-servlet:${jerseyVersion}")
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(project(":extensions:junit"))
 }
 
 publishing {

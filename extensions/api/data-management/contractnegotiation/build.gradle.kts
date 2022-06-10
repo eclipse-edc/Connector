@@ -30,8 +30,8 @@ dependencies {
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
-    testImplementation(testFixtures(project(":launchers:junit")))
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(project(":extensions:junit"))
+
     testImplementation(project(":common:util"))
     testImplementation(project(":extensions:http"))
     testImplementation(project(":core:defaults"))

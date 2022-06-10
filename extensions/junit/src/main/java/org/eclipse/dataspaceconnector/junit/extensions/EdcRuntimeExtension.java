@@ -13,9 +13,9 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.junit.launcher;
+package org.eclipse.dataspaceconnector.junit.extensions;
 
-import org.eclipse.dataspaceconnector.common.testfixtures.TestUtils;
+import org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -40,11 +40,12 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadMonitor;
 
 /**
- * A JUnit extension for running an embedded EDC runtime as part of a test fixture.
- * A custom gradle task printClasspath is used to determine the runtime classpath of the module to run.
- * The runtime obtains a classpath determined by the Gradle build.
+ * A JUnit extension for running an embedded EDC runtime as part of a test fixture. A custom gradle task printClasspath
+ * is used to determine the runtime classpath of the module to run. The runtime obtains a classpath determined by the
+ * Gradle build.
  * <p>
- * This extension attaches a EDC runtime to the {@link BeforeTestExecutionCallback} and {@link AfterTestExecutionCallback} lifecycle hooks. Parameter injection of runtime services is supported.
+ * This extension attaches a EDC runtime to the {@link BeforeTestExecutionCallback} and
+ * {@link AfterTestExecutionCallback} lifecycle hooks. Parameter injection of runtime services is supported.
  */
 public class EdcRuntimeExtension extends EdcExtension {
     private static final Monitor MONITOR = loadMonitor();
@@ -145,10 +146,10 @@ public class EdcRuntimeExtension extends EdcExtension {
     }
 
     /**
-     * Replace Gradle subproject JAR entries with subproject build directories in classpath.
-     * This ensures modified classes are picked up without needing to rebuild dependent JARs.
+     * Replace Gradle subproject JAR entries with subproject build directories in classpath. This ensures modified
+     * classes are picked up without needing to rebuild dependent JARs.
      *
-     * @param root           project root directory.
+     * @param root project root directory.
      * @param classPathEntry class path entry to resolve.
      * @return resolved class path entries for the input argument.
      */

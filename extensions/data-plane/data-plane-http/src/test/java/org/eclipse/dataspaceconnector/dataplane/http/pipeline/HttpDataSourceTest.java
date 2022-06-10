@@ -38,8 +38,8 @@ import java.util.stream.Collectors;
 
 import static okhttp3.Protocol.HTTP_1_1;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
 import static org.eclipse.dataspaceconnector.dataplane.http.pipeline.HttpDataSourceTest.CustomInterceptor.JSON_RESPONSE;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOkHttpClient;
 import static org.mockito.Mockito.mock;
 
 class HttpDataSourceTest {
@@ -51,6 +51,17 @@ class HttpDataSourceTest {
     private static final String TEST_QUERY_PARAMS = "foo=bar&hello=world";
 
     private CustomInterceptor interceptor;
+
+    private static String extractRequestBody(Request request) {
+        try {
+            var sink = Okio.sink(new ByteArrayOutputStream());
+            var bufferedSink = Okio.buffer(sink);
+            Objects.requireNonNull(request.body()).writeTo(bufferedSink);
+            return bufferedSink.getBuffer().readUtf8();
+        } catch (IOException e) {
+            throw new AssertionError(e);
+        }
+    }
 
     @BeforeEach
     public void setUp() {
@@ -68,7 +79,6 @@ class HttpDataSourceTest {
         assertThat(request.url()).hasToString(TEST_ENDPOINT + "/");
         assertThat(request.method()).isEqualTo(GET);
     }
-
 
     @ParameterizedTest
     @NullAndEmptySource
@@ -116,17 +126,6 @@ class HttpDataSourceTest {
         assertThat(parts.get(0).openStream()).hasContent(JSON_RESPONSE);
     }
 
-    private static String extractRequestBody(Request request) {
-        try {
-            var sink = Okio.sink(new ByteArrayOutputStream());
-            var bufferedSink = Okio.buffer(sink);
-            Objects.requireNonNull(request.body()).writeTo(bufferedSink);
-            return bufferedSink.getBuffer().readUtf8();
-        } catch (IOException e) {
-            throw new AssertionError(e);
-        }
-    }
-
     private HttpDataSource.Builder defaultBuilder() {
         var monitor = mock(Monitor.class);
         var retryPolicy = new RetryPolicy<>().withMaxAttempts(1);
@@ -138,6 +137,7 @@ class HttpDataSourceTest {
                 .requestId(UUID.randomUUID().toString())
                 .retryPolicy(retryPolicy);
     }
+
 
     static final class CustomInterceptor implements Interceptor {
 

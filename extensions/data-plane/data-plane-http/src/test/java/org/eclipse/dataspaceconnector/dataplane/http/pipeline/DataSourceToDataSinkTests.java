@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOkHttpClient;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -48,6 +48,23 @@ class DataSourceToDataSinkTests {
 
     private ExecutorService executor;
     private Monitor monitor;
+
+    /**
+     * Provides most common http error status codes.
+     *
+     * @return Http Error codes as {@link Stream} of {@link Arguments}.
+     */
+    private static Stream<Arguments> provideCommonErrorCodes() {
+        return Stream.of(
+                Arguments.of("MOVED_PERMANENTLY_301", 301),
+                Arguments.of("FOUND_302", 302),
+                Arguments.of("BAD_REQUEST_400", 400),
+                Arguments.of("UNAUTHORIZED_401", 401),
+                Arguments.of("NOT_FOUND_404", 404),
+                Arguments.of("INTERNAL_SERVER_ERROR_500", 500),
+                Arguments.of("BAD_GATEWAY_502", 502)
+        );
+    }
 
     /**
      * Verifies a sink is able to pull data from the source without exceptions if both endpoints are functioning.
@@ -131,7 +148,6 @@ class DataSourceToDataSinkTests {
         verify(sourceInterceptor).intercept(isA(Interceptor.Chain.class));
     }
 
-
     /**
      * Verifies an exception thrown by the sink endpoint is handled correctly.
      */
@@ -200,22 +216,5 @@ class DataSourceToDataSinkTests {
 
     private Request getRequest(InvocationOnMock invocation) {
         return invocation.getArgument(0, Interceptor.Chain.class).request();
-    }
-
-    /**
-     * Provides most common http error status codes.
-     *
-     * @return Http Error codes as {@link Stream} of {@link Arguments}.
-     */
-    private static Stream<Arguments> provideCommonErrorCodes() {
-        return Stream.of(
-                Arguments.of("MOVED_PERMANENTLY_301", 301),
-                Arguments.of("FOUND_302", 302),
-                Arguments.of("BAD_REQUEST_400", 400),
-                Arguments.of("UNAUTHORIZED_401", 401),
-                Arguments.of("NOT_FOUND_404", 404),
-                Arguments.of("INTERNAL_SERVER_ERROR_500", 500),
-                Arguments.of("BAD_GATEWAY_502", 502)
-        );
     }
 }

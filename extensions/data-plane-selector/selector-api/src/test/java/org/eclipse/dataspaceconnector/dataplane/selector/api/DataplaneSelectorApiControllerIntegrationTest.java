@@ -22,7 +22,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.api.exception.mappers.EdcApiExceptionMapper;
-import org.eclipse.dataspaceconnector.common.testfixtures.TestUtils;
 import org.eclipse.dataspaceconnector.dataplane.selector.DataPlaneSelectorServiceImpl;
 import org.eclipse.dataspaceconnector.dataplane.selector.core.DataPlaneSelectorImpl;
 import org.eclipse.dataspaceconnector.dataplane.selector.instance.DataPlaneInstance;
@@ -36,6 +35,7 @@ import org.eclipse.dataspaceconnector.extension.jersey.JerseyRestService;
 import org.eclipse.dataspaceconnector.extension.jetty.JettyConfiguration;
 import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
 import org.eclipse.dataspaceconnector.extension.jetty.PortMapping;
+import org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -49,9 +49,9 @@ import java.io.IOException;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
 import static org.eclipse.dataspaceconnector.dataplane.selector.TestFunctions.createInstance;
 import static org.eclipse.dataspaceconnector.dataplane.selector.TestFunctions.createInstanceBuilder;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOkHttpClient;
 import static org.mockito.Mockito.mock;
 
 class DataplaneSelectorApiControllerIntegrationTest {

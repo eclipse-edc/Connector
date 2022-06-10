@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.policy;
 
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
-import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
@@ -31,7 +31,7 @@ import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.api.datamanagement.policy.TestFunctions.createPolicy;
 import static org.eclipse.dataspaceconnector.api.datamanagement.policy.TestFunctions.createSelectorExpression;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.is;
 
 @ExtendWith(EdcExtension.class)

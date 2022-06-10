@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.junit.launcher;
+package org.eclipse.dataspaceconnector.junit.testfixtures;
 
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;

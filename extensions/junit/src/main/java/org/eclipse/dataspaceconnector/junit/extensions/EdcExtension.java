@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.junit.launcher;
+package org.eclipse.dataspaceconnector.junit.extensions;
 
 import org.eclipse.dataspaceconnector.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.dataspaceconnector.boot.system.ServiceLocator;
@@ -45,8 +45,9 @@ import java.util.Map;
 import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
 
 /**
- * A JUnit extension for running an embedded EDC runtime as part of a test fixture.
- * This extension attaches an EDC runtime to the {@link BeforeTestExecutionCallback} and {@link AfterTestExecutionCallback} lifecycle hooks. Parameter injection of runtime services is supported.
+ * A JUnit extension for running an embedded EDC runtime as part of a test fixture. This extension attaches an EDC
+ * runtime to the {@link BeforeTestExecutionCallback} and {@link AfterTestExecutionCallback} lifecycle hooks. Parameter
+ * injection of runtime services is supported.
  * <p>
  * If only basic dependency injection is needed, use {@link DependencyInjectionExtension} instead.
  */
@@ -87,23 +88,6 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
         ((MultiSourceServiceLocator) serviceLocator).clearSystemExtensions();
     }
 
-    @Override
-    protected void bootExtensions(ServiceExtensionContext context, List<InjectionContainer<ServiceExtension>> serviceExtensions) {
-        super.bootExtensions(context, serviceExtensions);
-    }
-
-    @Override
-    protected @NotNull ServiceExtensionContext createContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry) {
-        this.context = new DefaultServiceExtensionContext(typeManager, monitor, telemetry, loadConfigurationExtensions());
-        return this.context;
-    }
-
-    @Override
-    protected void initializeContext(ServiceExtensionContext context) {
-        serviceMocks.forEach((key, value) -> context.registerService(cast(key), value));
-        super.initializeContext(context);
-    }
-
     public DefaultServiceExtensionContext getContext() {
         return context;
     }
@@ -134,16 +118,33 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
         registerSystemExtension(ConfigurationExtension.class, (ConfigurationExtension) () -> ConfigFactory.fromMap(configuration));
     }
 
+    @Override
+    protected void initializeContext(ServiceExtensionContext context) {
+        serviceMocks.forEach((key, value) -> context.registerService(cast(key), value));
+        super.initializeContext(context);
+    }
+
+    @Override
+    protected void bootExtensions(ServiceExtensionContext context, List<InjectionContainer<ServiceExtension>> serviceExtensions) {
+        super.bootExtensions(context, serviceExtensions);
+    }
+
+    @Override
+    protected @NotNull ServiceExtensionContext createContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry) {
+        context = new DefaultServiceExtensionContext(typeManager, monitor, telemetry, loadConfigurationExtensions());
+        return context;
+    }
+
     /**
-     * A service locator that allows additional extensions to be manually loaded by a test fixture. This locator return the union of registered extensions and extensions loaded
-     * by the delegate.
+     * A service locator that allows additional extensions to be manually loaded by a test fixture. This locator return
+     * the union of registered extensions and extensions loaded by the delegate.
      */
     private static class MultiSourceServiceLocator implements ServiceLocator {
         private final ServiceLocator delegate = new ServiceLocatorImpl();
         private final LinkedHashMap<Class<? extends SystemExtension>, List<SystemExtension>> systemExtensions;
 
         MultiSourceServiceLocator() {
-            this.systemExtensions  = new LinkedHashMap<>();
+            systemExtensions = new LinkedHashMap<>();
         }
 
         @Override

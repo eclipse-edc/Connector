@@ -27,8 +27,8 @@ dependencies {
     implementation("com.azure.resourcemanager:azure-resourcemanager-authorization:${azureResourceManagerVersion}")
 
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))
-    testImplementation(testFixtures(project(":common:util")))
-    testImplementation(testFixtures(project(":launchers:junit")))
+
+    testImplementation(project(":extensions:junit"))
 }
 
 publishing {

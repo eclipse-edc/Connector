@@ -29,13 +29,14 @@ dependencies {
     implementation(project(":extensions:sql:common-sql"))
     implementation(project(":extensions:sql:lease-sql"))
 
-    testImplementation(testFixtures(project(":common:util")))
-    testImplementation(testFixtures(project(":launchers:junit")))
+
+    testImplementation(project(":extensions:junit"))
     testImplementation(project(":core:base"))
     testImplementation(project(":core:contract"))
     testImplementation(testFixtures(project(":extensions:sql:lease-sql")))
     testImplementation("com.h2database:h2:${h2Version}")
     testImplementation("org.assertj:assertj-core:${assertj}")
+    testImplementation(testFixtures(project(":common:util")))
 }
 
 publishing {

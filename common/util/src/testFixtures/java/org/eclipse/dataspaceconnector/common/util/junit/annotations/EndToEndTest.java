@@ -8,14 +8,13 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - initial API and implementation
+ *       Microsoft Corporation - initial implementation
  *
  */
 
-package org.eclipse.dataspaceconnector.common.annotations;
+package org.eclipse.dataspaceconnector.common.util.junit.annotations;
 
 import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -23,11 +22,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Common annotation for tests related to performance testing. It applies PerformanceTest Junit Tag.
+ * Annotation for End to End integration testing, when the entire system is involved in a test. It applies a specific
+ * Junit Tag.
  */
-@Target({ElementType.TYPE})
+@Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-@Test
-@Tag("PerformanceTest")
-public @interface PerformanceTest {
+@IntegrationTest
+@Tag("EndToEndTest")
+public @interface EndToEndTest {
 }

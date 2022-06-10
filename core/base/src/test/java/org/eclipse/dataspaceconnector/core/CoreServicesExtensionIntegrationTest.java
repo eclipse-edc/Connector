@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.core;
 
-import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.system.Hostname;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

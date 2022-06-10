@@ -16,7 +16,7 @@
 
 package org.eclipse.dataspaceconnector.system.tests.local;
 
-import org.eclipse.dataspaceconnector.junit.launcher.EdcRuntimeExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcRuntimeExtension;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Map;

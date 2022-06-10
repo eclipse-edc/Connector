@@ -22,7 +22,6 @@ val awaitility: String by project
 val jodahFailsafeVersion: String by project
 val jupiterVersion: String by project
 val okHttpVersion: String by project
-val bouncycastleVersion: String by project
 
 dependencies {
     api(project(":spi:core-spi"))
@@ -30,7 +29,7 @@ dependencies {
 
     api(project(":common:util"))
 
-    testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(project(":extensions:junit"))
     testImplementation("org.awaitility:awaitility:${awaitility}")
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testImplementation(project(":core:contract")) // for ContractId
