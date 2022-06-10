@@ -59,7 +59,7 @@ class AssetServiceImplTest {
 
         var asset = service.findById("assetId");
 
-        String assetId = "assetId";
+        var assetId = "assetId";
         assertThat(asset).isNotNull().matches(hasId(assetId));
     }
 
@@ -86,6 +86,7 @@ class AssetServiceImplTest {
         assertThat(inserted.succeeded()).isTrue();
         assertThat(inserted.getContent()).matches(hasId(assetId));
         verify(loader).accept(argThat(it -> assetId.equals(it.getId())), argThat(it -> addressType.equals(it.getType())));
+        verify(observable).invokeForEach(any());
     }
 
     @Test

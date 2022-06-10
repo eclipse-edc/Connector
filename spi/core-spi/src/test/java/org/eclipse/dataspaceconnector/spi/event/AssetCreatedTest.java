@@ -35,7 +35,6 @@ class AssetCreatedTest {
                 .build();
 
         var json = typeManager.writeValueAsString(event);
-        System.out.println(json);
         var deserialized = typeManager.readValue(json, Event.class);
 
         assertThat(deserialized)

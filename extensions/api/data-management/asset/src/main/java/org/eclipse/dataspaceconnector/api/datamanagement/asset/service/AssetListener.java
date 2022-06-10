@@ -24,7 +24,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 public interface AssetListener {
 
     /**
-     * Called afer a {@link Asset} has created.
+     * Called after a {@link Asset} was created.
      *
      * @param asset the asset that has been created.
      */
@@ -33,7 +33,7 @@ public interface AssetListener {
     }
 
     /**
-     * Called afer a {@link Asset} has deleted.
+     * Called after a {@link Asset} was deleted.
      *
      * @param asset the asset that has been deleted.
      */

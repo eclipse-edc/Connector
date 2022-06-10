@@ -4,13 +4,13 @@ EDC provides an eventing system that permits the developer to write extensions t
 emitted from the core of the EDC and also emit custom events.
 
 ## Subscribe to events
-The entry point for event listening is the `EventRouter` component, on which an `EventSubscribed` can be registered.
+The entry point for event listening is the `EventRouter` component, on which an `EventSubscriber` can be registered.
 
 Extension example:
 ```java
-public class ExampleEventSubscriptionExtension implements ServiceExtension{
+public class ExampleEventSubscriptionExtension implements ServiceExtension {
     @Inject
-    EventRouter eventRouter;
+    private EventRouter eventRouter;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -101,13 +101,15 @@ public class ExampleBusinessLogic {
     }    
 }
 ```
-Please note that the `at` field gives a timestamp to every event, and it's mandatory (please use the `Clock` service to get the current timestamp).
+Please note that the `at` field is a timestamp that every event has, and it's mandatory 
+(please use the `Clock` service to get the current timestamp).
 
 ## Serialization / Deserialization
 
-By default, every class that extends `Event` will be by default serialized to json (through the `TypeManager` service) 
-with an additional field called `type` that describes the name of the event class. For example, a serialized `SomethingHappened`
-instance will look like:
+By default, events must be serializable, because of this, every class that extends `Event` will be serializable to json by default 
+(through the `TypeManager` service). 
+The json will contain an additional field called `type` that describes the name of the event class. For example, a serialized `SomethingHappened`
+event will look like:
 ```json
 {
   "type": "SomethingHappened",
