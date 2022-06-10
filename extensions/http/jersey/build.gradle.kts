@@ -35,7 +35,7 @@ dependencies {
     implementation("org.eclipse.jetty.toolchain:jetty-jakarta-servlet-api:5.0.2")
 
     testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(project(":extensions:junit"))
 }
 
 publishing {

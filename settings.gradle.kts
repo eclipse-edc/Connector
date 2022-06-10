@@ -19,6 +19,7 @@ rootProject.name = "dataspaceconnector"
 // modules for common/util code
 
 include(":common:util")
+include(":extensions:junit")
 include(":common:state-machine-lib")
 include(":common:token-generation-lib")
 include(":common:token-validation-lib")
@@ -94,8 +95,6 @@ include(":extensions:iam:decentralized-identity:identity-did-core")
 include(":extensions:iam:decentralized-identity:identity-did-service")
 include(":extensions:iam:decentralized-identity:identity-did-web")
 include(":extensions:iam:decentralized-identity:identity-did-crypto")
-include(":extensions:iam:decentralized-identity:registration-service")
-include(":extensions:iam:decentralized-identity:registration-service-api")
 include(":extensions:iam:decentralized-identity:identity-common-test")
 include(":extensions:iam:decentralized-identity:dummy-credentials-verifier")
 include(":extensions:catalog:federated-catalog-cache")
@@ -143,10 +142,8 @@ include(":extensions:sql:pool:apache-commons-pool-sql")
 include(":extensions:sql:transfer-process-store-sql")
 
 // modules for launchers, i.e. runnable compositions of the app
-include(":launchers:junit")
 include(":launchers:test")
 include(":launchers:ids-connector")
-include(":launchers:registration-service-app")
 include(":launchers:data-loader-cli")
 include(":launchers:dpf-selector")
 include(":launchers:data-plane-server")

@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.transfer.provision.http.webhook;
 
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.dataspaceconnector.api.auth.AuthenticationService;
-import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.anything;
 import static org.hamcrest.Matchers.containsString;
@@ -130,6 +130,18 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
                 .body(anything());
     }
 
+    private DataAddress dataAddress() {
+        return DataAddress.Builder.newInstance().type("foo").build();
+    }
+
+    private RequestSpecification baseRequest() {
+        return given()
+                .baseUri("http://localhost:" + port)
+                .basePath(PROVISIONER_BASE_PATH)
+                .header("x-api-key", authKey)
+                .when();
+    }
+
     private static class InvalidRequestParams implements ArgumentsProvider {
 
         @Override
@@ -146,18 +158,6 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
         private DataAddress dataAddress() {
             return DataAddress.Builder.newInstance().type("foo").build();
         }
-    }
-
-    private DataAddress dataAddress() {
-        return DataAddress.Builder.newInstance().type("foo").build();
-    }
-
-    private RequestSpecification baseRequest() {
-        return given()
-                .baseUri("http://localhost:" + port)
-                .basePath(PROVISIONER_BASE_PATH)
-                .header("x-api-key", authKey)
-                .when();
     }
 
     @Provides(AuthenticationService.class)

@@ -21,9 +21,9 @@ import com.github.javafaker.Faker;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.restassured.specification.RequestSpecification;
-import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
+import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants;
-import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
@@ -51,7 +51,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.once;
 import static org.mockserver.model.HttpRequest.request;
@@ -113,27 +113,6 @@ public class DataPlaneHttpPullIntegrationTests {
         stopQuietly(validationClientAndServer);
     }
 
-    @BeforeEach
-    void setProperties(EdcExtension extension) {
-        extension.registerSystemExtension(ConfigurationExtension.class, (ConfigurationExtension) () -> ConfigFactory.fromMap(props));
-    }
-
-    /**
-     * Reset mock server internal state after every test.
-     */
-    @AfterEach
-    public void resetMockServer() {
-        httpSourceClientAndServer.reset();
-        validationClientAndServer.reset();
-    }
-
-    @ParameterizedTest(name = "{index} {0}")
-    @MethodSource("providerTestInstances")
-    void test(String name, TestInstance instance) throws JsonProcessingException {
-        instance.execute();
-    }
-
-
     private static Stream<Arguments> providerTestInstances() {
         var get = new TestInstance(HttpMethod.GET.name());
 
@@ -161,17 +140,36 @@ public class DataPlaneHttpPullIntegrationTests {
         );
     }
 
+    @BeforeEach
+    void setProperties(EdcExtension extension) {
+        extension.registerSystemExtension(ConfigurationExtension.class, (ConfigurationExtension) () -> ConfigFactory.fromMap(props));
+    }
+
+    /**
+     * Reset mock server internal state after every test.
+     */
+    @AfterEach
+    public void resetMockServer() {
+        httpSourceClientAndServer.reset();
+        validationClientAndServer.reset();
+    }
+
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("providerTestInstances")
+    void test(String name, TestInstance instance) throws JsonProcessingException {
+        instance.execute();
+    }
+
     /**
      * One test instance for the parameterized test.
      */
     private static final class TestInstance {
         private final String token = FAKER.internet().uuid();
-        private DataAddress dataSource = testHttpSource();
         private final Map<String, String> sourceResponse = Map.of("some", "info");
-
         private final String method;
         private final RequestSpecification dataplaneRequest;
         private final HttpRequest expectedSourceRequest;
+        private DataAddress dataSource = testHttpSource();
 
         TestInstance(String method) {
             this.method = method;
@@ -228,8 +226,8 @@ public class DataPlaneHttpPullIntegrationTests {
         }
 
         /**
-         * Prepare the validation server to make it return the desired source data address embedded within a {@link ClaimToken}
-         * in exchange for the input token that is used in input of the DPF public API request.
+         * Prepare the validation server to make it return the desired source data address embedded within a
+         * {@link ClaimToken} in exchange for the input token that is used in input of the DPF public API request.
          */
         private void setUpValidationServer() throws JsonProcessingException {
             var claimToken = ClaimToken.Builder.newInstance()
@@ -245,7 +243,7 @@ public class DataPlaneHttpPullIntegrationTests {
         /**
          * Mock plain text response from source.
          *
-         * @param statusCode   Response status code.
+         * @param statusCode Response status code.
          * @param responseBody Response body.
          * @return see {@link HttpResponse}
          */

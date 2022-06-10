@@ -21,7 +21,7 @@ dependencies {
     api(project(":core"))
     api(project(":extensions:aws:s3:s3-core"))
 
-    testImplementation(testFixtures(project(":common:util")))
+
     testImplementation(testFixtures(project(":extensions:aws:aws-test")))
 }
 

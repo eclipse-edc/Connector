@@ -29,7 +29,7 @@ dependencies {
 
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))
     testImplementation(testFixtures(project(":extensions:azure:blobstorage:blob-core")))
-    testImplementation(testFixtures(project(":common:util")))
+
 }
 
 publishing {

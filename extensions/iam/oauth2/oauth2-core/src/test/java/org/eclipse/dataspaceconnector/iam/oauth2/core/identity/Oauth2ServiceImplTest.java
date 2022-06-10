@@ -37,12 +37,14 @@ import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
+import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOkHttpClient;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -55,6 +57,7 @@ class Oauth2ServiceImplTest {
     private static final String PUBLIC_CERTIFICATE_ALIAS = "cert-test";
     private static final String PROVIDER_AUDIENCE = "audience-test";
 
+    private Instant now = Instant.now();
     private Oauth2ServiceImpl authService;
     private JWSSigner jwsSigner;
 
@@ -78,7 +81,8 @@ class Oauth2ServiceImplTest {
                 .identityProviderKeyResolver(publicKeyResolverMock)
                 .build();
 
-        var validationRulesRegistry = new Oauth2ValidationRulesRegistryImpl(configuration);
+        var clock = Clock.fixed(now, UTC);
+        var validationRulesRegistry = new Oauth2ValidationRulesRegistryImpl(configuration, clock);
         var tokenValidationService = new TokenValidationServiceImpl(publicKeyResolverMock, validationRulesRegistry);
 
         authService = new Oauth2ServiceImpl(configuration, mock(TokenGenerationService.class), testOkHttpClient(), new JwtDecoratorRegistryImpl(), new TypeManager(), tokenValidationService);
@@ -86,7 +90,7 @@ class Oauth2ServiceImplTest {
 
     @Test
     void verifyNoAudienceToken() {
-        var jwt = createJwt(null, Date.from(Instant.now().minusSeconds(1000)), Date.from(Instant.now().plusSeconds(1000)));
+        var jwt = createJwt(null, Date.from(now.minusSeconds(1000)), Date.from(now.plusSeconds(1000)));
 
         var result = authService.verifyJwtToken(jwt.serialize());
 
@@ -96,7 +100,7 @@ class Oauth2ServiceImplTest {
 
     @Test
     void verifyInvalidAudienceToken() {
-        var jwt = createJwt("different.audience", Date.from(Instant.now().minusSeconds(1000)), Date.from(Instant.now().plusSeconds(1000)));
+        var jwt = createJwt("different.audience", Date.from(now.minusSeconds(1000)), Date.from(now.plusSeconds(1000)));
 
         var result = authService.verifyJwtToken(jwt.serialize());
 
@@ -106,7 +110,7 @@ class Oauth2ServiceImplTest {
 
     @Test
     void verifyInvalidAttemptUseNotBeforeToken() {
-        var jwt = createJwt(PROVIDER_AUDIENCE, Date.from(Instant.now().plusSeconds(1000)), Date.from(Instant.now().plusSeconds(1000)));
+        var jwt = createJwt(PROVIDER_AUDIENCE, Date.from(now.plusSeconds(1000)), Date.from(now.plusSeconds(1000)));
 
         var result = authService.verifyJwtToken(jwt.serialize());
 
@@ -116,7 +120,7 @@ class Oauth2ServiceImplTest {
 
     @Test
     void verifyExpiredToken() {
-        var jwt = createJwt(PROVIDER_AUDIENCE, Date.from(Instant.now().minusSeconds(1000)), Date.from(Instant.now().minusSeconds(1000)));
+        var jwt = createJwt(PROVIDER_AUDIENCE, Date.from(now.minusSeconds(1000)), Date.from(now.minusSeconds(1000)));
 
         var result = authService.verifyJwtToken(jwt.serialize());
 
@@ -126,7 +130,7 @@ class Oauth2ServiceImplTest {
 
     @Test
     void verifyValidJwt() {
-        var jwt = createJwt(PROVIDER_AUDIENCE, Date.from(Instant.now().minusSeconds(1000)), new Date(System.currentTimeMillis() + 1000000));
+        var jwt = createJwt(PROVIDER_AUDIENCE, Date.from(now.minusSeconds(1000)), new Date(System.currentTimeMillis() + 1000000));
 
         var result = authService.verifyJwtToken(jwt.serialize());
 

@@ -29,7 +29,7 @@ dependencies {
     implementation("net.jodah:failsafe:${jodahFailsafeVersion}")
 
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))
-    testImplementation(testFixtures(project(":common:util")))
+
 }
 
 

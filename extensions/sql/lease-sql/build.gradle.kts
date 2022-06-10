@@ -29,7 +29,7 @@ dependencies {
     api(project(":extensions:sql:common-sql"))
 
 
-    testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(project(":extensions:junit"))
     testImplementation(project(":core:base"))
     testImplementation(project(":extensions:transaction:transaction-local"))
     testImplementation(testFixtures(project(":extensions:sql:lease-sql")))

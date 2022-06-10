@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.transfer.functions.core;
 import okhttp3.MediaType;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -50,16 +50,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(EdcExtension.class)
 public class TransferFunctionsCoreHttpTest {
 
-    @BeforeEach
-    protected void before(EdcExtension extension) {
-        extension.setConfiguration(Map.of(ENABLED_PROTOCOLS_KEY, "test-protocol1"));
-
-        // register a wait strategy of 1ms to speed up the interval between transfer manager iterations
-        extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
-
-        extension.registerSystemExtension(ServiceExtension.class, new MockServiceExtension());
-    }
-
     @Test
     void verifyHttpFlowControllerInvoked(TransferProcessManager processManager, TransferFunctionInterceptorRegistry registry) throws InterruptedException {
 
@@ -90,7 +80,17 @@ public class TransferFunctionsCoreHttpTest {
         assertThat(latch.await(1, TimeUnit.MINUTES)).isTrue();
     }
 
-    @Provides({DataAddressResolver.class})
+    @BeforeEach
+    protected void before(EdcExtension extension) {
+        extension.setConfiguration(Map.of(ENABLED_PROTOCOLS_KEY, "test-protocol1"));
+
+        // register a wait strategy of 1ms to speed up the interval between transfer manager iterations
+        extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
+
+        extension.registerSystemExtension(ServiceExtension.class, new MockServiceExtension());
+    }
+
+    @Provides({ DataAddressResolver.class })
     private static class MockServiceExtension implements ServiceExtension {
 
         // TODO remove this when https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/569 is resolved

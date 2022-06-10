@@ -18,18 +18,20 @@ import org.eclipse.dataspaceconnector.spi.command.CommandHandler;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 
+import java.time.Clock;
 import java.time.Duration;
 
 import static java.lang.String.format;
-import static java.time.Instant.now;
 import static java.time.Instant.ofEpochMilli;
 
 public class CheckTimeoutCommandHandler implements CommandHandler<CheckTransferProcessTimeoutCommand> {
     private final TransferProcessStore store;
     private final Monitor monitor;
+    private final Clock clock;
 
-    public CheckTimeoutCommandHandler(TransferProcessStore store, Monitor monitor) {
+    public CheckTimeoutCommandHandler(TransferProcessStore store, Clock clock, Monitor monitor) {
         this.store = store;
+        this.clock = clock;
         this.monitor = monitor;
     }
 
@@ -52,7 +54,7 @@ public class CheckTimeoutCommandHandler implements CommandHandler<CheckTransferP
     }
 
     private boolean isExpired(long stateTimestamp, Duration maxAge) {
-        return ofEpochMilli(stateTimestamp).isBefore(now().minus(maxAge));
+        return ofEpochMilli(stateTimestamp).isBefore(clock.instant().minus(maxAge));
     }
 
 }

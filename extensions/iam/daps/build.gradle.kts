@@ -30,8 +30,9 @@ dependencies {
     testImplementation(project(":extensions:filesystem:vault-fs"))
     testImplementation(project(":extensions:iam:oauth2:oauth2-core"))
 
+
+    testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))
-    testImplementation(testFixtures(project(":launchers:junit")))
 }
 
 publishing {

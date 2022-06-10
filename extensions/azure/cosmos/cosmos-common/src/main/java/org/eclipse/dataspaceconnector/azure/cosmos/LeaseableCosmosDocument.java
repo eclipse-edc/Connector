@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.azure.cosmos;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.eclipse.dataspaceconnector.spi.persistence.Lease;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -61,22 +62,24 @@ public abstract class LeaseableCosmosDocument<T> extends CosmosDocument<T> {
      * Tries to lock down the document to avoid concurrent modification. No database modification takes place yet.
      *
      * @param leaseBy The ID of the connector that attempts acquiring the lease.
+     * @param clock   Clock used to get current time
      * @throws IllegalStateException if the {@link LeaseableCosmosDocument} has been leased before by a different connector
      */
-    public void acquireLease(String leaseBy) {
-        acquireLease(leaseBy, Duration.ofSeconds(60));
+    public void acquireLease(String leaseBy, Clock clock) {
+        acquireLease(leaseBy, clock, Duration.ofSeconds(60));
     }
 
     /**
      * Tries to lock down the TransferProcess to avoid concurrent modification. No database modification takes place yet
      *
      * @param leaseBy       The ID of the connector that attempts acquiring the lease.
+     * @param clock         Clock used to get current time
      * @param leaseDuration How long the lease should be valid
      * @throws IllegalStateException if the {@link LeaseableCosmosDocument} has been leased before by a different connector
      */
-    public void acquireLease(String leaseBy, Duration leaseDuration) {
+    public void acquireLease(String leaseBy, Clock clock, Duration leaseDuration) {
         if (lease == null || lease.getLeasedBy().equals(leaseBy)) {
-            lease = new Lease(leaseBy, Instant.now().toEpochMilli(), leaseDuration.toMillis());
+            lease = new Lease(leaseBy, clock.millis(), leaseDuration.toMillis());
         } else {
             var startDate = Instant.ofEpochMilli(lease.getLeasedAt());
             var endDate = startDate.plusSeconds(lease.getLeaseDuration());

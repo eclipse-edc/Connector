@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.test.e2e;
 
-import org.eclipse.dataspaceconnector.junit.launcher.EdcRuntimeExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.test.e2e.postgresql.PostgresqlDbIntegrationTest;
 import org.eclipse.dataspaceconnector.test.e2e.postgresql.PostgresqlLocalInstance;
@@ -99,11 +99,11 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
         PostgresqlLocalInstance.createDatabase(consumer.getName());
 
         var scripts = Stream.of(
-                "asset-index-sql",
-                "contract-definition-store-sql",
-                "contract-negotiation-store-sql",
-                "policy-store-sql",
-                "transfer-process-store-sql")
+                        "asset-index-sql",
+                        "contract-definition-store-sql",
+                        "contract-negotiation-store-sql",
+                        "policy-store-sql",
+                        "transfer-process-store-sql")
                 .map(module -> "../../../extensions/sql/" + module + "/docs/schema.sql")
                 .map(Paths::get)
                 .collect(Collectors.toList());

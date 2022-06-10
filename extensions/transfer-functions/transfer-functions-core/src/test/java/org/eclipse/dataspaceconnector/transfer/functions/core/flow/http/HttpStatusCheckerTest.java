@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 
 import static okhttp3.Protocol.HTTP_1_1;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOkHttpClient;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;

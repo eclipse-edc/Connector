@@ -22,10 +22,10 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import org.apache.http.HttpStatus;
-import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
+import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore.State;
-import org.eclipse.dataspaceconnector.junit.launcher.EdcRuntimeExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -53,9 +53,9 @@ import static java.lang.String.format;
 import static java.lang.String.valueOf;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures.createDataAddress;
 import static org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures.createRequest;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
@@ -101,16 +101,6 @@ public class DataPlaneHttpIntegrationTests {
     private static final String AUTH_HEADER_KEY = HttpHeaderNames.AUTHORIZATION.toString();
     private static final String SOURCE_AUTH_VALUE = FAKER.lorem().word();
     private static final String SINK_AUTH_VALUE = FAKER.lorem().word();
-
-    /**
-     * HTTP Source mock server.
-     */
-    private static ClientAndServer httpSourceClientAndServer;
-    /**
-     * HTTP Sink mock server.
-     */
-    private static ClientAndServer httpSinkClientAndServer;
-
     @RegisterExtension
     static EdcRuntimeExtension consumer = new EdcRuntimeExtension(
             ":launchers:data-plane-server",
@@ -120,6 +110,14 @@ public class DataPlaneHttpIntegrationTests {
                     "web.http.control.port", valueOf(DPF_CONTROL_API_PORT),
                     "web.http.control.path", CONTROL_PATH
             ));
+    /**
+     * HTTP Source mock server.
+     */
+    private static ClientAndServer httpSourceClientAndServer;
+    /**
+     * HTTP Sink mock server.
+     */
+    private static ClientAndServer httpSinkClientAndServer;
 
     @BeforeAll
     public static void setUp() {

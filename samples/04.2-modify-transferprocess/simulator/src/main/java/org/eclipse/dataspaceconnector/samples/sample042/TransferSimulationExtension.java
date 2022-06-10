@@ -51,7 +51,7 @@ public class TransferSimulationExtension implements ServiceExtension {
                                 .id("tp-sample-04.2")
                                 .dataRequest(getRequest())
                                 .state(TransferProcessStates.IN_PROGRESS.code())
-                                .stateTimestamp(System.currentTimeMillis() - ALMOST_TEN_MINUTES)
+                                .stateTimestamp(context.getClock().millis() - ALMOST_TEN_MINUTES)
                                 .build();
                         tp.addProvisionedResource(createDummyResource());
 

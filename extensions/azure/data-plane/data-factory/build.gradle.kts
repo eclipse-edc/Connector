@@ -16,6 +16,7 @@ val azureIdentityVersion: String by project
 val azureResourceManagerVersion: String by project
 val awaitility: String by project
 val azureResourceManagerDataFactory: String by project
+val bouncycastleVersion: String by project
 
 plugins {
     `java-library`
@@ -37,9 +38,10 @@ dependencies {
     testImplementation(project(":extensions:azure:resource-manager"))
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))
     testImplementation(testFixtures(project(":extensions:azure:blobstorage:blob-core")))
-    testImplementation(testFixtures(project(":common:util")))
-    testImplementation(testFixtures(project(":launchers:junit")))
+
+    testImplementation(project(":extensions:junit"))
     testImplementation("org.awaitility:awaitility:${awaitility}")
+    testImplementation("org.bouncycastle:bcprov-jdk15on:${bouncycastleVersion}")
 }
 
 publishing {

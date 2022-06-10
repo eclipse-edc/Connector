@@ -28,7 +28,8 @@ dependencies {
     implementation(project(":common:util"))
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("net.jodah:failsafe:${jodahFailsafeVersion}")
-    testImplementation(testFixtures(project(":common:util")))
+
+    testImplementation(project(":extensions:junit"))
     testFixturesImplementation("com.github.javafaker:javafaker:${faker}")
     testFixturesImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     testImplementation("io.rest-assured:rest-assured:${restAssured}")

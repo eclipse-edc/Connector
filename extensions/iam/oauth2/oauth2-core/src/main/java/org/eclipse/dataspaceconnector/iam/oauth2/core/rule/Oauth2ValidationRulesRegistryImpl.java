@@ -18,12 +18,14 @@ import org.eclipse.dataspaceconnector.common.token.TokenValidationRulesRegistryI
 import org.eclipse.dataspaceconnector.iam.oauth2.core.Oauth2Configuration;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.Oauth2ValidationRulesRegistry;
 
+import java.time.Clock;
+
 /**
  * Registry for Oauth2 validation rules.
  */
 public class Oauth2ValidationRulesRegistryImpl extends TokenValidationRulesRegistryImpl implements Oauth2ValidationRulesRegistry {
 
-    public Oauth2ValidationRulesRegistryImpl(Oauth2Configuration configuration) {
-        this.addRule(new Oauth2ValidationRule(configuration));
+    public Oauth2ValidationRulesRegistryImpl(Oauth2Configuration configuration, Clock clock) {
+        this.addRule(new Oauth2ValidationRule(configuration, clock));
     }
 }

@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOkHttpClient;
 import static org.mockito.Mockito.mock;
 
 class JettyServiceTest {
@@ -193,17 +193,6 @@ class JettyServiceTest {
         }
     }
 
-    /**
-     * Maps (JAX-RS resource) instances to types.
-     */
-    private class TestBinder extends AbstractBinder {
-
-        @Override
-        protected void configure() {
-            bind(testController).to(TestController.class);
-        }
-    }
-
     private static class JettyListener extends AbstractLifeCycle implements Connection.Listener {
 
         private final AtomicInteger connectionsOpened = new AtomicInteger();
@@ -219,6 +208,17 @@ class JettyServiceTest {
 
         public int getConnectionsOpened() {
             return connectionsOpened.intValue();
+        }
+    }
+
+    /**
+     * Maps (JAX-RS resource) instances to types.
+     */
+    private class TestBinder extends AbstractBinder {
+
+        @Override
+        protected void configure() {
+            bind(testController).to(TestController.class);
         }
     }
 }

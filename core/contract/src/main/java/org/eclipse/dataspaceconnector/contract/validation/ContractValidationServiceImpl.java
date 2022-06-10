@@ -31,7 +31,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDe
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.ArrayList;
 
 import static java.lang.String.format;
@@ -47,12 +47,14 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     private final ContractDefinitionService contractDefinitionService;
     private final AssetIndex assetIndex;
     private final PolicyDefinitionStore policyStore;
+    private final Clock clock;
 
-    public ContractValidationServiceImpl(ParticipantAgentService agentService, ContractDefinitionService contractDefinitionService, AssetIndex assetIndex, PolicyDefinitionStore policyStore) {
+    public ContractValidationServiceImpl(ParticipantAgentService agentService, ContractDefinitionService contractDefinitionService, AssetIndex assetIndex, PolicyDefinitionStore policyStore, Clock clock) {
         this.agentService = agentService;
         this.contractDefinitionService = contractDefinitionService;
         this.assetIndex = assetIndex;
         this.policyStore = policyStore;
+        this.clock = clock;
     }
 
     @Override
@@ -143,11 +145,11 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     private boolean isExpired(ContractAgreement contractAgreement) {
-        return contractAgreement.getContractEndDate() < Instant.now().getEpochSecond();
+        return contractAgreement.getContractEndDate() * 1000L < clock.millis();
     }
 
     private boolean isStarted(ContractAgreement contractAgreement) {
-        return contractAgreement.getContractStartDate() <= Instant.now().getEpochSecond();
+        return contractAgreement.getContractStartDate() * 1000L <= clock.millis();
     }
 
     private boolean isMandatoryAttributeMissing(ContractOffer offer) {

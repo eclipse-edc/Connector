@@ -41,8 +41,8 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOkHttpClient;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.TestFixtures.createDataFlowRequest;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -62,14 +62,12 @@ class RemoteDataPlaneTransferClientTest {
     private static final int DATA_PLANE_API_PORT = getFreePort();
     private static final String DATA_PLANE_PATH = "/transfer";
     private static final String DATA_PLANE_API_URI = "http://localhost:" + DATA_PLANE_API_PORT + DATA_PLANE_PATH;
-
-    private DataPlaneSelectorClient selectorClientMock;
-    private DataPlaneTransferClient transferClient;
-
     /**
      * Data plane mock server.
      */
     private static ClientAndServer dataPlaneClientAndServer;
+    private DataPlaneSelectorClient selectorClientMock;
+    private DataPlaneTransferClient transferClient;
 
     @BeforeAll
     public static void setUp() {

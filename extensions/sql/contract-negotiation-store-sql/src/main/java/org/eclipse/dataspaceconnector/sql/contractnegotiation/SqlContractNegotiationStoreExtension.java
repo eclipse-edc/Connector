@@ -25,6 +25,8 @@ import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.ContractNego
 import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.PostgresStatements;
 import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.SqlContractNegotiationStore;
 
+import java.time.Clock;
+
 @Provides({ ContractNegotiationStore.class })
 public class SqlContractNegotiationStoreExtension implements ServiceExtension {
 
@@ -37,12 +39,15 @@ public class SqlContractNegotiationStoreExtension implements ServiceExtension {
     @Inject
     private TransactionContext trxContext;
 
+    @Inject
+    private Clock clock;
+
     @Inject(required = false)
     private ContractNegotiationStatements statements;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var sqlStore = new SqlContractNegotiationStore(dataSourceRegistry, getDataSourceName(context), trxContext, context.getTypeManager(), getStatementImpl(), context.getConnectorId());
+        var sqlStore = new SqlContractNegotiationStore(dataSourceRegistry, getDataSourceName(context), trxContext, context.getTypeManager(), getStatementImpl(), context.getConnectorId(), clock);
         context.registerService(ContractNegotiationStore.class, sqlStore);
     }
 

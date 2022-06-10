@@ -29,8 +29,8 @@ dependencies {
     testImplementation(project(":extensions:http"))
     testImplementation(project(":extensions:data-plane-selector:selector-api"))
     testImplementation(project(":extensions:api:api-core"))
-    testImplementation(testFixtures(project(":common:util")))
-    testImplementation(testFixtures(project(":launchers:junit")))
+
+    testImplementation(project(":extensions:junit"))
 }
 
 publishing {

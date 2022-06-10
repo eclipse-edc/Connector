@@ -35,8 +35,8 @@ dependencies {
     testImplementation(project(":extensions:http"))
     testImplementation(project(":core:defaults"))
     testImplementation(project(":extensions:transaction:transaction-local"))
-    testImplementation(testFixtures(project(":common:util")))
-    testImplementation(testFixtures(project(":launchers:junit")))
+
+    testImplementation(project(":extensions:junit"))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
 }
 

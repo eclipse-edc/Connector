@@ -25,21 +25,20 @@ val azureKeyVaultVersion: String by project
 
 dependencies {
     testImplementation("io.gatling.highcharts:gatling-charts-highcharts:${gatlingVersion}") {
-        exclude(group = "io.gatling", module="gatling-jms")
-        exclude(group = "io.gatling", module="gatling-jms-java")
-        exclude(group = "io.gatling", module="gatling-mqtt")
-        exclude(group = "io.gatling", module="gatling-mqtt-java")
-        exclude(group = "io.gatling", module="gatling-jdbc")
-        exclude(group = "io.gatling", module="gatling-jdbc-java")
-        exclude(group = "io.gatling", module="gatling-redis")
-        exclude(group = "io.gatling", module="gatling-redis-java")
-        exclude(group = "io.gatling", module="gatling-graphite")
+        exclude(group = "io.gatling", module = "gatling-jms")
+        exclude(group = "io.gatling", module = "gatling-jms-java")
+        exclude(group = "io.gatling", module = "gatling-mqtt")
+        exclude(group = "io.gatling", module = "gatling-mqtt-java")
+        exclude(group = "io.gatling", module = "gatling-jdbc")
+        exclude(group = "io.gatling", module = "gatling-jdbc-java")
+        exclude(group = "io.gatling", module = "gatling-redis")
+        exclude(group = "io.gatling", module = "gatling-redis-java")
+        exclude(group = "io.gatling", module = "gatling-graphite")
     }
 
     testImplementation(project(":extensions:azure:blobstorage:blob-core"))
     testImplementation(project(":extensions:azure:vault"))
-    testImplementation(testFixtures(project(":common:util")))
-    testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":system-tests:tests")))
     testImplementation(testFixtures(project(":system-tests:azure-tests")))
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))

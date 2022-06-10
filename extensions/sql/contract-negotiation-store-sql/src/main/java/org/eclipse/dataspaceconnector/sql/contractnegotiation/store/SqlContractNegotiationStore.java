@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Instant;
+import java.time.Clock;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -52,14 +52,16 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
     private final TransactionContext transactionContext;
     private final ContractNegotiationStatements statements;
     private final SqlLeaseContextBuilder leaseContext;
+    private final Clock clock;
 
-    public SqlContractNegotiationStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, TypeManager manager, ContractNegotiationStatements statements, String connectorId) {
+    public SqlContractNegotiationStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, TypeManager manager, ContractNegotiationStatements statements, String connectorId, Clock clock) {
         typeManager = manager;
         this.dataSourceRegistry = dataSourceRegistry;
         this.dataSourceName = dataSourceName;
         this.transactionContext = transactionContext;
         this.statements = statements;
-        leaseContext = SqlLeaseContextBuilder.with(transactionContext, connectorId, statements);
+        this.clock = clock;
+        leaseContext = SqlLeaseContextBuilder.with(transactionContext, connectorId, statements, clock);
     }
 
     @Override
@@ -209,7 +211,7 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var stmt = statements.getNextForStateTemplate();
-                var negotiations = executeQuery(connection, this::mapContractNegotiation, stmt, state, Instant.now().toEpochMilli(), max);
+                var negotiations = executeQuery(connection, this::mapContractNegotiation, stmt, state, clock.millis(), max);
 
                 negotiations.forEach(cn -> leaseContext.withConnection(connection).acquireLease(cn.getId()));
                 return negotiations;

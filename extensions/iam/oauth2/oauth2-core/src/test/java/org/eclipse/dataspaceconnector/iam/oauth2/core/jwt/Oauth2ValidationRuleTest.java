@@ -24,22 +24,25 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Date;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
+import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class Oauth2ValidationRuleTest {
 
     public static final String TEST_AUDIENCE = "test-audience";
     private final Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+    private final Clock clock = Clock.fixed(now, UTC);
     private Oauth2ValidationRule rule;
     private JWSHeader jwsHeader;
 
     @BeforeEach
     public void setUp() {
         var configuration = Oauth2Configuration.Builder.newInstance().providerAudience("test-audience").build();
-        rule = new Oauth2ValidationRule(configuration);
+        rule = new Oauth2ValidationRule(configuration, clock);
         jwsHeader = new JWSHeader.Builder(JWSAlgorithm.RS256).build();
     }
 
@@ -147,7 +150,7 @@ class Oauth2ValidationRuleTest {
                 .providerAudience(TEST_AUDIENCE)
                 .notBeforeValidationLeeway(20)
                 .build();
-        rule = new Oauth2ValidationRule(configuration);
+        rule = new Oauth2ValidationRule(configuration, clock);
 
         var jwt = new SignedJWT(jwsHeader, claims);
         var result = rule.checkRule(jwt);

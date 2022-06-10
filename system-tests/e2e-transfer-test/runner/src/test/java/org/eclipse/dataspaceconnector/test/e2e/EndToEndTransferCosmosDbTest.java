@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.test.e2e;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.azure.testfixtures.CosmosTestClient;
 import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureCosmosDbIntegrationTest;
-import org.eclipse.dataspaceconnector.junit.launcher.EdcRuntimeExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcRuntimeExtension;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -84,12 +84,12 @@ class EndToEndTransferCosmosDbTest extends AbstractEndToEndTransfer {
         var database = client.getDatabase(response.getProperties().getId());
 
         Stream.of(
-                "assetindex",
-                "contractdefinitionstore",
-                "contractnegotiationstore",
-                "nodedirectory",
-                "policystore",
-                "transfer-process-store")
+                        "assetindex",
+                        "contractdefinitionstore",
+                        "contractnegotiationstore",
+                        "nodedirectory",
+                        "policystore",
+                        "transfer-process-store")
                 .map(name -> database.createContainerIfNotExists(name, "/partitionKey"))
                 .map(r -> database.getContainer(r.getProperties().getId()))
                 .forEach(container -> {

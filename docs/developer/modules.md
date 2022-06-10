@@ -21,10 +21,10 @@ org.eclipse.dataspaceconnector:http:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:http-provisioner:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:http-receiver:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:jdk-logger-monitor:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:junit:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:sql:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:dataloader-cli:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-server:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:junit-extension:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:catalog-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:contract-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:core-spi:0.0.1-SNAPSHOT
@@ -122,8 +122,6 @@ org.eclipse.dataspaceconnector:identity-did-crypto:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:identity-did-service:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:identity-did-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:identity-did-web:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:registration-service:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:registration-service-api:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:oauth2-core:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:oauth2-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:apache-commons-pool-sql:0.0.1-SNAPSHOT

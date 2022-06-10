@@ -37,7 +37,8 @@ dependencies {
     testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
     testImplementation("org.mock-server:mockserver-client-java:${httpMockServer}:shaded")
     testImplementation("com.github.javafaker:javafaker:${faker}")
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(project(":extensions:junit"))
+
 }
 
 publishing {
