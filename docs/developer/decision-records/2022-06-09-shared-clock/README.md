@@ -34,10 +34,10 @@ By default, this provides the system clock. In integration tests, another `Clock
 ```java
 @ExtendWith(EdcExtension.class)
 class AnIntegrationTest {
-    @BeforeEach
-    void setUp(EdcExtension extension) {
-		  extension.registerServiceMock(Clock.class, Clock.fixed(now, UTC));
-		}
+  @BeforeEach
+  void setUp(EdcExtension extension) {
+    extension.registerServiceMock(Clock.class, Clock.fixed(now, UTC));
+  }
 }
 ```
 
