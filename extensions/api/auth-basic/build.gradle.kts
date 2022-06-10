@@ -25,7 +25,7 @@ dependencies {
     api(project(":extensions:api:auth-spi"))
     api(project(":spi:core-spi"))
     testImplementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(testFixtures(project(":extensions:junit")))
     testImplementation(testFixtures(project(":common:util")))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
 }
