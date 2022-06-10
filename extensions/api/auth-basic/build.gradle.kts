@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 ZF Friedrichshafen AG
+ *  Copyright (c) 2020 - 2022 ZF Friedrichshafen AG.
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -24,15 +24,10 @@ plugins {
 dependencies {
     api(project(":extensions:api:auth-spi"))
     api(project(":spi:core-spi"))
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    implementation("org.junit.jupiter:junit-jupiter:5.8.1")
-    testImplementation("org.assertj:assertj-core:3.21.0")
-    testImplementation("org.mockito:mockito-inline:3.6.28")
+    testImplementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(testFixtures(project(":common:util")))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
-    testRuntimeOnly("org.glassfish.jersey.ext:jersey-bean-validation:${jerseyVersion}")
-
 }
 
 publishing {
