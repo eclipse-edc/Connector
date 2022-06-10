@@ -50,6 +50,7 @@ public class Participant {
     private final URI controlPlane = URI.create("http://localhost:" + getFreePort());
     private final URI controlPlaneValidation = URI.create("http://localhost:" + getFreePort() + "/validation");
     private final URI controlPlaneDataplane = URI.create("http://localhost:" + getFreePort() + "/dataplane");
+    private final URI controlPlaneProvisioner = URI.create("http://localhost:" + getFreePort() + "/provisioner");
     private final URI dataPlane = URI.create("http://localhost:" + getFreePort());
     private final URI dataPlaneControl = URI.create("http://localhost:" + getFreePort() + "/control");
     private final URI dataPlanePublic = URI.create("http://localhost:" + getFreePort() + "/public");
@@ -61,7 +62,7 @@ public class Participant {
         this.name = name;
     }
 
-    public void createAsset(String assetId) {
+    public void createAsset(String assetId, String addressType) {
         var asset = Map.of(
                 "asset", Map.of(
                         "properties", Map.of(
@@ -73,7 +74,7 @@ public class Participant {
                         "properties", Map.of(
                                 "name", "data",
                                 "endpoint", backendService + "/api/service",
-                                "type", "HttpData"
+                                "type", addressType
                         )
                 )
         );
@@ -215,8 +216,8 @@ public class Participant {
                 "edctype", "dataspaceconnector:dataplaneinstance",
                 "id", UUID.randomUUID().toString(),
                 "url", dataPlaneControl + "/transfer",
-                "allowedSourceTypes", List.of("HttpData"),
-                "allowedDestTypes", List.of("HttpData")
+                "allowedSourceTypes", List.of("HttpData", "HttpProvision"),
+                "allowedDestTypes", List.of("HttpData", "HttpProvision")
         );
 
         given()
@@ -254,6 +255,8 @@ public class Participant {
                 put("web.http.ids.path", IDS_PATH);
                 put("web.http.dataplane.port", String.valueOf(controlPlaneDataplane.getPort()));
                 put("web.http.dataplane.path", controlPlaneDataplane.getPath());
+                put("web.http.provisioner.port", String.valueOf(controlPlaneProvisioner.getPort()));
+                put("web.http.provisioner.path", controlPlaneProvisioner.getPath());
                 put("web.http.validation.port", String.valueOf(controlPlaneValidation.getPort()));
                 put("web.http.validation.path", controlPlaneValidation.getPath());
                 put("edc.vault", resourceAbsolutePath("consumer-vault.properties"));
@@ -264,6 +267,10 @@ public class Participant {
                 put("edc.transfer.proxy.token.signer.privatekey.alias", "1");
                 put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
                 put("edc.transfer.proxy.endpoint", dataPlanePublic.toString());
+
+                put("provisioner.http.entries.default.provisioner.type", "provider");
+                put("provisioner.http.entries.default.endpoint", backendService + "/api/provision");
+                put("provisioner.http.entries.default.data.address.type", "HttpProvision");
             }
         };
     }

@@ -218,6 +218,7 @@ class TransferProcessManagerImplTest {
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
 
         verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+        verify(transferProcessStore).find(process.getId());
         verify(transferProcessStore).update(argThat(p -> p.getState() == PROVISIONED.code()));
     }
 
@@ -590,6 +591,7 @@ class TransferProcessManagerImplTest {
 
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+        verify(transferProcessStore).find(process.getId());
         verify(transferProcessStore).update(argThat(p -> p.getState() == DEPROVISIONED.code()));
         verify(vault).deleteSecret(any());
     }

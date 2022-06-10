@@ -38,7 +38,7 @@ class ProvisionerWebhookRequestSerializationTest {
                 .resourceName("test-resource")
                 .resourceDefinitionId("test-res-def")
                 .hasToken(true)
-                .apiToken("barbaz")
+                .apiKeyJwt("barbaz")
                 .contentDataAddress(DataAddress.Builder.newInstance().type("test-type").build())
                 .build();
         var json = typeManager.writeValueAsString(rq);
@@ -56,7 +56,7 @@ class ProvisionerWebhookRequestSerializationTest {
                 .assetId("test-asset")
                 .resourceName("test-resource")
                 .resourceDefinitionId("test-res-def")
-                .apiToken("foobar")
+                .apiKeyJwt("foobar")
                 .hasToken(true)
                 .contentDataAddress(DataAddress.Builder.newInstance().type("test-type").build())
                 .build();

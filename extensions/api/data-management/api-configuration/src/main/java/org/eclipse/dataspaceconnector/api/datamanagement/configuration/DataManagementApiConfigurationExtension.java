@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.configuration;
 
+import org.eclipse.dataspaceconnector.api.auth.AllPassAuthenticationService;
 import org.eclipse.dataspaceconnector.api.auth.AuthenticationRequestFilter;
 import org.eclipse.dataspaceconnector.api.auth.AuthenticationService;
 import org.eclipse.dataspaceconnector.api.exception.mappers.EdcApiExceptionMapper;
@@ -68,7 +69,7 @@ public class DataManagementApiConfigurationExtension implements ServiceExtension
         // the DataManagementApiConfiguration tells all DataManagementApi controllers under which context alias
         // they need to register their resources: either `default` or `data`
         context.registerService(DataManagementApiConfiguration.class, new DataManagementApiConfiguration(contextAlias));
-        var srv = ofNullable(service).orElse(headers -> true);
+        var srv = ofNullable(service).orElse(new AllPassAuthenticationService());
         webService.registerResource(contextAlias, new AuthenticationRequestFilter(srv));
         webService.registerResource(contextAlias, new EdcApiExceptionMapper());
     }

@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.provision.http;
 
+import org.eclipse.dataspaceconnector.api.auth.AllPassAuthenticationService;
 import org.eclipse.dataspaceconnector.api.auth.AuthenticationRequestFilter;
 import org.eclipse.dataspaceconnector.api.auth.AuthenticationService;
 import org.eclipse.dataspaceconnector.api.exception.mappers.EdcApiExceptionMapper;
@@ -22,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.WebServer;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.system.Hostname;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -78,7 +80,6 @@ public class HttpWebhookExtension implements ServiceExtension {
 
         monitor.info(format("IDS API will be available at [path=%s], [port=%s].", path, port));
 
-
         webService.registerResource(alias, new HttpProvisionerWebhookApiController(transferProcessManager));
         webService.registerResource(alias, new AuthenticationRequestFilter(authService));
         webService.registerResource(alias, new EdcApiExceptionMapper());
@@ -101,5 +102,11 @@ public class HttpWebhookExtension implements ServiceExtension {
             context.getMonitor().severe("Error creating callback endpoint", e);
             throw new EdcException(e);
         }
+    }
+
+    @Provider(isDefault = true)
+    public AuthenticationService authenticationService(ServiceExtensionContext context) {
+        context.getMonitor().warning("No AuthenticationService registered, an all-pass implementation will be used, not suitable for production environments");
+        return new AllPassAuthenticationService();
     }
 }

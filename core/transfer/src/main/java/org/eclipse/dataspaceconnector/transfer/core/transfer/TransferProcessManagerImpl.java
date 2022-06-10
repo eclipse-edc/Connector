@@ -172,6 +172,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             monitor.severe("TransferProcessManager: no TransferProcess found for provisioned resources");
             return;
         }
+
+        if (transferProcess.getState() == ERROR.code()) {
+            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so provisioning could not be completed", transferProcess.getId()));
+            return;
+        }
+
         handleProvisionResult(transferProcess, responses);
     }
 
@@ -182,6 +188,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             monitor.severe("TransferProcessManager: no TransferProcess found for deprovisioned resources");
             return;
         }
+
+        if (transferProcess.getState() == ERROR.code()) {
+            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so deprovisioning could not be processed", transferProcess.getId()));
+            return;
+        }
+
         handleDeprovisionResult(transferProcess, responses);
     }
 
@@ -260,7 +272,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         provisionManager.provision(resources, policy)
                 .whenComplete((responses, throwable) -> {
                     if (throwable == null) {
-                        handleProvisionResult(process, responses);
+                        handleProvisionResult(process.getId(), responses);
                     } else {
                         transitionToError(process.getId(), throwable, "Error during provisioning");
                     }
@@ -383,7 +395,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         provisionManager.deprovision(resourcesToDeprovision, policy)
                 .whenComplete((responses, throwable) -> {
                     if (throwable == null) {
-                        handleDeprovisionResult(process, responses);
+                        handleDeprovisionResult(process.getId(), responses);
                     } else {
                         transitionToError(process.getId(), throwable, "Error during deprovisioning");
                     }
@@ -409,11 +421,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     private void handleProvisionResult(TransferProcess transferProcess, List<StatusResult<ProvisionResponse>> responses) {
-        if (transferProcess.getState() == ERROR.code()) {
-            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so provisioning could not be completed", transferProcess.getId()));
-            return;
-        }
-
         var fatalErrors = new ArrayList<String>();
         responses.forEach(result -> {
             if (result.failed()) {
@@ -448,6 +455,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             // update the transfer process with the provisioned resource
             transferProcess.addProvisionedResource(provisionedResource);
         });
+
         if (!fatalErrors.isEmpty()) {
             var errors = join("\n", fatalErrors);
             monitor.severe(format("Transitioning transfer process %s to ERROR state due to fatal provisioning errors: \n%s", transferProcess.getId(), errors));
@@ -473,13 +481,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         }
     }
 
-
     private void handleDeprovisionResult(TransferProcess transferProcess, List<StatusResult<DeprovisionedResource>> results) {
-        if (transferProcess.getState() == ERROR.code()) {
-            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so deprovisioning could not be processed", transferProcess.getId()));
-            return;
-        }
-
         var fatalErrors = new ArrayList<String>();
         results.forEach(result -> {
             if (result.failed()) {

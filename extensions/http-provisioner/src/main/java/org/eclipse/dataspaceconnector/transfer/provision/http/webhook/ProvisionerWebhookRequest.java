@@ -62,7 +62,7 @@ public class ProvisionerWebhookRequest implements Polymorphic {
         return hasToken;
     }
 
-    public String getApiToken() {
+    public String getApiKeyJwt() {
         return apiKeyJwt;
     }
 
@@ -104,7 +104,7 @@ public class ProvisionerWebhookRequest implements Polymorphic {
             return this;
         }
 
-        public Builder apiToken(String token) {
+        public Builder apiKeyJwt(String token) {
             request.apiKeyJwt = token;
             return this;
         }
