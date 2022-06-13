@@ -16,6 +16,9 @@ package org.eclipse.dataspaceconnector.spi.event;
 
 import java.util.Objects;
 
+/**
+ * Describe a new Asset creation, after this has emitted, an Asset with a certain id will be available.
+ */
 public class AssetCreated extends Event {
 
     private String id;

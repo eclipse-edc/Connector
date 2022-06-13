@@ -37,7 +37,6 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 
 import java.time.Clock;
-import java.util.Optional;
 
 @Provides(AssetService.class)
 public class AssetApiExtension implements ServiceExtension {

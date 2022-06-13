@@ -21,6 +21,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 import java.time.Clock;
 
+/**
+ * Listener responsible for creating and publishing events regarding Asset state changes
+ */
 public class EventAssetListener implements AssetListener {
     private final Clock clock;
     private final EventRouter eventRouter;

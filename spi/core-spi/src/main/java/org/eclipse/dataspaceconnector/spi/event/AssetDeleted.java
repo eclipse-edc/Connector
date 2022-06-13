@@ -16,6 +16,9 @@ package org.eclipse.dataspaceconnector.spi.event;
 
 import java.util.Objects;
 
+/**
+ * Describe an Asset deletion, after this has emitted, the Asset represented by the id won't be available anymore.
+ */
 public class AssetDeleted extends Event {
 
     private String id;
