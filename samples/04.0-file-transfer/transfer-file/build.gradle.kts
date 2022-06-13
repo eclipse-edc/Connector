@@ -18,7 +18,6 @@ plugins {
     id("application")
 }
 
-val rsApi: String by project
 val openTelemetryVersion: String by project
 
 dependencies {
@@ -34,6 +33,4 @@ dependencies {
     implementation(project(":extensions:data-plane:data-plane-spi"))
 
     api(project(":extensions:dataloading"))
-
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 }

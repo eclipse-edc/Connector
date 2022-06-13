@@ -37,7 +37,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * Provides (in-mem & no-op) defaults for various stores, registries etc.
+ * Provides (in-mem &amp; no-op) defaults for various stores, registries etc.
  * Provider methods are only invoked if no other implementation was found on the classpath.
  */
 public class DefaultServicesExtension implements ServiceExtension {

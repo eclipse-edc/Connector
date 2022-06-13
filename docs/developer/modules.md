@@ -101,10 +101,8 @@ org.eclipse.dataspaceconnector:contractnegotiation-api:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:policydefinition-api:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transferprocess-api:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:s3-core:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:s3-operator:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:s3-provision:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:blob-core:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:blob-operator:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:blob-provision:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:assetindex-cosmos:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:contract-definition-store-cosmos:0.0.1-SNAPSHOT

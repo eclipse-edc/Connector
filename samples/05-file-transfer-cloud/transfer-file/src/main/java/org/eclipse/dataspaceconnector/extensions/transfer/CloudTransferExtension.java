@@ -14,39 +14,28 @@
 
 package org.eclipse.dataspaceconnector.extensions.transfer;
 
-import net.jodah.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.aws.s3.core.S3ClientProviderImpl;
-import org.eclipse.dataspaceconnector.aws.s3.operator.S3BucketReader;
-import org.eclipse.dataspaceconnector.aws.s3.operator.S3BucketWriter;
-import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
-import org.eclipse.dataspaceconnector.azure.blob.operator.BlobStoreReader;
-import org.eclipse.dataspaceconnector.azure.blob.operator.BlobStoreWriter;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
-import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.policy.model.Action;
+import org.eclipse.dataspaceconnector.policy.model.Permission;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
+import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
-import org.eclipse.dataspaceconnector.spi.transfer.inline.DataOperatorRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.transfer.core.inline.InlineDataFlowController;
-
-import java.time.temporal.ChronoUnit;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 
 public class CloudTransferExtension implements ServiceExtension {
-    public static final String USE_EU_POLICY = "use-eu";
     @Inject
-    private DataFlowManager dataFlowMgr;
+    private AssetLoader loader;
     @Inject
-    private DataAddressResolver dataAddressResolver;
+    private PolicyDefinitionStore policyDefinitionStore;
     @Inject
-    private BlobStoreApi blobStoreApi;
-    @Inject
-    private DataOperatorRegistry dataOperatorRegistry;
-    @Inject
-    private Vault vault;
+    private ContractDefinitionStore contractDefinitionStore;
 
     @Override
     public String name() {
@@ -55,39 +44,63 @@ public class CloudTransferExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        registerFlowController(context);
-        registerDataEntries(context);
+        var policy = createPolicy();
+        policyDefinitionStore.save(policy);
+
+        registerDataEntries();
+        registerContractDefinition(policy.getUid());
     }
 
-    private void registerFlowController(ServiceExtensionContext context) {
-        var s3ClientProvider = new S3ClientProviderImpl();
-
-        dataOperatorRegistry.registerReader(new BlobStoreReader(blobStoreApi));
-        dataOperatorRegistry.registerReader(new S3BucketReader(context.getMonitor(), vault, s3ClientProvider));
-
-
-        RetryPolicy<Object> retryPolicy = new RetryPolicy<>()
-                .withBackoff(500, 5000, ChronoUnit.MILLIS)
-                .withMaxRetries(3);
-
-        dataOperatorRegistry.registerWriter(new S3BucketWriter(context.getMonitor(), context.getTypeManager(), retryPolicy, s3ClientProvider));
-        dataOperatorRegistry.registerWriter(new BlobStoreWriter(context.getMonitor(), context.getTypeManager()));
-
-        dataFlowMgr.register(new InlineDataFlowController(vault, context.getMonitor(), dataOperatorRegistry));
-    }
-
-    private void registerDataEntries(ServiceExtensionContext context) {
-        AssetLoader assetIndex = context.getService(AssetLoader.class);
-
-        DataAddress dataAddress = DataAddress.Builder.newInstance()
-                .property("type", "AzureStorage")
+    public void registerDataEntries() {
+        var asset = Asset.Builder.newInstance().id("1").build();
+        var dataAddress = DataAddress.Builder.newInstance()
+                .type("AzureStorage")
+                .property("account", "<storage-account-name>")
                 .property("container", "src-container")
                 .property("blobname", "test-document.txt")
+                .keyName("<storage-account-name>-key1")
+                .build();
+        loader.accept(asset, dataAddress);
+
+        var asset2 = Asset.Builder.newInstance().id("2").build();
+        var dataAddress2 = DataAddress.Builder.newInstance()
+                .type("AzureStorage")
+                .property("account", "<storage-account-name>")
+                .property("container", "src-container")
+                .property("blobname", "test-document.txt")
+                .keyName("<storage-account-name>-key1")
+                .build();
+        loader.accept(asset2, dataAddress2);
+    }
+
+    public void registerContractDefinition(String policyId) {
+        var contractDefinition1 = ContractDefinition.Builder.newInstance()
+                .id("1")
+                .accessPolicyId(policyId)
+                .contractPolicyId(policyId)
+                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "1").build())
                 .build();
 
-        String assetId = "test-document";
-        Asset asset = Asset.Builder.newInstance().id(assetId).build();
+        var contractDefinition2 = ContractDefinition.Builder.newInstance()
+                .id("2")
+                .accessPolicyId(policyId)
+                .contractPolicyId(policyId)
+                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "2").build())
+                .build();
 
-        assetIndex.accept(asset, dataAddress);
+        contractDefinitionStore.save(contractDefinition1);
+        contractDefinitionStore.save(contractDefinition2);
+    }
+
+    private PolicyDefinition createPolicy() {
+        var usePermission = Permission.Builder.newInstance()
+                .action(Action.Builder.newInstance().type("USE").build())
+                .build();
+
+        return PolicyDefinition.Builder.newInstance()
+                .policy(Policy.Builder.newInstance()
+                        .permission(usePermission)
+                        .build())
+                .build();
     }
 }

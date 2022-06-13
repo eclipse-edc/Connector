@@ -3,10 +3,10 @@
 So far we have performed a file transfer on a local machine using the Eclipse Dataspace Connector. While that is already
 great progress, it probably won't be much use in a real-world production application.
 
-This chapter improves on this by moving the file transfer "to the cloud". What we mean by that is, that instead of
-reading the source file from and writing the destination file to disk, we
+This chapter improves on this by moving the file transfer "to the cloud". What we mean by that is that instead of
+reading and writing the file from/to the disk, we will now:
 
-- read the source from Azure Storage
+- read the source from an Azure Storage,
 - put the destination file into an AWS S3 Bucket.
 
 ## Setup local dev environment
@@ -25,8 +25,7 @@ aws configure
 ```
 
 The deployment scripts will provision all resources in Azure and AWS (that's why you need to be logged in to the CLIs)
-and store all access credentials in an Azure Vault (learn
-more [here](https://azure.microsoft.com/de-de/services/key-vault/#product-overview)).
+and store all access credentials in an Azure Vault (learn more [here](https://azure.microsoft.com/de-de/services/key-vault/#product-overview)).
 
 ## Deploy cloud resources
 
@@ -39,7 +38,7 @@ terraform apply
 ```
 
 it will prompt you to enter a unique name, which will serve as prefix for many resources both in Azure and in AWS. Then,
-enter "yes" and let terraform work its magic.
+enter "yes" and let terraform works its magic.
 
 It shouldn't take more than a couple of minutes, and when it's done it will log the `client_id`, `tenant_id`
 , `vault-name`, `storage-container-name` and `storage-account-name`.
@@ -67,7 +66,7 @@ edc.vault.name=<vault-name>
 
 ## Update data seeder
 
-Put the storage account name into the DataAddress builder of the `FakeSetup` class.
+Put the storage account name into the `DataAddress` builders within the `CloudTransferExtension` class.
 
 ```
 DataAddress.Builder.newInstance()
@@ -79,22 +78,9 @@ DataAddress.Builder.newInstance()
    .build();
 ```
 
-## Take a look at the updated `transfer-file` and `api` module
-
-For this chapter the file transfer extension (`CloudTransferExtension.java`) has been upgraded significantly. Most
-notable are these changes:
-
-- the extension now creates different catalog entries
-- there are additional dependencies that take care of provisioning S3 buckets and reading blobs from Azure
-
-Currently, we have implementations to _provision_ S3 buckets and Azure Storage accounts, but this example only contains
-code to transfer data from Azure Storage to S3 (and not vice-versa). Check out the `*Reader.java` and `*Writer.java`
-classes in the `transfer-file` module.
-
-In the `api` module the `ConsumerApiController.java` has also been upgraded quite a bit. It now exposes endpoints to
-start, check and deprovision transfer requests.
-
 ## Bringing it all together
+
+### 1. Boot connectors
 
 While we have deployed several cloud resources in the previous chapter, the connectors themselves still run locally.
 Thus, we can simply rebuild and run them:
@@ -106,42 +92,15 @@ java -Dedc.fs.config=samples/05-file-transfer-cloud/consumer/config.properties -
 java -Dedc.fs.config=samples/05-file-transfer-cloud/provider/config.properties -jar samples/05-file-transfer-cloud/provider/build/libs/provider.jar
 ```
 
-Once the connectors are up and running, we can initiate a data transfer by executing:
+### 2. Retrieve provider Contract Offers
 
-```bash
-curl -X POST -H "Content-Type: application/json" -d @samples/05-file-transfer-cloud/datarequest.json "http://localhost:9191/api/datarequest"
-```
-
-like before that'll return a UUID. Using that UUID we can then query the status of the transfer process by executing:
-
-```bash
-curl -X GET "http://localhost:9191/api/datarequest/<UUID>/state"
-```
-
-which will return one of
-the [TransferProcessStates](spi/src/main/java/org/eclipse/dataspaceconnector/spi/types/domain/transfer/TransferProcessStates.java)
-enum values. Once the transfer process has reached the `COMPLETED` state, we can deprovision it using
-
-```bash
-curl -X DELETE http://localhost:9191/api/datarequest/<UUID>
-```
-
-Deprovisioning is not necessary per se, but it will do some cleanup, delete the temporary AWS role and the S3 bucket, so
-it's generally advisable to do it.
-
-### Alternative: IDS Multipart
-
-The requesting of data offers and data transfer can also be initiated using IDS multipart.
-
-#### 1. Request Data Offers
-
-To request data offers from the provider run
+To request data offers from the provider, run:
 
 ```bash
 curl -X GET -H 'X-Api-Key: password' http://localhost:9191/api/control/catalog?provider=http://localhost:8282/api/v1/ids/data
 ```
 
-#### 2. Negotiate Contract
+#### 3. Negotiate Contract
 
 To negotiate a contract copy one of the contract offers into the statement below and execute it. At the time of writing
 it is only possible to negotiate an _unchanged_ contract, so counter offers are not supported.
@@ -164,20 +123,20 @@ curl --location --request POST 'http://localhost:9192/api/v1/data/contractnegoti
 
 The EDC will answer with the contract negotiation id. This id will be used in step 4.
 
-#### 3. Get Contract Agreement Id
+#### 4. Get Contract Agreement Id
 
 To get the contract agreement id insert the negotiation id into the following statement end execute it.
 
 ```bash
-curl -X GET -H 'X-Api-Key: password' "http://localhost:9192/api/v1/data/contractnegotiations/{UUID}"
+curl -X GET -H 'X-Api-Key: password' "http://localhost:9192/api/v1/data/contractnegotiations/{negotiationId}"
 ```
 
-The EDC will return the current state of the contract negotiation. When the negotiation is completed successfully,
-the response will also contain an agreement id, that is required in the next step. This may take a few seconds.
+The EDC will return the current state of the contract negotiation. When the negotiation is completed successfully (this may take a few seconds),
+the response will also contain an agreement id, that is required in the next step.
 
-#### 4. Transfer Data
+#### 5. Transfer Data
 
-To transfer data from the insert the contract agreement id from step 3 and execute the statement below.
+To initiate the data transfer, execute the statement below. Please take care of setting the contract agreement id obtained at previous step.
 
 ```bash
 curl --location --request POST 'http://localhost:9191/api/v1/data/transferprocess' \
@@ -203,4 +162,22 @@ curl --location --request POST 'http://localhost:9191/api/v1/data/transferproces
     "isFinite": true
   }
 }'
+```
+
+This command will return a transfer process id which will used to request the deprovisioning of the resources.
+
+#### 6. Deprovision resources
+
+Deprovisioning is not necessary per se, but it will do some cleanup, delete the temporary AWS role and the S3 bucket, so
+it's generally advisable to do it.
+
+```bash
+curl -X POST -H 'X-Api-Key: password' "http://localhost:9192/api/v1/data/transferprocess/{transferProcessId}/deprovision"
+```
+
+Finally, run terraform to clean-up the vault and other remaining stuffs:
+
+```bash
+cd samples/05-file-transfer-cloud/terraform 
+terraform destroy
 ```
