@@ -25,10 +25,10 @@ plugins {
 
 dependencies {
     api(project(":spi"))
+    api(project(":spi:transaction-spi"))
     implementation(project(":common:util"))
     implementation(project(":extensions:api:api-core"))
     implementation(project(":extensions:api:data-management:api-configuration"))
-    implementation(project(":extensions:transaction:transaction-spi"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 

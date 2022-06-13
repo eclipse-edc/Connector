@@ -109,7 +109,6 @@ include(":extensions:http:jersey-micrometer")
 include(":extensions:http:jetty")
 include(":extensions:http:jetty-micrometer")
 include(":extensions:transaction")
-include(":extensions:transaction:transaction-spi")
 include(":extensions:transaction:transaction-datasource-spi")
 include(":extensions:transaction:transaction-atomikos")
 include(":extensions:transaction:transaction-local")
@@ -156,18 +155,16 @@ include(":samples:other:dataseed:dataseed-policy")
 include(":samples:other:run-from-junit")
 include(":samples:other:custom-runtime")
 
-
 // extension points for a connector
 include(":spi")
-include(":spi:core-spi")
-include(":spi:transfer-spi")
-include(":spi:contract-spi")
 include(":spi:catalog-spi")
-include(":spi:web-spi")
-include(":spi:transport-spi")
+include(":spi:contract-spi")
+include(":spi:core-spi")
 include(":spi:policy-spi")
-
-//include(":openapi")
+include(":spi:transaction-spi")
+include(":spi:transfer-spi")
+include(":spi:transport-spi")
+include(":spi:web-spi")
 
 // numbered samples for the onboarding experience
 include(":samples:01-basic-connector")

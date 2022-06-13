@@ -23,16 +23,13 @@ import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
-
-import static java.util.Optional.ofNullable;
 
 public class PolicyDefinitionApiExtension implements ServiceExtension {
 
     @Inject
     private DtoTransformerRegistry transformerRegistry;
-    @Inject(required = false)
+    @Inject
     private TransactionContext transactionContext;
     @Inject
     private WebService webService;
@@ -50,14 +47,8 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-
         var monitor = context.getMonitor();
-        var transactionContextImpl = ofNullable(transactionContext)
-                .orElseGet(() -> {
-                    monitor.warning("No TransactionContext registered, a no-op implementation will be used, not suitable for production environments");
-                    return new NoopTransactionContext();
-                });
-        var service = new PolicyServiceImpl(transactionContextImpl, policyStore, contractDefinitionStore);
+        var service = new PolicyServiceImpl(transactionContext, policyStore, contractDefinitionStore);
 
         webService.registerResource(configuration.getContextAlias(), new PolicyDefinitionApiController(monitor, service, transformerRegistry));
     }

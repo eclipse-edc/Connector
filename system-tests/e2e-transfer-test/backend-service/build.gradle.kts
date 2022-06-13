@@ -16,12 +16,15 @@ plugins {
     `java-library`
 }
 
+val okHttpVersion: String by project
 val rsApi: String by project
 
 dependencies {
-    api(project(":extensions:http"))
-    api(project(":core:boot"))
-    api(project(":core:base"))
+    implementation(project(":extensions:http"))
+    implementation(project(":core:boot"))
+    implementation(project(":core:base"))
 
-    api("jakarta.ws.rs:jakarta.ws.rs-api:$rsApi")
+    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:$rsApi")
 }

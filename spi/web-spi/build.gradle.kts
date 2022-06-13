@@ -17,10 +17,6 @@ plugins {
     `maven-publish`
 }
 
-dependencies {
-    api(project(":spi:core-spi"))
-}
-
 publishing {
     publications {
         create<MavenPublication>("web-spi") {

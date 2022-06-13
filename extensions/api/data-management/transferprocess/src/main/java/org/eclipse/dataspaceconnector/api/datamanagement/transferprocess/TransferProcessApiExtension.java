@@ -24,12 +24,9 @@ import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
-
-import static java.util.Optional.ofNullable;
 
 public class TransferProcessApiExtension implements ServiceExtension {
     @Inject
@@ -47,7 +44,7 @@ public class TransferProcessApiExtension implements ServiceExtension {
     @Inject
     private TransferProcessManager manager;
 
-    @Inject(required = false)
+    @Inject
     private TransactionContext transactionContext;
 
 
@@ -58,14 +55,8 @@ public class TransferProcessApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var monitor = context.getMonitor();
-        var transactionContextImpl = ofNullable(transactionContext)
-                .orElseGet(() -> {
-                    monitor.warning("No TransactionContext registered, a no-op implementation will be used, not suitable for production environments");
-                    return new NoopTransactionContext();
-                });
         webService.registerResource(configuration.getContextAlias(), new TransferProcessApiController(context.getMonitor(),
-                new TransferProcessServiceImpl(transferProcessStore, manager, transactionContextImpl), transformerRegistry));
+                new TransferProcessServiceImpl(transferProcessStore, manager, transactionContext), transformerRegistry));
 
         transformerRegistry.register(new DataRequestToDataRequestDtoTransformer());
         transformerRegistry.register(new TransferProcessToTransferProcessDtoTransformer());

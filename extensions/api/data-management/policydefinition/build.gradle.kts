@@ -24,13 +24,13 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":core:policy:policy-evaluator"))
+    api(project(":spi:contract-spi"))
+    api(project(":spi:policy-spi"))
+    api(project(":spi:transaction-spi"))
     implementation(project(":common:util"))
+    implementation(project(":core:policy:policy-evaluator"))
     implementation(project(":extensions:api:api-core"))
     implementation(project(":extensions:api:data-management:api-configuration"))
-    implementation(project(":spi:policy-spi"))
-    implementation(project(":spi:contract-spi"))
-    implementation(project(":extensions:transaction:transaction-spi"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 

@@ -25,9 +25,8 @@ val okHttpVersion: String by project
 
 dependencies {
     api(project(":spi:core-spi"))
-    api(project(":extensions:dataloading"))
-
-    api(project(":common:util"))
+    implementation(project(":common:util"))
+    implementation(project(":extensions:dataloading"))
 
     testImplementation(project(":extensions:junit"))
     testImplementation("org.awaitility:awaitility:${awaitility}")

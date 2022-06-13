@@ -26,10 +26,7 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitio
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
-
-import static java.util.Optional.ofNullable;
 
 public class ContractDefinitionApiExtension implements ServiceExtension {
     @Inject
@@ -47,7 +44,7 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
     @Inject
     ContractDefinitionLoader contractDefinitionLoader;
 
-    @Inject(required = false)
+    @Inject
     TransactionContext transactionContext;
 
     @Override
@@ -61,13 +58,8 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
         transformerRegistry.register(new ContractDefinitionDtoToContractDefinitionTransformer());
 
         var monitor = context.getMonitor();
-        var transactionContextImpl = ofNullable(transactionContext)
-                .orElseGet(() -> {
-                    monitor.warning("No TransactionContext registered, a no-op implementation will be used, not suitable for production environments");
-                    return new NoopTransactionContext();
-                });
 
-        var service = new ContractDefinitionServiceImpl(contractDefinitionStore, contractDefinitionLoader, transactionContextImpl);
+        var service = new ContractDefinitionServiceImpl(contractDefinitionStore, contractDefinitionLoader, transactionContext);
         webService.registerResource(config.getContextAlias(), new ContractDefinitionApiController(monitor, service, transformerRegistry));
     }
 }

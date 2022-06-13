@@ -16,15 +16,15 @@ plugins {
     `java-library`
 }
 
-
 dependencies {
-    api(project(":spi:core-spi"))
-    api(project(":spi:transfer-spi"))
-    api(project(":spi:contract-spi"))
     api(project(":spi:catalog-spi"))
-    api(project(":spi:web-spi"))
-    api(project(":spi:transport-spi"))
+    api(project(":spi:contract-spi"))
+    api(project(":spi:core-spi"))
     api(project(":spi:policy-spi"))
+    api(project(":spi:transaction-spi"))
+    api(project(":spi:transfer-spi"))
+    api(project(":spi:transport-spi"))
+    api(project(":spi:web-spi"))
 }
 
 publishing {
