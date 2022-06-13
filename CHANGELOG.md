@@ -29,6 +29,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Deprecated `InlineDataFlowController` (replaced by the Data Plane) (#1464)
 * Unused classes and interfaces at `ids.spi.policy` (#1471)
 * Remove modules `:extensions:transfer-functions:transfer-functions-spi` and `:extensions:transfer-functions:transfer-functions-core` (#1482)
+* Remove `ConnectorVersionProvider`, provide version as static string (#1470)
 
 #### Fixed
 
