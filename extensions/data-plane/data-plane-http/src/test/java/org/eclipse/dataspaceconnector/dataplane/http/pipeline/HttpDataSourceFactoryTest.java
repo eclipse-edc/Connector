@@ -27,6 +27,7 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,16 +49,6 @@ import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowReques
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.PATH;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.BASE_URL;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.NAME;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_BODY;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_METHOD;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_PATH;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_QUERY_PARAMS;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.SECRET_NAME;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -258,14 +249,14 @@ class HttpDataSourceFactoryTest {
                 .build();
 
         private final Map<String, String> props;
-        private final DataAddress.Builder address;
+        private final HttpDataAddress.Builder address;
         private final DataFlowRequest.Builder request;
         private final HttpDataSource.Builder source;
 
         private TestInstance() {
             var requestId = UUID.randomUUID().toString();
             props = new HashMap<>();
-            address = DataAddress.Builder.newInstance().type(TYPE);
+            address = HttpDataAddress.Builder.newInstance();
             request = DataFlowRequest.Builder.newInstance().processId("1").id(requestId);
             source = defaultHttpSource().requestId(requestId);
         }
@@ -283,58 +274,58 @@ class HttpDataSourceFactoryTest {
         }
 
         public TestInstance endpoint(String endpoint) {
-            this.address.property(BASE_URL, endpoint);
+            this.address.baseUrl(endpoint);
             source.sourceUrl(endpoint);
             return this;
         }
 
         public TestInstance method(String method, boolean proxy) {
             props.put(METHOD, method);
-            address.property(PROXY_METHOD, Boolean.toString(proxy));
+            address.proxyMethod(Boolean.toString(proxy));
             source.method(proxy ? method : HttpMethod.GET.name());
             return this;
         }
 
         public TestInstance name(String name) {
-            this.address.property(NAME, name);
+            this.address.name(name);
             source.name(name);
             return this;
         }
 
         public TestInstance authKey(String authKey) {
-            this.address.property(AUTHENTICATION_KEY, authKey);
+            this.address.authKey(authKey);
             return this;
         }
 
         public TestInstance authCode(String authCode) {
-            this.address.property(AUTHENTICATION_CODE, authCode);
+            this.address.authCode(authCode);
             return this;
         }
 
         public TestInstance authHeader(String key, String code) {
-            this.address.property(AUTHENTICATION_KEY, key);
-            this.address.property(AUTHENTICATION_CODE, code);
+            this.address.authKey(key);
+            this.address.authCode(code);
             source.header(key, code);
             return this;
         }
 
         public TestInstance authHeader(String key, String secret, String code) {
-            this.address.property(AUTHENTICATION_KEY, key);
-            this.address.property(SECRET_NAME, secret);
+            this.address.authKey(key);
+            this.address.secretName(secret);
             source.header(key, code);
             return this;
         }
 
         public TestInstance body(String body, boolean proxy) {
             props.put(BODY, body);
-            address.property(PROXY_BODY, Boolean.toString(proxy));
+            address.proxyBody(Boolean.toString(proxy));
             return this;
         }
 
         public TestInstance body(String mediaType, String body, boolean proxy) {
             props.put(MEDIA_TYPE, mediaType);
             props.put(BODY, body);
-            address.property(PROXY_BODY, Boolean.toString(proxy));
+            address.proxyBody(Boolean.toString(proxy));
             if (proxy) {
                 source.requestBody(MediaType.parse(mediaType), body);
             }
@@ -343,7 +334,7 @@ class HttpDataSourceFactoryTest {
 
         public TestInstance basePath(String basePath, boolean proxy) {
             props.put(PATH, basePath);
-            address.property(PROXY_PATH, Boolean.toString(proxy));
+            address.proxyPath(Boolean.toString(proxy));
             if (proxy) {
                 source.path(basePath);
             }
@@ -352,7 +343,7 @@ class HttpDataSourceFactoryTest {
 
         public TestInstance queryParams(String queryParams, boolean proxy) {
             props.put(QUERY_PARAMS, queryParams);
-            address.property(PROXY_QUERY_PARAMS, Boolean.toString(proxy));
+            address.proxyQueryParams(Boolean.toString(proxy));
             source.queryParams(proxy ? queryParams : null);
             return this;
         }

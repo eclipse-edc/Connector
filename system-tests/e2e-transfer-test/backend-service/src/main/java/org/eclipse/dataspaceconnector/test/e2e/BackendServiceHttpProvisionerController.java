@@ -23,7 +23,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema;
 
 import java.util.Map;
 
@@ -60,8 +59,8 @@ public class BackendServiceHttpProvisionerController {
                 // this is the data address of the content served by this backend service
                 "contentDataAddress", Map.of(
                         "properties", Map.of(
-                                "type", HttpDataAddressSchema.TYPE,
-                                HttpDataAddressSchema.BASE_URL, format("http://localhost:%d/api/provider/data", exposedHttpPort)
+                                "type", "HttpData",
+                                "baseUrl", format("http://localhost:%d/api/provider/data", exposedHttpPort)
                         )
                 ),
                 "apiKeyJwt", "unused",

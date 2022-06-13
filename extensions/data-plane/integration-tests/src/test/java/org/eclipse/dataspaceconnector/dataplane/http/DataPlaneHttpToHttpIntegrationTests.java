@@ -26,6 +26,7 @@ import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTes
 import org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore.State;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -53,15 +54,8 @@ import static java.lang.String.format;
 import static java.lang.String.valueOf;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures.createDataAddress;
 import static org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures.createRequest;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.BASE_URL;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_PATH;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_QUERY_PARAMS;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.exactly;
@@ -370,23 +364,19 @@ public class DataPlaneHttpToHttpIntegrationTests {
                     .collect(Collectors.joining("&")));
         }
 
-        var sourceDataAddress = createDataAddress(
-                TYPE,
-                Map.of(
-                        BASE_URL, DPF_HTTP_SOURCE_API_HOST,
-                        PROXY_PATH, PROXY_PATH_TOGGLE,
-                        PROXY_QUERY_PARAMS, PROXY_QUERY_PARAMS_TOGGLE,
-                        AUTHENTICATION_KEY, AUTH_HEADER_KEY,
-                        AUTHENTICATION_CODE, SOURCE_AUTH_VALUE
-                )).build();
+        var sourceDataAddress = HttpDataAddress.Builder.newInstance()
+                .baseUrl(DPF_HTTP_SOURCE_API_HOST)
+                .proxyPath(PROXY_PATH_TOGGLE)
+                .proxyQueryParams(PROXY_QUERY_PARAMS_TOGGLE)
+                .authKey(AUTH_HEADER_KEY)
+                .authCode(SOURCE_AUTH_VALUE)
+                .build();
 
-        var destinationDataAddress = createDataAddress(
-                TYPE,
-                Map.of(
-                        BASE_URL, DPF_HTTP_SINK_API_HOST,
-                        AUTHENTICATION_KEY, AUTH_HEADER_KEY,
-                        AUTHENTICATION_CODE, SINK_AUTH_VALUE
-                )).build();
+        var destinationDataAddress = HttpDataAddress.Builder.newInstance()
+                .baseUrl(DPF_HTTP_SINK_API_HOST)
+                .authKey(AUTH_HEADER_KEY)
+                .authCode(SINK_AUTH_VALUE)
+                .build();
 
         // Create valid dataflow request instance.
         var request = createRequest(requestProperties, sourceDataAddress, destinationDataAddress)

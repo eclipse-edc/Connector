@@ -28,7 +28,7 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
-import org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema;
+import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -246,13 +246,12 @@ public class DataPlaneHttpPullIntegrationTests {
          * Create a minimal http address composed of an endpoint only.
          */
         private DataAddress testHttpSource() {
-            return DataAddress.Builder.newInstance()
-                    .type(HttpDataAddressSchema.TYPE)
-                    .property(HttpDataAddressSchema.BASE_URL, HTTP_SOURCE_API_HOST)
-                    .property(HttpDataAddressSchema.PROXY_BODY, "true")
-                    .property(HttpDataAddressSchema.PROXY_METHOD, "true")
-                    .property(HttpDataAddressSchema.PROXY_PATH, "true")
-                    .property(HttpDataAddressSchema.PROXY_QUERY_PARAMS, "true")
+            return HttpDataAddress.Builder.newInstance()
+                    .baseUrl(HTTP_SOURCE_API_HOST)
+                    .proxyBody("true")
+                    .proxyMethod("true")
+                    .proxyPath("true")
+                    .proxyQueryParams("true")
                     .build();
         }
     }

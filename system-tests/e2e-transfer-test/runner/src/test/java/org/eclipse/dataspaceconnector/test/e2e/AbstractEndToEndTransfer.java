@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.test.e2e;
 
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -22,8 +23,6 @@ import java.time.Duration;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.BASE_URL;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
 import static org.hamcrest.CoreMatchers.equalTo;
 
@@ -119,9 +118,8 @@ public abstract class AbstractEndToEndTransfer {
 
         assertThat(contractAgreementId).isNotEmpty();
 
-        var destination = DataAddress.Builder.newInstance()
-                .type(TYPE)
-                .property(BASE_URL, CONSUMER.backendService() + "/api/consumer/store")
+        var destination = HttpDataAddress.Builder.newInstance()
+                .baseUrl(CONSUMER.backendService() + "/api/consumer/store")
                 .build();
         var transferProcessId = CONSUMER.dataRequest(contractAgreementId, assetId, PROVIDER, destination);
 

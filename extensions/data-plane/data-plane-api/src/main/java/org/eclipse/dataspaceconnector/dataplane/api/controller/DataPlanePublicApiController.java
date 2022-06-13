@@ -29,22 +29,13 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
-import org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSink;
-import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSinkFactory;
-import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
 import java.io.ByteArrayOutputStream;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunctions.internalErrors;
@@ -52,11 +43,6 @@ import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunc
 import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunctions.success;
 import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunctions.validationError;
 import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunctions.validationErrors;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.BODY;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.MEDIA_TYPE;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.PATH;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
 
 /**
  * Controller exposing the public endpoint of the Data Plane used to query data (synchronous data pull).
@@ -68,21 +54,18 @@ public class DataPlanePublicApiController {
     private final DataPlaneManager dataPlaneManager;
     private final TokenValidationService tokenValidationService;
     private final Monitor monitor;
-    private final ContainerRequestContextApi contextApi;
-    private final TypeManager typeManager;
+    private final DataFlowRequestFactory factory;
     private final ExecutorService executorService;
 
     public DataPlanePublicApiController(DataPlaneManager dataPlaneManager,
                                         TokenValidationService tokenValidationService,
                                         Monitor monitor,
-                                        ContainerRequestContextApi contextApi,
                                         TypeManager typeManager,
                                         ExecutorService executorService) {
         this.dataPlaneManager = dataPlaneManager;
         this.tokenValidationService = tokenValidationService;
         this.monitor = monitor;
-        this.contextApi = contextApi;
-        this.typeManager = typeManager;
+        this.factory = new DataFlowRequestFactory(typeManager);
         this.executorService = executorService;
     }
 
@@ -127,7 +110,8 @@ public class DataPlanePublicApiController {
     }
 
     private void handle(ContainerRequestContext context, AsyncResponse response) {
-        var bearerToken = contextApi.headers(context).get(HttpHeaders.AUTHORIZATION);
+        var contextApi = new ContainerRequestContextApiImpl(context);
+        var bearerToken = contextApi.headers().get(HttpHeaders.AUTHORIZATION);
         if (bearerToken == null) {
             response.resume(notAuthorizedErrors(List.of("Missing bearer token")));
             return;
@@ -139,9 +123,7 @@ public class DataPlanePublicApiController {
             return;
         }
 
-        var properties = mapRequestProperties(context);
-        var dataFlowRequest = createDataFlowRequest(tokenValidationResult.getContent(), properties);
-
+        var dataFlowRequest = factory.from(contextApi, tokenValidationResult.getContent());
         var validationResult = dataPlaneManager.validate(dataFlowRequest);
         if (validationResult.failed()) {
             var res = validationResult.getFailureMessages().isEmpty()
@@ -166,38 +148,5 @@ public class DataPlanePublicApiController {
                         response.resume(internalErrors(List.of("Unhandled exception: " + throwable.getLocalizedMessage())));
                     }
                 });
-    }
-
-    /**
-     * Create a {@link DataFlowRequest} based on the decoded claim token and the request content.
-     */
-    private DataFlowRequest createDataFlowRequest(ClaimToken claims, Map<String, String> properties) {
-        var dataAddress = typeManager.readValue((String) claims.getClaims().get(DataPlaneConstants.DATA_ADDRESS), DataAddress.class);
-        return DataFlowRequest.Builder.newInstance()
-                .processId(UUID.randomUUID().toString())
-                .sourceDataAddress(dataAddress)
-                .destinationDataAddress(DataAddress.Builder.newInstance()
-                        .type(OutputStreamDataSinkFactory.TYPE)
-                        .build())
-                .trackable(false)
-                .id(UUID.randomUUID().toString())
-                .properties(properties)
-                .build();
-    }
-
-    /**
-     * Put all properties of the incoming request (method, request body, query params...) into a map.
-     */
-    private Map<String, String> mapRequestProperties(ContainerRequestContext context) {
-        var props = new HashMap<String, String>();
-        props.put(METHOD, contextApi.method(context));
-        props.put(QUERY_PARAMS, contextApi.queryParams(context));
-        props.put(PATH, contextApi.path(context));
-        Optional.ofNullable(contextApi.mediaType(context))
-                .ifPresent(mediaType -> {
-                    props.put(MEDIA_TYPE, mediaType);
-                    props.put(BODY, contextApi.body(context));
-                });
-        return props;
     }
 }

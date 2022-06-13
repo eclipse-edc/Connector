@@ -21,7 +21,7 @@ import okhttp3.Request;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.InputStreamDataSource;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,10 +33,6 @@ import java.util.concurrent.Executors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures.createHttpResponse;
 import static org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures.createRequest;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.BASE_URL;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -52,7 +48,7 @@ class HttpDataSinkFactoryTest {
 
     @Test
     void verifyCanHandle() {
-        var httpRequest = createRequest(TYPE).build();
+        var httpRequest = createRequest(HttpDataAddress.DATA_TYPE).build();
         var nonHttpRequest = createRequest(FAKER.lorem().word()).build();
 
         assertThat(factory.canHandle(httpRequest)).isTrue();
@@ -61,13 +57,11 @@ class HttpDataSinkFactoryTest {
 
     @Test
     void verifyValidation() {
-        var dataAddress = DataAddress.Builder.newInstance()
-                .property(BASE_URL, FAKER.internet()
-                        .url())
-                .type(TYPE)
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .baseUrl(FAKER.internet().url())
                 .build();
 
-        var validRequest = createRequest(TYPE).destinationDataAddress(dataAddress).build();
+        var validRequest = createRequest(HttpDataAddress.DATA_TYPE).destinationDataAddress(dataAddress).build();
         assertThat(factory.validate(validRequest).succeeded()).isTrue();
 
         var missingEndpointRequest = createRequest(FAKER.lorem().word()).build();
@@ -76,12 +70,11 @@ class HttpDataSinkFactoryTest {
 
     @Test
     void verifyCreateSource() {
-        var dataAddress = DataAddress.Builder.newInstance()
-                .property(BASE_URL, FAKER.internet().url())
-                .type(TYPE)
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .baseUrl(FAKER.internet().url())
                 .build();
 
-        var validRequest = createRequest(TYPE).destinationDataAddress(dataAddress).build();
+        var validRequest = createRequest(HttpDataAddress.DATA_TYPE).destinationDataAddress(dataAddress).build();
         var missingEndpointRequest = createRequest(FAKER.lorem().word()).build();
 
         assertThat(factory.createSink(validRequest)).isNotNull();
@@ -92,14 +85,13 @@ class HttpDataSinkFactoryTest {
     void verifyCreateAuthenticatingSource() throws InterruptedException, ExecutionException, IOException {
         var authKey = FAKER.lorem().word();
         var authCode = FAKER.internet().uuid();
-        var dataAddress = DataAddress.Builder.newInstance()
-                .type(TYPE)
-                .property(BASE_URL, "http://example.com")
-                .property(AUTHENTICATION_KEY, authKey)
-                .property(AUTHENTICATION_CODE, authCode)
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .baseUrl("http://example.com")
+                .authKey(authKey)
+                .authCode(authCode)
                 .build();
 
-        var validRequest = createRequest(TYPE).destinationDataAddress(dataAddress).build();
+        var validRequest = createRequest(HttpDataAddress.DATA_TYPE).destinationDataAddress(dataAddress).build();
 
         var call = mock(Call.class);
         when(call.execute()).thenReturn(createHttpResponse().build());

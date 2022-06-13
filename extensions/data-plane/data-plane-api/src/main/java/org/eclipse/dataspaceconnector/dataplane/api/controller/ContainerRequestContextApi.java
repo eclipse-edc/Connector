@@ -23,15 +23,46 @@ import java.util.Map;
  */
 public interface ContainerRequestContextApi {
 
-    Map<String, String> headers(ContainerRequestContext context);
+    /**
+     * Get the request headers. Note that if more than one value is associated to a specific header,
+     * only the first one is retained.
+     *
+     * @return Headers map.
+     */
+    Map<String, String> headers();
 
-    String queryParams(ContainerRequestContext context);
+    /**
+     * Format query of the request as string, e.g. "hello=world\&amp;foo=bar".
+     *
+     * @return Query param string.
+     */
+    String queryParams();
 
-    String body(ContainerRequestContext context);
+    /**
+     * Format the request body into a string.
+     *
+     * @return Request body.
+     */
+    String body();
 
-    String path(ContainerRequestContext context);
+    /**
+     * Get the media type from incoming request.
+     *
+     * @return Media type.
+     */
+    String mediaType();
 
-    String mediaType(ContainerRequestContext context);
+    /**
+     * Return request path, e.g. "hello/world/foo/bar".
+     *
+     * @return Path string.
+     */
+    String path();
 
-    String method(ContainerRequestContext context);
+    /**
+     * Get http method from the incoming request, e.g. "GET", "POST"...
+     *
+     * @return Http method.
+     */
+    String method();
 }

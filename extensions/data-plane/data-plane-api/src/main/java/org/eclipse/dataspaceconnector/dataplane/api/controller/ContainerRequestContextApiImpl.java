@@ -21,7 +21,6 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -34,18 +33,22 @@ public class ContainerRequestContextApiImpl implements ContainerRequestContextAp
 
     private static final String QUERY_PARAM_SEPARATOR = "&";
 
-    @Override
-    public Map<String, String> headers(ContainerRequestContext context) {
-        var headers = new HashMap<String, String>();
-        context.getHeaders().entrySet()
-                .stream()
-                .filter(entry -> !entry.getValue().isEmpty())
-                .forEach(entry -> headers.put(entry.getKey(), entry.getValue().get(0)));
-        return headers;
+    private final ContainerRequestContext context;
+
+    public ContainerRequestContextApiImpl(ContainerRequestContext context) {
+        this.context = context;
     }
 
     @Override
-    public String queryParams(ContainerRequestContext context) {
+    public Map<String, String> headers() {
+        return context.getHeaders().entrySet()
+                .stream()
+                .filter(entry -> !entry.getValue().isEmpty())
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().get(0)));
+    }
+
+    @Override
+    public String queryParams() {
         return context.getUriInfo().getQueryParameters().entrySet()
                 .stream()
                 .map(entry -> new QueryParam(entry.getKey(), entry.getValue()))
@@ -55,7 +58,7 @@ public class ContainerRequestContextApiImpl implements ContainerRequestContextAp
     }
 
     @Override
-    public String body(ContainerRequestContext context) {
+    public String body() {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(context.getEntityStream()))) {
             return br.lines().collect(Collectors.joining("\n"));
         } catch (IOException e) {
@@ -64,20 +67,20 @@ public class ContainerRequestContextApiImpl implements ContainerRequestContextAp
     }
 
     @Override
-    public String path(ContainerRequestContext context) {
+    public String path() {
         var pathInfo = context.getUriInfo().getPath();
         return pathInfo.startsWith("/") ? pathInfo.substring(1) : pathInfo;
     }
 
     @Override
-    public String mediaType(ContainerRequestContext context) {
+    public String mediaType() {
         return Optional.ofNullable(context.getMediaType())
                 .map(MediaType::toString)
                 .orElse(null);
     }
 
     @Override
-    public String method(ContainerRequestContext context) {
+    public String method() {
         return context.getMethod();
     }
 
