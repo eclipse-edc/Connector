@@ -24,11 +24,12 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -38,19 +39,27 @@ import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
+import org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema;
+
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
+import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.NAME;
 
 public class FileSystemExtension implements ServiceExtension {
+    private static final Action USE_ACTION = Action.Builder.newInstance().type("USE").build();
 
     public static final String USE_POLICY = "use-eu";
 
     @EdcSetting
     private static final String EDC_ASSET_PATH = "edc.samples.04.asset.path";
 
+    @EdcSetting
+    private static final String EDC_ASSET_URL = "edc.samples.04.asset.url";
+
     @Inject
     private ResourceManifestGenerator manifestGenerator;
 
     @Inject
-    private PolicyStore policyStore;
+    private PolicyDefinitionStore policyStore;
 
     @Inject
     private ContractDefinitionStore contractStore;
@@ -78,8 +87,14 @@ public class FileSystemExtension implements ServiceExtension {
         var policy = createPolicy();
         policyStore.save(policy);
 
-        registerDataEntries(context);
-        registerContractDefinition(policy.getUid());
+        registerDataEntries1(context);
+        registerContractDefinition1(policy.getUid());
+
+        registerDataEntries2(context);
+        registerContractDefinition2(policy.getUid());
+
+        registerDataEntries3(context);
+        registerContractDefinition3(policy.getUid());
 
         // register the fs resource definition generator
         manifestGenerator.registerGenerator(new FileSystemResourceDefinitionGenerator(monitor, context));
@@ -97,19 +112,20 @@ public class FileSystemExtension implements ServiceExtension {
         typeManager.registerTypes(FileSystemProvisionedResource.class, FileSystemResourceDefinition.class);
     }
 
-    private Policy createPolicy() {
-
+    private PolicyDefinition createPolicy() {
         var usePermission = Permission.Builder.newInstance()
-                .action(Action.Builder.newInstance().type("USE").build())
+                .action(USE_ACTION)
                 .build();
 
-        return Policy.Builder.newInstance()
-                .id(USE_POLICY)
-                .permission(usePermission)
+        return PolicyDefinition.Builder.newInstance()
+                .uid(USE_POLICY)
+                .policy(Policy.Builder.newInstance()
+                        .permission(usePermission)
+                        .build())
                 .build();
     }
 
-    private void registerDataEntries(ServiceExtensionContext context) {
+    private void registerDataEntries1(ServiceExtensionContext context) {
         var assetPathSetting = context.getSetting(EDC_ASSET_PATH, "d:/edc/provider/warren.jpg");
 
         var dataAddress = DataAddress.Builder.newInstance()
@@ -123,7 +139,7 @@ public class FileSystemExtension implements ServiceExtension {
         loader.accept(asset, dataAddress);
     }
 
-    private void registerContractDefinition(String uid) {
+    private void registerContractDefinition1(String uid) {
 
         var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("1")
@@ -135,4 +151,57 @@ public class FileSystemExtension implements ServiceExtension {
         contractStore.save(contractDefinition);
     }
 
+    private void registerDataEntries2(ServiceExtensionContext context) {
+        var assetPathSetting = context.getSetting(EDC_ASSET_URL, "https://docs.oracle.com/javaee/5/firstcup/doc/firstcup.pdf");
+
+        var dataAddress = DataAddress.Builder.newInstance()
+                .property("type", HttpDataAddressSchema.TYPE)
+                .property("http", assetPathSetting)
+                .property(NAME, "")
+                .property(ENDPOINT, assetPathSetting)
+                .build();
+
+        var assetId = "onboarding";
+        var asset = Asset.Builder.newInstance().id(assetId).build();
+
+        loader.accept(asset, dataAddress);
+    }
+
+    private void registerContractDefinition2(String uid) {
+
+        var contractDefinition = ContractDefinition.Builder.newInstance()
+                .id("2")
+                .accessPolicyId(uid)
+                .contractPolicyId(uid)
+                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "onboarding").build())
+                .build();
+
+        contractStore.save(contractDefinition);
+    }
+
+    private void registerDataEntries3(ServiceExtensionContext context) {
+        var assetPathSetting = context.getSetting(EDC_ASSET_PATH, "data/ten=castidev/data.csv");
+
+        var dataAddress = DataAddress.Builder.newInstance()
+                .property("type", HttpDataAddressSchema.TYPE)
+                .property("datalakepath", assetPathSetting)
+                .build();
+
+        var assetId = "data.csv";
+        var asset = Asset.Builder.newInstance().id(assetId).build();
+
+        loader.accept(asset, dataAddress);
+    }
+
+    private void registerContractDefinition3(String uid) {
+
+        var contractDefinition = ContractDefinition.Builder.newInstance()
+                .id("3")
+                .accessPolicyId(uid)
+                .contractPolicyId(uid)
+                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "data.csv").build())
+                .build();
+
+        contractStore.save(contractDefinition);
+    }
 }
