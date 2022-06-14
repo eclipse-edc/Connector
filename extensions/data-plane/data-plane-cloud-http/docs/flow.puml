@@ -28,28 +28,30 @@ box "Consumer Cloud"
     participant CloudAPI1 as "CloudAPI"
 end box
 
-box "Provider Cloud"
-    database FileShare2 as "AWS S3"
-    participant CloudAPI2 as "CloudAPI"
+box "Provider Data Source"
+    database FileShare2 as "Data Source"
 end box
 
-rnote right CloudAPI2 #yellow
+rnote right CloudAPI1 #yellow
 We use AWS as an example
 It can be another cloud provider e.g. Azure
 end note
 
 box Provider http 8181 data 8182 ids 8282 #ProviderColor
     participant ConnectorProvider as "Eclipse\nDataspace\nConnector" #white
-    participant CloudHttpDataSource as "CloudHttpDataSource" #white
     participant CloudHttpDataSink as "CloudHttpDataSink" #white
-    participant CloudProvisioner as "CloudProvisioner" #white
+    participant DataSource as "DataSource" #white
     database AssetCatalogProvider as "Asset\nCatalog" #white
     actor Partner2 as "Partner" #white
+
+    rnote right DataSource #yellow
+    Can be any dataplane datasource implementation
+    end note
 end box
 
 == Contract Offering ==
 
-Partner2 -> FileShare1 : Insert AssetData
+Partner2 -> FileShare2 : Insert AssetData
 Partner2 -> ConnectorProvider : Configure Contract Offer Framework
 rnote right Partner2 #yellow
 In order to request any data, a contract agreement
@@ -104,13 +106,9 @@ end note
 
 
 ConnectorConsumer -> ConnectorProvider : Data Request Message
-ConnectorProvider -> CloudProvisioner : Provision transfer
-CloudProvisioner -> CloudAPI2 : Generate Download Presigned URL
-return Presigned URL
-CloudProvisioner -> CloudHttpDataSource : Provide Download Presigned URL (data source)
-CloudHttpDataSource -> FileShare2 : Read content from S3
+DataSource -> FileShare2 : Read content from the source
 return Data Content Parts
-CloudHttpDataSource -> CloudHttpDataSink : Provide read parts
+DataSource -> CloudHttpDataSink : Provide read parts
 CloudHttpDataSink -> FileShare1  : Push to fileshare/database/...
 
 Partner1 -> FileShare1 : Access AssetData

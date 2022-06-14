@@ -60,6 +60,7 @@ org.eclipse.dataspaceconnector:azure-vault:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:catalog-cache:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:federated-catalog-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-api:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:data-plane-cloud-http:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-framework:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-http:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-spi:0.0.1-SNAPSHOT
