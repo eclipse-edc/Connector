@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.dataplane.cloud.http;
 import net.jodah.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataplane.cloud.http.pipeline.CloudHttpDataSinkFactory;
-import org.eclipse.dataspaceconnector.dataplane.cloud.http.pipeline.CloudHttpDataSourceFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -54,9 +53,6 @@ public class CloudDataPlaneHttpExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
-
-        @SuppressWarnings("unchecked") var sourceFactory = new CloudHttpDataSourceFactory(httpClient, retryPolicy, monitor, vault);
-        pipelineService.registerFactory(sourceFactory);
 
         var sinkFactory = new CloudHttpDataSinkFactory(httpClient, executorContainer.getExecutorService(),  monitor);
         pipelineService.registerFactory(sinkFactory);
