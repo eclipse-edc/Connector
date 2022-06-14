@@ -31,7 +31,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.inline.DataOperatorRegistry;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -111,9 +110,6 @@ public class DataLakeExtension implements ServiceExtension {
             registerProvisionDefinitionsGenerators(context, monitor);
             registerProvisionTypes(context.getTypeManager());
 
-            // register status checker
-            var statusCheckerReg = context.getService(StatusCheckerRegistry.class);
-            //statusCheckerReg.register(HttpSchema.TYPE, new DataLakeStatusChecker(dataLakeClient, retryPolicy, monitor));
         } catch (MalformedURLException e) {
             monitor.severe("Failed to register datalake source url provisioning due to exception ", e);
         }
