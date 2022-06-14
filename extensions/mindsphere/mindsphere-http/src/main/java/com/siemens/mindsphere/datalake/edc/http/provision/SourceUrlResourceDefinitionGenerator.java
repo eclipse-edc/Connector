@@ -14,6 +14,7 @@
 package com.siemens.mindsphere.datalake.edc.http.provision;
 
 import io.opentelemetry.api.internal.StringUtils;
+import org.eclipse.dataspaceconnector.dataplane.cloud.http.pipeline.CloudHttpDataAddressSchema;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -42,7 +43,7 @@ public class SourceUrlResourceDefinitionGenerator implements ProviderResourceDef
         }
 
         final String dataDestinationType = dataRequest.getDataDestination().getType();
-        if (!"CloudHttpData".equalsIgnoreCase(dataDestinationType)) {
+        if (!CloudHttpDataAddressSchema.TYPE.equalsIgnoreCase(dataDestinationType)) {
             monitor.debug("The destination is " + dataDestinationType);
             return null;
         }

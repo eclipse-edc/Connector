@@ -16,6 +16,7 @@ package com.siemens.mindsphere.datalake.edc.http.provision;
 import com.siemens.mindsphere.datalake.edc.http.DataLakeClientImpl;
 import com.siemens.mindsphere.datalake.edc.http.DataLakeException;
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.dataplane.cloud.http.pipeline.CloudHttpDataAddressSchema;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
@@ -83,7 +84,7 @@ public class SourceUrlProvisioner
                                                         ENDPOINT, createPresignedUrl(resourceDefinition.getDatalakePath()),
                                                         NAME, "",
                                                         MindsphereDatalakeSchema.DOWNLOAD_DATALAKE_PATH, resourceDefinition.getDatalakePath()))
-                                        .type("CloudHttpData").build())
+                                        .type(CloudHttpDataAddressSchema.TYPE).build())
                                 .path(resourceDefinition.getDatalakePath())
                                 .build())
                         .build();

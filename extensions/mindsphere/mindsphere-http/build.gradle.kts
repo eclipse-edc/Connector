@@ -27,6 +27,7 @@ dependencies {
     implementation(project(":extensions:data-plane-selector:selector-store"))
     implementation(project(":extensions:data-plane:data-plane-framework"))
     implementation(project(":extensions:data-plane:data-plane-http"))
+    implementation(project(":extensions:data-plane:data-plane-cloud-http"))
 
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 

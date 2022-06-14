@@ -33,43 +33,8 @@ import java.util.Optional;
  * It has the responsibility to:
  * - create upload presign url (used to upload files to)
  * - create download presign url (used to get the file content from)
- *
- * It needs a
  */
 public class DataLakeClientImpl implements DataLakeClient {
-    public DataLakeClientImpl(URL dataLakeBaseUrl, OkHttpClient client, ObjectMapper objectMapper) {
-        this.dataLakeBaseUrl = dataLakeBaseUrl;
-        this.client = client;
-        this.objectMapper = objectMapper;
-    }
-
-    public DataLakeClientImpl(URL dataLakeBaseUrl) {
-        this(dataLakeBaseUrl, new OkHttpClient(), new ObjectMapper());
-    }
-
-    public DataLakeClientImpl(OauthClientDetails oauthClientDetails, URL dataLakeBaseUrl) {
-        this(dataLakeBaseUrl, new OkHttpClient(), new ObjectMapper());
-        this.oauthClientDetails = oauthClientDetails;
-    }
-
-    public static void setInstance(DataLakeClientImpl clientImpl) {
-        instance = clientImpl;
-    }
-
-    public static DataLakeClientImpl getInstance() {
-        return instance;
-    }
-
-    private static DataLakeClientImpl instance;
-
-
-    private OauthClientDetails oauthClientDetails;
-
-    private final URL dataLakeBaseUrl;
-
-    private final OkHttpClient client;
-
-    private final ObjectMapper objectMapper;
 
     private static final String DATA_LAKE_SIGN_REQ_UPLOAD_URL = "/generateUploadObjectUrls";
 
@@ -80,6 +45,26 @@ public class DataLakeClientImpl implements DataLakeClient {
     private static final String X_SPACE_AUTH_KEY = "X-SPACE-AUTH-KEY";
 
     private static final String AUTHORIZATION = "authorization";
+
+    private static final MediaType TYPE_JSON = MediaType.parse("application/json");
+
+    private static final String HTTP_POST = "POST";
+    private static final String BEARER = "Bearer ";
+
+    private OauthClientDetails oauthClientDetails;
+
+    private final URL dataLakeBaseUrl;
+
+    private final OkHttpClient client;
+
+    private final ObjectMapper objectMapper;
+
+    public DataLakeClientImpl(final OauthClientDetails oauthClientDetails, final URL dataLakeBaseUrl) {
+        this.oauthClientDetails = oauthClientDetails;
+        this.dataLakeBaseUrl = dataLakeBaseUrl;
+        this.client = new OkHttpClient();
+        this.objectMapper = new ObjectMapper();
+    }
 
     private static class DatalakePaths {
         private List<DatalakePath> paths = new ArrayList<>();
@@ -124,9 +109,9 @@ public class DataLakeClientImpl implements DataLakeClient {
 
             final String payloadString = objectMapper.writeValueAsString(new DatalakePaths()
                     .setPaths(Collections.singletonList(new DatalakePath().setPath(extractFilenameFromPath(datalakePath)))));
-            final RequestBody requestPayload = RequestBody.create(payloadString, MediaType.parse("application/json"));
+            final RequestBody requestPayload = RequestBody.create(payloadString, TYPE_JSON);
             final Request request = new Request.Builder()
-                    .method("POST", requestPayload)
+                    .method(HTTP_POST, requestPayload)
                     .url(dataLakeBaseUrl + DATA_LAKE_SIGN_REQ_DOWNLOAD_URL)
                     .header(AUTHORIZATION, accessToken)
                     .build();
@@ -165,9 +150,9 @@ public class DataLakeClientImpl implements DataLakeClient {
 
             final SignUrlRequestContainerDto requestContainerDto = SignUrlRequestContainerDto.composeForSinglePath(filePath);
             final String payloadString = objectMapper.writeValueAsString(requestContainerDto);
-            final RequestBody requestPayload = RequestBody.create(payloadString, MediaType.parse("application/json"));
+            final RequestBody requestPayload = RequestBody.create(payloadString, TYPE_JSON);
             final Request request = new Request.Builder()
-                    .method("POST", requestPayload)
+                    .method(HTTP_POST, requestPayload)
                     .url(dataLakeBaseUrl  + DATA_LAKE_SIGN_REQ_UPLOAD_URL)
                     .header(AUTHORIZATION, accessToken)
                     .build();
@@ -212,12 +197,12 @@ public class DataLakeClientImpl implements DataLakeClient {
                 tenant, oauthClientDetails.getClientAppName(), oauthClientDetails.getClientAppVersion());
 
         final String requestPayload = objectMapper.writeValueAsString(technicalUserTokenRequestDto);
-        final RequestBody requestBody = RequestBody.create(requestPayload, MediaType.parse("application/json"));
+        final RequestBody requestBody = RequestBody.create(requestPayload, TYPE_JSON);
 
 
         final Request tokenRequest = new Request.Builder().url(oauthClientDetails.getAccessTokenUrl())
-                .method("POST", requestBody)
-                .header(X_SPACE_AUTH_KEY, String.format("Bearer %s", oauthClientDetails.getBase64Credentials()))
+                .method(HTTP_POST, requestBody)
+                .header(X_SPACE_AUTH_KEY, String.format(BEARER + "%s", oauthClientDetails.getBase64Credentials()))
                 .build();
 
         final Call call = client.newCall(tokenRequest);
@@ -228,7 +213,7 @@ public class DataLakeClientImpl implements DataLakeClient {
                 .bytes(), TechnicalUserTokenResponseDto.class);
 
         return technicalUserTokenResponseDto.getAccessToken() == null ?
-                Optional.empty() : Optional.of("Bearer " + technicalUserTokenResponseDto.getAccessToken());
+                Optional.empty() : Optional.of(BEARER + technicalUserTokenResponseDto.getAccessToken());
     }
 
     @Override

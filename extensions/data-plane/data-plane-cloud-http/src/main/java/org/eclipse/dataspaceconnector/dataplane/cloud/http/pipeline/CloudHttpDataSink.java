@@ -105,6 +105,7 @@ public class CloudHttpDataSink extends ParallelSink {
             return this;
         }
 
+        @Override
         protected void validate() {
             Objects.requireNonNull(sink.endpoint, "endpoint");
             Objects.requireNonNull(sink.httpClient, "httpClient");
