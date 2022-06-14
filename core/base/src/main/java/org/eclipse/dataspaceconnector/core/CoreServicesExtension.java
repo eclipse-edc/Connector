@@ -53,6 +53,7 @@ import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
 import java.security.PrivateKey;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutorService;
@@ -63,14 +64,9 @@ import static java.util.Optional.ofNullable;
 @BaseExtension
 @Provides({
         HealthCheckService.class,
-        Hostname.class,
-        OkHttpClient.class,
-        ParticipantAgentService.class,
-        PolicyEngine.class,
-        RemoteMessageDispatcherRegistry.class,
-        RuleBindingRegistry.class,
         Monitor.class,
         TypeManager.class,
+        Clock.class,
         Telemetry.class
 })
 public class CoreServicesExtension implements ServiceExtension {

@@ -32,27 +32,13 @@ import java.util.UUID;
 public class TestFunctions {
 
     public static ContractNegotiation createNegotiation(String id) {
-        return ContractNegotiation.Builder.newInstance()
-                .type(ContractNegotiation.Type.CONSUMER)
-                .id(id)
-                .contractAgreement(null)
-                .correlationId("corr-" + id)
-                .state(ContractNegotiationStates.REQUESTED.code())
-                .counterPartyAddress("consumer")
-                .counterPartyId("consumerId")
-                .protocol("ids-multipart")
+        return createNegotiationBuilder(id)
                 .build();
     }
 
     public static ContractNegotiation createNegotiation(String id, ContractAgreement agreement) {
-        return ContractNegotiation.Builder.newInstance()
-                .type(ContractNegotiation.Type.CONSUMER)
-                .id(id)
+        return createNegotiationBuilder(id)
                 .contractAgreement(agreement)
-                .correlationId("corr-" + id)
-                .counterPartyAddress("consumer")
-                .counterPartyId("consumerId")
-                .protocol("ids-multipart")
                 .build();
     }
 
@@ -67,15 +53,26 @@ public class TestFunctions {
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
                 .assetId(UUID.randomUUID().toString())
-                .policyId(UUID.randomUUID().toString())
+                .policy(createPolicy())
                 .contractStartDate(Instant.now().getEpochSecond())
                 .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(Instant.now().getEpochSecond());
     }
 
-    public static Policy createPolicy(String uid) {
+    public static ContractNegotiation.Builder createNegotiationBuilder(String id) {
+        return ContractNegotiation.Builder.newInstance()
+                .type(ContractNegotiation.Type.CONSUMER)
+                .id(id)
+                .contractAgreement(null)
+                .correlationId("corr-" + id)
+                .state(ContractNegotiationStates.REQUESTED.code())
+                .counterPartyAddress("consumer")
+                .counterPartyId("consumerId")
+                .protocol("ids-multipart");
+    }
+
+    public static Policy createPolicy() {
         return Policy.Builder.newInstance()
-                .id(uid)
                 .permission(Permission.Builder.newInstance()
                         .target("")
                         .action(Action.Builder.newInstance()

@@ -1,11 +1,3 @@
-**Please note**
-
-### Work in progress
-
-All content reflects the current state of discussion, not final decisions.
-
----
-
 # IDS
 
 This IDS extension represents a collection of all IDS extensions, that are required to run an IDS connector.

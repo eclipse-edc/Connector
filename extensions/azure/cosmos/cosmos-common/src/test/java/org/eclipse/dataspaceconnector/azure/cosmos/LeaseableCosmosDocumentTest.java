@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.azure.cosmos;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
 import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class LeaseableCosmosDocumentTest {
 
+    private final Clock clock = Clock.systemUTC();
 
     @Test
     void getLease() {
@@ -34,7 +36,7 @@ class LeaseableCosmosDocumentTest {
     void breakLease() {
         var doc = new TestDocument("foo", "testpartitionkey");
 
-        doc.acquireLease("me");
+        doc.acquireLease("me", clock);
 
         doc.breakLease("me");
         assertThat(doc.getLease()).isNull();
@@ -52,7 +54,7 @@ class LeaseableCosmosDocumentTest {
     @Test
     void breakLease_whenNotLeasedBySelf() {
         var doc = new TestDocument("foo", "testpartitionkey");
-        doc.acquireLease("me");
+        doc.acquireLease("me", clock);
         assertThatThrownBy(() -> doc.breakLease("not-me")).isInstanceOf(IllegalStateException.class);
     }
 
@@ -61,9 +63,9 @@ class LeaseableCosmosDocumentTest {
     void acquireLease() {
         var doc = new TestDocument("foo", "testpartitionkey");
 
-        doc.acquireLease("me");
+        doc.acquireLease("me", clock);
         assertThat(doc.getLease()).isNotNull();
-        assertThat(doc.getLease().getLeasedBy()).isEqualTo("me");
+        assertThat(doc.getLease().getLeasedBy()).isEqualTo("me", clock);
         assertThat(doc.getLease().getLeaseDuration()).isEqualTo(60_000L);
         assertThat(doc.getLease().getLeasedAt()).isGreaterThan(0);
     }
@@ -72,9 +74,9 @@ class LeaseableCosmosDocumentTest {
     void acquireLease_withDuration() {
         var doc = new TestDocument("foo", "testpartitionkey");
 
-        doc.acquireLease("me", Duration.ofSeconds(2));
+        doc.acquireLease("me", clock, Duration.ofSeconds(2));
         assertThat(doc.getLease()).isNotNull();
-        assertThat(doc.getLease().getLeasedBy()).isEqualTo("me");
+        assertThat(doc.getLease().getLeasedBy()).isEqualTo("me", clock);
         assertThat(doc.getLease().getLeaseDuration()).isEqualTo(2_000L);
         assertThat(doc.getLease().getLeasedAt()).isGreaterThan(0);
     }
@@ -82,15 +84,15 @@ class LeaseableCosmosDocumentTest {
     @Test
     void acquireLease_whenAlreadyAcquired() {
         var doc = new TestDocument("foo", "testpartitionkey");
-        doc.acquireLease("me");
-        doc.acquireLease("me");
+        doc.acquireLease("me", clock);
+        doc.acquireLease("me", clock);
         assertThat(doc.getLease()).isNotNull();
     }
 
     @Test
     void acquireLease_whenAlreadyAcquired_byOther() {
         var doc = new TestDocument("foo", "testpartitionkey");
-        doc.acquireLease("me");
-        assertThatThrownBy(() -> doc.acquireLease("not-me")).isInstanceOf(IllegalStateException.class);
+        doc.acquireLease("me", clock);
+        assertThatThrownBy(() -> doc.acquireLease("not-me", clock)).isInstanceOf(IllegalStateException.class);
     }
 }

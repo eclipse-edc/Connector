@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.Clock;
 import java.time.Duration;
 import java.util.function.Supplier;
 
@@ -30,9 +31,9 @@ public class LeaseUtil {
     private final SqlLeaseContextBuilder leaseContextBuilder;
     private final Supplier<Connection> connectionSupplier;
 
-    public LeaseUtil(TransactionContext context, Supplier<Connection> connectionSupplier, LeaseStatements statements) {
+    public LeaseUtil(TransactionContext context, Supplier<Connection> connectionSupplier, LeaseStatements statements, Clock clock) {
         this.connectionSupplier = connectionSupplier;
-        leaseContextBuilder = SqlLeaseContextBuilder.with(context, "test", statements);
+        leaseContextBuilder = SqlLeaseContextBuilder.with(context, "test", statements, clock);
     }
 
     public void leaseEntity(String tpId, String leaseHolder) {

@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.junit.launcher;
 
+import org.eclipse.dataspaceconnector.common.testfixtures.TestUtils;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -46,14 +47,7 @@ import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadMon
  * This extension attaches a EDC runtime to the {@link BeforeTestExecutionCallback} and {@link AfterTestExecutionCallback} lifecycle hooks. Parameter injection of runtime services is supported.
  */
 public class EdcRuntimeExtension extends EdcExtension {
-    private static final String GRADLE_WRAPPER_UNIX = "gradlew";
-    private static final String GRADLE_WRAPPER_WINDOWS = "gradlew.bat";
-    private static final String GRADLE_WRAPPER;
     private static final Monitor MONITOR = loadMonitor();
-
-    static {
-        GRADLE_WRAPPER = (System.getProperty("os.name").toLowerCase().contains("win")) ? GRADLE_WRAPPER_WINDOWS : GRADLE_WRAPPER_UNIX;
-    }
 
     private final String moduleName;
     private final String logPrefix;
@@ -69,14 +63,11 @@ public class EdcRuntimeExtension extends EdcExtension {
     @Override
     public void beforeTestExecution(ExtensionContext extensionContext) throws Exception {
         // Find the project root directory, moving up the directory tree
-        var root = findRoot(new File(".").getCanonicalFile());
-        if (root == null) {
-            throw new EdcException("Could not find " + GRADLE_WRAPPER + " in parent directories.");
-        }
+        var root = TestUtils.findBuildRoot();
 
         // Run a Gradle custom task to determine the runtime classpath of the module to run
         String[] command = {
-                new File(root, GRADLE_WRAPPER).getCanonicalPath(),
+                new File(root, TestUtils.GRADLE_WRAPPER).getCanonicalPath(),
                 "-q",
                 moduleName + ":printClasspath"
         };
@@ -182,23 +173,4 @@ public class EdcRuntimeExtension extends EdcExtension {
             throw new EdcException(e);
         }
     }
-
-    /**
-     * Utility method to locate the Gradle project root.
-     *
-     * @param path directory in which to start ascending search for the Gradle root.
-     * @return The Gradle project root directly, or <code>null</code> if not found.
-     */
-    private File findRoot(File path) {
-        File gradlew = new File(path, GRADLE_WRAPPER);
-        if (gradlew.exists()) {
-            return path;
-        }
-        var parent = path.getParentFile();
-        if (parent != null) {
-            return findRoot(parent);
-        }
-        return null;
-    }
-
 }

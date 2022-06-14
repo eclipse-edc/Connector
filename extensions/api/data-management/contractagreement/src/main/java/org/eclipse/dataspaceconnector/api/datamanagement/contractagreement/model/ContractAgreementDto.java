@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 
 public class ContractAgreementDto {
     @NotNull
@@ -35,7 +36,7 @@ public class ContractAgreementDto {
     @NotNull
     private String assetId;
     @NotNull
-    private String policyId;
+    private Policy policy;
 
     @AssertTrue
     @JsonIgnore
@@ -73,8 +74,8 @@ public class ContractAgreementDto {
         return assetId;
     }
 
-    public String getPolicyId() {
-        return policyId;
+    public @NotNull Policy getPolicy() {
+        return policy;
     }
 
     public static final class Builder {
@@ -123,8 +124,8 @@ public class ContractAgreementDto {
             return this;
         }
 
-        public Builder policyId(String policyId) {
-            agreement.policyId = policyId;
+        public Builder policy(@NotNull Policy policy) {
+            agreement.policy = policy;
             return this;
         }
 

@@ -25,7 +25,6 @@ dependencies {
     api(project(":data-protocols:ids:ids-transform-v1"))
     api(project(":data-protocols:ids:ids-api-multipart-endpoint-v1"))
     api(project(":data-protocols:ids:ids-api-multipart-dispatcher-v1"))
-    api(project(":data-protocols:ids:ids-token-validation"))
     api(project(":data-protocols:ids:ids-api-configuration"))
 }
 

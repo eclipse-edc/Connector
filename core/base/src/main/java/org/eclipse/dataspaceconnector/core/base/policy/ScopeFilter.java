@@ -33,7 +33,8 @@ import java.util.Objects;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Filters a policy for a scope. This involves recursively removing rules and constraints not bound to the scope and returning a modified copy of the unfiltered policy.
+ * Filters a policy for a scope. This involves recursively removing rules and constraints not bound to the scope and
+ * returning a modified copy of the unfiltered policy.
  * <p>
  * The following filtering rules are implemented:
  *
@@ -59,7 +60,7 @@ public class ScopeFilter {
         var filteredPermissions = policy.getPermissions().stream().map(p -> applyScope(p, scope)).filter(Objects::nonNull).collect(toList());
         var filteredProhibitions = policy.getProhibitions().stream().map(p -> applyScope(p, scope)).filter(Objects::nonNull).collect(toList());
         var policyBuilder = Policy.Builder.newInstance();
-        policyBuilder.id(policy.getUid())
+        policyBuilder
                 .type(policy.getType())
                 .assignee(policy.getAssignee())
                 .assigner(policy.getAssigner())

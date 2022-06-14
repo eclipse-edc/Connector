@@ -98,7 +98,7 @@ class ContractAgreementRequestToIdsContractAgreementTransformerTest {
                 .contractStartDate(Instant.now().getEpochSecond())
                 .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(Instant.now().getEpochSecond())
-                .policyId(policy.getUid())
+                .policy(policy)
                 .build();
 
         return ContractAgreementRequest.Builder.newInstance()

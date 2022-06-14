@@ -84,4 +84,28 @@ class QuerySpecTest {
         assertThat(qs.getFilterExpression()).isNotNull().isEmpty();
     }
 
+    @Test
+    void verify_filterEqualsWithValueContainsEqualsSign() {
+        var spec = QuerySpec.Builder.newInstance().equalsAsContains(true).filter("additionalProp1=a/b=c/d").build();
+        assertThat(spec.getFilterExpression()).hasSize(1).containsOnly(new Criterion("additionalProp1", "contains", "a/b=c/d"));
+
+        var spec2 = QuerySpec.Builder.newInstance().equalsAsContains(false).filter("additionalProp1=a/b=c/d").build();
+        assertThat(spec2.getFilterExpression()).hasSize(1).containsOnly(new Criterion("additionalProp1", "=", "a/b=c/d"));
+    }
+
+    @Test
+    void verify_filterEqualsWithValueContainsSpaces() {
+        var spec = QuerySpec.Builder.newInstance().equalsAsContains(true).filter("additionalProp1=a/b c/d").build();
+        assertThat(spec.getFilterExpression()).hasSize(1).containsOnly(new Criterion("additionalProp1", "contains", "a/b c/d"));
+
+        var spec2 = QuerySpec.Builder.newInstance().equalsAsContains(false).filter("additionalProp1=a/b c/d").build();
+        assertThat(spec2.getFilterExpression()).hasSize(1).containsOnly(new Criterion("additionalProp1", "=", "a/b c/d"));
+    }
+
+    @Test
+    void verify_filterWithValueContainsSpaces() {
+        var spec = QuerySpec.Builder.newInstance().filter("key instanceof some value").build();
+        assertThat(spec.getFilterExpression()).hasSize(1).containsOnly(new Criterion("key", "instanceof", "some value"));
+    }
+
 }

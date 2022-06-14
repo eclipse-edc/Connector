@@ -15,9 +15,9 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.policy.service;
 
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.jetbrains.annotations.NotNull;
@@ -30,32 +30,29 @@ import static java.util.stream.Collectors.toList;
 public class PolicyServiceImpl implements PolicyService {
 
     private final TransactionContext transactionContext;
-    private final PolicyStore policyStore;
+    private final PolicyDefinitionStore policyStore;
     private final ContractDefinitionStore contractDefinitionStore;
 
-    public PolicyServiceImpl(TransactionContext transactionContext, PolicyStore policyStore, ContractDefinitionStore contractDefinitionStore) {
+    public PolicyServiceImpl(TransactionContext transactionContext, PolicyDefinitionStore policyStore, ContractDefinitionStore contractDefinitionStore) {
         this.transactionContext = transactionContext;
         this.policyStore = policyStore;
         this.contractDefinitionStore = contractDefinitionStore;
     }
 
     @Override
-    public Policy findById(String policyId) {
+    public PolicyDefinition findById(String policyId) {
         return transactionContext.execute(() ->
                 policyStore.findById(policyId));
     }
 
     @Override
-    public @NotNull Collection<Policy> query(QuerySpec query) {
+    public @NotNull Collection<PolicyDefinition> query(QuerySpec query) {
         return transactionContext.execute(() ->
                 policyStore.findAll(query).collect(toList()));
     }
 
     @Override
-    public @NotNull ServiceResult<Policy> deleteById(String policyId) {
-
-        var contractFilter = format("contractPolicyId = %s ", policyId);
-        var accessFilter = format("accessPolicyId = %s ", policyId);
+    public @NotNull ServiceResult<PolicyDefinition> deleteById(String policyId) {
 
         return transactionContext.execute(() -> {
 
@@ -63,17 +60,11 @@ public class PolicyServiceImpl implements PolicyService {
                 return ServiceResult.notFound(format("Policy %s does not exist", policyId));
             }
 
-            var queryContractPolicyFilter = QuerySpec.Builder.newInstance().filter(contractFilter).build();
-            var contractDefinitionOnPolicy = contractDefinitionStore.findAll(queryContractPolicyFilter);
+            var contractDefinitionOnPolicy = contractDefinitionStore.isReferenced(policyId);
             if (contractDefinitionOnPolicy.findAny().isPresent()) {
-                return ServiceResult.conflict(format("Policy %s cannot be deleted as it is referenced by at least one contract policy", policyId));
+                return ServiceResult.conflict(format("Policy %s cannot be deleted as it is referenced by at least one contract definition", policyId));
             }
 
-            var queryAccessPolicyFilter = QuerySpec.Builder.newInstance().filter(accessFilter).build();
-            var accessDefinitionOnPolicy = contractDefinitionStore.findAll(queryAccessPolicyFilter);
-            if (accessDefinitionOnPolicy.findAny().isPresent()) {
-                return ServiceResult.conflict(format("Policy %s cannot be deleted as it is referenced by at least one access policy", policyId));
-            }
 
             var deleted = policyStore.deleteById(policyId);
             if (deleted == null) {
@@ -85,7 +76,7 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     @Override
-    public @NotNull ServiceResult<Policy> create(Policy policy) {
+    public @NotNull ServiceResult<PolicyDefinition> create(PolicyDefinition policy) {
 
         return transactionContext.execute(() -> {
             if (policyStore.findById(policy.getUid()) == null) {

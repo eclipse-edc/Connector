@@ -45,7 +45,9 @@ dependencies {
     implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:api:data-management"))
 
-    implementation(project(":data-protocols:ids"))
+    implementation(project(":data-protocols:ids")) {
+        exclude("org.eclipse.dataspaceconnector","ids-token-validation")
+    }
 }
 
 application {

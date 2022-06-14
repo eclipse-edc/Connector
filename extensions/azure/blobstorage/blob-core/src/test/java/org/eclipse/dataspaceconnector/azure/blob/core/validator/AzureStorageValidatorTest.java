@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.azure.blob.core.validator;
 
+import com.github.javafaker.Faker;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
@@ -24,6 +26,8 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class AzureStorageValidatorTest {
+
+    static Faker faker = new Faker();
 
     @ParameterizedTest
     @ValueSource(strings = {"abc", "abcdefghijabcdefghijbcde", "1er", "451", "ge45"})
@@ -56,6 +60,18 @@ class AzureStorageValidatorTest {
     void validateContainerName_fail(String input) {
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> AzureStorageValidator.validateContainerName(input));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void validateKeyName_fail(String input) {
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> AzureStorageValidator.validateKeyName(input));
+    }
+
+    @Test
+    void validateKeyName_success() {
+        AzureStorageValidator.validateKeyName(faker.lorem().word());
     }
 
     @ParameterizedTest

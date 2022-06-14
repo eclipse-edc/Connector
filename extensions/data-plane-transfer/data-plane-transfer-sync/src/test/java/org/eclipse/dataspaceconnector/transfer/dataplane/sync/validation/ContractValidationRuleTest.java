@@ -19,14 +19,17 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
 
+import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,14 +41,16 @@ import static org.mockito.Mockito.when;
 class ContractValidationRuleTest {
 
     private static final Faker FAKER = new Faker();
+    private final Instant now = Instant.now();
+    private final Clock clock = Clock.fixed(now, UTC);
 
     private final ContractNegotiationStore contractNegotiationStore = mock(ContractNegotiationStore.class);
-    private final ContractValidationRule rule = new ContractValidationRule(contractNegotiationStore);
+    private final ContractValidationRule rule = new ContractValidationRule(contractNegotiationStore, clock);
 
     @Test
     void shouldSucceedIfContractIsStillValid() {
         var contractId = FAKER.internet().uuid();
-        var contractAgreement = createContractAgreement(contractId, Instant.now().plus(1, HOURS));
+        var contractAgreement = createContractAgreement(contractId, now.plus(1, HOURS));
         when(contractNegotiationStore.findContractAgreement(contractId)).thenReturn(contractAgreement);
         var claims = new JWTClaimsSet.Builder()
                 .claim(CONTRACT_ID, contractId)
@@ -59,7 +64,7 @@ class ContractValidationRuleTest {
     @Test
     void shouldFailIfContractIsExpired() {
         var contractId = FAKER.internet().uuid();
-        var contractAgreement = createContractAgreement(contractId, Instant.now().minus(1, SECONDS));
+        var contractAgreement = createContractAgreement(contractId, now.minus(1, SECONDS));
         when(contractNegotiationStore.findContractAgreement(contractId)).thenReturn(contractAgreement);
         var claims = new JWTClaimsSet.Builder()
                 .claim(CONTRACT_ID, contractId)
@@ -101,7 +106,7 @@ class ContractValidationRuleTest {
         return ContractAgreement.Builder.newInstance()
                 .id(contractId)
                 .assetId(UUID.randomUUID().toString())
-                .policyId(UUID.randomUUID().toString())
+                .policy(Policy.Builder.newInstance().build())
                 .contractEndDate(endDate.getEpochSecond())
                 .consumerAgentId("any")
                 .providerAgentId("any")

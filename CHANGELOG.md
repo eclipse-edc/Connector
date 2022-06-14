@@ -11,9 +11,34 @@ in the detailed section referring to by linking pull requests or issues.
 
 ### Overview
 
+*
+
+### Detailed Changes
+
+#### Added
+
+*
+
+#### Changed
+
+*
+
+#### Removed
+
+* Old RegistrationService (was used for a PoC) (#164)
+
+#### Fixed
+
+*
+
+## [milestone-4] - 2022-06-07
+
+### Overview
+
 * Bugfixing DataManagementApi
 * Build improvements
 * Improvements to Dependency Resolution
+* Improve and extend documentation
 
 ### Detailed Changes
 
@@ -32,8 +57,13 @@ in the detailed section referring to by linking pull requests or issues.
 * Harmonize setting names in `data-plane-transfer` (#1164)
 * Add Blob transfer Architectural Decision Record (#1259)
 * Add component tests coverage to the codecov coverage report (#1246)
-* Postgresql end to end test (#1278)
+* Postgresql end-to-end test (#1278)
+* CosmosDB end-to-end test (#1346)
 * Add signing/publishing config (#1147)
+* Verify OpenAPI definitions (#1312)
+* Documentation for CosmosDB (#1334)
+* Add validation to contract definition id (#1347)
+* Shared clock service (#1416)
 
 #### Changed
 
@@ -50,10 +80,20 @@ in the detailed section referring to by linking pull requests or issues.
 * Usage of `NooTransactionContext` in (SQL-)Tests (#1119)
 * Sanitize log messages (#1295)
 * Improve CosmosDB statement parser (#1282)
+* Make `ContractDefinitionService` get definition by its id (#1325)
+* Update the CodeQL version from v1 to v2
+* Update `slf4j-api` to `2.0.0-alpha7` (#1328)
+* Added timestamps to TransferProcess DTO (#1350)
+* Make Helm charts more generic (#1363)
+* Make `ParticipantAgent` claims more generic (#1405)
+* Introduced a `PolicyDefinition` object (#1340)
 
 #### Removed
 
-*
+* Deprecated Control API (#1310)
+* Remove sample module `:extensions:policy:ids-policy` (#1348)
+* Unused `:launchers:basic` (#1360)
+* Dependency onto `token-validation` from IDS BOM (#1387)
 
 #### Fixed
 
@@ -69,6 +109,12 @@ in the detailed section referring to by linking pull requests or issues.
 * Throw exception if `IdentityProviderKeyResolver` cannot get keys at startup (#1266)
 * Make all the services injectable (#1285)
 * Fix CosmosDB Integration tests (#1313)
+* Remove ContractDef from Cosmos DB cache when deleting (#1330)
+* Fix misleading warning message on initialization (#1336)
+* Auto-upload of Cosmos stored procedures (#1338)
+* Resiliency against exceptions in the `PartitionManagerImpl` (#1366)
+* QuerySpec when right-op contains "=" or " " (#1380)
+* Fix check whether policy can be deleted (#1410)
 
 ## [milestone-3] - 2022-04-08
 
@@ -115,6 +161,8 @@ in the detailed section referring to by linking pull requests or issues.
 * CosmosDb based `PolicyStore` (#826)
 * Implement SQL-based PolicyStore (#866)
 * Http Provisioner Webhook endpoint (#1039)
+* Add Junit tags to categorize tests (#868)
+* Add Azure Data Factory extension (#910)
 * Add `PolicyService` and Rest endpoints in Data Management API (#1025)
 * Add dependency checks (#1000)
 * Add `ContractAgreement` query methods on `ContractNegotiationStore` (#1044)

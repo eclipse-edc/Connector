@@ -19,6 +19,6 @@ export IP_ADDRESS=$(ip addr | grep "inet " | grep -Fv 127.0.0.1 | awk '{print $2
 Then run the CosmosDB Emulator image:
 ```
 docker run --rm -d -p 8081:8081 -p 10251:10251 -p 10252:10252 -p 10253:10253 -p 10254:10254 --name=test-linux-emulator \ 
-    -e AZURE_COSMOS_EMULATOR_PARTITION_COUNT=1 -e AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=$IP_ADDRESS \
+    -e AZURE_COSMOS_EMULATOR_PARTITION_COUNT=6 -e AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=$IP_ADDRESS \
     -it mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator
 ```

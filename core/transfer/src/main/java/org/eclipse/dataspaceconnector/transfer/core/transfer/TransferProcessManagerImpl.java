@@ -52,6 +52,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
 
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -114,6 +115,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private DataAddressResolver addressResolver;
     private PolicyArchive policyArchive;
     private SendRetryManager<TransferProcess> sendRetryManager;
+    private Clock clock;
 
     private TransferProcessManagerImpl() {
     }
@@ -190,8 +192,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return StatusResult.success(processId);
         }
         var id = randomUUID().toString();
-        var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).type(type)
-                .traceContext(telemetry.getCurrentTraceContext()).build();
+        var process = TransferProcess.Builder.newInstance()
+                .id(id)
+                .dataRequest(dataRequest)
+                .type(type)
+                .createdTimestamp(clock.millis())
+                .traceContext(telemetry.getCurrentTraceContext())
+                .build();
         if (process.getState() == TransferProcessStates.UNSAVED.code()) {
             process.transitionInitial();
         }
@@ -702,6 +709,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         public Builder executorInstrumentation(ExecutorInstrumentation executorInstrumentation) {
             manager.executorInstrumentation = executorInstrumentation;
+            return this;
+        }
+
+        public Builder clock(Clock clock) {
+            manager.clock = clock;
             return this;
         }
 

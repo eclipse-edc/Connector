@@ -27,25 +27,36 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
+ports: {}
+  # Example:
+  #  http:
+  #    containerPort: 8181
+  #    servicePort: 80 (Optional: if not provided, the value of containerPort will be used)
+  #    path: /api
+
+volumes: []
+  # Define a volume that can then be mounted into a container. Please refer to https://kubernetes.io/docs/concepts/storage/volumes/
+  # for more details. Below example will create a volume from the content of the `log-config` ConfigMap keyed with `log_level`:
+  # - name: config-vol
+  #   configMap:
+  #     name: log-config
+  #     items:
+  #     - key: log_level
+  #       path: log_level
+
 edc:
-  port: 8181
-  path: /api
-  managementApi:
-    enabled: true
-    port: 9191
-    path: /api/v1/data
-  idsApi:
-    port: 8282
-    path: /api/v1/ids
   env: {}
   envSecrets: {}
+  volumeMounts: []
+  # Mount the provided volume in the POD filesystem at the specific path. Please refer to
+  # https://kubernetes.io/fr/docs/concepts/storage/volumes/ for more details.
+  # Example:
+  # - name: config-vol
+  #   mountPath: /etc/config
+  # will mount the `config-vol` volume at /etc/config
+
 service:
   type: ClusterIP
-  port: 80
-  managementApi:
-    port: 91
-  idsApi:
-    port: 8282
 
 ingress:
   enabled: false
@@ -56,6 +67,7 @@ ingress:
   hosts:
     - host: dataspace-connector.local
       paths: []
+
   tls: []
   #  - secretName: dataspace-connector-tls
   #    hosts:

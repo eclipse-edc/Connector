@@ -33,13 +33,14 @@ public class ReflectionUtil {
     private static final String CLOSING_BRACKET = "]";
 
     /**
-     * Utility function to get value of a field from an object. For field names currently the dot notation and array indexers are supported:
+     * Utility function to get value of a field from an object. For field names currently the dot notation and array
+     * indexers are supported:
      * <pre>
      *     someObject.someValue
      *     someObject[2].someValue //someObject must impement the List interface
      * </pre>
      *
-     * @param object       The object
+     * @param object The object
      * @param propertyName The name of the field
      * @return The field's value.
      * @throws ReflectionException if the field does not exist or is not accessible
@@ -53,6 +54,9 @@ public class ReflectionUtil {
             var field = propertyName.substring(0, dotIx);
             var rest = propertyName.substring(dotIx + 1);
             object = getFieldValue(field, object);
+            if (object == null) {
+                return null;
+            }
             return getFieldValue(rest, object);
         } else if (propertyName.matches(ARRAY_INDEXER_REGEX)) { //array indexer
             var openingBracketIx = propertyName.indexOf(OPENING_BRACKET);
@@ -82,10 +86,10 @@ public class ReflectionUtil {
 
 
     /**
-     * Utility function to get value of a field from an object. Essentially the same as {@link ReflectionUtil#getFieldValue(String, Object)}
-     * but it does not throw an exception
+     * Utility function to get value of a field from an object. Essentially the same as
+     * {@link ReflectionUtil#getFieldValue(String, Object)} but it does not throw an exception
      *
-     * @param object       The object
+     * @param object The object
      * @param propertyName The name of the field
      * @return The field's value. Returns null if the field does not exist or is inaccessible.
      */
@@ -118,9 +122,10 @@ public class ReflectionUtil {
 
 
     /**
-     * Gets a field with a given name from all declared fields of a class including supertypes. Will include protected and private fields.
+     * Gets a field with a given name from all declared fields of a class including supertypes. Will include protected
+     * and private fields.
      *
-     * @param clazz     The class of the object
+     * @param clazz The class of the object
      * @param fieldName The fieldname
      * @return A field with the given name, null if the field does not exist
      */

@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
 import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
+import java.time.Clock;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,26 +48,12 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         registerService(TypeManager.class, typeManager);
         registerService(Monitor.class, monitor);
         registerService(Telemetry.class, telemetry);
+        registerService(Clock.class, Clock.systemUTC());
     }
 
     @Override
     public String getConnectorId() {
         return connectorId;
-    }
-
-    @Override
-    public Monitor getMonitor() {
-        return getService(Monitor.class);
-    }
-
-    @Override
-    public Telemetry getTelemetry() {
-        return getService(Telemetry.class);
-    }
-
-    @Override
-    public TypeManager getTypeManager() {
-        return getService(TypeManager.class);
     }
 
     @Override

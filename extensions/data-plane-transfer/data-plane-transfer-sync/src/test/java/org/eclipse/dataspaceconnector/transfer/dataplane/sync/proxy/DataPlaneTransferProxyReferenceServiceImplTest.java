@@ -31,10 +31,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.text.ParseException;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 
+import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.CONTRACT_ID;
 import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.DATA_ADDRESS;
@@ -49,6 +51,7 @@ class DataPlaneTransferProxyReferenceServiceImplTest {
 
     private static final TypeManager TYPE_MANAGER = new TypeManager();
 
+    private final Instant now = Instant.now();
     private long tokenValiditySeconds;
     private DataPlaneTransferProxyReferenceService proxyManager;
     private TokenGenerationService tokenGeneratorMock;
@@ -59,7 +62,8 @@ class DataPlaneTransferProxyReferenceServiceImplTest {
         tokenGeneratorMock = mock(TokenGenerationService.class);
         tokenValiditySeconds = FAKER.random().nextLong(100);
         encrypterMock = mock(DataEncrypter.class);
-        proxyManager = new DataPlaneTransferProxyReferenceServiceImpl(tokenGeneratorMock, TYPE_MANAGER, tokenValiditySeconds, encrypterMock);
+        Clock clock = Clock.fixed(now, UTC);
+        proxyManager = new DataPlaneTransferProxyReferenceServiceImpl(tokenGeneratorMock, TYPE_MANAGER, tokenValiditySeconds, encrypterMock, clock);
     }
 
     /**
@@ -101,7 +105,7 @@ class DataPlaneTransferProxyReferenceServiceImplTest {
         var claims = builder.build();
         assertThat(claims.getStringClaim(CONTRACT_ID)).isEqualTo(contractId);
         assertThat(claims.getStringClaim(DATA_ADDRESS)).isEqualTo(encryptedDataAddress);
-        assertThat(claims.getExpirationTime()).isNotNull().isCloseTo(Date.from(Instant.now().plusSeconds(tokenValiditySeconds)), 1000);
+        assertThat(claims.getExpirationTime()).isEqualTo(Date.from(now.plusSeconds(tokenValiditySeconds)));
 
         assertThat(result.succeeded()).isTrue();
         var edr = result.getContent();

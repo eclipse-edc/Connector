@@ -29,7 +29,6 @@ import java.util.UUID;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -58,6 +57,7 @@ class TransferProcessTest {
                 .newInstance()
                 .id(UUID.randomUUID().toString())
                 .type(TransferProcess.Type.PROVIDER)
+                .createdTimestamp(3)
                 .state(TransferProcessStates.COMPLETED.code())
                 .contentDataAddress(DataAddress.Builder.newInstance().type("test").build())
                 .stateCount(1)
@@ -68,6 +68,7 @@ class TransferProcessTest {
 
         assertEquals(process.getState(), copy.getState());
         assertEquals(process.getType(), copy.getType());
+        assertEquals(process.getCreatedTimestamp(), copy.getCreatedTimestamp());
         assertEquals(process.getStateCount(), copy.getStateCount());
         assertEquals(process.getStateTimestamp(), copy.getStateTimestamp());
         assertNotNull(process.getContentDataAddress());
@@ -119,18 +120,6 @@ class TransferProcessTest {
         process.transitionDeprovisioning();
         process.transitionDeprovisioned();
         process.transitionEnded();
-    }
-
-    @Test
-    void verifyTransitionRollback() {
-        var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).build();
-        process.transitionInitial();
-        process.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
-
-        process.rollbackState(INITIAL);
-
-        assertEquals(INITIAL.code(), process.getState());
-        assertEquals(1, process.getStateCount());
     }
 
     @Test

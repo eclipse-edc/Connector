@@ -26,4 +26,15 @@ services:
       - 9292:9292
     environment:
       - IDS_WEBHOOK_ADDRESS=http://catena-x-edc-consumer:9292
-    
+
+  registry-service:
+    image: ghcr.io/catenax-ng/catenax-at-home/registry:0.0.1
+    container_name: 'catena-x-registry'
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      IDP_ISSUER_URI: ""
+      SPRING_DATASOURCE_URL: "jdbc:h2:mem:semanticsdb;CASE_INSENSITIVE_IDENTIFIERS=TRUE"
+    ports:
+      - "4243:4243" # default
+      #- "5013:8090"

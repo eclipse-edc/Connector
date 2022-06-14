@@ -45,6 +45,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -89,6 +90,7 @@ class TransferProcessManagerImplIntegrationTest {
                 .dispatcherRegistry(mock(RemoteMessageDispatcherRegistry.class))
                 .manifestGenerator(manifestGenerator)
                 .monitor(mock(Monitor.class))
+                .clock(Clock.systemUTC())
                 .commandQueue(mock(CommandQueue.class))
                 .commandRunner(mock(CommandRunner.class))
                 .typeManager(new TypeManager())

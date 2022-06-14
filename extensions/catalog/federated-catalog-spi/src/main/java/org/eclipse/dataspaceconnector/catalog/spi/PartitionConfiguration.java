@@ -22,6 +22,8 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import java.time.Duration;
 import java.util.Random;
 
+import static java.lang.String.format;
+
 /**
  * Object that provides configuration for the {@link PartitionManager}.
  * All configuration values that do not allow for default values are resolved instantly, all others are resolved
@@ -29,6 +31,8 @@ import java.util.Random;
  */
 public class PartitionConfiguration {
 
+    @EdcSetting
+    static final String PART_EXECUTION_PLAN_PERIOD_SECONDS = "edc.catalog.cache.execution.period.seconds";
     @EdcSetting
     private static final String PART_WORK_ITEM_QUEUE_SIZE_SETTING = "edc.catalog.cache.partition.queue.size";
     @EdcSetting
@@ -38,18 +42,18 @@ public class PartitionConfiguration {
     @EdcSetting
     private static final String PART_LOADER_RETRY_TIMEOUT = "edc.catalog.cache.loader.timeout.millis";
     @EdcSetting
-    private static final String PART_EXECUTION_PLAN_PERIOD_SECONDS = "edc.catalog.cache.execution.period.seconds";
-    @EdcSetting
     private static final String PART_EXECUTION_PLAN_DELAY_SECONDS = "edc.catalog.cache.execution.delay.seconds";
     private static final int DEFAULT_EXECUTION_PERIOD_SECONDS = 60;
+    private static final int LOW_EXECUTION_PERIOD_SECONDS_THRESHOLD = 10;
+    private static final int DEFAULT_WORK_ITEM_QUEUE_SIZE = 10;
     private final ServiceExtensionContext context;
 
     public PartitionConfiguration(ServiceExtensionContext context) {
         this.context = context;
     }
 
-    public int getWorkItemQueueSize(int defaultValue) {
-        return context.getSetting(PART_WORK_ITEM_QUEUE_SIZE_SETTING, defaultValue);
+    public int getWorkItemQueueSize() {
+        return context.getSetting(PART_WORK_ITEM_QUEUE_SIZE_SETTING, DEFAULT_WORK_ITEM_QUEUE_SIZE);
     }
 
     public int getNumCrawlers(int defaultValue) {
@@ -77,7 +81,12 @@ public class PartitionConfiguration {
                 initialDelaySeconds = 0;
             }
         }
-        return new RecurringExecutionPlan(Duration.ofSeconds(periodSeconds), Duration.ofSeconds(initialDelaySeconds));
+        var monitor = context.getMonitor();
+        if (periodSeconds < LOW_EXECUTION_PERIOD_SECONDS_THRESHOLD) {
+            monitor.warning(format("An execution period of %d seconds is very low (threshold = %d). This might result in the work queue to fill up, especially on small queues (current capacity: %d)." +
+                    " A longer execution period should be considered.", periodSeconds, LOW_EXECUTION_PERIOD_SECONDS_THRESHOLD, getWorkItemQueueSize()));
+        }
+        return new RecurringExecutionPlan(Duration.ofSeconds(periodSeconds), Duration.ofSeconds(initialDelaySeconds), monitor);
     }
 
     private int randomSeconds() {

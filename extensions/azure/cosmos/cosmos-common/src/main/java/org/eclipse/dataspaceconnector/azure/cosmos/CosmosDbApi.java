@@ -43,4 +43,11 @@ public interface CosmosDbApi extends ReadinessProvider {
     Stream<Object> queryItems(String query);
 
     String invokeStoredProcedure(String procedureName, String partitionKey, Object... args);
+
+    /**
+     * Uploads stored procedure into a container.
+     *
+     * @param name of stored procedure js file
+     */
+    void uploadStoredProcedure(String name);
 }

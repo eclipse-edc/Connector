@@ -17,6 +17,7 @@
 package org.eclipse.dataspaceconnector.contract.negotiation.store;
 
 import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractNegotiationDocument;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
@@ -27,22 +28,26 @@ import java.util.UUID;
 
 public class TestFunctions {
 
-    public static ContractNegotiation generateNegotiation() {
-        return generateNegotiation(ContractNegotiationStates.UNSAVED);
+    public static ContractNegotiation createNegotiation() {
+        return createNegotiation(ContractNegotiationStates.UNSAVED);
     }
 
-    public static ContractNegotiation generateNegotiation(ContractNegotiationStates state) {
-        return generateNegotiation(UUID.randomUUID().toString(), state);
+    public static ContractNegotiation createNegotiation(ContractNegotiationStates state) {
+        return createNegotiation(UUID.randomUUID().toString(), state);
     }
 
-    public static ContractNegotiation generateNegotiation(String id, ContractNegotiationStates state) {
-        return generateNegotiationBuilder(id)
+    public static ContractNegotiation createNegotiation(String id, ContractNegotiationStates state) {
+        return createNegotiationBuilder(id)
                 .state(state.code())
-                .contractAgreement(generateAgreementBuilder().build())
+                .contractAgreement(createContractBuilder().build())
                 .build();
     }
 
-    public static ContractNegotiation.Builder generateNegotiationBuilder(String id) {
+    public static ContractNegotiation createNegotiation(String id, ContractAgreement agreement) {
+        return createNegotiationBuilder(id).contractAgreement(agreement).build();
+    }
+
+    public static ContractNegotiation.Builder createNegotiationBuilder(String id) {
         return ContractNegotiation.Builder.newInstance()
                 .id(id)
                 .correlationId(UUID.randomUUID().toString())
@@ -52,20 +57,24 @@ public class TestFunctions {
                 .stateCount(1);
     }
 
-    public static ContractAgreement.Builder generateAgreementBuilder() {
+    public static ContractAgreement.Builder createContractBuilder() {
+        return createContractBuilder("1:2");
+    }
+
+    public static ContractAgreement.Builder createContractBuilder(String id) {
         return ContractAgreement.Builder.newInstance()
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
                 .assetId(UUID.randomUUID().toString())
-                .policyId(UUID.randomUUID().toString())
+                .policy(Policy.Builder.newInstance().build())
                 .contractStartDate(Instant.now().getEpochSecond())
                 .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
                 .contractSigningDate(Instant.now().getEpochSecond())
-                .id("1:2");
+                .id(id);
     }
 
     public static ContractNegotiationDocument generateDocument() {
-        return generateDocument(generateNegotiation());
+        return generateDocument(createNegotiation());
     }
 
     public static ContractNegotiationDocument generateDocument(ContractNegotiation negotiation) {

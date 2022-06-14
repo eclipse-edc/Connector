@@ -23,6 +23,8 @@ public class TransferProcessDto {
     private String id;
     private String type;
     private String state;
+    private Long stateTimestamp;
+    private Long createdTimestamp;
     private String errorDetail;
     private DataRequestDto dataRequest;
     private DataAddressInformationDto dataDestination;
@@ -40,6 +42,14 @@ public class TransferProcessDto {
 
     public String getState() {
         return state;
+    }
+
+    public Long getStateTimestamp() {
+        return stateTimestamp;
+    }
+
+    public Long getCreatedTimestamp() {
+        return createdTimestamp;
     }
 
     public String getErrorDetail() {
@@ -79,6 +89,16 @@ public class TransferProcessDto {
 
         public Builder state(String state) {
             transferProcessDto.state = state;
+            return this;
+        }
+
+        public Builder stateTimestamp(Long stateTimestamp) {
+            transferProcessDto.stateTimestamp = stateTimestamp;
+            return this;
+        }
+
+        public Builder createdTimestamp(Long createdTimestamp) {
+            transferProcessDto.createdTimestamp = createdTimestamp;
             return this;
         }
 

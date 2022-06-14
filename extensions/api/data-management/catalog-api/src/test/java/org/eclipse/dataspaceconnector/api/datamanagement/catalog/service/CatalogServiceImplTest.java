@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.catalog.service;
 
 import com.github.javafaker.Faker;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
@@ -44,7 +45,7 @@ class CatalogServiceImplTest {
         var service = new CatalogServiceImpl(dispatcher);
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id(FAKER.internet().uuid())
-                .policyId(FAKER.internet().uuid())
+                .policy(Policy.Builder.newInstance().build())
                 .assetId(FAKER.internet().uuid())
                 .build();
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();

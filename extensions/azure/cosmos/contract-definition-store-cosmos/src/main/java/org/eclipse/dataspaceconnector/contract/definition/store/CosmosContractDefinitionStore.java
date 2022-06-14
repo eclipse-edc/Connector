@@ -37,6 +37,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
 import static net.jodah.failsafe.Failsafe.with;
 
 /**
@@ -71,12 +72,12 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
     public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
         return lockManager.readLock(() -> queryResolver.query(getCache().values().stream(), spec));
     }
-    
+
     @Override
     public ContractDefinition findById(String definitionId) {
         return lockManager.readLock(() -> getCache().get(definitionId));
     }
-    
+
     @Override
     public void save(Collection<ContractDefinition> definitions) {
         lockManager.writeLock(() -> {
@@ -106,8 +107,11 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
 
     @Override
     public ContractDefinition deleteById(String id) {
-        var deletedItem = cosmosDbApi.deleteItem(id);
-        return deletedItem == null ? null : convert(deletedItem);
+        return lockManager.writeLock(() -> {
+            var deletedItem = with(retryPolicy).get(() -> cosmosDbApi.deleteItem(id));
+            getCache().remove(id);
+            return deletedItem == null ? null : convert(deletedItem);
+        });
     }
 
     @Override
@@ -127,6 +131,14 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
             objectCache.set(databaseObjects);
             return null;
         });
+    }
+
+    @Override
+    public Stream<ContractDefinition> isReferenced(String policyId) {
+        var queryAccessPolicyFilter = QuerySpec.Builder.newInstance().filter(format("accessPolicyId = %s ", policyId)).build();
+        var queryContractPolicyFilter = QuerySpec.Builder.newInstance().filter(format("contractPolicyId = %s ", policyId)).build();
+
+        return Stream.concat(findAll(queryAccessPolicyFilter), findAll(queryContractPolicyFilter));
     }
 
     private void storeInCache(ContractDefinition definition) {

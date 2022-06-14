@@ -32,11 +32,12 @@ public class TransferProcessSendRetryManager implements SendRetryManager<Transfe
     private final Monitor monitor;
     private final Supplier<WaitStrategy> delayStrategySupplier;
     private final int retryLimit;
-    protected Clock clock = Clock.systemUTC();
+    private final Clock clock;
 
-    public TransferProcessSendRetryManager(Monitor monitor, Supplier<WaitStrategy> delayStrategySupplier, int retryLimit) {
+    public TransferProcessSendRetryManager(Monitor monitor, Supplier<WaitStrategy> delayStrategySupplier, Clock clock, int retryLimit) {
         this.monitor = monitor;
         this.delayStrategySupplier = delayStrategySupplier;
+        this.clock = clock;
         this.retryLimit = retryLimit;
     }
 

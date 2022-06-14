@@ -42,6 +42,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -54,7 +55,6 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.dataspaceconnector.azure.cosmos.util.StoredProcedureTestUtils.uploadStoredProcedure;
 import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.createTransferProcess;
 import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.createTransferProcessDocument;
 
@@ -66,6 +66,7 @@ class CosmosTransferProcessStoreIntegrationTest {
     private static final String CONTAINER_PREFIX = "container_";
     private static CosmosContainer container;
     private static CosmosDatabase database;
+    private final Clock clock = Clock.systemUTC();
     private final String partitionKey = "testpartition";
     private final String connectorId = "test-connector";
     private CosmosTransferProcessStore store;
@@ -77,7 +78,6 @@ class CosmosTransferProcessStoreIntegrationTest {
 
         var response = client.createDatabaseIfNotExists(DATABASE_NAME);
         database = client.getDatabase(response.getProperties().getId());
-
     }
 
     @AfterAll
@@ -98,10 +98,11 @@ class CosmosTransferProcessStoreIntegrationTest {
         var containerName = CONTAINER_PREFIX + UUID.randomUUID();
         var containerIfNotExists = database.createContainerIfNotExists(containerName, "/partitionKey");
         container = database.getContainer(containerIfNotExists.getProperties().getId());
-        uploadStoredProcedure(container, "nextForState");
-        uploadStoredProcedure(container, "lease");
+
         var retryPolicy = new RetryPolicy<>().withMaxRetries(5).withBackoff(1, 3, ChronoUnit.SECONDS);
         var cosmosDbApi = new CosmosDbApiImpl(container, false);
+        cosmosDbApi.uploadStoredProcedure("nextForState");
+        cosmosDbApi.uploadStoredProcedure("lease");
         store = new CosmosTransferProcessStore(cosmosDbApi, typeManager, partitionKey, connectorId, retryPolicy);
     }
 
@@ -143,14 +144,14 @@ class CosmosTransferProcessStoreIntegrationTest {
     void nextForState_fetchMaxNewest() throws InterruptedException {
 
         String id1 = UUID.randomUUID().toString();
-        var tp = createTransferProcess(id1, TransferProcessStates.UNSAVED);
+        var tp = createTransferProcess(id1, TransferProcessStates.INITIAL);
 
         String id2 = UUID.randomUUID().toString();
-        var tp2 = createTransferProcess(id2, TransferProcessStates.UNSAVED);
+        var tp2 = createTransferProcess(id2, TransferProcessStates.INITIAL);
 
         Thread.sleep(500); //make sure the third process is the youngest - should not get fetched
         String id3 = UUID.randomUUID().toString();
-        var tp3 = createTransferProcess(id3, TransferProcessStates.UNSAVED);
+        var tp3 = createTransferProcess(id3, TransferProcessStates.INITIAL);
 
         store.create(tp);
         store.create(tp2);
@@ -169,15 +170,15 @@ class CosmosTransferProcessStoreIntegrationTest {
         String id1 = UUID.randomUUID().toString();
         var tp = createTransferProcess(id1, TransferProcessStates.INITIAL);
         TransferProcessDocument item = new TransferProcessDocument(tp, partitionKey);
-        Duration leaseDuration = Duration.ofSeconds(2);
-        item.acquireLease("another-connector", leaseDuration);
+        Duration leaseDuration = Duration.ofSeconds(10);
+        item.acquireLease("another-connector", clock, leaseDuration);
         container.upsertItem(item);
 
         List<TransferProcess> processesBeforeLeaseBreak = store.nextForState(TransferProcessStates.INITIAL.code(), 10);
         assertThat(processesBeforeLeaseBreak).isEmpty();
 
         await()
-                .atMost(Duration.ofSeconds(10))
+                .atMost(Duration.ofSeconds(20))
                 .pollInterval(Duration.ofMillis(500))
                 .pollDelay(leaseDuration) //give the lease time to expire
                 .untilAsserted(() -> {
@@ -189,15 +190,15 @@ class CosmosTransferProcessStoreIntegrationTest {
     @Test
     void nextForState_shouldOnlyReturnFreeItems() {
         String id1 = "process1";
-        var tp = createTransferProcess(id1, TransferProcessStates.UNSAVED);
+        var tp = createTransferProcess(id1, TransferProcessStates.INITIAL);
 
         String id2 = "process2";
-        var tp2 = createTransferProcess(id2, TransferProcessStates.UNSAVED);
+        var tp2 = createTransferProcess(id2, TransferProcessStates.INITIAL);
 
         store.create(tp);
         store.create(tp2);
         TransferProcessDocument item = readDocument(id2);
-        item.acquireLease("test-leaser");
+        item.acquireLease("test-leaser", clock);
         container.upsertItem(item);
 
         //act - one should be ignored
@@ -210,7 +211,7 @@ class CosmosTransferProcessStoreIntegrationTest {
     void nextForState_selfCannotLeaseAgain() {
         var tp1 = createTransferProcess("process1", TransferProcessStates.INITIAL);
         var doc = new TransferProcessDocument(tp1, partitionKey);
-        doc.acquireLease(connectorId);
+        doc.acquireLease(connectorId, clock);
         var originalTimestamp = doc.getLease().getLeasedAt();
         container.upsertItem(doc);
 
@@ -233,9 +234,9 @@ class CosmosTransferProcessStoreIntegrationTest {
         var tp2 = createTransferProcess(id2, TransferProcessStates.INITIAL);
 
         var d1 = new TransferProcessDocument(tp, partitionKey);
-        d1.acquireLease("another-connector");
+        d1.acquireLease("another-connector", clock);
         var d2 = new TransferProcessDocument(tp2, partitionKey);
-        d2.acquireLease("a-third-connector");
+        d2.acquireLease("a-third-connector", clock);
 
         container.upsertItem(d1);
         container.upsertItem(d2);
@@ -267,7 +268,7 @@ class CosmosTransferProcessStoreIntegrationTest {
     @Test
     void nextForState_batchSizeLimits() {
         for (var i = 0; i < 5; i++) {
-            var tp = createTransferProcess("process_" + i, TransferProcessStates.UNSAVED);
+            var tp = createTransferProcess("process_" + i, TransferProcessStates.INITIAL);
             store.create(tp);
         }
 
@@ -333,8 +334,6 @@ class CosmosTransferProcessStoreIntegrationTest {
         var tp = createTransferProcess("test-id", TransferProcessStates.IN_PROGRESS);
         var doc = new TransferProcessDocument(tp, partitionKey);
 
-        var initialTimestamp = tp.getStateTimestamp();
-
         container.upsertItem(doc);
         var result = store.nextForState(TransferProcessStates.IN_PROGRESS.code(), 5);
         assertThat(result).hasSize(1);
@@ -399,13 +398,12 @@ class CosmosTransferProcessStoreIntegrationTest {
     void update_notExist_shouldCreate() {
         var tp = createTransferProcess("process-id");
 
-        tp.transitionInitial();
         tp.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
         store.update(tp);
 
-        CosmosItemResponse<Object> response = container.readItem(tp.getId(), new PartitionKey(partitionKey), Object.class);
+        var response = container.readItem(tp.getId(), new PartitionKey(partitionKey), Object.class);
 
-        TransferProcessDocument stored = convert(response.getItem());
+        var stored = convert(response.getItem());
         assertThat(stored.getWrappedInstance()).isEqualTo(tp);
         assertThat(stored.getWrappedInstance().getState()).isEqualTo(TransferProcessStates.PROVISIONING.code());
         assertThat(stored.getLease()).isNull();
@@ -417,7 +415,7 @@ class CosmosTransferProcessStoreIntegrationTest {
 
         var doc = new TransferProcessDocument(tp, partitionKey);
         container.upsertItem(doc).getItem();
-        doc.acquireLease(connectorId);
+        doc.acquireLease(connectorId, clock);
         container.upsertItem(doc);
 
         tp.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
@@ -434,7 +432,7 @@ class CosmosTransferProcessStoreIntegrationTest {
         var doc = new TransferProcessDocument(tp, partitionKey);
         container.upsertItem(doc).getItem();
 
-        doc.acquireLease("another-connector");
+        doc.acquireLease("another-connector", clock);
         container.upsertItem(doc);
 
         //act
@@ -461,7 +459,7 @@ class CosmosTransferProcessStoreIntegrationTest {
         final String processId = "test-process-id";
         var tp = createTransferProcess(processId);
         var doc = new TransferProcessDocument(tp, partitionKey);
-        doc.acquireLease("some-other-connector");
+        doc.acquireLease("some-other-connector", clock);
         container.upsertItem(doc);
 
         assertThatThrownBy(() -> store.delete(processId)).isInstanceOf(EdcException.class).hasRootCauseInstanceOf(BadRequestException.class);
@@ -472,7 +470,7 @@ class CosmosTransferProcessStoreIntegrationTest {
         final String processId = "test-process-id";
         var tp = createTransferProcess(processId);
         var doc = new TransferProcessDocument(tp, partitionKey);
-        doc.acquireLease(connectorId);
+        doc.acquireLease(connectorId, clock);
         container.upsertItem(doc);
 
         store.delete(processId);
@@ -564,7 +562,7 @@ class CosmosTransferProcessStoreIntegrationTest {
 
         var query = QuerySpec.Builder.newInstance().filter("something contains other").build();
 
-        assertThatThrownBy(() -> store.findAll(query)).isInstanceOfAny(IllegalArgumentException.class).hasMessage("Cannot build SqlParameter for operator: contains");
+        assertThatThrownBy(() -> store.findAll(query)).isInstanceOfAny(IllegalArgumentException.class).hasMessage("Cannot build WHERE clause, reason: unsupported operator contains");
     }
 
     @Test

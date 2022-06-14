@@ -27,7 +27,9 @@ import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
+import java.time.Clock;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
@@ -45,6 +47,9 @@ public class DecentralizedIdentityServiceExtension implements ServiceExtension {
     @Inject
     private PrivateKeyResolver privateKeyResolver;
 
+    @Inject
+    private Clock clock;
+
     @Override
     public String name() {
         return "Distributed Identity Service";
@@ -53,7 +58,7 @@ public class DecentralizedIdentityServiceExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var vcProvider = createSupplier(context);
-        var identityService = new DecentralizedIdentityService(vcProvider, resolverRegistry, credentialsVerifier, context.getMonitor());
+        var identityService = new DecentralizedIdentityService(vcProvider, resolverRegistry, credentialsVerifier, context.getMonitor(), context.getClock());
         context.registerService(IdentityService.class, identityService);
     }
 
@@ -72,10 +77,11 @@ public class DecentralizedIdentityServiceExtension implements ServiceExtension {
             // we'll use the connector name to restore the Private Key
             var connectorName = context.getConnectorId();
             var privateKeyString = privateKeyResolver.resolvePrivateKey(connectorName, ECKey.class); //to get the private key
+            Objects.requireNonNull(privateKeyString, "Couldn't resolve private key for " + connectorName);
 
             // we cannot store the VerifiableCredential in the Vault, because it has an expiry date
             // the Issuer claim must contain the DID URL
-            return VerifiableCredentialFactory.create(privateKeyString, Map.of(VerifiableCredentialFactory.OWNER_CLAIM, connectorName), didUrl);
+            return VerifiableCredentialFactory.create(privateKeyString, Map.of(VerifiableCredentialFactory.OWNER_CLAIM, connectorName), didUrl, clock);
         };
     }
 }

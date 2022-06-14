@@ -34,6 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.Clock;
 import java.time.Duration;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -77,12 +78,12 @@ class SqlTransferProcessStoreTest {
         when(datasourceMock.getConnection()).thenReturn(connection);
         when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
         var statements = new PostgresStatements();
-        store = new SqlTransferProcessStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper(), statements, CONNECTOR_NAME);
+        store = new SqlTransferProcessStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper(), statements, CONNECTOR_NAME, Clock.systemUTC());
 
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
         transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
 
-        leaseUtil = new LeaseUtil(transactionContext, this::getConnection, statements);
+        leaseUtil = new LeaseUtil(transactionContext, this::getConnection, statements, Clock.systemUTC());
 
     }
 

@@ -36,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Instant;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -53,22 +53,23 @@ public class SqlTransferProcessStore implements TransferProcessStore {
     private final TransferProcessStoreStatements statements;
     private final String leaseHolderName;
     private final SqlLeaseContextBuilder leaseContext;
+    private final Clock clock;
 
-    public SqlTransferProcessStore(DataSourceRegistry dataSourceRegistry, String datasourceName, TransactionContext transactionContext, ObjectMapper objectMapper, TransferProcessStoreStatements statements, String leaseHolderName) {
-
+    public SqlTransferProcessStore(DataSourceRegistry dataSourceRegistry, String datasourceName, TransactionContext transactionContext, ObjectMapper objectMapper, TransferProcessStoreStatements statements, String leaseHolderName, Clock clock) {
         this.dataSourceRegistry = dataSourceRegistry;
         this.datasourceName = datasourceName;
         this.transactionContext = transactionContext;
         this.objectMapper = objectMapper;
         this.statements = statements;
         this.leaseHolderName = leaseHolderName;
-        leaseContext = SqlLeaseContextBuilder.with(transactionContext, leaseHolderName, statements);
+        this.clock = clock;
+        leaseContext = SqlLeaseContextBuilder.with(transactionContext, leaseHolderName, statements, clock);
     }
 
     @Override
     public @NotNull List<TransferProcess> nextForState(int state, int max) {
         var list = new ArrayList<TransferProcess>();
-        var now = Instant.now().toEpochMilli();
+        var now = clock.millis();
         transactionContext.execute(() -> {
             try (var conn = getConnection()) {
                 var stmt = statements.getNextForStateTemplate();
@@ -217,6 +218,7 @@ public class SqlTransferProcessStore implements TransferProcessStore {
                         process.getState(),
                         process.getStateCount(),
                         process.getStateTimestamp(),
+                        process.getCreatedTimestamp(),
                         toJson(process.getTraceContext()),
                         process.getErrorDetail(),
                         toJson(process.getResourceManifest()),
@@ -250,6 +252,7 @@ public class SqlTransferProcessStore implements TransferProcessStore {
         return TransferProcess.Builder.newInstance()
                 .id(resultSet.getString(statements.getIdColumn()))
                 .type(TransferProcess.Type.valueOf(resultSet.getString(statements.getTypeColumn())))
+                .createdTimestamp(resultSet.getLong(statements.getCreatedTimestampColumn()))
                 .state(resultSet.getInt(statements.getStateColumn()))
                 .stateTimestamp(resultSet.getLong(statements.getStateTimestampColumn()))
                 .stateCount(resultSet.getInt(statements.getStateCountColumn()))

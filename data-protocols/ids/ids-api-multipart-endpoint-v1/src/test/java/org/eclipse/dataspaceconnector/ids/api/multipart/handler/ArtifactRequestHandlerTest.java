@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -58,6 +59,20 @@ class ArtifactRequestHandlerTest {
     private String connectorId;
     private ContractValidationService contractValidationService;
     private ContractNegotiationStore contractNegotiationStore;
+
+    private static URI createUri(IdsType type, String value) {
+        return URI.create("urn:" + type.getValue() + ":" + value);
+    }
+
+    private static ContractAgreement createContractAgreement(String contractId, String assetId) {
+        return ContractAgreement.Builder.newInstance()
+                .id(contractId)
+                .providerAgentId("provider")
+                .consumerAgentId("consumer")
+                .assetId(assetId)
+                .policy(Policy.Builder.newInstance().build())
+                .build();
+    }
 
     @BeforeEach
     public void setUp() {
@@ -100,7 +115,6 @@ class ArtifactRequestHandlerTest {
         assertThat(drCapture.getValue().getProperties()).containsExactlyEntriesOf(Map.of("foo", "bar"));
     }
 
-
     @Test
     @DisplayName("Verifies that a contract is not passed with a separate id")
     void verifyIllegalArtifactIdRequestTest() throws JsonProcessingException {
@@ -140,19 +154,5 @@ class ArtifactRequestHandlerTest {
                 .dataDestination(dataDestination)
                 .build();
         return MultipartRequest.Builder.newInstance().header(message).payload(new ObjectMapper().writeValueAsString(payload)).build();
-    }
-
-    private static URI createUri(IdsType type, String value) {
-        return URI.create("urn:" + type.getValue() + ":" + value);
-    }
-
-    private static ContractAgreement createContractAgreement(String contractId, String assetId) {
-        return ContractAgreement.Builder.newInstance()
-                .id(contractId)
-                .providerAgentId("provider")
-                .consumerAgentId("consumer")
-                .assetId(assetId)
-                .policyId("policyId")
-                .build();
     }
 }

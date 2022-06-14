@@ -42,6 +42,7 @@ import org.eclipse.dataspaceconnector.transfer.dataplane.sync.validation.Expirat
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.time.Clock;
 import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.transfer.dataplane.sync.DataPlaneTransferSyncConfig.DATA_PROXY_ENDPOINT;
@@ -71,6 +72,9 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
 
     @Inject
     private Vault vault;
+
+    @Inject
+    private Clock clock;
 
     @Inject
     private PrivateKeyResolver privateKeyResolver;
@@ -105,7 +109,7 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
     private DataPlaneTransferProxyReferenceService createProxyReferenceService(ServiceExtensionContext context, PrivateKey privateKey, DataEncrypter encrypter) {
         var tokenValiditySeconds = context.getSetting(DATA_PROXY_TOKEN_VALIDITY_SECONDS, DEFAULT_DATA_PROXY_TOKEN_VALIDITY_SECONDS);
         var tokenGenerationService = new TokenGenerationServiceImpl(privateKey);
-        return new DataPlaneTransferProxyReferenceServiceImpl(tokenGenerationService, context.getTypeManager(), tokenValiditySeconds, encrypter);
+        return new DataPlaneTransferProxyReferenceServiceImpl(tokenGenerationService, context.getTypeManager(), tokenValiditySeconds, encrypter, clock);
     }
 
     /**
@@ -113,8 +117,8 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
      */
     private DataPlaneTransferTokenValidationApiController createTokenValidationApiController(Monitor monitor, PublicKey publicKey, DataEncrypter encrypter) {
         var registry = new TokenValidationRulesRegistryImpl();
-        registry.addRule(new ContractValidationRule(contractNegotiationStore));
-        registry.addRule(new ExpirationDateValidationRule());
+        registry.addRule(new ContractValidationRule(contractNegotiationStore, clock));
+        registry.addRule(new ExpirationDateValidationRule(clock));
         var tokenValidationService = new TokenValidationServiceImpl(id -> publicKey, registry);
         return new DataPlaneTransferTokenValidationApiController(monitor, tokenValidationService, encrypter);
     }

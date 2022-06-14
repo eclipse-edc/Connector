@@ -17,8 +17,8 @@ package org.eclipse.dataspaceconnector.sql.contractnegotiation.store;
 import org.eclipse.dataspaceconnector.sql.lease.LeaseStatements;
 
 /**
- * Provides names for database columns, table names and statement templates.
- * Methods to compose statements must be overridden by implementors.
+ * Provides names for database columns, table names and statement templates. Methods to compose statements must be
+ * overridden by implementors.
  */
 public interface ContractNegotiationStatements extends LeaseStatements {
     String getFindTemplate();
@@ -46,6 +46,8 @@ public interface ContractNegotiationStatements extends LeaseStatements {
     String getSelectByPolicyIdTemplate();
 
     String getUpdateAgreementTemplate();
+
+    String getNegotiationWitghAgreementOnAssetTemplate();
 
     @Override
     default String getLeasedByColumn() {

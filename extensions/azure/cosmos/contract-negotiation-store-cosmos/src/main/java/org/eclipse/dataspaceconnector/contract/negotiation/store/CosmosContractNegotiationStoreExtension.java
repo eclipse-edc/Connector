@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.contract.negotiation.store;
 
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.azure.cosmos.CosmosClientProvider;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractNegotiationDocument;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
@@ -25,23 +26,26 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
+
 @Provides({ ContractNegotiationStore.class })
 public class CosmosContractNegotiationStoreExtension implements ServiceExtension {
 
     @Inject
     private Vault vault;
 
+    @Inject
+    private CosmosClientProvider clientProvider;
+
     @Override
     public String name() {
         return "CosmosDB ContractNegotiation Store";
     }
 
-
     @Override
     public void initialize(ServiceExtensionContext context) {
         var configuration = new CosmosContractNegotiationStoreConfig(context);
 
-        var cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
+        var cosmosDbApi = new CosmosDbApiImpl(configuration, clientProvider.createClient(vault, configuration));
         var store = new CosmosContractNegotiationStore(cosmosDbApi, context.getTypeManager(), (RetryPolicy<Object>) context.getService(RetryPolicy.class), configuration.getPartitionKey());
         context.registerService(ContractNegotiationStore.class, store);
 
@@ -49,6 +53,10 @@ public class CosmosContractNegotiationStoreExtension implements ServiceExtension
 
         context.getService(HealthCheckService.class).addReadinessProvider(() -> cosmosDbApi.get().forComponent(name()));
 
+        if (context.getSetting(configuration.allowSprocAutoUploadSetting(), true)) {
+            cosmosDbApi.uploadStoredProcedure("nextForState");
+            cosmosDbApi.uploadStoredProcedure("lease");
+        }
     }
 
 }

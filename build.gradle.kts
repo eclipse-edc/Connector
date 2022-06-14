@@ -21,6 +21,8 @@ plugins {
     id("com.rameshkp.openapi-merger-gradle-plugin") version "1.0.4"
     id("org.eclipse.dataspaceconnector.module-names")
     id("com.autonomousapps.dependency-analysis") version "1.1.0" apply (false)
+    id("org.gradle.crypto.checksum") version "1.4.0"
+    id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
 }
 
 repositories {
@@ -44,15 +46,16 @@ val edcDeveloperEmail: String by project
 val edcScmConnection: String by project
 val edcWebsiteUrl: String by project
 val edcScmUrl: String by project
-val groupId: String = "org.eclipse.dataspaceconnector"
-var edcVersion: String = "0.0.1-SNAPSHOT"
+val groupId: String by project
+val defaultVersion: String by project
 
-if (project.version == "unspecified") {
-    logger.warn("No version was specified, setting default 0.0.1-SNAPSHOT")
-    logger.warn("If you want to change this, supply the -Pversion=X.Y.Z parameter")
-    logger.warn("")
-} else {
-    edcVersion = project.version as String
+// required by the nexus publishing plugin
+val projectVersion: String = (project.findProperty("edcVersion") ?: defaultVersion) as String
+
+var deployUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+
+if (projectVersion.contains("SNAPSHOT")) {
+    deployUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
 }
 
 subprojects {
@@ -63,9 +66,44 @@ subprojects {
             url = uri("https://maven.iais.fraunhofer.de/artifactory/eis-ids-public/")
         }
     }
-
     tasks.register<DependencyReportTask>("allDependencies") {}
 
+    // (re-)create a file that contains all maven publications
+    val f = File("${project.rootDir.absolutePath}/docs/developer/modules.md")
+    if (f.exists()) {
+        f.delete()
+    }
+    afterEvaluate {
+        publishing {
+            publications.forEach { i ->
+                val mp = (i as MavenPublication)
+                mp.pom {
+                    name.set(project.name)
+                    description.set("edc :: ${project.name}")
+                    url.set(edcWebsiteUrl)
+
+                    licenses {
+                        license {
+                            name.set("The Apache License, Version 2.0")
+                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        }
+                        developers {
+                            developer {
+                                id.set(edcDeveloperId)
+                                name.set(edcDeveloperName)
+                                email.set(edcDeveloperEmail)
+                            }
+                        }
+                        scm {
+                            connection.set(edcScmConnection)
+                            url.set(edcScmUrl)
+                        }
+                    }
+                }
+                f.appendText("\n${mp.groupId}:${mp.artifactId}:${mp.version}")
+            }
+        }
+    }
 }
 
 buildscript {
@@ -115,7 +153,7 @@ allprojects {
 
     pluginManager.withPlugin("java-library") {
         group = groupId
-        version = edcVersion
+        version = projectVersion
 
         dependencies {
             api("org.jetbrains:annotations:${jetBrainsAnnotationsVersion}")
@@ -139,53 +177,24 @@ allprojects {
                 repositories {
                     maven {
                         name = "OSSRH"
-                        setUrl("https://oss.sonatype.org/service/local/staging/deploy/maven2")
+                        setUrl(deployUrl)
                         credentials {
                             username = System.getenv("OSSRH_USER") ?: return@credentials
                             password = System.getenv("OSSRH_PASSWORD") ?: return@credentials
                         }
                     }
                 }
-                publications {
-                    create<MavenPublication>("mavenJava") {
-                        java {
-                            withJavadocJar()
-                            withSourcesJar()
-                        }
-                        pom {
-                            name.set(project.name)
-                            description.set("edc :: ${project.name}")
-                            url.set(edcWebsiteUrl)
-                            
-                            licenses {
-                                license {
-                                    name.set("The Apache License, Version 2.0")
-                                    url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                                }
-                                developers {
-                                    developer {
-                                        id.set(edcDeveloperId)
-                                        name.set(edcDeveloperName)
-                                        email.set(edcDeveloperEmail)
-                                    }
-                                }
-                                scm {
-                                    connection.set(edcScmConnection)
-                                    url.set(edcScmUrl)
-                                }
-                            }
-                        }
-                    }
-
-                }
 
                 signing {
+                    useGpgCmd()
                     sign(publishing.publications)
                 }
             }
         }
 
     }
+
+
 
     pluginManager.withPlugin("io.swagger.core.v3.swagger-gradle-plugin") {
 
@@ -198,6 +207,7 @@ allprojects {
         tasks.withType<io.swagger.v3.plugins.gradle.tasks.ResolveTask> {
             outputFileName = project.name
             outputFormat = io.swagger.v3.plugins.gradle.tasks.ResolveTask.Format.YAML
+            sortOutput = true
             prettyPrint = true
             classpath = java.sourceSets["main"].runtimeClasspath
             buildClasspath = classpath
@@ -340,6 +350,17 @@ if (project.hasProperty("dependency.analysis")) {
                     "io\\.opentelemetry\\.extension\\.annotations\\.WithSpan",
                 )
             }
+        }
+    }
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("https://oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://oss.sonatype.org/content/repositories/snapshots/"))
+            username.set(System.getenv("OSSRH_USER") ?: return@sonatype)
+            password.set(System.getenv("OSSRH_PASSWORD") ?: return@sonatype)
         }
     }
 }

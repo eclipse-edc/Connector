@@ -17,26 +17,22 @@ package org.eclipse.dataspaceconnector.contract.policy;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 
 import java.util.Optional;
 
 public class PolicyArchiveImpl implements PolicyArchive {
     private final ContractNegotiationStore contractNegotiationStore;
-    private final PolicyStore policyStore;
 
-    public PolicyArchiveImpl(ContractNegotiationStore contractNegotiationStore, PolicyStore policyStore) {
+    public PolicyArchiveImpl(ContractNegotiationStore contractNegotiationStore) {
         this.contractNegotiationStore = contractNegotiationStore;
-        this.policyStore = policyStore;
     }
 
     @Override
     public Policy findPolicyForContract(String contractId) {
         return Optional.ofNullable(contractId)
                 .map(contractNegotiationStore::findContractAgreement)
-                .map(ContractAgreement::getPolicyId)
-                .map(policyStore::findById)
+                .map(ContractAgreement::getPolicy)
                 .orElse(null);
     }
 

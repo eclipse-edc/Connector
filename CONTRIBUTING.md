@@ -82,6 +82,8 @@ In addition to the contribution guideline made available in the
 [Eclipse project handbook](https://www.eclipse.org/projects/handbook/#contributing),
 we would appreciate if your pull request applies to the following points:
 
+* Conform to [Pull-Request Etiquette](pr_etiquette.md)
+
 * Always apply the following copyright header to specific files in your work replacing the fields 
   enclosed by curly brackets "{}" with your own identifying information. (Don't include the curly 
   brackets!) Enclose the text in the appropriate comment syntax for the file format.
@@ -113,20 +115,12 @@ we would appreciate if your pull request applies to the following points:
   the [Developer Certificate of Origin.](https://www.eclipse.org/legal/DCO.php)
   As such, all parties involved in a contribution must have valid ECAs. Additionally, commits can 
   include a ["Signed-off-by" entry](https://wiki.eclipse.org/Development_Resources/Contributing_via_Git).
-* We prefer small changes and short living branches. Please do not combine independent things in one
-  pull request.
-
-
-* Excessive branching and merging can make git history confusing. With that in mind please
-
-    * [squash your commits](https://git-scm.com/book/en/v2/Git-Tools-Rewriting-History#_squashing)
-      down to a few commits, or one commit, before submitting a pull request and
-    * [rebase](https://git-scm.com/book/en/v2/Git-Branching-Rebasing) your pull request changes on 
-      top of the current master. Pull requests shouldn't include merge commits.
-
+  
 * Add meaningful tests to verify your submission acts as expected.
 
 * Where code is not self-explanatory, add documentation providing extra clarification.
+
+* Add documentation files to new modules. See [here](#add-documentation) for more details.
 
 * Add relevant changes (e.g., no typo fixes, updated readme files, fixes of stuck test) to the 
   [changelog](CHANGELOG.md). If these refer to a new feature, add this to the `Overview` section 
@@ -144,11 +138,35 @@ we would appreciate if your pull request applies to the following points:
 * PR descriptions should use the current [PR template](.github/PULL_REQUEST_TEMPLATE.md)
 
 * Submit a draft pull request at early-stage and add people previously working on the same code as 
-  reviewer. Make sure automatically checks pass before marking it as "ready for review":
+  reviewer. Make sure automatic checks pass before marking it as "ready for review":
 
     * _Intellectual Property Validation_ verifying the [Eclipse CLA](#eclipse-contributor-agreement) 
       has been signed as well as commits have been signed-off and
     * _Continuous Integration_ performing various test conventions.
+
+### Stale issues and PRs
+
+In order to keep our backlog clean we are using a bot that helps us label and eventually close old issues and PRs. The
+following table shows the particular timings.
+
+|                        | `stale` after | closed after days `stale` |
+|------------------------|---------------|---------------------------|
+| Issue without assignee | 14            | 7                         |
+| Issue with assignee    | 28            | 7                         |
+| PR                     | 7             | 7                         |
+
+Note that updating an issue, e.g. by commenting, will remove the `stale` label again and reset the counters. However,
+we ask the community **not to abuse** this feature (e.g. commenting "what's the status?" every X days would certainly 
+be qualified as abuse). If an issue receives no attention, there usually
+are reasons for it. It is therefore advisable to clarify in advance whether any particular feature fits into EDC's
+planning schedule and roadmap. For that, we recommend opening a discussion. Discussions serve us as a system of record, that 
+means we monitor them more closely, and do not close them automatically.
+
+### Add Documentation
+
+Every decision record, launcher, extension, or any type of module has to provide documentation that covers at least
+one markdown file with necessary information. Please find appropriate templates that should
+be used in [the templates directory](docs/templates).
 
 ### Report on Flaky Tests
 
@@ -174,35 +192,16 @@ in that area.
 We use milestones to set a common focus for a period of 6 to 8 weeks. 
 The group of committers chooses issues based on customer needs and contributions we expect.
 
-### Projects
-
-The [GitHub Projects page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/projects)
-provides a general overview of the project's working items. Every new issue must not but can be 
-assigned to the ["Dataspace Connector" project](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/projects/1),
-or any other project that is provided.
-
-There, an issue passes four stages: `Backlog`, `In progress`, `Review in progress`, and `Done`,
-independent of their association to a specific milestone.
-
-Issues that are not already assigned to a project can be filtered in the 
-[GitHub Issues page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues)
-using `is:issue is:open no:project`.
-
 ### Milestones
 
-Milestones are organized at the 
-[GitHub Milestones page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/milestones).
-They are numbered in ascending order.
+Milestones are organized at the [GitHub Milestones page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/milestones).
+They are numbered in ascending order. There, contributors, users, and adopters can track the progress.
 
-The due date of a milestone does not imply any guarantee that all linked issued will be resolved by 
-then. The milestone `Milestone Scoping` is a permanent milestone without a due date. Issues that 
-should be considered for future milestones but already need to be targeted for the current one will 
-be assigned here. This way, contributors, users, and adopters can track the progress.
+Please note that the due date of a milestone does not imply any guarantee that all linked issued will 
+be resolved by then. 
 
-When closing the current milestone, issues assigned to `Milestone Scoping` can stay there, be moved 
-to the next milestone, or get removed from all milestones. In general, issues that were not resolved 
-within a milestone phase will be reviewed to evaluate their relevance and priority, before being
-assigned to the next milestone.
+When closing the current milestone, issues that were not resolved within a milestone phase will be 
+reviewed to evaluate their relevance and priority, before being assigned to the next milestone.
 
 #### Issues
 
@@ -212,8 +211,18 @@ milestones.
 
 #### Pull Requests
 
-Pull requests are not assigned to milestones, as their linking to issues are sufficient to track 
+Pull requests are not assigned to milestones as their linking to issues is sufficient to track 
 the relations and progresses.
+
+### Projects
+
+The [GitHub Projects page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/projects)
+provides a general overview of the project's working items. Every new issue is automatically assigned
+to the ["Dataspace Connector" project](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/projects/1).
+It can be unassigned or moved to any other project that is provided.
+
+In every project, an issue passes four stages: `Backlog`, `In progress`, `Review in progress`, and `Done`,
+independent of their association to a specific milestone.
 
 ### Contact Us
 
