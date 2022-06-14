@@ -28,6 +28,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Old RegistrationService (was used for a PoC) (#164)
 * Deprecated `InlineDataFlowController` (replaced by the Data Plane) (#1464)
 * Unused classes and interfaces at `ids.spi.policy` (#1471)
+* Remove modules `:extensions:transfer-functions:transfer-functions-spi` and `:extensions:transfer-functions:transfer-functions-core` (#1482)
 
 #### Fixed
 
@@ -213,7 +214,6 @@ in the detailed section referring to by linking pull requests or issues.
 * Remove module `:samples:other:commandline` (#820)
 * Remove unneeded/unimplemented methods from `TransferProcessStore` (#859)
 * Remove module `:samples:other:streaming` (#889)
-* Remove modules `:extensions:transfer-functions:transfer-functions-spi` and `:extensions:transfer-functions:transfer-functions-core` (#)
 
 #### Fixed
 
