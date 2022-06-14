@@ -49,7 +49,7 @@ end box
 
 == Contract Offering ==
 
-Partner2 -> FileShare1 : Insert AssetData
+Partner2 -> FileShare2 : Insert AssetData
 Partner2 -> ConnectorProvider : Configure Contract Offer Framework
 rnote right Partner2 #yellow
 In order to request any data, a contract agreement
