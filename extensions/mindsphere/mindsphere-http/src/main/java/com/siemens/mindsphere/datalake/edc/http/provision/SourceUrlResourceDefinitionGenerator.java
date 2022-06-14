@@ -19,7 +19,6 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProviderResourceDefinitionGenerator;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
-import org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 import org.jetbrains.annotations.Nullable;
@@ -43,15 +42,14 @@ public class SourceUrlResourceDefinitionGenerator implements ProviderResourceDef
         }
 
         final String dataDestinationType = dataRequest.getDataDestination().getType();
-        if (!HttpDataAddressSchema.TYPE.equals(dataDestinationType) &&
-                !MindsphereSchema.TYPE.equals(dataDestinationType)) {
-            monitor.debug("The destination is not " + HttpDataAddressSchema.TYPE);
+        if (!"CloudHttpData".equalsIgnoreCase(dataDestinationType)) {
+            monitor.debug("The destination is " + dataDestinationType);
             return null;
         }
 
-        final String datalakePath = assetAddress.getProperty(MindsphereSchema.DATALAKE_PATH);
+        final String datalakePath = assetAddress.getProperty(MindsphereDatalakeSchema.DOWNLOAD_DATALAKE_PATH);
         if (StringUtils.isNullOrEmpty(datalakePath)) {
-            monitor.debug("There is no " + MindsphereSchema.DATALAKE_PATH);
+            monitor.debug("There is no " + MindsphereDatalakeSchema.DOWNLOAD_DATALAKE_PATH);
             return null;
         }
 

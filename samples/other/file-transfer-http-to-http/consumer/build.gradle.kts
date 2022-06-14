@@ -28,13 +28,26 @@ dependencies {
 
     implementation(project(":extensions:api:observability"))
 
+    implementation(project(":extensions:filesystem:vault-fs"))
     implementation(project(":extensions:filesystem:configuration-fs"))
+
     implementation(project(":extensions:iam:iam-mock"))
 
     implementation(project(":extensions:api:auth-tokenbased"))
     implementation(project(":extensions:api:data-management"))
 
     implementation(project(":data-protocols:ids"))
+//    implementation(project(":data-protocols:ids:ids-api-multipart-endpoint-v1"))
+
+//    implementation(project(":extensions:data-plane-transfer:data-plane-transfer-client"))
+//    implementation(project(":extensions:data-plane-transfer:data-plane-transfer-sync"))
+    implementation(project(":extensions:data-plane:data-plane-api"))
+    implementation(project(":extensions:data-plane-selector:selector-client"))
+    implementation(project(":extensions:data-plane-selector:selector-core"))
+    implementation(project(":extensions:data-plane-selector:selector-store"))
+    implementation(project(":extensions:data-plane:data-plane-framework"))
+    implementation(project(":extensions:data-plane:data-plane-http"))
+    implementation(project(":extensions:data-plane:data-plane-cloud-http"))
 
     implementation(project(":samples:other:file-transfer-http-to-http:api"))
 }

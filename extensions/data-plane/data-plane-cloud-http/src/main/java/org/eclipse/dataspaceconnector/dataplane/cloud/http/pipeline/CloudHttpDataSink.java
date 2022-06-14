@@ -12,7 +12,7 @@
  *
  */
 
-package com.siemens.mindsphere.datalake.edc.http.dataplane;
+package org.eclipse.dataspaceconnector.dataplane.cloud.http.pipeline;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.ParallelSink;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
 
@@ -31,7 +32,7 @@ import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_R
 /**
  * Writes data in a streaming fashion to an HTTP endpoint.
  */
-public class DatalakeHttpDataSink extends ParallelSink {
+public class CloudHttpDataSink extends ParallelSink {
     private String authKey;
     private String authCode;
     private String endpoint;
@@ -51,8 +52,8 @@ public class DatalakeHttpDataSink extends ParallelSink {
             monitor.debug(() -> format("Transferring  %s  to endpoint %s ", part.name(), endpoint));
 
             RequestBody body;
-            try {
-                body = RequestBody.create(part.openStream().readAllBytes());
+            try (InputStream stream = part.openStream()) {
+                body = RequestBody.create(stream.readAllBytes());
             } catch (IOException e) {
                 monitor.severe(format("Error reading bytes for HTTP part data %s", part.name()));
                 return StatusResult.failure(ERROR_RETRY, "Error reading part data");
@@ -75,10 +76,10 @@ public class DatalakeHttpDataSink extends ParallelSink {
         return StatusResult.success();
     }
 
-    private DatalakeHttpDataSink() {
+    private CloudHttpDataSink() {
     }
 
-    public static class Builder extends ParallelSink.Builder<Builder, DatalakeHttpDataSink> {
+    public static class Builder extends ParallelSink.Builder<Builder, CloudHttpDataSink> {
 
         public static Builder newInstance() {
             return new Builder();
@@ -116,7 +117,7 @@ public class DatalakeHttpDataSink extends ParallelSink {
         }
 
         private Builder() {
-            super(new DatalakeHttpDataSink());
+            super(new CloudHttpDataSink());
         }
     }
 }

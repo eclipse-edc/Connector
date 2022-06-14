@@ -14,10 +14,6 @@
 
 package com.siemens.mindsphere.datalake.edc.http;
 
-import com.siemens.mindsphere.datalake.edc.http.dataplane.DatalakeHttpDataSinkFactory;
-import com.siemens.mindsphere.datalake.edc.http.provision.DestinationUrlProvisionedResource;
-import com.siemens.mindsphere.datalake.edc.http.provision.DestinationUrlProvisioner;
-import com.siemens.mindsphere.datalake.edc.http.provision.DestinationUrlResourceDefinition;
 import com.siemens.mindsphere.datalake.edc.http.provision.SourceUrlProvisionedResource;
 import com.siemens.mindsphere.datalake.edc.http.provision.SourceUrlProvisioner;
 import com.siemens.mindsphere.datalake.edc.http.provision.SourceUrlResourceDefinition;
@@ -111,10 +107,6 @@ public class DataLakeExtension implements ServiceExtension {
             dataOperatorRegistry.registerReader(dataLakeReader);
 
 
-            //MUST BE 1 partition - we can handle only one part at a time
-            var sinkFactoryHttp = new DatalakeHttpDataSinkFactory(httpClient, executorContainer.getExecutorService(), 1, monitor);
-            pipelineService.registerFactory(sinkFactoryHttp);
-
             registerProvisioners(context, monitor, clientImpl);
             registerProvisionDefinitionsGenerators(context, monitor);
             registerProvisionTypes(context.getTypeManager());
@@ -130,17 +122,11 @@ public class DataLakeExtension implements ServiceExtension {
     private void registerProvisionDefinitionsGenerators(ServiceExtensionContext context, Monitor monitor) {
         // register the datalake resource definition generator
         manifestGenerator.registerGenerator(new SourceUrlResourceDefinitionGenerator(monitor, context));
-
-        // register the datalake resource definition generator
-        manifestGenerator.registerGenerator(new SourceUrlResourceDefinitionGenerator(monitor, context));
     }
 
     private void registerProvisioners(ServiceExtensionContext context, Monitor monitor, DataLakeClientImpl clientImpl) {
         @SuppressWarnings("unchecked") var retryPolicy = context.getService(RetryPolicy.class);
         var provisionManager = context.getService(ProvisionManager.class);
-
-        final DestinationUrlProvisioner destinationUrlProvisioner = new DestinationUrlProvisioner(clientImpl, monitor, retryPolicy);
-        provisionManager.register(destinationUrlProvisioner);
 
         final SourceUrlProvisioner sourceUrlProvisioner = new SourceUrlProvisioner(clientImpl, context, retryPolicy);
         provisionManager.register(sourceUrlProvisioner);
@@ -148,8 +134,7 @@ public class DataLakeExtension implements ServiceExtension {
 
     private void registerProvisionTypes(TypeManager typeManager) {
         typeManager.registerTypes(
-                SourceUrlProvisionedResource.class, SourceUrlResourceDefinition.class,
-                DestinationUrlProvisionedResource.class, DestinationUrlResourceDefinition.class);
+                SourceUrlProvisionedResource.class, SourceUrlResourceDefinition.class);
     }
 
     @Override

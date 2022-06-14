@@ -1,0 +1,19 @@
+{
+  "protocol": "ids-multipart",
+  "assetId": "data.csv",
+  "contractId": "9:1bd6da05-bb4c-43e8-ba37-dd8854b95c6b",
+  "dataDestination": {
+    "properties": {
+      "endpoint": "your endpoint",
+      "name": "",
+      "type": "CloudHttpData"
+    }
+  },
+  "transferType": {
+    "contentType": "application/octet-stream",
+    "isFinite": true
+  },
+  "managedResources": false,
+  "connectorAddress": "http://localhost:8282/api/v1/ids/data",
+  "connectorId": "consumer"
+}

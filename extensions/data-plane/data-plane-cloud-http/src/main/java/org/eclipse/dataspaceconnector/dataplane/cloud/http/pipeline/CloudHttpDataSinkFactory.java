@@ -12,9 +12,8 @@
  *
  */
 
-package com.siemens.mindsphere.datalake.edc.http.dataplane;
+package org.eclipse.dataspaceconnector.dataplane.cloud.http.pipeline;
 
-import com.siemens.mindsphere.datalake.edc.http.provision.MindsphereSchema;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
@@ -32,26 +31,27 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddre
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
 import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
 
-
 /**
- * Instantiates {@link DatalakeHttpDataSink}s for requests whose source data type is {@link HttpDataAddressSchema#TYPE}.
+ * Instantiates {@link CloudHttpDataSink}s for requests whose source data type is {@link HttpDataAddressSchema#TYPE}.
+ *
+ * Note: there is support only for 1 partition at this time  - this means it cannot handle big files upload primarily due to memory constraints
  */
-public class DatalakeHttpDataSinkFactory implements DataSinkFactory {
+public class CloudHttpDataSinkFactory implements DataSinkFactory {
+    private static final int ONE_PARTITION = 1;
+
     private final OkHttpClient httpClient;
     private final ExecutorService executorService;
-    private final int partitionSize;
     private final Monitor monitor;
 
-    public DatalakeHttpDataSinkFactory(OkHttpClient httpClient, ExecutorService executorService, int partitionSize, Monitor monitor) {
+    public CloudHttpDataSinkFactory(OkHttpClient httpClient, ExecutorService executorService, Monitor monitor) {
         this.httpClient = httpClient;
         this.executorService = executorService;
-        this.partitionSize = partitionSize;
         this.monitor = monitor;
     }
 
     @Override
     public boolean canHandle(DataFlowRequest request) {
-        return MindsphereSchema.TYPE.equals(request.getDestinationDataAddress().getType());
+        return CloudHttpDataAddressSchema.TYPE.equals(request.getDestinationDataAddress().getType());
     }
 
     @Override
@@ -74,10 +74,10 @@ public class DatalakeHttpDataSinkFactory implements DataSinkFactory {
         var authKey = dataAddress.getProperty(AUTHENTICATION_KEY);
         var authCode = dataAddress.getProperty(AUTHENTICATION_CODE);
 
-        return DatalakeHttpDataSink.Builder.newInstance()
+        return CloudHttpDataSink.Builder.newInstance()
                 .endpoint(endpoint)
                 .requestId(requestId)
-                .partitionSize(partitionSize)
+                .partitionSize(ONE_PARTITION)
                 .authKey(authKey)
                 .authCode(authCode)
                 .httpClient(httpClient)

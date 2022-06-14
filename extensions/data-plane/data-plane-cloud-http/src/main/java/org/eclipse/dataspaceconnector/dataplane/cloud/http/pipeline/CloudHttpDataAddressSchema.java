@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021, 2022 Siemens AG
+ *  Copyright (c) 2021 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,13 +12,11 @@
  *
  */
 
-package com.siemens.mindsphere.datalake.edc.http.provision;
+package org.eclipse.dataspaceconnector.dataplane.cloud.http.pipeline;
 
-public class MindsphereSchema {
-    private MindsphereSchema() {
-    }
-
-    public static final String TYPE = "mindsphere";
-    public static final String URL = "url";
-    public static final String DATALAKE_PATH = "datalakepath";
+public interface CloudHttpDataAddressSchema {
+    /**
+     * The HTTP transfer type.
+     */
+    String TYPE = "CloudHttpData";
 }

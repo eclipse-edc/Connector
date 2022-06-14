@@ -45,7 +45,7 @@ public class SourceUrlResourceDefinition extends ResourceDefinition {
         @Override
         protected void verify() {
             super.verify();
-            Objects.requireNonNull(resourceDefinition.datalakePath, MindsphereSchema.DATALAKE_PATH);
+            Objects.requireNonNull(resourceDefinition.datalakePath, MindsphereDatalakeSchema.DOWNLOAD_DATALAKE_PATH);
         }
     }
 }

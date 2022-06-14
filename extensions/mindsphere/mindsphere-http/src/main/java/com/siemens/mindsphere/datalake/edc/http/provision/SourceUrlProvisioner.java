@@ -23,7 +23,6 @@ import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
-import org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
@@ -83,8 +82,8 @@ public class SourceUrlProvisioner
                                                 Map.of(
                                                         ENDPOINT, createPresignedUrl(resourceDefinition.getDatalakePath()),
                                                         NAME, "",
-                                                        MindsphereSchema.DATALAKE_PATH, resourceDefinition.getDatalakePath()))
-                                        .type(HttpDataAddressSchema.TYPE).build())
+                                                        MindsphereDatalakeSchema.DOWNLOAD_DATALAKE_PATH, resourceDefinition.getDatalakePath()))
+                                        .type("CloudHttpData").build())
                                 .path(resourceDefinition.getDatalakePath())
                                 .build())
                         .build();
