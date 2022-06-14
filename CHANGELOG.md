@@ -31,7 +31,7 @@ in the detailed section referring to by linking pull requests or issues.
 
 #### Fixed
 
-*
+* Fixed a dead link in contributor documentation (#1477)
 
 ## [milestone-4] - 2022-06-07
 
