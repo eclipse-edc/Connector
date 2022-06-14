@@ -90,8 +90,6 @@ org.eclipse.dataspaceconnector:transfer-process-store-sql:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transaction-atomikos:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transaction-datasource-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transaction-local:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:transfer-functions-core:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:transfer-functions-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:api-configuration:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:asset-api:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:catalog-api:0.0.1-SNAPSHOT

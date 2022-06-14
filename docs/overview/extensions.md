@@ -151,9 +151,3 @@ No submodules
 | :transaction-local          |  | [link]({{extensions}}transaction/transaction-local) |
 | :transaction-spi            |  | [link]({{extensions}}transaction/transaction-spi) |
 
-## :extensions:transfer-functions
-
-| Module | Description | Details
-| :----- | :---------- | :------ |
-| :transfer-functions-core | provides required services for the Transfer Functions feature | [link]({{extensions}}transfer-functions/transfer-functions-core) |
-| :transfer-functions-spi  | contains the SPI for the Transfer Functions feature | [link]({{extensions}}transfer-functions/transfer-functions-spi) |
