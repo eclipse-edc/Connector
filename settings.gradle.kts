@@ -168,9 +168,6 @@ include(":samples:other:file-transfer-http-to-http:transfer-file")
 include(":samples:other:file-transfer-provisioning:consumer")
 include(":samples:other:file-transfer-provisioning:provider")
 
-include(":samples:other:http-transfer-provisioning:consumer")
-include(":samples:other:http-transfer-provisioning:provider")
-
 // extension points for a connector
 include(":spi")
 include(":spi:core-spi")
