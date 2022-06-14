@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy;
 
+import jakarta.ws.rs.core.HttpHeaders;
 import org.eclipse.dataspaceconnector.common.token.TokenGenerationService;
-import org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
@@ -65,7 +65,7 @@ public class DataPlaneTransferProxyReferenceServiceImpl implements DataPlaneTran
         var builder = EndpointDataReference.Builder.newInstance()
                 .id(request.getId())
                 .endpoint(request.getProxyEndpoint())
-                .authKey(DataPlaneConstants.PUBLIC_API_AUTH_HEADER)
+                .authKey(HttpHeaders.AUTHORIZATION)
                 .authCode(tokenGenerationResult.getContent().getToken())
                 .properties(props);
         return Result.success(builder.build());

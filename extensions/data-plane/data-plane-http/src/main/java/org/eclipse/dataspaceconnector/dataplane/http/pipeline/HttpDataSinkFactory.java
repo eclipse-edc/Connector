@@ -20,20 +20,16 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema;
+import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ExecutorService;
 
-import static org.eclipse.dataspaceconnector.spi.result.Result.failure;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
+import static org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress.DATA_TYPE;
 
 /**
- * Instantiates {@link HttpDataSink}s for requests whose source data type is {@link HttpDataAddressSchema#TYPE}.
+ * Instantiates {@link HttpDataSink}s for requests whose source data type is {@link HttpDataAddress#DATA_TYPE}.
  */
 public class HttpDataSinkFactory implements DataSinkFactory {
     private final OkHttpClient httpClient;
@@ -50,31 +46,38 @@ public class HttpDataSinkFactory implements DataSinkFactory {
 
     @Override
     public boolean canHandle(DataFlowRequest request) {
-        return TYPE.equals(request.getDestinationDataAddress().getType());
+        return DATA_TYPE.equals(request.getDestinationDataAddress().getType());
     }
 
     @Override
     public @NotNull Result<Boolean> validate(DataFlowRequest request) {
-        var dataAddress = request.getDestinationDataAddress();
-        if (dataAddress == null || !dataAddress.getProperties().containsKey(ENDPOINT)) {
-            return failure("HTTP data sink endpoint not provided for request: " + request.getId());
-        }
-        return VALID;
+        var result = createDataSink(request);
+        return result.succeeded() ? VALID : Result.failure(result.getFailureMessages());
     }
 
     @Override
     public DataSink createSink(DataFlowRequest request) {
-        var dataAddress = request.getDestinationDataAddress();
-        var requestId = request.getId();
-        var endpoint = dataAddress.getProperty(ENDPOINT);
-        if (endpoint == null) {
-            throw new EdcException("HTTP data destination endpoint not provided for request: " + requestId);
+        var result = createDataSink(request);
+        if (result.failed()) {
+            throw new EdcException("Failed to create sink: " + String.join(",", result.getFailureMessages()));
         }
-        var authKey = dataAddress.getProperty(AUTHENTICATION_KEY);
-        var authCode = dataAddress.getProperty(AUTHENTICATION_CODE);
+        return result.getContent();
+    }
 
-        return HttpDataSink.Builder.newInstance()
-                .endpoint(endpoint)
+    private Result<DataSink> createDataSink(DataFlowRequest request) {
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .copyFrom(request.getDestinationDataAddress())
+                .build();
+        var requestId = request.getId();
+        var baseUrl = dataAddress.getBaseUrl();
+        if (baseUrl == null) {
+            return Result.failure("Missing mandatory base url for request: " + requestId);
+        }
+        var authKey = dataAddress.getAuthKey();
+        var authCode = dataAddress.getAuthCode();
+
+        var sink = HttpDataSink.Builder.newInstance()
+                .endpoint(baseUrl)
                 .requestId(requestId)
                 .partitionSize(partitionSize)
                 .authKey(authKey)
@@ -83,5 +86,7 @@ public class HttpDataSinkFactory implements DataSinkFactory {
                 .executorService(executorService)
                 .monitor(monitor)
                 .build();
+
+        return Result.success(sink);
     }
 }

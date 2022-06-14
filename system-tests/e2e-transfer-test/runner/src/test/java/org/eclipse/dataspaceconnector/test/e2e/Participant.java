@@ -72,8 +72,8 @@ public class Participant {
                 ),
                 "dataAddress", Map.of(
                         "properties", Map.of(
-                                "name", "data",
-                                "endpoint", backendService + "/api/service",
+                                "name", "transfer-test",
+                                "baseUrl", backendService + "/api/provider/data",
                                 "type", addressType
                         )
                 )
@@ -263,7 +263,7 @@ public class Participant {
                 put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                 put("edc.keystore.password", "123456");
                 put("ids.webhook.address", idsEndpoint.toString());
-                put("edc.receiver.http.endpoint", backendService + "/api/service/pull");
+                put("edc.receiver.http.endpoint", backendService + "/api/consumer/pull");
                 put("edc.transfer.proxy.token.signer.privatekey.alias", "1");
                 put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
                 put("edc.transfer.proxy.endpoint", dataPlanePublic.toString());

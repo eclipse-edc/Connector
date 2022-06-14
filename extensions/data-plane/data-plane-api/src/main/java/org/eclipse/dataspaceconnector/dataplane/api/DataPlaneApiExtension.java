@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.dataplane.api;
 
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.dataplane.api.controller.ContainerRequestContextApiImpl;
 import org.eclipse.dataspaceconnector.dataplane.api.controller.DataPlaneControlApiController;
 import org.eclipse.dataspaceconnector.dataplane.api.controller.DataPlanePublicApiController;
 import org.eclipse.dataspaceconnector.dataplane.api.validation.RemoteTokenValidationService;
@@ -63,7 +62,7 @@ public class DataPlaneApiExtension implements ServiceExtension {
 
         webService.registerResource(CONTROL, new DataPlaneControlApiController(dataPlaneManager));
 
-        var publicApiController = new DataPlanePublicApiController(dataPlaneManager, tokenValidationClient, context.getMonitor(), new ContainerRequestContextApiImpl(), context.getTypeManager(), executorService);
+        var publicApiController = new DataPlanePublicApiController(dataPlaneManager, tokenValidationClient, context.getMonitor(), context.getTypeManager(), executorService);
         webService.registerResource(PUBLIC, publicApiController);
     }
 }

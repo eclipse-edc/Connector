@@ -25,26 +25,25 @@ import okhttp3.Request;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
 
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.lang.String.format;
 
-@Path("/service")
-public class BackendServiceController {
+@Path("/consumer")
+public class ConsumerBackendServiceController {
 
     private final Monitor monitor;
     private final OkHttpClient httpClient;
-    private final AtomicReference<String> providerData = new AtomicReference<>();
+    private final AtomicReference<String> data = new AtomicReference<>();
 
-    public BackendServiceController(Monitor monitor, OkHttpClient httpClient) {
+    public ConsumerBackendServiceController(Monitor monitor, OkHttpClient httpClient) {
         this.monitor = monitor;
         this.httpClient = httpClient;
     }
 
     @Path("/pull")
     @POST
-    @Consumes({MediaType.APPLICATION_JSON})
+    @Consumes({ MediaType.APPLICATION_JSON })
     public void pullData(EndpointDataReference dataReference) {
         String url = dataReference.getEndpoint();
         monitor.debug("Endpoint Data Reference received, will call data plane at " + url);
@@ -58,7 +57,7 @@ public class BackendServiceController {
             var string = body.string();
             if (response.isSuccessful()) {
                 monitor.info("Data plane responded correctly: " + string);
-                providerData.set(string);
+                data.set(string);
             } else {
                 monitor.warning(format("Data plane responded with error: %s %s", response.code(), string));
             }
@@ -67,24 +66,17 @@ public class BackendServiceController {
         }
     }
 
-    @Path("/data")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, String> getData() {
-        return Map.of("message", "some information");
-    }
-
-    @Path("/data")
+    @Path("/store")
     @POST
     public void pushData(String body) {
-        providerData.set(body);
+        data.set(body);
     }
 
-    @Path("/providerData")
+    @Path("/data")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public String getProviderData() {
-        return providerData.get();
+    public String getData() {
+        return data.get();
     }
 
 }

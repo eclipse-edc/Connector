@@ -26,6 +26,7 @@ import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTes
 import org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore.State;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -53,15 +54,8 @@ import static java.lang.String.format;
 import static java.lang.String.valueOf;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures.createDataAddress;
 import static org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures.createRequest;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.NAME;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_QUERY_PARAMS;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 import static org.mockserver.matchers.Times.exactly;
@@ -78,7 +72,7 @@ import static org.mockserver.stop.Stop.stopQuietly;
  * System Test for Data Plane HTTP extension.
  */
 @ComponentTest
-public class DataPlaneHttpIntegrationTests {
+public class DataPlaneHttpToHttpIntegrationTests {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final Faker FAKER = new Faker();
@@ -96,7 +90,9 @@ public class DataPlaneHttpIntegrationTests {
     private static final String PROCESS_ID = "processId";
     private static final String EDC_TYPE = "edctype";
     private static final String DATA_FLOW_REQUEST_EDC_TYPE = "dataspaceconnector:dataflowrequest";
-    private static final String DPF_HTTP_API_PART_NAME = "sample";
+
+    private static final String DPF_HTTP_API_PATH = "sample";
+    private static final String PROXY_PATH_TOGGLE = "true";
     private static final String PROXY_QUERY_PARAMS_TOGGLE = "true";
     private static final String AUTH_HEADER_KEY = HttpHeaderNames.AUTHORIZATION.toString();
     private static final String SOURCE_AUTH_VALUE = FAKER.lorem().word();
@@ -352,14 +348,14 @@ public class DataPlaneHttpIntegrationTests {
     /**
      * Request payload with query params to initiate DPF transfer.
      *
-     * @param processId ProcessID of transfer.See {@link DataFlowRequest}
+     * @param processId   ProcessID of transfer.See {@link DataFlowRequest}
      * @param queryParams Query params name and value as key-value entries.
      * @return JSON object. see {@link ObjectNode}.
      */
     private ObjectNode transferRequestPayload(String processId, Map<String, String> queryParams) {
-
         var requestProperties = new HashMap<String, String>();
         requestProperties.put(DataFlowRequestSchema.METHOD, HttpMethod.GET.name());
+        requestProperties.put(DataFlowRequestSchema.PATH, DPF_HTTP_API_PATH);
 
         if (!queryParams.isEmpty()) {
             requestProperties.put(DataFlowRequestSchema.QUERY_PARAMS, queryParams.entrySet()
@@ -368,23 +364,19 @@ public class DataPlaneHttpIntegrationTests {
                     .collect(Collectors.joining("&")));
         }
 
-        var sourceDataAddress = createDataAddress(
-                TYPE,
-                Map.of(
-                        ENDPOINT, DPF_HTTP_SOURCE_API_HOST,
-                        NAME, DPF_HTTP_API_PART_NAME,
-                        PROXY_QUERY_PARAMS, PROXY_QUERY_PARAMS_TOGGLE,
-                        AUTHENTICATION_KEY, AUTH_HEADER_KEY,
-                        AUTHENTICATION_CODE, SOURCE_AUTH_VALUE
-                )).build();
+        var sourceDataAddress = HttpDataAddress.Builder.newInstance()
+                .baseUrl(DPF_HTTP_SOURCE_API_HOST)
+                .proxyPath(PROXY_PATH_TOGGLE)
+                .proxyQueryParams(PROXY_QUERY_PARAMS_TOGGLE)
+                .authKey(AUTH_HEADER_KEY)
+                .authCode(SOURCE_AUTH_VALUE)
+                .build();
 
-        var destinationDataAddress = createDataAddress(
-                TYPE,
-                Map.of(
-                        ENDPOINT, DPF_HTTP_SINK_API_HOST,
-                        AUTHENTICATION_KEY, AUTH_HEADER_KEY,
-                        AUTHENTICATION_CODE, SINK_AUTH_VALUE
-                )).build();
+        var destinationDataAddress = HttpDataAddress.Builder.newInstance()
+                .baseUrl(DPF_HTTP_SINK_API_HOST)
+                .authKey(AUTH_HEADER_KEY)
+                .authCode(SINK_AUTH_VALUE)
+                .build();
 
         // Create valid dataflow request instance.
         var request = createRequest(requestProperties, sourceDataAddress, destinationDataAddress)
@@ -466,7 +458,7 @@ public class DataPlaneHttpIntegrationTests {
         return request
                 .withMethod(HttpMethod.GET.name())
                 .withHeader(AUTH_HEADER_KEY, SOURCE_AUTH_VALUE)
-                .withPath("/" + DPF_HTTP_API_PART_NAME);
+                .withPath("/" + DPF_HTTP_API_PATH);
     }
 
     /**
@@ -478,7 +470,6 @@ public class DataPlaneHttpIntegrationTests {
     private HttpRequest postRequest(String responseBody) {
         return request()
                 .withMethod(HttpMethod.POST.name())
-                .withPath("/" + DPF_HTTP_API_PART_NAME)
                 .withHeaders(
                         new Header(HttpHeaderNames.CONTENT_TYPE.toString(),
                                 MediaType.APPLICATION_OCTET_STREAM.toString()),
@@ -499,7 +490,7 @@ public class DataPlaneHttpIntegrationTests {
     /**
      * Mock plain text response from source.
      *
-     * @param statusCode Response status code.
+     * @param statusCode   Response status code.
      * @param responseBody Response body.
      * @return see {@link HttpResponse}
      */
