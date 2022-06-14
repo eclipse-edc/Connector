@@ -51,7 +51,7 @@ public class IdsTransformerRegistryImpl implements IdsTransformerRegistry {
     private <INPUT, OUTPUT> @Nullable OUTPUT transform(INPUT object, Class<OUTPUT> outputType, TransformerContext context) {
         Objects.requireNonNull(object);
 
-        IdsTypeTransformer idsTypeTransformer = findEligibleTransformer(object, outputType);
+        var idsTypeTransformer = findEligibleTransformer(object, outputType);
         if (idsTypeTransformer == null) {
             throw new EdcException("Transformer not found for pair:" + new TransformKey(object.getClass(), outputType)); // this is a programming error
         }

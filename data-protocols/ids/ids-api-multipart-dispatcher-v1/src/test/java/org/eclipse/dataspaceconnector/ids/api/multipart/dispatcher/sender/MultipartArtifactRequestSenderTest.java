@@ -14,13 +14,13 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -51,14 +51,14 @@ class MultipartArtifactRequestSenderTest {
     @BeforeEach
     public void setUp() {
         var httpClient = mock(OkHttpClient.class);
-        var mapper = new ObjectMapper();
         var monitor = mock(Monitor.class);
+        var serializer = mock(JsonldSerializer.class);
         var vault = mock(Vault.class);
         var identityService = mock(IdentityService.class);
         String connectorId = UUID.randomUUID().toString();
         transformerRegistry = mock(IdsTransformerRegistry.class);
         idsWebhookAddress = UUID.randomUUID() + "/api/v1/ids/data";
-        sender = new MultipartArtifactRequestSender(connectorId, httpClient, mapper, monitor, vault, identityService, transformerRegistry, idsWebhookAddress);
+        sender = new MultipartArtifactRequestSender(connectorId, httpClient, serializer, monitor, vault, identityService, transformerRegistry, idsWebhookAddress);
     }
 
     @Test

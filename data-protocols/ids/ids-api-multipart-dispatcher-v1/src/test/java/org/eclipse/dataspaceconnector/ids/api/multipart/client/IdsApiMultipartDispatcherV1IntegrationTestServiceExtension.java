@@ -17,12 +17,12 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.client;
 
 import kotlin.NotImplementedError;
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
-import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
@@ -75,8 +75,7 @@ import static org.mockito.Mockito.mock;
 @Provides({
         AssetIndex.class, TransferProcessStore.class, ContractDefinitionStore.class, IdentityService.class,
         ContractNegotiationManager.class, ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class,
-        ContractOfferService.class, ContractValidationService.class, PolicyArchive.class,
-        ObjectMapperFactory.class
+        ContractOfferService.class, ContractValidationService.class, PolicyArchive.class, JsonldSerializer.class
 })
 class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements ServiceExtension {
     private final List<Asset> assets;
@@ -121,7 +120,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         context.registerService(ProviderContractNegotiationManager.class, new FakeProviderContractNegotiationManager());
         context.registerService(ConsumerContractNegotiationManager.class, new FakeConsumerContractNegotiationManager());
         context.registerService(PolicyArchive.class, mock(PolicyArchive.class));
-        context.registerService(ObjectMapperFactory.class, new ObjectMapperFactory());
+        context.registerService(JsonldSerializer.class, new JsonldSerializer(null));
     }
 
     private static class FakeAssetIndex implements AssetIndex {

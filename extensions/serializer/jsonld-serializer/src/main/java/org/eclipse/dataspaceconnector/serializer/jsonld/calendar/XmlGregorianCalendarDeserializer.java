@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.core.serialization;
+package org.eclipse.dataspaceconnector.serializer.jsonld.calendar;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -26,22 +26,21 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
- * Custom Jackson deserializer for objects of type XMLGregorianCalendar. Serves as a workaround
- * for date deserialization until integration of the IDS Information Model Serializer.
+ * Custom Jackson deserializer for objects of type XMLGregorianCalendar.
  */
 public class XmlGregorianCalendarDeserializer extends StdDeserializer<XMLGregorianCalendar> {
-    
+
     public XmlGregorianCalendarDeserializer() {
         super(XMLGregorianCalendar.class);
     }
-    
+
     @Override
-    public XMLGregorianCalendar deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
+    public XMLGregorianCalendar deserialize(JsonParser parser, DeserializationContext context) throws IOException {
         try {
-            return DatatypeFactory.newInstance().newXMLGregorianCalendar(GregorianCalendar.from(ZonedDateTime.parse(jsonParser.getValueAsString())));
+            return DatatypeFactory.newInstance().newXMLGregorianCalendar(GregorianCalendar.from(ZonedDateTime.parse(parser.getValueAsString())));
         } catch (DatatypeConfigurationException e) {
             return null;
         }
     }
-    
+
 }

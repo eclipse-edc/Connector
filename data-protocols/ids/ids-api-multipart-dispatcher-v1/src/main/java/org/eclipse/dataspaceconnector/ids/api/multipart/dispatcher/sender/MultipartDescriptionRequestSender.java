@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.Artifact;
 import de.fraunhofer.iais.eis.BaseConnector;
 import de.fraunhofer.iais.eis.DescriptionRequestMessageBuilder;
@@ -30,6 +29,7 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartDescriptionResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -47,11 +47,11 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
 
     public MultipartDescriptionRequestSender(@NotNull String connectorId,
                                              @NotNull OkHttpClient httpClient,
-                                             @NotNull ObjectMapper objectMapper,
+                                             @NotNull JsonldSerializer serializer,
                                              @NotNull Monitor monitor,
                                              @NotNull IdentityService identityService,
                                              @NotNull IdsTransformerRegistry transformerRegistry) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+        super(connectorId, httpClient, serializer, monitor, identityService, transformerRegistry);
     }
 
     @Override
@@ -79,9 +79,8 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
 
     @Override
     protected MultipartDescriptionResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        ObjectMapper objectMapper = getObjectMapper();
-
-        ResponseMessage header = objectMapper.readValue(parts.getHeader(), ResponseMessage.class);
+        var objectMapper = getSerializer().getObjectMapper();
+        var header = objectMapper.readValue(parts.getHeader(), ResponseMessage.class);
 
         ModelClass payload = null;
         if (parts.getPayload() != null) {

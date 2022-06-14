@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessageBuilder;
@@ -22,6 +21,7 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceMessage;
@@ -38,11 +38,11 @@ public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSen
 
     public MultipartEndpointDataReferenceRequestSender(@NotNull String connectorId,
                                                        @NotNull OkHttpClient httpClient,
-                                                       @NotNull ObjectMapper objectMapper,
+                                                       @NotNull JsonldSerializer serializer,
                                                        @NotNull Monitor monitor,
                                                        @NotNull IdentityService identityService,
                                                        @NotNull IdsTransformerRegistry transformerRegistry) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+        super(connectorId, httpClient, serializer, monitor, identityService, transformerRegistry);
     }
 
     @Override
@@ -68,12 +68,12 @@ public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSen
 
     @Override
     protected String buildMessagePayload(EndpointDataReferenceMessage request) throws Exception {
-        return getObjectMapper().writeValueAsString(request.getEndpointDataReference());
+        return getSerializer().toRdf(request.getEndpointDataReference());
     }
 
     @Override
     protected MultipartMessageProcessedResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        var header = getObjectMapper().readValue(parts.getHeader(), Message.class);
+        var header = getSerializer().getObjectMapper().readValue(parts.getHeader(), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());

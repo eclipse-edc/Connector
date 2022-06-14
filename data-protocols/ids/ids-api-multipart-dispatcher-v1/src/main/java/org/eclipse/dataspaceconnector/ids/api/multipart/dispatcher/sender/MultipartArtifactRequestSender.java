@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
@@ -26,6 +25,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -51,13 +51,13 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
 
     public MultipartArtifactRequestSender(@NotNull String connectorId,
                                           @NotNull OkHttpClient httpClient,
-                                          @NotNull ObjectMapper objectMapper,
+                                          @NotNull JsonldSerializer serializer,
                                           @NotNull Monitor monitor,
                                           @NotNull Vault vault,
                                           @NotNull IdentityService identityService,
                                           @NotNull IdsTransformerRegistry transformerRegistry,
                                           @NotNull String idsWebhookAddress) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+        super(connectorId, httpClient, serializer, monitor, identityService, transformerRegistry);
         this.vault = Objects.requireNonNull(vault);
         this.idsWebhookAddress = idsWebhookAddress;
     }
@@ -124,13 +124,12 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
             requestPayloadBuilder = requestPayloadBuilder.secret(secret);
         }
 
-        ObjectMapper objectMapper = getObjectMapper();
-        return objectMapper.writeValueAsString(requestPayloadBuilder.build());
+        return getSerializer().toRdf(requestPayloadBuilder.build());
     }
 
     @Override
     protected MultipartRequestInProcessResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        Message header = getObjectMapper().readValue(parts.getHeader(), Message.class);
+        Message header = getSerializer().getObjectMapper().readValue(parts.getHeader(), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());

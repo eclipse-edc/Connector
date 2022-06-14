@@ -40,6 +40,7 @@ import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -85,14 +86,15 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         var httpClient = testOkHttpClient();
 
         var idsWebhookAddress = "http://webhook/api";
+        var serializer = mock(JsonldSerializer.class);
 
         multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
-        multipartDispatcher.register(new MultipartDescriptionRequestSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry));
-        multipartDispatcher.register(new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, objectMapper, monitor, vault, identityService, transformerRegistry, idsWebhookAddress));
-        multipartDispatcher.register(new MultipartContractOfferSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress));
-        multipartDispatcher.register(new MultipartContractAgreementSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress));
-        multipartDispatcher.register(new MultipartContractRejectionSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry));
-        multipartDispatcher.register(new MultipartCatalogDescriptionRequestSender(CONNECTOR_ID, httpClient, objectMapper, monitor, identityService, transformerRegistry));
+        multipartDispatcher.register(new MultipartDescriptionRequestSender(CONNECTOR_ID, httpClient, serializer, monitor, identityService, transformerRegistry));
+        multipartDispatcher.register(new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, serializer, monitor, vault, identityService, transformerRegistry, idsWebhookAddress));
+        multipartDispatcher.register(new MultipartContractOfferSender(CONNECTOR_ID, httpClient, serializer, monitor, identityService, transformerRegistry, idsWebhookAddress));
+        multipartDispatcher.register(new MultipartContractAgreementSender(CONNECTOR_ID, httpClient, serializer, monitor, identityService, transformerRegistry, idsWebhookAddress));
+        multipartDispatcher.register(new MultipartContractRejectionSender(CONNECTOR_ID, httpClient, serializer, monitor, identityService, transformerRegistry));
+        multipartDispatcher.register(new MultipartCatalogDescriptionRequestSender(CONNECTOR_ID, httpClient, serializer, monitor, identityService, transformerRegistry));
     }
 
     @Test

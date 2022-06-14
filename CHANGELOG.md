@@ -17,7 +17,7 @@ in the detailed section referring to by linking pull requests or issues.
 
 #### Added
 
-*
+* Create JSON-LD serializer extension (#1474)
 
 #### Changed
 
@@ -30,6 +30,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Unused classes and interfaces at `ids.spi.policy` (#1471)
 * Remove modules `:extensions:transfer-functions:transfer-functions-spi` and `:extensions:transfer-functions:transfer-functions-core` (#1482)
 * Remove `ConnectorVersionProvider`, provide version as static string (#1470)
+* Remove `ObjectMapperFactory` from IDS modules (#1474)
 
 #### Fixed
 

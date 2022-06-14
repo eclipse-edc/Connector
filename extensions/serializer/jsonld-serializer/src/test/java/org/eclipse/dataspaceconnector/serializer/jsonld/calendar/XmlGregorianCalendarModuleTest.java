@@ -12,66 +12,63 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.core.serialization;
+package org.eclipse.dataspaceconnector.serializer.jsonld.calendar;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import de.fraunhofer.iais.eis.ContractAgreement;
 import de.fraunhofer.iais.eis.ContractAgreementBuilder;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 class XmlGregorianCalendarModuleTest {
-    
-    private ObjectMapper objectMapper;
-    
+
+    private JsonldSerializer serializer;
+
     @BeforeEach
     void setUp() {
-        objectMapper = new ObjectMapper();
-        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
-        objectMapper.registerModule(new XmlGregorianCalendarModule());
+        serializer = new JsonldSerializer(mock(Monitor.class));
     }
-    
+
     @Test
     void serializeAndDeserializeDate() {
         var xmlGregorian = CalendarUtil.gregorianNow();
-        
+
         try {
-            var serialized = objectMapper.writeValueAsString(xmlGregorian);
-            var xmlGregorianDeserialized = objectMapper.readValue(serialized, XMLGregorianCalendar.class);
-            
+            var serialized = serializer.toRdf(xmlGregorian);
+            var xmlGregorianDeserialized = serializer.getObjectMapper().readValue(serialized, XMLGregorianCalendar.class);
+
             assertThat(xmlGregorian).isEqualTo(xmlGregorianDeserialized);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-    
+
     @Test
     void serializeAndDeserializeAgreement() {
         var xmlGregorian = CalendarUtil.gregorianNow();
-        
+
         var agreement = new ContractAgreementBuilder()
                 ._contractDate_(xmlGregorian)
                 ._contractStart_(xmlGregorian)
                 ._contractEnd_(xmlGregorian)
                 .build();
-    
+
         try {
-            var serialized = objectMapper.writeValueAsString(agreement);
-            var agreementDeserialized = objectMapper.readValue(serialized, ContractAgreement.class);
-        
+            var serialized = serializer.toRdf(agreement);
+            var agreementDeserialized = serializer.getObjectMapper().readValue(serialized, ContractAgreement.class);
+
             assertThat(agreement).isEqualTo(agreementDeserialized);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-    
+
 }

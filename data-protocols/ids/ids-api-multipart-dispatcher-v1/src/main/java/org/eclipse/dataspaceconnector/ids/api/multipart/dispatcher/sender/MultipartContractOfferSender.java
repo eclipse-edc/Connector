@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractOfferMessageBuilder;
 import de.fraunhofer.iais.eis.ContractRequestBuilder;
 import de.fraunhofer.iais.eis.ContractRequestMessageBuilder;
@@ -24,6 +23,7 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -47,12 +47,12 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
 
     public MultipartContractOfferSender(@NotNull String connectorId,
                                         @NotNull OkHttpClient httpClient,
-                                        @NotNull ObjectMapper objectMapper,
+                                        @NotNull JsonldSerializer serializer,
                                         @NotNull Monitor monitor,
                                         @NotNull IdentityService identityService,
                                         @NotNull IdsTransformerRegistry transformerRegistry,
                                         @NotNull String idsWebhookAddress) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+        super(connectorId, httpClient, serializer, monitor, identityService, transformerRegistry);
 
         this.idsWebhookAddress = idsWebhookAddress;
     }
@@ -103,15 +103,15 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
         var contractOffer = request.getContractOffer();
 
         if (request.getType() == ContractOfferRequest.Type.INITIAL) {
-            return getObjectMapper().writeValueAsString(createContractRequest(contractOffer));
+            return getSerializer().toRdf(createContractRequest(contractOffer));
         } else {
-            return getObjectMapper().writeValueAsString(createContractOffer(contractOffer));
+            return getSerializer().toRdf(createContractOffer(contractOffer));
         }
     }
 
     @Override
     protected MultipartRequestInProcessResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        Message header = getObjectMapper().readValue(parts.getHeader(), Message.class);
+        var header = getSerializer().getObjectMapper().readValue(parts.getHeader(), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());

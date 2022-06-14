@@ -14,11 +14,11 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -37,7 +37,8 @@ class IdsMultipartSenderTest {
     @Test
     void should_fail_if_token_retrieval_fails() {
         when(identityService.obtainClientCredentials("idsc:IDS_CONNECTOR_ATTRIBUTES_ALL")).thenReturn(Result.failure("error"));
-        var sender = new TestIdsMultipartSender("any", mock(OkHttpClient.class), new ObjectMapper(), mock(Monitor.class), identityService, mock(IdsTransformerRegistry.class));
+        var monitor = mock(Monitor.class);
+        var sender = new TestIdsMultipartSender("any", mock(OkHttpClient.class), new JsonldSerializer(monitor), monitor, identityService, mock(IdsTransformerRegistry.class));
 
         var result = sender.send(new TestRemoteMessage(), () -> "any");
 
@@ -46,9 +47,9 @@ class IdsMultipartSenderTest {
 
     private static class TestIdsMultipartSender extends IdsMultipartSender<TestRemoteMessage, Object> {
 
-        protected TestIdsMultipartSender(String connectorId, OkHttpClient httpClient, ObjectMapper objectMapper,
+        protected TestIdsMultipartSender(String connectorId, OkHttpClient httpClient, JsonldSerializer serializer,
                                          Monitor monitor, IdentityService identityService, IdsTransformerRegistry transformerRegistry) {
-            super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+            super(connectorId, httpClient, serializer, monitor, identityService, transformerRegistry);
         }
 
         @Override

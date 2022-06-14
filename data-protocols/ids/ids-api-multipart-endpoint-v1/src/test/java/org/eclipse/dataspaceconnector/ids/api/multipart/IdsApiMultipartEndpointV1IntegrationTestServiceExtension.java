@@ -18,11 +18,11 @@ package org.eclipse.dataspaceconnector.ids.api.multipart;
 
 import kotlin.NotImplementedError;
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
-import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
@@ -39,6 +39,7 @@ import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
@@ -86,7 +87,7 @@ import static org.mockito.Mockito.mock;
         ContractOfferService.class,
         ContractValidationService.class,
         PolicyArchive.class,
-        ObjectMapperFactory.class
+        JsonldSerializer.class
 })
 class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements ServiceExtension {
     private final List<Asset> assets;
@@ -118,6 +119,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var monitor = mock(Monitor.class);
         context.registerService(IdentityService.class, new FakeIdentityService());
         context.registerService(TransferProcessStore.class, new FakeTransferProcessStore());
         context.registerService(RemoteMessageDispatcherRegistry.class, new FakeRemoteMessageDispatcherRegistry());
@@ -131,7 +133,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         context.registerService(ProviderContractNegotiationManager.class, new FakeProviderContractNegotiationManager());
         context.registerService(ConsumerContractNegotiationManager.class, new FakeConsumerContractNegotiationManager());
         context.registerService(PolicyArchive.class, mock(PolicyArchive.class));
-        context.registerService(ObjectMapperFactory.class, new ObjectMapperFactory());
+        context.registerService(JsonldSerializer.class, new JsonldSerializer(monitor));
     }
 
     private static class FakeIdentityService implements IdentityService {

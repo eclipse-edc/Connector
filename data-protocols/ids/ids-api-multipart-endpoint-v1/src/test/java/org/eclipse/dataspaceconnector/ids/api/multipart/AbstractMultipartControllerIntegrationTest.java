@@ -16,7 +16,6 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.Contract;
 import de.fraunhofer.iais.eis.ContractAgreementMessage;
 import de.fraunhofer.iais.eis.ContractAgreementMessageBuilder;
@@ -41,10 +40,11 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
@@ -62,6 +62,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(EdcExtension.class)
 abstract class AbstractMultipartControllerIntegrationTest {
@@ -70,13 +71,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
     private static final AtomicReference<Integer> PORT = new AtomicReference<>();
     private static final AtomicReference<Integer> IDS_PORT = new AtomicReference<>();
     private static final List<Asset> ASSETS = new LinkedList<>();
-    // TODO needs to be replaced by an objectmapper capable to understand IDS JSON-LD
-    //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
-    private static final ObjectMapper OBJECT_MAPPER;
-
-    static {
-        OBJECT_MAPPER = new ObjectMapperFactory().getObjectMapper();
-    }
+    private JsonldSerializer serializer;
 
     @AfterEach
     void after() {
@@ -100,6 +95,9 @@ abstract class AbstractMultipartControllerIntegrationTest {
         }
 
         extension.registerSystemExtension(ServiceExtension.class, new IdsApiMultipartEndpointV1IntegrationTestServiceExtension(ASSETS));
+
+        var monitor = mock(Monitor.class);
+        serializer = new JsonldSerializer(monitor);
     }
 
     protected void addAsset(Asset asset) {
@@ -125,11 +123,11 @@ abstract class AbstractMultipartControllerIntegrationTest {
     }
 
     protected String toJson(Message message) throws Exception {
-        return OBJECT_MAPPER.writeValueAsString(message);
+        return serializer.toRdf(message);
     }
 
     protected String toJson(Contract contract) throws Exception {
-        return OBJECT_MAPPER.writeValueAsString(contract);
+        return serializer.toRdf(contract);
     }
 
     protected DescriptionRequestMessage getDescriptionRequestMessage() {
@@ -241,7 +239,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 }
 
                 if (multipartName.equalsIgnoreCase(HEADER)) {
-                    header = OBJECT_MAPPER.readValue(part.body().inputStream(), Message.class);
+                    header = serializer.getObjectMapper().readValue(part.body().inputStream(), Message.class);
                 } else if (multipartName.equalsIgnoreCase(PAYLOAD)) {
                     payload = part.body().readByteArray();
                 }

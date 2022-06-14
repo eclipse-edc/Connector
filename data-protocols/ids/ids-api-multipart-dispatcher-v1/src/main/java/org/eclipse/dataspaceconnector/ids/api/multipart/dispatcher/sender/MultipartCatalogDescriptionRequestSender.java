@@ -26,6 +26,7 @@ import de.fraunhofer.iais.eis.ResourceCatalogBuilder;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -51,11 +52,11 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
 
     public MultipartCatalogDescriptionRequestSender(@NotNull String connectorId,
                                                     @NotNull OkHttpClient httpClient,
-                                                    @NotNull ObjectMapper objectMapper,
+                                                    @NotNull JsonldSerializer serializer,
                                                     @NotNull Monitor monitor,
                                                     @NotNull IdentityService identityService,
                                                     @NotNull IdsTransformerRegistry transformerRegistry) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+        super(connectorId, httpClient, serializer, monitor, identityService, transformerRegistry);
     }
 
     @Override
@@ -86,7 +87,7 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
             throw new EdcException("Payload was null but connector self-description was expected");
         }
 
-        var baseConnector = getBaseConnector(getObjectMapper(), parts);
+        var baseConnector = getBaseConnector(getSerializer().getObjectMapper(), parts);
         if (baseConnector.getResourceCatalog() == null || baseConnector.getResourceCatalog().isEmpty()) {
             throw new EdcException("Resource catalog is null in connector self-description, should not happen");
         }
@@ -97,7 +98,7 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
                 .orElse(new ResourceCatalogBuilder().build());
 
         if (catalogDoesNotContainAnyOfferResource(resourceCatalog)) {
-            createOfferResourcesFromProperties(resourceCatalog, getObjectMapper());
+            createOfferResourcesFromProperties(resourceCatalog, getSerializer().getObjectMapper());
         }
 
         var transformResult = getTransformerRegistry().transform(resourceCatalog, Catalog.class);
