@@ -81,8 +81,9 @@ The call flow is the following:
 * call consumer to negociate a contract
     * ```curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: passwordConsumer" -d @samples/other/file-transfer-http-to-http/datalakecontractoffer.json "http://localhost:9192/api/v1/data/contractnegotiations"```
 * call consumer to find the newly negociated contract agreement id (e.g. [{"contractAgreementId":"9:1bd6da05-bb4c-43e8-ba37-dd8854b95c6b","counterPartyAddress":"http://localhost:8282/api/v1/ids/data","errorDetail":null)
-    * ```curl -X GET -H "Content-Type: application/json" -H "X-Api-Key: passwordConsumer"  "http://localhost:9192/api/v1/data/contractnegotiations"```
+    * ```CONTRACT_ID=`curl -X GET -H "Content-Type: application/json" -H "X-Api-Key: passwordConsumer"  "http://localhost:9192/api/v1/data/contractnegotiations" | jq ".[0].contractAgreementId"` ```
 * modify [samples/other/file-transfer-http-to-http/datalaketransfer.json](../datalaketransfer.json) by replacing existing contractId with the newly created one
+    * ```sed -i 's/"contractIdHere"/'$CONTRACT_ID'/g' samples/other/file-transfer-http-to-http/datalaketransfer.json```
 * call consumer to trigger transfer process
     * ```curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: passwordConsumer" -d @samples/other/file-transfer-http-to-http/datalaketransfer.json "http://localhost:9192/api/v1/data/transferprocess"```
     

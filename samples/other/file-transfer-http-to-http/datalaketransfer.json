@@ -1,10 +1,10 @@
 {
   "protocol": "ids-multipart",
   "assetId": "data.csv",
-  "contractId": "9:1bd6da05-bb4c-43e8-ba37-dd8854b95c6b",
+  "contractId": "contractIdHere",
   "dataDestination": {
     "properties": {
-      "endpoint": "https://datalake-prod-a-castidev-1638992902776.s3.eu-central-1.amazonaws.com/data/ten%3Dcastidev/data_dataplane1.csv?X-Amz-Security-Token=FwoGZXIvYXdzEDwaDPPizVjJs9emlyOxBCK3BI7IZlRFORuroCbN8MIDB7RFbHRvouEXYW9xMalZSrUUw4wx2bR2DCGSaO6hWplADsshwFxqrIqQo2klV%2BF%2BEECs8moFnwnhlaxi%2BuXOERFjtus%2BbMVW%2FZuzwVSwlbOYG4mgP3HVQF%2BPVanvKrYR3D9T5rYGw8LCpzLGJLV5rI98EbfVGvczhaj3Zor2i5vkO4b7pleOTVAG6P443IPLca37r6yB8v0X8YqvzT6D6uMTVgaIlgJUU0lk99MdVj%2FR6DgAPltYwp%2FB7MoY1OXAdahEu1gxk52Jc%2FAxw%2F1XBvtOMJW%2B4Si62egBpWfbpcy%2Be64NeuxWEvDhGv8y3HCsfDHsqlRlif%2FnMQglvkJEoVdBmyoVjApQ6URa%2BHDWVKuv9z7SW1ux3WNkyIYr8%2BMcKLtKgVorCNqWXpaoEqU83LZOIrA62YrPTPCisFIsZcbAm4HuTGZBNF5LlLRUwbPbwhFilLgKuJ67eo6%2F05aai4jxXUlSJSk88PCxWAo3lY3dCHhMhpHUjmFHE5fmGG1qJNY1rUdteSSdU12Qvmmf9BxFJ1oREVrZeDIXG2u%2BL6%2BQ8urBcDxKN2yDp8nOhz7SjioZoH%2BYE6%2B9LEjN8Lg%2B%2FBWXegjUtMNUk6egIHAU11CMkgv%2BE%2Bdy92ZZ3B4%2BWeWuTDgJEsYs3EjsuEM2cWz%2F1l6iPpJEM7jPvc6R%2Ba2V2fOfVsH2y5pNB0MQxJnUeaJxbYkw5VxG1o9hlr5FYJ7%2Fd6wP71GbKQO%2B4yir%2FtWUBjIr9UM3rO7mZO2Sye5lcRqnKs2NKtw%2B2ZFo%2Fup4rQQImJhnc32y9C6UdD%2FjPQ%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20220531T031302Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=ASIAWX7P4S4D5DJE44PA%2F20220531%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Signature=6c2cfa4fee05ecb630998c3e388c608e7618eb48035b4d5a9b225c719fabf16d",
+      "endpoint": "outputHere",
       "name": "",
       "type": "CloudHttpData"
     }
