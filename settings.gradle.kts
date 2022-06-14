@@ -127,6 +127,7 @@ include(":extensions:data-plane:data-plane-api")
 include(":extensions:data-plane:integration-tests")
 include(":extensions:http-receiver")
 include(":extensions:http-provisioner")
+include(":extensions:serializer")
 
 include(":extensions:sql:asset-index-sql")
 include(":extensions:sql:common-sql")

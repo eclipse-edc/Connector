@@ -100,8 +100,7 @@ public final class RejectionMessageUtil {
                 IdsType.MESSAGE.getValue(),
                 UUID.randomUUID().toString());
 
-        RejectionMessageBuilder builder = new RejectionMessageBuilder(URI.create(id));
-
+        var builder = new RejectionMessageBuilder(URI.create(id));
         builder._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
         builder._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
         //builder._issued_(CalendarUtil.gregorianNow()); TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
@@ -113,24 +112,24 @@ public final class RejectionMessageUtil {
                     IdsType.CONNECTOR.getValue(),
                     connectorId);
 
-            URI connectorIdUri = URI.create(connectorId);
+            var connectorIdUri = URI.create(connectorId);
 
             builder._issuerConnector_(connectorIdUri);
             builder._senderAgent_(connectorIdUri);
         }
 
         if (correlationMessage != null) {
-            URI correlationMessageId = correlationMessage.getId();
+            var correlationMessageId = correlationMessage.getId();
             if (correlationMessageId != null) {
                 builder._correlationMessage_(correlationMessageId);
             }
 
-            URI senderAgent = correlationMessage.getSenderAgent();
+            var senderAgent = correlationMessage.getSenderAgent();
             if (senderAgent != null) {
                 builder._recipientAgent_(new ArrayList<>(Collections.singletonList(senderAgent)));
             }
 
-            URI issuerConnector = correlationMessage.getIssuerConnector();
+            var issuerConnector = correlationMessage.getIssuerConnector();
             if (issuerConnector != null) {
                 builder._recipientConnector_(new ArrayList<>(Collections.singletonList(issuerConnector)));
             }

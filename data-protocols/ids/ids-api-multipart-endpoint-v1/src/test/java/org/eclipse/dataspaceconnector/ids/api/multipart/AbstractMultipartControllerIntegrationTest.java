@@ -16,7 +16,6 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.Contract;
 import de.fraunhofer.iais.eis.ContractAgreementMessage;
 import de.fraunhofer.iais.eis.ContractAgreementMessageBuilder;
@@ -41,10 +40,13 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
+import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintImpl;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
+import org.eclipse.dataspaceconnector.ids.spi.domain.DefaultValues;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
@@ -62,6 +64,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(EdcExtension.class)
 abstract class AbstractMultipartControllerIntegrationTest {
@@ -70,13 +73,8 @@ abstract class AbstractMultipartControllerIntegrationTest {
     private static final AtomicReference<Integer> PORT = new AtomicReference<>();
     private static final AtomicReference<Integer> IDS_PORT = new AtomicReference<>();
     private static final List<Asset> ASSETS = new LinkedList<>();
-    // TODO needs to be replaced by an objectmapper capable to understand IDS JSON-LD
-    //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
-    private static final ObjectMapper OBJECT_MAPPER;
 
-    static {
-        OBJECT_MAPPER = new ObjectMapperFactory().getObjectMapper();
-    }
+    private JsonldSerializer serializer;
 
     @AfterEach
     void after() {
@@ -92,6 +90,10 @@ abstract class AbstractMultipartControllerIntegrationTest {
 
     @BeforeEach
     protected void before(EdcExtension extension) {
+        serializer = new JsonldSerializer(mock(Monitor.class));
+        serializer.setContext(DefaultValues.CONTEXT);
+        serializer.setSubtypes(IdsConstraintImpl.class);
+
         PORT.set(getFreePort());
         IDS_PORT.set(getFreePort());
 
@@ -122,14 +124,6 @@ abstract class AbstractMultipartControllerIntegrationTest {
 
     protected DynamicAttributeToken getDynamicAttributeToken() {
         return new DynamicAttributeTokenBuilder()._tokenValue_("fake").build();
-    }
-
-    protected String toJson(Message message) throws Exception {
-        return OBJECT_MAPPER.writeValueAsString(message);
-    }
-
-    protected String toJson(Contract contract) throws Exception {
-        return OBJECT_MAPPER.writeValueAsString(contract);
     }
 
     protected DescriptionRequestMessage getDescriptionRequestMessage() {
@@ -241,7 +235,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 }
 
                 if (multipartName.equalsIgnoreCase(HEADER)) {
-                    header = OBJECT_MAPPER.readValue(part.body().inputStream(), Message.class);
+                    header = (Message) serializer.deserialize(part.body().readUtf8(), Message.class);
                 } else if (multipartName.equalsIgnoreCase(PAYLOAD)) {
                     payload = part.body().readByteArray();
                 }
@@ -286,8 +280,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 .add("Content-Disposition", "form-data; name=\"header\"")
                 .build();
 
-        RequestBody requestBody = RequestBody.create(
-                toJson(message),
+        RequestBody requestBody = RequestBody.create(serializer.serialize(message),
                 okhttp3.MediaType.get(MediaType.APPLICATION_JSON));
 
         return MultipartBody.Part.create(headers, requestBody);
@@ -299,8 +292,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 .add("Content-Disposition", "form-data; name=\"payload\"")
                 .build();
 
-        RequestBody requestBody = RequestBody.create(
-                toJson(contract),
+        RequestBody requestBody = RequestBody.create(serializer.serialize(contract),
                 okhttp3.MediaType.get(MediaType.APPLICATION_JSON));
 
         return MultipartBody.Part.create(headers, requestBody);

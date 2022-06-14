@@ -26,13 +26,13 @@ public final class CalendarUtil {
 
     public static XMLGregorianCalendar gregorianNow() {
         try {
-            GregorianCalendar gregorianCalendar = GregorianCalendar.from(ZonedDateTime.now());
+            var gregorianCalendar = GregorianCalendar.from(ZonedDateTime.now());
             return DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar);
         } catch (DatatypeConfigurationException e) {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * Creates an XMLGregorianCalendar from an epoch seconds timestamp.
      *

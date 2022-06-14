@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
@@ -26,6 +25,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -34,6 +34,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.UUID;
@@ -48,18 +49,21 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
 
     private final Vault vault;
     private final String idsWebhookAddress;
+    private final JsonldSerializer serializer;
 
     public MultipartArtifactRequestSender(@NotNull String connectorId,
                                           @NotNull OkHttpClient httpClient,
-                                          @NotNull ObjectMapper objectMapper,
+                                          @NotNull JsonldSerializer serializer,
                                           @NotNull Monitor monitor,
                                           @NotNull Vault vault,
                                           @NotNull IdentityService identityService,
                                           @NotNull IdsTransformerRegistry transformerRegistry,
                                           @NotNull String idsWebhookAddress) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+        super(connectorId, httpClient, monitor, identityService, transformerRegistry);
+
         this.vault = Objects.requireNonNull(vault);
         this.idsWebhookAddress = idsWebhookAddress;
+        this.serializer = serializer;
     }
 
     @Override
@@ -124,13 +128,12 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
             requestPayloadBuilder = requestPayloadBuilder.secret(secret);
         }
 
-        ObjectMapper objectMapper = getObjectMapper();
-        return objectMapper.writeValueAsString(requestPayloadBuilder.build());
+        return serializer.serialize(requestPayloadBuilder.build());
     }
 
     @Override
     protected MultipartRequestInProcessResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        Message header = getObjectMapper().readValue(parts.getHeader(), Message.class);
+        var header = (Message) serializer.deserialize(new String(parts.getHeader().readAllBytes(), StandardCharsets.UTF_8), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());

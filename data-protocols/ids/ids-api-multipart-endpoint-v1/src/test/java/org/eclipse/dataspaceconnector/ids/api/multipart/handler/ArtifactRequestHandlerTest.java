@@ -21,10 +21,13 @@ import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.RejectionMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
+import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintImpl;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
+import org.eclipse.dataspaceconnector.ids.spi.domain.DefaultValues;
 import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -79,11 +82,15 @@ class ArtifactRequestHandlerTest {
         transferProcessManager = mock(TransferProcessManager.class);
         connectorId = UUID.randomUUID().toString();
         Monitor monitor = mock(Monitor.class);
-        var mapper = new ObjectMapper();
         contractValidationService = mock(ContractValidationService.class);
         contractNegotiationStore = mock(ContractNegotiationStore.class);
         Vault vault = mock(Vault.class);
-        handler = new ArtifactRequestHandler(monitor, connectorId, mapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault);
+
+        var serializer = new JsonldSerializer(monitor);
+        serializer.setContext(DefaultValues.CONTEXT);
+        serializer.setSubtypes(IdsConstraintImpl.class);
+
+        handler = new ArtifactRequestHandler(monitor, connectorId, serializer, contractNegotiationStore, contractValidationService, transferProcessManager, vault);
     }
 
     @Test

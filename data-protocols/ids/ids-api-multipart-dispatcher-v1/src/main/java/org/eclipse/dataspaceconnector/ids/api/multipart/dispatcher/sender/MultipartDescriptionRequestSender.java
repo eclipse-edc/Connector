@@ -15,13 +15,11 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.Artifact;
 import de.fraunhofer.iais.eis.BaseConnector;
 import de.fraunhofer.iais.eis.DescriptionRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
-import de.fraunhofer.iais.eis.ModelClass;
 import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
@@ -30,6 +28,7 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartDescriptionResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -37,6 +36,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.metadata.MetadataRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 /**
@@ -44,14 +44,17 @@ import java.util.Collections;
  * expects an IDS DescriptionResponseMessage as the response.
  */
 public class MultipartDescriptionRequestSender extends IdsMultipartSender<MetadataRequest, MultipartDescriptionResponse> {
+    private final JsonldSerializer serializer;
 
     public MultipartDescriptionRequestSender(@NotNull String connectorId,
                                              @NotNull OkHttpClient httpClient,
-                                             @NotNull ObjectMapper objectMapper,
+                                             @NotNull JsonldSerializer serializer,
                                              @NotNull Monitor monitor,
                                              @NotNull IdentityService identityService,
                                              @NotNull IdsTransformerRegistry transformerRegistry) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+        super(connectorId, httpClient, monitor, identityService, transformerRegistry);
+
+        this.serializer = serializer;
     }
 
     @Override
@@ -79,39 +82,36 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
 
     @Override
     protected MultipartDescriptionResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        ObjectMapper objectMapper = getObjectMapper();
+        var header = (ResponseMessage) serializer.deserialize(new String(parts.getHeader().readAllBytes(), StandardCharsets.UTF_8), ResponseMessage.class);
 
-        ResponseMessage header = objectMapper.readValue(parts.getHeader(), ResponseMessage.class);
+        var builder = MultipartDescriptionResponse.Builder.newInstance();
+        builder.header(header);
 
-        ModelClass payload = null;
         if (parts.getPayload() != null) {
-            String payloadString = new String(parts.getPayload().readAllBytes());
-            JsonNode payloadJson = objectMapper.readTree(payloadString);
+            String payloadString = new String(parts.getPayload().readAllBytes(), StandardCharsets.UTF_8);
+            JsonNode payloadJson = serializer.getObjectMapper().readTree(payloadString);
             JsonNode type = payloadJson.get("@type");
             switch (type.textValue()) {
                 case "ids:BaseConnector":
-                    payload = objectMapper.readValue(payloadString, BaseConnector.class);
+                    builder.payload((BaseConnector) serializer.deserialize(payloadString, BaseConnector.class));
                     break;
                 case "ids:ResourceCatalog":
-                    payload = objectMapper.readValue(payloadString, ResourceCatalog.class);
+                    builder.payload((ResourceCatalog) serializer.deserialize(payloadString, ResourceCatalog.class));
                     break;
                 case "ids:Resource":
-                    payload = objectMapper.readValue(payloadString, Resource.class);
+                    builder.payload((Resource) serializer.deserialize(payloadString, Resource.class));
                     break;
                 case "ids:Representation":
-                    payload = objectMapper.readValue(payloadString, Representation.class);
+                    builder.payload((Representation) serializer.deserialize(payloadString, Representation.class));
                     break;
                 case "ids:Artifact":
-                    payload = objectMapper.readValue(payloadString, Artifact.class);
+                    builder.payload((Artifact) serializer.deserialize(payloadString, Artifact.class));
                     break;
                 default:
                     throw new EdcException(String.format("Unknown type: %s", type.textValue()));
             }
         }
 
-        return MultipartDescriptionResponse.Builder.newInstance()
-                .header(header)
-                .payload(payload)
-                .build();
+        return builder.build();
     }
 }

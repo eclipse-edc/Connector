@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractOfferMessageBuilder;
 import de.fraunhofer.iais.eis.ContractRequestBuilder;
 import de.fraunhofer.iais.eis.ContractRequestMessageBuilder;
@@ -24,6 +23,7 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -32,6 +32,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Objects;
 
@@ -42,18 +43,19 @@ import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_AD
  * expects an IDS RequestInProcessMessage as the response.
  */
 public class MultipartContractOfferSender extends IdsMultipartSender<ContractOfferRequest, MultipartRequestInProcessResponse> {
-
+    private final JsonldSerializer serializer;
     private final String idsWebhookAddress;
 
     public MultipartContractOfferSender(@NotNull String connectorId,
                                         @NotNull OkHttpClient httpClient,
-                                        @NotNull ObjectMapper objectMapper,
+                                        @NotNull JsonldSerializer serializer,
                                         @NotNull Monitor monitor,
                                         @NotNull IdentityService identityService,
                                         @NotNull IdsTransformerRegistry transformerRegistry,
                                         @NotNull String idsWebhookAddress) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+        super(connectorId, httpClient, monitor, identityService, transformerRegistry);
 
+        this.serializer = serializer;
         this.idsWebhookAddress = idsWebhookAddress;
     }
 
@@ -103,15 +105,15 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
         var contractOffer = request.getContractOffer();
 
         if (request.getType() == ContractOfferRequest.Type.INITIAL) {
-            return getObjectMapper().writeValueAsString(createContractRequest(contractOffer));
+            return serializer.serialize(createContractRequest(contractOffer));
         } else {
-            return getObjectMapper().writeValueAsString(createContractOffer(contractOffer));
+            return serializer.serialize(createContractOffer(contractOffer));
         }
     }
 
     @Override
     protected MultipartRequestInProcessResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        Message header = getObjectMapper().readValue(parts.getHeader(), Message.class);
+        var header = (Message) serializer.deserialize(new String(parts.getHeader().readAllBytes(), StandardCharsets.UTF_8), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());

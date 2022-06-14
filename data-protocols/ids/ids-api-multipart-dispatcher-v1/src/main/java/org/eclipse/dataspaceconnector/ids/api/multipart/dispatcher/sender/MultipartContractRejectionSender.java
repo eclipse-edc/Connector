@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractRejectionMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
@@ -23,12 +22,14 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 /**
@@ -36,14 +37,17 @@ import java.util.Collections;
  * expects an IDS RequestInProcessMessage as the response.
  */
 public class MultipartContractRejectionSender extends IdsMultipartSender<ContractRejection, MultipartMessageProcessedResponse> {
+    private final JsonldSerializer serializer;
 
     public MultipartContractRejectionSender(@NotNull String connectorId,
                                             @NotNull OkHttpClient httpClient,
-                                            @NotNull ObjectMapper objectMapper,
+                                            @NotNull JsonldSerializer serializer,
                                             @NotNull Monitor monitor,
                                             @NotNull IdentityService identityService,
                                             @NotNull IdsTransformerRegistry transformerRegistry) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+        super(connectorId, httpClient, monitor, identityService, transformerRegistry);
+
+        this.serializer = serializer;
     }
 
     @Override
@@ -77,7 +81,7 @@ public class MultipartContractRejectionSender extends IdsMultipartSender<Contrac
 
     @Override
     protected MultipartMessageProcessedResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        Message header = getObjectMapper().readValue(parts.getHeader(), Message.class);
+        var header = (Message) serializer.deserialize(new String(parts.getHeader().readAllBytes(), StandardCharsets.UTF_8), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());

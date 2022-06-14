@@ -24,6 +24,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Fix TODO and document `:extensions:data-plane-transfer` (#1519)
 * CloudEvents Http extension (#1160)
 * Full Query capabilities for SQL TransferProcess Store (#1483)
+* Create JSON-LD serializer extension (#1474)
 
 #### Changed
 
@@ -42,6 +43,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Remove modules `:extensions:transfer-functions:transfer-functions-spi` and `:extensions:transfer-functions:transfer-functions-core` (#1482)
 * Remove `ConnectorVersionProvider`, provide version as static string (#1470)
 * Remove `samples/other/run-from-junit` (#1456)
+* Remove `ObjectMapperFactory` from IDS modules (#1474)
 
 #### Fixed
 

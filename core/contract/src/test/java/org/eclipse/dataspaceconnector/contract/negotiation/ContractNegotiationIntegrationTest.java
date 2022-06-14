@@ -47,7 +47,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
 
     @Test
     void testNegotiation_initialOfferAccepted() {
-        consumerNegotiationId = null;
+        consumerNegotiationId = "consumerNegotiationId";
         ContractOffer offer = getContractOffer();
         when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
         when(validationService.validate(eq(token), any(ContractAgreement.class),

@@ -33,13 +33,10 @@ import java.util.UUID;
 
 class ResponseMessageUtil {
 
-    public static ResponseMessage createDummyResponse(
-            @Nullable String connectorId,
-            @Nullable Message correlationMessage) {
+    public static ResponseMessage createDummyResponse(@Nullable String connectorId, @Nullable Message correlationMessage) {
+        var messageId = URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, IdsType.MESSAGE.getValue(), UUID.randomUUID().toString()));
 
-        URI messageId = URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, IdsType.MESSAGE.getValue(), UUID.randomUUID().toString()));
-        ResponseMessageBuilder builder = new ResponseMessageBuilder(messageId);
-
+        var builder = new ResponseMessageBuilder(messageId);
         builder._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
         builder._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
 
@@ -49,23 +46,22 @@ class ResponseMessageUtil {
                 IdsType.CONNECTOR.getValue(),
                 connectorId);
 
-        URI connectorIdUri = URI.create(connectorIdUrn);
-
+        var connectorIdUri = URI.create(connectorIdUrn);
         builder._issuerConnector_(connectorIdUri);
         builder._senderAgent_(connectorIdUri);
 
         if (correlationMessage != null) {
-            URI id = correlationMessage.getId();
+            var id = correlationMessage.getId();
             if (id != null) {
                 builder._correlationMessage_(id);
             }
 
-            URI senderAgent = correlationMessage.getSenderAgent();
+            var senderAgent = correlationMessage.getSenderAgent();
             if (senderAgent != null) {
                 builder._recipientAgent_(new ArrayList<>(Collections.singletonList(senderAgent)));
             }
 
-            URI issuerConnector = correlationMessage.getIssuerConnector();
+            var issuerConnector = correlationMessage.getIssuerConnector();
             if (issuerConnector != null) {
                 builder._recipientConnector_(new ArrayList<>(Collections.singletonList(issuerConnector)));
             }
@@ -80,7 +76,6 @@ class ResponseMessageUtil {
 
         var messageId = URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, IdsType.MESSAGE.getValue(), UUID.randomUUID().toString()));
         var builder = new MessageProcessedNotificationMessageBuilder(messageId);
-
         builder._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
         builder._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
 

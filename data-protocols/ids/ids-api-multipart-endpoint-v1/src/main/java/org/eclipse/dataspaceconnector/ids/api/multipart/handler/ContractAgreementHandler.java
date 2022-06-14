@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import de.fraunhofer.iais.eis.ContractAgreement;
 import de.fraunhofer.iais.eis.ContractAgreementMessage;
 import de.fraunhofer.iais.eis.Message;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRespons
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractAgreementTransformerOutput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -40,7 +41,7 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMes
 public class ContractAgreementHandler implements Handler {
 
     private final Monitor monitor;
-    private final ObjectMapper objectMapper;
+    private final JsonldSerializer serializer;
     private final String connectorId;
     private final ConsumerContractNegotiationManager negotiationManager;
     private final IdsTransformerRegistry transformerRegistry;
@@ -48,12 +49,12 @@ public class ContractAgreementHandler implements Handler {
     public ContractAgreementHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
-            @NotNull ObjectMapper objectMapper,
+            @NotNull JsonldSerializer serializer,
             @NotNull ConsumerContractNegotiationManager negotiationManager,
             @NotNull IdsTransformerRegistry transformerRegistry) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
-        this.objectMapper = Objects.requireNonNull(objectMapper);
+        this.serializer = Objects.requireNonNull(serializer);
         this.negotiationManager = Objects.requireNonNull(negotiationManager);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
     }
@@ -74,7 +75,7 @@ public class ContractAgreementHandler implements Handler {
 
         de.fraunhofer.iais.eis.ContractAgreement contractAgreement;
         try {
-            contractAgreement = objectMapper.readValue(multipartRequest.getPayload(), de.fraunhofer.iais.eis.ContractAgreement.class);
+            contractAgreement = (ContractAgreement) serializer.deserialize(multipartRequest.getPayload(), ContractAgreement.class);
         } catch (IOException e) {
             monitor.severe("ContractAgreementHandler: Contract Agreement is invalid", e);
             return createBadParametersErrorMultipartResponse(message);

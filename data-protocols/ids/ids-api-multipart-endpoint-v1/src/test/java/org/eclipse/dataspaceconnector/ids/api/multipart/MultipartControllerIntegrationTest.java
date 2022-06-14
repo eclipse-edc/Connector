@@ -63,8 +63,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         Response response = httpClient.newCall(request).execute();
 
         // verify
-        assertThat(response).isNotNull()
-                .extracting(Response::code).isEqualTo(200);
+        assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
         List<NamedMultipartContent> content = extractNamedMultipartContent(response);
 
@@ -123,8 +122,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         Response response = httpClient.newCall(request).execute();
 
         // verify
-        assertThat(response).isNotNull()
-                .extracting(Response::code).isEqualTo(200);
+        assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
         List<NamedMultipartContent> content = extractNamedMultipartContent(response);
 
@@ -191,8 +189,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         Response response = httpClient.newCall(request).execute();
 
         // verify
-        assertThat(response).isNotNull()
-                .extracting(Response::code).isEqualTo(200);
+        assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
         List<NamedMultipartContent> content = extractNamedMultipartContent(response);
 

@@ -41,7 +41,7 @@ class IdsMultipartSenderTest {
     @Test
     void should_fail_if_token_retrieval_fails() {
         when(identityService.obtainClientCredentials(any())).thenReturn(Result.failure("error"));
-        var sender = new TestIdsMultipartSender("any", mock(OkHttpClient.class), new ObjectMapper(), mock(Monitor.class), identityService, mock(IdsTransformerRegistry.class));
+        var sender = new TestIdsMultipartSender("any", mock(OkHttpClient.class), mock(Monitor.class), identityService, mock(IdsTransformerRegistry.class));
 
         var result = sender.send(new TestRemoteMessage(), () -> "any");
 
@@ -50,9 +50,9 @@ class IdsMultipartSenderTest {
 
     private class TestIdsMultipartSender extends IdsMultipartSender<TestRemoteMessage, Object> {
 
-        protected TestIdsMultipartSender(String connectorId, OkHttpClient httpClient, ObjectMapper objectMapper,
+        protected TestIdsMultipartSender(String connectorId, OkHttpClient httpClient,
                                          Monitor monitor, IdentityService identityService, IdsTransformerRegistry transformerRegistry) {
-            super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+            super(connectorId, httpClient, monitor, identityService, transformerRegistry);
         }
 
         @Override

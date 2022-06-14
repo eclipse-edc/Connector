@@ -14,15 +14,17 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.NotificationMessage;
 import de.fraunhofer.iais.eis.NotificationMessageBuilder;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessage;
 import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintImpl;
+import org.eclipse.dataspaceconnector.ids.spi.domain.DefaultValues;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
@@ -40,7 +42,7 @@ import static org.mockito.Mockito.mock;
 class MultipartEndpointDataReferenceRequestSenderTest {
 
     private MultipartEndpointDataReferenceRequestSender sender;
-    private ObjectMapper mapper;
+    private JsonldSerializer serializer;
 
     @BeforeEach
     public void setUp() {
@@ -49,8 +51,12 @@ class MultipartEndpointDataReferenceRequestSenderTest {
         var monitor = mock(Monitor.class);
         var transformerRegistry = mock(IdsTransformerRegistry.class);
         var identityService = mock(IdentityService.class);
-        mapper = new ObjectMapper();
-        sender = new MultipartEndpointDataReferenceRequestSender(connectorId, httpClient, mapper, monitor, identityService, transformerRegistry);
+
+        serializer = new JsonldSerializer(monitor);
+        serializer.setContext(DefaultValues.CONTEXT);
+        serializer.setSubtypes(IdsConstraintImpl.class);
+
+        sender = new MultipartEndpointDataReferenceRequestSender(connectorId, httpClient, serializer, monitor, identityService, transformerRegistry);
     }
 
     @Test
@@ -72,8 +78,7 @@ class MultipartEndpointDataReferenceRequestSenderTest {
         assertThat(participantUpdateMessage.getSecurityToken()).isEqualTo(datToken);
         assertThat(participantUpdateMessage.getIssuerConnector()).isEqualTo(sender.getConnectorId());
         assertThat(participantUpdateMessage.getSenderAgent()).isEqualTo(sender.getConnectorId());
-        assertThat(participantUpdateMessage.getRecipientAgent())
-                .allMatch(uri -> uri.equals(URI.create(request.getConnectorId())));
+        assertThat(participantUpdateMessage.getRecipientAgent()).allMatch(uri -> uri.equals(URI.create(request.getConnectorId())));
     }
 
     @Test
@@ -81,7 +86,7 @@ class MultipartEndpointDataReferenceRequestSenderTest {
         var request = createEdrRequest();
         var payload = sender.buildMessagePayload(request);
 
-        var edr = mapper.readValue(payload, EndpointDataReference.class);
+        var edr = (EndpointDataReference) serializer.deserialize(payload, EndpointDataReference.class);
         assertThat(edr.getAuthCode()).isEqualTo(request.getEndpointDataReference().getAuthCode());
         assertThat(edr.getId()).isEqualTo(request.getEndpointDataReference().getId());
         assertThat(edr.getProperties()).isEqualTo(request.getEndpointDataReference().getProperties());
@@ -92,7 +97,7 @@ class MultipartEndpointDataReferenceRequestSenderTest {
     void getResponseContent() throws Exception {
         var header = new NotificationMessageBuilder()._contentVersion_(UUID.randomUUID().toString()).build();
         var payload = UUID.randomUUID().toString();
-        var parts = new IdsMultipartParts(new ByteArrayInputStream(mapper.writeValueAsBytes(header)), new ByteArrayInputStream(payload.getBytes()));
+        var parts = new IdsMultipartParts(new ByteArrayInputStream(serializer.serialize(header).getBytes()), new ByteArrayInputStream(payload.getBytes()));
         var response = sender.getResponseContent(parts);
 
         assertThat(response).isNotNull();

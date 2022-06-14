@@ -15,7 +15,6 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.Message;
@@ -31,9 +30,12 @@ import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.ids.core.message.FutureCallback;
 import org.eclipse.dataspaceconnector.ids.core.message.IdsMessageSender;
+import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintImpl;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
+import org.eclipse.dataspaceconnector.ids.spi.domain.DefaultValues;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
+import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
@@ -62,22 +64,20 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
  */
 abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMessageSender<M, R> {
     private static final String TOKEN_SCOPE = "idsc:IDS_CONNECTOR_ATTRIBUTES_ALL";
+
     private final URI connectorId;
     private final OkHttpClient httpClient;
-    private final ObjectMapper objectMapper;
     private final Monitor monitor;
     private final IdentityService identityService;
     private final IdsTransformerRegistry transformerRegistry;
 
     protected IdsMultipartSender(@NotNull String connectorId,
                                  @NotNull OkHttpClient httpClient,
-                                 @NotNull ObjectMapper objectMapper,
                                  @NotNull Monitor monitor,
                                  @NotNull IdentityService identityService,
                                  @NotNull IdsTransformerRegistry transformerRegistry) {
         this.connectorId = createConnectorIdUri(Objects.requireNonNull(connectorId, "connectorId"));
         this.httpClient = Objects.requireNonNull(httpClient, "httpClient");
-        this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
         this.monitor = Objects.requireNonNull(monitor, "monitor");
         this.identityService = Objects.requireNonNull(identityService, "identityService");
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry, "transformerRegistry");
@@ -140,10 +140,13 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
                 .add("Content-Disposition", "form-data; name=\"header\"")
                 .build();
 
+        var serializer = new JsonldSerializer(monitor);
+        serializer.setContext(DefaultValues.CONTEXT);
+        serializer.setSubtypes(IdsConstraintImpl.class);
+
         RequestBody headerRequestBody;
         try {
-            headerRequestBody = RequestBody.create(
-                    objectMapper.writeValueAsString(message),
+            headerRequestBody = RequestBody.create(serializer.serialize(message),
                     okhttp3.MediaType.get(MediaType.APPLICATION_JSON));
         } catch (IOException exception) {
             return failedFuture(exception);
@@ -220,11 +223,6 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
     @NotNull
     protected IdsTransformerRegistry getTransformerRegistry() {
         return transformerRegistry;
-    }
-
-    @NotNull
-    protected ObjectMapper getObjectMapper() {
-        return objectMapper;
     }
 
     @NotNull
