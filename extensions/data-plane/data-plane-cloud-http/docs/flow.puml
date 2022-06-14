@@ -45,6 +45,11 @@ box Provider http 8181 data 8182 ids 8282 #ProviderColor
     participant CloudProvisioner as "CloudProvisioner" #white
     database AssetCatalogProvider as "Asset\nCatalog" #white
     actor Partner2 as "Partner" #white
+
+    rnote right CloudProvisioner #yellow
+    The provisioner's role is to create the download presigned URL
+    using you cloud API
+    end note
 end box
 
 == Contract Offering ==
