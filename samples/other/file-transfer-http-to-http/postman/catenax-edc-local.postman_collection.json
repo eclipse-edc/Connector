@@ -211,7 +211,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"uid\": \"4ae29651-f56a-4e8e-8186-444f10c701f2\",\n    \"permissions\": [\n        {\n            \"edctype\": \"dataspaceconnector:permission\",\n            \"target\": \"{{assetID}}\",\n            \"action\": {\n                \"type\": \"USE\"\n            }\n        }\n    ],\n    \"target\": \"{{assetID}}\"\n}",
+							"raw": "{\n    \"uid\": \"4ae29651-f56a-4e8e-8186-444f10c701f2\",\n    \"policy\": {\n        \"permissions\": [\n            {\n                \"edctype\": \"dataspaceconnector:permission\",\n                \"target\": \"{{assetID}}\",\n                \"action\": {\n                    \"type\": \"USE\"\n                }\n            }\n        ],\n        \"target\": \"{{assetID}}\"\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -219,7 +219,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8182/api/v1/data/policies",
+							"raw": "http://localhost:8182/api/v1/data/policydefinitions",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -229,7 +229,7 @@
 								"api",
 								"v1",
 								"data",
-								"policies"
+								"policydefinitions"
 							]
 						}
 					},
@@ -261,7 +261,7 @@
 							}
 						],
 						"url": {
-							"raw": "http://localhost:8182/api/v1/data/policies",
+							"raw": "http://localhost:8182/api/v1/data/policydefinitions",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -271,7 +271,7 @@
 								"api",
 								"v1",
 								"data",
-								"policies"
+								"policydefinitions"
 							],
 							"query": [
 								{
