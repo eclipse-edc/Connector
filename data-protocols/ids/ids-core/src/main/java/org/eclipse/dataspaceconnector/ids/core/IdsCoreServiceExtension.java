@@ -21,7 +21,6 @@ import org.eclipse.dataspaceconnector.ids.core.service.CatalogServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.ConnectorServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.ConnectorServiceSettings;
 import org.eclipse.dataspaceconnector.ids.core.transform.IdsTransformerRegistryImpl;
-import org.eclipse.dataspaceconnector.ids.core.version.ConnectorVersionProviderImpl;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
@@ -29,7 +28,6 @@ import org.eclipse.dataspaceconnector.ids.spi.descriptor.IdsDescriptorService;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.ids.spi.version.ConnectorVersionProvider;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
@@ -46,7 +44,7 @@ import java.util.List;
 /**
  * Implements the IDS Controller REST API.
  */
-@Provides({ ConnectorVersionProvider.class, CatalogService.class, ConnectorService.class, IdsDescriptorService.class,
+@Provides({ CatalogService.class, ConnectorService.class, IdsDescriptorService.class,
         CatalogService.class, ConnectorService.class, IdsTransformerRegistry.class, ObjectMapperFactory.class })
 public class IdsCoreServiceExtension implements ServiceExtension {
 
@@ -98,20 +96,18 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         IdsTransformerRegistry transformerRegistry = createTransformerRegistry();
         serviceExtensionContext.registerService(IdsTransformerRegistry.class, transformerRegistry);
 
-        ConnectorVersionProvider connectorVersionProvider = createConnectorVersionProvider();
-        serviceExtensionContext.registerService(ConnectorVersionProvider.class, connectorVersionProvider);
-
         CatalogService dataCatalogService = createDataCatalogService(dataCatalogId, contractOfferService);
 
         serviceExtensionContext.registerService(CatalogService.class, dataCatalogService);
 
-        ConnectorService connectorService = createConnectorService(connectorServiceSettings, connectorVersionProvider, dataCatalogService);
+        ConnectorService connectorService = createConnectorService(connectorServiceSettings,
+                dataCatalogService);
         serviceExtensionContext.registerService(ConnectorService.class, connectorService);
-        
+
         //TODO remove once IDS serializer is integrated (#236)
         var objectMapperFactory = new ObjectMapperFactory();
         serviceExtensionContext.registerService(ObjectMapperFactory.class, objectMapperFactory);
-        
+
         registerOther(serviceExtensionContext);
     }
 
@@ -136,19 +132,8 @@ public class IdsCoreServiceExtension implements ServiceExtension {
 
     private ConnectorService createConnectorService(
             ConnectorServiceSettings connectorServiceSettings,
-            ConnectorVersionProvider connectorVersionProvider,
             CatalogService dataCatalogService) {
-
-        return new ConnectorServiceImpl(
-                monitor,
-                connectorServiceSettings,
-                connectorVersionProvider,
-                dataCatalogService
-        );
-    }
-
-    private ConnectorVersionProvider createConnectorVersionProvider() {
-        return new ConnectorVersionProviderImpl();
+        return new ConnectorServiceImpl(monitor, connectorServiceSettings, dataCatalogService);
     }
 
     private String resolveCatalogId(ServiceExtensionContext serviceExtensionContext) {

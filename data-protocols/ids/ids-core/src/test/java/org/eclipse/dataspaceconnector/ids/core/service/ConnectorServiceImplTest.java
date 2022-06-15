@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.ids.core.service;
 
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile;
-import org.eclipse.dataspaceconnector.ids.spi.version.ConnectorVersionProvider;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
@@ -40,16 +39,15 @@ class ConnectorServiceImplTest {
     private static final URI CONNECTOR_ENDPOINT = URI.create("https://example.com/connector/endpoint");
     private static final URI CONNECTOR_MAINTAINER = URI.create("https://example.com/connector/maintainer");
     private static final URI CONNECTOR_CURATOR = URI.create("https://example.com/connector/curator");
-    private static final String CONNECTOR_VERSION = "connectorVersion";
+    private static final String CONNECTOR_VERSION = "0.0.1-SNAPSHOT";
     private final ConnectorServiceSettings connectorServiceSettings = mock(ConnectorServiceSettings.class);
-    private final ConnectorVersionProvider connectorVersionProvider = mock(ConnectorVersionProvider.class);
     private final CatalogService dataCatalogService = mock(CatalogService.class);
 
     private ConnectorServiceImpl connectorService;
 
     @BeforeEach
     void setUp() {
-        connectorService = new ConnectorServiceImpl(mock(Monitor.class), connectorServiceSettings, connectorVersionProvider, dataCatalogService);
+        connectorService = new ConnectorServiceImpl(mock(Monitor.class), connectorServiceSettings, dataCatalogService);
     }
 
     @Test
@@ -62,7 +60,6 @@ class ConnectorServiceImplTest {
         when(connectorServiceSettings.getEndpoint()).thenReturn(CONNECTOR_ENDPOINT);
         when(connectorServiceSettings.getMaintainer()).thenReturn(CONNECTOR_MAINTAINER);
         when(connectorServiceSettings.getCurator()).thenReturn(CONNECTOR_CURATOR);
-        when(connectorVersionProvider.getVersion()).thenReturn(CONNECTOR_VERSION);
         var claimToken = ClaimToken.Builder.newInstance().build();
 
         var result = connectorService.getConnector(claimToken);
@@ -84,7 +81,6 @@ class ConnectorServiceImplTest {
         verify(connectorServiceSettings).getEndpoint();
         verify(connectorServiceSettings).getMaintainer();
         verify(connectorServiceSettings).getCurator();
-        verify(connectorVersionProvider).getVersion();
     }
 
 }

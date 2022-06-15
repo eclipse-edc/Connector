@@ -98,7 +98,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         jsonPayload.inPath("$.@type").isString().isEqualTo("ids:BaseConnector");
         jsonPayload.inPath("$.@id").isString().matches("urn:connector:" + CONNECTOR_ID);
-        jsonPayload.inPath("$.ids:version").isString().isEqualTo("0.0.1");
+        jsonPayload.inPath("$.ids:version").isString().isEqualTo("0.0.1-SNAPSHOT");
         jsonPayload.inPath("$.ids:resourceCatalog").isPresent().isArray().hasSizeGreaterThanOrEqualTo(1);
         jsonPayload.inPath("$.ids:resourceCatalog[0].@type").isString().isEqualTo("ids:ResourceCatalog");
         jsonPayload.inPath("$.ids:resourceCatalog[0].@id").isString().isEqualTo("urn:catalog:" + CATALOG_ID);
@@ -157,7 +157,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         jsonPayload.inPath("$.@type").isString().isEqualTo("ids:BaseConnector");
         jsonPayload.inPath("$.@id").isString().matches("urn:connector:" + CONNECTOR_ID);
-        jsonPayload.inPath("$.ids:version").isString().isEqualTo("0.0.1");
+        jsonPayload.inPath("$.ids:version").isString().isEqualTo("0.0.1-SNAPSHOT");
         jsonPayload.inPath("$.ids:resourceCatalog").isPresent().isArray().hasSizeGreaterThanOrEqualTo(1);
         jsonPayload.inPath("$.ids:resourceCatalog[0].@type").isString().isEqualTo("ids:ResourceCatalog");
         jsonPayload.inPath("$.ids:resourceCatalog[0].@id").isString().isEqualTo("urn:catalog:" + CATALOG_ID);

@@ -18,7 +18,6 @@ package org.eclipse.dataspaceconnector.ids.core.service;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.types.Connector;
-import org.eclipse.dataspaceconnector.ids.spi.version.ConnectorVersionProvider;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
@@ -28,19 +27,18 @@ import java.util.Collections;
 import java.util.Objects;
 
 public class ConnectorServiceImpl implements ConnectorService {
+    private static final String SYSTEM_VERSION = "0.0.1-SNAPSHOT"; // TODO update before/during build
+
     private final Monitor monitor;
     private final ConnectorServiceSettings connectorServiceSettings;
-    private final ConnectorVersionProvider connectorVersionProvider;
     private final CatalogService dataCatalogService;
 
     public ConnectorServiceImpl(
             @NotNull Monitor monitor,
             @NotNull ConnectorServiceSettings connectorServiceSettings,
-            @NotNull ConnectorVersionProvider connectorVersionProvider,
             @NotNull CatalogService dataCatalogService) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorServiceSettings = Objects.requireNonNull(connectorServiceSettings);
-        this.connectorVersionProvider = Objects.requireNonNull(connectorVersionProvider);
         this.dataCatalogService = Objects.requireNonNull(dataCatalogService);
     }
 
@@ -56,7 +54,7 @@ public class ConnectorServiceImpl implements ConnectorService {
                 .id(connectorServiceSettings.getId())
                 .title(connectorServiceSettings.getTitle())
                 .description(connectorServiceSettings.getDescription())
-                .connectorVersion(connectorVersionProvider.getVersion())
+                .connectorVersion(SYSTEM_VERSION)
                 .securityProfile(connectorServiceSettings.getSecurityProfile())
                 .dataCatalogs(Collections.singletonList(catalog))
                 .endpoint(connectorServiceSettings.getEndpoint())
