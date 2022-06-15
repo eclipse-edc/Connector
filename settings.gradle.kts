@@ -118,6 +118,7 @@ include(":extensions:data-plane-transfer:data-plane-transfer-client")
 include(":extensions:data-plane:data-plane-spi")
 include(":extensions:data-plane:data-plane-framework")
 include(":extensions:data-plane:data-plane-http")
+include(":extensions:data-plane:data-plane-cloud-http")
 include(":extensions:data-plane-selector")
 include(":extensions:data-plane-selector:selector-spi")
 include(":extensions:data-plane-selector:selector-api")
@@ -162,6 +163,13 @@ include(":samples:other:file-transfer-http-to-http:api")
 include(":samples:other:file-transfer-http-to-http:consumer")
 include(":samples:other:file-transfer-http-to-http:provider")
 include(":samples:other:file-transfer-http-to-http:transfer-file")
+
+// provisioning sample
+include(":samples:other:file-transfer-provisioning:consumer")
+include(":samples:other:file-transfer-provisioning:provider")
+
+include(":samples:other:http-transfer-provisioning:consumer")
+include(":samples:other:http-transfer-provisioning:provider")
 
 // extension points for a connector
 include(":spi")
