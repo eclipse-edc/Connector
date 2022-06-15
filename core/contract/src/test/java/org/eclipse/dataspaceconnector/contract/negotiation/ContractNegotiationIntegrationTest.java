@@ -134,7 +134,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
     @Test
     void testNegotiation_agreementDeclined() throws Exception {
         consumerNegotiationId = null;
-        ContractOffer offer = getContractOffer();
+        var offer = getContractOffer();
 
         when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
         when(validationService.validate(eq(token), any(ContractAgreement.class),
@@ -149,7 +149,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         consumerManager.start();
 
         // Create an initial request and trigger consumer manager
-        ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
+        var request = ContractOfferRequest.Builder.newInstance()
                 .connectorId("connectorId")
                 .connectorAddress("connectorAddress")
                 .contractOffer(offer)

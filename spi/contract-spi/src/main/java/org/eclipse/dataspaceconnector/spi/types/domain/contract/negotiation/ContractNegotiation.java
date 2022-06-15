@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.spi.entity.Entity;
 import org.eclipse.dataspaceconnector.spi.telemetry.TraceCarrier;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -65,7 +66,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
  */
 @JsonTypeName("dataspaceconnector:contractnegotiation")
 @JsonDeserialize(builder = ContractNegotiation.Builder.class)
-public class ContractNegotiation implements TraceCarrier {
+public class ContractNegotiation implements Entity, TraceCarrier {
     private String id;
     private String correlationId;
     private String counterPartyId;
@@ -85,6 +86,7 @@ public class ContractNegotiation implements TraceCarrier {
         return type;
     }
 
+    @Override
     public String getId() {
         return id;
     }
@@ -128,20 +130,12 @@ public class ContractNegotiation implements TraceCarrier {
         return state;
     }
 
-    /**
-     * Returns the current state count.
-     *
-     * @return The current state count.
-     */
+    @Override
     public int getStateCount() {
         return stateCount;
     }
 
-    /**
-     * Returns the state timestamp.
-     *
-     * @return The state timestamp.
-     */
+    @Override
     public long getStateTimestamp() {
         return stateTimestamp;
     }

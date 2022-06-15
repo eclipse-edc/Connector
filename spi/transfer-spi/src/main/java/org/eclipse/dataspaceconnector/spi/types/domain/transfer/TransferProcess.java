@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.spi.entity.Entity;
 import org.eclipse.dataspaceconnector.spi.telemetry.TraceCarrier;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
@@ -97,7 +98,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
  */
 @JsonTypeName("dataspaceconnector:transferprocess")
 @JsonDeserialize(builder = TransferProcess.Builder.class)
-public class TransferProcess implements TraceCarrier {
+public class TransferProcess implements Entity, TraceCarrier {
 
     private String id;
     private Type type = Type.CONSUMER;
@@ -117,6 +118,7 @@ public class TransferProcess implements TraceCarrier {
     private TransferProcess() {
     }
 
+    @Override
     public String getId() {
         return id;
     }
@@ -133,10 +135,12 @@ public class TransferProcess implements TraceCarrier {
         return state;
     }
 
+    @Override
     public int getStateCount() {
         return stateCount;
     }
 
+    @Override
     public long getStateTimestamp() {
         return stateTimestamp;
     }

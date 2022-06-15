@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.transfer.core.transfer;
+package org.eclipse.dataspaceconnector.common.statemachine.retry;
 
 /**
  * Service enabling a "long retry" mechanism when sending entities across applications.
@@ -21,7 +21,7 @@ package org.eclipse.dataspaceconnector.transfer.core.transfer;
  *
  * @param <T> entity type
  */
-interface SendRetryManager<T> {
+public interface SendRetryManager<T> {
     /**
      * Determines whether the given entity may be sent at this time, or the system
      * should wait and send the entity later.
