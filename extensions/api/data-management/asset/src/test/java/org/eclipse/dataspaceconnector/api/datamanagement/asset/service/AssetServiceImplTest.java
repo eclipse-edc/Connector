@@ -26,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -147,6 +148,14 @@ class AssetServiceImplTest {
 
         assertThat(deleted.failed()).isTrue();
         assertThat(deleted.getFailure().getReason()).isEqualTo(NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("Verifies that the query matches the internal data model")
+    void delete_verifyCorrectQuery() {
+        var deleted = service.delete("test-asset");
+        verify(contractNegotiationStore).queryNegotiations(argThat(argument -> argument.getFilterExpression().size() == 1 &&
+                argument.getFilterExpression().get(0).getOperandLeft().equals("contractAgreement.assetId")));
     }
 
     @NotNull

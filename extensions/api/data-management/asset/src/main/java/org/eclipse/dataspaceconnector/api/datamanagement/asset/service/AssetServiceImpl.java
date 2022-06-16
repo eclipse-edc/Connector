@@ -31,6 +31,7 @@ import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
 public class AssetServiceImpl implements AssetService {
+    private static final String ASSET_ID_QUERY = "contractAgreement.assetId";
     private final AssetIndex index;
     private final AssetLoader loader;
     private final ContractNegotiationStore contractNegotiationStore;
@@ -73,7 +74,7 @@ public class AssetServiceImpl implements AssetService {
         return transactionContext.execute(() -> {
 
             var query = QuerySpec.Builder.newInstance()
-                    .filter(List.of(new Criterion("contractAgreement.assetId", "=", assetId)))
+                    .filter(List.of(new Criterion(ASSET_ID_QUERY, "=", assetId)))
                     .build();
             var negotiationsOnAsset = contractNegotiationStore.queryNegotiations(query);
             if (negotiationsOnAsset.findAny().isPresent()) {
