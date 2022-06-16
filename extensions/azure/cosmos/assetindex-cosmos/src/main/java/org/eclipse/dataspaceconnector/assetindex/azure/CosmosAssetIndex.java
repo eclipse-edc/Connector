@@ -104,12 +104,6 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetL
     }
 
     @Override
-    public void accept(Asset asset, DataAddress dataAddress) {
-        var assetDocument = new AssetDocument(asset, partitionKey, dataAddress);
-        assetDb.saveItem(assetDocument);
-    }
-
-    @Override
     public Asset deleteById(String assetId) {
         try {
             var deletedItem = assetDb.deleteItem(assetId);
@@ -122,7 +116,8 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetL
 
     @Override
     public void accept(AssetEntry item) {
-        accept(item.getAsset(), item.getDataAddress());
+        var assetDocument = new AssetDocument(item.getAsset(), partitionKey, item.getDataAddress());
+        assetDb.saveItem(assetDocument);
     }
 
     // we need to read the AssetDocument as Object, because no custom JSON deserialization can be registered

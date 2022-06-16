@@ -16,7 +16,10 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetObservableImpl;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetService;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetServiceImpl;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.EventAssetListener;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.transform.AssetDtoToAssetTransformer;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.transform.AssetToAssetDtoTransformer;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.transform.DataAddressDtoToDataAddressTransformer;
@@ -26,11 +29,16 @@ import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 
+import java.time.Clock;
+
+@Provides(AssetService.class)
 public class AssetApiExtension implements ServiceExtension {
 
     @Inject
@@ -54,21 +62,32 @@ public class AssetApiExtension implements ServiceExtension {
     @Inject
     TransactionContext transactionContext;
 
+    @Inject
+    EventRouter eventRouter;
+
+    @Inject
+    Clock clock;
+
     @Override
     public String name() {
         return "Data Management API: Asset";
     }
 
     @Override
-    public void initialize(ServiceExtensionContext serviceExtensionContext) {
-        var monitor = serviceExtensionContext.getMonitor();
+    public void initialize(ServiceExtensionContext context) {
+        var monitor = context.getMonitor();
 
-        var service = new AssetServiceImpl(assetIndex, assetLoader, contractNegotiationStore, transactionContext);
+        var assetObservable = new AssetObservableImpl();
+        assetObservable.registerListener(new EventAssetListener(clock, eventRouter));
+
+        var assetService = new AssetServiceImpl(assetIndex, assetLoader, contractNegotiationStore, transactionContext, assetObservable);
+        context.registerService(AssetService.class, assetService);
 
         transformerRegistry.register(new AssetDtoToAssetTransformer());
         transformerRegistry.register(new DataAddressDtoToDataAddressTransformer());
         transformerRegistry.register(new AssetToAssetDtoTransformer());
 
-        webService.registerResource(config.getContextAlias(), new AssetApiController(monitor, service, transformerRegistry));
+        webService.registerResource(config.getContextAlias(), new AssetApiController(monitor, assetService, transformerRegistry));
     }
+
 }

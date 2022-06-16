@@ -33,12 +33,14 @@ public class AssetServiceImpl implements AssetService {
     private final AssetLoader loader;
     private final ContractNegotiationStore contractNegotiationStore;
     private final TransactionContext transactionContext;
+    private final AssetObservable observable;
 
-    public AssetServiceImpl(AssetIndex index, AssetLoader loader, ContractNegotiationStore contractNegotiationStore, TransactionContext transactionContext) {
+    public AssetServiceImpl(AssetIndex index, AssetLoader loader, ContractNegotiationStore contractNegotiationStore, TransactionContext transactionContext, AssetObservable observable) {
         this.index = index;
         this.loader = loader;
         this.contractNegotiationStore = contractNegotiationStore;
         this.transactionContext = transactionContext;
+        this.observable = observable;
     }
 
     @Override
@@ -56,6 +58,7 @@ public class AssetServiceImpl implements AssetService {
         return transactionContext.execute(() -> {
             if (findById(asset.getId()) == null) {
                 loader.accept(asset, dataAddress);
+                observable.invokeForEach(l -> l.created(asset));
                 return ServiceResult.success(asset);
             } else {
                 return ServiceResult.conflict(format("Asset %s cannot be created because it already exist", asset.getId()));
@@ -77,6 +80,7 @@ public class AssetServiceImpl implements AssetService {
                 return ServiceResult.notFound(format("Asset %s does not exist", assetId));
             }
 
+            observable.invokeForEach(l -> l.deleted(deleted));
             return ServiceResult.success(deleted);
         });
     }

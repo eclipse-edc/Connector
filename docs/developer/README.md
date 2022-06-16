@@ -24,6 +24,7 @@ As a developer, I do not want to ...
 - [Customize policy engine](policy-engine.md)
 - [Dependency resolution](dependency_resolution.md)
 - [Data plane framework](data-plane-framework/README.md)
+- [Events](events.md)
 - [Logging](logging.md)
 - [Metrics](metrics.md)
 - [Releases](releases.md)

@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.core.base.agent.ParticipantAgentServiceImp
 import org.eclipse.dataspaceconnector.core.base.policy.PolicyEngineImpl;
 import org.eclipse.dataspaceconnector.core.base.policy.RuleBindingRegistryImpl;
 import org.eclipse.dataspaceconnector.core.base.policy.ScopeFilter;
+import org.eclipse.dataspaceconnector.core.event.EventRouterImpl;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceConfiguration;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceImpl;
 import org.eclipse.dataspaceconnector.core.security.DefaultPrivateKeyParseFunction;
@@ -30,6 +31,7 @@ import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
+import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
@@ -204,6 +206,11 @@ public class CoreServicesExtension implements ServiceExtension {
         ofNullable(okHttpEventListener).ifPresent(builder::eventListener);
 
         return builder.build();
+    }
+
+    @Provider
+    public EventRouter eventRouter(ServiceExtensionContext context) {
+        return new EventRouterImpl(context.getMonitor());
     }
 
     @Provider(isDefault = true)

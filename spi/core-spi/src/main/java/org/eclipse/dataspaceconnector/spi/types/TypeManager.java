@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -47,6 +48,9 @@ public class TypeManager {
         objectMapper.registerSubtypes(type);
     }
 
+    public void registerTypes(NamedType... type) {
+        objectMapper.registerSubtypes(type);
+    }
 
     public <T> T readValue(String info, TypeReference<T> typeReference) {
         try {

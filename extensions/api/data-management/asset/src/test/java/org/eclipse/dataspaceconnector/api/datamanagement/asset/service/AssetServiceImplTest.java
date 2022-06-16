@@ -49,8 +49,9 @@ class AssetServiceImplTest {
     private final AssetLoader loader = mock(AssetLoader.class);
     private final ContractNegotiationStore contractNegotiationStore = mock(ContractNegotiationStore.class);
     private final TransactionContext dummyTransactionContext = new NoopTransactionContext();
+    private final AssetObservable observable = mock(AssetObservable.class);
 
-    private final AssetServiceImpl service = new AssetServiceImpl(index, loader, contractNegotiationStore, dummyTransactionContext);
+    private final AssetServiceImpl service = new AssetServiceImpl(index, loader, contractNegotiationStore, dummyTransactionContext, observable);
 
     @Test
     void findById_shouldRelyOnAssetIndex() {
@@ -58,7 +59,7 @@ class AssetServiceImplTest {
 
         var asset = service.findById("assetId");
 
-        String assetId = "assetId";
+        var assetId = "assetId";
         assertThat(asset).isNotNull().matches(hasId(assetId));
     }
 
@@ -85,6 +86,7 @@ class AssetServiceImplTest {
         assertThat(inserted.succeeded()).isTrue();
         assertThat(inserted.getContent()).matches(hasId(assetId));
         verify(loader).accept(argThat(it -> assetId.equals(it.getId())), argThat(it -> addressType.equals(it.getType())));
+        verify(observable).invokeForEach(any());
     }
 
     @Test
