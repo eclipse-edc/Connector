@@ -16,6 +16,10 @@ package org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.post
 
 import org.eclipse.dataspaceconnector.sql.translation.TranslationMapping;
 
+/**
+ * Maps fields of a {@link org.eclipse.dataspaceconnector.policy.model.Policy} onto the corresponding SQL schema (=
+ * column names)
+ */
 class PolicyMapping extends TranslationMapping {
 
     private static final String FIELD_POLICY = "policy ";

@@ -17,6 +17,10 @@ package org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.post
 import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
 import org.eclipse.dataspaceconnector.sql.translation.TranslationMapping;
 
+/**
+ * Maps fields of a {@link org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement} onto
+ * the corresponding SQL schema (= column names)
+ */
 class ContractAgreementMapping extends TranslationMapping {
 
 

@@ -17,6 +17,10 @@ package org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.post
 import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
 import org.eclipse.dataspaceconnector.sql.translation.TranslationMapping;
 
+/**
+ * Maps fields of a {@link org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation}
+ * onto the corresponding SQL schema (= column names)
+ */
 class ContractNegotiationMapping extends TranslationMapping {
     private static final String FIELD_ID = "id";
     private static final String FIELD_CORRELATION_ID = "correlationId";
