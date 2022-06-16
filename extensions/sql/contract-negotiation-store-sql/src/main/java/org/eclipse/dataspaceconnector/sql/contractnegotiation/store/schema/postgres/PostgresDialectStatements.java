@@ -30,7 +30,7 @@ public class PostgresDialectStatements extends BaseSqlDialectStatements {
 
     @Override
     public SqlQueryStatement createNegotiationsQuery(QuerySpec querySpec) {
-        var selectStmt = getSelectFromViewTemplate();
+        var selectStmt = getSelectNegotiationsTemplate();
         return new SqlQueryStatement(selectStmt, querySpec, new ContractNegotiationMapping(this));
     }
 

@@ -97,14 +97,14 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
     }
 
     @Override
-    public String getSelectFromViewTemplate() {
-        return format("SELECT * FROM %s", getViewName());
+    public String getSelectNegotiationsTemplate() {
+        return format("SELECT * FROM edc_contract_negotiation LEFT JOIN edc_contract_agreement agr ON edc_contract_negotiation.agreement_id = agr.agr_id");
     }
 
     @Override
     public SqlQueryStatement createNegotiationsQuery(QuerySpec querySpec) {
         // for generic SQL, only the limit and offset fields are used!
-        var sql = "SELECT * FROM " + getViewName();
+        var sql = getSelectNegotiationsTemplate();
         var stmt = new SqlQueryStatement(sql);
         stmt.addParameter(querySpec.getLimit());
         stmt.addParameter(querySpec.getOffset());

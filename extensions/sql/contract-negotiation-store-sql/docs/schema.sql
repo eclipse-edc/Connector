@@ -22,7 +22,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS lease_lease_id_uindex
 
 CREATE TABLE IF NOT EXISTS edc_contract_agreement
 (
-    agreement_id      VARCHAR NOT NULL
+    agr_id            VARCHAR NOT NULL
         CONSTRAINT contract_agreement_pk
             PRIMARY KEY,
     provider_agent_id VARCHAR,
@@ -75,36 +75,4 @@ CREATE UNIQUE INDEX IF NOT EXISTS contract_negotiation_id_uindex
     ON edc_contract_negotiation (id);
 
 CREATE UNIQUE INDEX IF NOT EXISTS contract_agreement_id_uindex
-    ON edc_contract_agreement (agreement_id);
-
--- creates a view that flattens the model and that can be used for easy querying.
--- initially, it is only used for dynamic QuerySpec support, but can be used for
-CREATE VIEW edc_contract_negotiation_view
-            (id, correlation_id, counterparty_id, counterparty_address, protocol, type, state, state_count,
-             state_timestamp, error_detail, contract_offers, lease_id, trace_context, agreement_id, provider_agent_id,
-             consumer_agent_id, signing_date, start_date, end_date, asset_id, policy)
-AS
-SELECT edc_contract_negotiation.id,
-       edc_contract_negotiation.correlation_id,
-       edc_contract_negotiation.counterparty_id,
-       edc_contract_negotiation.counterparty_address,
-       edc_contract_negotiation.protocol,
-       edc_contract_negotiation.type,
-       edc_contract_negotiation.state,
-       edc_contract_negotiation.state_count,
-       edc_contract_negotiation.state_timestamp,
-       edc_contract_negotiation.error_detail,
-       edc_contract_negotiation.contract_offers,
-       edc_contract_negotiation.lease_id,
-       edc_contract_negotiation.trace_context,
-       agr.agreement_id,
-       agr.provider_agent_id,
-       agr.consumer_agent_id,
-       agr.signing_date,
-       agr.start_date,
-       agr.end_date,
-       agr.asset_id,
-       agr.policy
-FROM edc_contract_negotiation
-         LEFT JOIN edc_contract_agreement agr
-                   ON edc_contract_negotiation.agreement_id::TEXT = agr.agreement_id::TEXT;
+    ON edc_contract_agreement (agr_id);

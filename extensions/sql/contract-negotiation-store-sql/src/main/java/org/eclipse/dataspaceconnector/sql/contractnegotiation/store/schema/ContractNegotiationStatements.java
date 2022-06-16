@@ -43,7 +43,7 @@ public interface ContractNegotiationStatements extends LeaseStatements {
 
     String getUpdateAgreementTemplate();
 
-    String getSelectFromViewTemplate();
+    String getSelectNegotiationsTemplate();
 
     @Override
     default String getLeasedByColumn() {
@@ -115,7 +115,7 @@ public interface ContractNegotiationStatements extends LeaseStatements {
     }
 
     default String getContractAgreementIdColumn() {
-        return "agreement_id";
+        return "agr_id";
     }
 
     default String getAssetIdColumn() {

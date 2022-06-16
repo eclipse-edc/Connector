@@ -348,7 +348,7 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
     }
 
     private ContractAgreement extractContractAgreement(ResultSet resultSet) throws SQLException {
-        return resultSet.getString(statements.getContractAgreementIdColumn()) == null ? null : mapContractAgreement(resultSet);
+        return resultSet.getString(statements.getContractAgreementIdFkColumn()) == null ? null : mapContractAgreement(resultSet);
     }
 
     private DataSource getDataSource() {
