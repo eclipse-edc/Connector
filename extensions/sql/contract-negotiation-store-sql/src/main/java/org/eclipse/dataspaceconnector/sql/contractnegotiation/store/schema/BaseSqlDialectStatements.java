@@ -98,7 +98,7 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
 
     @Override
     public String getSelectNegotiationsTemplate() {
-        return format("SELECT * FROM edc_contract_negotiation LEFT JOIN edc_contract_agreement agr ON edc_contract_negotiation.agreement_id = agr.agr_id");
+        return format("SELECT * FROM %s LEFT JOIN %s agr ON %s.%s = agr.%s", getContractNegotiationTable(), getContractAgreementTable(), getContractNegotiationTable(), getContractAgreementIdFkColumn(), getContractAgreementIdColumn());
     }
 
     @Override
