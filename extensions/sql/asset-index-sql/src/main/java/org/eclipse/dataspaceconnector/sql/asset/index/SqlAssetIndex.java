@@ -30,6 +30,7 @@ import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.sql.translation.SqlConditionExpression;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
@@ -238,8 +239,8 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
     }
 
     /**
-     * Deserializes a value into an object using the object mapper.
-     * Note: if type is {@code java.lang.String} simply {@code value.toString()} is returned.
+     * Deserializes a value into an object using the object mapper. Note: if type is {@code java.lang.String} simply
+     * {@code value.toString()} is returned.
      */
     private Object fromPropertyValue(String value, String type) throws ClassNotFoundException, JsonProcessingException {
         var clazz = Class.forName(type);

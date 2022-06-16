@@ -19,6 +19,7 @@ plugins {
 
 val h2Version: String by project
 val assertj: String by project
+val postgresVersion: String by project
 
 dependencies {
     api(project(":spi:core-spi"))
@@ -37,6 +38,8 @@ dependencies {
     testImplementation("com.h2database:h2:${h2Version}")
     testImplementation("org.assertj:assertj-core:${assertj}")
     testImplementation(testFixtures(project(":common:util")))
+
+    testImplementation("org.postgresql:postgresql:${postgresVersion}")
 }
 
 publishing {

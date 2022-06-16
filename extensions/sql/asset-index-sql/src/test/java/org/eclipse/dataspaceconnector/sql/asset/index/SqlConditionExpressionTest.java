@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.sql.asset.index;
 
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.sql.translation.SqlConditionExpression;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

@@ -18,17 +18,20 @@ import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 import java.util.Collection;
+import java.util.List;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
 public class AssetServiceImpl implements AssetService {
+    private static final String ASSET_ID_QUERY = "contractAgreement.assetId";
     private final AssetIndex index;
     private final AssetLoader loader;
     private final ContractNegotiationStore contractNegotiationStore;
@@ -70,7 +73,10 @@ public class AssetServiceImpl implements AssetService {
     public ServiceResult<Asset> delete(String assetId) {
         return transactionContext.execute(() -> {
 
-            var negotiationsOnAsset = contractNegotiationStore.getNegotiationsWithAgreementOnAsset(assetId);
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(List.of(new Criterion(ASSET_ID_QUERY, "=", assetId)))
+                    .build();
+            var negotiationsOnAsset = contractNegotiationStore.queryNegotiations(query);
             if (negotiationsOnAsset.findAny().isPresent()) {
                 return ServiceResult.conflict(format("Asset %s cannot be deleted as it is referenced by at least one contract agreement", assetId));
             }

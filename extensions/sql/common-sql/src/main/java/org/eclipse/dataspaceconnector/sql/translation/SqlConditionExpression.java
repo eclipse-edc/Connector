@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *  Copyright (c) 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.asset.index;
+package org.eclipse.dataspaceconnector.sql.translation;
 
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -27,9 +27,10 @@ import java.util.stream.StreamSupport;
 import static java.lang.String.format;
 
 /**
- * Parses a {@link Criterion} and provides methods to validate it and extract SQL prepared statement placeholders and parameters.
+ * Parses a {@link Criterion} and provides methods to validate it and extract SQL prepared statement placeholders and
+ * parameters.
  */
-class SqlConditionExpression {
+public class SqlConditionExpression {
 
     private static final String IN_OPERATOR = "in";
     private static final String LIKE_OPERATOR = "like";
@@ -38,14 +39,15 @@ class SqlConditionExpression {
     private static final String PREPARED_STATEMENT_PLACEHOLDER = "?";
     private final Criterion criterion;
 
-    SqlConditionExpression(Criterion criterion) {
+    public SqlConditionExpression(Criterion criterion) {
 
         this.criterion = criterion;
     }
 
     /**
-     * Checks whether the given {@link Criterion} is valid or not, i.e. if its {@linkplain Criterion#getOperator()} is in the list
-     * of supported operators, and whether the {@linkplain Criterion#getOperandRight()} has the correct type.
+     * Checks whether the given {@link Criterion} is valid or not, i.e. if its {@linkplain Criterion#getOperator()} is
+     * in the list of supported operators, and whether the {@linkplain Criterion#getOperandRight()} has the correct
+     * type.
      */
     public Result<Void> isValidExpression() {
         var isSupportedOperator = SUPPORTED_PREPARED_STATEMENT_OPERATORS.contains(criterion.getOperator().toLowerCase());
@@ -61,8 +63,8 @@ class SqlConditionExpression {
 
 
     /**
-     * Converts an operand into a simple SQL statement placeholder ("?"), or, if the operand is actually a list, converts
-     * it into "(?,...?)", with as many placeholders as there are list items
+     * Converts an operand into a simple SQL statement placeholder ("?"), or, if the operand is actually a list,
+     * converts it into "(?,...?)", with as many placeholders as there are list items
      */
     public String toValuePlaceholder() {
         var operandRight = criterion.getOperandRight();
@@ -74,12 +76,11 @@ class SqlConditionExpression {
     }
 
     /**
-     * Converts the {@link Criterion#getOperandRight()} to a {@link Stream} of Strings
-     * which can then be used as parameters for  prepared statements.
+     * Converts the {@link Criterion#getOperandRight()} to a {@link Stream} of Strings which can then be used as
+     * parameters for  prepared statements.
      * <p>
      * Note: {@link Stream} is used to allow a convenient use in a {@code flatMap} call
      */
-    @SuppressWarnings("unchecked")
     public Stream<String> toStatementParameter() {
         List<String> result = new ArrayList<>();
         result.add(criterion.getOperandLeft().toString());

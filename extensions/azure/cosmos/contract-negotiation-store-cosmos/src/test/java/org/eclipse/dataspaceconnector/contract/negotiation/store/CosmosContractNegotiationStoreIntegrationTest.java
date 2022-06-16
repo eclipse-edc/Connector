@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractNegotiationDocument;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -68,9 +69,9 @@ class CosmosContractNegotiationStoreIntegrationTest {
     private static final String TEST_ID = UUID.randomUUID().toString();
     private static final String DATABASE_NAME = "connector-itest-" + TEST_ID;
     private static final String CONTAINER_PREFIX = "ContractNegotiationStore-";
-    private final Clock clock = Clock.systemUTC();
     private static CosmosContainer container;
     private static CosmosDatabase database;
+    private final Clock clock = Clock.systemUTC();
     private final String partitionKey = CONNECTOR_ID;
     private TypeManager typeManager;
     private CosmosContractNegotiationStore store;
@@ -554,7 +555,10 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
         store.save(negotiation);
 
-        var result = store.getNegotiationsWithAgreementOnAsset(assetId).collect(Collectors.toList());
+        var query = QuerySpec.Builder.newInstance()
+                .filter(List.of(new Criterion("contractAgreement.assetId", "=", assetId)))
+                .build();
+        var result = store.queryNegotiations(query).collect(Collectors.toList());
 
         assertThat(result).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsOnly(negotiation);
     }
@@ -575,7 +579,10 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
         store.save(negotiation);
 
-        var result = store.getNegotiationsWithAgreementOnAsset(assetId).collect(Collectors.toList());
+        var query = QuerySpec.Builder.newInstance()
+                .filter(List.of(new Criterion("contractAgreement.assetId", "=", assetId)))
+                .build();
+        var result = store.queryNegotiations(query).collect(Collectors.toList());
 
         assertThat(result).isEmpty();
         assertThat(store.queryAgreements(QuerySpec.none())).isEmpty();
@@ -590,7 +597,10 @@ class CosmosContractNegotiationStoreIntegrationTest {
         store.save(negotiation1);
         store.save(negotiation2);
 
-        var result = store.getNegotiationsWithAgreementOnAsset(assetId).collect(Collectors.toList());
+        var query = QuerySpec.Builder.newInstance()
+                .filter(List.of(new Criterion("contractAgreement.assetId", "=", assetId)))
+                .build();
+        var result = store.queryNegotiations(query).collect(Collectors.toList());
 
         assertThat(result).hasSize(2)
                 .extracting(ContractNegotiation::getId).containsExactlyInAnyOrder("negotiation1", "negotiation2");

@@ -9,12 +9,12 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Microsoft Corporation - moved to current location
  *
  */
 
-package org.eclipse.dataspaceconnector.test.e2e.postgresql;
+package org.eclipse.dataspaceconnector.common.util.junit.annotations;
 
-import org.eclipse.dataspaceconnector.common.util.junit.annotations.IntegrationTest;
 import org.junit.jupiter.api.Tag;
 
 import java.lang.annotation.ElementType;
