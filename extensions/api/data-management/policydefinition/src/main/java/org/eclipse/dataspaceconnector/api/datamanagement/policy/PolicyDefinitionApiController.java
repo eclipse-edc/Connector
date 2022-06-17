@@ -25,7 +25,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicyService;
+import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicyDefinitionService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
@@ -49,12 +49,12 @@ import static java.lang.String.format;
 public class PolicyDefinitionApiController implements PolicyDefinitionApi {
 
     private final Monitor monitor;
-    private final PolicyService policyService;
+    private final PolicyDefinitionService policyDefinitionService;
     private final DtoTransformerRegistry transformerRegistry;
 
-    public PolicyDefinitionApiController(Monitor monitor, PolicyService policyService, DtoTransformerRegistry transformerRegistry) {
+    public PolicyDefinitionApiController(Monitor monitor, PolicyDefinitionService policyDefinitionService, DtoTransformerRegistry transformerRegistry) {
         this.monitor = monitor;
-        this.policyService = policyService;
+        this.policyDefinitionService = policyDefinitionService;
         this.transformerRegistry = transformerRegistry;
     }
 
@@ -71,7 +71,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
 
         monitor.debug(format("get all policies %s", spec));
 
-        return new ArrayList<>(policyService.query(spec));
+        return new ArrayList<>(policyDefinitionService.query(spec));
 
     }
 
@@ -81,7 +81,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
     public PolicyDefinition getPolicy(@PathParam("id") String id) {
         monitor.debug(format("Attempting to return policy with ID %s", id));
         return Optional.of(id)
-                .map(it -> policyService.findById(id))
+                .map(it -> policyDefinitionService.findById(id))
                 .orElseThrow(() -> new ObjectNotFoundException(Policy.class, id));
     }
 
@@ -89,7 +89,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
     @Override
     public void createPolicy(PolicyDefinition policy) {
 
-        var result = policyService.create(policy);
+        var result = policyDefinitionService.create(policy);
 
         if (result.succeeded()) {
             monitor.debug(format("Policy created %s", policy.getUid()));
@@ -103,7 +103,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
     @Override
     public void deletePolicy(@PathParam("id") String id) {
         monitor.debug(format("Attempting to delete policy with id %s", id));
-        var result = policyService.deleteById(id);
+        var result = policyDefinitionService.deleteById(id);
         if (result.succeeded()) {
             monitor.debug(format("Policy deleted %s", id));
         } else {
