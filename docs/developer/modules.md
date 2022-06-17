@@ -17,6 +17,7 @@ org.eclipse.dataspaceconnector:aws-s3:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:catalog:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-transfer:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:dataloading:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:hashicorp-vault:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:http:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:http-provisioner:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:http-receiver:0.0.1-SNAPSHOT
