@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.auth;
 
-import org.eclipse.dataspaceconnector.api.exception.AuthenticationFailedException;
+import org.eclipse.dataspaceconnector.spi.exception.AuthenticationFailedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

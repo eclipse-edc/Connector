@@ -20,17 +20,17 @@ import jakarta.ws.rs.container.ContainerResponseFilter;
 
 public class CorsFilter implements ContainerResponseFilter {
 
-    private final CorsFilterConfiguration config;
+    private final JerseyConfiguration configuration;
 
-    public CorsFilter(CorsFilterConfiguration config) {
-        this.config = config;
+    public CorsFilter(JerseyConfiguration configuration) {
+        this.configuration = configuration;
     }
 
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
-        responseContext.getHeaders().add("Access-Control-Allow-Origin", config.getAllowedOrigins());
-        responseContext.getHeaders().add("Access-Control-Allow-Headers", config.getAllowedHeaders());
-        responseContext.getHeaders().add("Access-Control-Allow-Methods", config.getAllowedMethods());
+        responseContext.getHeaders().add("Access-Control-Allow-Origin", configuration.getAllowedOrigins());
+        responseContext.getHeaders().add("Access-Control-Allow-Headers", configuration.getAllowedHeaders());
+        responseContext.getHeaders().add("Access-Control-Allow-Methods", configuration.getAllowedMethods());
 
     }
 }

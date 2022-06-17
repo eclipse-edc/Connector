@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.dataplane.selector;
 
-import org.eclipse.dataspaceconnector.api.exception.mappers.EdcApiExceptionMapper;
 import org.eclipse.dataspaceconnector.dataplane.selector.api.DataplaneSelectorApiController;
 import org.eclipse.dataspaceconnector.dataplane.selector.store.DataPlaneInstanceStore;
 import org.eclipse.dataspaceconnector.dataplane.selector.strategy.SelectionStrategyRegistry;
@@ -37,7 +36,6 @@ class DataPlaneSelectorApiExtensionTest {
     private WebService webServiceMock;
     private ServiceExtensionContext context;
 
-
     @BeforeEach
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
         this.context = context;
@@ -54,6 +52,5 @@ class DataPlaneSelectorApiExtensionTest {
         extension.initialize(context);
 
         verify(webServiceMock).registerResource(eq("dataplane"), isA(DataplaneSelectorApiController.class));
-        verify(webServiceMock).registerResource(eq("dataplane"), isA(EdcApiExceptionMapper.class));
     }
 }

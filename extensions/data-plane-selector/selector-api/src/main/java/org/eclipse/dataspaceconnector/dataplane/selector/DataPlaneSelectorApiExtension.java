@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.dataplane.selector;
 
-import org.eclipse.dataspaceconnector.api.exception.mappers.EdcApiExceptionMapper;
 import org.eclipse.dataspaceconnector.dataplane.selector.api.DataplaneSelectorApiController;
 import org.eclipse.dataspaceconnector.dataplane.selector.instance.DataPlaneInstanceImpl;
 import org.eclipse.dataspaceconnector.spi.WebService;
@@ -40,6 +39,5 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
 
         var controller = new DataplaneSelectorApiController(selectionService);
         webservice.registerResource(DATAPLANE_SELECTOR_CONTEXTALIAS, controller);
-        webservice.registerResource(DATAPLANE_SELECTOR_CONTEXTALIAS, new EdcApiExceptionMapper());
     }
 }

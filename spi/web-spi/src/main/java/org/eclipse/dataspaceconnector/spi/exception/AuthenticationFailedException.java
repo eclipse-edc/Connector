@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api.exception;
+package org.eclipse.dataspaceconnector.spi.exception;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
 

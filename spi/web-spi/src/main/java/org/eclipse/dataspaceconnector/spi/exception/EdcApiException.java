@@ -12,13 +12,13 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api.exception;
+package org.eclipse.dataspaceconnector.spi.exception;
 
-import static java.lang.String.format;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 
-public class ObjectNotFoundException extends EdcApiException {
-
-    public ObjectNotFoundException(Class<?> objectType, String objectId) {
-        super(format("Object of type %s with ID=%s was not found", objectType.getSimpleName(), objectId));
+//marker class
+public abstract class EdcApiException extends EdcException {
+    public EdcApiException(String message) {
+        super(message);
     }
 }

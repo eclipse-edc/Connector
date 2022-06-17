@@ -19,6 +19,7 @@ in the detailed section referring to by linking pull requests or issues.
 
 * Event Framework for Asset entity (#1453)
 * SQL Translation layer (#1357, #1459)
+* Permit API verbose error response (#1479)
 
 #### Changed
 

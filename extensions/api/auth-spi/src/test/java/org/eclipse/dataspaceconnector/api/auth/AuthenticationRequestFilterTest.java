@@ -16,8 +16,8 @@ package org.eclipse.dataspaceconnector.api.auth;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.MultivaluedHashMap;
-import org.eclipse.dataspaceconnector.api.exception.AuthenticationFailedException;
-import org.eclipse.dataspaceconnector.api.exception.NotAuthorizedException;
+import org.eclipse.dataspaceconnector.spi.exception.AuthenticationFailedException;
+import org.eclipse.dataspaceconnector.spi.exception.NotAuthorizedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

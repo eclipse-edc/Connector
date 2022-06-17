@@ -21,7 +21,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import org.eclipse.dataspaceconnector.api.exception.mappers.EdcApiExceptionMapper;
 import org.eclipse.dataspaceconnector.dataplane.selector.DataPlaneSelectorServiceImpl;
 import org.eclipse.dataspaceconnector.dataplane.selector.core.DataPlaneSelectorImpl;
 import org.eclipse.dataspaceconnector.dataplane.selector.instance.DataPlaneInstance;
@@ -30,7 +29,7 @@ import org.eclipse.dataspaceconnector.dataplane.selector.store.DefaultDataPlaneI
 import org.eclipse.dataspaceconnector.dataplane.selector.strategy.DefaultSelectionStrategyRegistry;
 import org.eclipse.dataspaceconnector.dataplane.selector.strategy.SelectionStrategy;
 import org.eclipse.dataspaceconnector.dataplane.selector.strategy.SelectionStrategyRegistry;
-import org.eclipse.dataspaceconnector.extension.jersey.CorsFilterConfiguration;
+import org.eclipse.dataspaceconnector.extension.jersey.JerseyConfiguration;
 import org.eclipse.dataspaceconnector.extension.jersey.JerseyRestService;
 import org.eclipse.dataspaceconnector.extension.jetty.JettyConfiguration;
 import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
@@ -96,10 +95,9 @@ class DataplaneSelectorApiControllerIntegrationTest {
         TypeManager typeManager = new TypeManager();
         typeManager.registerTypes(DataPlaneInstanceImpl.class);
         objectMapper = typeManager.getMapper();
-        JerseyRestService jerseyService = new JerseyRestService(jetty, typeManager, mock(CorsFilterConfiguration.class), monitor);
+        JerseyRestService jerseyService = new JerseyRestService(jetty, typeManager, mock(JerseyConfiguration.class), monitor);
         jetty.start();
         jerseyService.registerResource("dataplane", controller);
-        jerseyService.registerResource("dataplane", new EdcApiExceptionMapper());
         jerseyService.start();
     }
 

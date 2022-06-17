@@ -12,13 +12,12 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api.exception;
+package org.eclipse.dataspaceconnector.spi.exception;
 
 import static java.lang.String.format;
 
-public class ObjectExistsException extends EdcApiException {
-
-    public ObjectExistsException(Class<?> objectType, String objectId) {
-        super(format("Object of type %s already exists with ID = %s", objectType.getSimpleName(), objectId));
+public class ObjectNotModifiableException extends EdcApiException {
+    public ObjectNotModifiableException(String objectId, String objectType) {
+        super(format("Object of type %s with ID=%s is not modifiable", objectType, objectId));
     }
 }
