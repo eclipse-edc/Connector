@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.asset.index;
+package org.eclipse.dataspaceconnector.sql.assetindex;
 
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.sql.translation.SqlConditionExpression;

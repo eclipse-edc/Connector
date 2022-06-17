@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,11 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Microsoft Corporation - initial API and implementation
  *
  */
 
-package org.eclipse.dataspaceconnector.test.e2e.postgresql;
+package org.eclipse.dataspaceconnector.common.util.postgres;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
