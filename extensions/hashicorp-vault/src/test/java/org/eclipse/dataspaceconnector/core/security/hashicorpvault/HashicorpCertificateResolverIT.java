@@ -15,42 +15,39 @@
 package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 
 import org.bouncycastle.operator.OperatorCreationException;
-import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.UUID;
 
 class HashicorpCertificateResolverIT extends AbstractHashicorpIT {
 
-  @Test
-  void resolveCertificate_success() throws CertificateException, IOException, NoSuchAlgorithmException, OperatorCreationException {
-    String key = UUID.randomUUID().toString();
-    X509Certificate certificateExpected = X509CertificateTestUtil.generateCertificate(5, "Test");
-    String pem = X509CertificateTestUtil.convertToPem(certificateExpected);
+    @Test
+    void resolveCertificate_success() throws CertificateException, IOException, NoSuchAlgorithmException, OperatorCreationException {
+        var key = UUID.randomUUID().toString();
+        var certificateExpected = X509CertificateTestUtil.generateCertificate(5, "Test");
+        var pem = X509CertificateTestUtil.convertToPem(certificateExpected);
 
-    Vault vault = getVault();
-    vault.storeSecret(key, pem);
-    CertificateResolver resolver = getCertificateResolver();
-    X509Certificate certificateResult = resolver.resolveCertificate(key);
+        var vault = getVault();
+        vault.storeSecret(key, pem);
+        var resolver = getCertificateResolver();
+        var certificateResult = resolver.resolveCertificate(key);
 
-    Assertions.assertEquals(certificateExpected, certificateResult);
-  }
+        Assertions.assertEquals(certificateExpected, certificateResult);
+    }
 
-  @Test
-  void resolveCertificate_malformed() {
-    String key = UUID.randomUUID().toString();
-    String value = UUID.randomUUID().toString();
-    Vault vault = getVault();
-    vault.storeSecret(key, value);
+    @Test
+    void resolveCertificate_malformed() {
+        var key = UUID.randomUUID().toString();
+        var value = UUID.randomUUID().toString();
+        var vault = getVault();
+        vault.storeSecret(key, value);
 
-    CertificateResolver resolver = getCertificateResolver();
-    X509Certificate certificateResult = resolver.resolveCertificate(key);
-    Assertions.assertNull(certificateResult);
-  }
+        var resolver = getCertificateResolver();
+        var certificateResult = resolver.resolveCertificate(key);
+        Assertions.assertNull(certificateResult);
+    }
 }

@@ -18,13 +18,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
-import java.util.Objects;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class HashicorpVaultGetEntryResponsePayload {
 
-  @JsonProperty("data")
-  private GetVaultEntryData data;
+    @JsonProperty("data")
+    private GetVaultEntryData data;
 
     public HashicorpVaultGetEntryResponsePayload(GetVaultEntryData data) {
         this.data = data;
@@ -46,42 +45,18 @@ class HashicorpVaultGetEntryResponsePayload {
         this.data = data;
     }
 
-    public boolean equals(final Object o) {
-        if (o == this) return true;
-        if (!(o instanceof HashicorpVaultGetEntryResponsePayload))
-            return false;
-        final HashicorpVaultGetEntryResponsePayload other = (HashicorpVaultGetEntryResponsePayload) o;
-        if (!other.canEqual((Object) this)) return false;
-        final Object this$data = this.getData();
-        final Object other$data = other.getData();
-        if (!Objects.equals(this$data, other$data)) return false;
-        return true;
-    }
-
-    protected boolean canEqual(final Object other) {
-        return other instanceof HashicorpVaultGetEntryResponsePayload;
-    }
-
-    public int hashCode() {
-        final int PRIME = 59;
-        int result = 1;
-        final Object $data = this.getData();
-        result = result * PRIME + ($data == null ? 43 : $data.hashCode());
-        return result;
-    }
-
     public String toString() {
         return "HashicorpVaultGetEntryResponsePayload(data=" + this.getData() + ")";
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-  static class GetVaultEntryData {
+    static class GetVaultEntryData {
 
-    @JsonProperty("data")
-    private Map<String, String> data;
+        @JsonProperty("data")
+        private Map<String, String> data;
 
-    @JsonProperty("metadata")
-    private HashicorpVaultEntryMetadata metadata;
+        @JsonProperty("metadata")
+        private HashicorpVaultEntryMetadata metadata;
 
         public GetVaultEntryData(Map<String, String> data, HashicorpVaultEntryMetadata metadata) {
             this.data = data;
@@ -99,47 +74,18 @@ class HashicorpVaultGetEntryResponsePayload {
             return this.data;
         }
 
-        public HashicorpVaultEntryMetadata getMetadata() {
-            return this.metadata;
-        }
-
         @JsonProperty("data")
         public void setData(Map<String, String> data) {
             this.data = data;
         }
 
+        public HashicorpVaultEntryMetadata getMetadata() {
+            return this.metadata;
+        }
+
         @JsonProperty("metadata")
         public void setMetadata(HashicorpVaultEntryMetadata metadata) {
             this.metadata = metadata;
-        }
-
-        public boolean equals(final Object o) {
-            if (o == this) return true;
-            if (!(o instanceof GetVaultEntryData))
-                return false;
-            final GetVaultEntryData other = (GetVaultEntryData) o;
-            if (!other.canEqual((Object) this)) return false;
-            final Object this$data = this.getData();
-            final Object other$data = other.getData();
-            if (!Objects.equals(this$data, other$data)) return false;
-            final Object this$metadata = this.getMetadata();
-            final Object other$metadata = other.getMetadata();
-            if (!Objects.equals(this$metadata, other$metadata)) return false;
-            return true;
-        }
-
-        protected boolean canEqual(final Object other) {
-            return other instanceof GetVaultEntryData;
-        }
-
-        public int hashCode() {
-            final int PRIME = 59;
-            int result = 1;
-            final Object $data = this.getData();
-            result = result * PRIME + ($data == null ? 43 : $data.hashCode());
-            final Object $metadata = this.getMetadata();
-            result = result * PRIME + ($metadata == null ? 43 : $metadata.hashCode());
-            return result;
         }
 
         public String toString() {

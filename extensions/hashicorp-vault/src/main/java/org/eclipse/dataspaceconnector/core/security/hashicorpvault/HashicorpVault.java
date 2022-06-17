@@ -20,11 +20,15 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/** Implements a vault backed by Hashicorp Vault. */
+/**
+ * Implements a vault backed by Hashicorp Vault.
+ */
 class HashicorpVault implements Vault {
 
-  @NotNull private final HashicorpVaultClient hashicorpVaultClient;
-  @NotNull private final Monitor monitor;
+    @NotNull
+    private final HashicorpVaultClient hashicorpVaultClient;
+    @NotNull
+    private final Monitor monitor;
 
     public HashicorpVault(@NotNull HashicorpVaultClient hashicorpVaultClient, @NotNull Monitor monitor) {
         this.hashicorpVaultClient = hashicorpVaultClient;
@@ -32,22 +36,21 @@ class HashicorpVault implements Vault {
     }
 
     @Override
-  public @Nullable String resolveSecret(String key) {
-    Result<String> result = hashicorpVaultClient.getSecretValue(key);
+    public @Nullable String resolveSecret(String key) {
+        var result = hashicorpVaultClient.getSecretValue(key);
 
-    return result.succeeded() ? result.getContent() : null;
-  }
+        return result.succeeded() ? result.getContent() : null;
+    }
 
-  @Override
-  public Result<Void> storeSecret(String key, String value) {
-    Result<HashicorpVaultCreateEntryResponsePayload> result =
-        hashicorpVaultClient.setSecret(key, value);
+    @Override
+    public Result<Void> storeSecret(String key, String value) {
+        var result = hashicorpVaultClient.setSecret(key, value);
 
-    return result.succeeded() ? Result.success() : Result.failure(result.getFailureMessages());
-  }
+        return result.succeeded() ? Result.success() : Result.failure(result.getFailureMessages());
+    }
 
-  @Override
-  public Result<Void> deleteSecret(String key) {
-    return hashicorpVaultClient.destroySecret(key);
-  }
+    @Override
+    public Result<Void> deleteSecret(String key) {
+        return hashicorpVaultClient.destroySecret(key);
+    }
 }

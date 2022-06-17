@@ -37,60 +37,59 @@ import static org.eclipse.dataspaceconnector.core.security.hashicorpvault.Hashic
 @Testcontainers
 @ExtendWith(EdcExtension.class)
 class AbstractHashicorpIT {
-  static final String DOCKER_IMAGE_NAME = "vault:1.9.6";
-  static final String VAULT_ENTRY_KEY = "testing";
-  static final String VAULT_ENTRY_VALUE = UUID.randomUUID().toString();
-  static final String TOKEN = UUID.randomUUID().toString();
+    static final String DOCKER_IMAGE_NAME = "vault:1.9.6";
+    static final String VAULT_ENTRY_KEY = "testing";
+    static final String VAULT_ENTRY_VALUE = UUID.randomUUID().toString();
+    static final String TOKEN = UUID.randomUUID().toString();
+    @Container
+    @ClassRule
+    private static final VaultContainer<?> vaultContainer =
+            new VaultContainer<>(DockerImageName.parse(DOCKER_IMAGE_NAME))
+                    .withVaultToken(TOKEN)
+                    .withSecretInVault(
+                            "secret/" + VAULT_ENTRY_KEY,
+                            String.format("%s=%s", VAULT_DATA_ENTRY_NAME, VAULT_ENTRY_VALUE));
+    private final TestExtension testExtension = new TestExtension();
 
-  private final TestExtension testExtension = new TestExtension();
-
-  protected Vault getVault() {
-    return testExtension.getVault();
-  }
-
-  protected CertificateResolver getCertificateResolver() {
-    return testExtension.getCertificateResolver();
-  }
-
-  @Container @ClassRule
-  private static final VaultContainer<?> vaultContainer =
-      new VaultContainer<>(DockerImageName.parse(DOCKER_IMAGE_NAME))
-          .withVaultToken(TOKEN)
-          .withSecretInVault(
-              "secret/" + VAULT_ENTRY_KEY,
-              String.format("%s=%s", VAULT_DATA_ENTRY_NAME, VAULT_ENTRY_VALUE));
-
-  @BeforeEach
-  final void beforeEach(EdcExtension extension) {
-    extension.setConfiguration(
-        new HashMap<>() {
-          {
-            put(
-                VAULT_URL,
-                String.format(
-                    "http://%s:%s", vaultContainer.getHost(), vaultContainer.getFirstMappedPort()));
-            put(VAULT_TOKEN, TOKEN);
-          }
-        });
-    extension.registerSystemExtension(ServiceExtension.class, testExtension);
-  }
-
-  private static class TestExtension implements ServiceExtension {
-    private Vault vault;
-    private CertificateResolver certificateResolver;
-
-    @Override
-    public void initialize(ServiceExtensionContext context) {
-      vault = context.getService(Vault.class);
-      certificateResolver = context.getService(CertificateResolver.class);
+    protected Vault getVault() {
+        return testExtension.getVault();
     }
 
-    public Vault getVault() {
-      return this.vault;
+    protected CertificateResolver getCertificateResolver() {
+        return testExtension.getCertificateResolver();
     }
 
-    public CertificateResolver getCertificateResolver() {
-      return this.certificateResolver;
+    @BeforeEach
+    final void beforeEach(EdcExtension extension) {
+        extension.setConfiguration(
+                new HashMap<>() {
+                    {
+                        put(
+                                VAULT_URL,
+                                String.format(
+                                        "http://%s:%s", vaultContainer.getHost(), vaultContainer.getFirstMappedPort()));
+                        put(VAULT_TOKEN, TOKEN);
+                    }
+                });
+        extension.registerSystemExtension(ServiceExtension.class, testExtension);
     }
-  }
+
+    private static class TestExtension implements ServiceExtension {
+        private Vault vault;
+        private CertificateResolver certificateResolver;
+
+        @Override
+        public void initialize(ServiceExtensionContext context) {
+            vault = context.getService(Vault.class);
+            certificateResolver = context.getService(CertificateResolver.class);
+        }
+
+        public Vault getVault() {
+            return this.vault;
+        }
+
+        public CertificateResolver getCertificateResolver() {
+            return this.certificateResolver;
+        }
+    }
 }

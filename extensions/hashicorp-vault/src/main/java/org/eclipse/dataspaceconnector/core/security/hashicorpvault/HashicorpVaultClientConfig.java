@@ -17,9 +17,9 @@ package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 import java.time.Duration;
 
 class HashicorpVaultClientConfig {
-  private final String vaultUrl;
-  private final String vaultToken;
-  private final Duration timeout;
+    private final String vaultUrl;
+    private final String vaultToken;
+    private final Duration timeout;
 
     public HashicorpVaultClientConfig(String vaultUrl, String vaultToken, Duration timeout) {
         this.vaultUrl = vaultUrl;

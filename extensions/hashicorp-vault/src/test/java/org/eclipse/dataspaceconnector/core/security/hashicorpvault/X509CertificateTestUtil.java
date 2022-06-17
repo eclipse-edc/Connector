@@ -27,8 +27,6 @@ import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.operator.ContentSigner;
-import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.bc.BcDigestCalculatorProvider;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
@@ -53,81 +51,81 @@ import java.util.Date;
 import java.util.Optional;
 
 final class X509CertificateTestUtil {
-  private static final String SIGNATURE_ALGORITHM = "SHA256WithRSAEncryption";
-  private static final Provider PROVIDER = new BouncyCastleProvider();
-  private static final JcaX509CertificateConverter JCA_X509_CERTIFICATE_CONVERTER =
-      new JcaX509CertificateConverter().setProvider(PROVIDER);
+    private static final String SIGNATURE_ALGORITHM = "SHA256WithRSAEncryption";
+    private static final Provider PROVIDER = new BouncyCastleProvider();
+    private static final JcaX509CertificateConverter JCA_X509_CERTIFICATE_CONVERTER =
+            new JcaX509CertificateConverter().setProvider(PROVIDER);
 
-  private X509CertificateTestUtil() {
-    throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
-  }
-
-  static X509Certificate generateCertificate(int validity, String cn)
-      throws CertificateException, OperatorCreationException, IOException,
-          NoSuchAlgorithmException {
-
-    KeyPair keyPair = generateKeyPair();
-
-    Instant now = Instant.now();
-    ContentSigner contentSigner =
-        new JcaContentSignerBuilder(SIGNATURE_ALGORITHM).build(keyPair.getPrivate());
-    X500Name issuer =
-        new X500Name(
-            String.format(
-                "CN=%s",
-                Optional.ofNullable(cn)
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .orElse("rootCA")));
-    BigInteger serial = BigInteger.valueOf(now.toEpochMilli());
-    Date notBefore = Date.from(now);
-    Date notAfter = Date.from(now.plus(Duration.ofDays(validity)));
-    PublicKey publicKey = keyPair.getPublic();
-    X509v3CertificateBuilder certificateBuilder =
-        new JcaX509v3CertificateBuilder(issuer, serial, notBefore, notAfter, issuer, publicKey);
-    certificateBuilder =
-        certificateBuilder.addExtension(
-            Extension.subjectKeyIdentifier, false, createSubjectKeyId(publicKey));
-    certificateBuilder =
-        certificateBuilder.addExtension(
-            Extension.authorityKeyIdentifier, false, createAuthorityKeyId(publicKey));
-    certificateBuilder =
-        certificateBuilder.addExtension(
-            Extension.basicConstraints, true, new BasicConstraints(true));
-    return JCA_X509_CERTIFICATE_CONVERTER.getCertificate(certificateBuilder.build(contentSigner));
-  }
-
-  private static KeyPair generateKeyPair() throws NoSuchAlgorithmException {
-    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", PROVIDER);
-    keyPairGenerator.initialize(1024, new SecureRandom());
-
-    return keyPairGenerator.generateKeyPair();
-  }
-
-  private static SubjectKeyIdentifier createSubjectKeyId(PublicKey publicKey)
-      throws OperatorCreationException {
-    SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfo.getInstance(publicKey.getEncoded());
-    DigestCalculator digCalc =
-        new BcDigestCalculatorProvider().get(new AlgorithmIdentifier(OIWObjectIdentifiers.idSHA1));
-    return new X509ExtensionUtils(digCalc).createSubjectKeyIdentifier(publicKeyInfo);
-  }
-
-  private static AuthorityKeyIdentifier createAuthorityKeyId(PublicKey publicKey)
-      throws OperatorCreationException {
-    SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfo.getInstance(publicKey.getEncoded());
-    DigestCalculator digCalc =
-        new BcDigestCalculatorProvider().get(new AlgorithmIdentifier(OIWObjectIdentifiers.idSHA1));
-    return new X509ExtensionUtils(digCalc).createAuthorityKeyIdentifier(publicKeyInfo);
-  }
-
-  static String convertToPem(X509Certificate certificate) throws IOException {
-    try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
-      try (OutputStreamWriter writer = new OutputStreamWriter(stream)) {
-        JcaPEMWriter pemWriter = new JcaPEMWriter(writer);
-        pemWriter.writeObject(certificate);
-        pemWriter.flush();
-      }
-      return stream.toString(StandardCharsets.UTF_8);
+    private X509CertificateTestUtil() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
-  }
+
+    static X509Certificate generateCertificate(int validity, String cn)
+            throws CertificateException, OperatorCreationException, IOException,
+            NoSuchAlgorithmException {
+
+        var keyPair = generateKeyPair();
+
+        var now = Instant.now();
+        var contentSigner =
+                new JcaContentSignerBuilder(SIGNATURE_ALGORITHM).build(keyPair.getPrivate());
+        var issuer =
+                new X500Name(
+                        String.format(
+                                "CN=%s",
+                                Optional.ofNullable(cn)
+                                        .map(String::trim)
+                                        .filter(s -> !s.isEmpty())
+                                        .orElse("rootCA")));
+        var serial = BigInteger.valueOf(now.toEpochMilli());
+        var notBefore = Date.from(now);
+        var notAfter = Date.from(now.plus(Duration.ofDays(validity)));
+        var publicKey = keyPair.getPublic();
+        X509v3CertificateBuilder certificateBuilder =
+                new JcaX509v3CertificateBuilder(issuer, serial, notBefore, notAfter, issuer, publicKey);
+        certificateBuilder =
+                certificateBuilder.addExtension(
+                        Extension.subjectKeyIdentifier, false, createSubjectKeyId(publicKey));
+        certificateBuilder =
+                certificateBuilder.addExtension(
+                        Extension.authorityKeyIdentifier, false, createAuthorityKeyId(publicKey));
+        certificateBuilder =
+                certificateBuilder.addExtension(
+                        Extension.basicConstraints, true, new BasicConstraints(true));
+        return JCA_X509_CERTIFICATE_CONVERTER.getCertificate(certificateBuilder.build(contentSigner));
+    }
+
+    private static KeyPair generateKeyPair() throws NoSuchAlgorithmException {
+        var keyPairGenerator = KeyPairGenerator.getInstance("RSA", PROVIDER);
+        keyPairGenerator.initialize(1024, new SecureRandom());
+
+        return keyPairGenerator.generateKeyPair();
+    }
+
+    private static SubjectKeyIdentifier createSubjectKeyId(PublicKey publicKey)
+            throws OperatorCreationException {
+        var publicKeyInfo = SubjectPublicKeyInfo.getInstance(publicKey.getEncoded());
+        var digCalc =
+                new BcDigestCalculatorProvider().get(new AlgorithmIdentifier(OIWObjectIdentifiers.idSHA1));
+        return new X509ExtensionUtils(digCalc).createSubjectKeyIdentifier(publicKeyInfo);
+    }
+
+    private static AuthorityKeyIdentifier createAuthorityKeyId(PublicKey publicKey)
+            throws OperatorCreationException {
+        var publicKeyInfo = SubjectPublicKeyInfo.getInstance(publicKey.getEncoded());
+        var digCalc =
+                new BcDigestCalculatorProvider().get(new AlgorithmIdentifier(OIWObjectIdentifiers.idSHA1));
+        return new X509ExtensionUtils(digCalc).createAuthorityKeyIdentifier(publicKeyInfo);
+    }
+
+    static String convertToPem(X509Certificate certificate) throws IOException {
+        try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
+            try (OutputStreamWriter writer = new OutputStreamWriter(stream)) {
+                var pemWriter = new JcaPEMWriter(writer);
+                pemWriter.writeObject(certificate);
+                pemWriter.flush();
+            }
+            return stream.toString(StandardCharsets.UTF_8);
+        }
+    }
 }

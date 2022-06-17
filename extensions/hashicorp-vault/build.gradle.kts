@@ -12,9 +12,7 @@
  *
  */
 
-val rsApi: String by project
 val mockitoVersion: String by project
-val jacksonVersion: String by project
 val okHttpVersion: String by project
 val bouncycastleVersion: String by project
 val testContainersVersion: String by project
@@ -25,15 +23,10 @@ plugins {
 
 dependencies {
     api(project(":spi:core-spi"))
-    api("com.fasterxml.jackson.core:jackson-core:${jacksonVersion}")
-    api("com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}")
-    api("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    api("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
-    api("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
-    implementation(project(":common:util"))
+    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    implementation("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
 
-    testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation("org.mockito:mockito-inline:${mockitoVersion}")
     testImplementation("org.testcontainers:vault:${testContainersVersion}")

@@ -23,35 +23,33 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.security.Provider;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 final class PemUtil {
 
-  private PemUtil() {
-    throw new IllegalStateException("Private constructor invocation disallowed");
-  }
+    private static final Provider PROVIDER = new BouncyCastleProvider();
+    private static final JcaX509CertificateConverter X509_CONVERTER =
+            new JcaX509CertificateConverter().setProvider(PROVIDER);
 
-  private static final Provider PROVIDER = new BouncyCastleProvider();
-  private static final JcaX509CertificateConverter X509_CONVERTER =
-      new JcaX509CertificateConverter().setProvider(PROVIDER);
-
-
-  public static X509Certificate readX509Certificate(@NotNull InputStream inputStream) throws CertificateException, IOException {
-    X509CertificateHolder x509CertificateHolder = parsePem(inputStream);
-    if (x509CertificateHolder == null) {
-      return null;
+    private PemUtil() {
+        throw new IllegalStateException("Private constructor invocation disallowed");
     }
-    return X509_CONVERTER.getCertificate(x509CertificateHolder);
-  }
 
-  @SuppressWarnings("unchecked")
-  private static <T> T parsePem(@NotNull InputStream inputStream) throws IOException {
-    try (Reader reader = new InputStreamReader(inputStream)) {
-      PEMParser pemParser = new PEMParser(reader);
-      return (T) pemParser.readObject();
+    public static X509Certificate readX509Certificate(@NotNull InputStream inputStream) throws CertificateException, IOException {
+        X509CertificateHolder x509CertificateHolder = parsePem(inputStream);
+        if (x509CertificateHolder == null) {
+            return null;
+        }
+        return X509_CONVERTER.getCertificate(x509CertificateHolder);
     }
-  }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T parsePem(@NotNull InputStream inputStream) throws IOException {
+        try (var reader = new InputStreamReader(inputStream)) {
+            var pemParser = new PEMParser(reader);
+            return (T) pemParser.readObject();
+        }
+    }
 }

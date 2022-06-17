@@ -18,19 +18,18 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
-import java.util.Objects;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class HashicorpVaultEntryMetadata {
 
-  @JsonProperty("custom_metadata")
-  private Map<String, String> customMetadata;
+    @JsonProperty("custom_metadata")
+    private Map<String, String> customMetadata;
 
-  @JsonProperty("destroyed")
-  private Boolean destroyed;
+    @JsonProperty("destroyed")
+    private Boolean destroyed;
 
-  @JsonProperty("version")
-  private Integer version;
+    @JsonProperty("version")
+    private Integer version;
 
     public HashicorpVaultEntryMetadata(Map<String, String> customMetadata, Boolean destroyed, Integer version) {
         this.customMetadata = customMetadata;
@@ -49,17 +48,13 @@ class HashicorpVaultEntryMetadata {
         return this.customMetadata;
     }
 
-    public Boolean getDestroyed() {
-        return this.destroyed;
-    }
-
-    public Integer getVersion() {
-        return this.version;
-    }
-
     @JsonProperty("custom_metadata")
     public void setCustomMetadata(Map<String, String> customMetadata) {
         this.customMetadata = customMetadata;
+    }
+
+    public Boolean getDestroyed() {
+        return this.destroyed;
     }
 
     @JsonProperty("destroyed")
@@ -67,43 +62,13 @@ class HashicorpVaultEntryMetadata {
         this.destroyed = destroyed;
     }
 
+    public Integer getVersion() {
+        return this.version;
+    }
+
     @JsonProperty("version")
     public void setVersion(Integer version) {
         this.version = version;
-    }
-
-    public boolean equals(final Object o) {
-        if (o == this) return true;
-        if (!(o instanceof HashicorpVaultEntryMetadata))
-            return false;
-        final HashicorpVaultEntryMetadata other = (HashicorpVaultEntryMetadata) o;
-        if (!other.canEqual((Object) this)) return false;
-        final Object this$customMetadata = this.getCustomMetadata();
-        final Object other$customMetadata = other.getCustomMetadata();
-        if (!Objects.equals(this$customMetadata, other$customMetadata))
-            return false;
-        final Object this$destroyed = this.getDestroyed();
-        final Object other$destroyed = other.getDestroyed();
-        if (!Objects.equals(this$destroyed, other$destroyed)) return false;
-        final Object this$version = this.getVersion();
-        final Object other$version = other.getVersion();
-        return Objects.equals(this$version, other$version);
-    }
-
-    protected boolean canEqual(final Object other) {
-        return other instanceof HashicorpVaultEntryMetadata;
-    }
-
-    public int hashCode() {
-        final int PRIME = 59;
-        int result = 1;
-        final Object $customMetadata = this.getCustomMetadata();
-        result = result * PRIME + ($customMetadata == null ? 43 : $customMetadata.hashCode());
-        final Object $destroyed = this.getDestroyed();
-        result = result * PRIME + ($destroyed == null ? 43 : $destroyed.hashCode());
-        final Object $version = this.getVersion();
-        result = result * PRIME + ($version == null ? 43 : $version.hashCode());
-        return result;
     }
 
     public String toString() {
