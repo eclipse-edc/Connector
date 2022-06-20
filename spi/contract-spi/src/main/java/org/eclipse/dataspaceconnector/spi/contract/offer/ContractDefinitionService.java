@@ -31,7 +31,7 @@ import java.util.stream.Stream;
 public interface ContractDefinitionService {
 
     @PolicyScope
-    String NEGOTIATION_SCOPE = "contract.negotiation";
+    String OFFER_GENERATION_SCOPE = "contract.offer-generation";
 
     /**
      * Returns the definitions for the given participant agent.
