@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Daimler TSS GmbH
+ *  Copyright (c) 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,12 +8,14 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Daimler TSS GmbH - Initial implementation
- *       Microsoft Corporation - refactoring
+ *       Microsoft Corporation - initial API and implementation
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
+package org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema;
+
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.sql.translation.SqlQueryStatement;
 
 /**
  * Defines all statements that are needed for the ContractDefinition store
@@ -41,8 +43,6 @@ public interface ContractDefinitionStatements {
 
     String getDeleteByIdTemplate();
 
-    String getSelectAllTemplate();
-
     String getFindByTemplate();
 
     String getInsertTemplate();
@@ -51,5 +51,9 @@ public interface ContractDefinitionStatements {
 
     String getUpdateTemplate();
 
-    String getIsPolicyReferencedTemplate();
+    SqlQueryStatement createQuery(QuerySpec querySpec);
+
+    default String getFormatAsJsonOperator() {
+        return " FORMAT JSON";
+    }
 }

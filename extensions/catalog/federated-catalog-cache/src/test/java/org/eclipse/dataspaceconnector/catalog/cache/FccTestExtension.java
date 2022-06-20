@@ -217,11 +217,6 @@ public class FccTestExtension implements ServiceExtension {
         public void reload() {
             throw new NotImplementedError();
         }
-
-        @Override
-        public Stream<ContractDefinition> isReferenced(String policyId) {
-            throw new UnsupportedOperationException();
-        }
     }
 
 

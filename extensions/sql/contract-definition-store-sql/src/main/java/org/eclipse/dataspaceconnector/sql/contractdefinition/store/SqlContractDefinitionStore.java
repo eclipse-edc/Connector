@@ -26,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
+import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.ContractDefinitionStatements;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
@@ -76,11 +77,11 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
         return transactionContext.execute(() -> {
             Objects.requireNonNull(spec);
 
-            var query = statements.getSelectAllTemplate();
             try (var connection = getConnection()) {
-                var definitions = executeQuery(connection, this::mapResultSet, String.format(query, statements.getContractDefinitionTable()), spec.getLimit(), spec.getOffset());
+                var queryStmt = statements.createQuery(spec);
+                var definitions = executeQuery(connection, this::mapResultSet, queryStmt.getQueryAsString(), queryStmt.getParameters());
                 return definitions.stream();
-            } catch (Exception exception) {
+            } catch (SQLException exception) {
                 throw new EdcPersistenceException(exception);
             }
         });
@@ -143,20 +144,6 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
             }
         });
 
-    }
-
-    @Override
-    public Stream<ContractDefinition> isReferenced(String policyId) {
-        var stmt = statements.getIsPolicyReferencedTemplate();
-
-        return transactionContext.execute(() -> {
-            try (var connection = getConnection()) {
-                var definitions = executeQuery(connection, this::mapResultSet, stmt, policyId, policyId);
-                return definitions.stream();
-            } catch (Exception exception) {
-                throw new EdcPersistenceException(exception);
-            }
-        });
     }
 
     private void insertInternal(Connection connection, ContractDefinition definition) {

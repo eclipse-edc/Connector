@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *  Copyright (c) 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,22 +12,20 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
+package org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema;
+
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.postgres.ContractDefinitionMapping;
+import org.eclipse.dataspaceconnector.sql.translation.SqlQueryStatement;
 
 import static java.lang.String.format;
 
-class PostgresStatements implements ContractDefinitionStatements {
+public class BaseSqlDialectStatements implements ContractDefinitionStatements {
     @Override
     public String getDeleteByIdTemplate() {
         return format("DELETE FROM %s WHERE %s = ?",
                 getContractDefinitionTable(),
                 getIdColumn());
-    }
-
-    @Override
-    public String getSelectAllTemplate() {
-        return format("SELECT * from %s LIMIT ? OFFSET ?",
-                getContractDefinitionTable());
     }
 
     @Override
@@ -37,12 +35,13 @@ class PostgresStatements implements ContractDefinitionStatements {
 
     @Override
     public String getInsertTemplate() {
-        return format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)",
+        return format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?%s)",
                 getContractDefinitionTable(),
                 getIdColumn(),
                 getAccessPolicyIdColumn(),
                 getContractPolicyIdColumn(),
-                getSelectorExpressionColumn());
+                getSelectorExpressionColumn(),
+                getFormatAsJsonOperator());
     }
 
     @Override
@@ -56,17 +55,19 @@ class PostgresStatements implements ContractDefinitionStatements {
 
     @Override
     public String getUpdateTemplate() {
-        return format("UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = ? WHERE %s = ?",
+        return format("UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = ?%s WHERE %s = ?",
                 getContractDefinitionTable(),
                 getIdColumn(),
                 getAccessPolicyIdColumn(),
                 getContractPolicyIdColumn(),
                 getSelectorExpressionColumn(),
+                getFormatAsJsonOperator(),
                 getIdColumn());
     }
 
     @Override
-    public String getIsPolicyReferencedTemplate() {
-        return format("SELECT * FROM %s WHERE (%s=? OR %s=?);", getContractDefinitionTable(), getAccessPolicyIdColumn(), getContractPolicyIdColumn());
+    public SqlQueryStatement createQuery(QuerySpec querySpec) {
+        var select = format("SELECT * FROM %s", getContractDefinitionTable());
+        return new SqlQueryStatement(select, querySpec, new ContractDefinitionMapping(this));
     }
 }

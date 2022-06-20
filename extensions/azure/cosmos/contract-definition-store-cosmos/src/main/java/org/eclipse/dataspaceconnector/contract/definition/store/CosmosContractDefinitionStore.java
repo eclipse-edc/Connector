@@ -37,7 +37,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.lang.String.format;
 import static net.jodah.failsafe.Failsafe.with;
 
 /**
@@ -131,14 +130,6 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
             objectCache.set(databaseObjects);
             return null;
         });
-    }
-
-    @Override
-    public Stream<ContractDefinition> isReferenced(String policyId) {
-        var queryAccessPolicyFilter = QuerySpec.Builder.newInstance().filter(format("accessPolicyId = %s ", policyId)).build();
-        var queryContractPolicyFilter = QuerySpec.Builder.newInstance().filter(format("contractPolicyId = %s ", policyId)).build();
-
-        return Stream.concat(findAll(queryAccessPolicyFilter), findAll(queryContractPolicyFilter));
     }
 
     private void storeInCache(ContractDefinition definition) {
