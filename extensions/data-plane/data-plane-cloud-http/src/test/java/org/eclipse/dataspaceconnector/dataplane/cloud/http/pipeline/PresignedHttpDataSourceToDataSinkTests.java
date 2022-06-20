@@ -1,5 +1,6 @@
 /*
  *  Copyright (c) 2021 Microsoft Corporation
+ *  Copyright (c) 2022 Siemens AG
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,6 +10,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Siemens AG - changes to make it compatible with AWS S3 presigned URL for upload
  *
  */
 
@@ -44,7 +46,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class CloudDataSourceToDataSinkTests {
+class PresignedHttpDataSourceToDataSinkTests {
     private static final String NULL_ENDPOINT = "https://example.com/sink";
 
     private ExecutorService executor;
@@ -77,7 +79,7 @@ class CloudDataSourceToDataSinkTests {
                 .addInterceptor(interceptor)
                 .build();
 
-        var dataSink = CloudHttpDataSink.Builder.newInstance()
+        var dataSink = PresignedHttpDataSink.Builder.newInstance()
                 .endpoint("https://example.com/sink")
                 .requestId("1")
                 .httpClient(sinkClient)
@@ -119,7 +121,7 @@ class CloudDataSourceToDataSinkTests {
 
         var sinkClient = mock(OkHttpClient.class);
 
-        var dataSink = CloudHttpDataSink.Builder.newInstance()
+        var dataSink = PresignedHttpDataSink.Builder.newInstance()
                 .endpoint("https://example.com/sink")
                 .requestId("1")
                 .httpClient(sinkClient)
@@ -169,7 +171,7 @@ class CloudDataSourceToDataSinkTests {
                 .addInterceptor(sinkInterceptor)
                 .build();
 
-        var dataSink = CloudHttpDataSink.Builder.newInstance()
+        var dataSink = PresignedHttpDataSink.Builder.newInstance()
                 .endpoint(NULL_ENDPOINT)
                 .requestId("1")
                 .httpClient(sinkClient)

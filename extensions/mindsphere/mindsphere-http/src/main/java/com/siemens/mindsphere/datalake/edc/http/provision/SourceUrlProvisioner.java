@@ -16,7 +16,6 @@ package com.siemens.mindsphere.datalake.edc.http.provision;
 import com.siemens.mindsphere.datalake.edc.http.DataLakeClientImpl;
 import com.siemens.mindsphere.datalake.edc.http.DataLakeException;
 import net.jodah.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.dataplane.cloud.http.pipeline.CloudHttpDataAddressSchema;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
@@ -24,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
@@ -84,7 +84,7 @@ public class SourceUrlProvisioner
                                                         ENDPOINT, createPresignedUrl(resourceDefinition.getDatalakePath()),
                                                         NAME, "",
                                                         MindsphereDatalakeSchema.DOWNLOAD_DATALAKE_PATH, resourceDefinition.getDatalakePath()))
-                                        .type(CloudHttpDataAddressSchema.TYPE).build())
+                                        .type(HttpDataAddressSchema.TYPE).build())
                                 .path(resourceDefinition.getDatalakePath())
                                 .build())
                         .build();

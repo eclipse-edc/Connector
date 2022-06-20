@@ -4,9 +4,10 @@
   "contractId": "9:1bd6da05-bb4c-43e8-ba37-dd8854b95c6b",
   "dataDestination": {
     "properties": {
-      "endpoint": "your endpoint",
+      "endpoint": "your presigned url endpoint",
       "name": "",
-      "type": "CloudHttpData"
+      "type": "PresignedHttpData",
+      "additionalHeaders" : "additional headers here - e.g. for AWS China use Content-Type:application/octet-stream or for Azure use x-ms-blob-type:BlockBlob}"
     }
   },
   "transferType": {

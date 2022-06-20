@@ -39,7 +39,7 @@ end note
 
 box Provider http 8181 data 8182 ids 8282 #ProviderColor
     participant ConnectorProvider as "Eclipse\nDataspace\nConnector" #white
-    participant CloudHttpDataSink as "CloudHttpDataSink" #white
+    participant PresignedHttpDataSink as "PresignedHttpDataSink" #white
     participant DataSource as "DataSource" #white
     database AssetCatalogProvider as "Asset\nCatalog" #white
     actor Partner2 as "Partner" #white
@@ -108,8 +108,8 @@ end note
 ConnectorConsumer -> ConnectorProvider : Data Request Message
 DataSource -> FileShare2 : Read content from the source
 return Data Content Parts
-DataSource -> CloudHttpDataSink : Provide read parts
-CloudHttpDataSink -> FileShare1  : Push to fileshare/database/...
+DataSource -> PresignedHttpDataSink : Provide read parts
+PresignedHttpDataSink -> FileShare1  : Push to fileshare/database/...
 
 Partner1 -> FileShare1 : Access AssetData
 

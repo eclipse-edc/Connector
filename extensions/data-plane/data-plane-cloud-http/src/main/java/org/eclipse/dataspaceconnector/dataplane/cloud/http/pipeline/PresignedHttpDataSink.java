@@ -1,5 +1,6 @@
 /*
  *  Copyright (c) 2021 Microsoft Corporation
+ *  Copyright (c) 2022 Siemens AG
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,6 +10,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Siemens AG - changes to make it compatible with AWS S3 presigned URL for upload
  *
  */
 
@@ -23,7 +25,9 @@ import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static java.lang.String.format;
@@ -32,11 +36,12 @@ import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_R
 /**
  * Writes data in a streaming fashion to an HTTP endpoint.
  */
-public class CloudHttpDataSink extends ParallelSink {
+public class PresignedHttpDataSink extends ParallelSink {
     private String authKey;
     private String authCode;
     private String endpoint;
     private OkHttpClient httpClient;
+    private Map<String, String> additionalHeaders = new HashMap<>();
 
     /**
      * Sends the parts to the destination endpoint using an HTTP POST.
@@ -47,6 +52,10 @@ public class CloudHttpDataSink extends ParallelSink {
             var requestBuilder = new Request.Builder();
             if (authKey != null) {
                 requestBuilder.header(authKey, authCode);
+            }
+
+            if (additionalHeaders != null) {
+                additionalHeaders.forEach(requestBuilder::header);
             }
 
             monitor.debug(() -> format("Transferring  %s  to endpoint %s ", part.name(), endpoint));
@@ -76,10 +85,10 @@ public class CloudHttpDataSink extends ParallelSink {
         return StatusResult.success();
     }
 
-    private CloudHttpDataSink() {
+    private PresignedHttpDataSink() {
     }
 
-    public static class Builder extends ParallelSink.Builder<Builder, CloudHttpDataSink> {
+    public static class Builder extends ParallelSink.Builder<Builder, PresignedHttpDataSink> {
 
         public static Builder newInstance() {
             return new Builder();
@@ -105,6 +114,11 @@ public class CloudHttpDataSink extends ParallelSink {
             return this;
         }
 
+        public Builder additionalHeaders(Map<String, String> additionalHeaders) {
+            sink.additionalHeaders = additionalHeaders;
+            return this;
+        }
+
         @Override
         protected void validate() {
             Objects.requireNonNull(sink.endpoint, "endpoint");
@@ -118,7 +132,7 @@ public class CloudHttpDataSink extends ParallelSink {
         }
 
         private Builder() {
-            super(new CloudHttpDataSink());
+            super(new PresignedHttpDataSink());
         }
     }
 }

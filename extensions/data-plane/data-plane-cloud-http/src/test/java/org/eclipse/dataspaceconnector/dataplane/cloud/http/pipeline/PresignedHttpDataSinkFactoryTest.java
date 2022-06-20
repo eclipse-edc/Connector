@@ -1,5 +1,6 @@
 /*
  *  Copyright (c) 2021 Microsoft Corporation
+ *  Copyright (c) 2022 Siemens AG
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,11 +10,13 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Siemens AG - changes to make it compatible with AWS S3 presigned URL for upload
  *
  */
 
 package org.eclipse.dataspaceconnector.dataplane.cloud.http.pipeline;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -41,13 +44,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class CloudHttpDataSinkFactoryTest {
-    private CloudHttpDataSinkFactory factory;
+class PresignedHttpDataSinkFactoryTest {
+    private PresignedHttpDataSinkFactory factory;
     private OkHttpClient httpClient;
 
     @Test
     void verifyCanHandle() {
-        var httpRequest = createRequest(CloudHttpDataAddressSchema.TYPE).build();
+        var httpRequest = createRequest(PresignedHttpDataAddressSchema.TYPE).build();
         var nonHttpRequest = createRequest("Unknown").build();
 
         assertThat(factory.canHandle(httpRequest)).isTrue();
@@ -56,8 +59,8 @@ class CloudHttpDataSinkFactoryTest {
 
     @Test
     void verifyValidation() {
-        var dataAddress = DataAddress.Builder.newInstance().property(ENDPOINT, "http://example.com").type(CloudHttpDataAddressSchema.TYPE).build();
-        var validRequest = createRequest(CloudHttpDataAddressSchema.TYPE).destinationDataAddress(dataAddress).build();
+        var dataAddress = DataAddress.Builder.newInstance().property(ENDPOINT, "http://example.com").type(PresignedHttpDataAddressSchema.TYPE).build();
+        var validRequest = createRequest(PresignedHttpDataAddressSchema.TYPE).destinationDataAddress(dataAddress).build();
         assertThat(factory.validate(validRequest).succeeded()).isTrue();
 
         var missingEndpointRequest = createRequest("Unknown").build();
@@ -66,8 +69,8 @@ class CloudHttpDataSinkFactoryTest {
 
     @Test
     void verifyCreateSource() {
-        var dataAddress = DataAddress.Builder.newInstance().property(ENDPOINT, "http://example.com").type(CloudHttpDataAddressSchema.TYPE).build();
-        var validRequest = createRequest(CloudHttpDataAddressSchema.TYPE).destinationDataAddress(dataAddress).build();
+        var dataAddress = DataAddress.Builder.newInstance().property(ENDPOINT, "http://example.com").type(PresignedHttpDataAddressSchema.TYPE).build();
+        var validRequest = createRequest(PresignedHttpDataAddressSchema.TYPE).destinationDataAddress(dataAddress).build();
         var missingEndpointRequest = createRequest("Unknown").build();
 
         assertThat(factory.createSink(validRequest)).isNotNull();
@@ -77,13 +80,13 @@ class CloudHttpDataSinkFactoryTest {
     @Test
     void verifyCreateAuthenticatingSource() throws InterruptedException, ExecutionException, IOException {
         var dataAddress = DataAddress.Builder.newInstance()
-                .type(CloudHttpDataAddressSchema.TYPE)
+                .type(PresignedHttpDataAddressSchema.TYPE)
                 .property(ENDPOINT, "http://example.com")
                 .property(AUTHENTICATION_KEY, "x-api-key")
                 .property(AUTHENTICATION_CODE, "123")
                 .build();
 
-        var validRequest = createRequest(CloudHttpDataAddressSchema.TYPE).destinationDataAddress(dataAddress).build();
+        var validRequest = createRequest(PresignedHttpDataAddressSchema.TYPE).destinationDataAddress(dataAddress).build();
 
         var call = mock(Call.class);
         when(call.execute()).thenReturn(createHttpResponse().build());
@@ -105,7 +108,7 @@ class CloudHttpDataSinkFactoryTest {
     @BeforeEach
     void setUp() {
         httpClient = mock(OkHttpClient.class);
-        factory = new CloudHttpDataSinkFactory(httpClient, Executors.newFixedThreadPool(1),  mock(Monitor.class));
+        factory = new PresignedHttpDataSinkFactory(httpClient, new ObjectMapper(), Executors.newFixedThreadPool(1),  mock(Monitor.class));
     }
 
 

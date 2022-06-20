@@ -1,4 +1,4 @@
-# Data Plane Cloud HTTP extension
+# Data Plane Presigned Endpoint HTTP extension
 
 This extension provides support for sending data sourced from an HTTP endpoint and putting data to a cloud presigned url based HTTP endpoint when working with 
 small files (< 50MB) and the cloud access is wrapped (therefore no direct access to the cloud API). By
@@ -10,5 +10,10 @@ single part - note that the multiplart request need to be done first and the mul
 
 Note that Azure Object Storage or S3 extensions should be preferred to the current extensions when performing large data
 transfers as it supports more scalable parallelization; note that they require the cloud credentials to be at hand.
+
+Note that the presigned HTTP extension offers also the option of specifying additional headers (due to EDC limitation only as string) e.g. Azure authorization as header values like 
+```json
+"additionalHeaders" : "{\"Content-Type\" : \"application/octet-stream\",\"x-ms-blob-type\": \"BlockBlob\"}"
+```
 
 ![The flow](docs/flow.png)
