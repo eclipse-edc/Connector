@@ -15,7 +15,9 @@
 package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 
 import org.bouncycastle.operator.OperatorCreationException;
+import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -23,6 +25,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.UUID;
 
+@IntegrationTest
+@Tag("HashicorpVaultIntegrationTest")
 class HashicorpCertificateResolverIT extends AbstractHashicorpIT {
 
     @Test
@@ -31,9 +35,9 @@ class HashicorpCertificateResolverIT extends AbstractHashicorpIT {
         var certificateExpected = X509CertificateTestUtil.generateCertificate(5, "Test");
         var pem = X509CertificateTestUtil.convertToPem(certificateExpected);
 
-        var vault = getVault();
+        var vault = testExtension.getVault();
         vault.storeSecret(key, pem);
-        var resolver = getCertificateResolver();
+        var resolver = testExtension.getCertificateResolver();
         var certificateResult = resolver.resolveCertificate(key);
 
         Assertions.assertEquals(certificateExpected, certificateResult);
@@ -43,10 +47,10 @@ class HashicorpCertificateResolverIT extends AbstractHashicorpIT {
     void resolveCertificate_malformed() {
         var key = UUID.randomUUID().toString();
         var value = UUID.randomUUID().toString();
-        var vault = getVault();
+        var vault = testExtension.getVault();
         vault.storeSecret(key, value);
 
-        var resolver = getCertificateResolver();
+        var resolver = testExtension.getCertificateResolver();
         var certificateResult = resolver.resolveCertificate(key);
         Assertions.assertNull(certificateResult);
     }

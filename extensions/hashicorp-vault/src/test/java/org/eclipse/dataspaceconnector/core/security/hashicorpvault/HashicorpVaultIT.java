@@ -14,27 +14,31 @@
 
 package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 
+import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
+@IntegrationTest
+@Tag("HashicorpVaultIntegrationTest")
 class HashicorpVaultIT extends AbstractHashicorpIT {
 
     @Test
     @DisplayName("Resolve a secret that exists")
     void testResolveSecret_exists() {
-        var vault = getVault();
-        var secretValue = vault.resolveSecret(VAULT_ENTRY_KEY);
+        var vault = testExtension.getVault();
+        var secretValue = vault.resolveSecret(VAULT_TEST_ENTRY_KEY);
         Assertions.assertEquals(VAULT_ENTRY_VALUE, secretValue);
     }
 
     @Test
     @DisplayName("Resolve a secret that does not exist")
     void testResolveSecret_doesNotExist() {
-        var vault = getVault();
+        var vault = testExtension.getVault();
         Assertions.assertNull(vault.resolveSecret("wrong_key"));
     }
 
@@ -45,7 +49,7 @@ class HashicorpVaultIT extends AbstractHashicorpIT {
         var value1 = UUID.randomUUID().toString();
         var value2 = UUID.randomUUID().toString();
 
-        var vault = getVault();
+        var vault = testExtension.getVault();
         vault.storeSecret(key, value1);
         vault.storeSecret(key, value2);
         var secretValue = vault.resolveSecret(key);
@@ -58,7 +62,7 @@ class HashicorpVaultIT extends AbstractHashicorpIT {
         var key = UUID.randomUUID().toString();
         var value = UUID.randomUUID().toString();
 
-        var vault = getVault();
+        var vault = testExtension.getVault();
         vault.storeSecret(key, value);
         var secretValue = vault.resolveSecret(key);
         Assertions.assertEquals(value, secretValue);
@@ -70,7 +74,7 @@ class HashicorpVaultIT extends AbstractHashicorpIT {
         var key = UUID.randomUUID().toString();
         var value = UUID.randomUUID().toString();
 
-        Vault vault = getVault();
+        Vault vault = testExtension.getVault();
         vault.storeSecret(key, value);
         vault.deleteSecret(key);
 
@@ -82,7 +86,7 @@ class HashicorpVaultIT extends AbstractHashicorpIT {
     void testDeleteSecret_doesNotExist() {
         var key = UUID.randomUUID().toString();
 
-        var vault = getVault();
+        var vault = testExtension.getVault();
         vault.deleteSecret(key);
 
         Assertions.assertNull(vault.resolveSecret(key));
