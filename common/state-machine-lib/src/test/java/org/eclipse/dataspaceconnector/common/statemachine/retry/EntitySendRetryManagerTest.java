@@ -54,6 +54,7 @@ class EntitySendRetryManagerTest {
     void shouldDelay(long stateTimestamp, long currentTime, long retryDelay, boolean shouldDelay) {
         var stateCount = sendRetryLimit - 2;
         var entity = TestEntity.Builder.newInstance()
+                .id("any")
                 .stateCount(stateCount)
                 .stateTimestamp(stateTimestamp)
                 .build();
@@ -76,6 +77,7 @@ class EntitySendRetryManagerTest {
         var stateCount = sendRetryLimit - retriesLeft;
         var stateTimestamp = faker.number().randomNumber();
         var process = TestEntity.Builder.newInstance()
+                .id("any")
                 .stateCount(stateCount)
                 .stateTimestamp(stateTimestamp)
                 .build();

@@ -193,6 +193,11 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         return StatusResult.success(negotiation);
     }
 
+    @Override
+    protected String getName() {
+        return "Provider";
+    }
+
     private ContractNegotiation findContractNegotiationById(String negotiationId) {
         var negotiation = negotiationStore.find(negotiationId);
         if (negotiation == null) {

@@ -244,6 +244,11 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         commandQueue.enqueue(command);
     }
 
+    @Override
+    protected String getName() {
+        return "Consumer";
+    }
+
     private ContractNegotiation findContractNegotiationById(String negotiationId) {
         var negotiation = negotiationStore.find(negotiationId);
         if (negotiation == null) {

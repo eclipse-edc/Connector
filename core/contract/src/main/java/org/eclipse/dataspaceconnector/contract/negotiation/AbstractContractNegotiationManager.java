@@ -63,9 +63,7 @@ public abstract class AbstractContractNegotiationManager {
      *
      * @return "Provider" for provider, "Consumer" for consumer
      */
-    private String getName() {
-        return getClass().getSimpleName().substring(0, 8);
-    }
+    protected abstract String getName();
 
     public static class Builder<T extends AbstractContractNegotiationManager> {
 
@@ -179,8 +177,8 @@ public abstract class AbstractContractNegotiationManager {
     protected class AsyncSendResultHandler {
         private final String negotiationId;
         private final String operationDescription;
-        private Consumer<ContractNegotiation> onSuccessHandler;
-        private Consumer<ContractNegotiation> onFailureHandler;
+        private Consumer<ContractNegotiation> onSuccessHandler = n -> {};
+        private Consumer<ContractNegotiation> onFailureHandler = n -> {};
 
         public AsyncSendResultHandler(String negotiationId, String operationDescription) {
             this.negotiationId = negotiationId;
