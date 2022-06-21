@@ -14,8 +14,10 @@
 
 package org.eclipse.dataspaceconnector.common.statemachine.retry;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.github.javafaker.Faker;
-import org.eclipse.dataspaceconnector.spi.entity.Entity;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -51,9 +53,10 @@ class EntitySendRetryManagerTest {
     @ArgumentsSource(DelayArgs.class)
     void shouldDelay(long stateTimestamp, long currentTime, long retryDelay, boolean shouldDelay) {
         var stateCount = sendRetryLimit - 2;
-        var entity = new TestEntity();
-        entity.stateTimestamp = stateTimestamp;
-        entity.stateCount = stateCount;
+        var entity = TestEntity.Builder.newInstance()
+                .stateCount(stateCount)
+                .stateTimestamp(stateTimestamp)
+                .build();
 
         when(delayStrategy.retryInMillis())
                 .thenAnswer(i -> {
@@ -72,9 +75,10 @@ class EntitySendRetryManagerTest {
     void retriesExhausted(int retriesLeft) {
         var stateCount = sendRetryLimit - retriesLeft;
         var stateTimestamp = faker.number().randomNumber();
-        var process = new TestEntity();
-        process.stateCount = stateCount;
-        process.stateTimestamp = stateTimestamp;
+        var process = TestEntity.Builder.newInstance()
+                .stateCount(stateCount)
+                .stateTimestamp(stateTimestamp)
+                .build();
 
         var expected = retriesLeft < 0;
         assertThat(sendRetryManager.retriesExhausted(process)).isEqualTo(expected);
@@ -94,24 +98,24 @@ class EntitySendRetryManagerTest {
         }
     }
 
-    private static class TestEntity implements Entity {
+    private static class TestEntity extends StatefulEntity {
+        @JsonPOJOBuilder(withPrefix = "")
+        public static class Builder extends StatefulEntity.Builder<TestEntity, Builder> {
 
-        private int stateCount;
-        private long stateTimestamp;
+            private Builder(TestEntity entity) {
+                super(entity);
+            }
 
-        @Override
-        public String getId() {
-            return "any";
-        }
+            @JsonCreator
+            public static Builder newInstance() {
+                return new Builder(new TestEntity());
+            }
 
-        @Override
-        public int getStateCount() {
-            return stateCount;
-        }
+            @Override
+            public void validate() {
 
-        @Override
-        public long getStateTimestamp() {
-            return stateTimestamp;
+            }
+
         }
     }
 }

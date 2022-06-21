@@ -27,7 +27,7 @@ import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
-import org.eclipse.dataspaceconnector.spi.entity.Entity;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
@@ -70,7 +70,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
     protected InMemoryContractNegotiationStore providerStore;
     protected InMemoryContractNegotiationStore consumerStore;
     protected ContractValidationService validationService;
-    protected SendRetryManager<Entity> sendRetryManager = mock(SendRetryManager.class);
+    protected SendRetryManager<StatefulEntity> sendRetryManager = mock(SendRetryManager.class);
     protected String consumerNegotiationId;
 
     protected ClaimToken token;

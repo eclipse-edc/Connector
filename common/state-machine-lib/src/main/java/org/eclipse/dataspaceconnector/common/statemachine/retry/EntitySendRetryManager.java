@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.common.statemachine.retry;
 
-import org.eclipse.dataspaceconnector.spi.entity.Entity;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 
@@ -26,7 +26,7 @@ import java.util.function.Supplier;
  * The implementation supports a pluggable retry strategy (e.g. an exponential wait mechanism
  * so as not to overflow the remote service when it becomes available again).
  */
-public class EntitySendRetryManager implements SendRetryManager<Entity> {
+public class EntitySendRetryManager implements SendRetryManager<StatefulEntity> {
     private final Monitor monitor;
     private final Supplier<WaitStrategy> delayStrategySupplier;
     private final int retryLimit;
@@ -40,7 +40,7 @@ public class EntitySendRetryManager implements SendRetryManager<Entity> {
     }
 
     @Override
-    public boolean shouldDelay(Entity process) {
+    public boolean shouldDelay(StatefulEntity process) {
         int retryCount = process.getStateCount() - 1;
         if (retryCount <= 0) {
             return false;
@@ -68,7 +68,7 @@ public class EntitySendRetryManager implements SendRetryManager<Entity> {
     }
 
     @Override
-    public boolean retriesExhausted(Entity entity) {
+    public boolean retriesExhausted(StatefulEntity entity) {
         return entity.getStateCount() > retryLimit;
     }
 }

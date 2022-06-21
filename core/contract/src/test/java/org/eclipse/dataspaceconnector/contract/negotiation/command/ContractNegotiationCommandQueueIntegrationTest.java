@@ -26,7 +26,7 @@ import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
-import org.eclipse.dataspaceconnector.spi.entity.Entity;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
@@ -60,7 +60,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
     private String negotiationId;
     private ContractNegotiation negotiation;
     private TestCommand command;
-    private SendRetryManager<Entity> sendRetryManager = mock(SendRetryManager.class);
+    private SendRetryManager<StatefulEntity> sendRetryManager = mock(SendRetryManager.class);
 
     @BeforeEach
     void setUp() {

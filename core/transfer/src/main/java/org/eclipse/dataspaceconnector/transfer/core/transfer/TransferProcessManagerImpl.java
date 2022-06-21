@@ -23,7 +23,7 @@ import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
-import org.eclipse.dataspaceconnector.spi.entity.Entity;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
@@ -116,7 +116,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private StateMachine stateMachine;
     private DataAddressResolver addressResolver;
     private PolicyArchive policyArchive;
-    private SendRetryManager<Entity> sendRetryManager;
+    private SendRetryManager<StatefulEntity> sendRetryManager;
     private Clock clock;
 
     private TransferProcessManagerImpl() {

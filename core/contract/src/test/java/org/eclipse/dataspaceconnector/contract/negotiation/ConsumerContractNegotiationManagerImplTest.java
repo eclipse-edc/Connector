@@ -24,7 +24,7 @@ import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
-import org.eclipse.dataspaceconnector.spi.entity.Entity;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -78,7 +78,7 @@ class ConsumerContractNegotiationManagerImplTest {
     private final ContractNegotiationStore store = mock(ContractNegotiationStore.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
-    private final SendRetryManager<Entity> sendRetryManager = mock(SendRetryManager.class);
+    private final SendRetryManager<StatefulEntity> sendRetryManager = mock(SendRetryManager.class);
     private ConsumerContractNegotiationManagerImpl negotiationManager;
 
     @BeforeEach

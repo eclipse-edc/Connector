@@ -42,7 +42,7 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionServi
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
-import org.eclipse.dataspaceconnector.spi.entity.Entity;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
@@ -203,7 +203,7 @@ public class ContractServiceExtension implements ServiceExtension {
         context.registerService(ProviderContractNegotiationManager.class, providerNegotiationManager);
     }
 
-    private SendRetryManager<Entity> providerSendRetryManager(ServiceExtensionContext context) {
+    private SendRetryManager<StatefulEntity> providerSendRetryManager(ServiceExtensionContext context) {
         var retryLimit = context.getSetting(NEGOTIATION_PROVIDER_SEND_RETRY_LIMIT, 7);
         var retryBaseDelay = context.getSetting(NEGOTIATION_PROVIDER_SEND_RETRY_BASE_DELAY_MS, 100L);
         return new EntitySendRetryManager(monitor, () -> new ExponentialWaitStrategy(retryBaseDelay), clock, retryLimit);

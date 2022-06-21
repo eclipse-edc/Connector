@@ -25,7 +25,7 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
-import org.eclipse.dataspaceconnector.spi.entity.Entity;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
@@ -120,7 +120,7 @@ class TransferProcessManagerImplTest {
     private final DataFlowManager dataFlowManager = mock(DataFlowManager.class);
     private final Vault vault = mock(Vault.class);
     @SuppressWarnings("unchecked")
-    private final SendRetryManager<Entity> sendRetryManager = mock(SendRetryManager.class);
+    private final SendRetryManager<StatefulEntity> sendRetryManager = mock(SendRetryManager.class);
 
     private TransferProcessManagerImpl manager;
 

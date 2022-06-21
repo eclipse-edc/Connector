@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractN
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
-import org.eclipse.dataspaceconnector.spi.entity.Entity;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
@@ -56,7 +56,7 @@ public abstract class AbstractContractNegotiationManager {
     protected int batchSize = 5;
     protected WaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
     protected PolicyDefinitionStore policyStore;
-    protected SendRetryManager<Entity> sendRetryManager;
+    protected SendRetryManager<StatefulEntity> sendRetryManager;
 
     /**
      * Gives the name of the manager
@@ -143,7 +143,7 @@ public abstract class AbstractContractNegotiationManager {
             return this;
         }
 
-        public Builder<T> sendRetryManager(SendRetryManager<Entity> sendRetryManager) {
+        public Builder<T> sendRetryManager(SendRetryManager<StatefulEntity> sendRetryManager) {
             manager.sendRetryManager = sendRetryManager;
             return this;
         }
