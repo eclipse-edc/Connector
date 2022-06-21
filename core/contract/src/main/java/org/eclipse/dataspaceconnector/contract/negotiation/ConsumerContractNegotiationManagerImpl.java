@@ -246,7 +246,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
 
     @Override
     protected String getName() {
-        return "Consumer";
+        return CONSUMER.name();
     }
 
     private ContractNegotiation findContractNegotiationById(String negotiationId) {

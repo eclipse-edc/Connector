@@ -195,7 +195,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
 
     @Override
     protected String getName() {
-        return "Provider";
+        return PROVIDER.name();
     }
 
     private ContractNegotiation findContractNegotiationById(String negotiationId) {
