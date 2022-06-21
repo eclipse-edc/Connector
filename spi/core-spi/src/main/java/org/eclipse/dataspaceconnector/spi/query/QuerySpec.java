@@ -21,8 +21,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Specifies various query parameters for collection-like queries.
- * Typical uses include API endpoints, where the query is tunnelled through to the database level.
+ * Specifies various query parameters for collection-like queries. Typical uses include API endpoints, where the query
+ * is tunnelled through to the database level.
  */
 public class QuerySpec {
     private int offset = 0;

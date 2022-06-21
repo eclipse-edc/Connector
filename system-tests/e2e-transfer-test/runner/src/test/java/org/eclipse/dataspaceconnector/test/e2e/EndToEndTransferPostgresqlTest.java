@@ -15,9 +15,9 @@
 package org.eclipse.dataspaceconnector.test.e2e;
 
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.PostgresqlDbIntegrationTest;
+import org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstance;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
-import org.eclipse.dataspaceconnector.test.e2e.postgresql.PostgresqlLocalInstance;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -31,8 +31,8 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.eclipse.dataspaceconnector.test.e2e.postgresql.PostgresqlLocalInstance.PASSWORD;
-import static org.eclipse.dataspaceconnector.test.e2e.postgresql.PostgresqlLocalInstance.USER;
+import static org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstance.PASSWORD;
+import static org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstance.USER;
 
 @PostgresqlDbIntegrationTest
 class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {

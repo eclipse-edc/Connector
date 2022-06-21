@@ -138,7 +138,6 @@ class PostgresContractNegotiationStoreTest {
             executeQuery(connection, "DROP TABLE " + dialect.getContractNegotiationTable() + " CASCADE");
             executeQuery(connection, "DROP TABLE " + dialect.getContractAgreementTable() + " CASCADE");
             executeQuery(connection, "DROP TABLE " + dialect.getLeaseTableName() + " CASCADE");
-            executeQuery(connection, "DROP VIEW IF EXISTS " + dialect.getViewName() + " CASCADE");
         });
         doCallRealMethod().when(connection).close();
         connection.close();

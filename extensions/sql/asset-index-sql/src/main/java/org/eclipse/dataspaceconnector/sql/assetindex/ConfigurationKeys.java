@@ -9,10 +9,11 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Microsoft Inc.   - Refactoring
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.asset.index;
+package org.eclipse.dataspaceconnector.sql.assetindex;
 
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 

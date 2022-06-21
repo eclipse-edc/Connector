@@ -9,11 +9,11 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial Tests
- *       Microsoft Corporation - added full QuerySpec support
+ *       Microsoft Corporation - added full QuerySpec support, improvements
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.asset.index;
+package org.eclipse.dataspaceconnector.sql.assetindex;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,6 +29,7 @@ import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegis
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
+import org.eclipse.dataspaceconnector.sql.assetindex.schema.BaseSqlDialectStatements;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,13 +57,13 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-class SqlAssetIndexTest {
+public class SqlAssetIndexTest {
 
     private static final String DATASOURCE_NAME = "asset";
 
     private SqlAssetIndex sqlAssetIndex;
     private DataSourceRegistry dataSourceRegistry;
-    private PostgresSqlAssetQueries sqlAssetQueries;
+    private BaseSqlDialectStatements sqlStatements;
     private TransactionContext transactionContext;
     private Connection connection;
 
@@ -83,9 +84,9 @@ class SqlAssetIndexTest {
         when(datasourceMock.getConnection()).thenReturn(connection);
         when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
 
-        sqlAssetIndex = new SqlAssetIndex(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper(), new PostgresSqlAssetQueries());
+        sqlStatements = new H2DialectStatements();
+        sqlAssetIndex = new SqlAssetIndex(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper(), sqlStatements);
 
-        sqlAssetQueries = new PostgresSqlAssetQueries();
 
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
         transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
@@ -106,7 +107,7 @@ class SqlAssetIndexTest {
         try (var connection = getConnection()) {
 
             var assetProperties = transactionContext.execute(() -> {
-                var assetCount = executeQuery(connection, sqlAssetIndex::mapRowCount, sqlAssetQueries.getSqlAssetCountByIdClause(), assetExpected.getId()).iterator().next();
+                var assetCount = executeQuery(connection, sqlAssetIndex::mapRowCount, sqlStatements.getCountAssetByIdClause(), assetExpected.getId()).iterator().next();
 
                 if (assetCount <= 0) {
                     return null;
@@ -114,7 +115,7 @@ class SqlAssetIndexTest {
                     throw new IllegalStateException("Expected result set size of 0 or 1 but got " + assetCount);
                 }
 
-                return executeQuery(connection, sqlAssetIndex::mapPropertyResultSet, sqlAssetQueries.getSqlPropertyFindByIdClause(), assetExpected.getId()).stream().collect(Collectors.toMap(
+                return executeQuery(connection, sqlAssetIndex::mapPropertyResultSet, sqlStatements.getFindPropertyByIdTemplate(), assetExpected.getId()).stream().collect(Collectors.toMap(
                         AbstractMap.SimpleImmutableEntry::getKey,
                         AbstractMap.SimpleImmutableEntry::getValue));
             });
@@ -153,7 +154,7 @@ class SqlAssetIndexTest {
         try (var connection = getConnection()) {
 
             var assetProperties = transactionContext.execute(() -> {
-                var assetCount = executeQuery(connection, sqlAssetIndex::mapRowCount, sqlAssetQueries.getSqlAssetCountByIdClause(), assetExpected.getId()).iterator().next();
+                var assetCount = executeQuery(connection, sqlAssetIndex::mapRowCount, sqlStatements.getCountAssetByIdClause(), assetExpected.getId()).iterator().next();
 
                 if (assetCount <= 0) {
                     return null;
@@ -161,7 +162,7 @@ class SqlAssetIndexTest {
                     throw new IllegalStateException("Expected result set size of 0 or 1 but got " + assetCount);
                 }
 
-                return executeQuery(connection, sqlAssetIndex::mapPropertyResultSet, sqlAssetQueries.getSqlPropertyFindByIdClause(), assetExpected.getId()).stream().collect(Collectors.toMap(
+                return executeQuery(connection, sqlAssetIndex::mapPropertyResultSet, sqlStatements.getFindPropertyByIdTemplate(), assetExpected.getId()).stream().collect(Collectors.toMap(
                         AbstractMap.SimpleImmutableEntry::getKey,
                         AbstractMap.SimpleImmutableEntry::getValue));
             });
@@ -213,11 +214,17 @@ class SqlAssetIndexTest {
         try (var connection = getConnection()) {
             transactionContext.execute(() -> {
                 var assetCount = executeQuery(connection, sqlAssetIndex::mapRowCount,
-                        String.format("SELECT COUNT(*) AS %s FROM %s",
-                                sqlAssetQueries.getCountVariableName(),
-                                sqlAssetQueries.getAssetTable()
-                        )).iterator().next();
+                        String.format("SELECT COUNT(*) as COUNT FROM %s", sqlStatements.getAssetTable())).iterator().next();
                 assertThat(assetCount).isEqualTo(0);
+                var propCount = executeQuery(connection, sqlAssetIndex::mapRowCount,
+                        String.format("SELECT COUNT(*) as COUNT FROM %s", sqlStatements.getAssetPropertyTable())).iterator().next();
+                assertThat(assetCount).isEqualTo(0);
+                var dataAddressCount = executeQuery(connection, sqlAssetIndex::mapRowCount,
+                        String.format("SELECT COUNT(*) as COUNT FROM %s", sqlStatements.getDataAddressTable())).iterator().next();
+
+                assertThat(assetCount).isEqualTo(0);
+                assertThat(propCount).isEqualTo(0);
+                assertThat(dataAddressCount).isEqualTo(0);
             });
         } catch (Exception e) {
             if (e instanceof EdcPersistenceException) {
@@ -438,42 +445,10 @@ class SqlAssetIndexTest {
         return dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection();
     }
 
-    private static class TestObject {
-        private String someText;
-        private int someNumber;
-        private boolean someBoolean;
-
-        TestObject(String text, int number, boolean bool) {
-            someText = text;
-            someNumber = number;
-            someBoolean = bool;
-        }
-
-        TestObject() {
-        }
-
-        public String getSomeText() {
-            return someText;
-        }
-
-        public void setSomeText(String someText) {
-            this.someText = someText;
-        }
-
-        public int getSomeNumber() {
-            return someNumber;
-        }
-
-        public void setSomeNumber(int someNumber) {
-            this.someNumber = someNumber;
-        }
-
-        public boolean isSomeBoolean() {
-            return someBoolean;
-        }
-
-        public void setSomeBoolean(boolean someBoolean) {
-            this.someBoolean = someBoolean;
+    private static class H2DialectStatements extends BaseSqlDialectStatements {
+        @Override
+        public String getFormatAsJsonOperator() {
+            return " FORMAT JSON";
         }
     }
 }

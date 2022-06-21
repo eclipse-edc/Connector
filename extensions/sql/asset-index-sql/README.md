@@ -13,18 +13,18 @@ Please apply this [schema](docs/schema.sql) to your SQL database.
 ```plantuml
 @startuml
 entity edc_asset {
-  * asset_id: string <<PK>>
+  * asset_id_fk: string <<PK>>
   --
 }
 
 entity edc_asset_dataaddress {
-  * asset_id: string <<PK>>
+  * asset_id_fk: string <<PK>>
   * properties: string <<json>>
   --
 }
 
 entity edc_asset_property {
-  * asset_id: string <<PK>>
+  * asset_id_fk: string <<PK>>
   * property_name: string
   * property_value: string
   * property_type: string

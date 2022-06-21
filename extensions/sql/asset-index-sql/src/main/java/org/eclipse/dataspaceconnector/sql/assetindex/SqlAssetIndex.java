@@ -13,9 +13,10 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.asset.index;
+package org.eclipse.dataspaceconnector.sql.assetindex;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.dataloading.AssetEntry;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
@@ -23,21 +24,18 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.sql.translation.SqlConditionExpression;
+import org.eclipse.dataspaceconnector.sql.assetindex.schema.AssetStatements;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.AbstractMap;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -54,14 +52,14 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
     private final DataSourceRegistry dataSourceRegistry;
     private final String dataSourceName;
     private final TransactionContext transactionContext;
-    private final SqlAssetQueries sqlAssetQueries;
+    private final AssetStatements assetStatements;
 
-    public SqlAssetIndex(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, ObjectMapper objectMapper, SqlAssetQueries sqlAssetQueries) {
+    public SqlAssetIndex(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, ObjectMapper objectMapper, AssetStatements assetStatements) {
         this.dataSourceRegistry = Objects.requireNonNull(dataSourceRegistry);
         this.dataSourceName = Objects.requireNonNull(dataSourceName);
         this.transactionContext = Objects.requireNonNull(transactionContext);
         this.objectMapper = Objects.requireNonNull(objectMapper);
-        this.sqlAssetQueries = Objects.requireNonNull(sqlAssetQueries);
+        this.assetStatements = Objects.requireNonNull(assetStatements);
     }
 
     @Override
@@ -75,9 +73,7 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
             }
 
             transactionContext.execute(() -> {
-                executeQuery(connection, sqlAssetQueries.getSqlAssetDeleteByIdClause(), assetId);
-                executeQuery(connection, sqlAssetQueries.getSqlDataAddressDeleteByIdClause(), assetId);
-                executeQuery(connection, sqlAssetQueries.getSqlPropertyDeleteByIdClause(), assetId);
+                executeQuery(connection, assetStatements.getDeleteAssetByIdTemplate(), assetId);
             });
 
             return asset;
@@ -95,21 +91,20 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
         Objects.requireNonNull(asset);
         Objects.requireNonNull(dataAddress);
 
-        try (var connection = getConnection()) {
-            transactionContext.execute(() -> {
+
+        transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
                 try {
                     if (existsById(asset.getId(), connection)) {
                         throw new EdcPersistenceException(format("Cannot persist. Asset with ID '%s' already exists.", asset.getId()));
                     }
 
-                    executeQuery(connection, sqlAssetQueries.getSqlAssetInsertClause(),
-                            asset.getId());
-                    executeQuery(connection, sqlAssetQueries.getSqlDataAddressInsertClause(),
-                            asset.getId(),
-                            objectMapper.writeValueAsString(dataAddress.getProperties()));
+                    executeQuery(connection, assetStatements.getInsertAssetTemplate(), asset.getId());
+                    var insertDataAddressTemplate = assetStatements.getInsertDataAddressTemplate();
+                    executeQuery(connection, insertDataAddressTemplate, asset.getId(), objectMapper.writeValueAsString(dataAddress.getProperties()));
 
                     for (var property : asset.getProperties().entrySet()) {
-                        executeQuery(connection, sqlAssetQueries.getSqlPropertyInsertClause(),
+                        executeQuery(connection, assetStatements.getInsertPropertyTemplate(),
                                 asset.getId(),
                                 property.getKey(),
                                 toPropertyValue(property.getValue()),
@@ -119,15 +114,12 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
                 } catch (JsonProcessingException e) {
                     throw new EdcPersistenceException(e);
                 }
-
-            });
-
-        } catch (Exception e) {
-            if (e instanceof EdcPersistenceException) {
-                throw (EdcPersistenceException) e;
+            } catch (Exception e) {
+                throw new EdcPersistenceException(e);
             }
-            throw new EdcPersistenceException(e.getMessage(), e);
-        }
+        });
+
+
     }
 
     @Override
@@ -146,25 +138,12 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
     public Stream<Asset> queryAssets(QuerySpec querySpec) {
         Objects.requireNonNull(querySpec);
 
-
-        var conditions = querySpec.getFilterExpression().stream().map(SqlConditionExpression::new).collect(Collectors.toList());
-        var results = conditions.stream().map(SqlConditionExpression::isValidExpression).collect(Collectors.toList());
-
-        if (results.stream().anyMatch(Result::failed)) {
-            var message = results.stream().flatMap(r -> r.getFailureMessages().stream()).collect(Collectors.joining(", "));
-            throw new IllegalArgumentException(message);
-
-        }
-        var subSelects = conditions.stream().map(this::toSubSelect).collect(Collectors.toList());
-
-        var template = "%s %s LIMIT %s OFFSET %s";
-        var query = format(template, sqlAssetQueries.getSqlAssetListClause(), concatSubSelects(subSelects), querySpec.getLimit(), querySpec.getOffset());
-
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                var params = conditions.stream().flatMap(SqlConditionExpression::toStatementParameter).collect(Collectors.toList());
 
-                List<String> ids = executeQuery(connection, this::mapAssetIds, query, params.toArray(Object[]::new));
+                var statement = assetStatements.createQuery(querySpec);
+
+                List<String> ids = executeQuery(connection, this::mapAssetIds, statement.getQueryAsString(), statement.getParameters());
                 return ids.stream().map(this::findById);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
@@ -182,7 +161,7 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
                 if (!existsById(assetId, connection)) {
                     return null;
                 }
-                var assetProperties = executeQuery(connection, this::mapPropertyResultSet, sqlAssetQueries.getSqlPropertyFindByIdClause(), assetId).stream().collect(Collectors.toMap(
+                var assetProperties = executeQuery(connection, this::mapPropertyResultSet, assetStatements.getFindPropertyByIdTemplate(), assetId).stream().collect(Collectors.toMap(
                         AbstractMap.SimpleImmutableEntry::getKey,
                         AbstractMap.SimpleImmutableEntry::getValue));
                 return Asset.Builder.newInstance().id(assetId).properties(assetProperties).build();
@@ -202,7 +181,7 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
         Objects.requireNonNull(assetId);
 
         try (var connection = getConnection()) {
-            var dataAddressList = transactionContext.execute(() -> executeQuery(connection, this::mapDataAddress, sqlAssetQueries.getSqlDataAddressFindByIdClause(), assetId));
+            var dataAddressList = transactionContext.execute(() -> executeQuery(connection, this::mapDataAddress, assetStatements.getFindDataAddressByIdTemplate(), assetId));
             return single(dataAddressList);
         } catch (Exception e) {
             if (e instanceof EdcPersistenceException) {
@@ -214,18 +193,17 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
     }
 
     int mapRowCount(ResultSet resultSet) throws SQLException {
-        return resultSet.getInt(sqlAssetQueries.getCountVariableName());
+        return resultSet.getInt(assetStatements.getCountVariableName());
     }
 
     AbstractMap.SimpleImmutableEntry<String, Object> mapPropertyResultSet(ResultSet resultSet) throws SQLException, ClassNotFoundException, JsonProcessingException {
-        var name = resultSet.getString(sqlAssetQueries.getAssetPropertyColumnName());
-        var value = resultSet.getString(sqlAssetQueries.getAssetPropertyColumnValue());
-        var type = resultSet.getString(sqlAssetQueries.getAssetPropertyColumnType());
+        var name = resultSet.getString(assetStatements.getAssetPropertyColumnName());
+        var value = resultSet.getString(assetStatements.getAssetPropertyColumnValue());
+        var type = resultSet.getString(assetStatements.getAssetPropertyColumnType());
 
 
         return new AbstractMap.SimpleImmutableEntry<>(name, fromPropertyValue(value, type));
     }
-
 
     @Nullable
     private DataAddress single(List<DataAddress> dataAddressList) {
@@ -250,28 +228,9 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
         return objectMapper.readValue(value, clazz);
     }
 
-    /**
-     * Concatenates all SELECT statements on all properties into one big statement, or returns "" if list is empty.
-     */
-    private String concatSubSelects(List<String> subSelects) {
-        if (subSelects.isEmpty()) {
-            return "";
-        }
-        return format(" WHERE %s", String.join(" AND ", subSelects));
-    }
-
-    /**
-     * Converts a {@linkplain Criterion} into a dynamically assembled SELECT statement.
-     */
-    private String toSubSelect(SqlConditionExpression c) {
-        return format("%s %s %s)", sqlAssetQueries.getQuerySubSelectClause(),
-                c.getCriterion().getOperator(),
-                c.toValuePlaceholder());
-    }
-
 
     private boolean existsById(String assetId, Connection connection) {
-        var assetCount = transactionContext.execute(() -> executeQuery(connection, this::mapRowCount, sqlAssetQueries.getSqlAssetCountByIdClause(), assetId).iterator().next());
+        var assetCount = transactionContext.execute(() -> executeQuery(connection, this::mapRowCount, assetStatements.getCountAssetByIdClause(), assetId).iterator().next());
 
         if (assetCount <= 0) {
             return false;
@@ -292,12 +251,13 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
 
     private DataAddress mapDataAddress(ResultSet resultSet) throws SQLException, JsonProcessingException {
         return DataAddress.Builder.newInstance()
-                .properties(objectMapper.readValue(resultSet.getString(sqlAssetQueries.getDataAddressColumnProperties()), HashMap.class))
+                .properties(objectMapper.readValue(resultSet.getString(assetStatements.getDataAddressColumnProperties()), new TypeReference<>() {
+                }))
                 .build();
     }
 
     private String mapAssetIds(ResultSet resultSet) throws SQLException {
-        return resultSet.getString(sqlAssetQueries.getAssetColumnId());
+        return resultSet.getString(assetStatements.getAssetIdColumn());
     }
 
     private String toPropertyValue(Object value) throws JsonProcessingException {
