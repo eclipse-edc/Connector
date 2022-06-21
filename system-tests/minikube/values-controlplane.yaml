@@ -1,0 +1,22 @@
+edc:
+  env:
+    WEB_HTTP_PORT: 8181
+    WEB_HTTP_PATH: /api
+    WEB_HTTP_IDS_PORT: 8282
+    WEB_HTTP_IDS_PATH: /api/v1/ids
+    WEB_HTTP_DATA_PORT: 9191
+    WEB_HTTP_DATA_PATH: /api/v1/data
+
+ports:
+  http:
+    containerPort: 8181
+    servicePort: 80
+    path: /api
+  ids:
+    containerPort: 8282
+    servicePort: 8282
+    path: /api/v1/ids
+  http-mgmt:
+    containerPort: 9191
+    servicePort: 91
+    path: /api/v1/data

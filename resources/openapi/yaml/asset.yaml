@@ -1,0 +1,117 @@
+openapi: 3.0.1
+paths:
+  /assets:
+    get:
+      operationId: getAllAssets
+      parameters:
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          format: int32
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          format: int32
+      - in: query
+        name: filter
+        schema:
+          type: string
+      - in: query
+        name: sort
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - in: query
+        name: sortField
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AssetDto'
+          description: default response
+      tags:
+      - Asset
+    post:
+      operationId: createAsset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetEntryDto'
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      tags:
+      - Asset
+  /assets/{id}:
+    delete:
+      operationId: removeAsset
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      tags:
+      - Asset
+    get:
+      operationId: getAsset
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetDto'
+          description: default response
+      tags:
+      - Asset
+components:
+  schemas:
+    AssetDto:
+      type: object
+      properties:
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+      required:
+      - properties
+    AssetEntryDto:
+      type: object
+      properties:
+        asset:
+          $ref: '#/components/schemas/AssetDto'
+        dataAddress:
+          $ref: '#/components/schemas/DataAddressDto'
+      required:
+      - asset
+      - dataAddress
+    DataAddressDto:
+      type: object
+      properties:
+        properties:
+          type: object
+          additionalProperties:
+            type: string

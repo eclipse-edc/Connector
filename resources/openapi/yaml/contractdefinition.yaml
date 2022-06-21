@@ -1,0 +1,118 @@
+openapi: 3.0.1
+paths:
+  /contractdefinitions:
+    get:
+      operationId: getAllContractDefinitions
+      parameters:
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          format: int32
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          format: int32
+      - in: query
+        name: filter
+        schema:
+          type: string
+      - in: query
+        name: sort
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - in: query
+        name: sortField
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContractDefinitionDto'
+          description: default response
+      tags:
+      - Contract Definition
+    post:
+      operationId: createContractDefinition
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/ContractDefinitionDto'
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      tags:
+      - Contract Definition
+  /contractdefinitions/{id}:
+    delete:
+      operationId: deleteContractDefinition
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      tags:
+      - Contract Definition
+    get:
+      operationId: getContractDefinition
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractDefinitionDto'
+          description: default response
+      tags:
+      - Contract Definition
+components:
+  schemas:
+    ContractDefinitionDto:
+      type: object
+      properties:
+        accessPolicyId:
+          type: string
+        contractPolicyId:
+          type: string
+        criteria:
+          type: array
+          items:
+            $ref: '#/components/schemas/Criterion'
+        id:
+          type: string
+      required:
+      - accessPolicyId
+      - contractPolicyId
+      - criteria
+      - id
+    Criterion:
+      type: object
+      properties:
+        left:
+          type: object
+        op:
+          type: string
+        right:
+          type: object

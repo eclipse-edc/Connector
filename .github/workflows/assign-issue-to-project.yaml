@@ -1,0 +1,17 @@
+name: Check New Issue
+
+on:
+  issues:
+    types: [ opened ]
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  assign-project:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign to basic project
+        uses: srggrs/assign-one-project-github-action@1.3.1
+        with:
+          project: 'https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/projects/1'
+          column_name: 'Backlog'

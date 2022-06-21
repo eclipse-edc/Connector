@@ -1,0 +1,42 @@
+openapi: 3.0.1
+paths:
+  /check/health:
+    get:
+      operationId: checkHealth
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      tags:
+      - Application Observability
+  /check/liveness:
+    get:
+      operationId: getLiveness
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      tags:
+      - Application Observability
+  /check/readiness:
+    get:
+      operationId: getReadiness
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      tags:
+      - Application Observability
+  /check/startup:
+    get:
+      operationId: getStartup
+      responses:
+        default:
+          content:
+            application/json: {}
+          description: default response
+      tags:
+      - Application Observability
