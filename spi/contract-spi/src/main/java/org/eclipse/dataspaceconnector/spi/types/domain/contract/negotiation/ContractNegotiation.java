@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.telemetry.TraceCarrier;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -36,7 +37,6 @@ import java.util.Map;
 import java.util.Objects;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.joining;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONSUMER_APPROVED;
@@ -65,16 +65,12 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
  */
 @JsonTypeName("dataspaceconnector:contractnegotiation")
 @JsonDeserialize(builder = ContractNegotiation.Builder.class)
-public class ContractNegotiation implements TraceCarrier {
-    private String id;
+public class ContractNegotiation extends StatefulEntity implements TraceCarrier {
     private String correlationId;
     private String counterPartyId;
     private String counterPartyAddress;
     private String protocol;
     private Type type = Type.CONSUMER;
-    private int state = UNSAVED.code();
-    private int stateCount;
-    private long stateTimestamp;
     private String errorDetail;
     private ContractAgreement contractAgreement;
     private List<ContractOffer> contractOffers = new ArrayList<>();
@@ -83,10 +79,6 @@ public class ContractNegotiation implements TraceCarrier {
 
     public Type getType() {
         return type;
-    }
-
-    public String getId() {
-        return id;
     }
 
     public String getCounterPartyId() {
@@ -117,33 +109,6 @@ public class ContractNegotiation implements TraceCarrier {
     @Override
     public Map<String, String> getTraceContext() {
         return Collections.unmodifiableMap(traceContext);
-    }
-
-    /**
-     * Returns the current negotiation state.
-     *
-     * @return The current state code.
-     */
-    public int getState() {
-        return state;
-    }
-
-    /**
-     * Returns the current state count.
-     *
-     * @return The current state count.
-     */
-    public int getStateCount() {
-        return stateCount;
-    }
-
-    /**
-     * Returns the state timestamp.
-     *
-     * @return The state timestamp.
-     */
-    public long getStateTimestamp() {
-        return stateTimestamp;
     }
 
     /**
@@ -380,16 +345,6 @@ public class ContractNegotiation implements TraceCarrier {
         return Objects.hash(id, correlationId, counterPartyId, clock, protocol, traceContext, type, state, stateCount, stateTimestamp, contractAgreement, contractOffers);
     }
 
-    private void checkState(int... legalStates) {
-        for (var legalState : legalStates) {
-            if (state == legalState) {
-                return;
-            }
-        }
-        var values = Arrays.stream(legalStates).mapToObj(String::valueOf).collect(joining(","));
-        throw new IllegalStateException(format("Illegal state: %s. Expected one of: %s.", state, values));
-    }
-
     /**
      * Transition to a given end state from an allowed number of previous states. Increases the
      * state count if transitioned to the same state and updates the state timestamp.
@@ -414,104 +369,82 @@ public class ContractNegotiation implements TraceCarrier {
      * Builder for ContractNegotiation.
      */
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder {
-        private final ContractNegotiation negotiation;
+    public static class Builder extends StatefulEntity.Builder<ContractNegotiation, Builder> {
 
-        private Builder() {
-            negotiation = new ContractNegotiation();
+        private Builder(ContractNegotiation negotiation) {
+            super(negotiation);
         }
 
         @JsonCreator
         public static Builder newInstance() {
-            return new Builder();
-        }
-
-        public Builder id(String id) {
-            negotiation.id = id;
-            return this;
+            return new Builder(new ContractNegotiation());
         }
 
         public Builder protocol(String protocol) {
-            negotiation.protocol = protocol;
-            return this;
-        }
-
-        public Builder state(int state) {
-            negotiation.state = state;
-            return this;
-        }
-
-        public Builder stateCount(int stateCount) {
-            negotiation.stateCount = stateCount;
-            return this;
-        }
-
-        public Builder stateTimestamp(long stateTimestamp) {
-            negotiation.stateTimestamp = stateTimestamp;
+            entity.protocol = protocol;
             return this;
         }
 
         public Builder clock(Clock clock) {
-            negotiation.clock = clock;
+            entity.clock = clock;
             return this;
         }
 
         public Builder counterPartyId(String id) {
-            negotiation.counterPartyId = id;
+            entity.counterPartyId = id;
             return this;
         }
 
         public Builder counterPartyAddress(String address) {
-            negotiation.counterPartyAddress = address;
+            entity.counterPartyAddress = address;
             return this;
         }
 
         public Builder correlationId(String id) {
-            negotiation.correlationId = id;
+            entity.correlationId = id;
             return this;
         }
 
         public Builder contractAgreement(ContractAgreement agreement) {
-            negotiation.contractAgreement = agreement;
+            entity.contractAgreement = agreement;
             return this;
         }
 
         //used mainly for JSON deserialization
         public Builder contractOffers(List<ContractOffer> contractOffers) {
-            negotiation.contractOffers = contractOffers;
+            entity.contractOffers = contractOffers;
             return this;
         }
 
         public Builder contractOffer(ContractOffer contractOffer) {
-            negotiation.contractOffers.add(contractOffer);
+            entity.contractOffers.add(contractOffer);
             return this;
         }
 
         public Builder type(Type type) {
-            negotiation.type = type;
+            entity.type = type;
             return this;
         }
 
         public Builder errorDetail(String errorDetail) {
-            negotiation.errorDetail = errorDetail;
+            entity.errorDetail = errorDetail;
             return this;
         }
 
         public Builder traceContext(Map<String, String> traceContext) {
-            negotiation.traceContext = traceContext;
+            entity.traceContext = traceContext;
             return this;
         }
 
-        public ContractNegotiation build() {
-            Objects.requireNonNull(negotiation.id);
-            Objects.requireNonNull(negotiation.clock);
-            Objects.requireNonNull(negotiation.counterPartyId);
-            Objects.requireNonNull(negotiation.counterPartyAddress);
-            Objects.requireNonNull(negotiation.protocol);
-            if (Type.PROVIDER == negotiation.type) {
-                Objects.requireNonNull(negotiation.correlationId);
+        @Override
+        public void validate() {
+            Objects.requireNonNull(entity.clock);
+            Objects.requireNonNull(entity.counterPartyId);
+            Objects.requireNonNull(entity.counterPartyAddress);
+            Objects.requireNonNull(entity.protocol);
+            if (Type.PROVIDER == entity.type) {
+                Objects.requireNonNull(entity.correlationId);
             }
-            return negotiation;
         }
     }
 }

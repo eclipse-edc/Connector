@@ -19,11 +19,13 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.common.statemachine.retry.SendRetryManager;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
@@ -118,7 +120,7 @@ class TransferProcessManagerImplTest {
     private final DataFlowManager dataFlowManager = mock(DataFlowManager.class);
     private final Vault vault = mock(Vault.class);
     @SuppressWarnings("unchecked")
-    private final SendRetryManager<TransferProcess> sendRetryManager = mock(SendRetryManager.class);
+    private final SendRetryManager<StatefulEntity> sendRetryManager = mock(SendRetryManager.class);
 
     private TransferProcessManagerImpl manager;
 
@@ -402,8 +404,7 @@ class TransferProcessManagerImplTest {
     @Test
     void requesting_whenShouldWait_updatesStateCount() throws InterruptedException {
         var process = createTransferProcess(REQUESTING);
-        when(sendRetryManager.shouldDelay(process))
-                .thenReturn(true);
+        when(sendRetryManager.shouldDelay(process)).thenReturn(true);
         var latch = countDownOnUpdateLatch(1);
         when(dispatcherRegistry.send(eq(Object.class), any(), any())).thenReturn(completedFuture("any"));
         when(transferProcessStore.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());

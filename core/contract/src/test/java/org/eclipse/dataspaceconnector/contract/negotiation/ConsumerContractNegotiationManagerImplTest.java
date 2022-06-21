@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import org.eclipse.dataspaceconnector.common.statemachine.retry.SendRetryManager;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -23,6 +24,7 @@ import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -55,6 +57,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONSUMER_OFFERING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.DECLINED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.DECLINING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.ERROR;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.INITIAL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTING;
@@ -75,6 +78,7 @@ class ConsumerContractNegotiationManagerImplTest {
     private final ContractNegotiationStore store = mock(ContractNegotiationStore.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
+    private final SendRetryManager<StatefulEntity> sendRetryManager = mock(SendRetryManager.class);
     private ConsumerContractNegotiationManagerImpl negotiationManager;
 
     @BeforeEach
@@ -93,6 +97,7 @@ class ConsumerContractNegotiationManagerImplTest {
                 .observable(mock(ContractNegotiationObservable.class))
                 .store(store)
                 .policyStore(policyStore)
+                .sendRetryManager(sendRetryManager)
                 .build();
     }
 
@@ -262,17 +267,34 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void requesting_shouldTransitionInitialIfSendFails() throws InterruptedException {
+    void requesting_shouldTransitionRequestingIfSendFails_andRetriesNotExhausted() throws InterruptedException {
         var negotiation = contractNegotiationBuilder().state(REQUESTING.code()).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(sendRetryManager.retriesExhausted(any())).thenReturn(false);
         var latch = countDownOnUpdateLatch();
 
         negotiationManager.start();
 
         assertThat(latch.await(5, SECONDS)).isTrue();
-        verify(store).save(argThat(p -> p.getState() == INITIAL.code()));
+        verify(store).save(argThat(p -> p.getState() == REQUESTING.code()));
+        verify(dispatcherRegistry, only()).send(any(), any(), any());
+    }
+
+    @Test
+    void requesting_shouldTransitionErrorIfSendFails_andRetriesExhausted() throws InterruptedException {
+        var negotiation = contractNegotiationBuilder().state(REQUESTING.code()).contractOffer(contractOffer()).build();
+        when(store.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(dispatcherRegistry.send(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
+        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(sendRetryManager.retriesExhausted(any())).thenReturn(true);
+        var latch = countDownOnUpdateLatch();
+
+        negotiationManager.start();
+
+        assertThat(latch.await(5, SECONDS)).isTrue();
+        verify(store).save(argThat(p -> p.getState() == ERROR.code()));
         verify(dispatcherRegistry, only()).send(any(), any(), any());
     }
 
@@ -292,17 +314,34 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void consumerOffering_shouldTransitionOfferingIfSendFails() throws InterruptedException {
+    void consumerOffering_shouldTransitionOfferingIfSendFails_andRetriesNotExhausted() throws InterruptedException {
         var negotiation = contractNegotiationBuilder().state(CONSUMER_OFFERING.code()).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(CONSUMER_OFFERING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(sendRetryManager.retriesExhausted(any())).thenReturn(false);
         var latch = countDownOnUpdateLatch();
 
         negotiationManager.start();
 
         assertThat(latch.await(5, SECONDS)).isTrue();
         verify(store).save(argThat(p -> p.getState() == CONSUMER_OFFERING.code()));
+        verify(dispatcherRegistry, only()).send(any(), any(), any());
+    }
+
+    @Test
+    void consumerOffering_shouldTransitionErrorIfSendFails_andRetriesExhausted() throws InterruptedException {
+        var negotiation = contractNegotiationBuilder().state(CONSUMER_OFFERING.code()).contractOffer(contractOffer()).build();
+        when(store.nextForState(eq(CONSUMER_OFFERING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(dispatcherRegistry.send(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
+        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(sendRetryManager.retriesExhausted(any())).thenReturn(true);
+        var latch = countDownOnUpdateLatch();
+
+        negotiationManager.start();
+
+        assertThat(latch.await(5, SECONDS)).isTrue();
+        verify(store).save(argThat(p -> p.getState() == ERROR.code()));
         verify(dispatcherRegistry, only()).send(any(), any(), any());
     }
 
@@ -322,17 +361,34 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void consumerApproving_shouldTransitionApprovingIfSendFails() throws InterruptedException {
+    void consumerApproving_shouldTransitionApprovingIfSendFails_andRetriesNotExhausted() throws InterruptedException {
         var negotiation = contractNegotiationBuilder().state(CONSUMER_APPROVING.code()).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(CONSUMER_APPROVING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(sendRetryManager.retriesExhausted(any())).thenReturn(false);
         var latch = countDownOnUpdateLatch();
 
         negotiationManager.start();
 
         assertThat(latch.await(5, SECONDS)).isTrue();
         verify(store).save(argThat(p -> p.getState() == CONSUMER_APPROVING.code()));
+        verify(dispatcherRegistry, only()).send(any(), any(), any());
+    }
+
+    @Test
+    void consumerApproving_shouldTransitionErrorIfSendFails_andRetriesExhausted() throws InterruptedException {
+        var negotiation = contractNegotiationBuilder().state(CONSUMER_APPROVING.code()).contractOffer(contractOffer()).build();
+        when(store.nextForState(eq(CONSUMER_APPROVING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(dispatcherRegistry.send(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
+        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(sendRetryManager.retriesExhausted(any())).thenReturn(true);
+        var latch = countDownOnUpdateLatch();
+
+        negotiationManager.start();
+
+        assertThat(latch.await(5, SECONDS)).isTrue();
+        verify(store).save(argThat(p -> p.getState() == ERROR.code()));
         verify(dispatcherRegistry, only()).send(any(), any(), any());
     }
 
@@ -353,18 +409,36 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     @Test
-    void declining_shouldTransitionDecliningIfSendFails() throws InterruptedException {
+    void declining_shouldTransitionDecliningIfSendFails_andRetriesNotExhausted() throws InterruptedException {
         var negotiation = contractNegotiationBuilder().state(DECLINING.code()).contractOffer(contractOffer()).build();
         negotiation.setErrorDetail("an error");
         when(store.nextForState(eq(DECLINING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(sendRetryManager.retriesExhausted(any())).thenReturn(false);
         var latch = countDownOnUpdateLatch();
 
         negotiationManager.start();
 
         assertThat(latch.await(5, SECONDS)).isTrue();
         verify(store).save(argThat(p -> p.getState() == DECLINING.code()));
+        verify(dispatcherRegistry, only()).send(any(), any(), any());
+    }
+
+    @Test
+    void declining_shouldTransitionErrorIfSendFails_andRetriesExhausted() throws InterruptedException {
+        var negotiation = contractNegotiationBuilder().state(DECLINING.code()).contractOffer(contractOffer()).build();
+        negotiation.setErrorDetail("an error");
+        when(store.nextForState(eq(DECLINING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        when(dispatcherRegistry.send(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
+        when(store.find(negotiation.getId())).thenReturn(negotiation);
+        when(sendRetryManager.retriesExhausted(any())).thenReturn(true);
+        var latch = countDownOnUpdateLatch();
+
+        negotiationManager.start();
+
+        assertThat(latch.await(5, SECONDS)).isTrue();
+        verify(store).save(argThat(p -> p.getState() == ERROR.code()));
         verify(dispatcherRegistry, only()).send(any(), any(), any());
     }
 

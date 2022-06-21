@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.contract.negotiation.command;
 
+import org.eclipse.dataspaceconnector.common.statemachine.retry.SendRetryManager;
 import org.eclipse.dataspaceconnector.contract.negotiation.ConsumerContractNegotiationManagerImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.ProviderContractNegotiationManagerImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.command.commands.SingleContractNegotiationCommand;
@@ -25,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
@@ -58,6 +60,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
     private String negotiationId;
     private ContractNegotiation negotiation;
     private TestCommand command;
+    private SendRetryManager<StatefulEntity> sendRetryManager = mock(SendRetryManager.class);
 
     @BeforeEach
     void setUp() {
@@ -81,7 +84,6 @@ class ContractNegotiationCommandQueueIntegrationTest {
 
     @Test
     void submitTestCommand_providerManager() throws Exception {
-        // Create and start the negotiation manager
         var negotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .monitor(monitor)
                 .validationService(validationService)
@@ -91,6 +93,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
                 .observable(observable)
                 .store(store)
                 .policyStore(policyStore)
+                .sendRetryManager(sendRetryManager)
                 .build();
 
         negotiationManager.start();
@@ -123,6 +126,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
                 .observable(observable)
                 .store(store)
                 .policyStore(policyStore)
+                .sendRetryManager(sendRetryManager)
                 .build();
         negotiationManager.start();
 

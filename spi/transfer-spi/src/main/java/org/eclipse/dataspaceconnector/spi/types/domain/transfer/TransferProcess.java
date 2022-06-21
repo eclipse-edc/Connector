@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.telemetry.TraceCarrier;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
@@ -97,14 +98,10 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
  */
 @JsonTypeName("dataspaceconnector:transferprocess")
 @JsonDeserialize(builder = TransferProcess.Builder.class)
-public class TransferProcess implements TraceCarrier {
+public class TransferProcess extends StatefulEntity implements TraceCarrier {
 
-    private String id;
     private Type type = Type.CONSUMER;
     private long createdTimestamp;
-    private int state;
-    private int stateCount = UNSAVED.code();
-    private long stateTimestamp;
     private Map<String, String> traceContext = new HashMap<>();
     private String errorDetail;
     private DataRequest dataRequest;
@@ -117,6 +114,7 @@ public class TransferProcess implements TraceCarrier {
     private TransferProcess() {
     }
 
+    @Override
     public String getId() {
         return id;
     }
@@ -133,10 +131,12 @@ public class TransferProcess implements TraceCarrier {
         return state;
     }
 
+    @Override
     public int getStateCount() {
         return stateCount;
     }
 
+    @Override
     public long getStateTimestamp() {
         return stateTimestamp;
     }
@@ -403,12 +403,10 @@ public class TransferProcess implements TraceCarrier {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder {
-
-        private final TransferProcess process;
+    public static class Builder extends StatefulEntity.Builder<TransferProcess, Builder> {
 
         private Builder(TransferProcess process) {
-            this.process = process;
+            super(process);
         }
 
         @JsonCreator
@@ -416,94 +414,73 @@ public class TransferProcess implements TraceCarrier {
             return new Builder(new TransferProcess());
         }
 
-        public Builder id(String id) {
-            process.id = id;
-            return this;
-        }
-
         public Builder type(Type type) {
-            process.type = type;
+            entity.type = type;
             return this;
         }
 
         public Builder clock(Clock clock) {
-            process.clock = clock;
+            entity.clock = clock;
             return this;
         }
 
         public Builder createdTimestamp(long value) {
-            process.createdTimestamp = value;
-            return this;
-        }
-
-        public Builder state(int value) {
-            process.state = value;
-            return this;
-        }
-
-        public Builder stateCount(int value) {
-            process.stateCount = value;
-            return this;
-        }
-
-        public Builder stateTimestamp(long value) {
-            process.stateTimestamp = value;
+            entity.createdTimestamp = value;
             return this;
         }
 
         public Builder dataRequest(DataRequest request) {
-            process.dataRequest = request;
+            entity.dataRequest = request;
             return this;
         }
 
         public Builder resourceManifest(ResourceManifest manifest) {
-            process.resourceManifest = manifest;
+            entity.resourceManifest = manifest;
             return this;
         }
 
         public Builder contentDataAddress(DataAddress dataAddress) {
-            process.contentDataAddress = dataAddress;
+            entity.contentDataAddress = dataAddress;
             return this;
         }
 
         public Builder provisionedResourceSet(ProvisionedResourceSet set) {
-            process.provisionedResourceSet = set;
+            entity.provisionedResourceSet = set;
             return this;
         }
 
         public Builder deprovisionedResources(List<DeprovisionedResource> resources) {
-            process.deprovisionedResources = resources;
+            entity.deprovisionedResources = resources;
             return this;
         }
 
         public Builder errorDetail(String errorDetail) {
-            process.errorDetail = errorDetail;
+            entity.errorDetail = errorDetail;
             return this;
         }
 
         public Builder traceContext(Map<String, String> traceContext) {
-            process.traceContext = traceContext;
+            entity.traceContext = traceContext;
             return this;
         }
 
-        public TransferProcess build() {
-            Objects.requireNonNull(process.id, "id");
-            Objects.requireNonNull(process.clock, "clock");
-            if (process.state == UNSAVED.code() && process.stateTimestamp == 0) {
-                process.stateTimestamp = process.clock.millis();
+        @Override
+        public void validate() {
+            Objects.requireNonNull(entity.clock, "clock");
+            if (entity.state == UNSAVED.code() && entity.stateTimestamp == 0) {
+                entity.stateTimestamp = entity.clock.millis();
             }
-            if (process.resourceManifest != null) {
-                process.resourceManifest.setTransferProcessId(process.id);
-            }
-
-            if (process.provisionedResourceSet != null) {
-                process.provisionedResourceSet.setTransferProcessId(process.id);
+            if (entity.resourceManifest != null) {
+                entity.resourceManifest.setTransferProcessId(entity.id);
             }
 
-            if (process.dataRequest != null) {
-                process.dataRequest.associateWithProcessId(process.id);
+            if (entity.provisionedResourceSet != null) {
+                entity.provisionedResourceSet.setTransferProcessId(entity.id);
             }
-            return process;
+
+            if (entity.dataRequest != null) {
+                entity.dataRequest.associateWithProcessId(entity.id);
+            }
         }
 
     }

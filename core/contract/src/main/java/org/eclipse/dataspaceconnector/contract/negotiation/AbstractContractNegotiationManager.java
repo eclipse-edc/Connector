@@ -14,22 +14,31 @@
 
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import org.eclipse.dataspaceconnector.common.statemachine.retry.SendRetryManager;
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
 import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 
 import java.time.Clock;
 import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
+import static java.lang.String.format;
 
 public abstract class AbstractContractNegotiationManager {
 
@@ -47,6 +56,14 @@ public abstract class AbstractContractNegotiationManager {
     protected int batchSize = 5;
     protected WaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
     protected PolicyDefinitionStore policyStore;
+    protected SendRetryManager<StatefulEntity> sendRetryManager;
+
+    /**
+     * Gives the name of the manager
+     *
+     * @return "Provider" for provider, "Consumer" for consumer
+     */
+    protected abstract String getName();
 
     public static class Builder<T extends AbstractContractNegotiationManager> {
 
@@ -124,6 +141,11 @@ public abstract class AbstractContractNegotiationManager {
             return this;
         }
 
+        public Builder<T> sendRetryManager(SendRetryManager<StatefulEntity> sendRetryManager) {
+            manager.sendRetryManager = sendRetryManager;
+            return this;
+        }
+
         public T build() {
             Objects.requireNonNull(manager.validationService, "contractValidationService");
             Objects.requireNonNull(manager.monitor, "monitor");
@@ -136,9 +158,67 @@ public abstract class AbstractContractNegotiationManager {
             Objects.requireNonNull(manager.executorInstrumentation, "executorInstrumentation");
             Objects.requireNonNull(manager.negotiationStore, "store");
             Objects.requireNonNull(manager.policyStore, "policyStore");
+            Objects.requireNonNull(manager.sendRetryManager, "sendRetryManager");
             manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
 
             return manager;
+        }
+    }
+
+    protected void update(ContractNegotiation negotiation, Consumer<ContractNegotiationListener> observe) {
+        observable.invokeForEach(observe);
+        negotiationStore.save(negotiation);
+    }
+
+    protected void breakLease(ContractNegotiation negotiation) {
+        negotiationStore.save(negotiation);
+    }
+
+    protected class AsyncSendResultHandler {
+        private final String negotiationId;
+        private final String operationDescription;
+        private Consumer<ContractNegotiation> onSuccessHandler = n -> {};
+        private Consumer<ContractNegotiation> onFailureHandler = n -> {};
+
+        public AsyncSendResultHandler(String negotiationId, String operationDescription) {
+            this.negotiationId = negotiationId;
+            this.operationDescription = operationDescription;
+        }
+
+        public AsyncSendResultHandler onSuccess(Consumer<ContractNegotiation> onSuccessHandler) {
+            this.onSuccessHandler = onSuccessHandler;
+            return this;
+        }
+
+        public AsyncSendResultHandler onFailure(Consumer<ContractNegotiation> onFailureHandler) {
+            this.onFailureHandler = onFailureHandler;
+            return this;
+        }
+
+        public BiConsumer<Object, Throwable> build() {
+            return (response, throwable) -> {
+                var negotiation = negotiationStore.find(negotiationId);
+                if (negotiation == null) {
+                    monitor.severe(format("[%s] ContractNegotiation %s not found.", getName(), negotiationId));
+                    return;
+                }
+
+                if (throwable == null) {
+                    onSuccessHandler.accept(negotiation);
+                    monitor.debug(format("[%s] ContractNegotiation %s is now in state %s.", getName(),
+                            negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+                } else if (sendRetryManager.retriesExhausted(negotiation)) {
+                    negotiation.transitionError("Retry limited exceeded: " + throwable.getMessage());
+                    update(negotiation, l -> l.preError(negotiation));
+                    monitor.warning(format("[%s] attempt #%d failed to %s. Retry limit exceeded, ContractNegotiation %s moves to ERROR state",
+                            getName(), negotiation.getStateCount(), operationDescription, negotiation.getId()), throwable);
+                } else {
+                    onFailureHandler.accept(negotiation);
+                    monitor.warning(format("[%s] attempt #%d failed to %s. ContractNegotiation %s will stay in %s state",
+                            getName(), negotiation.getStateCount(), operationDescription, negotiation.getId(),
+                            ContractNegotiationStates.from(negotiation.getState())), throwable);
+                }
+            };
         }
     }
 

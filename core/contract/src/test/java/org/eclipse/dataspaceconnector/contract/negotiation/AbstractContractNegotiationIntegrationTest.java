@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import org.eclipse.dataspaceconnector.common.statemachine.retry.SendRetryManager;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.contract.observe.ContractNegotiationObservableImpl;
 import org.eclipse.dataspaceconnector.core.defaults.negotiationstore.InMemoryContractNegotiationStore;
@@ -26,6 +27,7 @@ import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
@@ -68,6 +70,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
     protected InMemoryContractNegotiationStore providerStore;
     protected InMemoryContractNegotiationStore consumerStore;
     protected ContractValidationService validationService;
+    protected SendRetryManager<StatefulEntity> sendRetryManager = mock(SendRetryManager.class);
     protected String consumerNegotiationId;
 
     protected ClaimToken token;
@@ -105,6 +108,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .observable(providerObservable)
                 .store(providerStore)
                 .policyStore(policyStore)
+                .sendRetryManager(sendRetryManager)
                 .build();
 
         consumerManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
@@ -117,6 +121,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .observable(consumerObservable)
                 .store(consumerStore)
                 .policyStore(policyStore)
+                .sendRetryManager(sendRetryManager)
                 .build();
 
         countDownLatch = new CountDownLatch(2);

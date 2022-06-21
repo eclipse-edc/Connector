@@ -18,10 +18,12 @@ package org.eclipse.dataspaceconnector.transfer.core.transfer;
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.common.statemachine.StateMachine;
 import org.eclipse.dataspaceconnector.common.statemachine.StateProcessorImpl;
+import org.eclipse.dataspaceconnector.common.statemachine.retry.SendRetryManager;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
@@ -114,7 +116,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private StateMachine stateMachine;
     private DataAddressResolver addressResolver;
     private PolicyArchive policyArchive;
-    private SendRetryManager<TransferProcess> sendRetryManager;
+    private SendRetryManager<StatefulEntity> sendRetryManager;
     private Clock clock;
 
     private TransferProcessManagerImpl() {
@@ -664,7 +666,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return this;
         }
 
-        public Builder sendRetryManager(SendRetryManager<TransferProcess> sendRetryManager) {
+        public Builder sendRetryManager(SendRetryManager sendRetryManager) {
             manager.sendRetryManager = sendRetryManager;
             return this;
         }
