@@ -9,12 +9,14 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Microsoft Corporation - introduced Awaitility
  *
  */
 
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
@@ -23,20 +25,27 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
 class ContractNegotiationIntegrationTest extends AbstractContractNegotiationIntegrationTest {
 
+    private static final Duration DEFAULT_TEST_TIMEOUT = Duration.ofSeconds(15);
+    private static final Duration DEFAULT_POLL_INTERVAL = Duration.ofSeconds(1);
+    private final ContractNegotiationListener negotiationListenerMock = mock(ContractNegotiationListener.class);
+
     @Test
-    void testNegotiation_initialOfferAccepted() throws Exception {
+    void testNegotiation_initialOfferAccepted() {
         consumerNegotiationId = null;
         ContractOffer offer = getContractOffer();
         when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
@@ -44,8 +53,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 any(ContractOffer.class))).thenReturn(true);
 
         // Create and register listeners for provider and consumer
-        providerObservable.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
-        consumerObservable.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
+        providerObservable.registerListener(negotiationListenerMock);
+        consumerObservable.registerListener(negotiationListenerMock);
 
         // Start provider and consumer negotiation managers
         providerManager.start();
@@ -60,24 +69,30 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 .build();
         consumerManager.initiate(request);
 
-        // Wait for negotiation to finish with time out at 15 seconds
-        var success = countDownLatch.await(15, TimeUnit.SECONDS);
 
-        assertThat(success).isTrue();
+        await().atMost(DEFAULT_TEST_TIMEOUT)
+                .pollInterval(DEFAULT_POLL_INTERVAL)
+                .untilAsserted(() -> {
+                    var consumerNegotiation = consumerStore.find(consumerNegotiationId);
+                    var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
 
-        var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
+                    // Assert that provider and consumer have the same offers and agreement stored
+                    assertThat(consumerNegotiation).isNotNull();
+                    assertThat(providerNegotiation).isNotNull();
+                    assertThat(consumerNegotiation.getState()).isEqualTo(CONFIRMED.code());
+                    assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
+                    assertThat(consumerNegotiation.getContractOffers().size()).isEqualTo(providerNegotiation.getContractOffers().size());
+                    assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
+                    assertThat(consumerNegotiation.getContractAgreement()).isNotNull();
+                    assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
 
-        // Assert that provider and consumer have the same offers and agreement stored
-        assertThat(consumerNegotiation).isNotNull();
-        assertThat(consumerNegotiation.getState()).isEqualTo(CONFIRMED.code());
-        assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
-        assertThat(consumerNegotiation.getContractOffers().size()).isEqualTo(providerNegotiation.getContractOffers().size());
-        assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
-        assertThat(consumerNegotiation.getContractAgreement()).isNotNull();
-        assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
-        verify(validationService, Mockito.atLeastOnce()).validate(token, offer);
-        verify(validationService, Mockito.atLeastOnce()).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
+                    // verify that the preConfirmed event has occurred twice - once for cons. once for prov
+                    verify(negotiationListenerMock, times(2)).preConfirmed(any());
+
+                    verify(validationService, Mockito.atLeastOnce()).validate(token, offer);
+                    verify(validationService, Mockito.atLeastOnce()).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
+                });
+
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -85,15 +100,16 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
     }
 
     @Test
-    void testNegotiation_initialOfferDeclined() throws Exception {
+    void testNegotiation_initialOfferDeclined() {
         consumerNegotiationId = null;
         ContractOffer offer = getContractOffer();
 
         when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
 
         // Create and register listeners for provider and consumer
-        providerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
-        consumerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
+
+        providerObservable.registerListener(negotiationListenerMock);
+        consumerObservable.registerListener(negotiationListenerMock);
 
         // Start provider and consumer negotiation managers
         providerManager.start();
@@ -108,23 +124,28 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 .build();
         consumerManager.initiate(request);
 
-        // Wait for negotiation to finish with time out at 15 seconds
-        var success = countDownLatch.await(15, TimeUnit.SECONDS);
+        await().atMost(DEFAULT_TEST_TIMEOUT)
+                .pollInterval(DEFAULT_POLL_INTERVAL)
+                .untilAsserted(() -> {
 
-        assertThat(success).isTrue();
+                    var consumerNegotiation = consumerStore.find(consumerNegotiationId);
+                    var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
 
-        var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
+                    // Assert that provider and consumer have the same offers stored
+                    assertThat(consumerNegotiation).isNotNull();
+                    assertThat(providerNegotiation).isNotNull();
+                    assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
+                    assertThat(consumerNegotiation.getContractOffers().size()).isEqualTo(providerNegotiation.getContractOffers().size());
+                    assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
 
-        // Assert that provider and consumer have the same offers stored
-        assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
-        assertThat(consumerNegotiation.getContractOffers().size()).isEqualTo(providerNegotiation.getContractOffers().size());
-        assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
+                    // verify that the preConfirmed event has occurred twice - once for cons. once for prov
+                    verify(negotiationListenerMock, times(2)).preDeclined(any());
 
-        // Assert that no agreement has been stored on either side
-        assertThat(consumerNegotiation.getContractAgreement()).isNull();
-        assertThat(providerNegotiation.getContractAgreement()).isNull();
-        verify(validationService, Mockito.atLeastOnce()).validate(token, offer);
+                    // Assert that no agreement has been stored on either side
+                    assertThat(consumerNegotiation.getContractAgreement()).isNull();
+                    assertThat(providerNegotiation.getContractAgreement()).isNull();
+                    verify(validationService, Mockito.atLeastOnce()).validate(token, offer);
+                });
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -132,7 +153,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
     }
 
     @Test
-    void testNegotiation_agreementDeclined() throws Exception {
+    void testNegotiation_agreementDeclined() {
         consumerNegotiationId = null;
         var offer = getContractOffer();
 
@@ -141,8 +162,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 any(ContractOffer.class))).thenReturn(false);
 
         // Create and register listeners for provider and consumer
-        providerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
-        consumerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
+        providerObservable.registerListener(negotiationListenerMock);
+        consumerObservable.registerListener(negotiationListenerMock);
 
         // Start provider and consumer negotiation managers
         providerManager.start();
@@ -157,24 +178,28 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 .build();
         consumerManager.initiate(request);
 
-        // Wait for negotiation to finish with time out at 15 seconds
-        var success = countDownLatch.await(15, TimeUnit.SECONDS);
+        await().atMost(DEFAULT_TEST_TIMEOUT)
+                .pollInterval(DEFAULT_POLL_INTERVAL)
+                .untilAsserted(() -> {
+                    var consumerNegotiation = consumerStore.find(consumerNegotiationId);
+                    var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
 
-        assertThat(success).isTrue();
+                    // Assert that provider and consumer have the same offers stored
+                    assertThat(consumerNegotiation).isNotNull();
+                    assertThat(providerNegotiation).isNotNull();
+                    assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
+                    assertThat(consumerNegotiation.getContractOffers().size()).isEqualTo(providerNegotiation.getContractOffers().size());
+                    assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
 
-        var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
+                    // Assert that no agreement has been stored on either side
+                    assertThat(consumerNegotiation.getContractAgreement()).isNull();
+                    assertThat(providerNegotiation.getContractAgreement()).isNull();
+                    // verify that the preConfirmed event has occurred twice - once for cons. once for prov
+                    verify(negotiationListenerMock, times(2)).preDeclined(any());
 
-        // Assert that provider and consumer have the same offers stored
-        assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
-        assertThat(consumerNegotiation.getContractOffers().size()).isEqualTo(providerNegotiation.getContractOffers().size());
-        assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
-
-        // Assert that no agreement has been stored on either side
-        assertThat(consumerNegotiation.getContractAgreement()).isNull();
-        assertThat(providerNegotiation.getContractAgreement()).isNull();
-        verify(validationService, Mockito.atLeastOnce()).validate(token, offer);
-        verify(validationService, Mockito.atLeastOnce()).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
+                    verify(validationService, Mockito.atLeastOnce()).validate(token, offer);
+                    verify(validationService, Mockito.atLeastOnce()).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
+                });
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -183,7 +208,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
 
     @Test
     @Disabled
-    void testNegotiation_counterOfferAccepted() throws Exception {
+    void testNegotiation_counterOfferAccepted() {
         consumerNegotiationId = null;
         ContractOffer initialOffer = getContractOffer();
         ContractOffer counterOffer = getCounterOffer();
@@ -194,8 +219,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 eq(counterOffer))).thenReturn(true);
 
         // Create and register listeners for provider and consumer
-        providerObservable.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
-        consumerObservable.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
+        providerObservable.registerListener(negotiationListenerMock);
+        consumerObservable.registerListener(negotiationListenerMock);
 
         // Start provider and consumer negotiation managers
         providerManager.start();
@@ -210,32 +235,34 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 .build();
         consumerManager.initiate(request);
 
-        // Wait for negotiation to finish with time out at 15 seconds
-        var success = countDownLatch.await(15, TimeUnit.SECONDS);
+        await().atMost(DEFAULT_TEST_TIMEOUT)
+                .pollInterval(DEFAULT_POLL_INTERVAL)
+                .untilAsserted(() -> {
 
-        assertThat(success).isTrue();
+                    var consumerNegotiation = consumerStore.find(consumerNegotiationId);
+                    var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
 
-        var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
+                    // Assert that provider and consumer have the same number of offers stored
+                    assertThat(consumerNegotiation).isNotNull();
+                    assertThat(providerNegotiation).isNotNull();
+                    assertThat(consumerNegotiation.getContractOffers()).hasSize(2);
+                    assertThat(consumerNegotiation.getContractOffers().size()).isEqualTo(providerNegotiation.getContractOffers().size());
 
-        // Assert that provider and consumer have the same number of offers stored
-        assertThat(consumerNegotiation.getContractOffers()).hasSize(2);
-        assertThat(consumerNegotiation.getContractOffers().size()).isEqualTo(providerNegotiation.getContractOffers().size());
+                    // Assert that initial offer is the same
+                    assertThat(consumerNegotiation.getContractOffers().get(0)).isEqualTo(providerNegotiation.getContractOffers().get(0));
 
-        // Assert that initial offer is the same
-        assertThat(consumerNegotiation.getContractOffers().get(0)).isEqualTo(providerNegotiation.getContractOffers().get(0));
+                    // Assert that counter offer is the same
+                    assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
 
-        // Assert that counter offer is the same
-        assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
+                    // Assert that same agreement is stored on both sides
+                    assertThat(consumerNegotiation.getContractAgreement()).isNotNull();
+                    assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
 
-        // Assert that same agreement is stored on both sides
-        assertThat(consumerNegotiation.getContractAgreement()).isNotNull();
-        assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
-
-        verify(validationService, Mockito.atLeastOnce()).validate(token, initialOffer);
-        verify(validationService, Mockito.atLeastOnce()).validate(token, counterOffer, initialOffer);
-        verify(validationService, Mockito.atLeastOnce()).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
-
+                    verify(validationService, Mockito.atLeastOnce()).validate(token, initialOffer);
+                    verify(validationService, Mockito.atLeastOnce()).validate(token, counterOffer, initialOffer);
+                    verify(validationService, Mockito.atLeastOnce()).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
+                    verify(negotiationListenerMock, times(2)).preConfirmed(any());
+                });
         // Stop provider and consumer negotiation managers
         providerManager.stop();
         consumerManager.stop();
@@ -243,7 +270,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
 
     @Test
     @Disabled
-    void testNegotiation_counterOfferDeclined() throws Exception {
+    void testNegotiation_counterOfferDeclined() {
         consumerNegotiationId = null;
 
         ContractOffer initialOffer = getContractOffer();
@@ -253,8 +280,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         when(validationService.validate(token, counterOffer, initialOffer)).thenReturn(Result.success(null));
 
         // Create and register listeners for provider and consumer
-        providerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
-        consumerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
+        providerObservable.registerListener(negotiationListenerMock);
+        consumerObservable.registerListener(negotiationListenerMock);
 
         // Start provider and consumer negotiation managers
         providerManager.start();
@@ -270,30 +297,35 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         consumerManager.initiate(request);
 
         // Wait for negotiation to finish with time out at 15 seconds
-        var success = countDownLatch.await(15, TimeUnit.SECONDS);
+        await().atMost(DEFAULT_TEST_TIMEOUT)
+                .pollInterval(DEFAULT_POLL_INTERVAL)
+                .untilAsserted(() -> {
 
-        assertThat(success).isTrue();
+                    var consumerNegotiation = consumerStore.find(consumerNegotiationId);
+                    var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
 
-        var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
+                    // Assert that provider and consumer have the same number of offers stored
+                    assertThat(consumerNegotiation).isNotNull();
+                    assertThat(providerNegotiation).isNotNull();
+                    // Assert that provider and consumer have the same number of offers stored
+                    assertThat(consumerNegotiation.getContractOffers()).hasSize(2);
+                    assertThat(consumerNegotiation.getContractOffers().size()).isEqualTo(providerNegotiation.getContractOffers().size());
 
-        // Assert that provider and consumer have the same number of offers stored
-        assertThat(consumerNegotiation.getContractOffers()).hasSize(2);
-        assertThat(consumerNegotiation.getContractOffers().size()).isEqualTo(providerNegotiation.getContractOffers().size());
+                    // Assert that initial offer is the same
+                    assertThat(consumerNegotiation.getContractOffers().get(0)).isEqualTo(providerNegotiation.getContractOffers().get(0));
 
-        // Assert that initial offer is the same
-        assertThat(consumerNegotiation.getContractOffers().get(0)).isEqualTo(providerNegotiation.getContractOffers().get(0));
+                    // Assert that counter offer is the same
+                    assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
 
-        // Assert that counter offer is the same
-        assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
+                    // Assert that no agreement has been stored on either side
+                    assertThat(consumerNegotiation.getContractAgreement()).isNull();
+                    assertThat(providerNegotiation.getContractAgreement()).isNull();
+                    verify(validationService, Mockito.atLeastOnce()).validate(token, initialOffer);
+                    verify(validationService, Mockito.atLeastOnce()).validate(token, counterOffer, initialOffer);
+                    verify(validationService, Mockito.atLeastOnce()).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
 
-        // Assert that no agreement has been stored on either side
-        assertThat(consumerNegotiation.getContractAgreement()).isNull();
-        assertThat(providerNegotiation.getContractAgreement()).isNull();
-        verify(validationService, Mockito.atLeastOnce()).validate(token, initialOffer);
-        verify(validationService, Mockito.atLeastOnce()).validate(token, counterOffer, initialOffer);
-        verify(validationService, Mockito.atLeastOnce()).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
-
+                    verify(negotiationListenerMock, times(2)).preDeclined(any());
+                });
         // Stop provider and consumer negotiation managers
         providerManager.stop();
         consumerManager.stop();
@@ -301,7 +333,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
 
     @Test
     @Disabled
-    void testNegotiation_consumerCounterOfferAccepted() throws Exception {
+    void testNegotiation_consumerCounterOfferAccepted() {
         consumerNegotiationId = null;
 
         // Create an initial contract offer and two counter offers
@@ -322,8 +354,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         when(validationService.validate(eq(token), any(ContractAgreement.class),
                 eq(consumerCounterOffer))).thenReturn(true);
         // Create and register listeners for provider and consumer
-        providerObservable.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
-        consumerObservable.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
+        providerObservable.registerListener(negotiationListenerMock);
+        consumerObservable.registerListener(negotiationListenerMock);
 
         // Start provider and consumer negotiation managers
         providerManager.start();
@@ -339,35 +371,42 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         consumerManager.initiate(request);
 
         // Wait for negotiation to finish with time out at 15 seconds
-        var success = countDownLatch.await(15, TimeUnit.SECONDS);
+        await().atMost(DEFAULT_TEST_TIMEOUT)
+                .pollInterval(DEFAULT_POLL_INTERVAL)
+                .untilAsserted(() -> {
 
-        assertThat(success).isTrue();
+                    var consumerNegotiation = consumerStore.find(consumerNegotiationId);
+                    var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
 
-        var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
+                    // Assert that provider and consumer have the same number of offers stored
+                    assertThat(consumerNegotiation).isNotNull();
+                    assertThat(providerNegotiation).isNotNull();
 
-        // Assert that provider and consumer have the same number of offers stored
-        assertThat(consumerNegotiation.getContractOffers()).hasSize(3);
-        assertThat(consumerNegotiation.getContractOffers().size()).isEqualTo(providerNegotiation.getContractOffers().size());
+                    // Assert that provider and consumer have the same number of offers stored
+                    assertThat(consumerNegotiation.getContractOffers()).hasSize(3);
+                    assertThat(consumerNegotiation.getContractOffers().size()).isEqualTo(providerNegotiation.getContractOffers().size());
 
-        // Assert that initial offer is the same
-        assertThat(consumerNegotiation.getContractOffers().get(0)).isEqualTo(providerNegotiation.getContractOffers().get(0));
+                    // Assert that initial offer is the same
+                    assertThat(consumerNegotiation.getContractOffers().get(0)).isEqualTo(providerNegotiation.getContractOffers().get(0));
 
-        // Assert that first counter offer is the same
-        assertThat(consumerNegotiation.getContractOffers().get(1)).isEqualTo(providerNegotiation.getContractOffers().get(1));
+                    // Assert that first counter offer is the same
+                    assertThat(consumerNegotiation.getContractOffers().get(1)).isEqualTo(providerNegotiation.getContractOffers().get(1));
 
-        // Assert that second counter offer is the same
-        assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
+                    // Assert that second counter offer is the same
+                    assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
 
-        // Assert that same agreement is stored on both sides
-        assertThat(consumerNegotiation.getContractAgreement()).isNotNull();
-        assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
+                    // Assert that same agreement is stored on both sides
+                    assertThat(consumerNegotiation.getContractAgreement()).isNotNull();
+                    assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
 
-        verify(validationService, Mockito.atLeastOnce()).validate(token, initialOffer);
-        verify(validationService, Mockito.atLeastOnce()).validate(token, counterOffer, initialOffer);
-        verify(validationService, Mockito.atLeastOnce()).validate(token, consumerCounterOffer, counterOffer);
-        verify(validationService, Mockito.atLeastOnce()).validate(eq(token), any(ContractAgreement.class), eq(consumerCounterOffer));
+                    verify(validationService, Mockito.atLeastOnce()).validate(token, initialOffer);
+                    verify(validationService, Mockito.atLeastOnce()).validate(token, counterOffer, initialOffer);
+                    verify(validationService, Mockito.atLeastOnce()).validate(token, consumerCounterOffer, counterOffer);
+                    verify(validationService, Mockito.atLeastOnce()).validate(eq(token), any(ContractAgreement.class), eq(consumerCounterOffer));
 
+                    verify(negotiationListenerMock, times(2)).preConfirmed(any());
+
+                });
         // Stop provider and consumer negotiation managers
         providerManager.stop();
         consumerManager.stop();
@@ -375,7 +414,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
 
     @Test
     @Disabled
-    void testNegotiation_consumerCounterOfferDeclined() throws Exception {
+    void testNegotiation_consumerCounterOfferDeclined() {
         consumerNegotiationId = null;
 
         // Create an initial contract offer and two counter offers
@@ -393,8 +432,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         when(validationService.validate(token, consumerCounterOffer, counterOffer)).thenReturn(Result.success(null));
 
         // Create and register listeners for provider and consumer
-        providerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
-        consumerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
+        providerObservable.registerListener(negotiationListenerMock);
+        consumerObservable.registerListener(negotiationListenerMock);
 
         // Start provider and consumer negotiation managers
         providerManager.start();
@@ -410,34 +449,40 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         consumerManager.initiate(request);
 
         // Wait for negotiation to finish with time out at 15 seconds
-        var success = countDownLatch.await(15, TimeUnit.SECONDS);
+        // Wait for negotiation to finish with time out at 15 seconds
+        await().atMost(DEFAULT_TEST_TIMEOUT)
+                .pollInterval(DEFAULT_POLL_INTERVAL)
+                .untilAsserted(() -> {
 
-        assertThat(success).isTrue();
+                    var consumerNegotiation = consumerStore.find(consumerNegotiationId);
+                    var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
 
-        var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
+                    // Assert that provider and consumer have the same number of offers stored
+                    assertThat(consumerNegotiation).isNotNull();
+                    assertThat(providerNegotiation).isNotNull();
 
-        // Assert that provider and consumer have the same number of offers stored
-        assertThat(consumerNegotiation.getContractOffers()).hasSize(3);
-        assertThat(consumerNegotiation.getContractOffers().size()).isEqualTo(providerNegotiation.getContractOffers().size());
+                    // Assert that provider and consumer have the same number of offers stored
+                    assertThat(consumerNegotiation.getContractOffers()).hasSize(3);
+                    assertThat(consumerNegotiation.getContractOffers().size()).isEqualTo(providerNegotiation.getContractOffers().size());
 
-        // Assert that initial offer is the same
-        assertThat(consumerNegotiation.getContractOffers().get(0)).isEqualTo(providerNegotiation.getContractOffers().get(0));
+                    // Assert that initial offer is the same
+                    assertThat(consumerNegotiation.getContractOffers().get(0)).isEqualTo(providerNegotiation.getContractOffers().get(0));
 
-        // Assert that first counter offer is the same
-        assertThat(consumerNegotiation.getContractOffers().get(1)).isEqualTo(providerNegotiation.getContractOffers().get(1));
+                    // Assert that first counter offer is the same
+                    assertThat(consumerNegotiation.getContractOffers().get(1)).isEqualTo(providerNegotiation.getContractOffers().get(1));
 
-        // Assert that second counter offer is the same
-        assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
+                    // Assert that second counter offer is the same
+                    assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
 
-        // Assert that no agreement has been stored on either side
-        assertThat(consumerNegotiation.getContractAgreement()).isNull();
-        assertThat(providerNegotiation.getContractAgreement()).isNull();
+                    // Assert that no agreement has been stored on either side
+                    assertThat(consumerNegotiation.getContractAgreement()).isNull();
+                    assertThat(providerNegotiation.getContractAgreement()).isNull();
 
-        verify(validationService, Mockito.atLeastOnce()).validate(token, initialOffer);
-        verify(validationService, Mockito.atLeastOnce()).validate(token, counterOffer, initialOffer);
-        verify(validationService, Mockito.atLeastOnce()).validate(token, consumerCounterOffer, counterOffer);
-
+                    verify(validationService, Mockito.atLeastOnce()).validate(token, initialOffer);
+                    verify(validationService, Mockito.atLeastOnce()).validate(token, counterOffer, initialOffer);
+                    verify(validationService, Mockito.atLeastOnce()).validate(token, consumerCounterOffer, counterOffer);
+                    verify(negotiationListenerMock, times(2)).preDeclined(any());
+                });
         // Stop provider and consumer negotiation managers
         providerManager.stop();
         consumerManager.stop();
