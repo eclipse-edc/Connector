@@ -7,3 +7,27 @@ consumption under load.
 
 Note that Azure Object Storage or S3 extensions should be preferred to the current extensions when performing large data
 transfers as support more scalable parallelization.
+
+# Configuration
+
+## Configuration properties
+
+* edc.dataplane.http.sink.partition.size - Sets the number o parallel partions for the sink (default set to 5).
+
+## Data properties
+
+see [HttpDataAddress.java](../../../spi/core-spi/src/main/java/org/eclipse/dataspaceconnector/spi/types/domain/HttpDataAddress.java)
+
+* type - The HTTP transfer type is "HttpData".
+* endpoint - The http endpoint.
+* name - The name associated with the HTTP data, typically a filename (optional).
+* authKey - The authentication key property name (optional).
+* authCode - The authentication code property name (optional).
+* secretName - The name of the vault secret that is containing the authorization code (optional).
+* proxyBody - If set to true the body of the actual request will be used to retrieve data from this address.
+* proxyPath - If set to true the path of the actual request will be used to retrieve data from this address.
+* proxyQueryParams - If set to true the query params of the actual request will be used to retrieve data from this address.
+* proxyMethod - If set to true the http method of the actual request will be used to retrieve data from this address.
+* httpVerb - The http verb to use for sink endpoint - possible values POST/PUT - default set to POST.
+* usePartName - Use partition name when sending to endpoint. When set to true (default) - it appends the name of the part to the sink endpoint.
+* additionalHeaders - The additional headers to use as json string e.g. ```"additionalHeaders" : "{\"Content-Type\" : \"application/octet-stream\",\"x-ms-blob-type\": \"BlockBlob\"}"```.

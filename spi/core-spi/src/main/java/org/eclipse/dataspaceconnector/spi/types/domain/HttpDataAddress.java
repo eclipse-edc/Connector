@@ -17,8 +17,14 @@ package org.eclipse.dataspaceconnector.spi.types.domain;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.common.string.StringUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This is a wrapper class for the {@link DataAddress} object, which has typed accessors for properties specific to
@@ -39,6 +45,9 @@ public class HttpDataAddress extends DataAddress {
     private static final String PROXY_PATH = "proxyPath";
     private static final String PROXY_QUERY_PARAMS = "proxyQueryParams";
     private static final String PROXY_METHOD = "proxyMethod";
+    private static final String HTTP_VERB = "httpVerb";
+    private static final String USE_PART_NAME = "usePartName";
+    private static final String ADDITIONAL_HEADERS = "additionalHeaders";
 
     private HttpDataAddress() {
         super();
@@ -87,6 +96,29 @@ public class HttpDataAddress extends DataAddress {
     @JsonIgnore
     public String getProxyMethod() {
         return getProperty(PROXY_METHOD);
+    }
+
+    @JsonIgnore
+    public String getHttpVerb() {
+        return getProperty(HTTP_VERB, "POST");
+    }
+
+    @JsonIgnore
+    public boolean isUsePartName() {
+        return Boolean.parseBoolean(getProperty(USE_PART_NAME, Boolean.TRUE.toString()));
+    }
+
+    @JsonIgnore
+    public Map<String, String> getAdditionalHeaders() {
+        return convertAdditionalHeaders(getProperty(ADDITIONAL_HEADERS, "{}"));
+    }
+
+    private Map<String, String> convertAdditionalHeaders(String additionalHeaders) {
+        try {
+            return new ObjectMapper().readValue(StringUtils.isNullOrBlank(additionalHeaders) ? "" : additionalHeaders, Map.class);
+        } catch (JsonProcessingException e) {
+            return new HashMap<>();
+        }
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -144,6 +176,21 @@ public class HttpDataAddress extends DataAddress {
 
         public Builder proxyMethod(String proxyMethod) {
             this.property(PROXY_METHOD, proxyMethod);
+            return this;
+        }
+
+        public Builder httpVerb(String httpVerb) {
+            this.property(HTTP_VERB, httpVerb);
+            return this;
+        }
+
+        public Builder usePartName(String usePartName) {
+            this.property(USE_PART_NAME, usePartName);
+            return this;
+        }
+
+        public Builder additionalHeaders(String additionalHeaders) {
+            this.property(ADDITIONAL_HEADERS, additionalHeaders);
             return this;
         }
 
