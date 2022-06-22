@@ -40,6 +40,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Fix usage of `NAME` property in `HttpDataSourceFactory` (#1460)
 * Fix clearing Loaders in the FCC (#1495)
 * Avoid endless loops in `ContractNegotiationManager` (#1487)
+* Fix for change in Cosmos DB behavior on missing sort fields (#1514)
 
 ## [milestone-4] - 2022-06-07
 
