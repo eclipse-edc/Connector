@@ -2,6 +2,7 @@ openapi: 3.0.1
 paths:
   /contractdefinitions:
     get:
+      description: Returns all contract definitions according to a query
       operationId: getAllContractDefinitions
       parameters:
       - in: query
@@ -30,17 +31,19 @@ paths:
         schema:
           type: string
       responses:
-        default:
+        "200":
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/ContractDefinitionDto'
-          description: default response
+        "400":
+          description: Request was malformed
       tags:
       - Contract Definition
     post:
+      description: Creates a new contract definition
       operationId: createContractDefinition
       requestBody:
         content:
@@ -48,14 +51,21 @@ paths:
             schema:
               $ref: '#/components/schemas/ContractDefinitionDto'
       responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
+        "200":
+          description: contract definition was created successfully
+        "400":
+          description: Request body was malformed
+        "409":
+          description: "Could not create contract definition, because a contract definition\
+            \ with that ID already exists"
       tags:
       - Contract Definition
   /contractdefinitions/{id}:
     delete:
+      description: "Removes a contract definition with the given ID if possible. DANGER\
+        \ ZONE: Note that deleting contract definitions can have unexpected results,\
+        \ especially for contract offers that have been sent out or ongoing or contract\
+        \ negotiations."
       operationId: deleteContractDefinition
       parameters:
       - in: path
@@ -64,13 +74,16 @@ paths:
         schema:
           type: string
       responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
+        "200":
+          description: Contract definition was deleted successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: A contract definition with the given ID does not exist
       tags:
       - Contract Definition
     get:
+      description: Gets an contract definition with the given ID
       operationId: getContractDefinition
       parameters:
       - in: path
@@ -79,12 +92,16 @@ paths:
         schema:
           type: string
       responses:
-        default:
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContractDefinitionDto'
-          description: default response
+          description: The contract definition
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: An contract agreement with the given ID does not exist
       tags:
       - Contract Definition
 components:

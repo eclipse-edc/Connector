@@ -2,6 +2,7 @@ openapi: 3.0.1
 paths:
   /transferprocess:
     get:
+      description: Returns all transfer process according to a query
       operationId: getAllTransferProcesses
       parameters:
       - in: query
@@ -30,17 +31,21 @@ paths:
         schema:
           type: string
       responses:
-        default:
+        "200":
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/TransferProcessDto'
-          description: default response
+        "400":
+          description: Request was malformed
       tags:
       - Transfer Process
     post:
+      description: "Initiates a data transfer with the given parameters. Please note\
+        \ that successfully invoking this endpoint only means that the transfer was\
+        \ initiated. Clients must poll the /{id}/state endpoint to track the state"
       operationId: initiateTransfer
       requestBody:
         content:
@@ -48,16 +53,25 @@ paths:
             schema:
               $ref: '#/components/schemas/TransferRequestDto'
       responses:
-        default:
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TransferId'
-          description: default response
+          description: The transfer was successfully initiated. Returns the transfer
+            process ID
+          links:
+            poll-state:
+              operationId: getTransferProcessState
+              parameters:
+                id: $response.body#/id
+        "400":
+          description: Request body was malformed
       tags:
       - Transfer Process
   /transferprocess/{id}:
     get:
+      description: Gets an transfer process with the given ID
       operationId: getTransferProcess
       parameters:
       - in: path
@@ -66,16 +80,24 @@ paths:
         schema:
           type: string
       responses:
-        default:
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TransferProcessDto'
-          description: default response
+          description: The transfer process
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: A transfer process with the given ID does not exist
       tags:
       - Transfer Process
   /transferprocess/{id}/cancel:
     post:
+      description: "Requests aborting the transfer process. Due to the asynchronous\
+        \ nature of transfers, a successful response only indicates that the request\
+        \ was successfully received. Clients must poll the /{id}/state endpoint to\
+        \ track the state."
       operationId: cancelTransferProcess
       parameters:
       - in: path
@@ -84,14 +106,24 @@ paths:
         schema:
           type: string
       responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
+        "200":
+          description: Request to cancel the transfer process was successfully received
+          links:
+            poll-state:
+              operationId: getTransferProcessState
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: A contract negotiation with the given ID does not exist
       tags:
       - Transfer Process
   /transferprocess/{id}/deprovision:
     post:
+      description: "Requests the deprovisioning of resources associated with a transfer\
+        \ process. Due to the asynchronous nature of transfers, a successful response\
+        \ only indicates that the request was successfully received. This may take\
+        \ a long time, so clients must poll the /{id}/state endpoint to track the\
+        \ state."
       operationId: deprovisionTransferProcess
       parameters:
       - in: path
@@ -100,14 +132,21 @@ paths:
         schema:
           type: string
       responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
+        "200":
+          description: Request to deprovision the transfer process was successfully
+            received
+          links:
+            poll-state:
+              operationId: getTransferProcessState
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: A contract negotiation with the given ID does not exist
       tags:
       - Transfer Process
   /transferprocess/{id}/state:
     get:
+      description: Gets the state of a transfer process with the given ID
       operationId: getTransferProcessState
       parameters:
       - in: path
@@ -116,12 +155,16 @@ paths:
         schema:
           type: string
       responses:
-        default:
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TransferState'
-          description: default response
+          description: The  transfer process's state
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: An  transfer process with the given ID does not exist
       tags:
       - Transfer Process
 components:

@@ -2,6 +2,7 @@ openapi: 3.0.1
 paths:
   /assets:
     get:
+      description: Gets all assets according to a particular query
       operationId: getAllAssets
       parameters:
       - in: query
@@ -30,17 +31,19 @@ paths:
         schema:
           type: string
       responses:
-        default:
+        "200":
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/AssetDto'
-          description: default response
+        "400":
+          description: Request body was malformed
       tags:
       - Asset
     post:
+      description: Creates a new asset together with a data address
       operationId: createAsset
       requestBody:
         content:
@@ -48,14 +51,22 @@ paths:
             schema:
               $ref: '#/components/schemas/AssetEntryDto'
       responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
+        "200":
+          description: Asset was created successfully
+        "400":
+          description: Request body was malformed
+        "409":
+          description: "Could not create asset, because an asset with that ID already\
+            \ exists"
       tags:
       - Asset
   /assets/{id}:
     delete:
+      description: "Removes an asset with the given ID if possible. Deleting an asset\
+        \ is only possible if that asset is not yet referenced by a contract agreement,\
+        \ in which case an error is returned. DANGER ZONE: Note that deleting assets\
+        \ can have unexpected results, especially for contract offers that have been\
+        \ sent out or ongoing or contract negotiations."
       operationId: removeAsset
       parameters:
       - in: path
@@ -64,13 +75,19 @@ paths:
         schema:
           type: string
       responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
+        "200":
+          description: Asset was deleted successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: An asset with the given ID does not exist
+        "409":
+          description: "The asset cannot be deleted, because it is referenced by a\
+            \ contract agreement"
       tags:
       - Asset
     get:
+      description: Gets an asset with the given ID
       operationId: getAsset
       parameters:
       - in: path
@@ -79,12 +96,16 @@ paths:
         schema:
           type: string
       responses:
-        default:
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetDto'
-          description: default response
+          description: The asset
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: An asset with the given ID does not exist
       tags:
       - Asset
 components:

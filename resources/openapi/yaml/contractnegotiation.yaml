@@ -2,6 +2,7 @@ openapi: 3.0.1
 paths:
   /contractnegotiations:
     get:
+      description: Returns all contract negotiations according to a query
       operationId: getNegotiations
       parameters:
       - in: query
@@ -30,17 +31,22 @@ paths:
         schema:
           type: string
       responses:
-        default:
+        "200":
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/ContractNegotiationDto'
-          description: default response
+        "400":
+          description: Request was malformed
       tags:
       - Contract Negotiation
     post:
+      description: "Initiates a contract negotiation for a given offer and with the\
+        \ given counter part. Please note that successfully invoking this endpoint\
+        \ only means that the negotiation was initiated. Clients must poll the /{id}/state\
+        \ endpoint to track the state"
       operationId: initiateContractNegotiation
       requestBody:
         content:
@@ -48,16 +54,25 @@ paths:
             schema:
               $ref: '#/components/schemas/NegotiationInitiateRequestDto'
       responses:
-        default:
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NegotiationId'
-          description: default response
+          description: The negotiation was successfully initiated. Returns the contract
+            negotiation ID
+          links:
+            poll-state:
+              operationId: getNegotiationState
+              parameters:
+                id: $response.body#/id
+        "400":
+          description: Request body was malformed
       tags:
       - Contract Negotiation
   /contractnegotiations/{id}:
     get:
+      description: Gets an contract negotiation with the given ID
       operationId: getNegotiation
       parameters:
       - in: path
@@ -66,16 +81,22 @@ paths:
         schema:
           type: string
       responses:
-        default:
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContractNegotiationDto'
-          description: default response
+          description: The contract negotiation
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: An contract negotiation with the given ID does not exist
       tags:
       - Contract Negotiation
   /contractnegotiations/{id}/agreement:
     get:
+      description: Gets a contract agreement for a contract negotiation with the given
+        ID
       operationId: getAgreementForNegotiation
       parameters:
       - in: path
@@ -84,16 +105,25 @@ paths:
         schema:
           type: string
       responses:
-        default:
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContractAgreementDto'
-          description: default response
+                $ref: '#/components/schemas/ContractNegotiationDto'
+          description: "The contract agreement that is attached to the negotiation,\
+            \ or null"
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: An contract negotiation with the given ID does not exist
       tags:
       - Contract Negotiation
   /contractnegotiations/{id}/cancel:
     post:
+      description: "Requests aborting the contract negotiation. Due to the asynchronous\
+        \ nature of contract negotiations, a successful response only indicates that\
+        \ the request was successfully received. Clients must poll the /{id}/state\
+        \ endpoint to track the state."
       operationId: cancelNegotiation
       parameters:
       - in: path
@@ -102,14 +132,24 @@ paths:
         schema:
           type: string
       responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
+        "200":
+          description: Request to cancel the Contract negotiation was successfully
+            received
+          links:
+            poll-state:
+              operationId: getNegotiationState
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: A contract negotiation with the given ID does not exist
       tags:
       - Contract Negotiation
   /contractnegotiations/{id}/decline:
     post:
+      description: "Requests cancelling the contract negotiation. Due to the asynchronous\
+        \ nature of contract negotiations, a successful response only indicates that\
+        \ the request was successfully received. Clients must poll the /{id}/state\
+        \ endpoint to track the state."
       operationId: declineNegotiation
       parameters:
       - in: path
@@ -118,14 +158,21 @@ paths:
         schema:
           type: string
       responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
+        "200":
+          description: Request to decline the Contract negotiation was successfully
+            received
+          links:
+            poll-state:
+              operationId: getNegotiationState
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: A contract negotiation with the given ID does not exist
       tags:
       - Contract Negotiation
   /contractnegotiations/{id}/state:
     get:
+      description: Gets the state of a contract negotiation with the given ID
       operationId: getNegotiationState
       parameters:
       - in: path
@@ -134,12 +181,16 @@ paths:
         schema:
           type: string
       responses:
-        default:
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/NegotiationState'
-          description: default response
+          description: The contract negotiation's state
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: An contract negotiation with the given ID does not exist
       tags:
       - Contract Negotiation
 components:
