@@ -48,12 +48,12 @@ public class PolicyDefinitionEventDispatchTest {
 
         service.create(policyDefinition);
 
-        assertThat(createdLatch.await(1, SECONDS)).isTrue();
+        assertThat(createdLatch.await(10, SECONDS)).isTrue();
         verify(eventSubscriber).on(isA(PolicyDefinitionCreated.class));
 
         service.deleteById(policyDefinition.getUid());
 
-        assertThat(deletedLatch.await(1, SECONDS)).isTrue();
+        assertThat(deletedLatch.await(10, SECONDS)).isTrue();
         verify(eventSubscriber).on(isA(PolicyDefinitionDeleted.class));
     }
 

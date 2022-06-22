@@ -38,21 +38,21 @@ public class PolicyDefinitionDeleted extends Event<PolicyDefinitionDeleted.Paylo
         }
 
         public Builder id(String id) {
-            event.payload.id = id;
+            event.payload.policyDefinitionId = id;
             return this;
         }
 
         @Override
         protected void validate() {
-            Objects.requireNonNull(event.payload.id);
+            Objects.requireNonNull(event.payload.policyDefinitionId);
         }
     }
 
     public static class Payload extends EventPayload {
-        private String id;
+        private String policyDefinitionId;
 
-        public String getId() {
-            return id;
+        public String getPolicyDefinitionId() {
+            return policyDefinitionId;
         }
     }
 }

@@ -49,12 +49,12 @@ public class AssetEventDispatchTest {
 
         service.create(asset, dataAddress);
 
-        assertThat(createdLatch.await(1, SECONDS)).isTrue();
+        assertThat(createdLatch.await(10, SECONDS)).isTrue();
         verify(eventSubscriber).on(isA(AssetCreated.class));
 
         service.delete(asset.getId());
 
-        assertThat(deletedLatch.await(1, SECONDS)).isTrue();
+        assertThat(deletedLatch.await(10, SECONDS)).isTrue();
         verify(eventSubscriber).on(isA(AssetDeleted.class));
     }
 
