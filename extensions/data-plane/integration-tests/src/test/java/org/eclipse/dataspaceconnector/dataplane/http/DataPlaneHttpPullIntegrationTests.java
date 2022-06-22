@@ -22,9 +22,7 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
-import org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
-import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -97,7 +95,7 @@ public class DataPlaneHttpPullIntegrationTests {
             "web.http.control.port", String.valueOf(DPF_CONTROL_API_PORT),
             "web.http.public.port", String.valueOf(DPF_PUBLIC_API_PORT),
             "web.http.public.path", DPF_PUBLIC_PATH,
-            "edc.controlplane.validation-endpoint", VALIDATION_API_HOST
+            "edc.dataplane.token.validation.endpoint", VALIDATION_API_HOST
     );
 
     @BeforeAll
@@ -162,12 +160,9 @@ public class DataPlaneHttpPullIntegrationTests {
                 .respond(withResponse(HttpStatusCode.OK_200, OBJECT_MAPPER.writeValueAsString(instance.sourceResponse)));
 
         // prepare validation server of the control plane
-        var claimToken = ClaimToken.Builder.newInstance()
-                .claim(DataPlaneConstants.DATA_ADDRESS, OBJECT_MAPPER.writeValueAsString(instance.sourceAddress))
-                .build();
         var validationRequest = request().withMethod(HttpMethod.GET.name()).withHeader(AUTH_HEADER_KEY, instance.token);
         validationClientAndServer.when(validationRequest, once())
-                .respond(withResponse(HttpStatusCode.OK_200, OBJECT_MAPPER.writeValueAsString(claimToken)));
+                .respond(withResponse(HttpStatusCode.OK_200, OBJECT_MAPPER.writeValueAsString(instance.sourceAddress)));
 
         instance.dataplaneRequest.request(instance.method).then().assertThat()
                 .statusCode(200)

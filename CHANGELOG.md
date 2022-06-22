@@ -21,6 +21,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Event Framework for PolicyDefinition entity (#1437)
 * SQL Translation layer (#1357, #1459)
 * Permit API verbose error response (#1479)
+* Fix TODO and document `:extensions:data-plane-transfer` (#1519)
 
 #### Changed
 
@@ -45,7 +46,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Avoid endless loops in `ContractNegotiationManager` (#1487)
 * Fix race condition in `ContractNegotiationIntegrationTest` (#1505)
 * Fix for change in Cosmos DB behavior on missing sort fields (#1514)
-* Effectively removed default LIMIT in SQL Contract Def Store (#1515) 
+* Effectively removed default LIMIT in SQL Contract Def Store (#1515)
 
 ## [milestone-4] - 2022-06-07
 

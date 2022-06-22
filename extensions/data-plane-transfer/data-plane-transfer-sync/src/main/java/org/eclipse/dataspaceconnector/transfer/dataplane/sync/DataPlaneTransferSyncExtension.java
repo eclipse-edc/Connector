@@ -17,10 +17,11 @@ package org.eclipse.dataspaceconnector.transfer.dataplane.sync;
 import org.eclipse.dataspaceconnector.common.token.TokenGenerationServiceImpl;
 import org.eclipse.dataspaceconnector.common.token.TokenValidationRulesRegistryImpl;
 import org.eclipse.dataspaceconnector.common.token.TokenValidationServiceImpl;
+import org.eclipse.dataspaceconnector.dataplane.selector.client.DataPlaneSelectorClient;
+import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
@@ -28,12 +29,14 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTransferProxyReferenceService;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.security.DataEncrypter;
-import org.eclipse.dataspaceconnector.transfer.dataplane.sync.api.DataPlaneTransferTokenValidationApiController;
+import org.eclipse.dataspaceconnector.transfer.dataplane.sync.api.DataPlaneTokenValidationApiController;
 import org.eclipse.dataspaceconnector.transfer.dataplane.sync.flow.ProviderDataPlaneProxyDataFlowController;
 import org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy.DataPlaneTransferConsumerProxyTransformer;
 import org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy.DataPlaneTransferProxyReferenceServiceImpl;
+import org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy.DataPlaneTransferProxyResolverImpl;
 import org.eclipse.dataspaceconnector.transfer.dataplane.sync.security.NoopDataEncrypter;
 import org.eclipse.dataspaceconnector.transfer.dataplane.sync.security.PublicKeyParser;
 import org.eclipse.dataspaceconnector.transfer.dataplane.sync.validation.ContractValidationRule;
@@ -45,7 +48,6 @@ import java.security.PublicKey;
 import java.time.Clock;
 import java.util.Objects;
 
-import static org.eclipse.dataspaceconnector.transfer.dataplane.sync.DataPlaneTransferSyncConfig.DATA_PROXY_ENDPOINT;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.sync.DataPlaneTransferSyncConfig.DATA_PROXY_TOKEN_VALIDITY_SECONDS;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.sync.DataPlaneTransferSyncConfig.DEFAULT_DATA_PROXY_TOKEN_VALIDITY_SECONDS;
 import static org.eclipse.dataspaceconnector.transfer.dataplane.sync.DataPlaneTransferSyncConfig.TOKEN_SIGNER_PRIVATE_KEY_ALIAS;
@@ -53,7 +55,13 @@ import static org.eclipse.dataspaceconnector.transfer.dataplane.sync.DataPlaneTr
 
 public class DataPlaneTransferSyncExtension implements ServiceExtension {
 
+    @EdcSetting
+    private static final String DPF_SELECTOR_STRATEGY = "edc.transfer.client.selector.strategy";
+
     private static final String API_CONTEXT_ALIAS = "validation";
+
+    @Inject
+    private DataPlaneSelectorClient selectorClient;
 
     @Inject
     private ContractNegotiationStore contractNegotiationStore;
@@ -86,19 +94,20 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var proxyEndpoint = context.getConfig().getString(DATA_PROXY_ENDPOINT); // TODO: this should determined dynamically for every DataRequest through DataPlaneSelector
-
         var keyPair = createKeyPair(context);
         var encrypter = new NoopDataEncrypter();
+        var selectorStrategy = context.getSetting(DPF_SELECTOR_STRATEGY, "random");
 
-        var controller = createTokenValidationApiController(context.getMonitor(), keyPair.getPublic(), encrypter);
+        var proxyResolver = new DataPlaneTransferProxyResolverImpl(selectorClient, selectorStrategy);
+
+        var controller = createTokenValidationApiController(keyPair.getPublic(), encrypter, context.getTypeManager());
         webService.registerResource(API_CONTEXT_ALIAS, controller);
 
         var proxyReferenceService = createProxyReferenceService(context, keyPair.getPrivate(), encrypter);
-        var flowController = new ProviderDataPlaneProxyDataFlowController(context.getConnectorId(), proxyEndpoint, dispatcherRegistry, proxyReferenceService);
+        var flowController = new ProviderDataPlaneProxyDataFlowController(context.getConnectorId(), proxyResolver, dispatcherRegistry, proxyReferenceService);
         dataFlowManager.register(flowController);
 
-        var consumerProxyTransformer = new DataPlaneTransferConsumerProxyTransformer(proxyEndpoint, proxyReferenceService);
+        var consumerProxyTransformer = new DataPlaneTransferConsumerProxyTransformer(proxyResolver, proxyReferenceService);
         transformerRegistry.registerTransformer(consumerProxyTransformer);
     }
 
@@ -115,12 +124,12 @@ public class DataPlaneTransferSyncExtension implements ServiceExtension {
     /**
      * Register the API controller that is used for validating tokens received in input of Data Plane API.
      */
-    private DataPlaneTransferTokenValidationApiController createTokenValidationApiController(Monitor monitor, PublicKey publicKey, DataEncrypter encrypter) {
+    private DataPlaneTokenValidationApiController createTokenValidationApiController(PublicKey publicKey, DataEncrypter encrypter, TypeManager typeManager) {
         var registry = new TokenValidationRulesRegistryImpl();
         registry.addRule(new ContractValidationRule(contractNegotiationStore, clock));
         registry.addRule(new ExpirationDateValidationRule(clock));
         var tokenValidationService = new TokenValidationServiceImpl(id -> publicKey, registry);
-        return new DataPlaneTransferTokenValidationApiController(monitor, tokenValidationService, encrypter);
+        return new DataPlaneTokenValidationApiController(tokenValidationService, encrypter, typeManager);
     }
 
     /**

@@ -20,8 +20,8 @@ import org.eclipse.dataspaceconnector.common.token.JwtDecorator;
 
 import java.util.Date;
 
-import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.CONTRACT_ID;
-import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.DATA_ADDRESS;
+import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.CONTRACT_ID;
+import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.DATA_ADDRESS;
 
 /**
  * Decorator for access token used in input of Data Plane public API. The token is composed of:

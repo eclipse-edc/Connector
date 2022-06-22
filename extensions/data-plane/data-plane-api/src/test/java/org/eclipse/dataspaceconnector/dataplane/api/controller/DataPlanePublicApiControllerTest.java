@@ -21,14 +21,12 @@ import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
-import org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants;
+import org.eclipse.dataspaceconnector.dataplane.api.validation.TokenValidationClient;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSinkFactory;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.WebService;
-import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -36,7 +34,6 @@ import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,7 +63,7 @@ class DataPlanePublicApiControllerTest {
     private static final Faker FAKER = new Faker();
 
     private final DataPlaneManager dataPlaneManager = mock(DataPlaneManager.class);
-    private final TokenValidationService tokenValidationService = mock(TokenValidationService.class);
+    private final TokenValidationClient tokenValidationClient = mock(TokenValidationClient.class);
     private final int port = getFreePort();
     private final int validationPort = getFreePort();
 
@@ -79,7 +76,7 @@ class DataPlanePublicApiControllerTest {
                 "web.http.control.port", String.valueOf(getFreePort()),
                 "web.http.validation.port", String.valueOf(validationPort),
                 "web.http.validation.path", "/validation",
-                "edc.controlplane.validation-endpoint", "http://localhost:" + validationPort + "/validation/token"
+                "edc.dataplane.token.validation.endpoint", "http://localhost:" + validationPort + "/validation/token"
         ));
     }
 
@@ -98,7 +95,7 @@ class DataPlanePublicApiControllerTest {
     void postFailure_tokenValidationFailure() {
         var token = FAKER.internet().uuid();
         var errorMsg = FAKER.internet().uuid();
-        when(tokenValidationService.validate(token)).thenReturn(Result.failure(errorMsg));
+        when(tokenValidationClient.callTokenValidationServer(token)).thenReturn(Result.failure(errorMsg));
 
         given()
                 .port(port)
@@ -108,15 +105,15 @@ class DataPlanePublicApiControllerTest {
                 .then()
                 .statusCode(401)
                 .body("errors.size()", is(1));
-        verify(tokenValidationService).validate(token);
+
+        verify(tokenValidationClient).callTokenValidationServer(token);
     }
 
     @Test
     void postFailure_requestValidationFailure() {
         var token = FAKER.internet().uuid();
         var errorMsg = FAKER.internet().uuid();
-        var claimsToken = createClaimsToken(testDestAddress());
-        when(tokenValidationService.validate(token)).thenReturn(Result.success(claimsToken));
+        when(tokenValidationClient.callTokenValidationServer(token)).thenReturn(Result.success(testDestAddress()));
         when(dataPlaneManager.validate(any())).thenReturn(Result.failure(errorMsg));
 
         given()
@@ -133,8 +130,7 @@ class DataPlanePublicApiControllerTest {
     void postFailure_transferFailure() {
         var token = FAKER.internet().uuid();
         var errorMsg = FAKER.internet().uuid();
-        var claims = createClaimsToken(testDestAddress());
-        when(tokenValidationService.validate(token)).thenReturn(Result.success(claims));
+        when(tokenValidationClient.callTokenValidationServer(token)).thenReturn(Result.success(testDestAddress()));
         when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
         when(dataPlaneManager.transfer(any(DataSink.class), any()))
                 .thenReturn(completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg)));
@@ -153,8 +149,7 @@ class DataPlanePublicApiControllerTest {
     void postFailure_transferErrorUnhandledException() {
         var token = FAKER.internet().uuid();
         var errorMsg = FAKER.internet().uuid();
-        var claims = createClaimsToken(testDestAddress());
-        when(tokenValidationService.validate(token)).thenReturn(Result.success(claims));
+        when(tokenValidationClient.callTokenValidationServer(token)).thenReturn(Result.success(testDestAddress()));
         when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
         when(dataPlaneManager.transfer(any(DataSink.class), any(DataFlowRequest.class)))
                 .thenReturn(failedFuture(new RuntimeException(errorMsg)));
@@ -173,10 +168,9 @@ class DataPlanePublicApiControllerTest {
     void postSuccess() {
         var token = FAKER.internet().uuid();
         var address = testDestAddress();
-        var claimsToken = createClaimsToken(address);
         var requestCaptor = ArgumentCaptor.forClass(DataFlowRequest.class);
 
-        when(tokenValidationService.validate(anyString())).thenReturn(Result.success(claimsToken));
+        when(tokenValidationClient.callTokenValidationServer(anyString())).thenReturn(Result.success(address));
         when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
         when(dataPlaneManager.transfer(any(DataSink.class), any()))
                 .thenReturn(completedFuture(StatusResult.success()));
@@ -201,10 +195,6 @@ class DataPlanePublicApiControllerTest {
                 });
     }
 
-    private ClaimToken createClaimsToken(DataAddress address) {
-        return ClaimToken.Builder.newInstance().claim(DataPlaneConstants.DATA_ADDRESS, new TypeManager().writeValueAsString(address)).build();
-    }
-
     private DataAddress testDestAddress() {
         return DataAddress.Builder.newInstance().type("test").build();
     }
@@ -224,18 +214,16 @@ class DataPlanePublicApiControllerTest {
 
     @Path("/")
     public class TestValidationController {
-
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         @Path("/token")
-        public ClaimToken validate(@HeaderParam("Authorization") String token) {
-            var result = tokenValidationService.validate(token);
+        public DataAddress validate(@HeaderParam("Authorization") String token) {
+            var result = tokenValidationClient.callTokenValidationServer(token);
             if (result.succeeded()) {
                 return result.getContent();
             } else {
                 throw new IllegalArgumentException("Token is not valid: " + String.join(", ", result.getFailureMessages()));
             }
-
         }
     }
 
