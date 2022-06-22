@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Fraunhofer Institute for Software and Systems Engineering
+ *  Copyright (c) 2020 - 2022 Fraunhofer Institute for Software and Systems Engineering
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Microsoft Corporation - Use IDS Webhook address for JWT audience claim
  *
  */
 
@@ -99,8 +100,10 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
      */
     @Override
     public CompletableFuture<R> send(M request, MessageContext context) {
+        var remoteConnectorAddress = retrieveRemoteConnectorAddress(request);
+
         // Get Dynamic Attribute Token
-        var tokenResult = identityService.obtainClientCredentials(TOKEN_SCOPE);
+        var tokenResult = identityService.obtainClientCredentials(TOKEN_SCOPE, remoteConnectorAddress);
         if (tokenResult.failed()) {
             String message = "Failed to obtain token: " + String.join(",", tokenResult.getFailureMessages());
             monitor.severe(message);
@@ -114,8 +117,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
 
 
         // Get recipient address
-        var connectorAddress = retrieveRemoteConnectorAddress(request);
-        var requestUrl = HttpUrl.parse(connectorAddress);
+        var requestUrl = HttpUrl.parse(remoteConnectorAddress);
         if (requestUrl == null) {
             return failedFuture(new IllegalArgumentException("Connector address not specified"));
         }

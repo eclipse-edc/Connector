@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Daimler TSS GmbH
+ *  Copyright (c) 2021 - 2022 Daimler TSS GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -11,6 +11,7 @@
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Fraunhofer Institute for Software and Systems Engineering - extend tests
  *       Daimler TSS GmbH - fixed contract dates to epoch seconds
+ *       Microsoft Corporation - Use IDS Webhook address for JWT audience claim
  *
  */
 
@@ -136,12 +137,12 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
 
     private static class FakeIdentityService implements IdentityService {
         @Override
-        public Result<TokenRepresentation> obtainClientCredentials(String scope) {
+        public Result<TokenRepresentation> obtainClientCredentials(String scope, String audience) {
             return Result.success(TokenRepresentation.Builder.newInstance().build());
         }
 
         @Override
-        public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation) {
+        public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, String audience) {
             return Result.success(ClaimToken.Builder.newInstance().build());
         }
     }

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Microsoft Corporation - Use IDS Webhook address for JWT audience claim
  *
  */
 
@@ -18,22 +19,21 @@ package org.eclipse.dataspaceconnector.ids.api.configuration;
  * Holds configuration information for the IDS API context.
  */
 public class IdsApiConfiguration {
-    
+
     private final String contextAlias;
-    
-    private final String path;
-    
-    public IdsApiConfiguration(String contextAlias, String path) {
+
+    private final String idsWebhookAddress;
+
+    public IdsApiConfiguration(String contextAlias, String idsWebhookAddress) {
         this.contextAlias = contextAlias;
-        this.path = path;
+        this.idsWebhookAddress = idsWebhookAddress;
     }
-    
+
     public String getContextAlias() {
         return contextAlias;
     }
-    
-    public String getPath() {
-        return path;
+
+    public String getIdsWebhookAddress() {
+        return idsWebhookAddress;
     }
-    
 }

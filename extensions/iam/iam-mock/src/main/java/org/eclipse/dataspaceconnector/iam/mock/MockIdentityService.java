@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - Improvements
+ *       Microsoft Corporation - Use IDS Webhook address for JWT audience claim
  *
  */
 
@@ -19,38 +20,59 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
-import java.time.Clock;
+import java.util.Objects;
+
+import static java.lang.String.format;
 
 public class MockIdentityService implements IdentityService {
     private final String region;
-    private final Clock clock;
+    private final TypeManager typeManager;
 
-    public MockIdentityService(Clock clock, String region) {
-        this.clock = clock;
+    public MockIdentityService(TypeManager typeManager, String region) {
+        this.typeManager = typeManager;
         this.region = region;
     }
 
     @Override
-    public Result<TokenRepresentation> obtainClientCredentials(String scope) {
+    public Result<TokenRepresentation> obtainClientCredentials(String scope, String audience) {
+        var token = new MockToken();
+        token.setAudience(audience);
+        token.setRegion(region);
         TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance()
-                .token("mock-" + region)
-                .expiresIn(clock.instant().plusSeconds(10_0000).toEpochMilli())
+                .token(typeManager.writeValueAsString(token))
                 .build();
         return Result.success(tokenRepresentation);
     }
 
     @Override
-    public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation) {
-        switch (tokenRepresentation.getToken()) {
-            case "mock-eu":
-                return Result.success(ClaimToken.Builder.newInstance().claim("region", "eu").build());
-            case "mock-us":
-                return Result.success(ClaimToken.Builder.newInstance().claim("region", "us").build());
-            case "mock-an":
-                return Result.success(ClaimToken.Builder.newInstance().claim("region", "an").build());
-            default:
-                return Result.failure("Unknown test token format");
+    public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, String audience) {
+        var token = typeManager.readValue(tokenRepresentation.getToken(), MockToken.class);
+        if (!Objects.equals(token.audience, audience)) {
+            return Result.failure(format("Mismatched audience: expected %s, got %s", audience, token.audience));
+        }
+        return Result.success(ClaimToken.Builder.newInstance().claim("region", token.region).build());
+    }
+
+    private static class MockToken {
+        private String region;
+        private String audience;
+
+        public String getAudience() {
+            return audience;
+        }
+
+        public void setAudience(String audience) {
+            this.audience = audience;
+        }
+
+        public String getRegion() {
+            return region;
+        }
+
+        public void setRegion(String region) {
+            this.region = region;
         }
     }
 }

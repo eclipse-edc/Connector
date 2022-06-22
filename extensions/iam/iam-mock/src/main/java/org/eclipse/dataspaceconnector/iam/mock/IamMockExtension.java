@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -33,6 +33,6 @@ public class IamMockExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var region = context.getSetting("edc.mock.region", "eu");
-        context.registerService(IdentityService.class, new MockIdentityService(context.getClock(), region));
+        context.registerService(IdentityService.class, new MockIdentityService(context.getTypeManager(), region));
     }
 }

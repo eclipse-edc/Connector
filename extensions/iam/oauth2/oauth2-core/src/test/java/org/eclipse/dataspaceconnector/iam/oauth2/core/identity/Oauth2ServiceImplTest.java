@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - Improvements
+ *       Microsoft Corporation - Use IDS Webhook address for JWT audience claim
  *
  */
 
@@ -31,6 +32,7 @@ import org.eclipse.dataspaceconnector.common.token.TokenValidationServiceImpl;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.Oauth2Configuration;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.rule.Oauth2ValidationRulesRegistryImpl;
 import org.eclipse.dataspaceconnector.spi.iam.PublicKeyResolver;
+import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -92,7 +94,7 @@ class Oauth2ServiceImplTest {
     void verifyNoAudienceToken() {
         var jwt = createJwt(null, Date.from(now.minusSeconds(1000)), Date.from(now.plusSeconds(1000)));
 
-        var result = authService.verifyJwtToken(jwt.serialize());
+        var result = authService.verifyJwtToken(jwt, PROVIDER_AUDIENCE);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).isNotEmpty();
@@ -102,7 +104,7 @@ class Oauth2ServiceImplTest {
     void verifyInvalidAudienceToken() {
         var jwt = createJwt("different.audience", Date.from(now.minusSeconds(1000)), Date.from(now.plusSeconds(1000)));
 
-        var result = authService.verifyJwtToken(jwt.serialize());
+        var result = authService.verifyJwtToken(jwt, PROVIDER_AUDIENCE);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).isNotEmpty();
@@ -112,7 +114,7 @@ class Oauth2ServiceImplTest {
     void verifyInvalidAttemptUseNotBeforeToken() {
         var jwt = createJwt(PROVIDER_AUDIENCE, Date.from(now.plusSeconds(1000)), Date.from(now.plusSeconds(1000)));
 
-        var result = authService.verifyJwtToken(jwt.serialize());
+        var result = authService.verifyJwtToken(jwt, PROVIDER_AUDIENCE);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).isNotEmpty();
@@ -122,7 +124,7 @@ class Oauth2ServiceImplTest {
     void verifyExpiredToken() {
         var jwt = createJwt(PROVIDER_AUDIENCE, Date.from(now.minusSeconds(1000)), Date.from(now.minusSeconds(1000)));
 
-        var result = authService.verifyJwtToken(jwt.serialize());
+        var result = authService.verifyJwtToken(jwt, PROVIDER_AUDIENCE);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).isNotEmpty();
@@ -132,7 +134,7 @@ class Oauth2ServiceImplTest {
     void verifyValidJwt() {
         var jwt = createJwt(PROVIDER_AUDIENCE, Date.from(now.minusSeconds(1000)), new Date(System.currentTimeMillis() + 1000000));
 
-        var result = authService.verifyJwtToken(jwt.serialize());
+        var result = authService.verifyJwtToken(jwt, PROVIDER_AUDIENCE);
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent().getClaims()).hasSize(3).containsKeys("aud", "nbf", "exp");
@@ -145,7 +147,7 @@ class Oauth2ServiceImplTest {
                 .generate();
     }
 
-    private SignedJWT createJwt(String aud, Date nbf, Date exp) {
+    private TokenRepresentation createJwt(String aud, Date nbf, Date exp) {
         var claimsSet = new JWTClaimsSet.Builder()
                 .audience(aud)
                 .notBeforeTime(nbf)
@@ -155,7 +157,7 @@ class Oauth2ServiceImplTest {
         try {
             SignedJWT jwt = new SignedJWT(header, claimsSet);
             jwt.sign(jwsSigner);
-            return jwt;
+            return TokenRepresentation.Builder.newInstance().token(jwt.serialize()).build();
         } catch (JOSEException e) {
             throw new AssertionError(e);
         }

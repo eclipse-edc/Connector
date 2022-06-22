@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - Improvements
+ *       Microsoft Corporation - Use IDS Webhook address for JWT audience claim
  *
  */
 
@@ -71,7 +72,7 @@ public class Oauth2ServiceImpl implements IdentityService {
     }
 
     @Override
-    public Result<TokenRepresentation> obtainClientCredentials(String scope) {
+    public Result<TokenRepresentation> obtainClientCredentials(String scope, String audience) {
         var jwtCreationResult = tokenGenerationService.generate(jwtDecoratorRegistry.getAll().toArray(JwtDecorator[]::new));
         if (jwtCreationResult.failed()) {
             return jwtCreationResult;
@@ -103,8 +104,7 @@ public class Oauth2ServiceImpl implements IdentityService {
             var responsePayload = responseBody.string();
             var deserialized = typeManager.readValue(responsePayload, LinkedHashMap.class);
             var token = (String) deserialized.get("access_token");
-            var expiresIn = ((Integer) deserialized.get("expires_in")).longValue();
-            var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(token).expiresIn(expiresIn).build();
+            var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(token).build();
             return Result.success(tokenRepresentation);
         } catch (IOException e) {
             throw new EdcException(e);
@@ -112,7 +112,7 @@ public class Oauth2ServiceImpl implements IdentityService {
     }
 
     @Override
-    public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation) {
+    public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, String audience) {
         return tokenValidationService.validate(tokenRepresentation);
     }
 }
