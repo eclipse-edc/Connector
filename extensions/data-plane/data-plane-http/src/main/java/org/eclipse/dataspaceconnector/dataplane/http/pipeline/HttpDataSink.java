@@ -17,18 +17,14 @@ package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.ParallelSink;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_RETRY;
@@ -44,7 +40,7 @@ public class HttpDataSink extends ParallelSink {
     private String endpoint;
     private OkHttpClient httpClient;
     private Map<String, String> additionalHeaders = new HashMap<>();
-    private HttpDataSinkRequest requestBuilder = new HttpDataSinkRequestPost();
+    private String method = "POST";
 
     /**
      * Sends the parts to the destination endpoint using an HTTP POST.
@@ -52,7 +48,7 @@ public class HttpDataSink extends ParallelSink {
     @Override
     protected StatusResult<Void> transferParts(List<DataSource.Part> parts) {
         for (DataSource.Part part : parts) {
-
+            var requestBody = new StreamingRequestBody(part);
             var requestBuilder = new Request.Builder();
             if (authKey != null) {
                 requestBuilder.header(authKey, authCode);
@@ -62,8 +58,10 @@ public class HttpDataSink extends ParallelSink {
                 additionalHeaders.forEach(requestBuilder::header);
             }
 
-            var request = this.requestBuilder.makeRequestForPart(requestBuilder, part)
-                    .orElseThrow(() -> new IllegalStateException("Failed to build a request"));
+            var request = requestBuilder
+                    .url(endpoint)
+                    .method(method, requestBody)
+                    .build();
 
             try (var response = httpClient.newCall(request).execute()) {
                 if (!response.isSuccessful()) {
@@ -81,42 +79,6 @@ public class HttpDataSink extends ParallelSink {
     }
 
     private HttpDataSink() {
-    }
-
-    private interface HttpDataSinkRequest {
-        Optional<Request> makeRequestForPart(Request.Builder requestBuilder, DataSource.Part part);
-    }
-
-    private class HttpDataSinkRequestPut implements HttpDataSinkRequest {
-        @Override
-        public Optional<Request> makeRequestForPart(Request.Builder requestBuilder, DataSource.Part part) {
-            RequestBody body;
-
-            try (InputStream stream = part.openStream()) {
-                body = RequestBody.create(stream.readAllBytes());
-            } catch (IOException e) {
-                monitor.severe(format("Error reading bytes for HTTP part data %s", part.name()));
-                return Optional.empty();
-            }
-
-            return Optional.of(
-                    requestBuilder
-                            .url(endpoint)
-                            .put(body)
-                            .build());
-        }
-    }
-
-    private class HttpDataSinkRequestPost implements HttpDataSinkRequest {
-        @Override
-        public Optional<Request> makeRequestForPart(final Request.Builder requestBuilder, final DataSource.Part part) {
-            var requestBody = new StreamingRequestBody(part);
-            return Optional.of(
-                    requestBuilder
-                            .url(endpoint)
-                            .post(requestBody)
-                            .build());
-        }
     }
 
     public static class Builder extends ParallelSink.Builder<Builder, HttpDataSink> {
@@ -150,13 +112,9 @@ public class HttpDataSink extends ParallelSink {
             return this;
         }
 
-        public Builder httpVerb(String httpVerb) {
-            sink.requestBuilder = makeSender(httpVerb);
+        public Builder method(String method) {
+            sink.method = method;
             return this;
-        }
-
-        private HttpDataSinkRequest makeSender(String httpVerb) {
-            return "PUT".equalsIgnoreCase(httpVerb) ? sink.new HttpDataSinkRequestPut() : sink.new HttpDataSinkRequestPost();
         }
 
         protected void validate() {
