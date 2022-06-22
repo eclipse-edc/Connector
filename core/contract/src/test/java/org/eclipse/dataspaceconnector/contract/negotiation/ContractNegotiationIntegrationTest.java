@@ -125,6 +125,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 .pollInterval(DEFAULT_POLL_INTERVAL)
                 .untilAsserted(() -> {
 
+                    assertThat(consumerNegotiationId).isNotNull();
                     var consumerNegotiation = consumerStore.find(consumerNegotiationId);
                     var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
 
