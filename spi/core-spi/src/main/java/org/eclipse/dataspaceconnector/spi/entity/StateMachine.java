@@ -46,14 +46,17 @@ public abstract class StateMachine<T extends StateMachine<T>> implements Statefu
         return createdTimestamp;
     }
 
+    @Override
     public int getState() {
         return state;
     }
 
+    @Override
     public int getStateCount() {
         return stateCount;
     }
 
+    @Override
     public long getStateTimestamp() {
         return stateTimestamp;
     }
@@ -86,6 +89,7 @@ public abstract class StateMachine<T extends StateMachine<T>> implements Statefu
         updateStateTimestamp();
     }
 
+    @Override
     public String getId() {
         return id;
     }
