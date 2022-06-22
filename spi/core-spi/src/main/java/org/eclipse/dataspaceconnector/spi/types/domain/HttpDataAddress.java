@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - Initial implementation
+ *       Siemens AG - added httpVerb, usePartName and additionalHeaders
  *
  */
 
