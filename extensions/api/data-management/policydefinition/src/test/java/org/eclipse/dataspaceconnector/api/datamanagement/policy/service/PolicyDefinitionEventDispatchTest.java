@@ -12,16 +12,16 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api.datamanagement.asset.service;
+package org.eclipse.dataspaceconnector.api.datamanagement.policy.service;
 
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.event.Event;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.event.EventSubscriber;
-import org.eclipse.dataspaceconnector.spi.event.asset.AssetCreated;
-import org.eclipse.dataspaceconnector.spi.event.asset.AssetDeleted;
-import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.event.policydefinition.PolicyDefinitionCreated;
+import org.eclipse.dataspaceconnector.spi.event.policydefinition.PolicyDefinitionDeleted;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -35,27 +35,26 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(EdcExtension.class)
-public class AssetEventDispatchTest {
+public class PolicyDefinitionEventDispatchTest {
 
     private final EventSubscriber eventSubscriber = mock(EventSubscriber.class);
 
     @Test
-    void shouldDispatchEventsOnAssetCreationAndDeletion(AssetService service, EventRouter eventRouter) throws InterruptedException {
-        var createdLatch = onDispatchLatch(AssetCreated.class);
-        var deletedLatch = onDispatchLatch(AssetDeleted.class);
+    void shouldDispatchEventOnPolicyDefinitionCreationAndDeletion(PolicyDefinitionService service, EventRouter eventRouter) throws InterruptedException {
+        var createdLatch = onDispatchLatch(PolicyDefinitionCreated.class);
+        var deletedLatch = onDispatchLatch(PolicyDefinitionDeleted.class);
         eventRouter.register(eventSubscriber);
-        var asset = Asset.Builder.newInstance().id("assetId").build();
-        var dataAddress = DataAddress.Builder.newInstance().type("any").build();
+        var policyDefinition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
 
-        service.create(asset, dataAddress);
+        service.create(policyDefinition);
 
         assertThat(createdLatch.await(10, SECONDS)).isTrue();
-        verify(eventSubscriber).on(isA(AssetCreated.class));
+        verify(eventSubscriber).on(isA(PolicyDefinitionCreated.class));
 
-        service.delete(asset.getId());
+        service.deleteById(policyDefinition.getUid());
 
         assertThat(deletedLatch.await(10, SECONDS)).isTrue();
-        verify(eventSubscriber).on(isA(AssetDeleted.class));
+        verify(eventSubscriber).on(isA(PolicyDefinitionDeleted.class));
     }
 
     private CountDownLatch onDispatchLatch(Class<? extends Event> eventType) {
@@ -68,5 +67,4 @@ public class AssetEventDispatchTest {
 
         return latch;
     }
-
 }

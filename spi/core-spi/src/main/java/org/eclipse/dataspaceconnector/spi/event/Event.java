@@ -22,23 +22,30 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * When serialized to JSON, will add a "type" field with the name of the runtime class name.
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", include = JsonTypeInfo.As.EXTERNAL_PROPERTY)
-public abstract class Event {
+public abstract class Event<P> {
 
     protected long at;
+
+    protected P payload;
 
     public long getAt() {
         return at;
     }
 
-    public static class Builder<T extends Event> {
+    public P getPayload() {
+        return payload;
+    }
+
+    public abstract static class Builder<T extends Event<P>, P extends EventPayload> {
 
         protected final T event;
 
-        protected Builder(T event) {
+        protected Builder(T event, P payload) {
             this.event = event;
+            this.event.payload = payload;
         }
 
-        public Builder<T> at(long at) {
+        public Builder<T, P> at(long at) {
             event.at = at;
             return this;
         }
@@ -47,7 +54,11 @@ public abstract class Event {
             if (event.at == 0) {
                 throw new IllegalStateException("Event 'at' field must be set");
             }
+            validate();
             return event;
         }
+
+        protected abstract void validate();
     }
+
 }

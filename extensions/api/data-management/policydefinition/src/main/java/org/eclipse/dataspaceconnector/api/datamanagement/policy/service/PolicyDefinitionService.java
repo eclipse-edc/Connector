@@ -22,10 +22,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
 /**
- * The following interface is created for the implementation of the policy endpoint.
+ * The following interface is created for the implementation of the policy definition endpoint.
  */
 
-public interface PolicyService {
+public interface PolicyDefinitionService {
 
     /**
      * Returns a policy by its id

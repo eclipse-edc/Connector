@@ -35,13 +35,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class PolicyServiceImplTest {
+public class PolicyDefinitionServiceImplTest {
 
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final ContractDefinitionStore contractDefinitionStore = mock(ContractDefinitionStore.class);
     private final TransactionContext dummyTransactionContext = new NoopTransactionContext();
 
-    private final PolicyServiceImpl policyServiceImpl = new PolicyServiceImpl(dummyTransactionContext, policyStore, contractDefinitionStore);
+    private final PolicyDefinitionServiceImpl policyServiceImpl = new PolicyDefinitionServiceImpl(dummyTransactionContext, policyStore, contractDefinitionStore, mock(PolicyDefinitionObservable.class));
 
     @Test
     void findById_shouldRelyOnPolicyStore() {

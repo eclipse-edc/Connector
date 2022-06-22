@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.core.event;
 
 import org.eclipse.dataspaceconnector.spi.event.Event;
+import org.eclipse.dataspaceconnector.spi.event.EventPayload;
 import org.eclipse.dataspaceconnector.spi.event.EventSubscriber;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.Test;
@@ -66,16 +67,25 @@ class EventRouterImplTest {
         });
     }
 
-    private static class TestEvent extends Event {
-        public static class Builder extends Event.Builder<TestEvent> {
+    private static class TestEvent extends Event<TestEvent.Payload> {
+        public static class Builder extends Event.Builder<TestEvent, Payload> {
 
             public static Builder newInstance() {
-                return new Builder(new TestEvent());
+                return new Builder();
             }
 
-            private Builder(TestEvent event) {
-                super(event);
+            private Builder() {
+                super(new TestEvent(), new Payload());
             }
+
+            @Override
+            protected void validate() {
+
+            }
+        }
+
+        public static class Payload extends EventPayload {
+
         }
     }
 }

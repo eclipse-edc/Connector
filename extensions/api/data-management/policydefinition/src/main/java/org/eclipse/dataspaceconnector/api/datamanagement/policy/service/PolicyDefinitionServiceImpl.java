@@ -27,16 +27,19 @@ import java.util.Collection;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
-public class PolicyServiceImpl implements PolicyService {
+public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
 
     private final TransactionContext transactionContext;
     private final PolicyDefinitionStore policyStore;
     private final ContractDefinitionStore contractDefinitionStore;
+    private final PolicyDefinitionObservable observable;
 
-    public PolicyServiceImpl(TransactionContext transactionContext, PolicyDefinitionStore policyStore, ContractDefinitionStore contractDefinitionStore) {
+    public PolicyDefinitionServiceImpl(TransactionContext transactionContext, PolicyDefinitionStore policyStore,
+                                       ContractDefinitionStore contractDefinitionStore, PolicyDefinitionObservable observable) {
         this.transactionContext = transactionContext;
         this.policyStore = policyStore;
         this.contractDefinitionStore = contractDefinitionStore;
+        this.observable = observable;
     }
 
     @Override
@@ -57,33 +60,34 @@ public class PolicyServiceImpl implements PolicyService {
         return transactionContext.execute(() -> {
 
             if (policyStore.findById(policyId) == null) {
-                return ServiceResult.notFound(format("Policy %s does not exist", policyId));
+                return ServiceResult.notFound(format("PolicyDefinition %s does not exist", policyId));
             }
 
             var contractDefinitionOnPolicy = contractDefinitionStore.isReferenced(policyId);
             if (contractDefinitionOnPolicy.findAny().isPresent()) {
-                return ServiceResult.conflict(format("Policy %s cannot be deleted as it is referenced by at least one contract definition", policyId));
+                return ServiceResult.conflict(format("PolicyDefinition %s cannot be deleted as it is referenced by at least one contract definition", policyId));
             }
-
 
             var deleted = policyStore.deleteById(policyId);
             if (deleted == null) {
-                return ServiceResult.notFound(format("Policy %s cannot be deleted because it does not exist", policyId));
+                return ServiceResult.notFound(format("PolicyDefinition %s cannot be deleted because it does not exist", policyId));
             }
 
+            observable.invokeForEach(l -> l.deleted(deleted));
             return ServiceResult.success(deleted);
         });
     }
 
     @Override
-    public @NotNull ServiceResult<PolicyDefinition> create(PolicyDefinition policy) {
+    public @NotNull ServiceResult<PolicyDefinition> create(PolicyDefinition policyDefinition) {
 
         return transactionContext.execute(() -> {
-            if (policyStore.findById(policy.getUid()) == null) {
-                policyStore.save(policy);
-                return ServiceResult.success(policy);
+            if (policyStore.findById(policyDefinition.getUid()) == null) {
+                policyStore.save(policyDefinition);
+                observable.invokeForEach(l -> l.created(policyDefinition));
+                return ServiceResult.success(policyDefinition);
             } else {
-                return ServiceResult.conflict(format("Policy %s cannot be created because it already exists", policy.getUid()));
+                return ServiceResult.conflict(format("PolicyDefinition %s cannot be created because it already exists", policyDefinition.getUid()));
             }
         });
     }

@@ -18,6 +18,7 @@ in the detailed section referring to by linking pull requests or issues.
 #### Added
 
 * Event Framework for Asset entity (#1453)
+* Event Framework for PolicyDefinition entity (#1437)
 * SQL Translation layer (#1357, #1459)
 * Permit API verbose error response (#1479)
 
