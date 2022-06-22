@@ -15,7 +15,7 @@
 
 package org.eclipse.dataspaceconnector.core.defaults.negotiationstore;
 
-import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
+import org.eclipse.dataspaceconnector.core.defaults.InMemoryStateMachineStore;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.query.QueryResolver;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -25,132 +25,68 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * An in-memory, threadsafe process store. This implementation is intended for testing purposes only.
  */
 public class InMemoryContractNegotiationStore implements ContractNegotiationStore {
 
-    private final LockManager lockManager = new LockManager(new ReentrantReadWriteLock());
-    private final Map<String, ContractNegotiation> negotiationById = new HashMap<>();
-    private final Map<String, ContractNegotiation> negotiationByCorrelationId = new HashMap<>();
-    private final Map<String, ContractNegotiation> contractAgreements = new HashMap<>();
-    private final Map<Integer, List<ContractNegotiation>> stateCache = new HashMap<>();
+    private final InMemoryStateMachineStore<ContractNegotiation> store = new InMemoryStateMachineStore<>(ContractNegotiation.class);
     private final QueryResolver<ContractNegotiation> negotiationQueryResolver = new ReflectionBasedQueryResolver<>(ContractNegotiation.class);
     private final QueryResolver<ContractAgreement> agreementQueryResolver = new ReflectionBasedQueryResolver<>(ContractAgreement.class);
 
     @Override
-    public ContractNegotiation find(String id) {
-        return lockManager.readLock(() -> negotiationById.get(id));
+    public @Nullable ContractNegotiation find(String negotiationId) {
+        return store.find(negotiationId);
     }
 
     @Override
     public @Nullable ContractNegotiation findForCorrelationId(String correlationId) {
-        var process = negotiationByCorrelationId.get(correlationId);
-        var processId = process != null ? process.getId() : null;
-        return find(processId);
+        return store.findAll().filter(p -> correlationId.equals(p.getCorrelationId())).findFirst().orElse(null);
     }
 
     @Override
     public @Nullable ContractAgreement findContractAgreement(String contractId) {
-        var negotiation = contractAgreements.get(contractId);
-        return negotiation != null ? negotiation.getContractAgreement() : null;
+        return store.findAll().filter(p -> contractId.equals(p.getContractAgreement().getId())).findFirst().map(ContractNegotiation::getContractAgreement).orElse(null);
     }
 
     @Override
     public void save(ContractNegotiation negotiation) {
-        lockManager.writeLock(() -> {
-            negotiation.updateStateTimestamp();
-            delete(negotiation.getId());
-            ContractNegotiation internalCopy = negotiation.copy();
-            negotiationById.put(negotiation.getId(), internalCopy);
-            negotiationByCorrelationId.put(negotiation.getCorrelationId(), internalCopy);
-            var agreement = internalCopy.getContractAgreement();
-            if (agreement != null) {
-                contractAgreements.put(agreement.getId(), internalCopy);
-            }
-            stateCache.computeIfAbsent(negotiation.getState(), k -> new ArrayList<>()).add(internalCopy);
-            return null;
-        });
+        store.upsert(negotiation);
     }
 
     @Override
-    public void delete(String processId) {
-        lockManager.writeLock(() -> {
-            ContractNegotiation process = negotiationById.remove(processId);
-            if (process != null) {
-                var tempCache = new HashMap<Integer, List<ContractNegotiation>>();
-                stateCache.forEach((key, value) -> {
-                    var list = value.stream().filter(p -> !p.getId().equals(processId)).collect(Collectors.toCollection(ArrayList::new));
-                    tempCache.put(key, list);
-                });
-                stateCache.clear();
-                stateCache.putAll(tempCache);
-                negotiationByCorrelationId.remove(process.getCorrelationId());
-
-                if (process.getContractAgreement() != null) {
-                    contractAgreements.remove(process.getContractAgreement().getId());
-                }
-            }
-            return null;
-        });
+    public void delete(String negotiationId) {
+        store.delete(negotiationId);
     }
 
     @Override
     public @NotNull Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
-        return lockManager.readLock(() -> negotiationQueryResolver.query(negotiationById.values().stream(), querySpec));
+        return negotiationQueryResolver.query(store.findAll(), querySpec);
     }
 
     @Override
     public @NotNull Stream<ContractAgreement> getAgreementsForDefinitionId(String definitionId) {
-        return lockManager.readLock(() -> getAgreements().filter(it -> it.getId().startsWith(definitionId + ":")));
+        return getAgreements().filter(it -> it.getId().startsWith(definitionId + ":"));
     }
 
     @Override
     public @NotNull Stream<ContractAgreement> queryAgreements(QuerySpec querySpec) {
-        return lockManager.readLock(() -> agreementQueryResolver.query(getAgreements(), querySpec));
+        return agreementQueryResolver.query(getAgreements(), querySpec);
     }
 
     @Override
     public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
-        return lockManager.readLock(() -> {
-            var set = stateCache.get(state);
-
-            List<ContractNegotiation> toBeLeased = set == null ? Collections.emptyList() : set.stream()
-                    .sorted(Comparator.comparingLong(ContractNegotiation::getStateTimestamp)) //order by state timestamp, oldest first
-                    .limit(max)
-                    .collect(toList());
-
-            stateCache.compute(state, (key, value) -> {
-                if (value != null) {
-                    value.removeAll(toBeLeased);
-                }
-                return value;
-            });
-
-            return toBeLeased.stream()
-                    .map(ContractNegotiation::copy)
-                    .collect(toList());
-        });
+        return store.nextForState(state, max);
     }
 
     @NotNull
     private Stream<ContractAgreement> getAgreements() {
-        return negotiationById.values().stream()
+        return store.findAll()
                 .map(ContractNegotiation::getContractAgreement)
                 .filter(Objects::nonNull);
     }
-
 }

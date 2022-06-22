@@ -27,6 +27,7 @@ As a developer, I do not want to ...
 - [Events](events.md)
 - [Logging](logging.md)
 - [Metrics](metrics.md)
+- [State machine](state-machine.md)
 - [Releases](releases.md)
 - [Style guide](_helper/styleguide.md)
 - [Testing](testing.md)

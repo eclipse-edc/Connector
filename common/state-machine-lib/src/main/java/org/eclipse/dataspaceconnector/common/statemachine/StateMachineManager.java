@@ -36,7 +36,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * On every iteration it runs all the set processors sequentially,
  * applying a wait strategy in the case no entities are processed on the iteration.
  */
-public class StateMachine {
+public class StateMachineManager {
 
     private final List<StateProcessor> processors = new ArrayList<>();
     private final ScheduledExecutorService executor;
@@ -46,7 +46,7 @@ public class StateMachine {
     private final String name;
     private int shutdownTimeout = 10;
 
-    private StateMachine(String name, Monitor monitor, ExecutorInstrumentation instrumentation, WaitStrategy waitStrategy) {
+    private StateMachineManager(String name, Monitor monitor, ExecutorInstrumentation instrumentation, WaitStrategy waitStrategy) {
         this.name = name;
         this.monitor = monitor;
         this.waitStrategy = waitStrategy;
@@ -134,10 +134,10 @@ public class StateMachine {
 
     public static class Builder {
 
-        private final StateMachine loop;
+        private final StateMachineManager loop;
 
         private Builder(String name, Monitor monitor, ExecutorInstrumentation instrumentation, WaitStrategy waitStrategy) {
-            loop = new StateMachine(name, monitor, instrumentation, waitStrategy);
+            loop = new StateMachineManager(name, monitor, instrumentation, waitStrategy);
         }
 
         public static Builder newInstance(String name, Monitor monitor, ExecutorInstrumentation instrumentation, WaitStrategy waitStrategy) {
@@ -154,7 +154,7 @@ public class StateMachine {
             return this;
         }
 
-        public StateMachine build() {
+        public StateMachineManager build() {
             return loop;
         }
     }
