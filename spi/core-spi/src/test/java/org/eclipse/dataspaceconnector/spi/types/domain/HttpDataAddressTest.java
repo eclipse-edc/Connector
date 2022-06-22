@@ -17,7 +17,6 @@ class HttpDataAddressTest {
                 .authKey("myKey")
                 .secretName("mysecret")
                 .httpVerb("PUT")
-                .usePartName("false")
                 .additionalHeaders("{\"Content-Type\" : \"application/octet-stream\",\"x-ms-blob-type\": \"BlockBlob\"}")
                 .proxyBody("proxyBody1")
                 .proxyMethod("proxyMethod1")
@@ -36,7 +35,6 @@ class HttpDataAddressTest {
         assertEquals("proxyQueryParams1", dataAddress.getProxyQueryParams());
         assertEquals("mysecret", dataAddress.getSecretName());
         assertEquals("PUT", dataAddress.getHttpVerb());
-        assertFalse(dataAddress.isUsePartName());
         assertEquals(2, dataAddress.getAdditionalHeaders().size());
         assertEquals("application/octet-stream", dataAddress.getAdditionalHeaders().get("Content-Type"));
         assertEquals("BlockBlob", dataAddress.getAdditionalHeaders().get("x-ms-blob-type"));
@@ -48,7 +46,6 @@ class HttpDataAddressTest {
 
         assertEquals("HttpData", dataAddress.getType());
         assertEquals("POST", dataAddress.getHttpVerb());
-        assertTrue(dataAddress.isUsePartName());
         assertEquals(0, dataAddress.getAdditionalHeaders().size());
     }
 }

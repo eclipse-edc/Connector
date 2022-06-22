@@ -76,7 +76,6 @@ public class HttpDataSinkFactory implements DataSinkFactory {
         var authKey = dataAddress.getAuthKey();
         var authCode = dataAddress.getAuthCode();
         var httpVerb = dataAddress.getHttpVerb();
-        var usePartName = dataAddress.isUsePartName();
         var additionalHeaders = dataAddress.getAdditionalHeaders();
 
         var sink = HttpDataSink.Builder.newInstance()
@@ -86,7 +85,6 @@ public class HttpDataSinkFactory implements DataSinkFactory {
                 .authKey(authKey)
                 .authCode(authCode)
                 .httpClient(httpClient)
-                .usePartName(usePartName)
                 .httpVerb(httpVerb)
                 .additionalHeaders(additionalHeaders)
                 .executorService(executorService)

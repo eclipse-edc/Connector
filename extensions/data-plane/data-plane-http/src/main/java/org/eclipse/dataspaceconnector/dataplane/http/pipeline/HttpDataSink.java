@@ -42,7 +42,6 @@ public class HttpDataSink extends ParallelSink {
     private String authKey;
     private String authCode;
     private String endpoint;
-    private boolean usePartName = true;
     private OkHttpClient httpClient;
     private Map<String, String> additionalHeaders = new HashMap<>();
     private HttpDataSinkRequest requestBuilder = new HttpDataSinkRequestPost();
@@ -102,7 +101,7 @@ public class HttpDataSink extends ParallelSink {
 
             return Optional.of(
                     requestBuilder
-                            .url(makeUrl(part))
+                            .url(endpoint)
                             .put(body)
                             .build());
         }
@@ -114,14 +113,10 @@ public class HttpDataSink extends ParallelSink {
             var requestBody = new StreamingRequestBody(part);
             return Optional.of(
                     requestBuilder
-                            .url(makeUrl(part))
+                            .url(endpoint)
                             .post(requestBody)
                             .build());
         }
-    }
-
-    private String makeUrl(DataSource.Part part) {
-        return usePartName ? endpoint + "/" + part.name() : endpoint;
     }
 
     public static class Builder extends ParallelSink.Builder<Builder, HttpDataSink> {
@@ -152,11 +147,6 @@ public class HttpDataSink extends ParallelSink {
 
         public Builder additionalHeaders(Map<String, String> additionalHeaders) {
             sink.additionalHeaders = additionalHeaders;
-            return this;
-        }
-
-        public Builder usePartName(boolean usePartName) {
-            sink.usePartName = usePartName;
             return this;
         }
 
