@@ -9,13 +9,12 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Siemens AG - changes to make it compatible with AWS S3, Azure blob and AWS China S3 presigned URL for upload
+ *       Siemens AG - changes to make it compatible with AWS S3, Azure blob and ALI Object Storage presigned URL for upload
  *
  */
 
 package org.eclipse.dataspaceconnector.dataplane.http;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.jodah.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataplane.http.pipeline.HttpDataSinkFactory;
