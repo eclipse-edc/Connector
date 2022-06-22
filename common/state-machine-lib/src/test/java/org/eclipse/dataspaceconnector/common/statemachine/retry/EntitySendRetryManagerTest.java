@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.common.statemachine.retry;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.github.javafaker.Faker;
-import org.eclipse.dataspaceconnector.spi.entity.StateMachine;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -102,14 +102,14 @@ class EntitySendRetryManagerTest {
         }
     }
 
-    private static class TestEntity extends StateMachine<TestEntity> {
+    private static class TestEntity extends StatefulEntity<TestEntity> {
         @Override
         public TestEntity copy() {
             return this;
         }
 
         @JsonPOJOBuilder(withPrefix = "")
-        public static class Builder extends StateMachine.Builder<TestEntity, Builder> {
+        public static class Builder extends StatefulEntity.Builder<TestEntity, Builder> {
 
             @Override
             public Builder self() {

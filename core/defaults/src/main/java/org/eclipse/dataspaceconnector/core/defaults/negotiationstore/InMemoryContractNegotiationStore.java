@@ -15,7 +15,7 @@
 
 package org.eclipse.dataspaceconnector.core.defaults.negotiationstore;
 
-import org.eclipse.dataspaceconnector.core.defaults.InMemoryStateMachineStore;
+import org.eclipse.dataspaceconnector.core.defaults.InMemoryStatefulEntityStore;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.query.QueryResolver;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -34,7 +34,7 @@ import java.util.stream.Stream;
  */
 public class InMemoryContractNegotiationStore implements ContractNegotiationStore {
 
-    private final InMemoryStateMachineStore<ContractNegotiation> store = new InMemoryStateMachineStore<>(ContractNegotiation.class);
+    private final InMemoryStatefulEntityStore<ContractNegotiation> store = new InMemoryStatefulEntityStore<>(ContractNegotiation.class);
     private final QueryResolver<ContractNegotiation> negotiationQueryResolver = new ReflectionBasedQueryResolver<>(ContractNegotiation.class);
     private final QueryResolver<ContractAgreement> agreementQueryResolver = new ReflectionBasedQueryResolver<>(ContractAgreement.class);
 

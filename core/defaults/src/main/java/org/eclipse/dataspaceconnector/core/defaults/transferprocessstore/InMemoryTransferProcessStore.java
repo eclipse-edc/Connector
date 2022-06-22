@@ -14,8 +14,7 @@
 
 package org.eclipse.dataspaceconnector.core.defaults.transferprocessstore;
 
-import org.eclipse.dataspaceconnector.core.defaults.InMemoryStateMachineStore;
-import org.eclipse.dataspaceconnector.spi.entity.StateMachine;
+import org.eclipse.dataspaceconnector.core.defaults.InMemoryStatefulEntityStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
@@ -31,7 +30,7 @@ import java.util.stream.Stream;
  */
 public class InMemoryTransferProcessStore implements TransferProcessStore {
 
-    private final InMemoryStateMachineStore<TransferProcess> store = new InMemoryStateMachineStore<>(TransferProcess.class);
+    private final InMemoryStatefulEntityStore<TransferProcess> store = new InMemoryStatefulEntityStore<>(TransferProcess.class);
 
     @Override
     @Nullable
@@ -39,7 +38,7 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
         return store.findAll()
                 .filter(p -> id.equals(p.getDataRequest().getId()))
                 .findFirst()
-                .map(StateMachine::getId)
+                .map(TransferProcess::getId)
                 .orElse(null);
     }
 

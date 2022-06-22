@@ -53,7 +53,7 @@ public class StateMachineManager {
         executor = instrumentation.instrument(
                 Executors.newSingleThreadScheduledExecutor(r -> {
                     var thread = Executors.defaultThreadFactory().newThread(r);
-                    thread.setName("StateMachine-" + name);
+                    thread.setName("StateMachineManager-" + name);
                     return thread;
                 }), name);
     }
@@ -80,7 +80,7 @@ public class StateMachineManager {
             try {
                 return executor.awaitTermination(shutdownTimeout, SECONDS);
             } catch (InterruptedException e) {
-                monitor.severe(format("StateMachine [%s] await termination failed", name), e);
+                monitor.severe(format("StateMachineManager [%s] await termination failed", name), e);
                 return false;
             }
         });
@@ -124,9 +124,9 @@ public class StateMachineManager {
             }
         } catch (Error e) {
             active.set(false);
-            monitor.severe(format("StateMachine [%s] unrecoverable error", name), e);
+            monitor.severe(format("StateMachineManager [%s] unrecoverable error", name), e);
         } catch (Throwable e) {
-            monitor.severe(format("StateMachine [%s] error caught", name), e);
+            monitor.severe(format("StateMachineManager [%s] error caught", name), e);
             return waitStrategy.retryInMillis();
         }
         return 0;

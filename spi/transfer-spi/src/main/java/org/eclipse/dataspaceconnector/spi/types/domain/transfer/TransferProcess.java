@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.dataspaceconnector.spi.entity.StateMachine;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -93,7 +93,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
  */
 @JsonTypeName("dataspaceconnector:transferprocess")
 @JsonDeserialize(builder = TransferProcess.Builder.class)
-public class TransferProcess extends StateMachine<TransferProcess> {
+public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     private Type type = Type.CONSUMER;
     private DataRequest dataRequest;
@@ -344,7 +344,7 @@ public class TransferProcess extends StateMachine<TransferProcess> {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends StateMachine.Builder<TransferProcess, Builder> {
+    public static class Builder extends StatefulEntity.Builder<TransferProcess, Builder> {
 
         private Builder(TransferProcess process) {
             super(process);
