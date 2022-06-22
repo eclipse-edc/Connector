@@ -72,10 +72,6 @@ public class DataPlaneHttpExtension implements ServiceExtension {
 
     @NotNull
     private Integer getSinkPartitionSize(ServiceExtensionContext context) {
-        try {
-            return context.getSetting(EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE, DEFAULT_PART_SIZE);
-        } catch (NumberFormatException e) {
-            return DEFAULT_PART_SIZE;
-        }
+        return context.getSetting(EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE, DEFAULT_PART_SIZE);
     }
 }

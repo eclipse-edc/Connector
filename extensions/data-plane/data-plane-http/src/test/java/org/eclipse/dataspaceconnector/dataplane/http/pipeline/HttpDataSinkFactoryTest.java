@@ -114,7 +114,7 @@ class HttpDataSinkFactoryTest {
     void verifyCreatePutVerb() throws InterruptedException, ExecutionException, IOException {
         var dataAddress = HttpDataAddress.Builder.newInstance()
                 .baseUrl("http://example.com")
-                .httpVerb("PUT")
+                .method("PUT")
                 .build();
 
         var validRequest = createRequest(HttpDataAddress.DATA_TYPE).destinationDataAddress(dataAddress).build();

@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - Initial implementation
- *       Siemens AG - added httpVerb and additionalHeaders
+ *       Siemens AG - added method and additionalHeaders
  *
  */
 
@@ -46,7 +46,7 @@ public class HttpDataAddress extends DataAddress {
     private static final String PROXY_PATH = "proxyPath";
     private static final String PROXY_QUERY_PARAMS = "proxyQueryParams";
     private static final String PROXY_METHOD = "proxyMethod";
-    private static final String HTTP_VERB = "httpVerb";
+    private static final String METHOD = "method";
     private static final String ADDITIONAL_HEADERS = "additionalHeaders";
 
     private HttpDataAddress() {
@@ -99,8 +99,8 @@ public class HttpDataAddress extends DataAddress {
     }
 
     @JsonIgnore
-    public String getHttpVerb() {
-        return getProperty(HTTP_VERB, "POST");
+    public String getMethod() {
+        return getProperty(METHOD, "POST");
     }
 
     @JsonIgnore
@@ -174,8 +174,8 @@ public class HttpDataAddress extends DataAddress {
             return this;
         }
 
-        public Builder httpVerb(String httpVerb) {
-            this.property(HTTP_VERB, httpVerb);
+        public Builder method(String method) {
+            this.property(METHOD, method);
             return this;
         }
 
