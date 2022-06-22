@@ -60,4 +60,16 @@ class DataAddressTest {
                 .hasMessageContaining("Property key null.");
     }
 
+    @Test
+    void verifyGetDefaultPropertyValue() {
+        assertEquals("defaultValue", DataAddress.Builder.newInstance().type("sometype").build()
+                .getProperty("missing","defaultValue"));
+    }
+
+    @Test
+    void verifyGetExistingPropertyValue() {
+        assertEquals("existingValue", DataAddress.Builder.newInstance().type("sometype")
+                .property("existing", "existingValue")
+                .build().getProperty("existing","defaultValue"));
+    }
 }
