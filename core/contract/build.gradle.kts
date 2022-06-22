@@ -9,10 +9,12 @@
 *
 *  Contributors:
 *       Daimler TSS GmbH - Initial API and Implementation
+*       Microsoft Corporation - introduced Awaitility
 *
 */
 
 val openTelemetryVersion: String by project
+val awaitility: String by project
 
 plugins {
     `java-library`
@@ -28,6 +30,7 @@ dependencies {
     testImplementation(project(":core:defaults"))
     testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))
+    testImplementation("org.awaitility:awaitility:${awaitility}")
 }
 
 publishing {
