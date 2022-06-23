@@ -14,15 +14,16 @@
 
 package org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.postgres;
 
-import org.eclipse.dataspaceconnector.sql.translation.TranslationMapping;
+import org.eclipse.dataspaceconnector.sql.translation.JsonFieldMapping;
 
 /**
  * Maps fields of a {@link org.eclipse.dataspaceconnector.spi.query.Criterion} onto the corresponding SQL schema (=
  * column names)
  */
-class CriterionMapping extends TranslationMapping {
+class CriterionMapping extends JsonFieldMapping {
 
     CriterionMapping() {
+        super("criteria");
     }
 
     @Override
