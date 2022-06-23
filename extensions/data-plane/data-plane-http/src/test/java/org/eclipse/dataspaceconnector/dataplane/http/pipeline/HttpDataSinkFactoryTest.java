@@ -111,31 +111,6 @@ class HttpDataSinkFactoryTest {
     }
 
     @Test
-    void verifyCreatePutVerb() throws InterruptedException, ExecutionException, IOException {
-        var dataAddress = HttpDataAddress.Builder.newInstance()
-                .baseUrl("http://example.com")
-                .build();
-
-        var validRequest = createRequest(HttpDataAddress.DATA_TYPE).destinationDataAddress(dataAddress).build();
-
-        var call = mock(Call.class);
-        when(call.execute()).thenReturn(createHttpResponse().build());
-
-        when(httpClient.newCall(isA(Request.class))).thenAnswer(r -> {
-            assertThat(((Request) r.getArgument(0)).method()).isEqualTo("PUT");  // verify verb PUT
-            return call;
-        });
-
-        var sink = factory.createSink(validRequest);
-
-        var result = sink.transfer(new InputStreamDataSource("test", new ByteArrayInputStream("test".getBytes()))).get();
-
-        assertThat(result.failed()).isFalse();
-
-        verify(call).execute();
-    }
-
-    @Test
     void verifyCreateAdditionalHeaders() throws InterruptedException, ExecutionException, IOException {
         var dataAddress = HttpDataAddress.Builder.newInstance()
                 .baseUrl("http://example.com")
