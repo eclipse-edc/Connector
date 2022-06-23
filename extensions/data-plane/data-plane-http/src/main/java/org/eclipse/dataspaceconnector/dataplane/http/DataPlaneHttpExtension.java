@@ -26,7 +26,6 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Provides support for reading data from an HTTP endpoint and sending data to an HTTP endpoint.
@@ -70,8 +69,7 @@ public class DataPlaneHttpExtension implements ServiceExtension {
         pipelineService.registerFactory(sinkFactory);
     }
 
-    @NotNull
-    private Integer getSinkPartitionSize(ServiceExtensionContext context) {
+    private int getSinkPartitionSize(ServiceExtensionContext context) {
         return context.getSetting(EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE, DEFAULT_PART_SIZE);
     }
 }
