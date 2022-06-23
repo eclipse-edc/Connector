@@ -114,7 +114,6 @@ class HttpDataSinkFactoryTest {
     void verifyCreatePutVerb() throws InterruptedException, ExecutionException, IOException {
         var dataAddress = HttpDataAddress.Builder.newInstance()
                 .baseUrl("http://example.com")
-                .method("PUT")
                 .build();
 
         var validRequest = createRequest(HttpDataAddress.DATA_TYPE).destinationDataAddress(dataAddress).build();
@@ -140,7 +139,8 @@ class HttpDataSinkFactoryTest {
     void verifyCreateAdditionalHeaders() throws InterruptedException, ExecutionException, IOException {
         var dataAddress = HttpDataAddress.Builder.newInstance()
                 .baseUrl("http://example.com")
-                .additionalHeaders("{\"Content-Type\" : \"application/test-octet-stream\",\"x-ms-blob-type\": \"BlockBlob\"}")
+                .addAdditionalHeader("Content-Type", "application/test-octet-stream")
+                .addAdditionalHeader("x-ms-blob-type", "BlockBlob")
                 .build();
 
         var validRequest = createRequest(HttpDataAddress.DATA_TYPE).destinationDataAddress(dataAddress).build();

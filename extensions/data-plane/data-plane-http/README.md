@@ -28,5 +28,4 @@ see [HttpDataAddress.java](../../../spi/core-spi/src/main/java/org/eclipse/datas
 * proxyPath - If set to true the path of the actual request will be used to retrieve data from this address.
 * proxyQueryParams - If set to true the query params of the actual request will be used to retrieve data from this address.
 * proxyMethod - If set to true the http method of the actual request will be used to retrieve data from this address.
-* method - The http verb to use for sink endpoint - possible values POST/PUT - default set to POST.
-* additionalHeaders - The additional headers to use as json string e.g. ```"additionalHeaders" : "{\"Content-Type\" : \"application/octet-stream\",\"x-ms-blob-type\": \"BlockBlob\"}"```.
+* header:* - The additional headers to use as json string e.g. ```"header:Content-Type" : "application/octet-stream","header:x-ms-blob-type": "BlockBlob"```.

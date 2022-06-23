@@ -14,8 +14,8 @@ class HttpDataAddressTest {
                 .authCode("secret")
                 .authKey("myKey")
                 .secretName("mysecret")
-                .method("PUT")
-                .additionalHeaders("{\"Content-Type\" : \"application/octet-stream\",\"x-ms-blob-type\": \"BlockBlob\"}")
+                .addAdditionalHeader("Content-Type", "application/octet-stream")
+                .addAdditionalHeader("x-ms-blob-type", "BlockBlob")
                 .proxyBody("proxyBody1")
                 .proxyMethod("proxyMethod1")
                 .proxyPath("proxyPath1")
@@ -32,7 +32,6 @@ class HttpDataAddressTest {
         assertEquals("proxyPath1", dataAddress.getProxyPath());
         assertEquals("proxyQueryParams1", dataAddress.getProxyQueryParams());
         assertEquals("mysecret", dataAddress.getSecretName());
-        assertEquals("PUT", dataAddress.getMethod());
         assertEquals(2, dataAddress.getAdditionalHeaders().size());
         assertEquals("application/octet-stream", dataAddress.getAdditionalHeaders().get("Content-Type"));
         assertEquals("BlockBlob", dataAddress.getAdditionalHeaders().get("x-ms-blob-type"));
@@ -43,7 +42,6 @@ class HttpDataAddressTest {
         HttpDataAddress dataAddress = HttpDataAddress.Builder.newInstance().build();
 
         assertEquals("HttpData", dataAddress.getType());
-        assertEquals("POST", dataAddress.getMethod());
         assertEquals(0, dataAddress.getAdditionalHeaders().size());
     }
 }

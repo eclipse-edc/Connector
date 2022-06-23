@@ -18,14 +18,12 @@ package org.eclipse.dataspaceconnector.spi.types.domain;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.dataspaceconnector.common.string.StringUtils;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * This is a wrapper class for the {@link DataAddress} object, which has typed accessors for properties specific to
@@ -46,8 +44,7 @@ public class HttpDataAddress extends DataAddress {
     private static final String PROXY_PATH = "proxyPath";
     private static final String PROXY_QUERY_PARAMS = "proxyQueryParams";
     private static final String PROXY_METHOD = "proxyMethod";
-    private static final String METHOD = "method";
-    private static final String ADDITIONAL_HEADERS = "additionalHeaders";
+    public static final String ADDITIONAL_HEADER = "header:";
 
     private HttpDataAddress() {
         super();
@@ -98,23 +95,15 @@ public class HttpDataAddress extends DataAddress {
         return getProperty(PROXY_METHOD);
     }
 
-    @JsonIgnore
-    public String getMethod() {
-        return getProperty(METHOD, "POST");
-    }
 
     @JsonIgnore
     public Map<String, String> getAdditionalHeaders() {
-        return convertAdditionalHeaders(getProperty(ADDITIONAL_HEADERS, "{}"));
+        return getProperties().entrySet().stream()
+                .filter(entry -> entry.getKey().startsWith(ADDITIONAL_HEADER))
+                .collect(Collectors.toMap(entry -> entry.getKey().replace(ADDITIONAL_HEADER, ""), Map.Entry::getValue));
+
     }
 
-    private Map<String, String> convertAdditionalHeaders(String additionalHeaders) {
-        try {
-            return new ObjectMapper().readValue(StringUtils.isNullOrBlank(additionalHeaders) ? "" : additionalHeaders, Map.class);
-        } catch (JsonProcessingException e) {
-            return new HashMap<>();
-        }
-    }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder extends DataAddress.Builder {
@@ -174,13 +163,8 @@ public class HttpDataAddress extends DataAddress {
             return this;
         }
 
-        public Builder method(String method) {
-            this.property(METHOD, method);
-            return this;
-        }
-
-        public Builder additionalHeaders(String additionalHeaders) {
-            this.property(ADDITIONAL_HEADERS, additionalHeaders);
+        public Builder addAdditionalHeader(String additionalHeaderName, String additionalHeaderValue) {
+            address.getProperties().put(ADDITIONAL_HEADER + additionalHeaderName, Objects.requireNonNull(additionalHeaderValue));
             return this;
         }
 
