@@ -18,7 +18,6 @@ import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okio.BufferedSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
-import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 
 import java.io.IOException;
 
