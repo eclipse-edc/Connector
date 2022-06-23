@@ -28,4 +28,5 @@ see [HttpDataAddress.java](../../../spi/core-spi/src/main/java/org/eclipse/datas
 * proxyPath - If set to true the path of the actual request will be used to retrieve data from this address.
 * proxyQueryParams - If set to true the query params of the actual request will be used to retrieve data from this address.
 * proxyMethod - If set to true the http method of the actual request will be used to retrieve data from this address.
-* header:* - The additional headers to use as json string e.g. ```"header:Content-Type" : "application/octet-stream","header:x-ms-blob-type": "BlockBlob"```.
+* header:* - The additional headers to use as json string e.g. ```"header:x-ms-blob-type": "BlockBlob"```. Note that Content-Type is handled separately - it will not be taken into consideration if specified here.
+* contentType - The HTTP Content-Type header is handled separate and has a default value of application/octet-stream.

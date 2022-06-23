@@ -21,9 +21,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
+import static org.assertj.core.api.Assertions.assertThat;
 
 class DataAddressTest {
 
@@ -40,10 +38,10 @@ class DataAddressTest {
 
         DataAddress deserialized = mapper.readValue(writer.toString(), DataAddress.class);
 
-        assertNotNull(deserialized);
+        assertThat(deserialized).isNotNull();
 
-        assertEquals("test", deserialized.getType());
-        assertEquals("bar", deserialized.getProperty("foo"));
+        assertThat(deserialized.getType()).isEqualTo("test");
+        assertThat(deserialized.getProperty("foo")).isEqualTo("bar");
     }
 
     @Test
@@ -62,14 +60,13 @@ class DataAddressTest {
 
     @Test
     void verifyGetDefaultPropertyValue() {
-        assertEquals("defaultValue", DataAddress.Builder.newInstance().type("sometype").build()
-                .getProperty("missing", "defaultValue"));
+        assertThat(DataAddress.Builder.newInstance().type("sometype").build().getProperty("missing", "defaultValue"))
+                .isEqualTo("defaultValue");
     }
 
     @Test
     void verifyGetExistingPropertyValue() {
-        assertEquals("existingValue", DataAddress.Builder.newInstance().type("sometype")
-                .property("existing", "existingValue")
-                .build().getProperty("existing", "defaultValue"));
+        assertThat(DataAddress.Builder.newInstance().type("sometype").property("existing", "existingValue").build().getProperty("existing", "defaultValue"))
+                .isEqualTo("existingValue");
     }
 }

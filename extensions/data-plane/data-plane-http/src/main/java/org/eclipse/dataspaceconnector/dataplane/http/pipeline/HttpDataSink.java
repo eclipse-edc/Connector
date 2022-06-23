@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Siemens AG - changes to make it compatible with AWS S3, Azure blob and ALI Object Storage presigned URL for upload
+ *       Siemens AG - added additionalHeaders
  *
  */
 
@@ -38,9 +38,9 @@ public class HttpDataSink extends ParallelSink {
     private String authKey;
     private String authCode;
     private String endpoint;
+    private String contentType;
     private OkHttpClient httpClient;
     private Map<String, String> additionalHeaders = new HashMap<>();
-    private String method = "POST";
 
     /**
      * Sends the parts to the destination endpoint using an HTTP POST.
@@ -48,7 +48,7 @@ public class HttpDataSink extends ParallelSink {
     @Override
     protected StatusResult<Void> transferParts(List<DataSource.Part> parts) {
         for (DataSource.Part part : parts) {
-            var requestBody = new StreamingRequestBody(part);
+            var requestBody = new StreamingRequestBody(part, contentType);
             var requestBuilder = new Request.Builder();
             if (authKey != null) {
                 requestBuilder.header(authKey, authCode);
@@ -108,8 +108,8 @@ public class HttpDataSink extends ParallelSink {
             return this;
         }
 
-        public Builder method(String method) {
-            sink.method = method;
+        public Builder contentType(String contentType) {
+            sink.contentType = contentType;
             return this;
         }
 

@@ -16,7 +16,8 @@ package org.eclipse.dataspaceconnector.spi.types.domain;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 class HttpDataAddressTest {
 
@@ -28,7 +29,9 @@ class HttpDataAddressTest {
                 .authCode("secret")
                 .authKey("myKey")
                 .secretName("mysecret")
-                .addAdditionalHeader("Content-Type", "application/octet-stream")
+                .contentType("application/octet-stream")
+                .addAdditionalHeader("Content-Type", "text/html; charset=UTF-8")
+                .addAdditionalHeader("Keep-Alive", "timeout=5, max=1000")
                 .addAdditionalHeader("x-ms-blob-type", "BlockBlob")
                 .proxyBody("proxyBody1")
                 .proxyMethod("proxyMethod1")
@@ -36,26 +39,28 @@ class HttpDataAddressTest {
                 .proxyQueryParams("proxyQueryParams1")
                 .build();
 
-        assertEquals("HttpData", dataAddress.getType());
-        assertEquals("name1", dataAddress.getName());
-        assertEquals("http://myendpoint", dataAddress.getBaseUrl());
-        assertEquals("myKey", dataAddress.getAuthKey());
-        assertEquals("secret", dataAddress.getAuthCode());
-        assertEquals("proxyBody1", dataAddress.getProxyBody());
-        assertEquals("proxyMethod1", dataAddress.getProxyMethod());
-        assertEquals("proxyPath1", dataAddress.getProxyPath());
-        assertEquals("proxyQueryParams1", dataAddress.getProxyQueryParams());
-        assertEquals("mysecret", dataAddress.getSecretName());
-        assertEquals(2, dataAddress.getAdditionalHeaders().size());
-        assertEquals("application/octet-stream", dataAddress.getAdditionalHeaders().get("Content-Type"));
-        assertEquals("BlockBlob", dataAddress.getAdditionalHeaders().get("x-ms-blob-type"));
+        assertThat(dataAddress.getType()).isEqualTo("HttpData");
+        assertThat(dataAddress.getName()).isEqualTo("name1");
+        assertThat(dataAddress.getBaseUrl()).isEqualTo("http://myendpoint");
+        assertThat(dataAddress.getAuthKey()).isEqualTo("myKey");
+        assertThat(dataAddress.getAuthCode()).isEqualTo("secret");
+        assertThat(dataAddress.getProxyBody()).isEqualTo("proxyBody1");
+        assertThat(dataAddress.getProxyMethod()).isEqualTo("proxyMethod1");
+        assertThat(dataAddress.getProxyPath()).isEqualTo("proxyPath1");
+        assertThat(dataAddress.getProxyQueryParams()).isEqualTo("proxyQueryParams1");
+        assertThat(dataAddress.getSecretName()).isEqualTo("mysecret");
+        assertThat(dataAddress.getContentType()).isEqualTo("application/octet-stream");
+        assertThat(dataAddress.getAdditionalHeaders().size()).isEqualTo(2);
+        assertThat(dataAddress.getAdditionalHeaders().get("Keep-Alive")).isEqualTo("timeout=5, max=1000");
+        assertThat(dataAddress.getAdditionalHeaders().get("x-ms-blob-type")).isEqualTo("BlockBlob");
     }
 
     @Test
     void verifyGetDefaultValues() {
         HttpDataAddress dataAddress = HttpDataAddress.Builder.newInstance().build();
 
-        assertEquals("HttpData", dataAddress.getType());
-        assertEquals(0, dataAddress.getAdditionalHeaders().size());
+        assertThat(dataAddress.getType()).isEqualTo("HttpData");
+        assertThat(dataAddress.getAdditionalHeaders().size()).isEqualTo(0);
+        assertThat(dataAddress.getContentType()).isEqualTo("application/octet-stream");
     }
 }
