@@ -48,7 +48,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var config = loadHashicorpVaultClientConfig(context);
 
-        var okHttpClient = context.getService(OkHttpClient.class).newBuilder().callTimeout(config.getTimeout()).readTimeout(config.getTimeout()).build();
+        var okHttpClient = new OkHttpClient.Builder().callTimeout(config.getTimeout()).readTimeout(config.getTimeout()).build();
         var client = new HashicorpVaultClient(config, okHttpClient, context.getTypeManager());
 
         var vault = new HashicorpVault(client, context.getMonitor());

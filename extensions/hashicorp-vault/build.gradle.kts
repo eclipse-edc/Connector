@@ -15,7 +15,6 @@
 val mockitoVersion: String by project
 val okHttpVersion: String by project
 val bouncycastleVersion: String by project
-val testContainersVersion: String by project
 
 plugins {
     `java-library`
@@ -28,9 +27,8 @@ dependencies {
     implementation("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
 
     testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(testFixtures(project(":common:util")))
     testImplementation("org.mockito:mockito-inline:${mockitoVersion}")
-    testImplementation("org.testcontainers:vault:${testContainersVersion}")
-    testImplementation("org.testcontainers:junit-jupiter:${testContainersVersion}")
 }
 
 

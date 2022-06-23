@@ -334,7 +334,7 @@ jobs:
       - name: Hashicorp Vault Integration Tests
         uses: ./.github/actions/run-tests
         with:
-          command: ./gradlew -p extensions/hashicorp-vault/test test -DincludeTags="HashicorpVaultIntegrationTest"
+          command: ./gradlew -p extensions/hashicorp-vault test -DincludeTags="HashicorpVaultIntegrationTest"
 
   End-To-End-Tests:
     runs-on: ubuntu-latest
