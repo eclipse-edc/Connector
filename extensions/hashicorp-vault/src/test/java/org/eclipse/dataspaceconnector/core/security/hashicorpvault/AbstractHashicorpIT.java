@@ -31,9 +31,7 @@ import static org.eclipse.dataspaceconnector.core.security.hashicorpvault.Hashic
 @Testcontainers
 @ExtendWith(EdcExtension.class)
 class AbstractHashicorpIT {
-    static final String VAULT_TEST_URL = "http://0.0.0.0:8200";
-    static final String VAULT_TEST_ENTRY_KEY = "testing";
-    static final String VAULT_ENTRY_VALUE = "value";
+    static final String VAULT_TEST_URL = "http://127.0.0.1:8200";
     static final String VAULT_TEST_TOKEN = "test-token";
 
     final TestExtension testExtension = new TestExtension();
@@ -43,7 +41,7 @@ class AbstractHashicorpIT {
         extension.setConfiguration(
                 new HashMap<>() {
                     {
-                        put(VAULT_URL,VAULT_TEST_URL);
+                        put(VAULT_URL, VAULT_TEST_URL);
                         put(VAULT_TOKEN, VAULT_TEST_TOKEN);
                     }
                 });

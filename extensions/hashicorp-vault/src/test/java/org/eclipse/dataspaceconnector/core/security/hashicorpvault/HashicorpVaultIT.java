@@ -31,8 +31,12 @@ class HashicorpVaultIT extends AbstractHashicorpIT {
     @DisplayName("Resolve a secret that exists")
     void testResolveSecret_exists() {
         var vault = testExtension.getVault();
-        var secretValue = vault.resolveSecret(VAULT_TEST_ENTRY_KEY);
-        Assertions.assertEquals(VAULT_ENTRY_VALUE, secretValue);
+        var key = UUID.randomUUID().toString();
+        var valueExpected = UUID.randomUUID().toString();
+
+        vault.storeSecret(key, valueExpected);
+        var secretValue = vault.resolveSecret(key);
+        Assertions.assertEquals(valueExpected, secretValue);
     }
 
     @Test
@@ -82,7 +86,7 @@ class HashicorpVaultIT extends AbstractHashicorpIT {
     }
 
     @Test
-    @DisplayName("Try to delete a secret that does not exist")
+    @DisplayName("Delete a secret that does not exist")
     void testDeleteSecret_doesNotExist() {
         var key = UUID.randomUUID().toString();
 
