@@ -114,7 +114,7 @@ class HttpDataSinkFactoryTest {
     void verifyCreateAdditionalHeaders() throws InterruptedException, ExecutionException, IOException {
         var dataAddress = HttpDataAddress.Builder.newInstance()
                 .baseUrl("http://example.com")
-                .addAdditionalHeader("Content-Type", "application/test-octet-stream")
+                .contentType("application/test-octet-stream")
                 .addAdditionalHeader("x-ms-blob-type", "BlockBlob")
                 .build();
 
@@ -124,7 +124,7 @@ class HttpDataSinkFactoryTest {
         when(call.execute()).thenReturn(createHttpResponse().build());
 
         when(httpClient.newCall(isA(Request.class))).thenAnswer(r -> {
-            assertThat(((Request) r.getArgument(0)).headers("Content-Type").get(0)).isEqualTo("application/test-octet-stream");  // verify Content-Type
+            assertThat(((Request) r.getArgument(0)).body().contentType().toString()).isEqualTo("application/test-octet-stream");  // verify Content-Type
             assertThat(((Request) r.getArgument(0)).headers("x-ms-blob-type").get(0)).isEqualTo("BlockBlob");  // verify x-ms-blob-type
             return call;
         });
