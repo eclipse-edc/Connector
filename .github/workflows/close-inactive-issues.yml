@@ -5,6 +5,26 @@ on:
   workflow_dispatch: # allow manual trigger
 
 jobs:
+  close-issues-with-assignee:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/stale@v5
+        with:
+          operations-per-run: 1000
+          days-before-issue-stale: 28
+          days-before-issue-close: 7
+          stale-issue-label: "stale"
+          stale-issue-message: "This issue is stale because it has been open for 28 days with no activity."
+          close-issue-message: "This issue was closed because it has been inactive for 7 days since being marked as stale."
+          days-before-pr-stale: -1 # ignore PRs (overwrite default days-before-stale)
+          days-before-pr-close: -1 # ignore PRs (overwrite default days-before-close)
+          remove-issue-stale-when-updated: true
+          exempt-all-issue-milestones: true # issues with assigned milestones will be ignored
+          exempt-issue-labels: bug # ignore issues labelled as bug
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
   close-issues-without-assignee:
     runs-on: ubuntu-latest
     permissions:
@@ -23,25 +43,7 @@ jobs:
           remove-issue-stale-when-updated: true
           exempt-all-issue-milestones: true # issues with assigned milestones will be ignored
           exempt-all-issue-assignees: true # issues with assignees will be ignored
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-  close-issues-with-assignee:
-    runs-on: ubuntu-latest
-    permissions:
-      issues: write
-    steps:
-      - uses: actions/stale@v5
-        with:
-          operations-per-run: 1000
-          days-before-issue-stale: 28
-          days-before-issue-close: 7
-          stale-issue-label: "stale"
-          stale-issue-message: "This issue is stale because it has been open for 28 days with no activity."
-          close-issue-message: "This issue was closed because it has been inactive for 7 days since being marked as stale."
-          days-before-pr-stale: -1 # ignore PRs (overwrite default days-before-stale)
-          days-before-pr-close: -1 # ignore PRs (overwrite default days-before-close)
-          remove-issue-stale-when-updated: true
-          exempt-all-issue-milestones: true # issues with assigned milestones will be ignored
+          exempt-issue-labels: bug # ignore issues labelled as bug
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
   close-inactive-pull-requests:
