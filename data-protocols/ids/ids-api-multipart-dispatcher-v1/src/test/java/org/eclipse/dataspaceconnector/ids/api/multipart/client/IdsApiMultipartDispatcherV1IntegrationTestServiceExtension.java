@@ -291,11 +291,6 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         public void reload() {
             throw new NotImplementedError();
         }
-
-        @Override
-        public Stream<ContractDefinition> isReferenced(String policyId) {
-            throw new UnsupportedOperationException();
-        }
     }
 
     private static class FakeContractValidationService implements ContractValidationService {

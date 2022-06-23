@@ -58,13 +58,11 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @PostgresqlDbIntegrationTest
-//todo: remove the extends!!
 class PostgresAssetIndexTest {
     protected static final String DATASOURCE_NAME = "asset";
     private static final String POSTGRES_USER = "postgres";
     private static final String POSTGRES_PASSWORD = "password";
     private static final String POSTGRES_DATABASE = "itest";
-    private static final String JDBC_URL_PREFIX = "jdbc:postgresql://localhost:5432/";
     private SqlAssetIndex sqlAssetIndex;
     private BaseSqlDialectStatements sqlStatements;
     private TransactionContext transactionContext;

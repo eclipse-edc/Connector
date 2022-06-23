@@ -115,8 +115,9 @@ public class SqlQueryStatement {
         var prefix = whereClauses.isEmpty() ? WHERE_TOKEN : AND_TOKEN;
         var conditionExpr = new SqlConditionExpression(newCriterion);
 
-        if (conditionExpr.isValidExpression().failed()) {
-            throw new IllegalArgumentException("This expression is not valid!");
+        var validExpression = conditionExpr.isValidExpression();
+        if (validExpression.failed()) {
+            throw new IllegalArgumentException("This expression is not valid: " + String.join(", ", validExpression.getFailureMessages()));
         }
 
         var clause = format("%s %s %s %s", prefix, columnName, newCriterion.getOperator(), conditionExpr.toValuePlaceholder());

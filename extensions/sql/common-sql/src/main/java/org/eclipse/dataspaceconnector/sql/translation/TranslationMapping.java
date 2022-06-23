@@ -38,7 +38,6 @@ public abstract class TranslationMapping {
      */
     public String getStatement(String canonicalPropertyName) {
         var leftHandTokens = canonicalPropertyName.split("\\.", 2);
-
         var key = leftHandTokens[0];
 
         var entry = fieldMap.get(key);
@@ -46,8 +45,10 @@ public abstract class TranslationMapping {
             throw new IllegalArgumentException(format("Translation failed for Model '%s' at token '%s'", getClass().getName(), key));
         }
         if (entry instanceof TranslationMapping) {
+            var mappingEntry = (TranslationMapping) entry;
+            var nextToken = leftHandTokens.length < 2 ? null : leftHandTokens[1];
             //recursively descend into the metamodel tree
-            return ((TranslationMapping) entry).getStatement(leftHandTokens[1]);
+            return mappingEntry.getStatement(nextToken);
         }
 
         return entry.toString();

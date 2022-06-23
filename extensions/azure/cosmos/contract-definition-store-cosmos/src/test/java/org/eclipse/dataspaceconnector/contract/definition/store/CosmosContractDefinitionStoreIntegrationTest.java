@@ -350,45 +350,6 @@ public class CosmosContractDefinitionStoreIntegrationTest {
 
     }
 
-    @Test
-    void isReferenced_notReferenced() {
-        var definitionsExpected = getContractDefinition("def1", "apol1", "cpol1");
-        store.save(definitionsExpected);
-
-        assertThat(store.isReferenced("testpol1")).isEmpty();
-    }
-
-    @Test
-    void isReferenced_asAccessPolicy() {
-        var definitionExpected = getContractDefinition("def1", "apol1", "cpol1");
-        store.save(definitionExpected);
-
-        assertThat(store.isReferenced("apol1")).usingRecursiveFieldByFieldElementComparator().containsOnly(definitionExpected);
-    }
-
-    @Test
-    void isReferenced_asContractPolicy() {
-        var definitionExpected = getContractDefinition("def1", "apol1", "cpol1");
-        store.save(definitionExpected);
-
-        assertThat(store.isReferenced("cpol1")).usingRecursiveFieldByFieldElementComparator().containsOnly(definitionExpected);
-    }
-
-    @Test
-    void isReferenced_byMultipleDefinitions() {
-        var def1 = getContractDefinition("def1", "apol1", "cpol1");
-        var def2 = getContractDefinition("def2", "apol1", "cpol2");
-        var def3 = getContractDefinition("def3", "apol1", "cpol3");
-        var def4 = getContractDefinition("def4", "apol2", "cpol4");
-        var def5 = getContractDefinition("def5", "apol2", "cpol1");
-
-        store.save(List.of(def1, def2, def3, def4, def5));
-
-        assertThat(store.isReferenced("apol1")).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(def1, def2, def3);
-        assertThat(store.isReferenced("cpol1")).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(def1, def5);
-
-    }
-
     private ContractDefinition getContractDefinition(String definitionId, String accessPolicyId, String contractPolicyId) {
         return ContractDefinition.Builder.newInstance().id(definitionId).accessPolicyId(accessPolicyId).contractPolicyId(contractPolicyId).selectorExpression(SELECT_ALL).build();
 

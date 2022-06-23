@@ -32,7 +32,9 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PolicyDefinitionServiceImplTest {
@@ -146,6 +148,18 @@ public class PolicyDefinitionServiceImplTest {
 
         assertThat(deleted.failed()).isTrue();
         assertThat(deleted.getFailure().getReason()).isEqualTo(NOT_FOUND);
+    }
+
+    @Test
+    void delete_verifyCorrectQueries() {
+        var policyId = "test-policy";
+        when(policyStore.findById(policyId)).thenReturn(createPolicy(policyId));
+        policyServiceImpl.deleteById(policyId);
+
+        verify(contractDefinitionStore).findAll(argThat(qs -> qs.getFilterExpression().size() == 1 &&
+                qs.getFilterExpression().get(0).getOperandLeft().equals("accessPolicyId")));
+        verify(contractDefinitionStore).findAll(argThat(qs -> qs.getFilterExpression().size() == 1 &&
+                qs.getFilterExpression().get(0).getOperandLeft().equals("contractPolicyId")));
     }
 
 
