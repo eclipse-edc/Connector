@@ -2,7 +2,7 @@
 
 EDC provides a lightweight framework to facilitate the development of persistent state machines.
 
-The framework currently manage a single execution thread.
+The framework currently manages a single execution thread.
 
 ## Collaborators
 
@@ -10,7 +10,7 @@ The framework currently manage a single execution thread.
 - The `StateMachineManager` which manages an execution thread that periodically gives a chance to state machines to progress their state.
 - The state-machine specific Manager which instantiates the `StateMachineManager` and defines processors for each state for a given state machine class. For example, `ConsumerContractNegotiationManagerImpl` manages `ContractNegotiation`s in which the connector is a consumer.
 - The `ServiceExtension` which manages the Manager's lifecycle.
-- The Store which manage `StatefulEntity` persistence. `InMemoryStatefulEntityStore` provides a utility class to back in-memory implementations for testing.
+- The Store which manages `StatefulEntity` persistence. `InMemoryStatefulEntityStore` provides a utility class to back in-memory implementations for testing.
 
 ## State-machine specific Manager
 
@@ -52,7 +52,7 @@ private boolean processState1(StatefulEntityImpl sm) {
 
 ## State-machine store
 
-The Store which manage `StatefulEntity` persistence must persist entities in a storage system. In-memory implementations are provided for testing.
+The Store which manages `StatefulEntity` persistence must persist entities in a storage system. In-memory implementations are provided for testing.
 
 Stores using persistent implementations must manage leases to support EDC clustered deployment. This ensures an entity is processed by only one EDC instance at a time (assuming processing is quicker than lease expiration).
 
