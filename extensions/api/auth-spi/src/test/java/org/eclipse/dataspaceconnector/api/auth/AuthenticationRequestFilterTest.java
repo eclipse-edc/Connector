@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.api.auth;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import org.eclipse.dataspaceconnector.spi.exception.AuthenticationFailedException;
-import org.eclipse.dataspaceconnector.spi.exception.NotAuthorizedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -72,7 +71,7 @@ class AuthenticationRequestFilterTest {
 
         when(contextMock.getHeaders()).thenReturn(new MultivaluedHashMap<>(Map.of("foo", "bar")));
 
-        assertThatThrownBy(() -> filter.filter(contextMock)).isInstanceOf(NotAuthorizedException.class);
+        assertThatThrownBy(() -> filter.filter(contextMock)).isInstanceOf(AuthenticationFailedException.class);
         verify(authSrvMock).isAuthenticated(anyMap());
     }
 
