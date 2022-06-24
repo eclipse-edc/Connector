@@ -33,7 +33,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-class StateMachineTest {
+class StateMachineManagerTest {
 
     private final WaitStrategy waitStrategy = mock(WaitStrategy.class);
     private final Monitor monitor = mock(Monitor.class);
@@ -53,7 +53,7 @@ class StateMachineTest {
             Thread.sleep(100L);
             return 1L;
         });
-        var stateMachine = StateMachine.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
+        var stateMachine = StateMachineManager.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
                 .processor(processor)
                 .shutdownTimeout(1)
                 .build();
@@ -75,7 +75,7 @@ class StateMachineTest {
             latch.countDown();
             return 1L;
         }).when(waitStrategy).success();
-        var stateMachine = StateMachine.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
+        var stateMachine = StateMachineManager.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
                 .processor(processor)
                 .build();
 
@@ -96,7 +96,7 @@ class StateMachineTest {
             latch.countDown();
             return 0L;
         }).when(waitStrategy).waitForMillis();
-        var stateMachine = StateMachine.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
+        var stateMachine = StateMachineManager.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
                 .processor(processor)
                 .build();
 
@@ -111,7 +111,7 @@ class StateMachineTest {
     void shouldExitWithAnExceptionIfProcessorExitsWithAnUnrecoverableError() {
         var processor = mock(StateProcessor.class);
         when(processor.process()).thenThrow(new Error("unrecoverable"));
-        var stateMachine = StateMachine.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
+        var stateMachine = StateMachineManager.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
                 .processor(processor)
                 .build();
 
@@ -128,7 +128,7 @@ class StateMachineTest {
             latch.countDown();
             return 1L;
         });
-        var stateMachine = StateMachine.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
+        var stateMachine = StateMachineManager.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
                 .processor(processor)
                 .build();
 

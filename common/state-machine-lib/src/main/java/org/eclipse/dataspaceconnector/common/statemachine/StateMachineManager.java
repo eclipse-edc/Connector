@@ -36,7 +36,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * On every iteration it runs all the set processors sequentially,
  * applying a wait strategy in the case no entities are processed on the iteration.
  */
-public class StateMachine {
+public class StateMachineManager {
 
     private final List<StateProcessor> processors = new ArrayList<>();
     private final ScheduledExecutorService executor;
@@ -46,14 +46,14 @@ public class StateMachine {
     private final String name;
     private int shutdownTimeout = 10;
 
-    private StateMachine(String name, Monitor monitor, ExecutorInstrumentation instrumentation, WaitStrategy waitStrategy) {
+    private StateMachineManager(String name, Monitor monitor, ExecutorInstrumentation instrumentation, WaitStrategy waitStrategy) {
         this.name = name;
         this.monitor = monitor;
         this.waitStrategy = waitStrategy;
         executor = instrumentation.instrument(
                 Executors.newSingleThreadScheduledExecutor(r -> {
                     var thread = Executors.defaultThreadFactory().newThread(r);
-                    thread.setName("StateMachine-" + name);
+                    thread.setName("StateMachineManager-" + name);
                     return thread;
                 }), name);
     }
@@ -80,7 +80,7 @@ public class StateMachine {
             try {
                 return executor.awaitTermination(shutdownTimeout, SECONDS);
             } catch (InterruptedException e) {
-                monitor.severe(format("StateMachine [%s] await termination failed", name), e);
+                monitor.severe(format("StateMachineManager [%s] await termination failed", name), e);
                 return false;
             }
         });
@@ -124,9 +124,9 @@ public class StateMachine {
             }
         } catch (Error e) {
             active.set(false);
-            monitor.severe(format("StateMachine [%s] unrecoverable error", name), e);
+            monitor.severe(format("StateMachineManager [%s] unrecoverable error", name), e);
         } catch (Throwable e) {
-            monitor.severe(format("StateMachine [%s] error caught", name), e);
+            monitor.severe(format("StateMachineManager [%s] error caught", name), e);
             return waitStrategy.retryInMillis();
         }
         return 0;
@@ -134,10 +134,10 @@ public class StateMachine {
 
     public static class Builder {
 
-        private final StateMachine loop;
+        private final StateMachineManager loop;
 
         private Builder(String name, Monitor monitor, ExecutorInstrumentation instrumentation, WaitStrategy waitStrategy) {
-            loop = new StateMachine(name, monitor, instrumentation, waitStrategy);
+            loop = new StateMachineManager(name, monitor, instrumentation, waitStrategy);
         }
 
         public static Builder newInstance(String name, Monitor monitor, ExecutorInstrumentation instrumentation, WaitStrategy waitStrategy) {
@@ -154,7 +154,7 @@ public class StateMachine {
             return this;
         }
 
-        public StateMachine build() {
+        public StateMachineManager build() {
             return loop;
         }
     }

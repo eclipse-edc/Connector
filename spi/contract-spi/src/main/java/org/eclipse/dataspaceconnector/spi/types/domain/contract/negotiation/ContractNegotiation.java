@@ -21,19 +21,14 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
-import org.eclipse.dataspaceconnector.spi.telemetry.TraceCarrier;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import static java.lang.String.format;
@@ -65,17 +60,14 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
  */
 @JsonTypeName("dataspaceconnector:contractnegotiation")
 @JsonDeserialize(builder = ContractNegotiation.Builder.class)
-public class ContractNegotiation extends StatefulEntity implements TraceCarrier {
+public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     private String correlationId;
     private String counterPartyId;
     private String counterPartyAddress;
     private String protocol;
     private Type type = Type.CONSUMER;
-    private String errorDetail;
     private ContractAgreement contractAgreement;
     private List<ContractOffer> contractOffers = new ArrayList<>();
-    private Map<String, String> traceContext = new HashMap<>();
-    private Clock clock = Clock.systemUTC();
 
     public Type getType() {
         return type;
@@ -106,11 +98,6 @@ public class ContractNegotiation extends StatefulEntity implements TraceCarrier 
         return protocol;
     }
 
-    @Override
-    public Map<String, String> getTraceContext() {
-        return Collections.unmodifiableMap(traceContext);
-    }
-
     /**
      * Returns all contract offers which have been part of the negotiation process.
      *
@@ -127,24 +114,6 @@ public class ContractNegotiation extends StatefulEntity implements TraceCarrier 
      */
     public void addContractOffer(ContractOffer offer) {
         contractOffers.add(offer);
-    }
-
-    /**
-     * Returns the error detail.
-     *
-     * @return The error detail
-     */
-    public String getErrorDetail() {
-        return errorDetail;
-    }
-
-    /**
-     * Sets the error detail.
-     *
-     * @param errorDetail The error detail.
-     */
-    public void setErrorDetail(String errorDetail) {
-        this.errorDetail = errorDetail;
     }
 
     /**
@@ -263,7 +232,7 @@ public class ContractNegotiation extends StatefulEntity implements TraceCarrier 
         if (Type.CONSUMER == type) {
             transition(DECLINED, DECLINING, CONSUMER_OFFERED, REQUESTED);
         } else {
-            transition(DECLINED, DECLINING, PROVIDER_OFFERED, CONFIRMED, REQUESTED);
+            transition(DECLINED, DECLINING, PROVIDER_OFFERED, CONFIRMING, CONFIRMED, REQUESTED);
         }
 
     }
@@ -307,21 +276,17 @@ public class ContractNegotiation extends StatefulEntity implements TraceCarrier 
      *
      * @return The copy.
      */
+    @Override
     public ContractNegotiation copy() {
-        return Builder.newInstance().id(id).correlationId(correlationId).counterPartyId(counterPartyId)
-                .clock(clock)
-                .counterPartyAddress(counterPartyAddress).protocol(protocol).type(type).state(state).stateCount(stateCount)
-                .stateTimestamp(stateTimestamp).errorDetail(errorDetail).contractAgreement(contractAgreement)
-                .contractOffers(contractOffers).traceContext(traceContext).build();
-    }
-
-    /**
-     * Sets the state timestamp to the clock time.
-     *
-     * @see Builder#clock(Clock)
-     */
-    public void updateStateTimestamp() {
-        stateTimestamp = clock.millis();
+        var builder = Builder.newInstance()
+                .correlationId(correlationId)
+                .counterPartyId(counterPartyId)
+                .counterPartyAddress(counterPartyAddress)
+                .protocol(protocol)
+                .type(type)
+                .contractAgreement(contractAgreement)
+                .contractOffers(contractOffers);
+        return copy(builder);
     }
 
     @Override
@@ -356,9 +321,7 @@ public class ContractNegotiation extends StatefulEntity implements TraceCarrier 
         if (Arrays.stream(starts).noneMatch(s -> s.code() == state)) {
             throw new IllegalStateException(format("Cannot transition from state %s to %s", ContractNegotiationStates.from(state), ContractNegotiationStates.from(end.code())));
         }
-        stateCount = state == end.code() ? stateCount + 1 : 1;
-        state = end.code();
-        updateStateTimestamp();
+        transitionTo(end.code());
     }
 
     public enum Type {
@@ -382,11 +345,6 @@ public class ContractNegotiation extends StatefulEntity implements TraceCarrier 
 
         public Builder protocol(String protocol) {
             entity.protocol = protocol;
-            return this;
-        }
-
-        public Builder clock(Clock clock) {
-            entity.clock = clock;
             return this;
         }
 
@@ -426,25 +384,20 @@ public class ContractNegotiation extends StatefulEntity implements TraceCarrier 
             return this;
         }
 
-        public Builder errorDetail(String errorDetail) {
-            entity.errorDetail = errorDetail;
-            return this;
-        }
-
-        public Builder traceContext(Map<String, String> traceContext) {
-            entity.traceContext = traceContext;
+        @Override
+        public Builder self() {
             return this;
         }
 
         @Override
-        public void validate() {
-            Objects.requireNonNull(entity.clock);
+        public ContractNegotiation build() {
             Objects.requireNonNull(entity.counterPartyId);
             Objects.requireNonNull(entity.counterPartyAddress);
             Objects.requireNonNull(entity.protocol);
             if (Type.PROVIDER == entity.type) {
                 Objects.requireNonNull(entity.correlationId);
             }
+            return super.build();
         }
     }
 }
