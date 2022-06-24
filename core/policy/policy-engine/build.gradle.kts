@@ -19,6 +19,7 @@ plugins {
 
 dependencies {
     api(project(":core:policy:policy-evaluator"))
+    api(project(":spi:transfer-spi"))
 }
 
 publishing {

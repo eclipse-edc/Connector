@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.policy;
+package org.eclipse.dataspaceconnector.spi.policy.evaluation;
 
 import org.eclipse.dataspaceconnector.policy.model.Rule;
 import org.eclipse.dataspaceconnector.spi.result.Result;

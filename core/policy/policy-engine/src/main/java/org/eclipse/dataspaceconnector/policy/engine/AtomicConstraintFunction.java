@@ -12,7 +12,11 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.policy.model;
+package org.eclipse.dataspaceconnector.policy.engine;
+
+import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
+import org.eclipse.dataspaceconnector.policy.model.Operator;
+import org.eclipse.dataspaceconnector.policy.model.Rule;
 
 /**
  * An extension point that evaluates an {@link AtomicConstraint}.

@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.policy.engine;
 
 import org.eclipse.dataspaceconnector.policy.model.AndConstraint;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
-import org.eclipse.dataspaceconnector.policy.model.AtomicConstraintFunction;
 import org.eclipse.dataspaceconnector.policy.model.Constraint;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Expression;
@@ -26,9 +25,7 @@ import org.eclipse.dataspaceconnector.policy.model.OrConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
-import org.eclipse.dataspaceconnector.policy.model.ResourceDefinitionRuleFunction;
 import org.eclipse.dataspaceconnector.policy.model.Rule;
-import org.eclipse.dataspaceconnector.policy.model.RuleFunction;
 import org.eclipse.dataspaceconnector.policy.model.XoneConstraint;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;

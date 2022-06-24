@@ -20,6 +20,8 @@ import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Rule;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.policy.evaluation.AtomicConstraintFunction;
+import org.eclipse.dataspaceconnector.spi.policy.evaluation.RuleFunction;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 

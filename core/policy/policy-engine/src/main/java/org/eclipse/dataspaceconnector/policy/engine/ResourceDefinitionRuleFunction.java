@@ -12,8 +12,9 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.policy.model;
+package org.eclipse.dataspaceconnector.policy.engine;
 
+import org.eclipse.dataspaceconnector.policy.model.Rule;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 

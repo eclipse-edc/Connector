@@ -12,17 +12,19 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.policy;
+package org.eclipse.dataspaceconnector.policy.engine;
 
 import org.eclipse.dataspaceconnector.policy.model.Rule;
 
 /**
- * Invoked during policy evaluation to examine a rule node.
+ * An extension point that evaluates an {@link Rule} node.
  */
-public interface RuleFunction<R extends Rule> {
+@FunctionalInterface
+public interface RuleFunction<RULE_TYPE extends Rule> {
 
     /**
-     * Performs the rule evaluation.
+     * Performs the evaluation.
      */
-    boolean evaluate(R rule, PolicyContext context);
+    boolean evaluate(RULE_TYPE rule);
+
 }
