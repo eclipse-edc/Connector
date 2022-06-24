@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
+import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
@@ -41,6 +42,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -88,7 +90,7 @@ public class HttpProvisionerExtensionEndToEndTest {
 
         loadAsset(loader);
 
-        var result = processManager.initiateProviderRequest(createRequest());
+        var result = processManager.initiateProviderRequest(createRequest(), new ParticipantAgent(new HashMap<>(), new HashMap<>()));
 
         assertThat(latch.await(10000, MILLISECONDS)).isTrue();
 

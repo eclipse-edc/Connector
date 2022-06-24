@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - resource manifest evaluation
  *
  */
 
@@ -25,9 +26,13 @@ import org.eclipse.dataspaceconnector.policy.model.OrConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
+import org.eclipse.dataspaceconnector.policy.model.ResourceDefinitionRuleFunction;
 import org.eclipse.dataspaceconnector.policy.model.Rule;
 import org.eclipse.dataspaceconnector.policy.model.RuleFunction;
 import org.eclipse.dataspaceconnector.policy.model.XoneConstraint;
+import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,6 +57,10 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
     private final List<RuleFunction<Permission>> permissionRuleFunctions = new ArrayList<>();
     private final List<RuleFunction<Duty>> dutyRuleFunctions = new ArrayList<>();
     private final List<RuleFunction<Prohibition>> prohibitionRuleFunctions = new ArrayList<>();
+    
+    private final Map<Class<? extends ResourceDefinition>, List<ResourceDefinitionRuleFunction<Permission, ? extends ResourceDefinition>>> resourceDefinitionPermissionFunctions = new HashMap<>();
+    private final Map<Class<? extends ResourceDefinition>, List<ResourceDefinitionRuleFunction<Prohibition, ? extends ResourceDefinition>>> resourceDefinitionProhibitionFunctions = new HashMap<>();
+    private final Map<Class<? extends ResourceDefinition>, List<ResourceDefinitionRuleFunction<Duty, ? extends ResourceDefinition>>> resourceDefinitionDutyFunctions = new HashMap<>();
 
     private Rule ruleContext; // the current rule being evaluated or null
 
@@ -194,7 +203,72 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
     public Object visitLiteralExpression(LiteralExpression expression) {
         return expression.getValue();
     }
-
+    
+    public Result<ResourceManifest> evaluateManifest(ResourceManifest resourceManifest, Policy policy) {
+        var modifiedResourceDefinitions = new ArrayList<ResourceDefinition>();
+        var failures = new ArrayList<String>();
+        
+        for (var resourceDefinition : resourceManifest.getDefinitions()) {
+            var result = visitResourceDefinition(resourceDefinition, policy);
+            if (result.succeeded()) {
+                modifiedResourceDefinitions.add(result.getContent());
+            } else {
+                failures.addAll(result.getFailureMessages());
+            }
+        }
+        
+        if (failures.isEmpty()) {
+            var modifiedManifest = ResourceManifest.Builder.newInstance().definitions(modifiedResourceDefinitions).build();
+            return Result.success(modifiedManifest);
+        } else {
+            return Result.failure(failures);
+        }
+        
+    }
+    
+    private <T extends ResourceDefinition> Result<T> visitResourceDefinition(T resourceDefinition, Policy policy) {
+        var failures = new ArrayList<String>();
+        
+        for (var permissionFunction : resourceDefinitionPermissionFunctions.get(resourceDefinition.getClass())) {
+            for (var permission : policy.getPermissions()) {
+                var result = ((ResourceDefinitionRuleFunction<Permission, T>) permissionFunction).evaluate(permission, resourceDefinition);
+                if (result.succeeded()) {
+                    resourceDefinition = result.getContent();
+                } else {
+                    failures.addAll(result.getFailureMessages());
+                }
+            }
+        }
+        
+        for (var prohibitionFunction : resourceDefinitionProhibitionFunctions.get(resourceDefinition.getClass())) {
+            for (var prohibition : policy.getProhibitions()) {
+                var result = ((ResourceDefinitionRuleFunction<Prohibition, T>) prohibitionFunction).evaluate(prohibition, resourceDefinition);
+                if (result.succeeded()) {
+                    resourceDefinition = result.getContent();
+                } else {
+                    failures.addAll(result.getFailureMessages());
+                }
+            }
+        }
+        
+        for (var dutyFunction : resourceDefinitionDutyFunctions.get(resourceDefinition.getClass())) {
+            for (var duty : policy.getObligations()) {
+                var result = ((ResourceDefinitionRuleFunction<Duty, T>) dutyFunction).evaluate(duty, resourceDefinition);
+                if (result.succeeded()) {
+                    resourceDefinition = result.getContent();
+                } else {
+                    failures.addAll(result.getFailureMessages());
+                }
+            }
+        }
+        
+        if (failures.isEmpty()) {
+            return Result.success(resourceDefinition);
+        } else {
+            return Result.failure(failures);
+        }
+    }
+    
     private Boolean visitRule(Rule rule) {
         var valid = true;
         RuleProblem.Builder problemBuilder = null;
@@ -253,6 +327,21 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
 
         public Builder prohibitionRuleFunction(RuleFunction<Prohibition> function) {
             evaluator.prohibitionRuleFunctions.add(function);
+            return this;
+        }
+        
+        public <T extends ResourceDefinition> Builder resourceDefinitionPermissionFunction(Class<T> resourceType, ResourceDefinitionRuleFunction<Permission, T> function) {
+            evaluator.resourceDefinitionPermissionFunctions.computeIfAbsent(resourceType, k -> new ArrayList<>()).add(function);
+            return this;
+        }
+    
+        public <T extends ResourceDefinition> Builder resourceDefinitionProhibitionFunction(Class<T> resourceType, ResourceDefinitionRuleFunction<Prohibition, T> function) {
+            evaluator.resourceDefinitionProhibitionFunctions.computeIfAbsent(resourceType, k -> new ArrayList<>()).add(function);
+            return this;
+        }
+    
+        public <T extends ResourceDefinition> Builder resourceDefinitionDutyFunction(Class<T> resourceType, ResourceDefinitionRuleFunction<Duty, T> function) {
+            evaluator.resourceDefinitionDutyFunctions.computeIfAbsent(resourceType, k -> new ArrayList<>()).add(function);
             return this;
         }
 

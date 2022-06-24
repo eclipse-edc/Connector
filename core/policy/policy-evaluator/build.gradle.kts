@@ -18,6 +18,7 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:transfer-spi"))
 }
 publishing {
     publications {

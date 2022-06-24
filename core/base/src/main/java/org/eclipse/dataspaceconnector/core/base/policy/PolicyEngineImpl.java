@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - resource manifest evaluation
  *
  */
 
@@ -25,8 +26,11 @@ import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.policy.AtomicConstraintFunction;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyContext;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
+import org.eclipse.dataspaceconnector.spi.policy.ResourceDefinitionRuleFunction;
 import org.eclipse.dataspaceconnector.spi.policy.RuleFunction;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +50,7 @@ public class PolicyEngineImpl implements PolicyEngine {
 
     private Map<String, List<ConstraintFunctionEntry<Rule>>> constraintFunctions = new TreeMap<>();
     private Map<String, List<RuleFunctionEntry<Rule>>> ruleFunctions = new TreeMap<>();
+    private Map<String, List<ResourceDefinitionFunctionEntry<Rule, ResourceDefinition>>> resourceDefinitionFunctions = new TreeMap<>();
 
     private List<BiFunction<Policy, PolicyContext, Boolean>> preValidators = new ArrayList<>();
     private List<BiFunction<Policy, PolicyContext, Boolean>> postValidators = new ArrayList<>();
@@ -110,7 +115,31 @@ public class PolicyEngineImpl implements PolicyEngine {
             return Result.failure(result.getProblems().stream().map(RuleProblem::getDescription).collect(toList()));
         }
     }
-
+    
+    @Override
+    public Result<ResourceManifest> evaluate(String scope, Policy policy, ResourceManifest resourceManifest) {
+        var evalBuilder = PolicyEvaluator.Builder.newInstance();
+        final var delimitedScope = scope + ".";
+        
+        resourceDefinitionFunctions.entrySet().stream()
+                .filter(entry -> scopeFilter(entry.getKey(), delimitedScope))
+                .flatMap(entry -> entry.getValue().stream()).forEach(entry -> {
+                    if (Duty.class.isAssignableFrom(entry.ruleType)) {
+                        evalBuilder.resourceDefinitionDutyFunction(entry.resourceType, (duty, definition) -> entry.function.evaluate(duty, definition));
+                    } else if (Permission.class.isAssignableFrom(entry.ruleType)) {
+                        evalBuilder.resourceDefinitionPermissionFunction(entry.resourceType, (permission, definition) -> entry.function.evaluate(permission, definition));
+                    } else if (Prohibition.class.isAssignableFrom(entry.ruleType)) {
+                        evalBuilder.resourceDefinitionProhibitionFunction(entry.resourceType, (prohibition, definition) -> entry.function.evaluate(prohibition, definition));
+                    }
+        });
+    
+        var evaluator = evalBuilder.build();
+    
+        var filteredPolicy = scopeFilter.applyScope(policy, scope);
+        
+        return evaluator.evaluateManifest(resourceManifest, filteredPolicy);
+    }
+    
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public <R extends Rule> void registerFunction(String scope, Class<R> type, String key, AtomicConstraintFunction<R> function) {
@@ -155,6 +184,18 @@ public class PolicyEngineImpl implements PolicyEngine {
 
         RuleFunctionEntry(Class<R> type, RuleFunction<R> function) {
             this.type = type;
+            this.function = function;
+        }
+    }
+    
+    private static class ResourceDefinitionFunctionEntry<R extends Rule, D extends ResourceDefinition> {
+        Class<R> ruleType;
+        Class<D> resourceType;
+        ResourceDefinitionRuleFunction<R, D> function;
+        
+        ResourceDefinitionFunctionEntry(Class<R> ruleType, Class<D> resourceType, ResourceDefinitionRuleFunction<R, D> function) {
+            this.ruleType = ruleType;
+            this.resourceType = resourceType;
             this.function = function;
         }
     }

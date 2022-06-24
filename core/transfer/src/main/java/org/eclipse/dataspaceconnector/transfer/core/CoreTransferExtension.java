@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -95,6 +96,9 @@ public class CoreTransferExtension implements ServiceExtension {
 
     @Inject
     private Vault vault;
+    
+    @Inject
+    private PolicyEngine policyEngine;
 
     @Inject
     private EventRouter eventRouter;
@@ -172,6 +176,7 @@ public class CoreTransferExtension implements ServiceExtension {
                 .batchSize(context.getSetting(TRANSFER_STATE_MACHINE_BATCH_SIZE, 5))
                 .sendRetryManager(sendRetryManager)
                 .addressResolver(addressResolver)
+                .policyEngine(policyEngine)
                 .build();
 
         context.registerService(TransferProcessManager.class, processManager);

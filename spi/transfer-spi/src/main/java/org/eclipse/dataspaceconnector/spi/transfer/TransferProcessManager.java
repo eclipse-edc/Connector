@@ -9,11 +9,14 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - add provision scope
  *
  */
 
 package org.eclipse.dataspaceconnector.spi.transfer;
 
+import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyScope;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
@@ -22,6 +25,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.Transfer
  * Manages data transfer processes. Currently synchronous and asynchronous data transfers are supported.
  */
 public interface TransferProcessManager {
+    
+    @PolicyScope
+    String PROVISION_SCOPE = "provision";
 
     /**
      * Initiates a data transfer process on the consumer.
@@ -31,7 +37,7 @@ public interface TransferProcessManager {
     /**
      * Initiates a data transfer process on the provider.
      */
-    StatusResult<String> initiateProviderRequest(DataRequest dataRequest);
+    StatusResult<String> initiateProviderRequest(DataRequest dataRequest, ParticipantAgent consumerAgent);
 
     /**
      * Adds a single Command to the queue which is processed sequentially.

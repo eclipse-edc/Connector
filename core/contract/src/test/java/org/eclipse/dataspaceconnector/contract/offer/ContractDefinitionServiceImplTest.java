@@ -79,7 +79,7 @@ class ContractDefinitionServiceImplTest {
         var definition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).uid("access").build();
         when(policyStore.findById(any())).thenReturn(definition);
         var contractDefinition = ContractDefinition.Builder.newInstance().id("1").accessPolicyId("access").contractPolicyId("contract").selectorExpression(SELECT_ALL).build();
-        when(policyEngine.evaluate(any(), any(), any())).thenReturn(Result.failure("invalid"));
+        when(policyEngine.evaluate(any(), any(), any(ParticipantAgent.class))).thenReturn(Result.failure("invalid"));
         when(definitionStore.findAll(any())).thenReturn(Stream.of(contractDefinition));
 
         var result = definitionService.definitionsFor(agent, DEFAULT_RANGE);
@@ -100,7 +100,7 @@ class ContractDefinitionServiceImplTest {
         var definitions = definitionService.definitionsFor(agent, DEFAULT_RANGE);
 
         assertThat(definitions).hasSize(0);
-        verify(policyEngine, never()).evaluate(any(), any(), any());
+        verify(policyEngine, never()).evaluate(any(), any(), any(ParticipantAgent.class));
     }
 
     @Test
@@ -127,7 +127,7 @@ class ContractDefinitionServiceImplTest {
         var result = definitionService.definitionFor(agent, "nodefinition");
 
         assertThat(result).isNull();
-        verify(policyEngine, never()).evaluate(any(), any(), any());
+        verify(policyEngine, never()).evaluate(any(), any(), any(ParticipantAgent.class));
     }
 
 }

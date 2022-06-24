@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
+import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -52,6 +53,7 @@ public class ArtifactRequestHandler implements Handler {
     private final ContractValidationService contractValidationService;
     private final ContractNegotiationStore contractNegotiationStore;
     private final Vault vault;
+    private final ParticipantAgentService agentService;
 
     public ArtifactRequestHandler(
             @NotNull Monitor monitor,
@@ -60,7 +62,8 @@ public class ArtifactRequestHandler implements Handler {
             @NotNull ContractNegotiationStore contractNegotiationStore,
             @NotNull ContractValidationService contractValidationService,
             @NotNull TransferProcessManager transferProcessManager,
-            @NotNull Vault vault) {
+            @NotNull Vault vault,
+            @NotNull ParticipantAgentService agentService) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
         this.objectMapper = Objects.requireNonNull(objectMapper);
@@ -68,6 +71,7 @@ public class ArtifactRequestHandler implements Handler {
         this.contractValidationService = Objects.requireNonNull(contractValidationService);
         this.transferProcessManager = Objects.requireNonNull(transferProcessManager);
         this.vault = Objects.requireNonNull(vault);
+        this.agentService = Objects.requireNonNull(agentService);
     }
 
     @Override
@@ -153,7 +157,7 @@ public class ArtifactRequestHandler implements Handler {
                 .connectorAddress(idsWebhookAddress)
                 .build();
 
-        var result = transferProcessManager.initiateProviderRequest(dataRequest);
+        var result = transferProcessManager.initiateProviderRequest(dataRequest, agentService.createFor(claimToken));
 
         if (artifactRequestMessagePayload.getSecret() != null) {
             vault.storeSecret(dataAddress.getKeyName(), artifactRequestMessagePayload.getSecret());

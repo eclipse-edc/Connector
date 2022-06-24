@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - resource manifest evaluation
  *
  */
 
@@ -20,6 +21,7 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Rule;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 
 import java.util.function.BiFunction;
 
@@ -56,6 +58,17 @@ public interface PolicyEngine {
      * Evaluates the given policy for an agent for the given scope.
      */
     Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent);
+    
+    /**
+     * Evaluates and, if required, modifies the given ResourceManifest so that the given policy
+     * is fulfilled.
+     *
+     * @param scope the scope.
+     * @param policy the policy.
+     * @param resourceManifest the resource manifest to evaluate.
+     * @return the modified resource definition.
+     */
+    Result<ResourceManifest> evaluate(String scope, Policy policy, ResourceManifest resourceManifest);
 
     /**
      * Registers a function that is invoked when a policy contains an atomic constraint whose left operator expression evaluates to the given key for the specified scope.
