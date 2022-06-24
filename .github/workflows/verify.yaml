@@ -18,12 +18,12 @@ jobs:
   Checkstyle:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       # lets run Checkstyle explicitly (as opposed to within gradle) due to better reporting capabilities
       - name: Run Checkstyle
         if: github.event_name == 'pull_request'
-        uses: nikitasavinov/checkstyle-action@0.4.0
+        uses: nikitasavinov/checkstyle-action@0.6.0
         with:
           checkstyle_config: resources/edc-checkstyle-config.xml
           level: error
@@ -38,7 +38,7 @@ jobs:
   Dependency-analysis:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
 
       - name: Dependency rules report # possible severity values: <'fail'|'warn'|'ignore'>
@@ -50,7 +50,7 @@ jobs:
   OpenAPI-Definitions:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
 
       - name: Save previous OpenAPI definition
@@ -75,7 +75,7 @@ jobs:
     env:
       JACOCO: true
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
 
       - name: Run unit tests
@@ -86,7 +86,7 @@ jobs:
   Sanity-Check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
 
       - name: Check Sample 01
@@ -157,7 +157,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Test Helm chart in minikube
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
 
       - name: Install and start minikube
@@ -195,7 +195,7 @@ jobs:
           AZURITE_ACCOUNTS: account1:key1;account2:key2
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
 
       - name: Azure Storage Tests
@@ -206,7 +206,7 @@ jobs:
             ./gradlew -p system-tests/azure-tests test -DincludeTags="AzureStorageIntegrationTest"
 
       - name: "Publish Gatling report"
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: Gatling reports
@@ -234,7 +234,7 @@ jobs:
       COSMOS_URL: ${{ secrets.COSMOS_URL }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
 
       - name: Azure CosmosDB Tests
@@ -259,7 +259,7 @@ jobs:
           MINIO_ROOT_PASSWORD: password
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
 
       - name: AWS Tests
@@ -274,7 +274,7 @@ jobs:
       - name: reset permissions to permit checkout (because the omejdn volumes)
         run: sudo chown -R $USER:$USER ${{ github.workspace }}
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
 
       - run: docker run -d --rm -p 4567:4567 -v ${{ github.workspace }}/extensions/iam/daps/src/test/resources/config:/opt/config -v ${{ github.workspace }}/extensions/iam/daps/src/test/resources/keys:/opt/keys ghcr.io/fraunhofer-aisec/omejdn-server:1.3.1
@@ -296,7 +296,7 @@ jobs:
           POSTGRES_PASSWORD: password
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
 
       - name: Postgresql Tests
@@ -307,7 +307,7 @@ jobs:
   End-To-End-Tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
 
       - name: End to End Integration Tests
@@ -316,7 +316,7 @@ jobs:
           command: ./gradlew test -DincludeTags="EndToEndTest"
 
       - name: "Publish Gatling report"
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: Gatling reports
@@ -327,7 +327,7 @@ jobs:
       JACOCO: true
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
 
       - name: Component Tests
@@ -338,7 +338,7 @@ jobs:
   OpenTelemetry-Integration-Tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
 
       - name: Download opentelemetry javaagent
@@ -382,7 +382,7 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build
 
       - name: 'Az CLI login'
@@ -409,7 +409,7 @@ jobs:
             ./gradlew -p system-tests/azure-data-factory-tests test -DincludeTags="AzureDataFactoryIntegrationTest"
 
       - name: "Publish Gatling report"
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: Gatling reports
@@ -436,7 +436,7 @@ jobs:
     if: always()
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: artifacts
       - name: Publish Test Results
@@ -453,10 +453,10 @@ jobs:
     if: always()
     steps:
       # Sources are needed for Codecov report
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Download Artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: artifacts
       - name: CodeCov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
