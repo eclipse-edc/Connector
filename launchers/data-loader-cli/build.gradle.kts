@@ -15,7 +15,7 @@
 plugins {
     `java-library`
     id("application")
-    id("com.github.johnrengelman.shadow") version "7.0.0"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 val jupiterVersion: String by project
@@ -59,4 +59,3 @@ publishing {
         }
     }
 }
-
