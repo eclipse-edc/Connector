@@ -436,7 +436,7 @@ jobs:
     if: always()
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: artifacts
       - name: Publish Test Results
@@ -455,7 +455,7 @@ jobs:
       # Sources are needed for Codecov report
       - uses: actions/checkout@v2
       - name: Download Artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: artifacts
       - name: CodeCov
