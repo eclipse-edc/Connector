@@ -56,8 +56,8 @@ class EventTest {
             return Stream.of(
                 AssetCreated.Builder.newInstance().assetId("id"),
                 AssetDeleted.Builder.newInstance().assetId("id"),
-                PolicyDefinitionCreated.Builder.newInstance().id("id"),
-                PolicyDefinitionDeleted.Builder.newInstance().id("id")
+                PolicyDefinitionCreated.Builder.newInstance().policyDefinitionId("id"),
+                PolicyDefinitionDeleted.Builder.newInstance().policyDefinitionId("id")
             ).map(it -> it.at(Clock.systemUTC().millis()).build()).map(Arguments::of);
         }
     }

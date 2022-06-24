@@ -16,18 +16,26 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition;
 
 import org.eclipse.dataspaceconnector.api.datamanagement.configuration.DataManagementApiConfiguration;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service.ContractDefinitionServiceImpl;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service.EventContractDefinitionListener;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform.ContractDefinitionDtoToContractDefinitionTransformer;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform.ContractDefinitionToContractDefinitionDtoTransformer;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.WebService;
+import org.eclipse.dataspaceconnector.spi.contract.definition.observe.ContractDefinitionObservableImpl;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 
+import java.time.Clock;
+
+@Provides(ContractDefinitionService.class)
 public class ContractDefinitionApiExtension implements ServiceExtension {
     @Inject
     WebService webService;
@@ -47,6 +55,12 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
     @Inject
     TransactionContext transactionContext;
 
+    @Inject
+    Clock clock;
+
+    @Inject
+    EventRouter eventRouter;
+
     @Override
     public String name() {
         return "Data Management API: Contract Definition";
@@ -59,7 +73,12 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
 
         var monitor = context.getMonitor();
 
-        var service = new ContractDefinitionServiceImpl(contractDefinitionStore, contractDefinitionLoader, transactionContext);
+        var contractDefinitionObservable = new ContractDefinitionObservableImpl();
+        contractDefinitionObservable.registerListener(new EventContractDefinitionListener(clock, eventRouter));
+
+        var service = new ContractDefinitionServiceImpl(contractDefinitionStore, contractDefinitionLoader, transactionContext, contractDefinitionObservable);
+        context.registerService(ContractDefinitionService.class, service);
+
         webService.registerResource(config.getContextAlias(), new ContractDefinitionApiController(monitor, service, transformerRegistry));
     }
 }

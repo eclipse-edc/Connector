@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.ser
 
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.contract.definition.observe.ContractDefinitionObservable;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
@@ -43,7 +44,9 @@ class ContractDefinitionServiceImplTest {
     private final ContractDefinitionStore store = mock(ContractDefinitionStore.class);
     private final ContractDefinitionLoader loader = mock(ContractDefinitionLoader.class);
     private final TransactionContext transactionContext = new NoopTransactionContext();
-    private final ContractDefinitionServiceImpl service = new ContractDefinitionServiceImpl(store, loader, transactionContext);
+    private final ContractDefinitionObservable observable = mock(ContractDefinitionObservable.class);
+
+    private final ContractDefinitionServiceImpl service = new ContractDefinitionServiceImpl(store, loader, transactionContext, observable);
 
     @Test
     void findById_filtersById() {

@@ -16,13 +16,13 @@ package org.eclipse.dataspaceconnector.api.datamanagement.policy;
 
 import org.eclipse.dataspaceconnector.api.datamanagement.configuration.DataManagementApiConfiguration;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.EventPolicyDefinitionListener;
-import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicyDefinitionObservableImpl;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicyDefinitionService;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicyDefinitionServiceImpl;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
+import org.eclipse.dataspaceconnector.spi.observe.policydefinition.PolicyDefinitionObservableImpl;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.event.policydefinition;
+package org.eclipse.dataspaceconnector.spi.event.contractdefinition;
 
 import org.eclipse.dataspaceconnector.spi.event.Event;
 import org.eclipse.dataspaceconnector.spi.event.EventPayload;
@@ -20,39 +20,39 @@ import org.eclipse.dataspaceconnector.spi.event.EventPayload;
 import java.util.Objects;
 
 /**
- * Describe a PolicyDefinition deletion, after this has emitted, the PolicyDefinition represented by the id won't be available anymore.
+ * Describe a new ContractDefinition creation, after this has emitted, a ContractDefinition with a certain id will be available.
  */
-public class PolicyDefinitionDeleted extends Event<PolicyDefinitionDeleted.Payload> {
+public class ContractDefinitionCreated extends Event<ContractDefinitionCreated.Payload> {
 
-    private PolicyDefinitionDeleted() {
+    private ContractDefinitionCreated() {
     }
 
-    public static class Builder extends Event.Builder<PolicyDefinitionDeleted, Payload, Builder> {
+    public static class Builder extends Event.Builder<ContractDefinitionCreated, Payload> {
 
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            super(new PolicyDefinitionDeleted(), new Payload());
+            super(new ContractDefinitionCreated(), new Payload());
         }
 
-        public Builder policyDefinitionId(String policyDefinitionId) {
-            event.payload.policyDefinitionId = policyDefinitionId;
+        public Builder contractDefinitionId(String contractDefinitionId) {
+            event.payload.contractDefinitionId = contractDefinitionId;
             return this;
         }
 
         @Override
         protected void validate() {
-            Objects.requireNonNull(event.payload.policyDefinitionId);
+            Objects.requireNonNull(event.payload.contractDefinitionId);
         }
     }
 
     public static class Payload extends EventPayload {
-        private String policyDefinitionId;
+        private String contractDefinitionId;
 
-        public String getPolicyDefinitionId() {
-            return policyDefinitionId;
+        public String getContractDefinitionId() {
+            return contractDefinitionId;
         }
     }
 }
