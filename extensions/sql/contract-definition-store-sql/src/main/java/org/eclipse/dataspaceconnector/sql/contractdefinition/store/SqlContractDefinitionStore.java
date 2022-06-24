@@ -36,10 +36,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 
+import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
 public class SqlContractDefinitionStore implements ContractDefinitionStore {
@@ -69,7 +69,15 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
 
     @Override
     public @NotNull Collection<ContractDefinition> findAll() {
-        return findAll(QuerySpec.none()).collect(Collectors.toList());
+        return transactionContext.execute(() -> {
+
+            try (var connection = getConnection()) {
+                var queryStmt = format("SELECT * FROM %s", statements.getContractDefinitionTable());
+                return executeQuery(connection, this::mapResultSet, queryStmt);
+            } catch (SQLException exception) {
+                throw new EdcPersistenceException(exception);
+            }
+        });
     }
 
     @Override
@@ -160,7 +168,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
         Objects.requireNonNull(definition);
         transactionContext.execute(() -> {
             if (!existsById(connection, definition.getId())) {
-                throw new EdcPersistenceException(String.format("Cannot update. Contract Definition with ID '%s' does not exist.", definition.getId()));
+                throw new EdcPersistenceException(format("Cannot update. Contract Definition with ID '%s' does not exist.", definition.getId()));
             }
 
             executeQuery(connection, statements.getUpdateTemplate(),
@@ -197,7 +205,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
     }
 
     private DataSource getDataSource() {
-        return Objects.requireNonNull(dataSourceRegistry.resolve(dataSourceName), String.format("DataSource %s could not be resolved", dataSourceName));
+        return Objects.requireNonNull(dataSourceRegistry.resolve(dataSourceName), format("DataSource %s could not be resolved", dataSourceName));
     }
 
     private Connection getConnection() throws SQLException {

@@ -32,6 +32,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -223,13 +225,14 @@ public class SqlContractDefinitionStoreTest {
         assertThat(definitionsRetrieved.size()).isEqualTo(definitionsExpected.size());
     }
 
-    @Test
-    void findAll_verifyQueryDefaults() {
-        var all = IntStream.range(0, 100).mapToObj(i -> getContractDefinition("id" + i, "policyId" + i, "contractId" + i))
+    @ParameterizedTest
+    @ValueSource(ints = { 49, 50, 51, 100 })
+    void findAll_verifyQueryDefaults(int size) {
+        var all = IntStream.range(0, size).mapToObj(i -> getContractDefinition("id" + i, "policyId" + i, "contractId" + i))
                 .peek(cd -> sqlContractDefinitionStore.save(cd))
                 .collect(Collectors.toList());
 
-        assertThat(sqlContractDefinitionStore.findAll()).hasSize(50)
+        assertThat(sqlContractDefinitionStore.findAll()).hasSize(size)
                 .usingRecursiveFieldByFieldElementComparator()
                 .isSubsetOf(all);
     }
