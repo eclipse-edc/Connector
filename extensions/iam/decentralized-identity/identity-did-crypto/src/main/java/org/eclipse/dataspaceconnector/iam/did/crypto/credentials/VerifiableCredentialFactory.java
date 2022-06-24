@@ -25,6 +25,7 @@ import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier;
 import org.eclipse.dataspaceconnector.iam.did.crypto.CryptoException;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.text.ParseException;
 import java.time.Clock;
@@ -90,30 +91,43 @@ public class VerifiableCredentialFactory {
      * @param audience  The intended audience
      * @return true if verified, false otherwise
      */
-    public static boolean verify(SignedJWT jwt, PublicKeyWrapper publicKey, String audience) {
+    public static Result<Void> verify(SignedJWT jwt, PublicKeyWrapper publicKey, String audience) {
+        // verify JWT signature
         try {
-            // verify JWT signature
-            var verify = jwt.verify(publicKey.verifier());
-
-            // verify claims
-            var exactMatchClaims = new JWTClaimsSet.Builder()
-                    .audience(audience)
-                    .subject(VERIFIABLE_CREDENTIAL)
-                    .build();
-            var requiredClaims = Set.of(
-                    ISSUER_CLAIM,
-                    EXPIRATION_TIME_CLAIM);
-            var claimsVerifier = new DefaultJWTClaimsVerifier<>(exactMatchClaims, requiredClaims);
-            try {
-                claimsVerifier.verify(jwt.getJWTClaimsSet());
-            } catch (BadJWTException e) {
-                // claim verification failed
-                verify = false;
+            var verified = jwt.verify(publicKey.verifier());
+            if (!verified) {
+                return Result.failure("Invalid signature");
             }
-
-            return verify;
-        } catch (JOSEException | ParseException e) {
-            throw new CryptoException(e);
+        } catch (JOSEException e) {
+            // Unable to verify, e.g. the JWS algorithm is not supported
+            return Result.failure(e.getMessage());
         }
+
+        JWTClaimsSet jwtClaimsSet;
+        try {
+            jwtClaimsSet = jwt.getJWTClaimsSet();
+        } catch (ParseException e) {
+            // The payload of the JWT doesn't represent a valid JSON object and a JWT claims set
+            return Result.failure(e.getMessage());
+        }
+
+        // verify claims
+        var exactMatchClaims = new JWTClaimsSet.Builder()
+                .audience(audience)
+                .subject(VERIFIABLE_CREDENTIAL)
+                .build();
+        var requiredClaims = Set.of(
+                ISSUER_CLAIM,
+                EXPIRATION_TIME_CLAIM);
+
+        var claimsVerifier = new DefaultJWTClaimsVerifier<>(exactMatchClaims, requiredClaims);
+        try {
+            claimsVerifier.verify(jwtClaimsSet);
+        } catch (BadJWTException e) {
+            // claim verification failed
+            return Result.failure(e.getMessage());
+        }
+
+        return Result.success();
     }
 }

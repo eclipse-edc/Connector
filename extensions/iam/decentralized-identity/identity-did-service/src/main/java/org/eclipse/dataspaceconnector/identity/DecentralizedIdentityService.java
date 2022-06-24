@@ -87,7 +87,9 @@ public class DecentralizedIdentityService implements IdentityService {
             PublicKeyWrapper publicKeyWrapper = KeyConverter.toPublicKeyWrapper(publicKeyJwk, publicKey.get().getId());
 
             monitor.debug("Verifying JWT with public key...");
-            if (!VerifiableCredentialFactory.verify(jwt, publicKeyWrapper, audience)) {
+            Result<Void> verified = VerifiableCredentialFactory.verify(jwt, publicKeyWrapper, audience);
+            if (verified.failed()) {
+                verified.getFailureMessages().forEach(monitor::debug);
                 return Result.failure("Token could not be verified!");
             }
             monitor.debug("verification successful! Fetching data from IdentityHub");

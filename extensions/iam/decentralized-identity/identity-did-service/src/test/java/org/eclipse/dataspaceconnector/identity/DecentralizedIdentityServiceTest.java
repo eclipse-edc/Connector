@@ -93,7 +93,7 @@ abstract class DecentralizedIdentityServiceTest {
 
     public static class WithP256Test extends DecentralizedIdentityServiceTest {
         @Override
-        protected @NotNull JWK getKeyPair() {
+        protected @NotNull ECKey getKeyPair() {
             return KeyPairFactory.generateKeyPairP256();
         }
 

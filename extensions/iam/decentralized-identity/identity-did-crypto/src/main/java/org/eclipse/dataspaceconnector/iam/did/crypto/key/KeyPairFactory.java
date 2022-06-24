@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.iam.did.crypto.key;
 
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.JWK;
 import org.eclipse.dataspaceconnector.iam.did.crypto.CryptoException;
 
 import java.security.KeyPair;
@@ -34,9 +33,9 @@ public class KeyPairFactory {
     /**
      * Generates a Elliptic Curve Public/Private Key pair on the P-256 curve
      *
-     * @return A {@link JWK} that is in fact an {@link ECKey}
+     * @return A newly generated {@link ECKey}
      */
-    public static JWK generateKeyPairP256() {
+    public static ECKey generateKeyPairP256() {
         try {
 
             ECGenParameterSpec ecSpec = new ECGenParameterSpec("secp256r1");

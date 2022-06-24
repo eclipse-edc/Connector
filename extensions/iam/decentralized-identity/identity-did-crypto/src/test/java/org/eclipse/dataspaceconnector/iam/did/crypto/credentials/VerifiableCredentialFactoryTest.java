@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.iam.did.crypto.credentials;
 
+import com.github.javafaker.Faker;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
@@ -29,6 +30,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.text.ParseException;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
@@ -41,9 +43,14 @@ import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.iam.did.crypto.key.KeyPairFactory.generateKeyPairP256;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getResourceFileContentAsString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class VerifiableCredentialFactoryTest {
+    private static final Faker FAKER = new Faker();
 
     private final Instant now = Instant.now();
     private final Clock clock = Clock.fixed(now, UTC);
@@ -84,22 +91,46 @@ class VerifiableCredentialFactoryTest {
         assertThat(deserialized.getPayload().toString()).isEqualTo(vc.getPayload().toString());
     }
 
-    @ParameterizedTest(name = "{2}")
-    @MethodSource("verifyJwtArgs")
-    void verifyJwt(UnaryOperator<JWTClaimsSet.Builder> builderOperator, boolean expectSuccess, String ignoredName) throws Exception {
-        var vc = VerifiableCredentialFactory.create(privateKey, "test-connector", "test-audience", clock);
-
-        JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder(vc.getJWTClaimsSet());
-
-        var jwt = new SignedJWT(
-                vc.getHeader(),
-                builderOperator.apply(builder).build());
-        jwt.sign(privateKey.signer());
-
-        assertThat(VerifiableCredentialFactory.verify(jwt, publicKey, "test-audience")).isEqualTo(expectSuccess);
+    @Test
+    void verifyJwt_OnInvalidSignature_fails() {
+        var jwt = VerifiableCredentialFactory.create(privateKey, "test-connector", "test-audience", clock);
+        var unrelatedPublicKey = new EcPublicKeyWrapper(generateKeyPairP256());
+        assertThat(VerifiableCredentialFactory.verify(jwt, unrelatedPublicKey, "test-audience").getFailureMessages()).containsExactly("Invalid signature");
     }
 
-    public static Stream<Arguments> verifyJwtArgs() {
+    @Test
+    void verifyJwt_OnVerificationFailure_fails() throws Exception {
+        var jwt = mock(SignedJWT.class);
+        var message = FAKER.lorem().sentence();
+        when(jwt.verify(any())).thenThrow(new JOSEException(message));
+        assertThat(VerifiableCredentialFactory.verify(jwt, publicKey, "test-audience").getFailureMessages()).containsExactly(message);
+    }
+
+    @Test
+    void verifyJwt_OnInvalidClaims_fails() throws Exception {
+        var jwt = mock(SignedJWT.class);
+        var message = FAKER.lorem().sentence();
+        when(jwt.verify(any())).thenReturn(true);
+        when(jwt.getJWTClaimsSet()).thenThrow(new ParseException(message, 0));
+        assertThat(VerifiableCredentialFactory.verify(jwt, publicKey, "test-audience").getFailureMessages()).containsExactly(message);
+    }
+
+    @ParameterizedTest(name = "{2}")
+    @MethodSource("claimsArgs")
+    void verifyJwt_OnClaims(UnaryOperator<JWTClaimsSet.Builder> builderOperator, boolean expectSuccess, String ignoredName) throws Exception {
+        var vc = VerifiableCredentialFactory.create(privateKey, "test-connector", "test-audience", clock);
+
+        var claimsSetBuilder = new JWTClaimsSet.Builder(vc.getJWTClaimsSet());
+        var claimsSet = builderOperator.apply(claimsSetBuilder).build();
+
+        var jwt = new SignedJWT(vc.getHeader(), claimsSet);
+        jwt.sign(privateKey.signer());
+
+        var result = VerifiableCredentialFactory.verify(jwt, publicKey, "test-audience");
+        assertThat(result.succeeded()).isEqualTo(expectSuccess);
+    }
+
+    public static Stream<Arguments> claimsArgs() {
         return Stream.of(
                 jwtCase(b -> b, true, "valid token"),
                 jwtCase(b -> b.audience(List.of()), false, "empty audience"),
