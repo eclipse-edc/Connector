@@ -206,7 +206,7 @@ jobs:
             ./gradlew -p system-tests/azure-tests test -DincludeTags="AzureStorageIntegrationTest"
 
       - name: "Publish Gatling report"
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: Gatling reports
@@ -316,7 +316,7 @@ jobs:
           command: ./gradlew test -DincludeTags="EndToEndTest"
 
       - name: "Publish Gatling report"
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: Gatling reports
@@ -409,7 +409,7 @@ jobs:
             ./gradlew -p system-tests/azure-data-factory-tests test -DincludeTags="AzureDataFactoryIntegrationTest"
 
       - name: "Publish Gatling report"
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: Gatling reports
