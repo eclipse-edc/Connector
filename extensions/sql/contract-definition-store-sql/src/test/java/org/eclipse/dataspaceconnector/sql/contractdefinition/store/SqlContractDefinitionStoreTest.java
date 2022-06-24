@@ -110,10 +110,10 @@ public class SqlContractDefinitionStoreTest {
         var definition = getContractDefinition("id", "policy", "contract");
         sqlContractDefinitionStore.save(definition);
 
-        var definitions = sqlContractDefinitionStore.findAll();
+        var definitions = sqlContractDefinitionStore.findAll(QuerySpec.max());
 
         assertThat(definitions).isNotNull();
-        assertThat(definitions.size()).isEqualTo(1);
+        assertThat(definitions).hasSize(1);
     }
 
     @Test
@@ -122,7 +122,7 @@ public class SqlContractDefinitionStoreTest {
         sqlContractDefinitionStore.save(getContractDefinition("id", "policy", "contract"));
         sqlContractDefinitionStore.save(getContractDefinition("id", "updatedAccess", "updatedContract"));
 
-        var result = sqlContractDefinitionStore.findAll();
+        var result = sqlContractDefinitionStore.findAll(QuerySpec.max());
 
         assertThat(result).hasSize(1).containsExactly(getContractDefinition("id", "updatedAccess", "updatedContract"));
     }
@@ -135,10 +135,10 @@ public class SqlContractDefinitionStoreTest {
         sqlContractDefinitionStore.save(definition1);
         sqlContractDefinitionStore.save(definition2);
 
-        var definitions = sqlContractDefinitionStore.findAll();
+        var definitions = sqlContractDefinitionStore.findAll(QuerySpec.max());
 
         assertThat(definitions).isNotNull();
-        assertThat(definitions.size()).isEqualTo(2);
+        assertThat(definitions).hasSize(2);
     }
 
     @Test
@@ -147,10 +147,9 @@ public class SqlContractDefinitionStoreTest {
         var definitionsCreated = getContractDefinitions(10);
         sqlContractDefinitionStore.save(definitionsCreated);
 
-        var definitionsRetrieved = sqlContractDefinitionStore.findAll();
+        var definitionsRetrieved = sqlContractDefinitionStore.findAll(QuerySpec.max());
 
-        assertThat(definitionsRetrieved).hasSize(10);
-        assertThat(definitionsRetrieved.size()).isEqualTo(definitionsCreated.size());
+        assertThat(definitionsRetrieved).hasSize(definitionsCreated.size());
     }
 
     @Test
@@ -159,7 +158,7 @@ public class SqlContractDefinitionStoreTest {
         sqlContractDefinitionStore.save(getContractDefinitions(3));
         sqlContractDefinitionStore.save(getContractDefinitions(10));
 
-        var definitionsRetrieved = sqlContractDefinitionStore.findAll();
+        var definitionsRetrieved = sqlContractDefinitionStore.findAll(QuerySpec.max());
 
         assertThat(definitionsRetrieved).hasSize(10);
     }
@@ -173,10 +172,10 @@ public class SqlContractDefinitionStoreTest {
         //
         sqlContractDefinitionStore.save(definitionsCreated);
 
-        var definitionsRetrieved = sqlContractDefinitionStore.findAll();
+        var definitionsRetrieved = sqlContractDefinitionStore.findAll(QuerySpec.max());
 
         assertThat(definitionsRetrieved).isNotNull();
-        assertThat(definitionsRetrieved.size()).isEqualTo(definitionsCreated.size());
+        assertThat(definitionsRetrieved).hasSize(definitionsCreated.size());
     }
 
     @Test
@@ -185,7 +184,7 @@ public class SqlContractDefinitionStoreTest {
         var definition = getContractDefinition("id", "policy1", "contract1");
 
         sqlContractDefinitionStore.update(definition);
-        var existing = sqlContractDefinitionStore.findAll();
+        var existing = sqlContractDefinitionStore.findAll(QuerySpec.max());
         assertThat(existing).hasSize(1).containsExactly(definition);
     }
 
@@ -219,10 +218,10 @@ public class SqlContractDefinitionStoreTest {
         var definitionsExpected = getContractDefinitions(10);
         sqlContractDefinitionStore.save(definitionsExpected);
 
-        var definitionsRetrieved = sqlContractDefinitionStore.findAll();
+        var definitionsRetrieved = sqlContractDefinitionStore.findAll(QuerySpec.max());
 
         assertThat(definitionsRetrieved).isNotNull();
-        assertThat(definitionsRetrieved.size()).isEqualTo(definitionsExpected.size());
+        assertThat(definitionsRetrieved).hasSize(definitionsExpected.size());
     }
 
     @ParameterizedTest
@@ -232,7 +231,7 @@ public class SqlContractDefinitionStoreTest {
                 .peek(cd -> sqlContractDefinitionStore.save(cd))
                 .collect(Collectors.toList());
 
-        assertThat(sqlContractDefinitionStore.findAll()).hasSize(size)
+        assertThat(sqlContractDefinitionStore.findAll(QuerySpec.max())).hasSize(size)
                 .usingRecursiveFieldByFieldElementComparator()
                 .isSubsetOf(all);
     }
@@ -356,11 +355,11 @@ public class SqlContractDefinitionStoreTest {
     void delete() {
         var definitionExpected = getContractDefinition("test-id1", "policy1", "contract1");
         sqlContractDefinitionStore.save(definitionExpected);
-        assertThat(sqlContractDefinitionStore.findAll()).hasSize(1);
+        assertThat(sqlContractDefinitionStore.findAll(QuerySpec.max())).hasSize(1);
 
         var deleted = sqlContractDefinitionStore.deleteById("test-id1");
         assertThat(deleted).isNotNull().usingRecursiveComparison().isEqualTo(definitionExpected);
-        assertThat(sqlContractDefinitionStore.findAll()).isEmpty();
+        assertThat(sqlContractDefinitionStore.findAll(QuerySpec.max())).isEmpty();
     }
 
     @Test

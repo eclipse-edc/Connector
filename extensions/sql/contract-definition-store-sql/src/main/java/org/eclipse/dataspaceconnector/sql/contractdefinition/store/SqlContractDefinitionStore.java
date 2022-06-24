@@ -68,19 +68,6 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
     }
 
     @Override
-    public @NotNull Collection<ContractDefinition> findAll() {
-        return transactionContext.execute(() -> {
-
-            try (var connection = getConnection()) {
-                var queryStmt = format("SELECT * FROM %s", statements.getContractDefinitionTable());
-                return executeQuery(connection, this::mapResultSet, queryStmt);
-            } catch (SQLException exception) {
-                throw new EdcPersistenceException(exception);
-            }
-        });
-    }
-
-    @Override
     public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
         return transactionContext.execute(() -> {
             Objects.requireNonNull(spec);

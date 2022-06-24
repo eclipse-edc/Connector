@@ -37,14 +37,14 @@ class InMemoryContractDefinitionStoreTest {
         var definition2 = ContractDefinition.Builder.newInstance().id("2").accessPolicyId("access").contractPolicyId("contract").selectorExpression(SELECT_ALL).build();
 
         store.save(definition1);
-        assertThat(store.findAll()).contains(definition1);
+        assertThat(store.findAll(QuerySpec.max())).contains(definition1);
 
         store.save(List.of(definition2));
-        assertThat(store.findAll()).contains(definition1);
+        assertThat(store.findAll(QuerySpec.max())).contains(definition1);
 
         var deletedDefinition = store.deleteById(definition1.getId());
         assertThat(deletedDefinition).isEqualTo(definition1);
-        assertThat(store.findAll()).doesNotContain(definition1);
+        assertThat(store.findAll(QuerySpec.max())).doesNotContain(definition1);
     }
 
     @Test
