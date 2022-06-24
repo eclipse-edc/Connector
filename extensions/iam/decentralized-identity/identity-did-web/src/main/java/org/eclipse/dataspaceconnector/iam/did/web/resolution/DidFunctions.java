@@ -43,7 +43,7 @@ class DidFunctions {
      * @return DID Document URL corresponding to {@code did}
      * @throws IllegalArgumentException if {@code did} has invalid format
      * @throws NullPointerException     if {@code did} is {@code null}
-     * @see <a href="https://w3c-ccg.github.io/did-method-web/#read-resolve"did:web Method Specification: Read (Resolve)</a>
+     * @see <a href="https://w3c-ccg.github.io/did-method-web/#read-resolve">did:web Method Specification: Read (Resolve)</a>
      */
     static String resolveDidDocumentUrl(String did, boolean useHttpsScheme) throws IllegalArgumentException {
         Objects.requireNonNull(did, "did");
