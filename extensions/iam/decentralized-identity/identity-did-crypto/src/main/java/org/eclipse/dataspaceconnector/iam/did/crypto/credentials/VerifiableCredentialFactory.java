@@ -99,16 +99,14 @@ public class VerifiableCredentialFactory {
                 return Result.failure("Invalid signature");
             }
         } catch (JOSEException e) {
-            // Unable to verify, e.g. the JWS algorithm is not supported
-            return Result.failure(e.getMessage());
+            return Result.failure("Unable to verify JWT token. " + e.getMessage()); // e.g. the JWS algorithm is not supported
         }
 
         JWTClaimsSet jwtClaimsSet;
         try {
             jwtClaimsSet = jwt.getJWTClaimsSet();
         } catch (ParseException e) {
-            // The payload of the JWT doesn't represent a valid JSON object and a JWT claims set
-            return Result.failure(e.getMessage());
+            return Result.failure("Error verifying JWT token. The payload must represent a valid JSON object and a JWT claims set. " + e.getMessage());
         }
 
         // verify claims
@@ -124,8 +122,7 @@ public class VerifiableCredentialFactory {
         try {
             claimsVerifier.verify(jwtClaimsSet);
         } catch (BadJWTException e) {
-            // claim verification failed
-            return Result.failure(e.getMessage());
+            return Result.failure("Claim verification failed. " + e.getMessage());
         }
 
         return Result.success();

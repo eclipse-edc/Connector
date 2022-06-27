@@ -103,7 +103,9 @@ class VerifiableCredentialFactoryTest {
         var jwt = mock(SignedJWT.class);
         var message = FAKER.lorem().sentence();
         when(jwt.verify(any())).thenThrow(new JOSEException(message));
-        assertThat(VerifiableCredentialFactory.verify(jwt, publicKey, "test-audience").getFailureMessages()).containsExactly(message);
+        assertThat(VerifiableCredentialFactory.verify(jwt, publicKey, "test-audience").getFailureMessages())
+                .containsExactly("Unable to verify JWT token. " + message);
+
     }
 
     @Test
@@ -112,7 +114,8 @@ class VerifiableCredentialFactoryTest {
         var message = FAKER.lorem().sentence();
         when(jwt.verify(any())).thenReturn(true);
         when(jwt.getJWTClaimsSet()).thenThrow(new ParseException(message, 0));
-        assertThat(VerifiableCredentialFactory.verify(jwt, publicKey, "test-audience").getFailureMessages()).containsExactly(message);
+        assertThat(VerifiableCredentialFactory.verify(jwt, publicKey, "test-audience").getFailureMessages())
+                .containsExactly("Error verifying JWT token. The payload must represent a valid JSON object and a JWT claims set. " + message);
     }
 
     @ParameterizedTest(name = "{2}")
@@ -128,6 +131,11 @@ class VerifiableCredentialFactoryTest {
 
         var result = VerifiableCredentialFactory.verify(jwt, publicKey, "test-audience");
         assertThat(result.succeeded()).isEqualTo(expectSuccess);
+        if (!expectSuccess) {
+            assertThat(result.getFailureMessages())
+                    .isNotEmpty()
+                    .allMatch(m -> m.startsWith("Claim verification failed. "));
+        }
     }
 
     static Stream<Arguments> claimsArgs() {
