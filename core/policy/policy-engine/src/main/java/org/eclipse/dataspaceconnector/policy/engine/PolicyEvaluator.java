@@ -224,72 +224,32 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
         
         return failures.isEmpty() ? Result.success(ResourceManifest.Builder.newInstance().definitions(modifiedResourceDefinitions).build()) : Result.failure(failures);
     }
-    
-    @SuppressWarnings({"unchecked"})
+
     private <D extends ResourceDefinition> Result<D> evaluateResourceDefinition(D resourceDefinition, Policy policy) {
         var failures = new ArrayList<String>();
         
         for (var permission: policy.getPermissions()) {
-            var functions = resourceDefinitionPermissionFunctions.get(resourceDefinition.getClass());
-            if (functions != null) {
-                for (var permissionFunction : functions) {
-                    var result = ((ResourceDefinitionRuleFunction<Permission, D>) permissionFunction).evaluate(permission, resourceDefinition);
-                    if (result.succeeded()) {
-                        resourceDefinition = result.getContent();
-                    } else {
-                        failures.addAll(result.getFailureMessages());
-                    }
-                }
-            }
-    
-            var result = visitResourceDefinitionConstraints(permission, resourceDefinition, resourceDefinitionConstraintPermissionFunctions);
-            if (result.succeeded()) {
-                resourceDefinition = result.getContent();
-            } else {
-                failures.addAll(result.getFailureMessages());
-            }
+            var result = visitResourceDefinitionRule(permission, resourceDefinition, resourceDefinitionPermissionFunctions);
+            resourceDefinition = processResourceDefinitionResult(result, resourceDefinition, failures);
+            
+            result = visitResourceDefinitionConstraints(permission, resourceDefinition, resourceDefinitionConstraintPermissionFunctions);
+            resourceDefinition = processResourceDefinitionResult(result, resourceDefinition, failures);
         }
-    
+        
         for (var prohibition : policy.getProhibitions()) {
-            var functions = resourceDefinitionProhibitionFunctions.get(resourceDefinition.getClass());
-            if (functions != null) {
-                for (var prohibitionFunction : functions) {
-                    var result = ((ResourceDefinitionRuleFunction<Prohibition, D>) prohibitionFunction).evaluate(prohibition, resourceDefinition);
-                    if (result.succeeded()) {
-                        resourceDefinition = result.getContent();
-                    } else {
-                        failures.addAll(result.getFailureMessages());
-                    }
-                }
-            }
-            
-            var result = visitResourceDefinitionConstraints(prohibition, resourceDefinition, resourceDefinitionConstraintProhibitionFunctions);
-            if (result.succeeded()) {
-                resourceDefinition = result.getContent();
-            } else {
-                failures.addAll(result.getFailureMessages());
-            }
+            var result = visitResourceDefinitionRule(prohibition, resourceDefinition, resourceDefinitionProhibitionFunctions);
+            resourceDefinition = processResourceDefinitionResult(result, resourceDefinition, failures);
+
+            result = visitResourceDefinitionConstraints(prohibition, resourceDefinition, resourceDefinitionConstraintProhibitionFunctions);
+            resourceDefinition = processResourceDefinitionResult(result, resourceDefinition, failures);
         }
-    
+
         for (var duty : policy.getObligations()) {
-            var functions = resourceDefinitionDutyFunctions.get(resourceDefinition.getClass());
-            if (functions != null) {
-                for (var dutyFunction : functions) {
-                    var result = ((ResourceDefinitionRuleFunction<Duty, D>) dutyFunction).evaluate(duty, resourceDefinition);
-                    if (result.succeeded()) {
-                        resourceDefinition = result.getContent();
-                    } else {
-                        failures.addAll(result.getFailureMessages());
-                    }
-                }
-            }
+            var result = visitResourceDefinitionRule(duty, resourceDefinition, resourceDefinitionDutyFunctions);
+            resourceDefinition = processResourceDefinitionResult(result, resourceDefinition, failures);
             
-            var result = visitResourceDefinitionConstraints(duty, resourceDefinition, resourceDefinitionConstraintDutyFunctions);
-            if (result.succeeded()) {
-                resourceDefinition = result.getContent();
-            } else {
-                failures.addAll(result.getFailureMessages());
-            }
+            result = visitResourceDefinitionConstraints(duty, resourceDefinition, resourceDefinitionConstraintDutyFunctions);
+            resourceDefinition = processResourceDefinitionResult(result, resourceDefinition, failures);
         }
     
         return failures.isEmpty() ? Result.success(resourceDefinition) : Result.failure(failures);
@@ -325,6 +285,35 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
         }
         
         return failures.isEmpty() ? Result.success(resourceDefinition) : Result.failure(failures);
+    }
+    
+    @SuppressWarnings({"unchecked"})
+    private <D extends ResourceDefinition, R extends Rule> Result<D> visitResourceDefinitionRule(
+            R rule, D resourceDefinition, Map<Class<? extends ResourceDefinition>, List<ResourceDefinitionRuleFunction<R, ? extends ResourceDefinition>>> functions) {
+        var failures = new ArrayList<String>();
+    
+        var functionsForType = functions.get(resourceDefinition.getClass());
+        if (functionsForType != null) {
+            for (var dutyFunction : functionsForType) {
+                var result = ((ResourceDefinitionRuleFunction<R, D>) dutyFunction).evaluate(rule, resourceDefinition);
+                if (result.succeeded()) {
+                    resourceDefinition = result.getContent();
+                } else {
+                    failures.addAll(result.getFailureMessages());
+                }
+            }
+        }
+    
+        return failures.isEmpty() ? Result.success(resourceDefinition) : Result.failure(failures);
+    }
+    
+    private <D extends ResourceDefinition> D processResourceDefinitionResult(Result<D> result, D resourceDefinition, List<String> failures) {
+        if (result.succeeded()) {
+            return result.getContent();
+        } else {
+            failures.addAll(result.getFailureMessages());
+            return resourceDefinition;
+        }
     }
     
     private Boolean visitRule(Rule rule) {
