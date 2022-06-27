@@ -20,4 +20,8 @@ public class NotAuthorizedException extends EdcException {
     public NotAuthorizedException() {
         super("This request could not be authorized");
     }
+
+    public NotAuthorizedException(String message) {
+        super(message);
+    }
 }

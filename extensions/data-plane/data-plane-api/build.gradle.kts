@@ -27,7 +27,6 @@ plugins {
 
 dependencies {
     api(project(":spi:web-spi"))
-    implementation(project(":common:token-validation-lib"))
     implementation(project(":extensions:data-plane:data-plane-spi"))
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
