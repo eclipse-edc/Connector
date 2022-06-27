@@ -21,6 +21,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Event Framework for PolicyDefinition entity (#1437)
 * SQL Translation layer (#1357, #1459)
 * Permit API verbose error response (#1479)
+* Allow HttpDataSink to choose http method (#1547)
 
 #### Changed
 

@@ -24,6 +24,8 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -33,6 +35,7 @@ import java.util.concurrent.Executors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures.createHttpResponse;
 import static org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures.createRequest;
+import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -108,6 +111,47 @@ class HttpDataSinkFactoryTest {
         assertThat(result.failed()).isFalse();
 
         verify(call).execute();
+    }
+
+    @ParameterizedTest
+    @CsvSource({"FALSE,POST", "TRUE,POST", "TRUE,PUT"})
+    void verifyCreateMethodDestination(String proxyMethod, String method) throws InterruptedException, ExecutionException, IOException {
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .baseUrl("http://example.com")
+                .proxyMethod(proxyMethod)
+                .property(METHOD, method)
+                .build();
+
+        var validRequest = createRequest(HttpDataAddress.DATA_TYPE).destinationDataAddress(dataAddress).build();
+
+        var call = mock(Call.class);
+        when(call.execute()).thenReturn(createHttpResponse().build());
+
+        when(httpClient.newCall(isA(Request.class))).thenAnswer(r -> {
+            assertThat(((Request) r.getArgument(0)).method()).isEqualTo(method);
+            return call;
+        });
+
+        var sink = factory.createSink(validRequest);
+
+        var result = sink.transfer(new InputStreamDataSource("test", new ByteArrayInputStream("test".getBytes()))).get();
+
+        assertThat(result.failed()).isFalse();
+
+        verify(call).execute();
+    }
+
+    @Test
+    void verifyMissingMethodDestination() throws InterruptedException, ExecutionException, IOException {
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .baseUrl("http://example.com")
+                .proxyMethod(Boolean.TRUE.toString())
+                .property(METHOD, "")
+                .build();
+
+        var missingMethodRequest = createRequest(HttpDataAddress.DATA_TYPE).destinationDataAddress(dataAddress).build();
+
+        assertThrows(EdcException.class, () -> factory.createSink(missingMethodRequest));
     }
 
     @BeforeEach

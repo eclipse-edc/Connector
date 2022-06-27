@@ -33,6 +33,7 @@ public class HttpDataSink extends ParallelSink {
     private String authKey;
     private String authCode;
     private String endpoint;
+    private String method = HttpDataSinkFactory.DEFAULT_HTTP_METHOD;
     private OkHttpClient httpClient;
 
     /**
@@ -48,7 +49,7 @@ public class HttpDataSink extends ParallelSink {
                 requestBuilder.header(authKey, authCode);
             }
 
-            var request = requestBuilder.url(endpoint).post(requestBody).build();
+            var request = requestBuilder.url(endpoint).method(method, requestBody).build();
             try (var response = httpClient.newCall(request).execute()) {
                 if (!response.isSuccessful()) {
                     monitor.severe(format("Error {%s: %s} received writing HTTP data %s to endpoint %s for request: %s", response.code(), response.message(), part.name(), endpoint, request));
@@ -83,6 +84,11 @@ public class HttpDataSink extends ParallelSink {
 
         public Builder authCode(String authCode) {
             sink.authCode = authCode;
+            return this;
+        }
+
+        public Builder method(String method) {
+            sink.method = method;
             return this;
         }
 

@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
 import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -26,12 +27,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ExecutorService;
 
+import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
 import static org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress.DATA_TYPE;
 
 /**
  * Instantiates {@link HttpDataSink}s for requests whose source data type is {@link HttpDataAddress#DATA_TYPE}.
  */
 public class HttpDataSinkFactory implements DataSinkFactory {
+
+    public static final String DEFAULT_HTTP_METHOD = "POST";
+
     private final OkHttpClient httpClient;
     private final ExecutorService executorService;
     private final int partitionSize;
@@ -76,12 +81,21 @@ public class HttpDataSinkFactory implements DataSinkFactory {
         var authKey = dataAddress.getAuthKey();
         var authCode = dataAddress.getAuthCode();
 
+        var method = DEFAULT_HTTP_METHOD;
+        if (Boolean.parseBoolean(dataAddress.getProxyMethod())) {
+            method = dataAddress.getProperties().get(METHOD);
+            if (StringUtils.isNullOrBlank(method)) {
+                return Result.failure("Missing http method for request: " + request.getId());
+            }
+        }
+
         var sink = HttpDataSink.Builder.newInstance()
                 .endpoint(baseUrl)
                 .requestId(requestId)
                 .partitionSize(partitionSize)
                 .authKey(authKey)
                 .authCode(authCode)
+                .method(method)
                 .httpClient(httpClient)
                 .executorService(executorService)
                 .monitor(monitor)
