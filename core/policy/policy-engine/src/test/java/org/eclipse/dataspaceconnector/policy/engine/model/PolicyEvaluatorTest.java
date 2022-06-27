@@ -16,10 +16,7 @@
 package org.eclipse.dataspaceconnector.policy.engine.model;
 
 import java.util.List;
-import java.util.stream.Stream;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.policy.engine.PolicyEvaluator;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
@@ -31,17 +28,15 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.policy.model.Rule;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.policy.engine.model.PolicyTestFunctions.createLiteralAtomicConstraint;
+import static org.eclipse.dataspaceconnector.policy.engine.model.PolicyTestFunctions.ResourceDefinitionFunctionsArguments;
+import static org.eclipse.dataspaceconnector.policy.engine.model.PolicyTestFunctions.TestDefinition;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -311,45 +306,5 @@ class PolicyEvaluatorTest {
         assertThat(evaluatedDefinition.getKey())
                 .isNotEqualTo(originalKey)
                 .isEqualTo(rightValue);
-    }
-    
-    static class TestDefinition extends ResourceDefinition {
-        String key = "someValue";
-        
-        public String getKey() {
-            return this.key;
-        }
-        
-        public void setKey(String key) {
-            this.key = key;
-        }
-    
-        @JsonPOJOBuilder(withPrefix = "")
-        public static class Builder extends ResourceDefinition.Builder<TestDefinition, Builder> {
-            private Builder() {
-                super(new TestDefinition());
-            }
-        
-            @JsonCreator
-            public static Builder newInstance() {
-                return new Builder();
-            }
-            
-            public Builder key(String key) {
-                resourceDefinition.key = key;
-                return this;
-            }
-        }
-    }
-    
-    static class ResourceDefinitionFunctionsArguments implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                    Arguments.arguments(Permission.class),
-                    Arguments.arguments(Prohibition.class),
-                    Arguments.arguments(Duty.class)
-            );
-        }
     }
 }
