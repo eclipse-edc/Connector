@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Siemens AG - enable read property and return a default value is missing
  *
  */
 
@@ -54,6 +55,14 @@ public class DataAddress {
 
     public String getProperty(String key) {
         return properties.get(key);
+    }
+
+    public String getProperty(String key, String defaultValue) {
+        if (properties.containsKey(key)) {
+            return properties.get(key);
+        }
+
+        return defaultValue;
     }
 
     public Map<String, String> getProperties() {
