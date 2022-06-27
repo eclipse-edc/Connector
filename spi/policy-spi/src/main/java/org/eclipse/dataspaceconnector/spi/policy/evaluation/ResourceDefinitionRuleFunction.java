@@ -25,6 +25,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefiniti
  * @param <R> the type of rule.
  * @param <D> the type of resource definiton.
  */
+@FunctionalInterface
 public interface ResourceDefinitionRuleFunction<R extends Rule, D extends ResourceDefinition> {
     
     /**
@@ -35,6 +36,6 @@ public interface ResourceDefinitionRuleFunction<R extends Rule, D extends Resour
      * @return a result containing either the verified/modified resource definition or the problems
      *         encountered during evaluation.
      */
-    Result<ResourceDefinition> evaluate(R rule, D resourceDefinition);
+    Result<D> evaluate(R rule, D resourceDefinition);
     
 }

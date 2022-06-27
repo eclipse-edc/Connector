@@ -9,19 +9,38 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - resource manifest evaluation
  *
  */
 
 package org.eclipse.dataspaceconnector.policy.engine.model;
 
+import java.util.List;
+import java.util.stream.Stream;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.policy.engine.PolicyEvaluator;
 import org.eclipse.dataspaceconnector.policy.model.Action;
+import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
+import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
+import org.eclipse.dataspaceconnector.policy.model.Operator;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
+import org.eclipse.dataspaceconnector.policy.model.Rule;
+import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.policy.engine.model.PolicyTestFunctions.createLiteralAtomicConstraint;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -131,5 +150,206 @@ class PolicyEvaluatorTest {
         evaluator = PolicyEvaluator.Builder.newInstance().dutyRuleFunction((p) -> false).build();
         assertFalse(evaluator.evaluate(policy).valid());
 
+    }
+    
+    @Test
+    void evaluateResourceManifest_validResourceDefinition() {
+        var definition = TestDefinition.Builder.newInstance().id("id").key("someValue").build();
+        var manifest = ResourceManifest.Builder.newInstance().definitions(List.of(definition)).build();
+        
+        var evaluator = PolicyEvaluator.Builder.newInstance()
+                .resourceDefinitionPermissionFunction(TestDefinition.class, (r, d) -> Result.success(definition))
+                .build();
+        
+        var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("USE").build()).build();
+        var policy = Policy.Builder.newInstance().permission(permission).build();
+        
+        var result = evaluator.evaluateManifest(manifest, policy);
+        assertThat(result.succeeded()).isTrue();
+    }
+    
+    @Test
+    void evaluateResourceManifest_invalidResourceDefinition() {
+        var errorMessage = "invalid";
+        
+        var definition = TestDefinition.Builder.newInstance().id("id").key("someValue").build();
+        var manifest = ResourceManifest.Builder.newInstance().definitions(List.of(definition)).build();
+    
+        var evaluator = PolicyEvaluator.Builder.newInstance()
+                .resourceDefinitionPermissionFunction(TestDefinition.class, (r, d) -> Result.failure(errorMessage))
+                .build();
+    
+        var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("USE").build()).build();
+        var policy = Policy.Builder.newInstance().permission(permission).build();
+    
+        var result = evaluator.evaluateManifest(manifest, policy);
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailureMessages()).hasSize(1).containsExactly(errorMessage);
+    }
+    
+    @ParameterizedTest
+    @ArgumentsSource(ResourceDefinitionFunctionsArguments.class)
+    void verifyResourceDefinitionRuleFunctions(Class<? extends Rule> ruleType) {
+        var originalKey = "someValue";
+        var newKey = "someOtherValue";
+        
+        var definition = TestDefinition.Builder.newInstance().id("id").key(originalKey).build();
+        var manifest = ResourceManifest.Builder.newInstance().definitions(List.of(definition)).build();
+    
+        var policyBuilder = Policy.Builder.newInstance();
+        var evaluatorBuilder = PolicyEvaluator.Builder.newInstance();
+    
+        // Create policy and configure evaluator for correct rule type
+        if (ruleType.isAssignableFrom(Permission.class)) {
+            var permission = Permission.Builder.newInstance()
+                    .action(Action.Builder.newInstance().type("USE").build())
+                    .build();
+            policyBuilder.permission(permission);
+        
+            evaluatorBuilder.resourceDefinitionPermissionFunction(TestDefinition.class, (r, d) -> {
+                d.setKey(newKey);
+                return Result.success(d);
+            });
+        } else if (ruleType.isAssignableFrom(Prohibition.class)) {
+            var prohibition = Prohibition.Builder.newInstance()
+                    .action(Action.Builder.newInstance().type("USE").build())
+                    .build();
+            policyBuilder.prohibition(prohibition);
+        
+            evaluatorBuilder.resourceDefinitionProhibitionFunction(TestDefinition.class, (r, d) -> {
+                d.setKey(newKey);
+                return Result.success(d);
+            });
+        } else {
+            var duty = Duty.Builder.newInstance()
+                    .action(Action.Builder.newInstance().type("USE").build())
+                    .build();
+            policyBuilder.duty(duty);
+        
+            evaluatorBuilder.resourceDefinitionDutyFunction(TestDefinition.class, (r, d) -> {
+                d.setKey(newKey);
+                return Result.success(d);
+            });
+        }
+        
+        var result = evaluatorBuilder.build().evaluateManifest(manifest, policyBuilder.build());
+        assertThat(result.succeeded()).isTrue();
+        
+        var evaluatedDefinitions = result.getContent().getDefinitions();
+        assertThat(evaluatedDefinitions).hasSize(1);
+        
+        var evaluatedDefinition = (TestDefinition) evaluatedDefinitions.get(0);
+        assertThat(evaluatedDefinition.getId()).isEqualTo(definition.getId());
+        assertThat(evaluatedDefinition.getKey())
+                .isNotEqualTo(originalKey)
+                .isEqualTo(newKey);
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(ResourceDefinitionFunctionsArguments.class)
+    void verifyResourceDefinitionConstraintFunctions(Class<? extends Rule> ruleType) {
+        var leftOperand = "leftOperand";
+        var rightValue = "rightValue";
+        var originalKey = "someValue";
+    
+        var definition = TestDefinition.Builder.newInstance().id("id").key(originalKey).build();
+        var manifest = ResourceManifest.Builder.newInstance().definitions(List.of(definition)).build();
+        
+        var constraint = AtomicConstraint.Builder.newInstance()
+                .leftExpression(new LiteralExpression(leftOperand))
+                .operator(Operator.EQ)
+                .rightExpression(new LiteralExpression(rightValue))
+                .build();
+        
+        var policyBuilder = Policy.Builder.newInstance();
+        var evaluatorBuilder = PolicyEvaluator.Builder.newInstance();
+        
+        // Create policy and configure evaluator for correct rule type
+        if (ruleType.isAssignableFrom(Permission.class)) {
+            var permission = Permission.Builder.newInstance()
+                    .action(Action.Builder.newInstance().type("USE").build())
+                    .constraint(constraint)
+                    .build();
+            policyBuilder.permission(permission);
+            
+            evaluatorBuilder.resourceDefinitionConstraintPermissionFunction(leftOperand, TestDefinition.class, (op, rv, r, d) -> {
+                        d.setKey(((LiteralExpression) rv).asString());
+                        return Result.success(d);
+                    });
+        } else if (ruleType.isAssignableFrom(Prohibition.class)) {
+            var prohibition = Prohibition.Builder.newInstance()
+                    .action(Action.Builder.newInstance().type("USE").build())
+                    .constraint(constraint)
+                    .build();
+            policyBuilder.prohibition(prohibition);
+    
+            evaluatorBuilder.resourceDefinitionConstraintProhibitionFunction(leftOperand, TestDefinition.class, (op, rv, r, d) -> {
+                        d.setKey(((LiteralExpression) rv).asString());
+                        return Result.success(d);
+                    });
+        } else {
+            var duty = Duty.Builder.newInstance()
+                    .action(Action.Builder.newInstance().type("USE").build())
+                    .constraint(constraint)
+                    .build();
+            policyBuilder.duty(duty);
+    
+            evaluatorBuilder.resourceDefinitionConstraintDutyFunction(leftOperand, TestDefinition.class, (op, rv, r, d) -> {
+                        d.setKey(((LiteralExpression) rv).asString());
+                        return Result.success(d);
+                    });
+        }
+    
+        var result = evaluatorBuilder.build().evaluateManifest(manifest, policyBuilder.build());
+        assertThat(result.succeeded()).isTrue();
+    
+        var evaluatedDefinitions = result.getContent().getDefinitions();
+        assertThat(evaluatedDefinitions).hasSize(1);
+    
+        var evaluatedDefinition = (TestDefinition) evaluatedDefinitions.get(0);
+        assertThat(evaluatedDefinition.getId()).isEqualTo(definition.getId());
+        assertThat(evaluatedDefinition.getKey())
+                .isNotEqualTo(originalKey)
+                .isEqualTo(rightValue);
+    }
+    
+    static class TestDefinition extends ResourceDefinition {
+        String key = "someValue";
+        
+        public String getKey() {
+            return this.key;
+        }
+        
+        public void setKey(String key) {
+            this.key = key;
+        }
+    
+        @JsonPOJOBuilder(withPrefix = "")
+        public static class Builder extends ResourceDefinition.Builder<TestDefinition, Builder> {
+            private Builder() {
+                super(new TestDefinition());
+            }
+        
+            @JsonCreator
+            public static Builder newInstance() {
+                return new Builder();
+            }
+            
+            public Builder key(String key) {
+                resourceDefinition.key = key;
+                return this;
+            }
+        }
+    }
+    
+    static class ResourceDefinitionFunctionsArguments implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    Arguments.arguments(Permission.class),
+                    Arguments.arguments(Prohibition.class),
+                    Arguments.arguments(Duty.class)
+            );
+        }
     }
 }

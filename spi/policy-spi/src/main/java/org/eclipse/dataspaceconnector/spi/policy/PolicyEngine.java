@@ -21,8 +21,11 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Rule;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.policy.evaluation.AtomicConstraintFunction;
+import org.eclipse.dataspaceconnector.spi.policy.evaluation.ResourceDefinitionAtomicConstraintFunction;
+import org.eclipse.dataspaceconnector.spi.policy.evaluation.ResourceDefinitionRuleFunction;
 import org.eclipse.dataspaceconnector.spi.policy.evaluation.RuleFunction;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 
 import java.util.function.BiFunction;
@@ -90,6 +93,28 @@ public interface PolicyEngine {
      * @param function the function
      */
     <R extends Rule> void registerFunction(String scope, Class<R> type, RuleFunction<R> function);
+    
+    /**
+     * Registers a function that is invoked during resource manifest evaluation when a policy contains
+     * an atomic constraint whose left operator expression evaluates to the given key for the specified scope.
+     *
+     * @param scope the scope the function applies to.
+     * @param ruleType the {@link Rule} sub-type
+     * @param resourceDefinitionType the {@link ResourceDefinition} sub-type
+     * @param key the key.
+     * @param function the function.
+     */
+    <R extends Rule, D extends ResourceDefinition> void registerFunction(String scope, Class<R> ruleType, Class<D> resourceDefinitionType, String key, ResourceDefinitionAtomicConstraintFunction<R, D> function);
+    
+    /**
+     * Registers a function that is invoked during resource manifest evaluation when a policy contains a rule of the given type for the specified scope.
+     *
+     * @param scope the scope the function applies to.
+     * @param ruleType the {@link Rule} sub-type
+     * @param resourceDefinitionType the {@link ResourceDefinition} sub-type
+     * @param function the function
+     */
+    <R extends Rule, D extends ResourceDefinition> void registerFunction(String scope, Class<R> ruleType, Class<D> resourceDefinitionType, ResourceDefinitionRuleFunction<R, D> function);
 
     /**
      * Registers a function that performs pre-validation on the policy for the given scope.

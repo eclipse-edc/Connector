@@ -26,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.policy.evaluation.AtomicConstraintFunction;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyContext;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
+import org.eclipse.dataspaceconnector.spi.policy.evaluation.ResourceDefinitionAtomicConstraintFunction;
 import org.eclipse.dataspaceconnector.spi.policy.evaluation.ResourceDefinitionRuleFunction;
 import org.eclipse.dataspaceconnector.spi.policy.evaluation.RuleFunction;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -50,7 +51,8 @@ public class PolicyEngineImpl implements PolicyEngine {
 
     private Map<String, List<ConstraintFunctionEntry<Rule>>> constraintFunctions = new TreeMap<>();
     private Map<String, List<RuleFunctionEntry<Rule>>> ruleFunctions = new TreeMap<>();
-    private Map<String, List<ResourceDefinitionFunctionEntry<Rule, ResourceDefinition>>> resourceDefinitionFunctions = new TreeMap<>();
+    private Map<String, List<ResourceDefinitionRuleFunctionEntry<Rule, ResourceDefinition>>> resourceDefinitionRuleFunctions = new TreeMap<>();
+    private Map<String, List<ResourceDefinitionConstraintFunctionEntry<Rule, ResourceDefinition>>> resourceDefinitionConstraintFunctions = new TreeMap<>();
 
     private List<BiFunction<Policy, PolicyContext, Boolean>> preValidators = new ArrayList<>();
     private List<BiFunction<Policy, PolicyContext, Boolean>> postValidators = new ArrayList<>();
@@ -121,7 +123,7 @@ public class PolicyEngineImpl implements PolicyEngine {
         var evalBuilder = PolicyEvaluator.Builder.newInstance();
         final var delimitedScope = scope + ".";
         
-        resourceDefinitionFunctions.entrySet().stream()
+        resourceDefinitionRuleFunctions.entrySet().stream()
                 .filter(entry -> scopeFilter(entry.getKey(), delimitedScope))
                 .flatMap(entry -> entry.getValue().stream()).forEach(entry -> {
                     if (Duty.class.isAssignableFrom(entry.ruleType)) {
@@ -130,6 +132,21 @@ public class PolicyEngineImpl implements PolicyEngine {
                         evalBuilder.resourceDefinitionPermissionFunction(entry.resourceType, (permission, definition) -> entry.function.evaluate(permission, definition));
                     } else if (Prohibition.class.isAssignableFrom(entry.ruleType)) {
                         evalBuilder.resourceDefinitionProhibitionFunction(entry.resourceType, (prohibition, definition) -> entry.function.evaluate(prohibition, definition));
+                    }
+        });
+        
+        resourceDefinitionConstraintFunctions.entrySet().stream()
+                .filter(entry -> scopeFilter(entry.getKey(), delimitedScope))
+                .flatMap(entry -> entry.getValue().stream()).forEach(entry -> {
+                    if (Duty.class.isAssignableFrom(entry.ruleType)) {
+                        evalBuilder.resourceDefinitionConstraintDutyFunction(entry.key, entry.resourceType,
+                                (operator, rightValue, duty, definition) -> entry.function.evaluate(operator, rightValue, duty, definition));
+                    } else if (Permission.class.isAssignableFrom(entry.ruleType)) {
+                        evalBuilder.resourceDefinitionConstraintPermissionFunction(entry.key, entry.resourceType,
+                                (operator, rightValue, permission, definition) -> entry.function.evaluate(operator, rightValue, permission, definition));
+                    } else if (Prohibition.class.isAssignableFrom(entry.ruleType)) {
+                        evalBuilder.resourceDefinitionConstraintProhibitionFunction(entry.key, entry.resourceType,
+                                (operator, rightValue, prohibition, definition) -> entry.function.evaluate(operator, rightValue, prohibition, definition));
                     }
         });
     
@@ -151,7 +168,23 @@ public class PolicyEngineImpl implements PolicyEngine {
     public <R extends Rule> void registerFunction(String scope, Class<R> type, RuleFunction<R> function) {
         ruleFunctions.computeIfAbsent(scope + ".", k -> new ArrayList<>()).add(new RuleFunctionEntry(type, function));
     }
-
+    
+    @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <R extends Rule, D extends ResourceDefinition> void registerFunction(String scope, Class<R> ruleType, Class<D> resourceDefinitionType,
+                                                                                String key, ResourceDefinitionAtomicConstraintFunction<R, D> function) {
+        resourceDefinitionConstraintFunctions.computeIfAbsent(scope + ".", k -> new ArrayList<>())
+                .add(new ResourceDefinitionConstraintFunctionEntry(ruleType, resourceDefinitionType, key, function));
+    }
+    
+    @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <R extends Rule, D extends ResourceDefinition> void registerFunction(String scope, Class<R> ruleType, Class<D> resourceDefinitionType,
+                                                                                ResourceDefinitionRuleFunction<R, D> function) {
+        resourceDefinitionRuleFunctions.computeIfAbsent(scope + ".", k -> new ArrayList<>())
+                .add(new ResourceDefinitionRuleFunctionEntry(ruleType, resourceDefinitionType, function));
+    }
+    
     @Override
     public void registerPreValidator(String scope, BiFunction<Policy, PolicyContext, Boolean> validator) {
         preValidators.add(validator);
@@ -188,14 +221,28 @@ public class PolicyEngineImpl implements PolicyEngine {
         }
     }
     
-    private static class ResourceDefinitionFunctionEntry<R extends Rule, D extends ResourceDefinition> {
+    private static class ResourceDefinitionRuleFunctionEntry<R extends Rule, D extends ResourceDefinition> {
         Class<R> ruleType;
         Class<D> resourceType;
         ResourceDefinitionRuleFunction<R, D> function;
         
-        ResourceDefinitionFunctionEntry(Class<R> ruleType, Class<D> resourceType, ResourceDefinitionRuleFunction<R, D> function) {
+        ResourceDefinitionRuleFunctionEntry(Class<R> ruleType, Class<D> resourceType, ResourceDefinitionRuleFunction<R, D> function) {
             this.ruleType = ruleType;
             this.resourceType = resourceType;
+            this.function = function;
+        }
+    }
+    
+    private static class ResourceDefinitionConstraintFunctionEntry<R extends Rule, D extends ResourceDefinition> {
+        Class<R> ruleType;
+        Class<D> resourceType;
+        String key;
+        ResourceDefinitionAtomicConstraintFunction<R, D> function;
+        
+        ResourceDefinitionConstraintFunctionEntry(Class<R> ruleType, Class<D> resourceType, String key, ResourceDefinitionAtomicConstraintFunction<R, D> function) {
+            this.ruleType = ruleType;
+            this.resourceType = resourceType;
+            this.key = key;
             this.function = function;
         }
     }
