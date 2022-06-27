@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Siemens AG - changes to make it compatible with AWS S3, Azure blob and ALI Object Storage presigned URL for upload
  *
  */
 
@@ -20,6 +21,7 @@ import org.eclipse.dataspaceconnector.dataplane.http.pipeline.HttpDataSinkFactor
 import org.eclipse.dataspaceconnector.dataplane.http.pipeline.HttpDataSourceFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -29,6 +31,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
  * Provides support for reading data from an HTTP endpoint and sending data to an HTTP endpoint.
  */
 public class DataPlaneHttpExtension implements ServiceExtension {
+    private static final int DEFAULT_PART_SIZE = 5;
 
     @Inject
     private OkHttpClient httpClient;
@@ -46,6 +49,9 @@ public class DataPlaneHttpExtension implements ServiceExtension {
     @Inject
     private Vault vault;
 
+    @EdcSetting
+    private static final String EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE = "edc.dataplane.http.sink.partition.size";
+
     @Override
     public String name() {
         return "Data Plane HTTP";
@@ -54,11 +60,16 @@ public class DataPlaneHttpExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
+        var sinkPartitionSize = getSinkPartitionSize(context);
 
         @SuppressWarnings("unchecked") var sourceFactory = new HttpDataSourceFactory(httpClient, retryPolicy, monitor, vault);
         pipelineService.registerFactory(sourceFactory);
 
-        var sinkFactory = new HttpDataSinkFactory(httpClient, executorContainer.getExecutorService(), 5, monitor);
+        var sinkFactory = new HttpDataSinkFactory(httpClient, executorContainer.getExecutorService(), sinkPartitionSize, monitor);
         pipelineService.registerFactory(sinkFactory);
+    }
+
+    private int getSinkPartitionSize(ServiceExtensionContext context) {
+        return context.getSetting(EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE, DEFAULT_PART_SIZE);
     }
 }

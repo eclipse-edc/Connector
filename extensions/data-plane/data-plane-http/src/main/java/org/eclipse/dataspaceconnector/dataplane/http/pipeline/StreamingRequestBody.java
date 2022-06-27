@@ -25,17 +25,17 @@ import java.io.IOException;
  * Streams content into an OK HTTP buffered sink.
  */
 public class StreamingRequestBody extends RequestBody {
-    private static final String OCTET_STREAM = "application/octet-stream";
-
     private final DataSource.Part part;
+    private final String contentType;
 
-    public StreamingRequestBody(DataSource.Part part) {
+    public StreamingRequestBody(DataSource.Part part, String contentType) {
         this.part = part;
+        this.contentType = contentType;
     }
 
     @Override
     public MediaType contentType() {
-        return MediaType.parse(OCTET_STREAM);
+        return MediaType.parse(contentType);
     }
 
     @Override

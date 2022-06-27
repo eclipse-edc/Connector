@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Siemens AG - added additionalHeaders
  *
  */
 
@@ -80,6 +81,8 @@ public class HttpDataSinkFactory implements DataSinkFactory {
         }
         var authKey = dataAddress.getAuthKey();
         var authCode = dataAddress.getAuthCode();
+        var additionalHeaders = dataAddress.getAdditionalHeaders();
+        var contentType = dataAddress.getContentType();
 
         var method = DEFAULT_HTTP_METHOD;
         if (Boolean.parseBoolean(dataAddress.getProxyMethod())) {
@@ -97,6 +100,8 @@ public class HttpDataSinkFactory implements DataSinkFactory {
                 .authCode(authCode)
                 .method(method)
                 .httpClient(httpClient)
+                .contentType(contentType)
+                .additionalHeaders(additionalHeaders)
                 .executorService(executorService)
                 .monitor(monitor)
                 .build();

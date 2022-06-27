@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - Initial implementation
+ *       Siemens AG - added additionalHeaders
  *
  */
 
@@ -19,6 +20,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * This is a wrapper class for the {@link DataAddress} object, which has typed accessors for properties specific to
@@ -39,6 +45,10 @@ public class HttpDataAddress extends DataAddress {
     private static final String PROXY_PATH = "proxyPath";
     private static final String PROXY_QUERY_PARAMS = "proxyQueryParams";
     private static final String PROXY_METHOD = "proxyMethod";
+    public static final String ADDITIONAL_HEADER = "header:";
+    public static final String CONTENT_TYPE = "contentType";
+    public static final String OCTET_STREAM = "application/octet-stream";
+    public static final Set<String> ADDITIONAL_HEADERS_TO_IGNORE = Set.of("content-type");
 
     private HttpDataAddress() {
         super();
@@ -88,6 +98,20 @@ public class HttpDataAddress extends DataAddress {
     public String getProxyMethod() {
         return getProperty(PROXY_METHOD);
     }
+
+    @JsonIgnore
+    public String getContentType() {
+        return getProperty(CONTENT_TYPE, OCTET_STREAM);
+    }
+
+    @JsonIgnore
+    public Map<String, String> getAdditionalHeaders() {
+        return getProperties().entrySet().stream()
+                .filter(entry -> entry.getKey().startsWith(ADDITIONAL_HEADER))
+                .collect(Collectors.toMap(entry -> entry.getKey().replace(ADDITIONAL_HEADER, ""), Map.Entry::getValue));
+
+    }
+
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder extends DataAddress.Builder {
@@ -144,6 +168,20 @@ public class HttpDataAddress extends DataAddress {
 
         public Builder proxyMethod(String proxyMethod) {
             this.property(PROXY_METHOD, proxyMethod);
+            return this;
+        }
+
+        public Builder addAdditionalHeader(String additionalHeaderName, String additionalHeaderValue) {
+            if (ADDITIONAL_HEADERS_TO_IGNORE.contains(additionalHeaderName.toLowerCase())) {
+                return this;
+            }
+
+            address.getProperties().put(ADDITIONAL_HEADER + additionalHeaderName, Objects.requireNonNull(additionalHeaderValue));
+            return this;
+        }
+
+        public Builder contentType(String contentType) {
+            this.property(CONTENT_TYPE, contentType);
             return this;
         }
 
