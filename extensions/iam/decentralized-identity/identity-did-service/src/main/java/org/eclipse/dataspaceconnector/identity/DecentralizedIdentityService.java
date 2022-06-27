@@ -90,7 +90,7 @@ public class DecentralizedIdentityService implements IdentityService {
             monitor.debug("Verifying JWT with public key...");
             Result<Void> verified = VerifiableCredentialFactory.verify(jwt, publicKeyWrapper, audience);
             if (verified.failed()) {
-                verified.getFailureMessages().forEach(monitor::debug);
+                verified.getFailureMessages().forEach(m -> monitor.debug(() -> "Failure in token verification: " + m));
                 return Result.failure("Token could not be verified!");
             }
             monitor.debug("verification successful! Fetching data from IdentityHub");
