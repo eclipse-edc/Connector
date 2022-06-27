@@ -104,7 +104,7 @@ public class HttpDataSink extends ParallelSink {
         }
 
         public Builder additionalHeaders(Map<String, String> additionalHeaders) {
-            sink.additionalHeaders = additionalHeaders;
+            sink.additionalHeaders.putAll(additionalHeaders);
             return this;
         }
 
