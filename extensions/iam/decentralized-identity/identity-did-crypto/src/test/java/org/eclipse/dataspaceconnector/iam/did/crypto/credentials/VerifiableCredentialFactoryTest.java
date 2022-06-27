@@ -26,9 +26,11 @@ import org.eclipse.dataspaceconnector.iam.did.crypto.key.EcPublicKeyWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.text.ParseException;
 import java.time.Clock;
@@ -119,7 +121,7 @@ class VerifiableCredentialFactoryTest {
     }
 
     @ParameterizedTest(name = "{2}")
-    @MethodSource("claimsArgs")
+    @ArgumentsSource(ClaimsArgs.class)
     void verifyJwt_OnClaims(UnaryOperator<JWTClaimsSet.Builder> builderOperator, boolean expectSuccess, String ignoredName) throws Exception {
         var vc = VerifiableCredentialFactory.create(privateKey, "test-connector", "test-audience", clock);
 
@@ -138,24 +140,27 @@ class VerifiableCredentialFactoryTest {
         }
     }
 
-    static Stream<Arguments> claimsArgs() {
-        return Stream.of(
-                jwtCase(b -> b, true, "valid token"),
-                jwtCase(b -> b.audience(List.of()), false, "empty audience"),
-                jwtCase(b -> b.audience(List.of("https://otherserver.com")), false, "wrong audience"),
-                jwtCase(b -> b.audience(List.of("test-audience")), true, "expected audience"), // sanity check
-                jwtCase(b -> b.subject(null), false, "empty subject"),
-                jwtCase(b -> b.subject("other-subject"), false, "wrong subject"),
-                jwtCase(b -> b.subject("verifiable-credential"), true, "expected subject"), // sanity check
-                jwtCase(b -> b.issuer(null), false, "empty issuer"),
-                jwtCase(b -> b.issuer("other-issuer"), true, "other issuer"),
-                jwtCase(b -> b.expirationTime(null), false, "empty expiration"),
-                // Nimbus library allows (by default) max 60 seconds of expiration date clock skew
-                jwtCase(b -> b.expirationTime(Date.from(Instant.now().minus(61, SECONDS))), false, "past expiration beyond max skew"),
-                jwtCase(b -> b.expirationTime(Date.from(Instant.now().minus(1, SECONDS))), true, "past expiration within max skew"),
-                jwtCase(b -> b.expirationTime(Date.from(Instant.now().plus(1, MINUTES))), true, "future expiration"),
-                jwtCase(b -> b.claim("foo", "bar"), true, "additional claim")
-        );
+    static class ClaimsArgs implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    jwtCase(b -> b, true, "valid token"),
+                    jwtCase(b -> b.audience(List.of()), false, "empty audience"),
+                    jwtCase(b -> b.audience(List.of("https://otherserver.com")), false, "wrong audience"),
+                    jwtCase(b -> b.audience(List.of("test-audience")), true, "expected audience"), // sanity check
+                    jwtCase(b -> b.subject(null), false, "empty subject"),
+                    jwtCase(b -> b.subject("other-subject"), false, "wrong subject"),
+                    jwtCase(b -> b.subject("verifiable-credential"), true, "expected subject"), // sanity check
+                    jwtCase(b -> b.issuer(null), false, "empty issuer"),
+                    jwtCase(b -> b.issuer("other-issuer"), true, "other issuer"),
+                    jwtCase(b -> b.expirationTime(null), false, "empty expiration"),
+                    // Nimbus library allows (by default) max 60 seconds of expiration date clock skew
+                    jwtCase(b -> b.expirationTime(Date.from(Instant.now().minus(61, SECONDS))), false, "past expiration beyond max skew"),
+                    jwtCase(b -> b.expirationTime(Date.from(Instant.now().minus(1, SECONDS))), true, "past expiration within max skew"),
+                    jwtCase(b -> b.expirationTime(Date.from(Instant.now().plus(1, MINUTES))), true, "future expiration"),
+                    jwtCase(b -> b.claim("foo", "bar"), true, "additional claim")
+            );
+        }
     }
 
     @NotNull
