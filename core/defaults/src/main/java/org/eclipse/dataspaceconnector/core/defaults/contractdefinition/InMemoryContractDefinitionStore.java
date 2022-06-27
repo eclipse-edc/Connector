@@ -23,7 +23,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDe
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
@@ -35,11 +34,6 @@ import java.util.stream.Stream;
 public class InMemoryContractDefinitionStore implements ContractDefinitionStore {
     private final Map<String, ContractDefinition> cache = new ConcurrentHashMap<>();
     private final QueryResolver<ContractDefinition> queryResolver = new ReflectionBasedQueryResolver<>(ContractDefinition.class);
-
-    @Override
-    public @NotNull Collection<ContractDefinition> findAll() {
-        return Collections.unmodifiableCollection(cache.values());
-    }
 
     @Override
     public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {

@@ -45,6 +45,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Avoid endless loops in `ContractNegotiationManager` (#1487)
 * Fix race condition in `ContractNegotiationIntegrationTest` (#1505)
 * Fix for change in Cosmos DB behavior on missing sort fields (#1514)
+* Effectively removed default LIMIT in SQL Contract Def Store (#1515) 
 
 ## [milestone-4] - 2022-06-07
 

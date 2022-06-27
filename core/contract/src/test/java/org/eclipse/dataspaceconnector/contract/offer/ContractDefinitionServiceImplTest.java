@@ -22,13 +22,14 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitio
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression.SELECT_ALL;
@@ -61,13 +62,13 @@ class ContractDefinitionServiceImplTest {
         var def = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
         when(policyStore.findById(any())).thenReturn(def);
         when(policyEngine.evaluate(NEGOTIATION_SCOPE, def.getPolicy(), agent)).thenReturn(Result.success(def.getPolicy()));
-        when(definitionStore.findAll()).thenReturn(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicyId("access").contractPolicyId("contract").selectorExpression(SELECT_ALL).build()));
+        when(definitionStore.findAll(eq(QuerySpec.max()))).thenReturn(Stream.of(ContractDefinition.Builder.newInstance().id("1").accessPolicyId("access").contractPolicyId("contract").selectorExpression(SELECT_ALL).build()));
 
         var definitions = definitionService.definitionsFor(agent);
 
         assertThat(definitions).hasSize(1);
         verify(policyEngine, atLeastOnce()).evaluate(NEGOTIATION_SCOPE, def.getPolicy(), agent);
-        verify(definitionStore).findAll();
+        verify(definitionStore).findAll(eq(QuerySpec.max()));
     }
 
     @Test
@@ -77,13 +78,13 @@ class ContractDefinitionServiceImplTest {
         when(policyStore.findById(any())).thenReturn(definition);
         var contractDefinition = ContractDefinition.Builder.newInstance().id("1").accessPolicyId("access").contractPolicyId("contract").selectorExpression(SELECT_ALL).build();
         when(policyEngine.evaluate(any(), any(), any())).thenReturn(Result.failure("invalid"));
-        when(definitionStore.findAll()).thenReturn(List.of(contractDefinition));
+        when(definitionStore.findAll(eq(QuerySpec.max()))).thenReturn(Stream.of(contractDefinition));
 
         var result = definitionService.definitionsFor(agent);
 
         assertThat(result).isEmpty();
         verify(policyEngine, atLeastOnce()).evaluate(NEGOTIATION_SCOPE, definition.getPolicy(), agent);
-        verify(definitionStore).findAll();
+        verify(definitionStore).findAll(eq(QuerySpec.max()));
     }
 
     @Test
@@ -96,13 +97,13 @@ class ContractDefinitionServiceImplTest {
         when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), any(), any()))
                 .thenReturn(Result.success(definition.getPolicy()))
                 .thenReturn(Result.failure("invalid"));
-        when(definitionStore.findAll()).thenReturn(List.of(contractDefinition));
+        when(definitionStore.findAll(eq(QuerySpec.max()))).thenReturn(Stream.of(contractDefinition));
 
         var result = definitionService.definitionsFor(agent);
 
         assertThat(result).isEmpty();
         verify(policyEngine, atLeastOnce()).evaluate(NEGOTIATION_SCOPE, definition.getPolicy(), agent);
-        verify(definitionStore).findAll();
+        verify(definitionStore).findAll(QuerySpec.max());
     }
 
     @Test
@@ -111,7 +112,7 @@ class ContractDefinitionServiceImplTest {
         var policy = Policy.Builder.newInstance().build();
         when(policyStore.findById(any())).thenReturn(null);
         when(policyEngine.evaluate(NEGOTIATION_SCOPE, policy, agent)).thenReturn(Result.success(policy));
-        when(definitionStore.findAll()).thenReturn(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicyId("access").contractPolicyId("contract").selectorExpression(SELECT_ALL).build()));
+        when(definitionStore.findAll(QuerySpec.max())).thenReturn(Stream.of(ContractDefinition.Builder.newInstance().id("1").accessPolicyId("access").contractPolicyId("contract").selectorExpression(SELECT_ALL).build()));
 
         var definitions = definitionService.definitionsFor(agent);
 

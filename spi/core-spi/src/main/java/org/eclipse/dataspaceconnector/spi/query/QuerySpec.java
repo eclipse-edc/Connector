@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.spi.query;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -35,8 +36,32 @@ public class QuerySpec {
         return new QuerySpec();
     }
 
+    /**
+     * Generates a {@link QuerySpec} with limit = {@link Integer#MAX_VALUE} and offset = 0
+     */
+    public static QuerySpec max() {
+        return QuerySpec.Builder.newInstance().limit(Integer.MAX_VALUE).build();
+    }
+
     public String getSortField() {
         return sortField;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(offset, limit, filterExpression, sortOrder, sortField);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        QuerySpec querySpec = (QuerySpec) o;
+        return offset == querySpec.offset && limit == querySpec.limit && Objects.equals(filterExpression, querySpec.filterExpression) && sortOrder == querySpec.sortOrder && Objects.equals(sortField, querySpec.sortField);
     }
 
     @Override
