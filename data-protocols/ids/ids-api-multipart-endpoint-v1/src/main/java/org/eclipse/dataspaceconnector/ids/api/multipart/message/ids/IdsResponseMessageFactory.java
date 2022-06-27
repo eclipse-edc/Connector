@@ -32,6 +32,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
+import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
@@ -152,9 +153,11 @@ public class IdsResponseMessageFactory {
         }
         builder._recipientConnector_(new ArrayList<>(Collections.singletonList(recipientConnector)));
 
-        Result<TokenRepresentation> tokenResult = identityService.obtainClientCredentials(
-                IdsClientCredentialsScope.ALL,
-                recipientConnector.toString());
+        TokenParameters tokenParameters = TokenParameters.Builder.newInstance()
+                .scope(IdsClientCredentialsScope.ALL)
+                .audience(recipientConnector.toString())
+                .build();
+        Result<TokenRepresentation> tokenResult = identityService.obtainClientCredentials(tokenParameters);
         if (tokenResult.failed()) {
             tokenResult = Result.success(TokenRepresentation.Builder.newInstance().token(NULL_TOKEN).build());
         }
@@ -215,9 +218,10 @@ public class IdsResponseMessageFactory {
         }
         builder._recipientConnector_(new ArrayList<>(Collections.singletonList(recipientConnector)));
 
-        Result<TokenRepresentation> tokenResult = identityService.obtainClientCredentials(
-                IdsClientCredentialsScope.ALL,
-                recipientConnector.toString());
+        Result<TokenRepresentation> tokenResult = identityService.obtainClientCredentials(TokenParameters.Builder.newInstance()
+                .scope(IdsClientCredentialsScope.ALL)
+                .audience(recipientConnector.toString())
+                .build());
         if (tokenResult.failed()) {
             throw new MissingClientCredentialsException(tokenResult.getFailureMessages());
         }

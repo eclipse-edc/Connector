@@ -18,6 +18,7 @@ package org.eclipse.dataspaceconnector.iam.daps;
 import org.eclipse.dataspaceconnector.iam.daps.annotations.DapsTest;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
+import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,7 +48,11 @@ class DapsIntegrationTest {
 
     @Test
     void retrieveTokenAndValidate(IdentityService identityService) {
-        var tokenResult = identityService.obtainClientCredentials("idsc:IDS_CONNECTOR_ATTRIBUTES_ALL", "audience");
+        var tokenParameters = TokenParameters.Builder.newInstance()
+                .scope("idsc:IDS_CONNECTOR_ATTRIBUTES_ALL")
+                .audience("audience")
+                .build();
+        var tokenResult = identityService.obtainClientCredentials(tokenParameters);
 
         assertThat(tokenResult.succeeded()).isTrue();
 

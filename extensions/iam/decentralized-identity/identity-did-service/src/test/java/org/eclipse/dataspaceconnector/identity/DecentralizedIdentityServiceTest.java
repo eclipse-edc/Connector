@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.document.VerificationMethod;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +63,10 @@ abstract class DecentralizedIdentityServiceTest {
 
     @Test
     void generateAndVerifyJwtToken_valid() {
-        var result = identityService.obtainClientCredentials("Foo", "Bar");
+        var result = identityService.obtainClientCredentials(TokenParameters.Builder.newInstance()
+                .scope("Foo")
+                .audience("Bar")
+                .build());
         assertTrue(result.succeeded());
 
         Result<ClaimToken> verificationResult = identityService.verifyJwtToken(result.getContent(), "Bar");
@@ -72,7 +76,10 @@ abstract class DecentralizedIdentityServiceTest {
 
     @Test
     void generateAndVerifyJwtToken_wrongAudience() {
-        var result = identityService.obtainClientCredentials("Foo", "Bar");
+        var result = identityService.obtainClientCredentials(TokenParameters.Builder.newInstance()
+                .scope("Foo")
+                .audience("Bar")
+                .build());
 
         Result<ClaimToken> verificationResult = identityService.verifyJwtToken(result.getContent(), "Bar2");
         assertTrue(verificationResult.failed());

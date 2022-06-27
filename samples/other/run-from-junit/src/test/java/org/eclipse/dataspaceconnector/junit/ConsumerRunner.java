@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
+import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -226,7 +227,10 @@ public class ConsumerRunner {
     @BeforeEach
     void before(EdcExtension extension) {
         IdentityService identityService = mock(IdentityService.class);
-        when(identityService.obtainClientCredentials(any(), any())).thenReturn(Result.success(US_TOKEN));
+        when(identityService.obtainClientCredentials(TokenParameters.Builder.newInstance()
+                .scope(any())
+                .audience(any())
+                .build())).thenReturn(Result.success(US_TOKEN));
 
         latch = new CountDownLatch(1);
 

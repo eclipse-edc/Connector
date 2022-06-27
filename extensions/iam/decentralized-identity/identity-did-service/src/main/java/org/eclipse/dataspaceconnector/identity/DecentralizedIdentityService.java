@@ -30,6 +30,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
+import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -57,8 +58,8 @@ public class DecentralizedIdentityService implements IdentityService {
     }
 
     @Override
-    public Result<TokenRepresentation> obtainClientCredentials(String scope, String audience) {
-        var jwt = VerifiableCredentialFactory.create(privateKey, issuer, audience, clock);
+    public Result<TokenRepresentation> obtainClientCredentials(TokenParameters parameters) {
+        var jwt = VerifiableCredentialFactory.create(privateKey, issuer, parameters.getAudience(), clock);
         var token = jwt.serialize();
         return Result.success(TokenRepresentation.Builder.newInstance().token(token).build());
     }

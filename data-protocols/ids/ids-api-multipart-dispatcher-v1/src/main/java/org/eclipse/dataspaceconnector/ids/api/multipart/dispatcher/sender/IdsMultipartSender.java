@@ -36,6 +36,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
+import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
@@ -103,7 +104,11 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
         var remoteConnectorAddress = retrieveRemoteConnectorAddress(request);
 
         // Get Dynamic Attribute Token
-        var tokenResult = identityService.obtainClientCredentials(TOKEN_SCOPE, remoteConnectorAddress);
+        var tokenParameters = TokenParameters.Builder.newInstance()
+                .scope(TOKEN_SCOPE)
+                .audience(remoteConnectorAddress)
+                .build();
+        var tokenResult = identityService.obtainClientCredentials(tokenParameters);
         if (tokenResult.failed()) {
             String message = "Failed to obtain token: " + String.join(",", tokenResult.getFailureMessages());
             monitor.severe(message);

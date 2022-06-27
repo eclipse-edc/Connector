@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -39,7 +40,7 @@ class IdsMultipartSenderTest {
 
     @Test
     void should_fail_if_token_retrieval_fails() {
-        when(identityService.obtainClientCredentials("idsc:IDS_CONNECTOR_ATTRIBUTES_ALL", remoteAddress)).thenReturn(Result.failure("error"));
+        when(identityService.obtainClientCredentials(any())).thenReturn(Result.failure("error"));
         var sender = new TestIdsMultipartSender("any", mock(OkHttpClient.class), new ObjectMapper(), mock(Monitor.class), identityService, mock(IdsTransformerRegistry.class));
 
         var result = sender.send(new TestRemoteMessage(), () -> "any");
