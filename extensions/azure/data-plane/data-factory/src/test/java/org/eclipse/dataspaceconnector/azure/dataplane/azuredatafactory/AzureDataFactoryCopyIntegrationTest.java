@@ -25,10 +25,10 @@ import com.azure.storage.common.StorageSharedKeyCredential;
 import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureSasToken;
 import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureDataFactoryIntegrationTest;
-import org.eclipse.dataspaceconnector.common.testfixtures.TestUtils;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore;
-import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
+import org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
@@ -60,22 +60,21 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Cloud integration test that takes configuration from Terraform outputs and runs a data transfer
- * across blob storage accounts using Azure Data Factory.
+ * Cloud integration test that takes configuration from Terraform outputs and runs a data transfer across blob storage
+ * accounts using Azure Data Factory.
  */
 @AzureDataFactoryIntegrationTest
 @ExtendWith(EdcExtension.class)
 class AzureDataFactoryCopyIntegrationTest {
 
-    private static List<Runnable> containerCleanup = new ArrayList<>();
-    private static List<Runnable> secretCleanup = new ArrayList<>();
-    private static Properties savedProperties;
     private static final String RUNTIME_SETTINGS_PATH = "resources/azure/testing/runtime_settings.properties";
     private static final String EDC_FS_CONFIG = "edc.fs.config";
     private static final String PROVIDER_STORAGE_RESOURCE_ID = "test.provider.storage.resourceid";
     private static final String CONSUMER_STORAGE_RESOURCE_ID = "test.consumer.storage.resourceid";
     private static final String KEY_VAULT_RESOURCE_ID = "edc.data.factory.key.vault.resource.id";
-
+    private static final List<Runnable> CONTAINER_CLEANUP = new ArrayList<>();
+    private static final List<Runnable> SECRET_CLEANUP = new ArrayList<>();
+    private static Properties savedProperties;
     private final String blobName = createBlobName();
     private final TypeManager typeManager = new TypeManager();
 
@@ -92,8 +91,8 @@ class AzureDataFactoryCopyIntegrationTest {
     @AfterAll
     static void afterAll() {
         System.setProperties(savedProperties);
-        containerCleanup.parallelStream().forEach(Runnable::run);
-        secretCleanup.forEach(Runnable::run);
+        CONTAINER_CLEANUP.parallelStream().forEach(Runnable::run);
+        SECRET_CLEANUP.forEach(Runnable::run);
     }
 
     @Test
@@ -123,7 +122,7 @@ class AzureDataFactoryCopyIntegrationTest {
                 .keyName(providerStorage.name + "-key1")
                 .build();
 
-        var destSecretKeyName = consumerStorage.name + "-ittest-sas";
+        var destSecretKeyName = consumerStorage.name + "-ittest-sas-" + UUID.randomUUID();
         var destination = DataAddress.Builder.newInstance()
                 .type(TYPE)
                 .property(ACCOUNT_NAME, consumerStorage.name)
@@ -175,8 +174,8 @@ class AzureDataFactoryCopyIntegrationTest {
         // Set Secret
         vault.secretClient().setSecret(secretName, typeManager.writeValueAsString(edcAzureSas)).block(Duration.ofMinutes(1));
         // Add for clean up test data
-        secretCleanup.add(() -> vault.secretClient().beginDeleteSecret(secretName).blockLast(Duration.ofMinutes(1)));
-        secretCleanup.add(() -> vault.secretClient().purgeDeletedSecret(secretName).block(Duration.ofMinutes(1)));
+        SECRET_CLEANUP.add(() -> vault.secretClient().beginDeleteSecret(secretName).blockLast(Duration.ofMinutes(1)));
+        SECRET_CLEANUP.add(() -> vault.secretClient().purgeDeletedSecret(secretName).block(Duration.ofMinutes(1)));
     }
 
     static class Account {
@@ -204,7 +203,7 @@ class AzureDataFactoryCopyIntegrationTest {
 
             BlobContainerClient blobContainerClient = client.createBlobContainer(containerName);
             assertTrue(blobContainerClient.exists());
-            containerCleanup.add(() -> client.deleteBlobContainer(containerName));
+            CONTAINER_CLEANUP.add(() -> client.deleteBlobContainer(containerName));
         }
     }
 }

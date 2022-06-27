@@ -17,8 +17,9 @@ package org.eclipse.dataspaceconnector.junit;
 
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
-import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -26,7 +27,7 @@ import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
@@ -97,7 +98,7 @@ public class EndToEndTest {
                                 DataFlowManager dataFlowManager,
                                 ContractNegotiationStore negotiationStore,
                                 AssetLoader loader,
-                                PolicyStore policyStore) throws InterruptedException {
+                                PolicyDefinitionStore policyStore) throws InterruptedException {
         var latch = new CountDownLatch(1);
 
         var controllerMock = mock(DataFlowController.class);
@@ -140,11 +141,11 @@ public class EndToEndTest {
         extension.registerSystemExtension(ServiceExtension.class, new TestServiceExtension());
     }
 
-    private void loadNegotiation(ContractNegotiationStore negotiationStore, PolicyStore policyStore) {
+    private void loadNegotiation(ContractNegotiationStore negotiationStore, PolicyDefinitionStore policyStore) {
         var contractAgreement = ContractAgreement.Builder.newInstance()
                 .assetId(ASSET_ID)
                 .id(CONTRACT_ID)
-                .policyId(POLICY_ID)
+                .policy(Policy.Builder.newInstance().build())
                 .consumerAgentId("consumer")
                 .providerAgentId("provider")
                 .build();
@@ -158,14 +159,14 @@ public class EndToEndTest {
                 .build();
         negotiationStore.save(contractNegotiation);
 
-        policyStore.save(Policy.Builder.newInstance().id(POLICY_ID).build());
+        policyStore.save(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).uid(POLICY_ID).build());
     }
 
     @Provides(IdentityService.class)
     private static class TestServiceExtension implements ServiceExtension {
         @Inject
         private AssetLoader loader;
-        
+
         @Override
         public void initialize(ServiceExtensionContext context) {
             context.registerService(IdentityService.class, new IdentityService() {

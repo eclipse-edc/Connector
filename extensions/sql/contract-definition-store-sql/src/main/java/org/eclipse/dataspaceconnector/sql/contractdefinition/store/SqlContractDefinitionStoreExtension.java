@@ -25,6 +25,8 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
+import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.ContractDefinitionStatements;
+import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.postgres.PostgresDialectStatements;
 
 @Provides({ ContractDefinitionStore.class, ContractDefinitionLoader.class })
 public class SqlContractDefinitionStoreExtension implements ServiceExtension {
@@ -55,7 +57,7 @@ public class SqlContractDefinitionStoreExtension implements ServiceExtension {
     }
 
     private ContractDefinitionStatements getStatementImpl() {
-        return statements == null ? new PostgresStatements() : statements;
+        return statements == null ? new PostgresDialectStatements() : statements;
     }
 
 }

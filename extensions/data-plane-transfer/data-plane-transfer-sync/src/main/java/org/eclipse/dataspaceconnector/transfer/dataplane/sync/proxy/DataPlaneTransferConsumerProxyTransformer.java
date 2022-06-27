@@ -17,20 +17,13 @@ package org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformer;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTransferProxyCreationRequest;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTransferProxyReferenceService;
 import org.jetbrains.annotations.NotNull;
 
 import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.CONTRACT_ID;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_BODY;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_METHOD;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_PATH;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_QUERY_PARAMS;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
 
 /**
  * Transforms {@link EndpointDataReference} returned by the provider Control Plane in such a way that
@@ -74,15 +67,14 @@ public class DataPlaneTransferConsumerProxyTransformer implements EndpointDataRe
     }
 
     private static DataAddress toHttpDataAddress(EndpointDataReference edr) {
-        return DataAddress.Builder.newInstance()
-                .type(TYPE)
-                .property(ENDPOINT, edr.getEndpoint())
-                .property(AUTHENTICATION_KEY, edr.getAuthKey())
-                .property(AUTHENTICATION_CODE, edr.getAuthCode())
-                .property(PROXY_QUERY_PARAMS, Boolean.TRUE.toString())
-                .property(PROXY_PATH, Boolean.TRUE.toString())
-                .property(PROXY_METHOD, Boolean.TRUE.toString())
-                .property(PROXY_BODY, Boolean.TRUE.toString())
+        return HttpDataAddress.Builder.newInstance()
+                .baseUrl(edr.getEndpoint())
+                .authKey(edr.getAuthKey())
+                .authCode(edr.getAuthCode())
+                .proxyBody(Boolean.TRUE.toString())
+                .proxyPath(Boolean.TRUE.toString())
+                .proxyMethod(Boolean.TRUE.toString())
+                .proxyQueryParams(Boolean.TRUE.toString())
                 .build();
     }
 }

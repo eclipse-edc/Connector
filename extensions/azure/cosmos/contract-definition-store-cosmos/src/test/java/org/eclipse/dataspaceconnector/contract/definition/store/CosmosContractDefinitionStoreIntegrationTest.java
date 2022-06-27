@@ -49,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDefinition;
 import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDocument;
+import static org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression.SELECT_ALL;
 
 @AzureCosmosDbIntegrationTest
 public class CosmosContractDefinitionStoreIntegrationTest {
@@ -346,6 +347,11 @@ public class CosmosContractDefinitionStoreIntegrationTest {
         var all = store.findAll(QuerySpec.Builder.newInstance().filter("contractPolicyId=test-cp-id-new").build()).collect(Collectors.toList());
 
         assertThat(all).hasSize(1).containsExactly(modifiedDef);
+
+    }
+
+    private ContractDefinition getContractDefinition(String definitionId, String accessPolicyId, String contractPolicyId) {
+        return ContractDefinition.Builder.newInstance().id(definitionId).accessPolicyId(accessPolicyId).contractPolicyId(contractPolicyId).selectorExpression(SELECT_ALL).build();
 
     }
 

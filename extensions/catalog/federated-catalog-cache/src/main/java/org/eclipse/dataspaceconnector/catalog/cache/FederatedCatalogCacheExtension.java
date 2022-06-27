@@ -118,10 +118,11 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         updateResponseQueue = new ArrayBlockingQueue<>(DEFAULT_QUEUE_LENGTH);
         //todo: maybe get this from a database or somewhere else?
         partitionManagerConfig = new PartitionConfiguration(context);
-        // lets create a simple partition manager
-        partitionManager = createPartitionManager(context, updateResponseQueue, nodeQueryAdapterRegistry);
         // and a loader manager
         loaderManager = createLoaderManager(store);
+
+        // lets create a simple partition manager
+        partitionManager = createPartitionManager(context, updateResponseQueue, nodeQueryAdapterRegistry);
 
         monitor.info("Federated Catalog Cache extension initialized");
     }
@@ -169,11 +170,13 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
                 .filter(node -> !node.getName().equals(context.getConnectorId()))
                 .map(n -> new WorkItem(n.getTargetUrl(), selectProtocol(n.getSupportedProtocols()))).collect(Collectors.toList());
 
-        return new PartitionManagerImpl(monitor,
+        var pm = new PartitionManagerImpl(monitor,
                 new DefaultWorkItemQueue(partitionManagerConfig.getWorkItemQueueSize()),
                 workItems -> createCrawler(workItems, context, protocolAdapterRegistry, updateResponseQueue),
                 partitionManagerConfig.getNumCrawlers(DEFAULT_NUM_CRAWLERS),
                 nodes);
+        pm.setPreExecutionHook(() -> loaderManager.clear());
+        return pm;
     }
 
 

@@ -26,19 +26,21 @@ val httpMockServer: String by project
 
 dependencies {
     testFixturesApi("io.gatling.highcharts:gatling-charts-highcharts:${gatlingVersion}") {
-        exclude(group = "io.gatling", module="gatling-jms")
-        exclude(group = "io.gatling", module="gatling-jms-java")
-        exclude(group = "io.gatling", module="gatling-mqtt")
-        exclude(group = "io.gatling", module="gatling-mqtt-java")
-        exclude(group = "io.gatling", module="gatling-jdbc")
-        exclude(group = "io.gatling", module="gatling-jdbc-java")
-        exclude(group = "io.gatling", module="gatling-redis")
-        exclude(group = "io.gatling", module="gatling-redis-java")
-        exclude(group = "io.gatling", module="gatling-graphite")
+        exclude(group = "io.gatling", module = "gatling-jms")
+        exclude(group = "io.gatling", module = "gatling-jms-java")
+        exclude(group = "io.gatling", module = "gatling-mqtt")
+        exclude(group = "io.gatling", module = "gatling-mqtt-java")
+        exclude(group = "io.gatling", module = "gatling-jdbc")
+        exclude(group = "io.gatling", module = "gatling-jdbc-java")
+        exclude(group = "io.gatling", module = "gatling-redis")
+        exclude(group = "io.gatling", module = "gatling-redis-java")
+        exclude(group = "io.gatling", module = "gatling-graphite")
     }
 
+    testFixturesApi(project(":extensions:junit"))
+    testFixturesApi(project(":common:util"))
     testFixturesApi(testFixtures(project(":common:util")))
-    testFixturesApi(testFixtures(project(":launchers:junit")))
+
     testFixturesApi("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testImplementation("io.opentelemetry:opentelemetry-api:${openTelemetryVersion}")
     testImplementation("io.opentelemetry.proto:opentelemetry-proto:0.14.0-alpha")

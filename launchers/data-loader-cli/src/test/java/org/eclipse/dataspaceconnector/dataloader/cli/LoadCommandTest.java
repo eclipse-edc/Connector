@@ -28,7 +28,7 @@ import java.io.File;
 import java.nio.file.NoSuchFileException;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFileFromResourceName;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFileFromResourceName;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;

@@ -16,8 +16,7 @@ package org.eclipse.dataspaceconnector.transfer.provision.http.webhook;
 
 import org.eclipse.dataspaceconnector.api.auth.AuthenticationRequestFilter;
 import org.eclipse.dataspaceconnector.api.auth.AuthenticationService;
-import org.eclipse.dataspaceconnector.api.exception.mappers.EdcApiExceptionMapper;
-import org.eclipse.dataspaceconnector.junit.launcher.DependencyInjectionExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.dataspaceconnector.spi.WebServer;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -78,7 +77,6 @@ class HttpWebhookExtensionTest {
         verify(mockWebServer).addPortMapping(eq("provisioner"), eq(8383), eq("/api/v1/provisioner"));
         verify(mockWebService).registerResource(eq("provisioner"), isA(HttpProvisionerWebhookApiController.class));
         verify(mockWebService).registerResource(eq("provisioner"), isA(AuthenticationRequestFilter.class));
-        verify(mockWebService).registerResource(eq("provisioner"), isA(EdcApiExceptionMapper.class));
         verifyNoMoreInteractions(mockWebServer, mockWebService);
     }
 
@@ -94,7 +92,6 @@ class HttpWebhookExtensionTest {
         verify(mockWebServer, never()).addPortMapping(anyString(), anyInt(), anyString());
         verify(mockWebService).registerResource(eq("provisioner"), isA(HttpProvisionerWebhookApiController.class));
         verify(mockWebService).registerResource(eq("provisioner"), isA(AuthenticationRequestFilter.class));
-        verify(mockWebService).registerResource(eq("provisioner"), isA(EdcApiExceptionMapper.class));
         verifyNoMoreInteractions(mockWebServer, mockWebService);
     }
 
@@ -109,7 +106,6 @@ class HttpWebhookExtensionTest {
         verify(mockWebServer, never()).addPortMapping(anyString(), anyInt(), anyString());
         verify(mockWebService).registerResource(eq("provisioner"), isA(HttpProvisionerWebhookApiController.class));
         verify(mockWebService).registerResource(eq("provisioner"), isA(AuthenticationRequestFilter.class));
-        verify(mockWebService).registerResource(eq("provisioner"), isA(EdcApiExceptionMapper.class));
         verifyNoMoreInteractions(mockWebServer, mockWebService);
     }
 
@@ -124,7 +120,6 @@ class HttpWebhookExtensionTest {
         verify(mockWebServer, never()).addPortMapping(anyString(), anyInt(), anyString());
         verify(mockWebService).registerResource(eq("provisioner"), isA(HttpProvisionerWebhookApiController.class));
         verify(mockWebService).registerResource(eq("provisioner"), isA(AuthenticationRequestFilter.class));
-        verify(mockWebService).registerResource(eq("provisioner"), isA(EdcApiExceptionMapper.class));
         verifyNoMoreInteractions(mockWebServer, mockWebService);
     }
 
@@ -139,7 +134,6 @@ class HttpWebhookExtensionTest {
         verify(mockWebServer, never()).addPortMapping(anyString(), anyInt(), anyString());
         verify(mockWebService).registerResource(eq("provisioner"), isA(HttpProvisionerWebhookApiController.class));
         verify(mockWebService).registerResource(eq("provisioner"), isA(AuthenticationRequestFilter.class));
-        verify(mockWebService).registerResource(eq("provisioner"), isA(EdcApiExceptionMapper.class));
         verifyNoMoreInteractions(mockWebServer, mockWebService);
     }
 }

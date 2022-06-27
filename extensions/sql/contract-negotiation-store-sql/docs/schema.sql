@@ -22,7 +22,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS lease_lease_id_uindex
 
 CREATE TABLE IF NOT EXISTS edc_contract_agreement
 (
-    agreement_id      VARCHAR NOT NULL
+    agr_id            VARCHAR NOT NULL
         CONSTRAINT contract_agreement_pk
             PRIMARY KEY,
     provider_agent_id VARCHAR,
@@ -31,37 +31,37 @@ CREATE TABLE IF NOT EXISTS edc_contract_agreement
     start_date        BIGINT,
     end_date          INTEGER,
     asset_id          VARCHAR NOT NULL,
-    policy_id         VARCHAR
+    policy            JSON
 );
 
 
 CREATE TABLE IF NOT EXISTS edc_contract_negotiation
 (
-    id                    VARCHAR                                            NOT NULL
+    id                   VARCHAR                                            NOT NULL
         CONSTRAINT contract_negotiation_pk
             PRIMARY KEY,
-    correlation_id        VARCHAR,
-    counterparty_id       VARCHAR                                            NOT NULL,
-    counterparty_address  VARCHAR                                            NOT NULL,
-    protocol              VARCHAR DEFAULT 'ids-multipart'::CHARACTER VARYING NOT NULL,
-    type                  INTEGER DEFAULT 0                                  NOT NULL,
-    state                 INTEGER DEFAULT 0                                  NOT NULL,
-    state_count           INTEGER DEFAULT 0,
-    state_timestamp       BIGINT,
-    error_detail          VARCHAR,
-    contract_agreement_id VARCHAR
+    correlation_id       VARCHAR,
+    counterparty_id      VARCHAR                                            NOT NULL,
+    counterparty_address VARCHAR                                            NOT NULL,
+    protocol             VARCHAR DEFAULT 'ids-multipart'::CHARACTER VARYING NOT NULL,
+    type                 INTEGER DEFAULT 0                                  NOT NULL,
+    state                INTEGER DEFAULT 0                                  NOT NULL,
+    state_count          INTEGER DEFAULT 0,
+    state_timestamp      BIGINT,
+    error_detail         VARCHAR,
+    agreement_id         VARCHAR
         CONSTRAINT contract_negotiation_contract_agreement_id_fk
             REFERENCES edc_contract_agreement,
-    contract_offers       VARCHAR,
-    trace_context         VARCHAR,
-    lease_id              VARCHAR
+    contract_offers      JSON,
+    trace_context        JSON,
+    lease_id             VARCHAR
         CONSTRAINT contract_negotiation_lease_lease_id_fk
             REFERENCES edc_lease
             ON DELETE SET NULL,
     CONSTRAINT provider_correlation_id CHECK (type = '0' OR correlation_id IS NOT NULL)
 );
 
-COMMENT ON COLUMN edc_contract_negotiation.contract_agreement_id IS 'ContractAgreement serialized as JSON';
+COMMENT ON COLUMN edc_contract_negotiation.agreement_id IS 'ContractAgreement serialized as JSON';
 
 COMMENT ON COLUMN edc_contract_negotiation.contract_offers IS 'List<ContractOffer> serialized as JSON';
 
@@ -75,5 +75,4 @@ CREATE UNIQUE INDEX IF NOT EXISTS contract_negotiation_id_uindex
     ON edc_contract_negotiation (id);
 
 CREATE UNIQUE INDEX IF NOT EXISTS contract_agreement_id_uindex
-    ON edc_contract_agreement (agreement_id);
-
+    ON edc_contract_agreement (agr_id);

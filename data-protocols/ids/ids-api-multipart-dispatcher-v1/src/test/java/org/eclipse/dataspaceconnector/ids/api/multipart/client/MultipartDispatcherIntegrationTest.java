@@ -25,7 +25,7 @@ import de.fraunhofer.iais.eis.PermissionBuilder;
 import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RequestInProcessMessageImpl;
 import de.fraunhofer.iais.eis.ResponseMessage;
-import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
+import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.IdsMultipartRemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartDescriptionResponse;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
@@ -61,7 +61,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOkHttpClient;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -196,7 +196,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
     void testSendContractAgreementMessage() throws Exception {
         var contractAgreement = ContractAgreement.Builder.newInstance()
                 .id("1:23456").consumerAgentId("consumer").providerAgentId("provider")
-                .policyId("policyId")
+                .policy(Policy.Builder.newInstance().build())
                 .assetId(UUID.randomUUID().toString())
                 .build();
 
@@ -211,7 +211,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .protocol(Protocols.IDS_MULTIPART)
                 .contractAgreement(contractAgreement)
                 .correlationId("1")
-                .policy(Policy.Builder.newInstance().id("policyId").build())
+                .policy(Policy.Builder.newInstance().build())
                 .build();
 
         var result = multipartDispatcher.send(MultipartMessageProcessedResponse.class, request, () -> null).get();

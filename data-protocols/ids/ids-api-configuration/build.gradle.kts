@@ -17,7 +17,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":spi"))
+    api(project(":spi"))
 }
 
 publishing {

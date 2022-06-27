@@ -49,7 +49,8 @@ public interface ContractNegotiationStore extends StateEntityStore<ContractNegot
     ContractAgreement findContractAgreement(String contractId);
 
     /**
-     * Persists a contract negotiation. This follows UPSERT semantics, so if the object didn't exit before, it's created.
+     * Persists a contract negotiation. This follows UPSERT semantics, so if the object didn't exit before, it's
+     * created.
      */
     void save(ContractNegotiation negotiation);
 
@@ -59,8 +60,8 @@ public interface ContractNegotiationStore extends StateEntityStore<ContractNegot
     void delete(String negotiationId);
 
     /**
-     * Finds all contract negotiations that are covered by a specific {@link QuerySpec}. If no {@link QuerySpec#getSortField()}
-     * is specified, results are not explicitly sorted.
+     * Finds all contract negotiations that are covered by a specific {@link QuerySpec}. If no
+     * {@link QuerySpec#getSortField()} is specified, results are not explicitly sorted.
      * <p>
      * The general order of precedence of the query parameters is:
      * <pre>
@@ -85,8 +86,8 @@ public interface ContractNegotiationStore extends StateEntityStore<ContractNegot
 
 
     /**
-     * Finds all contract agreement that are covered by a specific {@link QuerySpec}.
-     * If no {@link QuerySpec#getSortField()} is specified, results are not explicitly sorted.
+     * Finds all contract agreement that are covered by a specific {@link QuerySpec}. If no
+     * {@link QuerySpec#getSortField()} is specified, results are not explicitly sorted.
      *
      * @param querySpec The query spec, e.g. paging, filtering, etc.
      * @return a stream of ContractAgreement, cannot be null.

@@ -148,11 +148,6 @@ public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, Asse
     }
 
     @Override
-    public void accept(Asset asset, DataAddress dataAddress) {
-        accept(new AssetEntry(asset, dataAddress));
-    }
-
-    @Override
     public Asset deleteById(String assetId) {
         lock.writeLock().lock();
         try {

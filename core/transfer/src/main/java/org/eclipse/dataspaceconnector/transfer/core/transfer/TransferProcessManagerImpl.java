@@ -16,12 +16,14 @@
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
 import io.opentelemetry.extension.annotations.WithSpan;
-import org.eclipse.dataspaceconnector.common.statemachine.StateMachine;
+import org.eclipse.dataspaceconnector.common.statemachine.StateMachineManager;
 import org.eclipse.dataspaceconnector.common.statemachine.StateProcessorImpl;
+import org.eclipse.dataspaceconnector.common.statemachine.retry.SendRetryManager;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
@@ -111,17 +113,17 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private Monitor monitor;
     private Telemetry telemetry;
     private ExecutorInstrumentation executorInstrumentation;
-    private StateMachine stateMachine;
+    private StateMachineManager stateMachineManager;
     private DataAddressResolver addressResolver;
     private PolicyArchive policyArchive;
-    private SendRetryManager<TransferProcess> sendRetryManager;
-    protected Clock clock = Clock.systemUTC();
+    private SendRetryManager<StatefulEntity> sendRetryManager;
+    private Clock clock;
 
     private TransferProcessManagerImpl() {
     }
 
     public void start() {
-        stateMachine = StateMachine.Builder.newInstance("transfer-process", monitor, executorInstrumentation, waitStrategy)
+        stateMachineManager = StateMachineManager.Builder.newInstance("transfer-process", monitor, executorInstrumentation, waitStrategy)
                 .processor(processTransfersInState(INITIAL, this::processInitial))
                 .processor(processTransfersInState(PROVISIONING, this::processProvisioning))
                 .processor(processTransfersInState(PROVISIONED, this::processProvisioned))
@@ -132,12 +134,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .processor(processTransfersInState(DEPROVISIONED, this::processDeprovisioned))
                 .processor(onCommands(this::processCommand))
                 .build();
-        stateMachine.start();
+        stateMachineManager.start();
     }
 
     public void stop() {
-        if (stateMachine != null) {
-            stateMachine.stop();
+        if (stateMachineManager != null) {
+            stateMachineManager.stop();
         }
     }
 
@@ -172,6 +174,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             monitor.severe("TransferProcessManager: no TransferProcess found for provisioned resources");
             return;
         }
+
+        if (transferProcess.getState() == ERROR.code()) {
+            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so provisioning could not be completed", transferProcess.getId()));
+            return;
+        }
+
         handleProvisionResult(transferProcess, responses);
     }
 
@@ -182,6 +190,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             monitor.severe("TransferProcessManager: no TransferProcess found for deprovisioned resources");
             return;
         }
+
+        if (transferProcess.getState() == ERROR.code()) {
+            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so deprovisioning could not be processed", transferProcess.getId()));
+            return;
+        }
+
         handleDeprovisionResult(transferProcess, responses);
     }
 
@@ -260,7 +274,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         provisionManager.provision(resources, policy)
                 .whenComplete((responses, throwable) -> {
                     if (throwable == null) {
-                        handleProvisionResult(process, responses);
+                        handleProvisionResult(process.getId(), responses);
                     } else {
                         transitionToError(process.getId(), throwable, "Error during provisioning");
                     }
@@ -383,7 +397,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         provisionManager.deprovision(resourcesToDeprovision, policy)
                 .whenComplete((responses, throwable) -> {
                     if (throwable == null) {
-                        handleDeprovisionResult(process, responses);
+                        handleDeprovisionResult(process.getId(), responses);
                     } else {
                         transitionToError(process.getId(), throwable, "Error during deprovisioning");
                     }
@@ -409,11 +423,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     private void handleProvisionResult(TransferProcess transferProcess, List<StatusResult<ProvisionResponse>> responses) {
-        if (transferProcess.getState() == ERROR.code()) {
-            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so provisioning could not be completed", transferProcess.getId()));
-            return;
-        }
-
         var fatalErrors = new ArrayList<String>();
         responses.forEach(result -> {
             if (result.failed()) {
@@ -448,6 +457,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             // update the transfer process with the provisioned resource
             transferProcess.addProvisionedResource(provisionedResource);
         });
+
         if (!fatalErrors.isEmpty()) {
             var errors = join("\n", fatalErrors);
             monitor.severe(format("Transitioning transfer process %s to ERROR state due to fatal provisioning errors: \n%s", transferProcess.getId(), errors));
@@ -473,13 +483,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         }
     }
 
-
     private void handleDeprovisionResult(TransferProcess transferProcess, List<StatusResult<DeprovisionedResource>> results) {
-        if (transferProcess.getState() == ERROR.code()) {
-            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so deprovisioning could not be processed", transferProcess.getId()));
-            return;
-        }
-
         var fatalErrors = new ArrayList<String>();
         results.forEach(result -> {
             if (result.failed()) {
@@ -662,7 +666,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return this;
         }
 
-        public Builder sendRetryManager(SendRetryManager<TransferProcess> sendRetryManager) {
+        public Builder sendRetryManager(SendRetryManager sendRetryManager) {
             manager.sendRetryManager = sendRetryManager;
             return this;
         }
@@ -709,6 +713,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         public Builder executorInstrumentation(ExecutorInstrumentation executorInstrumentation) {
             manager.executorInstrumentation = executorInstrumentation;
+            return this;
+        }
+
+        public Builder clock(Clock clock) {
+            manager.clock = clock;
             return this;
         }
 

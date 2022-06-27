@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.ParseException;
-import java.time.Instant;
+import java.time.Clock;
 import java.util.Date;
 import java.util.Map;
 
@@ -29,6 +29,12 @@ import java.util.Map;
  * Assert that token containing these claims is not expired yet.
  */
 public class ExpirationDateValidationRule implements TokenValidationRule {
+
+    private final Clock clock;
+
+    public ExpirationDateValidationRule(Clock clock) {
+        this.clock = clock;
+    }
 
     @Override
     public Result<SignedJWT> checkRule(@NotNull SignedJWT toVerify, @Nullable Map<String, Object> additional) {
@@ -39,7 +45,7 @@ public class ExpirationDateValidationRule implements TokenValidationRule {
             }
 
             // check contract expiration date
-            if (Instant.now().isAfter(expiration.toInstant())) {
+            if (clock.instant().isAfter(expiration.toInstant())) {
                 return Result.failure("Token has expired");
             }
 

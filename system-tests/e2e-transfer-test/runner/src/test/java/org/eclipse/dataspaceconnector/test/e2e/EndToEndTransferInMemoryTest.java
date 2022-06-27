@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.test.e2e;
 
-import org.eclipse.dataspaceconnector.common.annotations.EndToEndTest;
-import org.eclipse.dataspaceconnector.junit.launcher.EdcRuntimeExtension;
+import org.eclipse.dataspaceconnector.common.util.junit.annotations.EndToEndTest;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcRuntimeExtension;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;

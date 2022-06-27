@@ -60,7 +60,7 @@ public class HttpProvisionerWebhookApiController implements HttpProvisionerWebho
 
         var response = ProvisionResponse.Builder.newInstance()
                 .resource(cr)
-                .secretToken(new SimpleSecretToken(request.getApiToken()))
+                .secretToken(new SimpleSecretToken(request.getApiKeyJwt()))
                 .build();
         var cmd = new AddProvisionedResourceCommand(transferProcessId, response);
 

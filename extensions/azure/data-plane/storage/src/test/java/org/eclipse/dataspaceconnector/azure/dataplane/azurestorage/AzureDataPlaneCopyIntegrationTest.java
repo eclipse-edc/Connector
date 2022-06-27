@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApiImpl;
 import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageDataSinkFactory;
 import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageDataSourceFactory;
 import org.eclipse.dataspaceconnector.azure.testfixtures.AbstractAzureBlobTest;
+import org.eclipse.dataspaceconnector.azure.testfixtures.TestFunctions;
 import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureStorageIntegrationTest;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -64,8 +65,8 @@ class AzureDataPlaneCopyIntegrationTest extends AbstractAzureBlobTest {
     Monitor monitor = mock(Monitor.class);
     Vault vault = mock(Vault.class);
 
-    BlobStoreApi account1Api = new BlobStoreApiImpl(vault, getEndpoint(account1Name));
-    BlobStoreApi account2Api = new BlobStoreApiImpl(vault, getEndpoint(account2Name));
+    BlobStoreApi account1Api = new BlobStoreApiImpl(vault, TestFunctions.getBlobServiceTestEndpoint(account1Name));
+    BlobStoreApi account2Api = new BlobStoreApiImpl(vault, TestFunctions.getBlobServiceTestEndpoint(account2Name));
 
     @BeforeEach
     void setUp() {

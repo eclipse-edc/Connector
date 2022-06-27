@@ -19,23 +19,27 @@ plugins {
 
 val h2Version: String by project
 val assertj: String by project
+val postgresVersion: String by project
 
 dependencies {
-    implementation(project(":spi:core-spi"))
-    implementation(project(":spi:contract-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:contract-spi"))
+    api(project(":spi:transaction-spi"))
     implementation(project(":extensions:dataloading"))
-    implementation(project(":extensions:transaction:transaction-spi"))
     implementation(project(":extensions:transaction:transaction-datasource-spi"))
     implementation(project(":extensions:sql:common-sql"))
     implementation(project(":extensions:sql:lease-sql"))
 
-    testImplementation(testFixtures(project(":common:util")))
-    testImplementation(testFixtures(project(":launchers:junit")))
+
+    testImplementation(project(":extensions:junit"))
     testImplementation(project(":core:base"))
     testImplementation(project(":core:contract"))
     testImplementation(testFixtures(project(":extensions:sql:lease-sql")))
     testImplementation("com.h2database:h2:${h2Version}")
     testImplementation("org.assertj:assertj-core:${assertj}")
+    testImplementation(testFixtures(project(":common:util")))
+
+    testImplementation("org.postgresql:postgresql:${postgresVersion}")
 }
 
 publishing {

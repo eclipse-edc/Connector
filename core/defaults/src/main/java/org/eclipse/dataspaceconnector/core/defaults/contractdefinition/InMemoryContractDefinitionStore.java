@@ -29,7 +29,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 /**
- * The default store implementation used when no extension is configured in a runtime. {@link ContractDefinition}s are stored ephemerally in memory.
+ * The default store implementation used when no extension is configured in a runtime. {@link ContractDefinition}s are
+ * stored ephemerally in memory.
  */
 public class InMemoryContractDefinitionStore implements ContractDefinitionStore {
     private final Map<String, ContractDefinition> cache = new ConcurrentHashMap<>();
@@ -76,5 +77,4 @@ public class InMemoryContractDefinitionStore implements ContractDefinitionStore 
     public void reload() {
         // no-op
     }
-
 }

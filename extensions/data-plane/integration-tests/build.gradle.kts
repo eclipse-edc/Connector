@@ -33,8 +33,9 @@ dependencies {
     testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
     testImplementation("org.mock-server:mockserver-client-java:${httpMockServer}:shaded")
 
+
+    testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))
-    testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(testFixtures(project(":extensions:data-plane:data-plane-http")))
     testImplementation(project(":extensions:data-plane:data-plane-spi"))
 

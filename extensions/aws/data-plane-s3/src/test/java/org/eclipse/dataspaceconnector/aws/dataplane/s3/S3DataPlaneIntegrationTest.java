@@ -18,7 +18,7 @@ import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
 import org.eclipse.dataspaceconnector.aws.testfixtures.AbstractS3Test;
 import org.eclipse.dataspaceconnector.aws.testfixtures.TestS3ClientProvider;
-import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
+import org.eclipse.dataspaceconnector.common.util.junit.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
@@ -61,7 +61,7 @@ public class S3DataPlaneIntegrationTest extends AbstractS3Test {
 
     @Test
     void shouldCopyFromSourceToSink() {
-        putStringOnBucket(this.sourceBucketName, "key", faker.lorem().sentence());
+        putStringOnBucket(sourceBucketName, "key", faker.lorem().sentence());
 
         var s3ClientProvider = new TestS3ClientProvider(getCredentials(), S3_ENDPOINT);
 

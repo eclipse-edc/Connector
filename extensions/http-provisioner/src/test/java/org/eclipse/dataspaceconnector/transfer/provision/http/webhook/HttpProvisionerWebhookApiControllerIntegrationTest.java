@@ -15,14 +15,9 @@
 package org.eclipse.dataspaceconnector.transfer.provision.http.webhook;
 
 import io.restassured.specification.RequestSpecification;
-import org.eclipse.dataspaceconnector.api.auth.AuthenticationService;
-import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
-import org.eclipse.dataspaceconnector.spi.system.Provides;
-import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
-import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
-import org.eclipse.dataspaceconnector.transfer.provision.http.HttpWebhookExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +31,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.anything;
 import static org.hamcrest.Matchers.containsString;
@@ -53,9 +48,6 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
 
     @BeforeEach
     void setUp(EdcExtension extension) {
-        extension.registerSystemExtension(ServiceExtension.class, new DummyAuthenticationExtension());
-        extension.registerSystemExtension(ServiceExtension.class, new HttpWebhookExtension());
-
         extension.setConfiguration(Map.of(
                 "web.http.provisioner.port", String.valueOf(port),
                 "web.http.provisioner.path", PROVISIONER_BASE_PATH,
@@ -71,7 +63,7 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
                 .assetId(assetId)
                 .contentDataAddress(cda)
                 .resourceName(resName)
-                .apiToken(token)
+                .apiKeyJwt(token)
                 .resourceDefinitionId(resDefId)
                 .build();
 
@@ -89,7 +81,7 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
         var rq = ProvisionerWebhookRequest.Builder.newInstance()
                 .assetId("test-asset")
                 .contentDataAddress(dataAddress())
-                .apiToken("test-token")
+                .apiKeyJwt("test-token")
                 .resourceName("resource-name")
                 .resourceDefinitionId("resource-definition")
                 .build();
@@ -130,10 +122,22 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
                 .body(anything());
     }
 
+    private DataAddress dataAddress() {
+        return DataAddress.Builder.newInstance().type("foo").build();
+    }
+
+    private RequestSpecification baseRequest() {
+        return given()
+                .baseUri("http://localhost:" + port)
+                .basePath(PROVISIONER_BASE_PATH)
+                .header("x-api-key", authKey)
+                .when();
+    }
+
     private static class InvalidRequestParams implements ArgumentsProvider {
 
         @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
                     Arguments.of(null, dataAddress(), "resourcename", "resourcedef", "token"),
                     Arguments.of("assetid", null, "resourcename", "resourcedef", "token"),
@@ -148,23 +152,4 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
         }
     }
 
-    private DataAddress dataAddress() {
-        return DataAddress.Builder.newInstance().type("foo").build();
-    }
-
-    private RequestSpecification baseRequest() {
-        return given()
-                .baseUri("http://localhost:" + port)
-                .basePath(PROVISIONER_BASE_PATH)
-                .header("x-api-key", authKey)
-                .when();
-    }
-
-    @Provides(AuthenticationService.class)
-    private static class DummyAuthenticationExtension implements ServiceExtension {
-        @Override
-        public void initialize(ServiceExtensionContext context) {
-            context.registerService(AuthenticationService.class, h -> true);
-        }
-    }
 }

@@ -14,10 +14,10 @@
 
 package org.eclipse.dataspaceconnector.test.e2e;
 
-import org.eclipse.dataspaceconnector.junit.launcher.EdcRuntimeExtension;
+import org.eclipse.dataspaceconnector.common.util.junit.annotations.PostgresqlDbIntegrationTest;
+import org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstance;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcRuntimeExtension;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
-import org.eclipse.dataspaceconnector.test.e2e.postgresql.PostgresqlDbIntegrationTest;
-import org.eclipse.dataspaceconnector.test.e2e.postgresql.PostgresqlLocalInstance;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -31,8 +31,8 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.eclipse.dataspaceconnector.test.e2e.postgresql.PostgresqlLocalInstance.PASSWORD;
-import static org.eclipse.dataspaceconnector.test.e2e.postgresql.PostgresqlLocalInstance.USER;
+import static org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstance.PASSWORD;
+import static org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstance.USER;
 
 @PostgresqlDbIntegrationTest
 class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
@@ -99,11 +99,11 @@ class EndToEndTransferPostgresqlTest extends AbstractEndToEndTransfer {
         PostgresqlLocalInstance.createDatabase(consumer.getName());
 
         var scripts = Stream.of(
-                "asset-index-sql",
-                "contract-definition-store-sql",
-                "contract-negotiation-store-sql",
-                "policy-store-sql",
-                "transfer-process-store-sql")
+                        "asset-index-sql",
+                        "contract-definition-store-sql",
+                        "contract-negotiation-store-sql",
+                        "policy-store-sql",
+                        "transfer-process-store-sql")
                 .map(module -> "../../../extensions/sql/" + module + "/docs/schema.sql")
                 .map(Paths::get)
                 .collect(Collectors.toList());

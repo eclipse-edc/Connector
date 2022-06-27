@@ -19,11 +19,13 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.common.statemachine.retry.SendRetryManager;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
+import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
@@ -107,6 +109,8 @@ class TransferProcessManagerImplTest {
     private static final int TRANSFER_MANAGER_BATCHSIZE = 10;
     private static final String PROVISIONED_RESOURCE_ID = "1";
 
+    private final long currentTime = 1343411;
+
     private final ProvisionManager provisionManager = mock(ProvisionManager.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     private final StatusCheckerRegistry statusCheckerRegistry = mock(StatusCheckerRegistry.class);
@@ -116,7 +120,7 @@ class TransferProcessManagerImplTest {
     private final DataFlowManager dataFlowManager = mock(DataFlowManager.class);
     private final Vault vault = mock(Vault.class);
     @SuppressWarnings("unchecked")
-    private final SendRetryManager<TransferProcess> sendRetryManager = mock(SendRetryManager.class);
+    private final SendRetryManager<StatefulEntity> sendRetryManager = mock(SendRetryManager.class);
 
     private TransferProcessManagerImpl manager;
 
@@ -134,6 +138,7 @@ class TransferProcessManagerImplTest {
                 .commandQueue(mock(CommandQueue.class))
                 .commandRunner(mock(CommandRunner.class))
                 .typeManager(new TypeManager())
+                .clock(Clock.fixed(Instant.ofEpochMilli(currentTime), UTC))
                 .statusCheckerRegistry(statusCheckerRegistry)
                 .observable(mock(TransferProcessObservable.class))
                 .transferProcessStore(transferProcessStore)
@@ -166,8 +171,6 @@ class TransferProcessManagerImplTest {
         when(transferProcessStore.processIdForTransferId("1")).thenReturn(null, "2");
         DataRequest dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
 
-        var currentTime = 1343411;
-        manager.clock = Clock.fixed(Instant.ofEpochMilli(currentTime), UTC);
         manager.start();
         manager.initiateProviderRequest(dataRequest);
         manager.stop();
@@ -217,6 +220,7 @@ class TransferProcessManagerImplTest {
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
 
         verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+        verify(transferProcessStore).find(process.getId());
         verify(transferProcessStore).update(argThat(p -> p.getState() == PROVISIONED.code()));
     }
 
@@ -400,8 +404,7 @@ class TransferProcessManagerImplTest {
     @Test
     void requesting_whenShouldWait_updatesStateCount() throws InterruptedException {
         var process = createTransferProcess(REQUESTING);
-        when(sendRetryManager.shouldDelay(process))
-                .thenReturn(true);
+        when(sendRetryManager.shouldDelay(process)).thenReturn(true);
         var latch = countDownOnUpdateLatch(1);
         when(dispatcherRegistry.send(eq(Object.class), any(), any())).thenReturn(completedFuture("any"));
         when(transferProcessStore.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
@@ -589,6 +592,7 @@ class TransferProcessManagerImplTest {
 
         assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+        verify(transferProcessStore).find(process.getId());
         verify(transferProcessStore).update(argThat(p -> p.getState() == DEPROVISIONED.code()));
         verify(vault).deleteSecret(any());
     }

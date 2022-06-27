@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy;
 
 import com.github.javafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTransferProxyCreationRequest;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTransferProxyReferenceService;
@@ -27,14 +28,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.CONTRACT_ID;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_BODY;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_METHOD;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_PATH;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_QUERY_PARAMS;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -80,14 +73,15 @@ class DataPlaneTransferConsumerProxyTransformerTest {
         assertThat(proxyCreationRequest.getProxyEndpoint()).isEqualTo(proxyEndpoint);
         assertThat(proxyCreationRequest.getProperties()).containsExactlyInAnyOrderEntriesOf(inputEdr.getProperties());
         assertThat(proxyCreationRequest.getContentAddress()).satisfies(address -> {
-            assertThat(address.getType()).isEqualTo(TYPE);
-            assertThat(address.getProperty(ENDPOINT)).isEqualTo(inputEdr.getEndpoint());
-            assertThat(address.getProperty(AUTHENTICATION_KEY)).isEqualTo(inputEdr.getAuthKey());
-            assertThat(address.getProperty(AUTHENTICATION_CODE)).isEqualTo(inputEdr.getAuthCode());
-            assertThat(address.getProperty(PROXY_QUERY_PARAMS)).isEqualTo(Boolean.TRUE.toString());
-            assertThat(address.getProperty(PROXY_PATH)).isEqualTo(Boolean.TRUE.toString());
-            assertThat(address.getProperty(PROXY_METHOD)).isEqualTo(Boolean.TRUE.toString());
-            assertThat(address.getProperty(PROXY_BODY)).isEqualTo(Boolean.TRUE.toString());
+            assertThat(address.getType()).isEqualTo(HttpDataAddress.DATA_TYPE);
+            var httpAddress = (HttpDataAddress) address;
+            assertThat(httpAddress.getBaseUrl()).isEqualTo(inputEdr.getEndpoint());
+            assertThat(httpAddress.getAuthKey()).isEqualTo(inputEdr.getAuthKey());
+            assertThat(httpAddress.getAuthCode()).isEqualTo(inputEdr.getAuthCode());
+            assertThat(httpAddress.getProxyQueryParams()).isEqualTo(Boolean.TRUE.toString());
+            assertThat(httpAddress.getProxyPath()).isEqualTo(Boolean.TRUE.toString());
+            assertThat(httpAddress.getProxyMethod()).isEqualTo(Boolean.TRUE.toString());
+            assertThat(httpAddress.getProxyBody()).isEqualTo(Boolean.TRUE.toString());
         });
     }
 

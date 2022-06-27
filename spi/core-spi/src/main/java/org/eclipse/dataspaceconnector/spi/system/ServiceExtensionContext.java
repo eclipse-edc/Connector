@@ -19,6 +19,8 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
+import java.time.Clock;
+
 /**
  * Context provided to extensions when they are initialized.
  */
@@ -33,17 +35,30 @@ public interface ServiceExtensionContext extends SettingResolver {
     /**
      * Returns the system monitor.
      */
-    Monitor getMonitor();
+    default Monitor getMonitor() {
+        return getService(Monitor.class);
+    }
 
     /**
      * Returns the system telemetry object.
      */
-    Telemetry getTelemetry();
+    default Telemetry getTelemetry() {
+        return getService(Telemetry.class);
+    }
 
     /**
      * Returns the type manager.
      */
-    TypeManager getTypeManager();
+    default TypeManager getTypeManager() {
+        return getService(TypeManager.class);
+    }
+
+    /**
+     * Returns the {@link Clock} to retrieve the current time, which can be mocked in unit tests.
+     */
+    default Clock getClock() {
+        return getService(Clock.class);
+    }
 
     /**
      * Returns true if the service type is registered.

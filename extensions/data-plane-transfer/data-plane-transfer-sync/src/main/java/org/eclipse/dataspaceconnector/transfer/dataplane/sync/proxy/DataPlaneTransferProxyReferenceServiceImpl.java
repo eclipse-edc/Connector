@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy;
 
+import jakarta.ws.rs.core.HttpHeaders;
 import org.eclipse.dataspaceconnector.common.token.TokenGenerationService;
-import org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
@@ -24,7 +24,7 @@ import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTran
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.security.DataEncrypter;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -36,12 +36,14 @@ public class DataPlaneTransferProxyReferenceServiceImpl implements DataPlaneTran
     private final TypeManager typeManager;
     private final long tokenValiditySeconds;
     private final DataEncrypter dataEncrypter;
+    private final Clock clock;
 
-    public DataPlaneTransferProxyReferenceServiceImpl(TokenGenerationService tokenGenerationService, TypeManager typeManager, long tokenValiditySeconds, DataEncrypter dataEncrypter) {
+    public DataPlaneTransferProxyReferenceServiceImpl(TokenGenerationService tokenGenerationService, TypeManager typeManager, long tokenValiditySeconds, DataEncrypter dataEncrypter, Clock clock) {
         this.tokenGenerationService = tokenGenerationService;
         this.typeManager = typeManager;
         this.tokenValiditySeconds = tokenValiditySeconds;
         this.dataEncrypter = dataEncrypter;
+        this.clock = clock;
     }
 
     /**
@@ -51,7 +53,7 @@ public class DataPlaneTransferProxyReferenceServiceImpl implements DataPlaneTran
     @Override
     public Result<EndpointDataReference> createProxyReference(@NotNull DataPlaneTransferProxyCreationRequest request) {
         var encryptedDataAddress = dataEncrypter.encrypt(typeManager.writeValueAsString(request.getContentAddress()));
-        var decorator = new DataPlaneProxyTokenDecorator(Date.from(Instant.now().plusSeconds(tokenValiditySeconds)), request.getContractId(), encryptedDataAddress);
+        var decorator = new DataPlaneProxyTokenDecorator(Date.from(clock.instant().plusSeconds(tokenValiditySeconds)), request.getContractId(), encryptedDataAddress);
         var tokenGenerationResult = tokenGenerationService.generate(decorator);
         if (tokenGenerationResult.failed()) {
             return Result.failure(tokenGenerationResult.getFailureMessages());
@@ -63,7 +65,7 @@ public class DataPlaneTransferProxyReferenceServiceImpl implements DataPlaneTran
         var builder = EndpointDataReference.Builder.newInstance()
                 .id(request.getId())
                 .endpoint(request.getProxyEndpoint())
-                .authKey(DataPlaneConstants.PUBLIC_API_AUTH_HEADER)
+                .authKey(HttpHeaders.AUTHORIZATION)
                 .authCode(tokenGenerationResult.getContent().getToken())
                 .properties(props);
         return Result.success(builder.build());

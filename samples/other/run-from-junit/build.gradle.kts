@@ -20,16 +20,17 @@ val jupiterVersion: String by project
 val storageBlobVersion: String by project;
 
 dependencies {
-    api(project(":core"))
-    api(project(":core:defaults"))
+    implementation(project(":core"))
+    implementation(project(":core:defaults"))
 
     testImplementation(project(":extensions:aws:s3:s3-provision"))
-    testImplementation(project(":data-protocols:ids:ids-core"))
+    testImplementation(project(":extensions:dataloading"))
     testImplementation(project(":extensions:filesystem:configuration-fs"))
+    testImplementation(project(":data-protocols:ids:ids-core"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
-    testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(project(":extensions:junit"))
 
 
 }

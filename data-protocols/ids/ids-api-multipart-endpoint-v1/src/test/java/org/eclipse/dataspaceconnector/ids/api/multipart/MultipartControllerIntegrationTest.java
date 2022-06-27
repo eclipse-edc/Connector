@@ -24,7 +24,7 @@ import net.javacrumbs.jsonunit.assertj.JsonAssertions;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
+import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOkHttpClient;
 
 @ComponentTest
 public class MultipartControllerIntegrationTest extends AbstractMultipartControllerIntegrationTest {
@@ -98,7 +98,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         jsonPayload.inPath("$.@type").isString().isEqualTo("ids:BaseConnector");
         jsonPayload.inPath("$.@id").isString().matches("urn:connector:" + CONNECTOR_ID);
-        jsonPayload.inPath("$.ids:version").isString().isEqualTo("0.0.1");
+        jsonPayload.inPath("$.ids:version").isString().isEqualTo("0.0.1-SNAPSHOT");
         jsonPayload.inPath("$.ids:resourceCatalog").isPresent().isArray().hasSizeGreaterThanOrEqualTo(1);
         jsonPayload.inPath("$.ids:resourceCatalog[0].@type").isString().isEqualTo("ids:ResourceCatalog");
         jsonPayload.inPath("$.ids:resourceCatalog[0].@id").isString().isEqualTo("urn:catalog:" + CATALOG_ID);
@@ -157,7 +157,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         jsonPayload.inPath("$.@type").isString().isEqualTo("ids:BaseConnector");
         jsonPayload.inPath("$.@id").isString().matches("urn:connector:" + CONNECTOR_ID);
-        jsonPayload.inPath("$.ids:version").isString().isEqualTo("0.0.1");
+        jsonPayload.inPath("$.ids:version").isString().isEqualTo("0.0.1-SNAPSHOT");
         jsonPayload.inPath("$.ids:resourceCatalog").isPresent().isArray().hasSizeGreaterThanOrEqualTo(1);
         jsonPayload.inPath("$.ids:resourceCatalog[0].@type").isString().isEqualTo("ids:ResourceCatalog");
         jsonPayload.inPath("$.ids:resourceCatalog[0].@id").isString().isEqualTo("urn:catalog:" + CATALOG_ID);

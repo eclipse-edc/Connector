@@ -34,7 +34,7 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.ParseException;
-import java.util.Date;
+import java.time.Clock;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -44,12 +44,14 @@ public class DecentralizedIdentityService implements IdentityService {
     private final DidResolverRegistry resolverRegistry;
     private final CredentialsVerifier credentialsVerifier;
     private final Monitor monitor;
+    private final Clock clock;
 
-    public DecentralizedIdentityService(Supplier<SignedJWT> vcProvider, DidResolverRegistry resolverRegistry, CredentialsVerifier credentialsVerifier, Monitor monitor) {
+    public DecentralizedIdentityService(Supplier<SignedJWT> vcProvider, DidResolverRegistry resolverRegistry, CredentialsVerifier credentialsVerifier, Monitor monitor, Clock clock) {
         verifiableCredentialProvider = vcProvider;
         this.resolverRegistry = resolverRegistry;
         this.credentialsVerifier = credentialsVerifier;
         this.monitor = monitor;
+        this.clock = clock;
     }
 
     @Override
@@ -57,7 +59,7 @@ public class DecentralizedIdentityService implements IdentityService {
 
         var jwt = verifiableCredentialProvider.get();
         var token = jwt.serialize();
-        var expiration = new Date().getTime() + TimeUnit.MINUTES.toMillis(10);
+        var expiration = clock.millis() + TimeUnit.MINUTES.toMillis(10);
 
         return Result.success(TokenRepresentation.Builder.newInstance().token(token).expiresIn(expiration).build());
     }

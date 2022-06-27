@@ -21,7 +21,7 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.policy.store.PolicyStore;
+import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -31,7 +31,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDe
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.ArrayList;
 
 import static java.lang.String.format;
@@ -46,13 +46,15 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     private final ParticipantAgentService agentService;
     private final ContractDefinitionService contractDefinitionService;
     private final AssetIndex assetIndex;
-    private final PolicyStore policyStore;
+    private final PolicyDefinitionStore policyStore;
+    private final Clock clock;
 
-    public ContractValidationServiceImpl(ParticipantAgentService agentService, ContractDefinitionService contractDefinitionService, AssetIndex assetIndex, PolicyStore policyStore) {
+    public ContractValidationServiceImpl(ParticipantAgentService agentService, ContractDefinitionService contractDefinitionService, AssetIndex assetIndex, PolicyDefinitionStore policyStore, Clock clock) {
         this.agentService = agentService;
         this.contractDefinitionService = contractDefinitionService;
         this.assetIndex = assetIndex;
         this.policyStore = policyStore;
+        this.clock = clock;
     }
 
     @Override
@@ -81,15 +83,15 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             return Result.failure("Invalid target: " + offer.getAsset());
         }
 
-        var contractPolicy = policyStore.findById(contractDefinition.getContractPolicyId());
-        if (contractPolicy == null) {
+        var contractPolicyDef = policyStore.findById(contractDefinition.getContractPolicyId());
+        if (contractPolicyDef == null) {
             return Result.failure(format("Policy %s not found", contractDefinition.getContractPolicyId()));
         }
 
         var validatedOffer = ContractOffer.Builder.newInstance()
                 .id(offer.getId())
                 .asset(targetAsset)
-                .policy(contractPolicy)
+                .policy(contractPolicyDef.getPolicy())
                 .build();
 
         return Result.success(validatedOffer);
@@ -143,11 +145,11 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     private boolean isExpired(ContractAgreement contractAgreement) {
-        return contractAgreement.getContractEndDate() < Instant.now().getEpochSecond();
+        return contractAgreement.getContractEndDate() * 1000L < clock.millis();
     }
 
     private boolean isStarted(ContractAgreement contractAgreement) {
-        return contractAgreement.getContractStartDate() <= Instant.now().getEpochSecond();
+        return contractAgreement.getContractStartDate() * 1000L <= clock.millis();
     }
 
     private boolean isMandatoryAttributeMissing(ContractOffer offer) {

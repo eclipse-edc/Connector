@@ -58,3 +58,14 @@ output "test_key_vault_name" {
   value       = azurerm_key_vault.main.name
   description = "Name of the Azure Key Vault connected to the Data Factory."
 }
+
+output "EDC_COSMOS_ITEST_KEY" {
+  value       = azurerm_cosmosdb_account.cosmosdb_integrationtest.primary_key
+  description = "Primary access key for the CosmosDB Account used in testing"
+  sensitive   = true
+}
+
+output "EDC_COSMOS_ITEST_URL" {
+  value       = azurerm_cosmosdb_account.cosmosdb_integrationtest.endpoint
+  description = "Public endpoint for the CosmosDB Account used in testing"
+}

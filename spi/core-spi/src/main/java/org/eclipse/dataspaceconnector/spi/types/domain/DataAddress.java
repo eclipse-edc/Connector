@@ -27,7 +27,7 @@ import java.util.Objects;
 /**
  * An address that can be used resolve a data location. Data addresses are used throughout the system. For example, an asset has a data address used to resolve its contents,
  * which may be in an external store. A data address can also be used as a destination to send data during a transfer.
- *
+ * <p>
  * This type is extensible as different properties may be required to resolve data. For example, an HTTP data address will require a URL. Data addresses may also contain
  * references to information required to access the address, for example, the name of a shared token. Note, however, secrets should never be stored as properties as they may be
  * compromised if the data address is serialized.
@@ -38,7 +38,7 @@ public class DataAddress {
     public static final String KEY_NAME = "keyName";
     private final Map<String, String> properties = new HashMap<>();
 
-    private DataAddress() {
+    protected DataAddress() {
     }
 
     @NotNull
@@ -72,15 +72,15 @@ public class DataAddress {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private final DataAddress address;
+        protected final DataAddress address;
 
-        private Builder() {
-            address = new DataAddress();
+        protected Builder(DataAddress address) {
+            this.address = address;
         }
 
         @JsonCreator()
         public static Builder newInstance() {
-            return new Builder();
+            return new Builder(new DataAddress());
         }
 
         public Builder type(String type) {

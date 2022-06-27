@@ -25,8 +25,7 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
-import org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema;
+import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,21 +37,15 @@ import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowReques
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.PATH;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_CODE;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.AUTHENTICATION_KEY;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.ENDPOINT;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.NAME;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_BODY;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_METHOD;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_PATH;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.PROXY_QUERY_PARAMS;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.SECRET_NAME;
-import static org.eclipse.dataspaceconnector.spi.types.domain.http.HttpDataAddressSchema.TYPE;
+import static org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress.DATA_TYPE;
 
 /**
- * Instantiates {@link HttpDataSource}s for requests whose source data type is {@link HttpDataAddressSchema#TYPE}.
+ * Instantiates {@link HttpDataSource}s for requests whose source data type is {@link org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress#DATA_TYPE}.
  */
 public class HttpDataSourceFactory implements DataSourceFactory {
+
+    private static final String DEFAULT_HTTP_METHOD = "GET";
+
     private final OkHttpClient httpClient;
     private final RetryPolicy<Object> retryPolicy;
     private final Monitor monitor;
@@ -67,7 +60,7 @@ public class HttpDataSourceFactory implements DataSourceFactory {
 
     @Override
     public boolean canHandle(DataFlowRequest request) {
-        return TYPE.equals(request.getSourceDataAddress().getType());
+        return DATA_TYPE.equals(request.getSourceDataAddress().getType());
     }
 
     @Override
@@ -86,44 +79,40 @@ public class HttpDataSourceFactory implements DataSourceFactory {
     }
 
     private Result<HttpDataSource> createDataSource(DataFlowRequest request) {
-        var dataAddress = request.getSourceDataAddress();
-        var endpoint = dataAddress.getProperty(ENDPOINT);
-        if (StringUtils.isNullOrBlank(endpoint)) {
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .copyFrom(request.getSourceDataAddress())
+                .build();
+        var baseUrl = dataAddress.getBaseUrl();
+        if (StringUtils.isNullOrBlank(baseUrl)) {
             return Result.failure("Missing endpoint for request: " + request.getId());
         }
 
-        var method = "GET";
-        if (Boolean.parseBoolean(dataAddress.getProperty(PROXY_METHOD))) {
+        var method = DEFAULT_HTTP_METHOD;
+        if (Boolean.parseBoolean(dataAddress.getProxyMethod())) {
             method = request.getProperties().get(METHOD);
             if (StringUtils.isNullOrBlank(method)) {
                 return Result.failure("Missing http method for request: " + request.getId());
             }
         }
 
-        var path = dataAddress.getProperty(NAME);
-        if (Boolean.parseBoolean(dataAddress.getProperty(PROXY_PATH))) {
-            path = request.getProperties().get(PATH);
-            if (path == null) {
-                return Result.failure(format("No path provided for request: %s", request.getId()));
-            }
-        }
-
-        String queryParams = null;
-        if (Boolean.parseBoolean(dataAddress.getProperty(PROXY_QUERY_PARAMS))) {
-            queryParams = request.getProperties().get(QUERY_PARAMS);
-        }
+        var name = dataAddress.getName();
+        var path = Boolean.parseBoolean(dataAddress.getProxyPath()) ?
+                request.getProperties().get(PATH) : null;
+        var queryParams = Boolean.parseBoolean(dataAddress.getProxyQueryParams()) ?
+                request.getProperties().get(QUERY_PARAMS) : null;
 
         var builder = HttpDataSource.Builder.newInstance()
                 .httpClient(httpClient)
                 .requestId(request.getId())
-                .sourceUrl(endpoint)
-                .name(path)
+                .sourceUrl(baseUrl)
+                .name(name)
+                .path(path)
                 .method(method)
                 .queryParams(queryParams)
                 .retryPolicy(retryPolicy)
                 .monitor(monitor);
 
-        if (Boolean.parseBoolean(dataAddress.getProperty(PROXY_BODY))) {
+        if (Boolean.parseBoolean(dataAddress.getProxyBody())) {
             var mediaType = request.getProperties().get(MEDIA_TYPE);
             if (mediaType != null) {
                 var parsed = MediaType.parse(mediaType);
@@ -134,7 +123,7 @@ public class HttpDataSourceFactory implements DataSourceFactory {
             }
         }
 
-        var authKey = dataAddress.getProperty(AUTHENTICATION_KEY);
+        var authKey = dataAddress.getAuthKey();
         if (authKey != null) {
             var secretResult = extractAuthCode(request.getId(), dataAddress);
             if (secretResult.failed()) {
@@ -161,13 +150,13 @@ public class HttpDataSourceFactory implements DataSourceFactory {
      * @param address   address of the data source
      * @return Successful result containing the auth code if process succeeded, failed result otherwise.
      */
-    private Result<String> extractAuthCode(String requestId, DataAddress address) {
-        var secret = address.getProperty(AUTHENTICATION_CODE);
+    private Result<String> extractAuthCode(String requestId, HttpDataAddress address) {
+        var secret = address.getAuthCode();
         if (secret != null) {
             return Result.success(secret);
         }
 
-        var secretName = address.getProperty(SECRET_NAME);
+        var secretName = address.getSecretName();
         if (secretName == null) {
             return Result.failure(format("Missing mandatory secret name for request: %s", requestId));
         }

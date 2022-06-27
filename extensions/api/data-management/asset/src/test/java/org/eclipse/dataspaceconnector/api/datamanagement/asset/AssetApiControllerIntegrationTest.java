@@ -19,7 +19,8 @@ import io.restassured.specification.RequestSpecification;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
-import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -38,7 +39,7 @@ import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.api.datamanagement.asset.TestFunctions.createAssetEntryDto;
 import static org.eclipse.dataspaceconnector.api.datamanagement.asset.TestFunctions.createAssetEntryDto_emptyAttributes;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 
@@ -222,7 +223,7 @@ public class AssetApiControllerIntegrationTest {
                 .providerAgentId(UUID.randomUUID().toString())
                 .consumerAgentId(UUID.randomUUID().toString())
                 .assetId(asset.getId())
-                .policyId("policyId")
+                .policy(Policy.Builder.newInstance().build())
                 .build();
     }
 

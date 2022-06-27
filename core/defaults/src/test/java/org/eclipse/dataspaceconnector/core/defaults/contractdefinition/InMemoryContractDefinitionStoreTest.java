@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.core.defaults.contractdefinition;
 
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
@@ -117,7 +116,6 @@ class InMemoryContractDefinitionStoreTest {
     }
 
     private ContractDefinition createContractDefinition(String id) {
-        var policy = Policy.Builder.newInstance().build();
         return ContractDefinition.Builder.newInstance().id(id).accessPolicyId("access").contractPolicyId("contract").selectorExpression(SELECT_ALL).build();
     }
 }

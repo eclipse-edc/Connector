@@ -19,7 +19,7 @@ import org.eclipse.dataspaceconnector.system.tests.FileTransferSimulationConfigu
 import java.io.File;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.tempDirectory;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.tempDirectory;
 import static org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils.PROVIDER_ASSET_FILE;
 
 /**

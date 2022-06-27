@@ -24,23 +24,22 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:transaction-spi"))
     api(project(":spi:transfer-spi"))
     implementation(project(":common:util"))
     implementation(project(":extensions:api:api-core"))
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation(project(":extensions:api:data-management:api-configuration"))
-    implementation(project(":extensions:transaction:transaction-spi"))
 
-    testImplementation(project(":spi:core-spi"))
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+
     testImplementation(project(":core:contract"))
     testImplementation(project(":core:transfer"))
     testImplementation(project(":extensions:http"))
     testImplementation(project(":core:defaults"))
 
-    testImplementation(testFixtures(project(":launchers:junit")))
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(project(":extensions:junit"))
+
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
-    testRuntimeOnly("org.glassfish.jersey.ext:jersey-bean-validation:${jerseyVersion}") //for validation
 }
 
 publishing {

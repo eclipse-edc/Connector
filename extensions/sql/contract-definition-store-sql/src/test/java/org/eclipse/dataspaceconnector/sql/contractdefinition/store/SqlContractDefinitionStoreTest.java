@@ -11,6 +11,7 @@
  *       Daimler TSS GmbH - Initial Tests
  *       Microsoft Corporation - Method signature change
  *       Microsoft Corporation - refactoring
+ *       Microsoft Corporation - added tests
  *       Fraunhofer Institute for Software and Systems Engineering - added tests
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
@@ -18,14 +19,14 @@
 
 package org.eclipse.dataspaceconnector.sql.contractdefinition.store;
 
-import org.eclipse.dataspaceconnector.common.annotations.ComponentTest;
-import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
+import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.BaseSqlDialectStatements;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,13 +38,16 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
+import static org.eclipse.dataspaceconnector.sql.contractdefinition.store.TestFunctions.getContractDefinition;
+import static org.eclipse.dataspaceconnector.sql.contractdefinition.store.TestFunctions.getContractDefinitions;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -57,7 +61,7 @@ public class SqlContractDefinitionStoreTest {
 
     private DataSourceRegistry dataSourceRegistry;
     private SqlContractDefinitionStore sqlContractDefinitionStore;
-    private PostgresStatements statements;
+    private BaseSqlDialectStatements statements;
     private Connection connection;
 
     @BeforeEach
@@ -76,7 +80,7 @@ public class SqlContractDefinitionStoreTest {
         when(datasourceMock.getConnection()).thenReturn(connection);
         when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
 
-        statements = new PostgresStatements();
+        statements = new BaseSqlDialectStatements();
         sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, txManager, statements, new TypeManager());
 
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
@@ -250,6 +254,86 @@ public class SqlContractDefinitionStoreTest {
     }
 
     @Test
+    @DisplayName("Find all contract definitions that exactly match a particular access policy ID")
+    void findAll_queryByAccessPolicyId_withEquals() {
+
+        var definitionsExpected = getContractDefinitions(20);
+        sqlContractDefinitionStore.save(definitionsExpected);
+
+        var spec = QuerySpec.Builder.newInstance()
+                .filter("accessPolicyId = policy4")
+                .build();
+
+        var definitionsRetrieved = sqlContractDefinitionStore.findAll(spec).collect(Collectors.toList());
+
+        assertThat(definitionsRetrieved).hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .allSatisfy(cd -> assertThat(cd.getId()).isEqualTo("id4"));
+    }
+
+    @Test
+    @DisplayName("Find all contract definitions that match a range of access policy IDs")
+    void findAll_queryByAccessPolicyId_withIn() {
+
+        var definitionsExpected = getContractDefinitions(20);
+        sqlContractDefinitionStore.save(definitionsExpected);
+
+        var spec = QuerySpec.Builder.newInstance()
+                .filter(List.of(new Criterion("accessPolicyId", "in", List.of("policy4", "policy5", "policy6"))))
+                .build();
+
+        var definitionsRetrieved = sqlContractDefinitionStore.findAll(spec).collect(Collectors.toList());
+
+        assertThat(definitionsRetrieved).hasSize(3)
+                .usingRecursiveFieldByFieldElementComparator()
+                .allMatch(cd -> cd.getId().matches("(id)[4-6]"));
+    }
+
+    @Test
+    @DisplayName("Verify empty result when query contains invalid keys")
+    void findAll_queryByInvalidKey() {
+
+        var definitionsExpected = getContractDefinitions(20);
+        sqlContractDefinitionStore.save(definitionsExpected);
+
+        var spec = QuerySpec.Builder.newInstance()
+                .filter(List.of(new Criterion("notexist", "=", "somevalue")))
+                .build();
+
+        assertThatThrownBy(() -> sqlContractDefinitionStore.findAll(spec))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageStartingWith("Translation failed for Model");
+
+    }
+
+    @Test
+    @DisplayName("Verify empty result when query contains a nonexistent value")
+    void findAll_queryByNonexistentdValue() {
+
+        var definitionsExpected = getContractDefinitions(20);
+        sqlContractDefinitionStore.save(definitionsExpected);
+
+        var spec = QuerySpec.Builder.newInstance()
+                .filter(List.of(new Criterion("contractPolicyId", "=", "somevalue")))
+                .build();
+
+        assertThat(sqlContractDefinitionStore.findAll(spec)).isEmpty();
+    }
+
+    @Test
+    void findAll_invalidOperator() {
+
+        var definitionsExpected = getContractDefinitions(20);
+        sqlContractDefinitionStore.save(definitionsExpected);
+
+        var spec = QuerySpec.Builder.newInstance()
+                .filter(List.of(new Criterion("accessPolicyId", "sqrt", "foobar"))) //sqrt is invalid
+                .build();
+
+        assertThatThrownBy(() -> sqlContractDefinitionStore.findAll(spec)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
     void findById() {
         var id = "definitionId";
         var definition = getContractDefinition(id, "policyId", "contractId");
@@ -282,19 +366,5 @@ public class SqlContractDefinitionStoreTest {
         assertThat(deleted).isNull();
     }
 
-    private ContractDefinition getContractDefinition(String id, String accessPolicyId, String contractPolicyId) {
-        return ContractDefinition.Builder.newInstance()
-                .id(id)
-                .accessPolicyId(accessPolicyId)
-                .contractPolicyId(contractPolicyId)
-                .selectorExpression(AssetSelectorExpression.Builder.newInstance().build())
-                .build();
-    }
-
-    private Collection<ContractDefinition> getContractDefinitions(int count) {
-        return IntStream.range(0, count)
-                .mapToObj(i -> getContractDefinition("id" + i, "policy" + i, "contract" + i))
-                .collect(Collectors.toList());
-    }
 
 }

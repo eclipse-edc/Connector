@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.system.tests.utils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.gatling.javaapi.core.ChainBuilder;
 import io.gatling.javaapi.core.Session;
 import io.gatling.javaapi.http.HttpRequestActionBuilder;
@@ -28,7 +29,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.Map;
-import java.util.UUID;
 
 import static io.gatling.javaapi.core.CoreDsl.StringBody;
 import static io.gatling.javaapi.core.CoreDsl.doWhileDuring;
@@ -45,6 +45,7 @@ import static java.lang.String.format;
  */
 public abstract class TransferSimulationUtils {
 
+    public static final String CONTRACT_OFFER_ID = "contractOfferId";
     public static final String CONTRACT_AGREEMENT_ID = "contractAgreementId";
     public static final String CONTRACT_NEGOTIATION_REQUEST_ID = "contractNegotiationRequestId";
     public static final String TRANSFER_PROCESS_ID = "transferProcessId";
@@ -59,20 +60,61 @@ public abstract class TransferSimulationUtils {
     public static final String TRANSFER_PROCESSES_PATH = "/transferprocess";
     public static final String IDS_PATH = "/api/v1/ids";
 
+    private static final TypeManager TYPE_MANAGER = new TypeManager();
+
     private TransferSimulationUtils() {
     }
 
     /**
      * Gatling chain for performing contract negotiation and file transfer.
      *
-     * @param providerUrl             URL for the Provider API, as accessed from the Consumer runtime.
+     * @param providerUrl URL for the Provider API, as accessed from the Consumer runtime.
      * @param simulationConfiguration Configuration for transfers.
      */
     public static ChainBuilder contractNegotiationAndTransfer(String providerUrl, TransferSimulationConfiguration simulationConfiguration) {
-        return startContractAgreement(providerUrl)
+        return getOffer(providerUrl)
+                .exec(negotiateContract(providerUrl))
                 .exec(waitForContractAgreement())
                 .exec(startTransfer(providerUrl, simulationConfiguration))
-                .exec(waitForTransferCompletion(simulationConfiguration));
+                .exec(waitForTransferState(TransferProcessStates.COMPLETED, simulationConfiguration.copyMaxDuration()))
+                .doIf(s -> verifyTransferResult(simulationConfiguration, s))
+                .then(
+                        exec(deprovision())
+                                .exec(waitForTransferState(TransferProcessStates.ENDED, Duration.ofSeconds(60)))
+
+                                // Perform one additional request if the transfer successful.
+                                // This allows running Gatling assertions to validate that the transfer actually succeeded
+                                // (and timeout was not reached).
+                                .group(TRANSFER_SUCCESSFUL)
+                                .on(exec(getTransferStatus())));
+    }
+
+    private static boolean verifyTransferResult(TransferSimulationConfiguration simulationConfiguration, Session s) {
+        try {
+            return simulationConfiguration.isTransferResultValid(TYPE_MANAGER.readValue(s.get("dataDestinationProperties"), new TypeReference<>() {
+            }));
+        } catch (Throwable t) {
+            t.printStackTrace(); // print e.g. assertion error for debugging
+            return false;
+        }
+    }
+
+    private static ChainBuilder getOffer(String providerUrl) {
+        var connectorAddress = getConnectorAddress(providerUrl);
+        return group("Get contract offer")
+                .on(exec(getContractOffer(connectorAddress)));
+    }
+
+    @NotNull
+    private static HttpRequestActionBuilder getContractOffer(String providerUrl) {
+        return http("Get contract offer")
+                .get("/catalog")
+                .queryParam("providerUrl", providerUrl)
+                .header(CONTENT_TYPE, "application/json")
+                .check(status().is(200))
+                .check(jmesPath("contractOffers[0].id")
+                        .notNull()
+                        .saveAs(CONTRACT_OFFER_ID));
     }
 
     /**
@@ -82,7 +124,7 @@ public abstract class TransferSimulationUtils {
      *
      * @param providerUrl URL for the Provider API, as accessed from the Consumer runtime.
      */
-    private static ChainBuilder startContractAgreement(String providerUrl) {
+    private static ChainBuilder negotiateContract(String providerUrl) {
         var connectorAddress = getConnectorAddress(providerUrl);
         return group("Contract negotiation")
                 .on(exec(initiateContractNegotiation(connectorAddress)));
@@ -92,7 +134,8 @@ public abstract class TransferSimulationUtils {
     private static HttpRequestActionBuilder initiateContractNegotiation(String connectorAddress) {
         return http("Initiate contract negotiation")
                 .post("/contractnegotiations")
-                .body(StringBody(loadContractAgreement(connectorAddress)))
+                .body(StringBody(session -> loadContractAgreement(
+                        connectorAddress, session.getString(CONTRACT_OFFER_ID))))
                 .header(CONTENT_TYPE, "application/json")
                 .check(status().is(200))
                 .check(jmesPath("id")
@@ -104,17 +147,18 @@ public abstract class TransferSimulationUtils {
      * Gatling chain for calling ContractNegotiation status endpoint repeatedly until a CONFIRMED state is
      * attained, or a timeout is reached.
      * <p>
-     * Expects the Contract Negotiation Request ID to be provided in the {@see CONTRACT_NEGOTIATION_REQUEST_ID} session key.
+     * Expects the Contract Negotiation Request ID to be provided in the {@see CONTRACT_NEGOTIATION_REQUEST_ID} session
+     * key.
      * <p>
      * Saves the Contract Agreement ID into the {@see CONTRACT_AGREEMENT_ID} session key.
      */
     private static ChainBuilder waitForContractAgreement() {
         return exec(session -> session.set("status", -1))
                 .group("Wait for agreement")
-                .on(doWhileDuring(session -> contractAgreementNotCompleted(session), Duration.ofSeconds(30))
+                .on(doWhileDuring(TransferSimulationUtils::contractAgreementNotCompleted, Duration.ofSeconds(30))
                         .on(exec(getContractStatus()).pace(Duration.ofSeconds(1)))
                 )
-                .exitHereIf(session -> contractAgreementNotCompleted(session));
+                .exitHereIf(TransferSimulationUtils::contractAgreementNotCompleted);
     }
 
     private static boolean contractAgreementNotCompleted(Session session) {
@@ -144,7 +188,7 @@ public abstract class TransferSimulationUtils {
      * <p>
      * Saves the Transfer Process ID into the {@see TRANSFER_PROCESS_ID} session key.
      *
-     * @param providerUrl             URL for the Provider API, as accessed from the Consumer runtime.
+     * @param providerUrl URL for the Provider API, as accessed from the Consumer runtime.
      * @param simulationConfiguration Configuration for transfers.
      */
     private static ChainBuilder startTransfer(String providerUrl, TransferSimulationConfiguration simulationConfiguration) {
@@ -166,32 +210,34 @@ public abstract class TransferSimulationUtils {
     }
 
     /**
-     * Gatling chain for calling the transfer status endpoint repeatedly until a COMPLETED state is
+     * Gatling chain for calling the transfer status endpoint repeatedly until a given state is
      * attained, or a timeout is reached.
      * <p>
      * Expects the Transfer Process ID to be provided in the {@see TRANSFER_PROCESS_ID} session key.
      *
-     * @param simulationConfiguration See {@link TransferSimulationConfiguration}
+     * @param state state to wait for.
+     * @param maxDuration maximum duration to wait for.
      */
-    private static ChainBuilder waitForTransferCompletion(TransferSimulationConfiguration simulationConfiguration) {
-        return group("Wait for transfer")
+    private static ChainBuilder waitForTransferState(TransferProcessStates state, Duration maxDuration) {
+        return group("Wait for transfer " + state)
                 .on(exec(session -> session.set("status", "INITIAL"))
-                        .doWhileDuring(session -> transferNotCompleted(session),
-                                simulationConfiguration.copyMaxDuration())
+                        .doWhileDuring(session -> transferNotInState(session, state),
+                                maxDuration)
                         .on(exec(getTransferStatus()).pace(Duration.ofSeconds(1))))
 
-                .exitHereIf(session -> transferNotCompleted(session))
-
-                // Perform one additional request if the transfer successful.
-                // This allows running Gatling assertions to validate that the transfer actually succeeded
-                // (and timeout was not reached).
-                .group(TRANSFER_SUCCESSFUL)
-                .on(exec(getTransferStatus()));
+                .exitHereIf(session -> transferNotInState(session, state));
     }
 
     @NotNull
-    private static Boolean transferNotCompleted(Session session) {
-        return !session.getString("status").equals(TransferProcessStates.COMPLETED.name());
+    private static HttpRequestActionBuilder deprovision() {
+        return http("Deprovision")
+                .post(session -> format("%s/%s/deprovision", TRANSFER_PROCESSES_PATH, session.getString(TRANSFER_PROCESS_ID)))
+                .check(status().is(204));
+    }
+
+    @NotNull
+    private static Boolean transferNotInState(Session session, TransferProcessStates state) {
+        return !session.getString("status").equals(state.name());
     }
 
     @NotNull
@@ -201,13 +247,13 @@ public abstract class TransferSimulationUtils {
                 .check(status().is(200))
                 .check(
                         jmesPath("id").is(session -> session.getString(TRANSFER_PROCESS_ID)),
-                        jmesPath("state").saveAs("status")
+                        jmesPath("state").saveAs("status"),
+                        jmesPath("dataDestination.properties").saveAs("dataDestinationProperties")
                 );
     }
 
-    private static String loadContractAgreement(String providerUrl) {
+    private static String loadContractAgreement(String providerUrl, String offerId) {
         var policy = Policy.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
                 .permission(Permission.Builder.newInstance()
                         .target("test-document")
                         .action(Action.Builder.newInstance().type("USE").build())
@@ -219,7 +265,7 @@ public abstract class TransferSimulationUtils {
                 "connectorAddress", providerUrl,
                 "protocol", "ids-multipart",
                 "offer", Map.of(
-                        "offerId", "1:1",
+                        "offerId", offerId,
                         "assetId", PROVIDER_ASSET_ID,
                         "policy", policy
                 )

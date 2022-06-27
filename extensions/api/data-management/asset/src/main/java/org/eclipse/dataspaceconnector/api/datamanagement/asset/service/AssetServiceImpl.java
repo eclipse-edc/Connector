@@ -18,27 +18,32 @@ import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 import java.util.Collection;
+import java.util.List;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
 public class AssetServiceImpl implements AssetService {
+    private static final String ASSET_ID_QUERY = "contractAgreement.assetId";
     private final AssetIndex index;
     private final AssetLoader loader;
     private final ContractNegotiationStore contractNegotiationStore;
     private final TransactionContext transactionContext;
+    private final AssetObservable observable;
 
-    public AssetServiceImpl(AssetIndex index, AssetLoader loader, ContractNegotiationStore contractNegotiationStore, TransactionContext transactionContext) {
+    public AssetServiceImpl(AssetIndex index, AssetLoader loader, ContractNegotiationStore contractNegotiationStore, TransactionContext transactionContext, AssetObservable observable) {
         this.index = index;
         this.loader = loader;
         this.contractNegotiationStore = contractNegotiationStore;
         this.transactionContext = transactionContext;
+        this.observable = observable;
     }
 
     @Override
@@ -52,11 +57,25 @@ public class AssetServiceImpl implements AssetService {
     }
 
     @Override
+    public ServiceResult<Asset> create(Asset asset, DataAddress dataAddress) {
+        return transactionContext.execute(() -> {
+            if (findById(asset.getId()) == null) {
+                loader.accept(asset, dataAddress);
+                observable.invokeForEach(l -> l.created(asset));
+                return ServiceResult.success(asset);
+            } else {
+                return ServiceResult.conflict(format("Asset %s cannot be created because it already exist", asset.getId()));
+            }
+        });
+    }
+
+    @Override
     public ServiceResult<Asset> delete(String assetId) {
         return transactionContext.execute(() -> {
-            var filter = format("contractAgreement.assetId = %s", assetId);
-            var query = QuerySpec.Builder.newInstance().filter(filter).build();
 
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(List.of(new Criterion(ASSET_ID_QUERY, "=", assetId)))
+                    .build();
             var negotiationsOnAsset = contractNegotiationStore.queryNegotiations(query);
             if (negotiationsOnAsset.findAny().isPresent()) {
                 return ServiceResult.conflict(format("Asset %s cannot be deleted as it is referenced by at least one contract agreement", assetId));
@@ -67,19 +86,8 @@ public class AssetServiceImpl implements AssetService {
                 return ServiceResult.notFound(format("Asset %s does not exist", assetId));
             }
 
+            observable.invokeForEach(l -> l.deleted(deleted));
             return ServiceResult.success(deleted);
-        });
-    }
-
-    @Override
-    public ServiceResult<Asset> create(Asset asset, DataAddress dataAddress) {
-        return transactionContext.execute(() -> {
-            if (findById(asset.getId()) == null) {
-                loader.accept(asset, dataAddress);
-                return ServiceResult.success(asset);
-            } else {
-                return ServiceResult.conflict(format("Asset %s cannot be created because it already exist", asset.getId()));
-            }
         });
     }
 }

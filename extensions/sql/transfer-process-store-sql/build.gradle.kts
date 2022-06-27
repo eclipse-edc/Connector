@@ -23,21 +23,23 @@ val awaitility: String by project
 
 
 dependencies {
-    implementation(project(":spi:core-spi"))
-    implementation(project(":spi:contract-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:contract-spi"))
+    api(project(":spi:transaction-spi"))
     implementation(project(":extensions:dataloading"))
-    implementation(project(":extensions:transaction:transaction-spi"))
     implementation(project(":extensions:transaction:transaction-datasource-spi"))
     implementation(project(":extensions:sql:common-sql"))
     implementation(project(":extensions:sql:lease-sql"))
 
-    testImplementation(testFixtures(project(":common:util")))
-    testImplementation(testFixtures(project(":launchers:junit")))
+
+    testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":extensions:sql:lease-sql")))
     testImplementation(project(":core:base"))
     testImplementation("com.h2database:h2:${h2Version}")
     testImplementation("org.assertj:assertj-core:${assertj}")
     testImplementation("org.awaitility:awaitility:${awaitility}")
+    testImplementation(testFixtures(project(":common:util")))
+
 }
 
 publishing {

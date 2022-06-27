@@ -33,7 +33,7 @@ dependencies {
     testImplementation("com.microsoft.azure:azure-mgmt-resources:1.3.0")
     testImplementation("com.azure.resourcemanager:azure-resourcemanager:${azureResourceManagerVersion}")
     testImplementation("com.azure.resourcemanager:azure-resourcemanager-keyvault:${azureResourceManagerVersion}")
-    testImplementation(testFixtures(project(":common:util")))
+
     testImplementation("org.mockito:mockito-inline:${mockitoVersion}")
 }
 

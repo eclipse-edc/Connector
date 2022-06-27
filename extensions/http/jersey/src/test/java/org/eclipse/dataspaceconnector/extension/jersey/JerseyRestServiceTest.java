@@ -39,8 +39,8 @@ import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.testOkHttpClient;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOkHttpClient;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -226,7 +226,7 @@ public class JerseyRestServiceTest {
         JettyConfiguration config = new JettyConfiguration(null, null);
         Arrays.stream(mapping).forEach(config::portMapping);
         jettyService = new JettyService(config, monitorMock);
-        jerseyRestService = new JerseyRestService(jettyService, new TypeManager(), CorsFilterConfiguration.none(), monitorMock);
+        jerseyRestService = new JerseyRestService(jettyService, new TypeManager(), JerseyConfiguration.none(), monitorMock);
         jettyService.start();
     }
 

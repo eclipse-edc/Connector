@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.core;
 
-import org.eclipse.dataspaceconnector.junit.launcher.DependencyInjectionExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
 

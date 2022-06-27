@@ -20,14 +20,10 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.0.0"
 }
 
-val jupiterVersion: String by project
-val rsApi: String by project
-
 dependencies {
     implementation(project(":core"))
 
-
-
+    implementation(project(":extensions:api:observability"))
 
     implementation(project(":extensions:filesystem:configuration-fs"))
 
@@ -41,14 +37,7 @@ dependencies {
     implementation(project(":extensions:api:auth-tokenbased"))
     implementation(project(":extensions:api:data-management"))
 
-    implementation(project(":data-protocols:ids")) {
-        exclude("org.eclipse.dataspaceconnector","ids-token-validation")
-    }
-
-    implementation(project(":samples:05-file-transfer-cloud:api"))
-
-    testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
+    implementation(project(":data-protocols:ids"))
 }
 
 application {

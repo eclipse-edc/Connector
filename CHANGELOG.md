@@ -11,6 +11,45 @@ in the detailed section referring to by linking pull requests or issues.
 
 ### Overview
 
+*
+
+### Detailed Changes
+
+#### Added
+
+* Event Framework for Asset entity (#1453)
+* Event Framework for PolicyDefinition entity (#1437)
+* SQL Translation layer (#1357, #1459)
+* Permit API verbose error response (#1479)
+
+#### Changed
+
+* Provided default no-op `TransactionContext` (#1461)
+* Refactored query capabilities for `Asset` (#1459)
+* Refactored query capabilities for `ContractDefinition` (#1458)
+* Refactored state machine and in-memory persistence (#1511)
+
+#### Removed
+
+* Old RegistrationService (was used for a PoC) (#164)
+* Deprecated `InlineDataFlowController` (replaced by the Data Plane) (#1464)
+* Unused classes and interfaces at `ids.spi.policy` (#1471)
+* Remove modules `:extensions:transfer-functions:transfer-functions-spi` and `:extensions:transfer-functions:transfer-functions-core` (#1482)
+* Remove `ConnectorVersionProvider`, provide version as static string (#1470)
+
+#### Fixed
+
+* Fixed a dead link in contributor documentation (#1477)
+* Fix usage of `NAME` property in `HttpDataSourceFactory` (#1460)
+* Fix clearing Loaders in the FCC (#1495)
+* Avoid endless loops in `ContractNegotiationManager` (#1487)
+* Fix race condition in `ContractNegotiationIntegrationTest` (#1505)
+* Fix for change in Cosmos DB behavior on missing sort fields (#1514)
+
+## [milestone-4] - 2022-06-07
+
+### Overview
+
 * Bugfixing DataManagementApi
 * Build improvements
 * Improvements to Dependency Resolution
@@ -38,6 +77,8 @@ in the detailed section referring to by linking pull requests or issues.
 * Add signing/publishing config (#1147)
 * Verify OpenAPI definitions (#1312)
 * Documentation for CosmosDB (#1334)
+* Add validation to contract definition id (#1347)
+* Shared clock service (#1416)
 
 #### Changed
 
@@ -59,12 +100,15 @@ in the detailed section referring to by linking pull requests or issues.
 * Update `slf4j-api` to `2.0.0-alpha7` (#1328)
 * Added timestamps to TransferProcess DTO (#1350)
 * Make Helm charts more generic (#1363)
+* Make `ParticipantAgent` claims more generic (#1405)
+* Introduced a `PolicyDefinition` object (#1340)
 
 #### Removed
 
 * Deprecated Control API (#1310)
 * Remove sample module `:extensions:policy:ids-policy` (#1348)
 * Unused `:launchers:basic` (#1360)
+* Dependency onto `token-validation` from IDS BOM (#1387)
 
 #### Fixed
 
@@ -84,6 +128,8 @@ in the detailed section referring to by linking pull requests or issues.
 * Fix misleading warning message on initialization (#1336)
 * Auto-upload of Cosmos stored procedures (#1338)
 * Resiliency against exceptions in the `PartitionManagerImpl` (#1366)
+* QuerySpec when right-op contains "=" or " " (#1380)
+* Fix check whether policy can be deleted (#1410)
 
 ## [milestone-3] - 2022-04-08
 

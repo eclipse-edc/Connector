@@ -24,10 +24,7 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNeg
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
-
-import static java.util.Optional.ofNullable;
 
 public class ContractAgreementApiExtension implements ServiceExtension {
 
@@ -40,7 +37,7 @@ public class ContractAgreementApiExtension implements ServiceExtension {
     @Inject
     DtoTransformerRegistry transformerRegistry;
 
-    @Inject(required = false)
+    @Inject
     TransactionContext transactionContext;
 
     @Inject
@@ -57,13 +54,7 @@ public class ContractAgreementApiExtension implements ServiceExtension {
         transformerRegistry.register(new ContractAgreementToContractAgreementDtoTransformer());
         var monitor = context.getMonitor();
 
-        var transactionContextImpl = ofNullable(transactionContext)
-                .orElseGet(() -> {
-                    monitor.warning("No TransactionContext registered, a no-op implementation will be used, not suitable for production environments");
-                    return new NoopTransactionContext();
-                });
-
-        var service = new ContractAgreementServiceImpl(store, transactionContextImpl);
+        var service = new ContractAgreementServiceImpl(store, transactionContext);
         var controller = new ContractAgreementApiController(monitor, service, transformerRegistry);
         webService.registerResource(config.getContextAlias(), controller);
     }

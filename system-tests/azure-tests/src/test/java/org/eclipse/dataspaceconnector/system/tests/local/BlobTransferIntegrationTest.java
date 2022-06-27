@@ -18,9 +18,10 @@ package org.eclipse.dataspaceconnector.system.tests.local;
 
 import com.azure.core.util.BinaryData;
 import org.eclipse.dataspaceconnector.azure.testfixtures.AbstractAzureBlobTest;
+import org.eclipse.dataspaceconnector.azure.testfixtures.TestFunctions;
 import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureStorageIntegrationTest;
-import org.eclipse.dataspaceconnector.junit.launcher.EdcRuntimeExtension;
-import org.eclipse.dataspaceconnector.junit.launcher.MockVault;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcRuntimeExtension;
+import org.eclipse.dataspaceconnector.junit.testfixtures.MockVault;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -35,12 +36,12 @@ import java.util.Map;
 import java.util.UUID;
 
 import static java.lang.String.format;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.system.tests.local.BlobTransferLocalSimulation.ACCOUNT_ENDPOINT_PROPERTY;
+import static org.eclipse.dataspaceconnector.system.tests.local.BlobTransferLocalSimulation.ACCOUNT_KEY_PROPERTY;
 import static org.eclipse.dataspaceconnector.system.tests.local.BlobTransferLocalSimulation.ACCOUNT_NAME_PROPERTY;
 import static org.eclipse.dataspaceconnector.system.tests.local.BlobTransferUtils.createAsset;
 import static org.eclipse.dataspaceconnector.system.tests.local.BlobTransferUtils.createContractDefinition;
 import static org.eclipse.dataspaceconnector.system.tests.local.BlobTransferUtils.createPolicy;
-import static org.eclipse.dataspaceconnector.system.tests.local.BlobTransferUtils.getProvisionedContainerName;
 import static org.eclipse.dataspaceconnector.system.tests.local.TransferLocalSimulation.CONSUMER_CONNECTOR_PATH;
 import static org.eclipse.dataspaceconnector.system.tests.local.TransferLocalSimulation.CONSUMER_CONNECTOR_PORT;
 import static org.eclipse.dataspaceconnector.system.tests.local.TransferLocalSimulation.CONSUMER_IDS_API;
@@ -109,7 +110,7 @@ public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
     public void transferBlob_success() {
         // Arrange
         // Upload a blob with test data on provider blob container (in account1).
-        var blobContent = "BlobTransferIntegrationTest-" + UUID.randomUUID();
+        var blobContent = BlobTransferSimulationConfiguration.BLOB_CONTENT;
         createContainer(blobServiceClient1, PROVIDER_CONTAINER_NAME);
         blobServiceClient1.getBlobContainerClient(PROVIDER_CONTAINER_NAME)
                 .getBlobClient(PROVIDER_ASSET_FILE)
@@ -126,19 +127,9 @@ public class BlobTransferIntegrationTest extends AbstractAzureBlobTest {
 
         // Act
         System.setProperty(ACCOUNT_NAME_PROPERTY, account2Name);
+        System.setProperty(ACCOUNT_KEY_PROPERTY, account2Key);
+        System.setProperty(ACCOUNT_ENDPOINT_PROPERTY, TestFunctions.getBlobServiceTestEndpoint(account2Name));
         runGatling(BlobTransferLocalSimulation.class, TransferSimulationUtils.DESCRIPTION);
-
-        // Assert
-        var container = getProvisionedContainerName();
-        var destinationBlob = blobServiceClient2.getBlobContainerClient(container)
-                .getBlobClient(PROVIDER_ASSET_FILE);
-        assertThat(destinationBlob.exists())
-                .withFailMessage("Destination blob %s not created", destinationBlob.getBlobUrl())
-                .isTrue();
-        var actualBlobContent = destinationBlob.downloadContent().toString();
-        assertThat(actualBlobContent)
-                .withFailMessage("Transferred file contents are not same as the source file")
-                .isEqualTo(blobContent);
     }
 
 }

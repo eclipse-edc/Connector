@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
- *       Microsoft Corporation - refactoring
+ *       Microsoft Corporation - refactoring, bugfixing
  *       Fraunhofer Institute for Software and Systems Engineering - added method
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
@@ -26,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
+import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.ContractDefinitionStatements;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
@@ -76,11 +77,11 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
         return transactionContext.execute(() -> {
             Objects.requireNonNull(spec);
 
-            var query = statements.getSelectAllTemplate();
             try (var connection = getConnection()) {
-                var definitions = executeQuery(connection, this::mapResultSet, String.format(query, statements.getContractDefinitionTable()), spec.getLimit(), spec.getOffset());
+                var queryStmt = statements.createQuery(spec);
+                var definitions = executeQuery(connection, this::mapResultSet, queryStmt.getQueryAsString(), queryStmt.getParameters());
                 return definitions.stream();
-            } catch (Exception exception) {
+            } catch (SQLException exception) {
                 throw new EdcPersistenceException(exception);
             }
         });

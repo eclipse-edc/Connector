@@ -41,11 +41,33 @@ For detailed information about the project, please have a look at our [documenta
 
 ## Add Maven dependencies
 
-_Disclaimer: at the time of this writing we only have SNAPSHOT versions!_
+Official versions are available through [MavenCentral](https://search.maven.org/search?q=org.eclipse.dataspaceconnector)
+.
+Please add the following instructions in your `build.gradle[.kts]` file (if not already present):
+
+```kotlin
+repositories {
+    mavenCentral()
+    // ... other maven repos
+}
+```
+
+We **strongly** recommend to use official versions and only switch to snapshots if there is a clear need to do so, or
+you've been instructed to do so, e.g. to verify a bugfix.
+
+All artifacts are under the `org.eclipse.dataspaceconnector` group id, for example:
+
+```kotlin
+dependencies {
+    implementation("org.eclipse.dataspaceconnector:spi:core-spi:<<version>>")
+    // any other dependencies
+}
+```
 
 ### Using `SNAPSHOT` versions
 
-EDC regularly publishes new versions as snapshot versions, which are available at Sonatype's snapshot repository. In
+In addition, EDC regularly publishes snapshot versions, which are available at Sonatype's snapshot
+repository. In
 order to add them to your build configuration, simply add this:
 
 ```kotlin
@@ -58,7 +80,7 @@ repositories {
 }
 ```
 
-Then you can add all dependencies that are under the `org.eclipse.dataspaceconnector` group, for example:
+Then you can add snapshot dependencies by simply using the `-SNAPSHOT` version suffix:
 
 ```kotlin
 dependencies {
@@ -67,7 +89,8 @@ dependencies {
 }
 ```
 
-A comprehensive list of all available modules can be found [here](docs/developer/modules.md).
+A comprehensive list of all available modules can be found [here](docs/developer/modules.md). This file will always
+list the most recent _snapshot_ version, please check MavenCentral for official versions.
 
 Please be aware of the following pitfalls:
 
@@ -106,13 +129,13 @@ _Note: the style guide will be checked/enforced in GitHub Actions._
 ## Run your first connector
 
 Connectors can be started using the concept of "launchers", which are essentially compositions of Java modules defined
-as gradle build files. 
+as gradle build files.
 
-**It is expected that everyone who wants to use the EDC will create their own launcher, customized 
+**It is expected that everyone who wants to use the EDC will create their own launcher, customized
 to the implemented use cases.**
 
 There is an `ids-connector` launcher, which launches a simple connector that has no cloud-based extensions.
-However, it needs an IDS certificate and a running DAPS. So make sure to take a look at 
+However, it needs an IDS certificate and a running DAPS. So make sure to take a look at
 [this guide](./launchers/ids-connector/README.md) first.
 
 Then run

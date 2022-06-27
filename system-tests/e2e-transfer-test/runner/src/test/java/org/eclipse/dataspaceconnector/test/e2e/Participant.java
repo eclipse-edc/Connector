@@ -14,16 +14,17 @@
 
 package org.eclipse.dataspaceconnector.test.e2e;
 
+import org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstance;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
-import org.eclipse.dataspaceconnector.test.e2e.postgresql.PostgresqlLocalInstance;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
@@ -38,7 +39,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static java.io.File.separator;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
 public class Participant {
@@ -49,6 +50,7 @@ public class Participant {
     private final URI controlPlane = URI.create("http://localhost:" + getFreePort());
     private final URI controlPlaneValidation = URI.create("http://localhost:" + getFreePort() + "/validation");
     private final URI controlPlaneDataplane = URI.create("http://localhost:" + getFreePort() + "/dataplane");
+    private final URI controlPlaneProvisioner = URI.create("http://localhost:" + getFreePort() + "/provisioner");
     private final URI dataPlane = URI.create("http://localhost:" + getFreePort());
     private final URI dataPlaneControl = URI.create("http://localhost:" + getFreePort() + "/control");
     private final URI dataPlanePublic = URI.create("http://localhost:" + getFreePort() + "/public");
@@ -60,7 +62,7 @@ public class Participant {
         this.name = name;
     }
 
-    public void createAsset(String assetId) {
+    public void createAsset(String assetId, String addressType) {
         var asset = Map.of(
                 "asset", Map.of(
                         "properties", Map.of(
@@ -70,9 +72,9 @@ public class Participant {
                 ),
                 "dataAddress", Map.of(
                         "properties", Map.of(
-                                "name", "data",
-                                "endpoint", backendService + "/api/service",
-                                "type", "HttpData"
+                                "name", "transfer-test",
+                                "baseUrl", backendService + "/api/provider/data",
+                                "type", addressType
                         )
                 )
         );
@@ -87,12 +89,14 @@ public class Participant {
     }
 
     public String createPolicy(String assetId) {
-        var policy = Policy.Builder.newInstance()
-                .permission(Permission.Builder.newInstance()
-                        .target(assetId)
-                        .action(Action.Builder.newInstance().type("USE").build())
+        var policy = PolicyDefinition.Builder.newInstance()
+                .policy(Policy.Builder.newInstance()
+                        .permission(Permission.Builder.newInstance()
+                                .target(assetId)
+                                .action(Action.Builder.newInstance().type("USE").build())
+                                .build())
+                        .type(PolicyType.SET)
                         .build())
-                .type(PolicyType.SET)
                 .build();
 
         given()
@@ -100,7 +104,7 @@ public class Participant {
                 .contentType(JSON)
                 .body(policy)
                 .when()
-                .post("/api/policies")
+                .post("/api/policydefinitions")
                 .then();
 
         return policy.getUid();
@@ -212,8 +216,8 @@ public class Participant {
                 "edctype", "dataspaceconnector:dataplaneinstance",
                 "id", UUID.randomUUID().toString(),
                 "url", dataPlaneControl + "/transfer",
-                "allowedSourceTypes", List.of("HttpData"),
-                "allowedDestTypes", List.of("HttpData")
+                "allowedSourceTypes", List.of("HttpData", "HttpProvision"),
+                "allowedDestTypes", List.of("HttpData", "HttpProvision")
         );
 
         given()
@@ -251,16 +255,22 @@ public class Participant {
                 put("web.http.ids.path", IDS_PATH);
                 put("web.http.dataplane.port", String.valueOf(controlPlaneDataplane.getPort()));
                 put("web.http.dataplane.path", controlPlaneDataplane.getPath());
+                put("web.http.provisioner.port", String.valueOf(controlPlaneProvisioner.getPort()));
+                put("web.http.provisioner.path", controlPlaneProvisioner.getPath());
                 put("web.http.validation.port", String.valueOf(controlPlaneValidation.getPort()));
                 put("web.http.validation.path", controlPlaneValidation.getPath());
                 put("edc.vault", resourceAbsolutePath("consumer-vault.properties"));
                 put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                 put("edc.keystore.password", "123456");
                 put("ids.webhook.address", idsEndpoint.toString());
-                put("edc.receiver.http.endpoint", backendService + "/api/service/pull");
+                put("edc.receiver.http.endpoint", backendService + "/api/consumer/pull");
                 put("edc.transfer.proxy.token.signer.privatekey.alias", "1");
                 put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
                 put("edc.transfer.proxy.endpoint", dataPlanePublic.toString());
+
+                put("provisioner.http.entries.default.provisioner.type", "provider");
+                put("provisioner.http.entries.default.endpoint", backendService + "/api/provision");
+                put("provisioner.http.entries.default.data.address.type", "HttpProvision");
             }
         };
     }

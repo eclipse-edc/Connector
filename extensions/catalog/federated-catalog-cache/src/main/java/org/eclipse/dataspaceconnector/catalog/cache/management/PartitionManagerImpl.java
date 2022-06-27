@@ -38,18 +38,18 @@ public class PartitionManagerImpl implements PartitionManager {
     private final WorkItemQueue workQueue;
     private final Supplier<List<WorkItem>> workloadSource;
     private ExecutorService crawlerScheduler;
+    private Runnable preExecutionHook;
 
     /**
      * Instantiates a new PartitionManagerImpl.
      *
-     * @param monitor          A {@link Monitor}
-     * @param workQueue        An implementation of a blocking {@link WorkItemQueue}
+     * @param monitor A {@link Monitor}
+     * @param workQueue An implementation of a blocking {@link WorkItemQueue}
      * @param crawlerGenerator A generator function that MUST create a new instance of a {@link Crawler}
-     * @param numCrawlers      A number indicating how many {@code Crawler} instances should be generated.
-     *                         Note that the PartitionManager may choose to generate more or less, e.g. because of
-     *                         constrained system resources.
-     * @param workloadSource   A fixed list of {@link WorkItem} instances that need to be processed on every execution
-     *                         run. This list is treated as immutable,
+     * @param numCrawlers A number indicating how many {@code Crawler} instances should be generated. Note that
+     *         the PartitionManager may choose to generate more or less, e.g. because of constrained system resources.
+     * @param workloadSource A fixed list of {@link WorkItem} instances that need to be processed on every
+     *         execution run. This list is treated as immutable,
      */
     public PartitionManagerImpl(Monitor monitor, WorkItemQueue workQueue, Function<WorkItemQueue, Crawler> crawlerGenerator, int numCrawlers, Supplier<List<WorkItem>> workloadSource) {
         this.monitor = monitor;
@@ -68,6 +68,15 @@ public class PartitionManagerImpl implements PartitionManager {
     @Override
     public void schedule(ExecutionPlan executionPlan) {
         executionPlan.run(() -> {
+            if (preExecutionHook != null) {
+                monitor.info("Partition manager: run pre-execution hook");
+                try {
+                    preExecutionHook.run();
+                } catch (Exception e) {
+                    monitor.warning("Error running Pre-Execution Hook", e);
+                }
+            }
+
             var currentList = workloadSource.get();
 
 
@@ -95,6 +104,14 @@ public class PartitionManagerImpl implements PartitionManager {
     @Override
     public void stop() {
         waitForCrawlers();
+    }
+
+    /**
+     * Enables running {@link Runnable} before the execution plan gets executed. This {@link Runnable} is run in the
+     * context of the {@link ExecutionPlan}. Note: set to {@code null} to deactivate a pre-execution hook.
+     */
+    public void setPreExecutionHook(Runnable preExecutionHook) {
+        this.preExecutionHook = preExecutionHook;
     }
 
     private List<Crawler> createCrawlers(int numCrawlers) {

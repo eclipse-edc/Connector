@@ -20,7 +20,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 public interface AssetLoader extends DataSink<AssetEntry> {
 
-    void accept(Asset asset, DataAddress dataAddress);
+    default void accept(Asset asset, DataAddress dataAddress) {
+        accept(new AssetEntry(asset, dataAddress));
+    }
 
     /**
      * Deletes an asset.

@@ -21,9 +21,11 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
-import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.ContractNegotiationStatements;
-import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.PostgresStatements;
 import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.SqlContractNegotiationStore;
+import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
+import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.postgres.PostgresDialectStatements;
+
+import java.time.Clock;
 
 @Provides({ ContractNegotiationStore.class })
 public class SqlContractNegotiationStoreExtension implements ServiceExtension {
@@ -37,12 +39,15 @@ public class SqlContractNegotiationStoreExtension implements ServiceExtension {
     @Inject
     private TransactionContext trxContext;
 
+    @Inject
+    private Clock clock;
+
     @Inject(required = false)
     private ContractNegotiationStatements statements;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var sqlStore = new SqlContractNegotiationStore(dataSourceRegistry, getDataSourceName(context), trxContext, context.getTypeManager(), getStatementImpl(), context.getConnectorId());
+        var sqlStore = new SqlContractNegotiationStore(dataSourceRegistry, getDataSourceName(context), trxContext, context.getTypeManager(), getStatementImpl(), context.getConnectorId(), clock);
         context.registerService(ContractNegotiationStore.class, sqlStore);
     }
 
@@ -50,7 +55,7 @@ public class SqlContractNegotiationStoreExtension implements ServiceExtension {
      * returns an externally-provided sql statement dialect, or postgres as a default
      */
     private ContractNegotiationStatements getStatementImpl() {
-        return statements != null ? statements : new PostgresStatements();
+        return statements != null ? statements : new PostgresDialectStatements();
     }
 
     private String getDataSourceName(ServiceExtensionContext context) {

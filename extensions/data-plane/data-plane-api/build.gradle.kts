@@ -37,8 +37,8 @@ dependencies {
     testImplementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
     testImplementation("com.github.javafaker:javafaker:${faker}")
-    testImplementation(testFixtures(project(":common:util")))
-    testImplementation(testFixtures(project(":launchers:junit")))
+
+    testImplementation(project(":extensions:junit"))
 }
 
 publishing {

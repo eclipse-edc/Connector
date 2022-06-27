@@ -22,8 +22,8 @@ import org.jetbrains.annotations.Nullable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -40,13 +40,15 @@ public class SqlLeaseContext implements LeaseContext {
     private final LeaseStatements statements;
     private final String leaseHolder;
     private final Connection connection;
+    private final Clock clock;
     private final Duration leaseDuration;
 
 
-    SqlLeaseContext(TransactionContext trxContext, LeaseStatements statements, String leaseHolder, Duration leaseDuration, Connection connection) {
+    SqlLeaseContext(TransactionContext trxContext, LeaseStatements statements, String leaseHolder, Clock clock, Duration leaseDuration, Connection connection) {
         this.trxContext = trxContext;
         this.statements = statements;
         this.leaseHolder = leaseHolder;
+        this.clock = clock;
         this.leaseDuration = leaseDuration;
         this.connection = connection;
     }
@@ -71,11 +73,11 @@ public class SqlLeaseContext implements LeaseContext {
     @Override
     public void acquireLease(String entityId) {
         trxContext.execute(() -> {
-            var now = Instant.now().toEpochMilli();
+            var now = clock.millis();
 
             var lease = getLease(entityId);
 
-            if (lease != null && !lease.isExpired()) {
+            if (lease != null && !lease.isExpired(clock)) {
                 throw new IllegalStateException("Entity is currently leased!");
             }
 

@@ -4,7 +4,7 @@
 
 Submitting pull requests in EDC should be done while adhering to a couple of simple rules.
 
-- Familiarize yourself with [coding style](styleguide.md), [architectural patterns](docs/architecture-principles.md) and
+- Familiarize yourself with [coding style](styleguide.md), [architectural patterns](docs/architecture/architecture-principles.md) and
   other contribution guidelines.
 - No surprise PRs please. Before you submit a PR, open a discussion or an issue outlining your planned work and give
   people time to comment. It may even be advisable to contact committers using the `@mention` feature. Unsolicited PRs

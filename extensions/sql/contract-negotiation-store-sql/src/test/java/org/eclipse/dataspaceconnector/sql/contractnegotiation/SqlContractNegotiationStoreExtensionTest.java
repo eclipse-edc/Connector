@@ -15,16 +15,16 @@
 
 package org.eclipse.dataspaceconnector.sql.contractnegotiation;
 
-import org.eclipse.dataspaceconnector.junit.launcher.DependencyInjectionExtension;
+import org.eclipse.dataspaceconnector.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.injection.EdcInjectionException;
 import org.eclipse.dataspaceconnector.spi.system.injection.ObjectFactory;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
-import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.ContractNegotiationStatements;
-import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.PostgresStatements;
 import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.SqlContractNegotiationStore;
+import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.BaseSqlDialectStatements;
+import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -48,7 +48,7 @@ class SqlContractNegotiationStoreExtensionTest {
 
         var service = context.getService(ContractNegotiationStore.class);
         assertThat(service).isInstanceOf(SqlContractNegotiationStore.class);
-        assertThat(service).extracting("statements").isInstanceOf(PostgresStatements.class);
+        assertThat(service).extracting("statements").isInstanceOf(BaseSqlDialectStatements.class);
     }
 
     @Test

@@ -20,19 +20,19 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import java.util.UUID;
 
 public class TestFunctions {
-    public static ContractOfferDescription createOffer(String offerId, String assetId, String policyId) {
-        return new ContractOfferDescription(offerId, assetId, policyId, null);
+    public static ContractOfferDescription createOffer(String offerId, String assetId) {
+        return new ContractOfferDescription(offerId, assetId, Policy.Builder.newInstance().build());
     }
 
     public static ContractOfferDescription createOffer(Policy policy) {
-        return new ContractOfferDescription(UUID.randomUUID().toString(), UUID.randomUUID().toString(), null, policy);
+        return new ContractOfferDescription(UUID.randomUUID().toString(), UUID.randomUUID().toString(), policy);
     }
 
     public static ContractOfferDescription createOffer(String offerId) {
-        return createOffer(offerId, UUID.randomUUID().toString(), UUID.randomUUID().toString());
+        return createOffer(offerId, UUID.randomUUID().toString());
     }
 
     public static ContractOfferDescription createOffer() {
-        return createOffer(UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString());
+        return createOffer(UUID.randomUUID().toString(), UUID.randomUUID().toString());
     }
 }

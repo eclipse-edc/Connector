@@ -35,11 +35,11 @@ dependencies {
 
     testImplementation(project(":extensions:data-plane-selector:selector-core")) //for the selector impl
     testImplementation(project(":extensions:data-plane-selector:selector-store"))
-    testImplementation(testFixtures(project(":common:util")))
+
     testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     testImplementation(project(":extensions:http"))
-    testImplementation(testFixtures(project(":common:util")))
-    testImplementation(testFixtures(project(":launchers:junit")))
+
+    testImplementation(project(":extensions:junit"))
 
 }
 

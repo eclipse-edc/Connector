@@ -20,9 +20,9 @@ import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
 import java.util.concurrent.BlockingQueue;
 
 /**
- * Manages a list of {@link Loader}s.
- * If for example a Queue is used to receive {@link org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse} objects,
- * the LoaderManager's job is to coordinate all its {@link Loader}s and forward that batch to them.
+ * Manages a list of {@link Loader}s. If for example a Queue is used to receive
+ * {@link org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse} objects, the LoaderManager's job is to
+ * coordinate all its {@link Loader}s and forward that batch to them.
  */
 public interface LoaderManager {
 
@@ -34,5 +34,8 @@ public interface LoaderManager {
 
     void stop();
 
-    void addLoader(Loader loader);
+    /**
+     * Clears out the internal storage for all loaders. Useful when invoked before a crawl run
+     */
+    void clear();
 }

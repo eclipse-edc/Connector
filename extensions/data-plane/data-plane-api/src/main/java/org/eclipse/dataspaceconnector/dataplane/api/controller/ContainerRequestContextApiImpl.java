@@ -15,71 +15,73 @@
 package org.eclipse.dataspaceconnector.dataplane.api.controller;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.BODY;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.MEDIA_TYPE;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.METHOD;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.PATH;
-import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
 
 /**
  * This class provides a set of API wrapping a {@link ContainerRequestContext}.
  */
 public class ContainerRequestContextApiImpl implements ContainerRequestContextApi {
 
-    @Override
-    public @Nullable String authHeader(ContainerRequestContext context) {
-        return context.getHeaderString(HttpHeaders.AUTHORIZATION);
+    private static final String QUERY_PARAM_SEPARATOR = "&";
+
+    private final ContainerRequestContext context;
+
+    public ContainerRequestContextApiImpl(ContainerRequestContext context) {
+        this.context = context;
     }
 
     @Override
-    public Map<String, String> properties(ContainerRequestContext context) {
-        var props = new HashMap<String, String>();
-        props.put(METHOD, context.getMethod());
-        props.put(QUERY_PARAMS, convertQueryParamsToString(context.getUriInfo()));
-        props.put(PATH, context.getUriInfo().getPath());
-
-
-        var mediaType = context.getMediaType();
-        Optional.ofNullable(mediaType).ifPresent(mt -> {
-            props.put(MEDIA_TYPE, mediaType.toString());
-            props.put(BODY, readRequestBody(context));
-        });
-        return props;
+    public Map<String, String> headers() {
+        return context.getHeaders().entrySet()
+                .stream()
+                .filter(entry -> !entry.getValue().isEmpty())
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().get(0)));
     }
 
-    private static String readRequestBody(ContainerRequestContext requestContext) {
-        // TODO: limit the maximum amount of bytes read from the channel.
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(requestContext.getEntityStream()))) {
+    @Override
+    public String queryParams() {
+        return context.getUriInfo().getQueryParameters().entrySet()
+                .stream()
+                .map(entry -> new QueryParam(entry.getKey(), entry.getValue()))
+                .filter(QueryParam::isValid)
+                .map(QueryParam::toString)
+                .collect(Collectors.joining(QUERY_PARAM_SEPARATOR));
+    }
+
+    @Override
+    public String body() {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(context.getEntityStream()))) {
             return br.lines().collect(Collectors.joining("\n"));
         } catch (IOException e) {
             throw new EdcException("Failed to read request body: " + e.getMessage());
         }
     }
 
-    /**
-     * Convert query parameters injected from the input into a string, e.g. foo=bar&hello=world
-     */
-    private static String convertQueryParamsToString(UriInfo uriInfo) {
-        return uriInfo.getQueryParameters().entrySet()
-                .stream()
-                .map(entry -> new QueryParam(entry.getKey(), entry.getValue()))
-                .filter(QueryParam::isValid)
-                .map(QueryParam::toString)
-                .collect(Collectors.joining("&"));
+    @Override
+    public String path() {
+        var pathInfo = context.getUriInfo().getPath();
+        return pathInfo.startsWith("/") ? pathInfo.substring(1) : pathInfo;
+    }
+
+    @Override
+    public String mediaType() {
+        return Optional.ofNullable(context.getMediaType())
+                .map(MediaType::toString)
+                .orElse(null);
+    }
+
+    @Override
+    public String method() {
+        return context.getMethod();
     }
 
     private static final class QueryParam {

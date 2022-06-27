@@ -30,6 +30,6 @@ dependencies {
     implementation(project(":extensions:data-plane-transfer:data-plane-transfer-client"))
     implementation(project(":extensions:data-plane-transfer:data-plane-transfer-sync"))
     implementation(project(":extensions:data-plane-selector"))
+    implementation(project(":extensions:http-provisioner"))
     implementation(project(":extensions:http-receiver"))
-
 }

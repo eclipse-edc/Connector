@@ -16,8 +16,8 @@
 
 package org.eclipse.dataspaceconnector.system.tests.local;
 
-import org.eclipse.dataspaceconnector.common.annotations.EndToEndTest;
-import org.eclipse.dataspaceconnector.common.annotations.PerformanceTest;
+import org.eclipse.dataspaceconnector.common.util.junit.annotations.EndToEndTest;
+import org.eclipse.dataspaceconnector.common.util.junit.annotations.PerformanceTest;
 import org.eclipse.dataspaceconnector.system.tests.utils.TransferSimulationUtils;
 import org.junit.jupiter.api.Test;
 

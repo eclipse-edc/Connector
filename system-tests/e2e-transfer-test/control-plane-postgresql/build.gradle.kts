@@ -15,11 +15,12 @@
 plugins {
     `java-library`
 }
+val postgresVersion: String by project
 
 dependencies {
     implementation(project(":system-tests:e2e-transfer-test:control-plane"))
     implementation(project(":extensions:sql"))
     implementation(project(":extensions:sql:pool:apache-commons-pool-sql"))
     implementation(project(":extensions:transaction:transaction-local"))
-    implementation("org.postgresql:postgresql:42.2.6")
+    implementation("org.postgresql:postgresql:${postgresVersion}")
 }

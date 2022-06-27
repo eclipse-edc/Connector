@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.store.DidStore;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,10 +29,12 @@ import java.util.stream.Collectors;
 
 public class InMemoryDidDocumentStore implements DidStore {
 
+    private final Clock clock;
     private final List<Entity<DidDocument>> memoryDb;
 
-    public InMemoryDidDocumentStore() {
-        memoryDb = new CopyOnWriteArrayList<>();
+    public InMemoryDidDocumentStore(Clock clock) {
+        this.clock = clock;
+        this.memoryDb = new CopyOnWriteArrayList<>();
     }
 
     @Override
@@ -83,8 +86,8 @@ public class InMemoryDidDocumentStore implements DidStore {
         return result.map(didDocumentEntity -> didDocumentEntity.payload).orElse(null);
     }
 
-    private static class Entity<T> implements Comparable<Entity<T>> {
-        private final Instant createTime = Instant.now();
+    private class Entity<T> implements Comparable<Entity<T>> {
+        private final Instant createTime = clock.instant();
         private final T payload;
 
         Entity(T payload) {

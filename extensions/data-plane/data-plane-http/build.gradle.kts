@@ -17,6 +17,7 @@ val jodahFailsafeVersion: String by project
 val rsApi: String by project
 val faker: String by project
 val restAssured: String by project
+val httpMockServer: String by project
 
 plugins {
     `java-library`
@@ -28,10 +29,13 @@ dependencies {
     implementation(project(":common:util"))
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("net.jodah:failsafe:${jodahFailsafeVersion}")
+
+    testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))
     testFixturesImplementation("com.github.javafaker:javafaker:${faker}")
     testFixturesImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
+    testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
 }
 
 publishing {

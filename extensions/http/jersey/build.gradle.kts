@@ -16,9 +16,11 @@ plugins {
     `java-library`
 }
 
+val jakartaValidationApi: String by project
 val jerseyVersion: String by project
-val rsApi: String by project
 val okHttpVersion: String by project
+val restAssured: String by project
+val rsApi: String by project
 
 dependencies {
     api(project(":spi:web-spi"))
@@ -34,8 +36,11 @@ dependencies {
 
     implementation("org.eclipse.jetty.toolchain:jetty-jakarta-servlet-api:5.0.2")
 
+    testImplementation(project(":extensions:junit"))
+
     testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation("io.rest-assured:rest-assured:${restAssured}")
+    testImplementation("org.glassfish.jersey.ext:jersey-bean-validation:${jerseyVersion}") //for validation
 }
 
 publishing {

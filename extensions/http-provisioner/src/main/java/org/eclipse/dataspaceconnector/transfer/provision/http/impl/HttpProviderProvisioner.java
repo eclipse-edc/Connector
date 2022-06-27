@@ -92,10 +92,10 @@ public class HttpProviderProvisioner implements Provisioner<HttpProviderResource
 
         Request request;
         try {
-            request = createRequest(PROVISION, resourceDefinition.getTransferProcessId(), resourceDefinition.getAssetId(), scopedPolicy);
+            request = createRequest(PROVISION, resourceDefinition.getId(), resourceDefinition.getTransferProcessId(), resourceDefinition.getAssetId(), scopedPolicy);
         } catch (JsonProcessingException e) {
             monitor.severe("Error serializing provision request for provisioner: " + name, e);
-            return completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, "Fatal error serializing request: " + e.getMessage()));
+            return completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, "HttpProviderProvisioner: fatal error serializing request: " + e.getMessage()));
         }
 
         try (var response = httpClient.newCall(request).execute()) {
@@ -103,14 +103,14 @@ public class HttpProviderProvisioner implements Provisioner<HttpProviderResource
                 return completedFuture(StatusResult.success(new ProvisionResponse()));   // in-process
             } else if (response.code() >= 500 && response.code() <= 504) {
                 // retry
-                return completedFuture(StatusResult.failure(ResponseStatus.ERROR_RETRY, "Received error code: " + response.code()));
+                return completedFuture(StatusResult.failure(ResponseStatus.ERROR_RETRY, "HttpProviderProvisioner: received error code: " + response.code()));
             } else {
                 // fatal error
-                return completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, "Received fatal error code: " + response.code()));
+                return completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, "HttpProviderProvisioner: received fatal error code: " + response.code()));
             }
         } catch (IOException e) {
             monitor.severe("Error invoking provisioner: " + name, e);
-            return completedFuture(StatusResult.failure(ResponseStatus.ERROR_RETRY, "Received error: " + e.getMessage()));
+            return completedFuture(StatusResult.failure(ResponseStatus.ERROR_RETRY, "HttpProviderProvisioner: received error: " + e.getMessage()));
         }
     }
 
@@ -121,7 +121,7 @@ public class HttpProviderProvisioner implements Provisioner<HttpProviderResource
 
         Request request;
         try {
-            request = createRequest(DEPROVISION, provisionedResource.getTransferProcessId(), provisionedResource.getAssetId(), scopedPolicy);
+            request = createRequest(DEPROVISION, provisionedResource.getResourceDefinitionId(), provisionedResource.getTransferProcessId(), provisionedResource.getAssetId(), scopedPolicy);
         } catch (JsonProcessingException e) {
             monitor.severe("Error serializing deprovision request for provisioner: " + name, e);
             return completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, "Fatal error serializing request: " + e.getMessage()));
@@ -148,8 +148,9 @@ public class HttpProviderProvisioner implements Provisioner<HttpProviderResource
 
     }
 
-    private Request createRequest(HttpProvisionerRequest.Type type, String processId, String assetId, Policy scopedPolicy) throws JsonProcessingException {
+    private Request createRequest(HttpProvisionerRequest.Type type, String resourceDefinitionId, String processId, String assetId, Policy scopedPolicy) throws JsonProcessingException {
         var provisionerRequest = HttpProvisionerRequest.Builder.newInstance()
+                .resourceDefinitionId(resourceDefinitionId)
                 .assetId(assetId)
                 .transferProcessId(processId)
                 .type(type)

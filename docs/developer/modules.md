@@ -21,14 +21,15 @@ org.eclipse.dataspaceconnector:http:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:http-provisioner:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:http-receiver:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:jdk-logger-monitor:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:junit:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:sql:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:dataloader-cli:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-server:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:junit-extension:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:catalog-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:contract-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:core-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:policy-spi:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:transaction-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transfer-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transport-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:web-spi:0.0.1-SNAPSHOT
@@ -89,9 +90,6 @@ org.eclipse.dataspaceconnector:transfer-process-store-sql:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transaction-atomikos:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transaction-datasource-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transaction-local:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:transaction-spi:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:transfer-functions-core:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:transfer-functions-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:api-configuration:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:asset-api:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:catalog-api:0.0.1-SNAPSHOT
@@ -101,10 +99,8 @@ org.eclipse.dataspaceconnector:contractnegotiation-api:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:policydefinition-api:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transferprocess-api:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:s3-core:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:s3-operator:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:s3-provision:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:blob-core:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:blob-operator:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:blob-provision:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:assetindex-cosmos:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:contract-definition-store-cosmos:0.0.1-SNAPSHOT
@@ -122,8 +118,6 @@ org.eclipse.dataspaceconnector:identity-did-crypto:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:identity-did-service:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:identity-did-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:identity-did-web:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:registration-service:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:registration-service-api:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:oauth2-core:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:oauth2-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:apache-commons-pool-sql:0.0.1-SNAPSHOT

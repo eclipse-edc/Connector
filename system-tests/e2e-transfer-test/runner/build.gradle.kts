@@ -21,16 +21,18 @@ val jupiterVersion: String by project
 val restAssured: String by project
 val awaitility: String by project
 val assertj: String by project
+val postgresVersion: String by project
 
 dependencies {
     testImplementation(project(":extensions:sql:common-sql"))
 
+    testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))
     testImplementation(testFixtures(project(":extensions:azure:cosmos:cosmos-common")))
-    testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(project(":extensions:junit"))
 
-    testImplementation("org.postgresql:postgresql:42.2.6")
+    testImplementation("org.postgresql:postgresql:${postgresVersion}")
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
     testImplementation("org.assertj:assertj-core:${assertj}")
     testImplementation("org.awaitility:awaitility:${awaitility}")
@@ -38,5 +40,7 @@ dependencies {
 
     testCompileOnly(project(":system-tests:e2e-transfer-test:backend-service"))
     testCompileOnly(project(":system-tests:e2e-transfer-test:control-plane"))
+    testCompileOnly(project(":system-tests:e2e-transfer-test:control-plane-cosmosdb"))
+    testCompileOnly(project(":system-tests:e2e-transfer-test:control-plane-postgresql"))
     testCompileOnly(project(":system-tests:e2e-transfer-test:data-plane"))
 }
