@@ -14,9 +14,9 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.service;
 
-import org.eclipse.dataspaceconnector.spi.event.AssetCreated;
-import org.eclipse.dataspaceconnector.spi.event.AssetDeleted;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
+import org.eclipse.dataspaceconnector.spi.event.asset.AssetCreated;
+import org.eclipse.dataspaceconnector.spi.event.asset.AssetDeleted;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 import java.time.Clock;
@@ -36,7 +36,7 @@ public class EventAssetListener implements AssetListener {
     @Override
     public void created(Asset asset) {
         var event = AssetCreated.Builder.newInstance()
-                .id(asset.getId())
+                .assetId(asset.getId())
                 .at(clock.millis())
                 .build();
 
@@ -46,7 +46,7 @@ public class EventAssetListener implements AssetListener {
     @Override
     public void deleted(Asset asset) {
         var event = AssetDeleted.Builder.newInstance()
-                .id(asset.getId())
+                .assetId(asset.getId())
                 .at(clock.millis())
                 .build();
 

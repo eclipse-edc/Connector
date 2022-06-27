@@ -15,11 +15,11 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.service;
 
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
-import org.eclipse.dataspaceconnector.spi.event.AssetCreated;
-import org.eclipse.dataspaceconnector.spi.event.AssetDeleted;
 import org.eclipse.dataspaceconnector.spi.event.Event;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.event.EventSubscriber;
+import org.eclipse.dataspaceconnector.spi.event.asset.AssetCreated;
+import org.eclipse.dataspaceconnector.spi.event.asset.AssetDeleted;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Test;
@@ -49,12 +49,12 @@ public class AssetEventDispatchTest {
 
         service.create(asset, dataAddress);
 
-        assertThat(createdLatch.await(1, SECONDS)).isTrue();
+        assertThat(createdLatch.await(10, SECONDS)).isTrue();
         verify(eventSubscriber).on(isA(AssetCreated.class));
 
         service.delete(asset.getId());
 
-        assertThat(deletedLatch.await(1, SECONDS)).isTrue();
+        assertThat(deletedLatch.await(10, SECONDS)).isTrue();
         verify(eventSubscriber).on(isA(AssetDeleted.class));
     }
 

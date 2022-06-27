@@ -18,13 +18,16 @@ in the detailed section referring to by linking pull requests or issues.
 #### Added
 
 * Event Framework for Asset entity (#1453)
+* Event Framework for PolicyDefinition entity (#1437)
 * SQL Translation layer (#1357, #1459)
 * Permit API verbose error response (#1479)
 
 #### Changed
 
 * Provided default no-op `TransactionContext` (#1461)
-* Refactored query capabilites for `Asset` (#1459)
+* Refactored query capabilities for `Asset` (#1459)
+* Refactored query capabilities for `ContractDefinition` (#1458)
+* Refactored state machine and in-memory persistence (#1511)
 
 #### Removed
 
@@ -40,6 +43,9 @@ in the detailed section referring to by linking pull requests or issues.
 * Fix usage of `NAME` property in `HttpDataSourceFactory` (#1460)
 * Fix clearing Loaders in the FCC (#1495)
 * Avoid endless loops in `ContractNegotiationManager` (#1487)
+* Fix race condition in `ContractNegotiationIntegrationTest` (#1505)
+* Fix for change in Cosmos DB behavior on missing sort fields (#1514)
+* Effectively removed default LIMIT in SQL Contract Def Store (#1515) 
 
 ## [milestone-4] - 2022-06-07
 

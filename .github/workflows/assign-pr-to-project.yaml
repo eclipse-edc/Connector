@@ -1,7 +1,7 @@
 name: Check New Pull Request
 
 on:
-  pull_request:
+  pull_request_target:
     types: [ opened ]
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

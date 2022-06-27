@@ -9,536 +9,6 @@ info:
 servers:
 - url: /
 paths:
-  /assets:
-    get:
-      tags:
-      - Asset
-      operationId: getAllAssets
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AssetDto'
-    post:
-      tags:
-      - Asset
-      operationId: createAsset
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AssetEntryDto'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /assets/{id}:
-    get:
-      tags:
-      - Asset
-      operationId: getAsset
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AssetDto'
-    delete:
-      tags:
-      - Asset
-      operationId: removeAsset
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /catalog:
-    get:
-      tags:
-      - Catalog
-      operationId: getCatalog
-      parameters:
-      - name: providerUrl
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: Gets contract offers (=catalog) of a single connector
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Catalog'
-  /check/health:
-    get:
-      tags:
-      - Application Observability
-      operationId: checkHealth
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /check/liveness:
-    get:
-      tags:
-      - Application Observability
-      operationId: getLiveness
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /check/readiness:
-    get:
-      tags:
-      - Application Observability
-      operationId: getReadiness
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /check/startup:
-    get:
-      tags:
-      - Application Observability
-      operationId: getStartup
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /instances:
-    get:
-      tags:
-      - Dataplane Selector
-      operationId: getAll
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DataPlaneInstance'
-    post:
-      tags:
-      - Dataplane Selector
-      operationId: addEntry
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DataPlaneInstance'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /instances/select:
-    post:
-      tags:
-      - Dataplane Selector
-      operationId: find
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SelectionRequest'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DataPlaneInstance'
-  /contractnegotiations:
-    get:
-      tags:
-      - Contract Negotiation
-      operationId: getNegotiations
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ContractNegotiationDto'
-    post:
-      tags:
-      - Contract Negotiation
-      operationId: initiateContractNegotiation
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NegotiationInitiateRequestDto'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NegotiationId'
-  /contractnegotiations/{id}:
-    get:
-      tags:
-      - Contract Negotiation
-      operationId: getNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContractNegotiationDto'
-  /contractnegotiations/{id}/agreement:
-    get:
-      tags:
-      - Contract Negotiation
-      operationId: getAgreementForNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContractAgreementDto'
-  /contractnegotiations/{id}/cancel:
-    post:
-      tags:
-      - Contract Negotiation
-      operationId: cancelNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /contractnegotiations/{id}/decline:
-    post:
-      tags:
-      - Contract Negotiation
-      operationId: declineNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /contractnegotiations/{id}/state:
-    get:
-      tags:
-      - Contract Negotiation
-      operationId: getNegotiationState
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NegotiationState'
-  /callback/{processId}/deprovision:
-    post:
-      tags:
-      - HTTP Provisioner Webhook
-      operationId: callDeprovisionWebhook
-      parameters:
-      - name: processId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DeprovisionedResource'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /callback/{processId}/provision:
-    post:
-      tags:
-      - HTTP Provisioner Webhook
-      operationId: callProvisionWebhook
-      parameters:
-      - name: processId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ProvisionerWebhookRequest'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /contractdefinitions:
-    get:
-      tags:
-      - Contract Definition
-      operationId: getAllContractDefinitions
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ContractDefinitionDto'
-    post:
-      tags:
-      - Contract Definition
-      operationId: createContractDefinition
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: '#/components/schemas/ContractDefinitionDto'
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /contractdefinitions/{id}:
-    get:
-      tags:
-      - Contract Definition
-      operationId: getContractDefinition
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContractDefinitionDto'
-    delete:
-      tags:
-      - Contract Definition
-      operationId: deleteContractDefinition
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
   /identity-hub/collections:
     post:
       tags:
@@ -607,6 +77,71 @@ paths:
             application/json:
               schema:
                 type: string
+  /instances:
+    get:
+      tags:
+      - Dataplane Selector
+      operationId: getAll
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataPlaneInstance'
+    post:
+      tags:
+      - Dataplane Selector
+      operationId: addEntry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataPlaneInstance'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /instances/select:
+    post:
+      tags:
+      - Dataplane Selector
+      operationId: find
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SelectionRequest'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataPlaneInstance'
+  /catalog:
+    get:
+      tags:
+      - Catalog
+      operationId: getCatalog
+      parameters:
+      - name: providerUrl
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: Gets contract offers (=catalog) of a single connector
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalog'
   /federatedcatalog:
     post:
       operationId: getCachedCatalog
@@ -624,107 +159,107 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ContractOffer'
-  /policydefinitions:
+  /check/health:
     get:
       tags:
-      - Policy
-      operationId: getAllPolicies
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-      - name: filter
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      - name: sort
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      - name: sortField
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
+      - Application Observability
+      description: Performs a liveness probe to determine whether the runtime is working
+        properly.
+      operationId: checkHealth
       responses:
-        default:
-          description: default response
+        "200":
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PolicyDefinition'
+                  $ref: '#/components/schemas/HealthStatus'
+  /check/liveness:
+    get:
+      tags:
+      - Application Observability
+      description: Performs a liveness probe to determine whether the runtime is working
+        properly.
+      operationId: getLiveness
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HealthStatus'
+  /check/readiness:
+    get:
+      tags:
+      - Application Observability
+      description: Performs a readiness probe to determine whether the runtime is
+        able to accept requests.
+      operationId: getReadiness
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HealthStatus'
+  /check/startup:
+    get:
+      tags:
+      - Application Observability
+      description: Performs a startup probe to determine whether the runtime has completed
+        startup.
+      operationId: getStartup
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HealthStatus'
+  /callback/{processId}/deprovision:
     post:
       tags:
-      - Policy
-      operationId: createPolicy
+      - HTTP Provisioner Webhook
+      operationId: callDeprovisionWebhook
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PolicyDefinition'
+              $ref: '#/components/schemas/DeprovisionedResource'
       responses:
         default:
           description: default response
           content:
             application/json: {}
-  /policydefinitions/{id}:
-    get:
+  /callback/{processId}/provision:
+    post:
       tags:
-      - Policy
-      operationId: getPolicy
+      - HTTP Provisioner Webhook
+      operationId: callProvisionWebhook
       parameters:
-      - name: id
+      - name: processId
         in: path
         required: true
         style: simple
         explode: false
         schema:
           type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PolicyDefinition'
-    delete:
-      tags:
-      - Policy
-      operationId: deletePolicy
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProvisionerWebhookRequest'
       responses:
         default:
           description: default response
@@ -734,6 +269,7 @@ paths:
     get:
       tags:
       - Contract Agreement
+      description: Gets all contract agreements according to a particular query
       operationId: getAllAgreements
       parameters:
       - name: offset
@@ -777,18 +313,20 @@ paths:
         schema:
           type: string
       responses:
-        default:
-          description: default response
+        "200":
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/ContractAgreementDto'
+        "400":
+          description: Request body was malformed
   /contractagreements/{id}:
     get:
       tags:
       - Contract Agreement
+      description: Gets an contract agreement with the given ID
       operationId: getContractAgreement
       parameters:
       - name: id
@@ -799,16 +337,616 @@ paths:
         schema:
           type: string
       responses:
-        default:
-          description: default response
+        "200":
+          description: The contract agreement
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContractAgreementDto'
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: An contract agreement with the given ID does not exist
+  /assets:
+    get:
+      tags:
+      - Asset
+      description: Gets all assets according to a particular query
+      operationId: getAllAssets
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: limit
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: filter
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - name: sortField
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AssetDto'
+        "400":
+          description: Request body was malformed
+    post:
+      tags:
+      - Asset
+      description: Creates a new asset together with a data address
+      operationId: createAsset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetEntryDto'
+      responses:
+        "200":
+          description: Asset was created successfully
+        "400":
+          description: Request body was malformed
+        "409":
+          description: "Could not create asset, because an asset with that ID already\
+            \ exists"
+  /assets/{id}:
+    get:
+      tags:
+      - Asset
+      description: Gets an asset with the given ID
+      operationId: getAsset
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The asset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetDto'
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: An asset with the given ID does not exist
+    delete:
+      tags:
+      - Asset
+      description: "Removes an asset with the given ID if possible. Deleting an asset\
+        \ is only possible if that asset is not yet referenced by a contract agreement,\
+        \ in which case an error is returned. DANGER ZONE: Note that deleting assets\
+        \ can have unexpected results, especially for contract offers that have been\
+        \ sent out or ongoing or contract negotiations."
+      operationId: removeAsset
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Asset was deleted successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: An asset with the given ID does not exist
+        "409":
+          description: "The asset cannot be deleted, because it is referenced by a\
+            \ contract agreement"
+  /contractdefinitions:
+    get:
+      tags:
+      - Contract Definition
+      description: Returns all contract definitions according to a query
+      operationId: getAllContractDefinitions
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: limit
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: filter
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - name: sortField
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContractDefinitionDto'
+        "400":
+          description: Request was malformed
+    post:
+      tags:
+      - Contract Definition
+      description: Creates a new contract definition
+      operationId: createContractDefinition
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              $ref: '#/components/schemas/ContractDefinitionDto'
+      responses:
+        "200":
+          description: contract definition was created successfully
+        "400":
+          description: Request body was malformed
+        "409":
+          description: "Could not create contract definition, because a contract definition\
+            \ with that ID already exists"
+  /contractdefinitions/{id}:
+    get:
+      tags:
+      - Contract Definition
+      description: Gets an contract definition with the given ID
+      operationId: getContractDefinition
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The contract definition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractDefinitionDto'
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: An contract agreement with the given ID does not exist
+    delete:
+      tags:
+      - Contract Definition
+      description: "Removes a contract definition with the given ID if possible. DANGER\
+        \ ZONE: Note that deleting contract definitions can have unexpected results,\
+        \ especially for contract offers that have been sent out or ongoing or contract\
+        \ negotiations."
+      operationId: deleteContractDefinition
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Contract definition was deleted successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: A contract definition with the given ID does not exist
+  /contractnegotiations:
+    get:
+      tags:
+      - Contract Negotiation
+      description: Returns all contract negotiations according to a query
+      operationId: getNegotiations
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: limit
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: filter
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - name: sortField
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContractNegotiationDto'
+        "400":
+          description: Request was malformed
+    post:
+      tags:
+      - Contract Negotiation
+      description: "Initiates a contract negotiation for a given offer and with the\
+        \ given counter part. Please note that successfully invoking this endpoint\
+        \ only means that the negotiation was initiated. Clients must poll the /{id}/state\
+        \ endpoint to track the state"
+      operationId: initiateContractNegotiation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NegotiationInitiateRequestDto'
+      responses:
+        "200":
+          description: The negotiation was successfully initiated. Returns the contract
+            negotiation ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NegotiationId'
+          links:
+            poll-state:
+              operationId: getNegotiationState
+              parameters:
+                id: $response.body#/id
+        "400":
+          description: Request body was malformed
+  /contractnegotiations/{id}:
+    get:
+      tags:
+      - Contract Negotiation
+      description: Gets an contract negotiation with the given ID
+      operationId: getNegotiation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The contract negotiation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractNegotiationDto'
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: An contract negotiation with the given ID does not exist
+  /contractnegotiations/{id}/agreement:
+    get:
+      tags:
+      - Contract Negotiation
+      description: Gets a contract agreement for a contract negotiation with the given
+        ID
+      operationId: getAgreementForNegotiation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: "The contract agreement that is attached to the negotiation,\
+            \ or null"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractNegotiationDto'
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: An contract negotiation with the given ID does not exist
+  /contractnegotiations/{id}/cancel:
+    post:
+      tags:
+      - Contract Negotiation
+      description: "Requests aborting the contract negotiation. Due to the asynchronous\
+        \ nature of contract negotiations, a successful response only indicates that\
+        \ the request was successfully received. Clients must poll the /{id}/state\
+        \ endpoint to track the state."
+      operationId: cancelNegotiation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Request to cancel the Contract negotiation was successfully
+            received
+          links:
+            poll-state:
+              operationId: getNegotiationState
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: A contract negotiation with the given ID does not exist
+  /contractnegotiations/{id}/decline:
+    post:
+      tags:
+      - Contract Negotiation
+      description: "Requests cancelling the contract negotiation. Due to the asynchronous\
+        \ nature of contract negotiations, a successful response only indicates that\
+        \ the request was successfully received. Clients must poll the /{id}/state\
+        \ endpoint to track the state."
+      operationId: declineNegotiation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Request to decline the Contract negotiation was successfully
+            received
+          links:
+            poll-state:
+              operationId: getNegotiationState
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: A contract negotiation with the given ID does not exist
+  /contractnegotiations/{id}/state:
+    get:
+      tags:
+      - Contract Negotiation
+      description: Gets the state of a contract negotiation with the given ID
+      operationId: getNegotiationState
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The contract negotiation's state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NegotiationState'
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: An contract negotiation with the given ID does not exist
+  /policydefinitions:
+    get:
+      tags:
+      - Policy
+      description: Returns all policy definitions according to a query
+      operationId: getAllPolicies
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: limit
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+      - name: filter
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - name: sortField
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PolicyDefinition'
+        "400":
+          description: Request was malformed
+    post:
+      tags:
+      - Policy
+      description: Creates a new policy definition
+      operationId: createPolicy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyDefinition'
+      responses:
+        "200":
+          description: policy definition was created successfully
+        "400":
+          description: Request body was malformed
+        "409":
+          description: "Could not create policy definition, because a contract definition\
+            \ with that ID already exists"
+  /policydefinitions/{id}:
+    get:
+      tags:
+      - Policy
+      description: Gets a policy definition with the given ID
+      operationId: getPolicy
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The  policy definition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyDefinition'
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: An  policy definition with the given ID does not exist
+    delete:
+      tags:
+      - Policy
+      description: "Removes a policy definition with the given ID if possible. Deleting\
+        \ a policy definition is only possible if that policy definition is not yet\
+        \ referenced by a contract definition, in which case an error is returned.\
+        \ DANGER ZONE: Note that deleting policy definitions can have unexpected results,\
+        \ do this at your own risk!"
+      operationId: deletePolicy
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Policy definition was deleted successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: An policy definition with the given ID does not exist
+        "409":
+          description: "The policy definition cannot be deleted, because it is referenced\
+            \ by a contract definition"
   /transferprocess:
     get:
       tags:
       - Transfer Process
+      description: Returns all transfer process according to a query
       operationId: getAllTransferProcesses
       parameters:
       - name: offset
@@ -852,17 +990,21 @@ paths:
         schema:
           type: string
       responses:
-        default:
-          description: default response
+        "200":
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/TransferProcessDto'
+        "400":
+          description: Request was malformed
     post:
       tags:
       - Transfer Process
+      description: "Initiates a data transfer with the given parameters. Please note\
+        \ that successfully invoking this endpoint only means that the transfer was\
+        \ initiated. Clients must poll the /{id}/state endpoint to track the state"
       operationId: initiateTransfer
       requestBody:
         content:
@@ -870,16 +1012,25 @@ paths:
             schema:
               $ref: '#/components/schemas/TransferRequestDto'
       responses:
-        default:
-          description: default response
+        "200":
+          description: The transfer was successfully initiated. Returns the transfer
+            process ID
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TransferId'
+          links:
+            poll-state:
+              operationId: getTransferProcessState
+              parameters:
+                id: $response.body#/id
+        "400":
+          description: Request body was malformed
   /transferprocess/{id}:
     get:
       tags:
       - Transfer Process
+      description: Gets an transfer process with the given ID
       operationId: getTransferProcess
       parameters:
       - name: id
@@ -890,16 +1041,24 @@ paths:
         schema:
           type: string
       responses:
-        default:
-          description: default response
+        "200":
+          description: The transfer process
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TransferProcessDto'
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: A transfer process with the given ID does not exist
   /transferprocess/{id}/cancel:
     post:
       tags:
       - Transfer Process
+      description: "Requests aborting the transfer process. Due to the asynchronous\
+        \ nature of transfers, a successful response only indicates that the request\
+        \ was successfully received. Clients must poll the /{id}/state endpoint to\
+        \ track the state."
       operationId: cancelTransferProcess
       parameters:
       - name: id
@@ -910,14 +1069,24 @@ paths:
         schema:
           type: string
       responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
+        "200":
+          description: Request to cancel the transfer process was successfully received
+          links:
+            poll-state:
+              operationId: getTransferProcessState
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: A contract negotiation with the given ID does not exist
   /transferprocess/{id}/deprovision:
     post:
       tags:
       - Transfer Process
+      description: "Requests the deprovisioning of resources associated with a transfer\
+        \ process. Due to the asynchronous nature of transfers, a successful response\
+        \ only indicates that the request was successfully received. This may take\
+        \ a long time, so clients must poll the /{id}/state endpoint to track the\
+        \ state."
       operationId: deprovisionTransferProcess
       parameters:
       - name: id
@@ -928,14 +1097,21 @@ paths:
         schema:
           type: string
       responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
+        "200":
+          description: Request to deprovision the transfer process was successfully
+            received
+          links:
+            poll-state:
+              operationId: getTransferProcessState
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: A contract negotiation with the given ID does not exist
   /transferprocess/{id}/state:
     get:
       tags:
       - Transfer Process
+      description: Gets the state of a transfer process with the given ID
       operationId: getTransferProcessState
       parameters:
       - name: id
@@ -946,12 +1122,16 @@ paths:
         schema:
           type: string
       responses:
-        default:
-          description: default response
+        "200":
+          description: The  transfer process's state
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TransferState'
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: An  transfer process with the given ID does not exist
 components:
   schemas:
     Action:
@@ -1204,6 +1384,13 @@ components:
           type: string
         uid:
           type: string
+    Failure:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            type: string
     FederatedCatalogCacheQuery:
       type: object
       properties:
@@ -1211,6 +1398,24 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Criterion'
+    HealthCheckResult:
+      type: object
+      properties:
+        component:
+          type: string
+        failure:
+          $ref: '#/components/schemas/Failure'
+        isHealthy:
+          type: boolean
+    HealthStatus:
+      type: object
+      properties:
+        componentResults:
+          type: array
+          items:
+            $ref: '#/components/schemas/HealthCheckResult'
+        isSystemHealthy:
+          type: boolean
     NegotiationId:
       type: object
       properties:

@@ -253,11 +253,6 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         }
 
         @Override
-        public @NotNull Collection<ContractDefinition> findAll() {
-            return contractDefinitions;
-        }
-
-        @Override
         public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
             throw new UnsupportedOperationException();
         }
@@ -290,11 +285,6 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         @Override
         public void reload() {
             throw new NotImplementedError();
-        }
-
-        @Override
-        public Stream<ContractDefinition> isReferenced(String policyId) {
-            throw new UnsupportedOperationException();
         }
     }
 

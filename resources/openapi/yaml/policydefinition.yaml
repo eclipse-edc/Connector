@@ -2,6 +2,7 @@ openapi: 3.0.1
 paths:
   /policydefinitions:
     get:
+      description: Returns all policy definitions according to a query
       operationId: getAllPolicies
       parameters:
       - in: query
@@ -30,17 +31,19 @@ paths:
         schema:
           type: string
       responses:
-        default:
+        "200":
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/PolicyDefinition'
-          description: default response
+        "400":
+          description: Request was malformed
       tags:
       - Policy
     post:
+      description: Creates a new policy definition
       operationId: createPolicy
       requestBody:
         content:
@@ -48,14 +51,22 @@ paths:
             schema:
               $ref: '#/components/schemas/PolicyDefinition'
       responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
+        "200":
+          description: policy definition was created successfully
+        "400":
+          description: Request body was malformed
+        "409":
+          description: "Could not create policy definition, because a contract definition\
+            \ with that ID already exists"
       tags:
       - Policy
   /policydefinitions/{id}:
     delete:
+      description: "Removes a policy definition with the given ID if possible. Deleting\
+        \ a policy definition is only possible if that policy definition is not yet\
+        \ referenced by a contract definition, in which case an error is returned.\
+        \ DANGER ZONE: Note that deleting policy definitions can have unexpected results,\
+        \ do this at your own risk!"
       operationId: deletePolicy
       parameters:
       - in: path
@@ -64,13 +75,19 @@ paths:
         schema:
           type: string
       responses:
-        default:
-          content:
-            application/json: {}
-          description: default response
+        "200":
+          description: Policy definition was deleted successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: An policy definition with the given ID does not exist
+        "409":
+          description: "The policy definition cannot be deleted, because it is referenced\
+            \ by a contract definition"
       tags:
       - Policy
     get:
+      description: Gets a policy definition with the given ID
       operationId: getPolicy
       parameters:
       - in: path
@@ -79,12 +96,16 @@ paths:
         schema:
           type: string
       responses:
-        default:
+        "200":
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PolicyDefinition'
-          description: default response
+          description: The  policy definition
+        "400":
+          description: "Request was malformed, e.g. id was null"
+        "404":
+          description: An  policy definition with the given ID does not exist
       tags:
       - Policy
 components:

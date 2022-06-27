@@ -266,11 +266,6 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         private final List<ContractDefinition> contractDefinitions = new ArrayList<>();
 
         @Override
-        public @NotNull Collection<ContractDefinition> findAll() {
-            return contractDefinitions;
-        }
-
-        @Override
         public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
             throw new UnsupportedOperationException();
         }
@@ -303,11 +298,6 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         @Override
         public void reload() {
             throw new NotImplementedError();
-        }
-
-        @Override
-        public Stream<ContractDefinition> isReferenced(String policyId) {
-            throw new UnsupportedOperationException();
         }
     }
 

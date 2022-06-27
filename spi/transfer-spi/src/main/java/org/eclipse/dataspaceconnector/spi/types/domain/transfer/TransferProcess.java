@@ -22,19 +22,14 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
-import org.eclipse.dataspaceconnector.spi.telemetry.TraceCarrier;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import static java.lang.String.format;
@@ -98,52 +93,20 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
  */
 @JsonTypeName("dataspaceconnector:transferprocess")
 @JsonDeserialize(builder = TransferProcess.Builder.class)
-public class TransferProcess extends StatefulEntity implements TraceCarrier {
+public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     private Type type = Type.CONSUMER;
-    private long createdTimestamp;
-    private Map<String, String> traceContext = new HashMap<>();
-    private String errorDetail;
     private DataRequest dataRequest;
     private DataAddress contentDataAddress;
     private ResourceManifest resourceManifest;
     private ProvisionedResourceSet provisionedResourceSet;
     private List<DeprovisionedResource> deprovisionedResources = new ArrayList<>();
-    private Clock clock = Clock.systemUTC();
 
     private TransferProcess() {
     }
 
-    @Override
-    public String getId() {
-        return id;
-    }
-
-    public long getCreatedTimestamp() {
-        return createdTimestamp;
-    }
-
     public Type getType() {
         return type;
-    }
-
-    public int getState() {
-        return state;
-    }
-
-    @Override
-    public int getStateCount() {
-        return stateCount;
-    }
-
-    @Override
-    public long getStateTimestamp() {
-        return stateTimestamp;
-    }
-
-    @Override
-    public Map<String, String> getTraceContext() {
-        return Collections.unmodifiableMap(traceContext);
     }
 
     public DataRequest getDataRequest() {
@@ -160,10 +123,6 @@ public class TransferProcess extends StatefulEntity implements TraceCarrier {
 
     public DataAddress getContentDataAddress() {
         return contentDataAddress;
-    }
-
-    public String getErrorDetail() {
-        return errorDetail;
     }
 
     public void transitionInitial() {
@@ -328,22 +287,15 @@ public class TransferProcess extends StatefulEntity implements TraceCarrier {
         updateStateTimestamp();
     }
 
+    @Override
     public TransferProcess copy() {
-        return Builder.newInstance()
-                .id(id)
-                .state(state)
-                .stateTimestamp(stateTimestamp)
-                .stateCount(stateCount)
+        var builder = Builder.newInstance()
                 .resourceManifest(resourceManifest)
                 .dataRequest(dataRequest)
                 .provisionedResourceSet(provisionedResourceSet)
                 .contentDataAddress(contentDataAddress)
-                .traceContext(traceContext)
-                .type(type)
-                .createdTimestamp(createdTimestamp)
-                .errorDetail(errorDetail)
-                .clock(clock)
-                .build();
+                .type(type);
+        return copy(builder);
     }
 
     public Builder toBuilder() {
@@ -376,15 +328,6 @@ public class TransferProcess extends StatefulEntity implements TraceCarrier {
                 '}';
     }
 
-    /**
-     * Sets the state timestamp to the clock time.
-     *
-     * @see Builder#clock(Clock)
-     */
-    public void updateStateTimestamp() {
-        stateTimestamp = clock.millis();
-    }
-
     private void transition(TransferProcessStates end, TransferProcessStates... starts) {
         if (end.code() < state) {
             return; //we cannot transition "back"
@@ -393,9 +336,7 @@ public class TransferProcess extends StatefulEntity implements TraceCarrier {
         if (Arrays.stream(starts).noneMatch(s -> s.code() == state)) {
             throw new IllegalStateException(format("Cannot transition from state %s to %s", TransferProcessStates.from(state), TransferProcessStates.from(end.code())));
         }
-        stateCount = state == end.code() ? stateCount + 1 : 1;
-        state = end.code();
-        updateStateTimestamp();
+        transitionTo(end.code());
     }
 
     public enum Type {
@@ -416,16 +357,6 @@ public class TransferProcess extends StatefulEntity implements TraceCarrier {
 
         public Builder type(Type type) {
             entity.type = type;
-            return this;
-        }
-
-        public Builder clock(Clock clock) {
-            entity.clock = clock;
-            return this;
-        }
-
-        public Builder createdTimestamp(long value) {
-            entity.createdTimestamp = value;
             return this;
         }
 
@@ -454,22 +385,13 @@ public class TransferProcess extends StatefulEntity implements TraceCarrier {
             return this;
         }
 
-        public Builder errorDetail(String errorDetail) {
-            entity.errorDetail = errorDetail;
-            return this;
-        }
-
-        public Builder traceContext(Map<String, String> traceContext) {
-            entity.traceContext = traceContext;
+        @Override
+        public Builder self() {
             return this;
         }
 
         @Override
-        public void validate() {
-            Objects.requireNonNull(entity.clock, "clock");
-            if (entity.state == UNSAVED.code() && entity.stateTimestamp == 0) {
-                entity.stateTimestamp = entity.clock.millis();
-            }
+        public TransferProcess build() {
             if (entity.resourceManifest != null) {
                 entity.resourceManifest.setTransferProcessId(entity.id);
             }
@@ -481,6 +403,7 @@ public class TransferProcess extends StatefulEntity implements TraceCarrier {
             if (entity.dataRequest != null) {
                 entity.dataRequest.associateWithProcessId(entity.id);
             }
+            return super.build();
         }
 
     }

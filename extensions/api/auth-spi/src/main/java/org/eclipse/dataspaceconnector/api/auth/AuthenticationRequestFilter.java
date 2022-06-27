@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.api.auth;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
-import org.eclipse.dataspaceconnector.spi.exception.NotAuthorizedException;
+import org.eclipse.dataspaceconnector.spi.exception.AuthenticationFailedException;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -24,8 +24,8 @@ import java.util.stream.Collectors;
 import static jakarta.ws.rs.HttpMethod.OPTIONS;
 
 /**
- * Intercepts all requests sent to this resource and authenticates them using an {@link AuthenticationService}.
- * In order to be able to handle CORS requests properly, OPTIONS requests are not validated as their headers usually don't
+ * Intercepts all requests sent to this resource and authenticates them using an {@link AuthenticationService}. In order
+ * to be able to handle CORS requests properly, OPTIONS requests are not validated as their headers usually don't
  * contain credentials.
  */
 public class AuthenticationRequestFilter implements ContainerRequestFilter {
@@ -43,7 +43,7 @@ public class AuthenticationRequestFilter implements ContainerRequestFilter {
         if (!OPTIONS.equalsIgnoreCase(requestContext.getMethod())) {
             var isAuthenticated = authenticationService.isAuthenticated(headers.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             if (!isAuthenticated) {
-                throw new NotAuthorizedException();
+                throw new AuthenticationFailedException();
             }
         }
     }

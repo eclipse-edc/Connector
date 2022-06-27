@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitio
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
@@ -55,7 +56,8 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
     @NotNull
     @Override
     public Stream<ContractDefinition> definitionsFor(ParticipantAgent agent) {
-        return definitionStore.findAll().stream()
+        //todo: once IDS supports pagination, replace this with the actual paging parameters
+        return definitionStore.findAll(QuerySpec.max())
                 .filter(definition -> evaluatePolicies(definition, agent));
     }
 

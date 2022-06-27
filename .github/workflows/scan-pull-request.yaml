@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Check for new entries
         uses: brettcannon/check-for-changed-files@v1
         with:
@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: false
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: deepakputhraya/action-pr-title@master
         with:
           # Match pull request titles conventional commit syntax (https://www.conventionalcommits.org/en/v1.0.0/)

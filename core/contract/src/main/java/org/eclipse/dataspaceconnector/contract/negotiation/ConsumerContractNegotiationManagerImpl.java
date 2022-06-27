@@ -18,7 +18,7 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import io.opentelemetry.extension.annotations.WithSpan;
-import org.eclipse.dataspaceconnector.common.statemachine.StateMachine;
+import org.eclipse.dataspaceconnector.common.statemachine.StateMachineManager;
 import org.eclipse.dataspaceconnector.common.statemachine.StateProcessorImpl;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -60,13 +60,13 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
  */
 public class ConsumerContractNegotiationManagerImpl extends AbstractContractNegotiationManager implements ConsumerContractNegotiationManager {
 
-    private StateMachine stateMachine;
+    private StateMachineManager stateMachineManager;
 
     private ConsumerContractNegotiationManagerImpl() {
     }
 
     public void start() {
-        stateMachine = StateMachine.Builder.newInstance("consumer-contract-negotiation", monitor, executorInstrumentation, waitStrategy)
+        stateMachineManager = StateMachineManager.Builder.newInstance("consumer-contract-negotiation", monitor, executorInstrumentation, waitStrategy)
                 .processor(processNegotiationsInState(INITIAL, this::processInitial))
                 .processor(processNegotiationsInState(REQUESTING, this::processRequesting))
                 .processor(processNegotiationsInState(CONSUMER_OFFERING, this::processConsumerOffering))
@@ -75,12 +75,12 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .processor(onCommands(this::processCommand))
                 .build();
 
-        stateMachine.start();
+        stateMachineManager.start();
     }
 
     public void stop() {
-        if (stateMachine != null) {
-            stateMachine.stop();
+        if (stateMachineManager != null) {
+            stateMachineManager.stop();
         }
     }
 

@@ -104,7 +104,7 @@ public class CosmosContractDefinitionStoreIntegrationTest {
         container.createItem(doc2);
 
         store.reload();
-        assertThat(store.findAll()).hasSize(2).containsExactlyInAnyOrder(doc1.getWrappedInstance(), doc2.getWrappedInstance());
+        assertThat(store.findAll(QuerySpec.max())).hasSize(2).containsExactlyInAnyOrder(doc1.getWrappedInstance(), doc2.getWrappedInstance());
     }
 
     @Test
@@ -114,12 +114,12 @@ public class CosmosContractDefinitionStoreIntegrationTest {
         container.createItem(doc1);
         container.createItem(doc2);
 
-        assertThat(store.findAll()).hasSize(2);
+        assertThat(store.findAll(QuerySpec.max())).hasSize(2);
     }
 
     @Test
     void findAll_emptyResult() {
-        assertThat(store.findAll()).isNotNull().isEmpty();
+        assertThat(store.findAll(QuerySpec.max())).isNotNull().isEmpty();
     }
 
     @Test
@@ -187,11 +187,11 @@ public class CosmosContractDefinitionStoreIntegrationTest {
     void save_delete_find_shouldNotExist() {
         var def1 = generateDefinition();
         store.save(def1);
-        assertThat(store.findAll()).containsOnly(def1);
+        assertThat(store.findAll(QuerySpec.max())).containsOnly(def1);
 
         store.deleteById(def1.getId());
 
-        assertThat(store.findAll()).doesNotContain(def1);
+        assertThat(store.findAll(QuerySpec.max())).doesNotContain(def1);
     }
 
     @Test
@@ -332,7 +332,7 @@ public class CosmosContractDefinitionStoreIntegrationTest {
         // add an object
         var def = generateDefinition();
         store.save(def);
-        assertThat(store.findAll()).containsExactly(def);
+        assertThat(store.findAll(QuerySpec.max())).containsExactly(def);
 
         // modify the object
         var modifiedDef = ContractDefinition.Builder.newInstance().id(def.getId())
@@ -347,45 +347,6 @@ public class CosmosContractDefinitionStoreIntegrationTest {
         var all = store.findAll(QuerySpec.Builder.newInstance().filter("contractPolicyId=test-cp-id-new").build()).collect(Collectors.toList());
 
         assertThat(all).hasSize(1).containsExactly(modifiedDef);
-
-    }
-
-    @Test
-    void isReferenced_notReferenced() {
-        var definitionsExpected = getContractDefinition("def1", "apol1", "cpol1");
-        store.save(definitionsExpected);
-
-        assertThat(store.isReferenced("testpol1")).isEmpty();
-    }
-
-    @Test
-    void isReferenced_asAccessPolicy() {
-        var definitionExpected = getContractDefinition("def1", "apol1", "cpol1");
-        store.save(definitionExpected);
-
-        assertThat(store.isReferenced("apol1")).usingRecursiveFieldByFieldElementComparator().containsOnly(definitionExpected);
-    }
-
-    @Test
-    void isReferenced_asContractPolicy() {
-        var definitionExpected = getContractDefinition("def1", "apol1", "cpol1");
-        store.save(definitionExpected);
-
-        assertThat(store.isReferenced("cpol1")).usingRecursiveFieldByFieldElementComparator().containsOnly(definitionExpected);
-    }
-
-    @Test
-    void isReferenced_byMultipleDefinitions() {
-        var def1 = getContractDefinition("def1", "apol1", "cpol1");
-        var def2 = getContractDefinition("def2", "apol1", "cpol2");
-        var def3 = getContractDefinition("def3", "apol1", "cpol3");
-        var def4 = getContractDefinition("def4", "apol2", "cpol4");
-        var def5 = getContractDefinition("def5", "apol2", "cpol1");
-
-        store.save(List.of(def1, def2, def3, def4, def5));
-
-        assertThat(store.isReferenced("apol1")).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(def1, def2, def3);
-        assertThat(store.isReferenced("cpol1")).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(def1, def5);
 
     }
 

@@ -57,6 +57,7 @@ class EntitySendRetryManagerTest {
                 .id("any")
                 .stateCount(stateCount)
                 .stateTimestamp(stateTimestamp)
+                .clock(clock)
                 .build();
 
         when(delayStrategy.retryInMillis())
@@ -80,6 +81,7 @@ class EntitySendRetryManagerTest {
                 .id("any")
                 .stateCount(stateCount)
                 .stateTimestamp(stateTimestamp)
+                .clock(clock)
                 .build();
 
         var expected = retriesLeft < 0;
@@ -100,24 +102,33 @@ class EntitySendRetryManagerTest {
         }
     }
 
-    private static class TestEntity extends StatefulEntity {
+    private static class TestEntity extends StatefulEntity<TestEntity> {
+        @Override
+        public TestEntity copy() {
+            return this;
+        }
+
         @JsonPOJOBuilder(withPrefix = "")
         public static class Builder extends StatefulEntity.Builder<TestEntity, Builder> {
 
+            @Override
+            public Builder self() {
+                return this;
+            }
+
             private Builder(TestEntity entity) {
                 super(entity);
+            }
+
+            @Override
+            protected TestEntity build() {
+                return super.build();
             }
 
             @JsonCreator
             public static Builder newInstance() {
                 return new Builder(new TestEntity());
             }
-
-            @Override
-            public void validate() {
-
-            }
-
         }
     }
 }

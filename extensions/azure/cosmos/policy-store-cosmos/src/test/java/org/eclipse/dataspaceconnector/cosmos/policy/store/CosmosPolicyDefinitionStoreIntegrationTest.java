@@ -293,7 +293,7 @@ public class CosmosPolicyDefinitionStoreIntegrationTest {
         store.save(modifiedPolicy);
 
         // re-read
-        var all = store.findAll(QuerySpec.Builder.newInstance().filter("permissions[0].target=test-asset-id").build()).collect(Collectors.toList());
+        var all = store.findAll(QuerySpec.Builder.newInstance().filter("policy.permissions[0].target=test-asset-id").build()).collect(Collectors.toList());
         assertThat(all).hasSize(1).containsExactly(modifiedPolicy);
 
     }

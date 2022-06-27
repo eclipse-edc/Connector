@@ -168,7 +168,7 @@ class InMemoryContractNegotiationStoreTest {
     }
 
     @Test
-    void verifyNextForState_avoidsStarvation() throws InterruptedException {
+    void verifyNextForState_avoidsStarvation() {
         for (int i = 0; i < 10; i++) {
             ContractNegotiation negotiation = createNegotiation("test-negotiation-" + i);
             negotiation.transitionInitial();
@@ -176,8 +176,6 @@ class InMemoryContractNegotiationStoreTest {
         }
 
         var list1 = store.nextForState(INITIAL.code(), 5);
-        Thread.sleep(50); //simulate a short delay to generate different timestamps
-        list1.forEach(tp -> store.save(tp));
         var list2 = store.nextForState(INITIAL.code(), 5);
         assertThat(list1).isNotEqualTo(list2).doesNotContainAnyElementsOf(list2);
     }

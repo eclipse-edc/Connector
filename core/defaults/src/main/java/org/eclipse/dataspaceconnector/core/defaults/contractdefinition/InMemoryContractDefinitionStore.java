@@ -23,12 +23,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDe
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
-
-import static java.lang.String.format;
 
 /**
  * The default store implementation used when no extension is configured in a runtime. {@link ContractDefinition}s are
@@ -37,11 +34,6 @@ import static java.lang.String.format;
 public class InMemoryContractDefinitionStore implements ContractDefinitionStore {
     private final Map<String, ContractDefinition> cache = new ConcurrentHashMap<>();
     private final QueryResolver<ContractDefinition> queryResolver = new ReflectionBasedQueryResolver<>(ContractDefinition.class);
-
-    @Override
-    public @NotNull Collection<ContractDefinition> findAll() {
-        return Collections.unmodifiableCollection(cache.values());
-    }
 
     @Override
     public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
@@ -79,14 +71,4 @@ public class InMemoryContractDefinitionStore implements ContractDefinitionStore 
     public void reload() {
         // no-op
     }
-
-    @Override
-    public Stream<ContractDefinition> isReferenced(String policyId) {
-
-        var queryAccessPolicyFilter = QuerySpec.Builder.newInstance().filter(format("accessPolicyId = %s ", policyId)).build();
-        var queryContractPolicyFilter = QuerySpec.Builder.newInstance().filter(format("contractPolicyId = %s ", policyId)).build();
-
-        return Stream.concat(findAll(queryAccessPolicyFilter), findAll(queryContractPolicyFilter));
-    }
-
 }

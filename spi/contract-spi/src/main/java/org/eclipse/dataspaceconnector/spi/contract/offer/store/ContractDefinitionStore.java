@@ -29,12 +29,6 @@ public interface ContractDefinitionStore {
 
 
     /**
-     * Returns all the definitions in the store.
-     */
-    @NotNull
-    Collection<ContractDefinition> findAll();
-
-    /**
      * Returns all the definitions in the store that are covered by a given {@link QuerySpec}.
      * <p>
      * Note: supplying a sort field that does not exist on the {@link ContractDefinition} may cause some implementations
@@ -78,13 +72,4 @@ public interface ContractDefinitionStore {
      */
     default void reload() {
     }
-
-    /**
-     * Checks whether the given policy is referenced by any {@link ContractDefinition}, either via
-     * {@link ContractDefinition#getAccessPolicyId()} or via {@link ContractDefinition#getContractPolicyId()}.
-     *
-     * @param policyId The ID of the policy
-     * @return a {@link Stream} of contract definitions, that reference the given policy.
-     */
-    Stream<ContractDefinition> isReferenced(String policyId);
 }

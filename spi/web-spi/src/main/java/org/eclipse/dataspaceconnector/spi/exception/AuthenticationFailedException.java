@@ -21,7 +21,7 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
  */
 public class AuthenticationFailedException extends EdcException {
     public AuthenticationFailedException() {
-        super("Authentication not possible or failed");
+        super("Request could not be authenticated");
     }
 
     public AuthenticationFailedException(String message) {

@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.policy;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicyService;
+import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicyDefinitionService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
 
 class PolicyDefinitionApiControllerTest {
 
-    private final PolicyService service = mock(PolicyService.class);
+    private final PolicyDefinitionService service = mock(PolicyDefinitionService.class);
     private final DtoTransformerRegistry transformerRegistry = mock(DtoTransformerRegistry.class);
     private PolicyDefinitionApiController controller;
 
