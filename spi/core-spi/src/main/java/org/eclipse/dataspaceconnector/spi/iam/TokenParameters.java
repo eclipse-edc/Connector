@@ -23,6 +23,9 @@ public class TokenParameters {
     private String scope;
     private String audience;
 
+    private TokenParameters() {
+    }
+
     public String getScope() {
         return scope;
     }
