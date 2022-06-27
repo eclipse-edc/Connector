@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Siemens AG - added additionalHeaders
  *
  */
 
@@ -20,7 +21,9 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.ParallelSink;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static java.lang.String.format;
@@ -30,10 +33,14 @@ import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_R
  * Writes data in a streaming fashion to an HTTP endpoint.
  */
 public class HttpDataSink extends ParallelSink {
+    private static final StatusResult ERROR_WRITING_DATA = StatusResult.failure(ERROR_RETRY, "Error writing data");
+
     private String authKey;
     private String authCode;
     private String endpoint;
+    private String contentType;
     private OkHttpClient httpClient;
+    private Map<String, String> additionalHeaders = new HashMap<>();
 
     /**
      * Sends the parts to the destination endpoint using an HTTP POST.
@@ -41,22 +48,27 @@ public class HttpDataSink extends ParallelSink {
     @Override
     protected StatusResult<Void> transferParts(List<DataSource.Part> parts) {
         for (DataSource.Part part : parts) {
-            var requestBody = new StreamingRequestBody(part);
-
+            var requestBody = new StreamingRequestBody(part, contentType);
             var requestBuilder = new Request.Builder();
             if (authKey != null) {
                 requestBuilder.header(authKey, authCode);
+            }
+
+            if (additionalHeaders != null) {
+                additionalHeaders.forEach(requestBuilder::header);
             }
 
             var request = requestBuilder.url(endpoint).post(requestBody).build();
             try (var response = httpClient.newCall(request).execute()) {
                 if (!response.isSuccessful()) {
                     monitor.severe(format("Error {%s: %s} received writing HTTP data %s to endpoint %s for request: %s", response.code(), response.message(), part.name(), endpoint, request));
-                    return StatusResult.failure(ERROR_RETRY, "Error writing data");
+                    return ERROR_WRITING_DATA;
                 }
+
+                return StatusResult.success();
             } catch (Exception e) {
                 monitor.severe(format("Error writing HTTP data %s to endpoint %s for request: %s", part.name(), endpoint, request), e);
-                return StatusResult.failure(ERROR_RETRY, "Error writing data");
+                return ERROR_WRITING_DATA;
             }
         }
         return StatusResult.success();
@@ -88,6 +100,16 @@ public class HttpDataSink extends ParallelSink {
 
         public Builder httpClient(OkHttpClient httpClient) {
             sink.httpClient = httpClient;
+            return this;
+        }
+
+        public Builder additionalHeaders(Map<String, String> additionalHeaders) {
+            sink.additionalHeaders.putAll(additionalHeaders);
+            return this;
+        }
+
+        public Builder contentType(String contentType) {
+            sink.contentType = contentType;
             return this;
         }
 
