@@ -130,7 +130,7 @@ class VerifiableCredentialFactoryTest {
         assertThat(result.succeeded()).isEqualTo(expectSuccess);
     }
 
-    public static Stream<Arguments> claimsArgs() {
+    static Stream<Arguments> claimsArgs() {
         return Stream.of(
                 jwtCase(b -> b, true, "valid token"),
                 jwtCase(b -> b.audience(List.of()), false, "empty audience"),
