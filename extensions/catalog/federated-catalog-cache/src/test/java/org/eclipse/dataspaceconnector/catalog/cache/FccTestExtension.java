@@ -179,11 +179,6 @@ public class FccTestExtension implements ServiceExtension {
         private final List<ContractDefinition> contractDefinitions = new ArrayList<>();
 
         @Override
-        public @NotNull Collection<ContractDefinition> findAll() {
-            return contractDefinitions;
-        }
-
-        @Override
         public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
             throw new UnsupportedOperationException();
         }

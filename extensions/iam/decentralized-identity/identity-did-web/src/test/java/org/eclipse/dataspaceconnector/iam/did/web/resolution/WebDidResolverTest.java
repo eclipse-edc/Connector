@@ -77,7 +77,7 @@ class WebDidResolverTest {
         }
         var mapper = new ObjectMapper();
         Monitor monitor = mock(Monitor.class);
-        return new WebDidResolver(builder.build(), mapper, monitor);
+        return new WebDidResolver(builder.build(), true, mapper, monitor);
     }
 
 }

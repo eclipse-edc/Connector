@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
 import okio.BufferedSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
+import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -39,7 +40,7 @@ class StreamingRequestBodyTest {
 
         when(sink.outputStream()).thenReturn(outputStream);
 
-        var body = new StreamingRequestBody(part);
+        var body = new StreamingRequestBody(part, HttpDataAddress.OCTET_STREAM);
         body.writeTo(sink);
 
         assertThat(outputStream.toByteArray()).isEqualTo(CONTENT);

@@ -68,7 +68,7 @@ class CosmosContractDefinitionStoreTest {
         when(cosmosDbApiMock.queryAllItems()).thenReturn(List.of(doc1, doc2));
 
         store.reload();
-        var all = store.findAll();
+        var all = store.findAll(QuerySpec.max());
 
         assertThat(all).hasSize(2).containsExactlyInAnyOrder(doc1.getWrappedInstance(), doc2.getWrappedInstance());
         verify(cosmosDbApiMock).queryAllItems();
@@ -78,28 +78,28 @@ class CosmosContractDefinitionStoreTest {
     void findAll_noReload() {
         when(cosmosDbApiMock.queryAllItems()).thenReturn(Collections.emptyList());
 
-        var all = store.findAll();
+        var all = store.findAll(QuerySpec.max());
         assertThat(all).isEmpty();
         verify(cosmosDbApiMock).queryAllItems();
     }
-    
+
     @Test
     void findById() {
         var doc = generateDocument(TEST_PART_KEY);
         when(cosmosDbApiMock.queryAllItems()).thenReturn(List.of(doc));
-        
+
         var result = store.findById(doc.getId());
-        
+
         assertThat(result).isNotNull().isEqualTo(doc.getWrappedInstance());
         verify(cosmosDbApiMock).queryAllItems();
     }
-    
+
     @Test
     void findById_invalidId() {
         when(cosmosDbApiMock.queryAllItems()).thenReturn(Collections.emptyList());
-        
+
         var result = store.findById("invalid-id");
-        
+
         assertThat(result).isNull();
         verify(cosmosDbApiMock).queryAllItems();
     }
@@ -128,7 +128,7 @@ class CosmosContractDefinitionStoreTest {
 
         store.save(definition); //should write through the cache
 
-        var all = store.findAll();
+        var all = store.findAll(QuerySpec.max());
 
         assertThat(all).isNotEmpty().containsExactlyInAnyOrder((ContractDefinition) captor.getValue().getWrappedInstance());
         verify(cosmosDbApiMock).queryAllItems();

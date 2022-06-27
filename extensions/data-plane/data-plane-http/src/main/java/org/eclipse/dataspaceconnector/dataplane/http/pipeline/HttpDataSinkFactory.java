@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Siemens AG - added additionalHeaders
  *
  */
 
@@ -75,6 +76,8 @@ public class HttpDataSinkFactory implements DataSinkFactory {
         }
         var authKey = dataAddress.getAuthKey();
         var authCode = dataAddress.getAuthCode();
+        var additionalHeaders = dataAddress.getAdditionalHeaders();
+        var contentType = dataAddress.getContentType();
 
         var sink = HttpDataSink.Builder.newInstance()
                 .endpoint(baseUrl)
@@ -83,6 +86,8 @@ public class HttpDataSinkFactory implements DataSinkFactory {
                 .authKey(authKey)
                 .authCode(authCode)
                 .httpClient(httpClient)
+                .contentType(contentType)
+                .additionalHeaders(additionalHeaders)
                 .executorService(executorService)
                 .monitor(monitor)
                 .build();
