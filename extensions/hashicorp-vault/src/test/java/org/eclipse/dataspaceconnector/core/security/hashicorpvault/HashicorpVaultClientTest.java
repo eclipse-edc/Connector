@@ -29,7 +29,7 @@ import java.util.UUID;
 
 class HashicorpVaultClientTest {
     private static final String KEY = "key";
-    private static final TypeManager typeManager = new TypeManager();
+    private static final TypeManager TYPE_MANAGER = new TypeManager();
 
     @Test
     void getSecretValue() throws IOException {
@@ -41,7 +41,7 @@ class HashicorpVaultClientTest {
 
         var okHttpClient = Mockito.mock(OkHttpClient.class);
         var vaultClient =
-                new HashicorpVaultClient(hashicorpVaultClientConfig, okHttpClient, typeManager);
+                new HashicorpVaultClient(hashicorpVaultClientConfig, okHttpClient, TYPE_MANAGER);
         var call = Mockito.mock(Call.class);
         var response = Mockito.mock(Response.class);
         var body = Mockito.mock(ResponseBody.class);
@@ -62,9 +62,9 @@ class HashicorpVaultClientTest {
                 .newCall(
                         Mockito.argThat(
                                 request ->
-                                        request.method().equalsIgnoreCase("GET")
-                                                && request.url().encodedPath().contains("/v1/secret/data")
-                                                && request.url().encodedPathSegments().contains(KEY)));
+                                        request.method().equalsIgnoreCase("GET") &&
+                                                request.url().encodedPath().contains("/v1/secret/data") &&
+                                                request.url().encodedPathSegments().contains(KEY)));
     }
 
     @Test
@@ -78,7 +78,7 @@ class HashicorpVaultClientTest {
 
         var okHttpClient = Mockito.mock(OkHttpClient.class);
         var vaultClient =
-                new HashicorpVaultClient(hashicorpVaultClientConfig, okHttpClient, typeManager);
+                new HashicorpVaultClient(hashicorpVaultClientConfig, okHttpClient, TYPE_MANAGER);
         var payload =
                 new HashicorpVaultCreateEntryResponsePayload();
 
@@ -102,9 +102,9 @@ class HashicorpVaultClientTest {
                 .newCall(
                         Mockito.argThat(
                                 request ->
-                                        request.method().equalsIgnoreCase("POST")
-                                                && request.url().encodedPath().contains("/v1/secret/data")
-                                                && request.url().encodedPathSegments().contains(KEY)));
+                                        request.method().equalsIgnoreCase("POST") &&
+                                                request.url().encodedPath().contains("/v1/secret/data") &&
+                                                request.url().encodedPathSegments().contains(KEY)));
     }
 
     @Test
@@ -117,7 +117,7 @@ class HashicorpVaultClientTest {
 
         var okHttpClient = Mockito.mock(OkHttpClient.class);
         var vaultClient =
-                new HashicorpVaultClient(hashicorpVaultClientConfig, okHttpClient, typeManager);
+                new HashicorpVaultClient(hashicorpVaultClientConfig, okHttpClient, TYPE_MANAGER);
 
         var call = Mockito.mock(Call.class);
         var response = Mockito.mock(Response.class);
@@ -136,8 +136,8 @@ class HashicorpVaultClientTest {
                 .newCall(
                         Mockito.argThat(
                                 request ->
-                                        request.method().equalsIgnoreCase("DELETE")
-                                                && request.url().encodedPath().contains("/v1/secret/metadata")
-                                                && request.url().encodedPathSegments().contains(KEY)));
+                                        request.method().equalsIgnoreCase("DELETE") &&
+                                                request.url().encodedPath().contains("/v1/secret/metadata") &&
+                                                request.url().encodedPathSegments().contains(KEY)));
     }
 }
