@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       Fraunhofer Institute for Software and Systems Engineering - policy evaluation
  *
  */
 
@@ -196,6 +197,25 @@ class TransferProcessManagerImplTest {
         verify(transferProcessStore, times(1)).create(argThat(p -> p.getCreatedTimestamp() == currentTime));
         verify(listener).initiated(any());
     }
+    
+    @Test
+    void initiateProviderRequest_policyEvaluationFailed() {
+        var policy = Policy.Builder.newInstance().build();
+        var agent = new ParticipantAgent(new HashMap<>(), new HashMap<>());
+    
+        when(transferProcessStore.processIdForTransferId("1")).thenReturn(null);
+        when(policyArchive.findPolicyForContract(any())).thenReturn(policy);
+        when(policyEngine.evaluate(any(), any(), any(ParticipantAgent.class))).thenReturn(Result.failure("error"));
+    
+        DataRequest dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
+    
+        manager.start();
+        var result = manager.initiateProviderRequest(dataRequest, agent);
+        manager.stop();
+        
+        assertThat(result.fatalError()).isTrue();
+        verify(transferProcessStore, never()).create(any());
+    }
 
     @Test
     void initial_shouldTransitionToProvisioning() {
@@ -216,6 +236,26 @@ class TransferProcessManagerImplTest {
             verifyNoInteractions(provisionManager);
             verify(transferProcessStore).update(argThat(p -> p.getState() == PROVISIONING.code()));
         });
+    }
+    
+    @Test
+    void initial_manifestEvaluationFailed_shouldTransitionToError() throws InterruptedException {
+        var process = createTransferProcess(INITIAL);
+    
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(transferProcessStore.nextForState(eq(INITIAL.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        
+        var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
+        when(manifestGenerator.generateConsumerResourceManifest(any(DataRequest.class), any(Policy.class))).thenReturn(resourceManifest);
+        when(policyEngine.evaluate(any(), any(), any(ResourceManifest.class))).thenReturn(Result.failure("error"));
+    
+        var latch = countDownOnUpdateLatch();
+    
+        manager.start();
+    
+        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verifyNoInteractions(provisionManager);
+        verify(transferProcessStore).update(argThat(p -> p.getState() == ERROR.code()));
     }
 
     @Test
