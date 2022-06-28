@@ -104,7 +104,8 @@ public class DataPlaneHttpToHttpIntegrationTests {
             Map.of(
                     "web.http.public.port", valueOf(DPF_PUBLIC_API_PORT),
                     "web.http.control.port", valueOf(DPF_CONTROL_API_PORT),
-                    "web.http.control.path", CONTROL_PATH
+                    "web.http.control.path", CONTROL_PATH,
+                    "edc.dataplane.token.validation.endpoint", FAKER.internet().url() // not used
             ));
     /**
      * HTTP Source mock server.

@@ -23,21 +23,22 @@ import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTran
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTransferProxyReferenceService;
 import org.jetbrains.annotations.NotNull;
 
-import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.CONTRACT_ID;
+import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.CONTRACT_ID;
 
 /**
- * Transforms {@link EndpointDataReference} returned by the provider Control Plane in such a way that
+ * Transforms {@link EndpointDataReference} returned by the provider Control Plane so that
  * the consumer Data Plane becomes a Data Proxy to query data.
  * This implies that the data query should first hit the consumer Data Plane, which then forward the
  * call to the provider Data Plane, which finally reach the actual data source.
  */
 public class DataPlaneTransferConsumerProxyTransformer implements EndpointDataReferenceTransformer {
 
-    private final String proxyEndpoint;
+    private final DataPlaneTransferProxyResolver proxyResolver;
     private final DataPlaneTransferProxyReferenceService proxyReferenceCreator;
 
-    public DataPlaneTransferConsumerProxyTransformer(String proxyEndpoint, DataPlaneTransferProxyReferenceService proxyCreator) {
-        this.proxyEndpoint = proxyEndpoint;
+    public DataPlaneTransferConsumerProxyTransformer(DataPlaneTransferProxyResolver proxyResolver, DataPlaneTransferProxyReferenceService proxyCreator) {
+        this.proxyResolver = proxyResolver;
         this.proxyReferenceCreator = proxyCreator;
     }
 
@@ -47,20 +48,28 @@ public class DataPlaneTransferConsumerProxyTransformer implements EndpointDataRe
     }
 
     /**
-     * Use the DPF public API as proxy to another DPF proxy, i.e. consumer Data Plane.
+     * Convert the consumer Data Plane insto a proxy for querying the provider Data Plane.
+     *
+     * @param edr provider {@link EndpointDataReference}
+     * @return consumer {@link EndpointDataReference}
      */
     @Override
     public Result<EndpointDataReference> transform(@NotNull EndpointDataReference edr) {
         var address = toHttpDataAddress(edr);
         var contractId = edr.getProperties().get(CONTRACT_ID);
         if (contractId == null) {
-            return Result.failure(String.format("Cannot transform endpoint data reference with id %s as contract id is missing", edr.getId()));
+            return Result.failure(format("Cannot transform endpoint data reference with id %s as contract id is missing", edr.getId()));
+        }
+
+        var proxyUrl = proxyResolver.resolveProxyUrl(address);
+        if (proxyUrl.failed()) {
+            return Result.failure(format("Failed to resolve proxy url for endpoint data reference %s\n %s", edr.getId(), String.join(",", proxyUrl.getFailureMessages())));
         }
 
         var builder = DataPlaneTransferProxyCreationRequest.Builder.newInstance()
                 .id(edr.getId())
                 .contentAddress(address)
-                .proxyEndpoint(proxyEndpoint)
+                .proxyEndpoint(proxyUrl.getContent())
                 .contractId(contractId);
         edr.getProperties().forEach(builder::property);
         return proxyReferenceCreator.createProxyReference(builder.build());
