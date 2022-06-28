@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.events.cloudevents.http;
 
+import net.jodah.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
@@ -45,11 +46,14 @@ public class CloudEventsHttpExtension implements ServiceExtension {
     @Inject
     private Hostname hostname;
 
+    @Inject
+    private RetryPolicy<Object> retryPolicy;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         var endpoint = context.getConfig().getString(EDC_EVENTS_CLOUDEVENTS_ENDPOINT);
 
-        eventRouter.register(new CloudEventsPublisher(endpoint, context.getMonitor(), typeManager, okHttpClient, clock, hostname));
+        eventRouter.register(new CloudEventsPublisher(endpoint, context.getMonitor(), typeManager, okHttpClient, clock, hostname, retryPolicy));
     }
 
 }

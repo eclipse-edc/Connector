@@ -17,6 +17,8 @@ package org.eclipse.dataspaceconnector.events.cloudevents.http;
 import io.cloudevents.core.v1.CloudEventBuilder;
 import io.cloudevents.http.HttpMessageFactory;
 import io.cloudevents.http.impl.HttpMessageWriter;
+import net.jodah.failsafe.FailsafeException;
+import net.jodah.failsafe.RetryPolicy;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -28,7 +30,6 @@ import org.eclipse.dataspaceconnector.spi.system.Hostname;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
@@ -36,6 +37,7 @@ import java.time.LocalDateTime;
 
 import static java.lang.String.format;
 import static java.time.ZoneOffset.UTC;
+import static net.jodah.failsafe.Failsafe.with;
 
 class CloudEventsPublisher implements EventSubscriber {
     private static final String APPLICATION_JSON = "application/json";
@@ -46,14 +48,16 @@ class CloudEventsPublisher implements EventSubscriber {
     private final OkHttpClient okHttpClient;
     private final Clock clock;
     private final Hostname hostname;
+    private final RetryPolicy<Object> retryPolicy;
 
-    CloudEventsPublisher(String endpoint, Monitor monitor, TypeManager typeManager, OkHttpClient okHttpClient, Clock clock, Hostname hostname) {
+    CloudEventsPublisher(String endpoint, Monitor monitor, TypeManager typeManager, OkHttpClient okHttpClient, Clock clock, Hostname hostname, RetryPolicy<Object> retryPolicy) {
         this.endpoint = endpoint;
         this.monitor = monitor;
         this.typeManager = typeManager;
         this.okHttpClient = okHttpClient;
         this.clock = clock;
         this.hostname = hostname;
+        this.retryPolicy = retryPolicy;
     }
 
     @Override
@@ -81,12 +85,11 @@ class CloudEventsPublisher implements EventSubscriber {
                     .url(endpoint)
                     .post(RequestBody.create(body, MediaType.get(APPLICATION_JSON)))
                     .build();
-
-            try (var response = okHttpClient.newCall(request).execute()) {
+            try (var response = with(retryPolicy).get(() -> okHttpClient.newCall(request).execute())) {
                 if (!response.isSuccessful()) {
                     monitor.severe(format("Error sending cloud event to endpoint %s, response status: %d", endpoint, response.code()));
                 }
-            } catch (IOException e) {
+            } catch (FailsafeException e) {
                 monitor.severe(format("Error sending event to endpoint %s", endpoint), e);
             }
         });

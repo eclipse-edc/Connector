@@ -20,6 +20,7 @@ plugins {
 val awaitility: String by project
 val cloudEvents: String by project
 val httpMockServer: String by project
+val jodahFailsafeVersion: String by project
 val okHttpVersion: String by project
 
 dependencies {
@@ -27,6 +28,7 @@ dependencies {
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("io.cloudevents:cloudevents-http-basic:${cloudEvents}")
+    implementation("net.jodah:failsafe:${jodahFailsafeVersion}")
 
     testImplementation(testFixtures(project(":extensions:junit")))
     testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
