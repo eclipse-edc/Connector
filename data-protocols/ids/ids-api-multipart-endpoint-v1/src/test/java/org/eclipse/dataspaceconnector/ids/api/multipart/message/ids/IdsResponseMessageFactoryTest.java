@@ -277,9 +277,8 @@ public class IdsResponseMessageFactoryTest {
     }
 
     private static TokenParameters tokenParametersFor(String audience) {
-        return argThat(t ->
-                t != null &&
-                        Objects.equals(t.getScope(), IdsClientCredentialsScope.ALL)
-                        && Objects.equals(t.getAudience(), audience));
+        return argThat(t -> t != null &&
+                Objects.equals(t.getScope(), IdsClientCredentialsScope.ALL) &&
+                Objects.equals(t.getAudience(), audience));
     }
 }

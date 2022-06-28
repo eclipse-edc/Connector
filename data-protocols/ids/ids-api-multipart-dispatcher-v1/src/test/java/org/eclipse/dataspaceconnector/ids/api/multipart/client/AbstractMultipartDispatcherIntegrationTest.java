@@ -21,7 +21,6 @@ import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
