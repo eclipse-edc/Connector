@@ -30,7 +30,7 @@ public class DummyApiExtension implements ServiceExtension {
     @Inject
     WebService webService;
 
-    @Inject//(required = false)
+    @Inject
     private AuthenticationService service;
 
     @Override
@@ -47,8 +47,8 @@ public class DummyApiExtension implements ServiceExtension {
 
         @GET
         @Path("dummy")
-        public String checkHealth() {
-            return "{\"response\":\"I'm alive!\"}";
+        public String dummy() {
+            return "{\"response\":\"Test signal sent!\"}";
         }
     }
 }
