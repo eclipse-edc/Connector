@@ -49,7 +49,7 @@ public class CloudEventsHttpExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var endpoint = context.getConfig().getString(EDC_EVENTS_CLOUDEVENTS_ENDPOINT);
 
-        eventRouter.register(new CloudEventsPublisherSubscriber(endpoint, context.getMonitor(), typeManager, okHttpClient, clock, hostname));
+        eventRouter.register(new CloudEventsPublisher(endpoint, context.getMonitor(), typeManager, okHttpClient, clock, hostname));
     }
 
 }

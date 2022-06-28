@@ -37,7 +37,7 @@ import java.time.LocalDateTime;
 import static java.lang.String.format;
 import static java.time.ZoneOffset.UTC;
 
-class CloudEventsPublisherSubscriber implements EventSubscriber {
+class CloudEventsPublisher implements EventSubscriber {
     private static final String APPLICATION_JSON = "application/json";
 
     private final String endpoint;
@@ -47,7 +47,7 @@ class CloudEventsPublisherSubscriber implements EventSubscriber {
     private final Clock clock;
     private final Hostname hostname;
 
-    CloudEventsPublisherSubscriber(String endpoint, Monitor monitor, TypeManager typeManager, OkHttpClient okHttpClient, Clock clock, Hostname hostname) {
+    CloudEventsPublisher(String endpoint, Monitor monitor, TypeManager typeManager, OkHttpClient okHttpClient, Clock clock, Hostname hostname) {
         this.endpoint = endpoint;
         this.monitor = monitor;
         this.typeManager = typeManager;
@@ -83,7 +83,7 @@ class CloudEventsPublisherSubscriber implements EventSubscriber {
                     .build();
 
             try (var response = okHttpClient.newCall(request).execute()) {
-                if (response.code() != 200) {
+                if (!response.isSuccessful()) {
                     monitor.severe(format("Error sending cloud event to endpoint %s, response status: %d", endpoint, response.code()));
                 }
             } catch (IOException e) {
