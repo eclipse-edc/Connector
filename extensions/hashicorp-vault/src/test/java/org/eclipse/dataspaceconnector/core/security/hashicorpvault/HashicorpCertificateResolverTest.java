@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 
 import org.bouncycastle.operator.OperatorCreationException;
+import org.eclipse.dataspaceconnector.common.testfixtures.X509CertificateTestUtil;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

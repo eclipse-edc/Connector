@@ -14,7 +14,6 @@
 
 val mockitoVersion: String by project
 val okHttpVersion: String by project
-val bouncycastleVersion: String by project
 
 plugins {
     `java-library`
@@ -24,7 +23,6 @@ dependencies {
     api(project(":spi:core-spi"))
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    implementation("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
     implementation(project(":common:util"))
 
     testImplementation(testFixtures(project(":launchers:junit")))

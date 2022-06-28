@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
+package org.eclipse.dataspaceconnector.common.security;
 
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -27,7 +27,7 @@ import java.security.Provider;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
-final class PemUtil {
+public final class PemUtil {
 
     private static final Provider PROVIDER = new BouncyCastleProvider();
     private static final JcaX509CertificateConverter X509_CONVERTER =

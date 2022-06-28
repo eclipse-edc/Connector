@@ -21,8 +21,12 @@ plugins {
 val jupiterVersion: String by project
 val mockitoVersion: String by project
 val okHttpVersion: String by project
+val bouncycastleVersion: String by project
 
 dependencies {
+    implementation("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
+
+    testFixturesImplementation("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
     testFixturesImplementation("org.mockito:mockito-core:${mockitoVersion}")
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")

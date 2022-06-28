@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 
+import org.eclipse.dataspaceconnector.common.security.PemUtil;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;

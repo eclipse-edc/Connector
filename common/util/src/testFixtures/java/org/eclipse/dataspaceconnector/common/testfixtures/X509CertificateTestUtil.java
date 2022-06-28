@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
+package org.eclipse.dataspaceconnector.common.testfixtures;
 
 import org.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -50,7 +50,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 
-final class X509CertificateTestUtil {
+public final class X509CertificateTestUtil {
     private static final String SIGNATURE_ALGORITHM = "SHA256WithRSAEncryption";
     private static final Provider PROVIDER = new BouncyCastleProvider();
     private static final JcaX509CertificateConverter JCA_X509_CERTIFICATE_CONVERTER =
@@ -60,7 +60,7 @@ final class X509CertificateTestUtil {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
 
-    static X509Certificate generateCertificate(int validity, String cn)
+    public static X509Certificate generateCertificate(int validity, String cn)
             throws CertificateException, OperatorCreationException, IOException,
             NoSuchAlgorithmException {
 
@@ -118,7 +118,7 @@ final class X509CertificateTestUtil {
         return new X509ExtensionUtils(digCalc).createAuthorityKeyIdentifier(publicKeyInfo);
     }
 
-    static String convertToPem(X509Certificate certificate) throws IOException {
+    public static String convertToPem(X509Certificate certificate) throws IOException {
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
             try (OutputStreamWriter writer = new OutputStreamWriter(stream)) {
                 var pemWriter = new JcaPEMWriter(writer);
