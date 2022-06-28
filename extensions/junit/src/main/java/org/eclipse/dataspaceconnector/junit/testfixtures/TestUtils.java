@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -53,7 +53,7 @@ public class TestUtils {
 
     public static String getResourceFileContentAsString(String resourceName) {
         var stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName);
-        Scanner s = new Scanner(Objects.requireNonNull(stream)).useDelimiter("\\A");
+        Scanner s = new Scanner(Objects.requireNonNull(stream, "Not found: " + resourceName)).useDelimiter("\\A");
         return s.hasNext() ? s.next() : "";
     }
 

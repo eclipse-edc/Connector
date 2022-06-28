@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial Implementation
+ *       Microsoft Corporation - Use IDS Webhook address for JWT audience claim
  *
  */
 
@@ -27,6 +28,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
+import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.junit.jupiter.api.Assertions;
@@ -38,9 +40,12 @@ import org.mockito.Mockito;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+
+import static org.mockito.ArgumentMatchers.argThat;
 
 public class IdsResponseMessageFactoryTest {
 
@@ -69,7 +74,7 @@ public class IdsResponseMessageFactoryTest {
         Mockito.when(correlationMessage.getSenderAgent()).thenReturn(URI.create(CORRELATION_MESSAGE_SENDER));
         Mockito.when(correlationMessage.getIssuerConnector()).thenReturn(URI.create(CORRELATION_ISSUER_CONNECTOR));
 
-        Mockito.when(identityService.obtainClientCredentials(IdsClientCredentialsScope.ALL))
+        Mockito.when(identityService.obtainClientCredentials(tokenParametersFor(CORRELATION_ISSUER_CONNECTOR)))
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token(TOKEN_VALUE).build()));
     }
 
@@ -217,6 +222,8 @@ public class IdsResponseMessageFactoryTest {
     @Test
     public void testIssuerConnectorNull() {
         Mockito.when(correlationMessage.getIssuerConnector()).thenReturn(null);
+        Mockito.when(identityService.obtainClientCredentials(tokenParametersFor(IdsResponseMessageFactory.NULL_RECIPIENT_CONNECTOR.toString())))
+                .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token(TOKEN_VALUE).build()));
 
         Consumer<Provider<Message>> assertFunc = (provider) -> Assertions.assertThrows(InvalidCorrelationMessageException.class, provider::get);
 
@@ -234,7 +241,8 @@ public class IdsResponseMessageFactoryTest {
 
     @Test
     public void testClientCredentialsMissing() {
-        Mockito.when(identityService.obtainClientCredentials(IdsClientCredentialsScope.ALL)).thenReturn(Result.failure("foo"));
+        Mockito.when(identityService.obtainClientCredentials(tokenParametersFor(CORRELATION_ISSUER_CONNECTOR)))
+                .thenReturn(Result.failure("foo"));
 
         Consumer<Provider<Message>> assertFunc = (provider) -> Assertions.assertThrows(MissingClientCredentialsException.class, provider::get);
 
@@ -266,5 +274,11 @@ public class IdsResponseMessageFactoryTest {
                 () -> assertFunc.accept(Mockito.mock(Exception.class),
                         RejectionReason.INTERNAL_RECIPIENT_ERROR)
         );
+    }
+
+    private static TokenParameters tokenParametersFor(String audience) {
+        return argThat(t -> t != null &&
+                Objects.equals(t.getScope(), IdsClientCredentialsScope.ALL) &&
+                Objects.equals(t.getAudience(), audience));
     }
 }
