@@ -38,6 +38,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Unused classes and interfaces at `ids.spi.policy` (#1471)
 * Remove modules `:extensions:transfer-functions:transfer-functions-spi` and `:extensions:transfer-functions:transfer-functions-core` (#1482)
 * Remove `ConnectorVersionProvider`, provide version as static string (#1470)
+* Remove `samples/other/run-from-junit` (#1456)
 
 #### Fixed
 

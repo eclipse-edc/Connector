@@ -6,6 +6,10 @@ updates:
     schedule:
       interval: "weekly" # default = monday
     open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github_actions"
+      - "no-changelog"
 
   # maintain dependencies for Gradle
   - package-ecosystem: "gradle" # checks build.gradle(.kts) and settings.gradle(.kts)
@@ -13,3 +17,7 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "java"
+      - "no-changelog"
