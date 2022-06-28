@@ -50,6 +50,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -106,13 +107,13 @@ class ArtifactRequestHandlerTest {
 
         var drCapture = ArgumentCaptor.forClass(DataRequest.class);
         when(agentService.createFor(any())).thenReturn(agent);
-        when(transferProcessManager.initiateProviderRequest(drCapture.capture(), agent)).thenReturn(StatusResult.success("Transfer success"));
+        when(transferProcessManager.initiateProviderRequest(any(), any())).thenReturn(StatusResult.success("Transfer success"));
         when(contractNegotiationStore.findContractAgreement(contractId)).thenReturn(agreement);
         when(contractValidationService.validate(claimToken, agreement)).thenReturn(true);
 
         handler.handleRequest(multipartRequest, claimToken);
 
-        verify(transferProcessManager).initiateProviderRequest(drCapture.capture(), agent);
+        verify(transferProcessManager).initiateProviderRequest(drCapture.capture(), eq(agent));
 
         assertThat(drCapture.getValue().getId()).hasToString(artifactRequestId);
         assertThat(drCapture.getValue().getDataDestination().getKeyName()).isEqualTo(destination.getKeyName());
