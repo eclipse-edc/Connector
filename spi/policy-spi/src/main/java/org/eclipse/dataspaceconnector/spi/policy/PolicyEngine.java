@@ -71,7 +71,8 @@ public interface PolicyEngine {
      * @param scope the scope.
      * @param policy the policy.
      * @param resourceManifest the resource manifest to evaluate.
-     * @return the modified resource definition.
+     * @return a result containing either the verified/modified resource manifest or the problems
+     *         encountered during evaluation.
      */
     Result<ResourceManifest> evaluate(String scope, Policy policy, ResourceManifest resourceManifest);
 

@@ -9,11 +9,16 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - resource manifest evaluation
  *
  */
 
 package org.eclipse.dataspaceconnector.core.base.policy;
 
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
@@ -23,6 +28,9 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.policy.RuleBindingRegistry;
+import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -209,6 +217,81 @@ class PolicyEngineImplTest {
 
         assertThat(result.succeeded()).isFalse();
     }
+    
+    @Test
+    void verifyResourceDefinitionRuleFunction() {
+        var errorMessage = "error";
+        
+        bindingRegistry.bind("USE", ALL_SCOPES);
+        policyEngine.registerFunction(TEST_SCOPE, Permission.class, TestDefinition.class, (rule, def) -> Result.failure(errorMessage));
+    
+        var definition = TestDefinition.Builder.newInstance().id("id").build();
+        var manifest = ResourceManifest.Builder.newInstance().definitions(List.of(definition)).build();
+        
+        var action = Action.Builder.newInstance().type("USE").build();
+        var permission = Permission.Builder.newInstance().action(action).build();
+        var policy = Policy.Builder.newInstance().permission(permission).build();
+        
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, manifest);
+    
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailureMessages()).hasSize(1).containsExactly(errorMessage);
+    }
+    
+    @Test
+    void verifyResourceDefinitionRuleFunction_outOfScope() {
+        bindingRegistry.bind("USE", ALL_SCOPES);
+        policyEngine.registerFunction(TEST_SCOPE, Permission.class, TestDefinition.class, (rule, def) -> Result.failure("error"));
+    
+        var definition = TestDefinition.Builder.newInstance().id("id").build();
+        var manifest = ResourceManifest.Builder.newInstance().definitions(List.of(definition)).build();
+    
+        var action = Action.Builder.newInstance().type("USE").build();
+        var permission = Permission.Builder.newInstance().action(action).build();
+        var policy = Policy.Builder.newInstance().permission(permission).build();
+    
+        var result = policyEngine.evaluate("another-scope", policy, manifest);
+    
+        assertThat(result.succeeded()).isTrue();
+    }
+    
+    @Test
+    void verifyResourceDefinitionConstraintFunction() {
+        var key = "foo";
+        var errorMessage = "error";
+    
+        bindingRegistry.bind("USE", ALL_SCOPES);
+        bindingRegistry.bind(key, ALL_SCOPES);
+        policyEngine.registerFunction(TEST_SCOPE, Prohibition.class, TestDefinition.class, key, (op, rv, rule, def) -> Result.failure(errorMessage));
+    
+        var definition = TestDefinition.Builder.newInstance().id("id").build();
+        var manifest = ResourceManifest.Builder.newInstance().definitions(List.of(definition)).build();
+        
+        var policy = createTestPolicy();
+    
+        var result = policyEngine.evaluate(TEST_SCOPE, policy, manifest);
+    
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailureMessages()).hasSize(1).containsExactly(errorMessage);
+    }
+    
+    @Test
+    void verifyResourceDefinitionConstraintFunction_outOfScope() {
+        var key = "foo";
+        
+        bindingRegistry.bind("USE", ALL_SCOPES);
+        bindingRegistry.bind(key, ALL_SCOPES);
+        policyEngine.registerFunction(TEST_SCOPE, Prohibition.class, TestDefinition.class, key, (op, rv, rule, def) -> Result.failure("error"));
+        
+        var definition = TestDefinition.Builder.newInstance().id("id").build();
+        var manifest = ResourceManifest.Builder.newInstance().definitions(List.of(definition)).build();
+        
+        var policy = createTestPolicy();
+        
+        var result = policyEngine.evaluate("another-scope", policy, manifest);
+        
+        assertThat(result.succeeded()).isTrue();
+    }
 
     @BeforeEach
     void setUp() {
@@ -222,6 +305,20 @@ class PolicyEngineImplTest {
         var constraint = AtomicConstraint.Builder.newInstance().leftExpression(left).operator(EQ).rightExpression(right).build();
         var prohibition = Prohibition.Builder.newInstance().constraint(constraint).build();
         return Policy.Builder.newInstance().prohibition(prohibition).build();
+    }
+    
+    public static class TestDefinition extends ResourceDefinition {
+        @JsonPOJOBuilder(withPrefix = "")
+        public static class Builder extends ResourceDefinition.Builder<TestDefinition, TestDefinition.Builder> {
+            protected Builder() {
+                super(new TestDefinition());
+            }
+    
+            @JsonCreator
+            public static TestDefinition.Builder newInstance() {
+                return new TestDefinition.Builder();
+            }
+        }
     }
 
 }
