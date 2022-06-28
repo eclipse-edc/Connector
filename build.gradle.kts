@@ -20,7 +20,7 @@ plugins {
     signing
     id("com.rameshkp.openapi-merger-gradle-plugin") version "1.0.4"
     id("org.eclipse.dataspaceconnector.module-names")
-    id("com.autonomousapps.dependency-analysis") version "1.1.0" apply (false)
+    id("com.autonomousapps.dependency-analysis") version "1.9.0" apply (false)
     id("org.gradle.crypto.checksum") version "1.4.0"
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
 }
