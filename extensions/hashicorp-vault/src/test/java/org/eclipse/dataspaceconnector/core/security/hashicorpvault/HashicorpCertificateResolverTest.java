@@ -23,7 +23,7 @@ import org.mockito.Mockito;
 import java.io.IOException;
 
 class HashicorpCertificateResolverTest {
-    private static final String key = "key";
+    private static final String KEY = "key";
 
     // mocks
     private HashicorpCertificateResolver certificateResolver;
@@ -41,12 +41,12 @@ class HashicorpCertificateResolverTest {
         // prepare
         var certificateExpected = X509CertificateTestUtil.generateCertificate(5, "Test");
         var pem = X509CertificateTestUtil.convertToPem(certificateExpected);
-        Mockito.when(vault.resolveSecret(key)).thenReturn(pem);
+        Mockito.when(vault.resolveSecret(KEY)).thenReturn(pem);
 
         // invoke
-        certificateResolver.resolveCertificate(key);
+        certificateResolver.resolveCertificate(KEY);
 
         // verify
-        Mockito.verify(vault, Mockito.times(1)).resolveSecret(key);
+        Mockito.verify(vault, Mockito.times(1)).resolveSecret(KEY);
     }
 }

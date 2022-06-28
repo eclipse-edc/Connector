@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 class HashicorpVaultClientTest {
-    private static final String key = "key";
+    private static final String KEY = "key";
     private static final TypeManager typeManager = new TypeManager();
 
     @Test
@@ -54,7 +54,7 @@ class HashicorpVaultClientTest {
         Mockito.when(body.string()).thenReturn(payload.toString());
 
         // invoke
-        var result = vaultClient.getSecretValue(key);
+        var result = vaultClient.getSecretValue(KEY);
 
         // verify
         Assertions.assertNotNull(result);
@@ -64,7 +64,7 @@ class HashicorpVaultClientTest {
                                 request ->
                                         request.method().equalsIgnoreCase("GET")
                                                 && request.url().encodedPath().contains("/v1/secret/data")
-                                                && request.url().encodedPathSegments().contains(key)));
+                                                && request.url().encodedPathSegments().contains(KEY)));
     }
 
     @Test
@@ -94,7 +94,7 @@ class HashicorpVaultClientTest {
 
         // invoke
         var result =
-                vaultClient.setSecret(key, secretValue);
+                vaultClient.setSecret(KEY, secretValue);
 
         // verify
         Assertions.assertNotNull(result);
@@ -104,7 +104,7 @@ class HashicorpVaultClientTest {
                                 request ->
                                         request.method().equalsIgnoreCase("POST")
                                                 && request.url().encodedPath().contains("/v1/secret/data")
-                                                && request.url().encodedPathSegments().contains(key)));
+                                                && request.url().encodedPathSegments().contains(KEY)));
     }
 
     @Test
@@ -128,7 +128,7 @@ class HashicorpVaultClientTest {
         Mockito.when(response.body()).thenReturn(body);
 
         // invoke
-        var result = vaultClient.destroySecret(key);
+        var result = vaultClient.destroySecret(KEY);
 
         // verify
         Assertions.assertNotNull(result);
@@ -138,6 +138,6 @@ class HashicorpVaultClientTest {
                                 request ->
                                         request.method().equalsIgnoreCase("DELETE")
                                                 && request.url().encodedPath().contains("/v1/secret/metadata")
-                                                && request.url().encodedPathSegments().contains(key)));
+                                                && request.url().encodedPathSegments().contains(KEY)));
     }
 }
