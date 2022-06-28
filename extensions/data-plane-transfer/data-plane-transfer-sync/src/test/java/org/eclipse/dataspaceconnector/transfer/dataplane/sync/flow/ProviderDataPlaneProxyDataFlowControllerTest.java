@@ -25,6 +25,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTransferProxyCreationRequest;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTransferProxyReferenceService;
+import org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy.DataPlaneTransferProxyResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -32,11 +33,11 @@ import org.mockito.ArgumentCaptor;
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType.HTTP_PROXY;
+import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.HTTP_PROXY;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -45,18 +46,18 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
     private static final Faker FAKER = new Faker();
 
     private String connectorId;
-    private String proxyEndpoint;
+    private DataPlaneTransferProxyResolver proxyResolver;
     private RemoteMessageDispatcherRegistry dispatcherRegistryMock;
-    private DataPlaneTransferProxyReferenceService proxyCreatorMock;
+    private DataPlaneTransferProxyReferenceService proxyReferenceServiceMock;
     private ProviderDataPlaneProxyDataFlowController controller;
 
     @BeforeEach
     void setUp() {
         connectorId = FAKER.internet().uuid();
-        proxyEndpoint = FAKER.internet().url();
+        proxyResolver = mock(DataPlaneTransferProxyResolver.class);
         dispatcherRegistryMock = mock(RemoteMessageDispatcherRegistry.class);
-        proxyCreatorMock = mock(DataPlaneTransferProxyReferenceService.class);
-        controller = new ProviderDataPlaneProxyDataFlowController(connectorId, proxyEndpoint, dispatcherRegistryMock, proxyCreatorMock);
+        proxyReferenceServiceMock = mock(DataPlaneTransferProxyReferenceService.class);
+        controller = new ProviderDataPlaneProxyDataFlowController(connectorId, proxyResolver, dispatcherRegistryMock, proxyReferenceServiceMock);
     }
 
     @Test
@@ -73,17 +74,20 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
         var policy = Policy.Builder.newInstance().build();
         var dataAddress = testDataAddress();
         var edr = createEndpointDataReference();
+        var proxyUrl = FAKER.internet().url();
 
         var edrRequestCaptor = ArgumentCaptor.forClass(EndpointDataReferenceMessage.class);
         var proxyCreationRequestCaptor = ArgumentCaptor.forClass(DataPlaneTransferProxyCreationRequest.class);
 
         when(dispatcherRegistryMock.send(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
-        when(proxyCreatorMock.createProxyReference(any())).thenReturn(Result.success(edr));
+        when(proxyReferenceServiceMock.createProxyReference(any())).thenReturn(Result.success(edr));
+        when(proxyResolver.resolveProxyUrl(dataAddress)).thenReturn(Result.success(proxyUrl));
 
         var result = controller.initiateFlow(request, dataAddress, policy);
 
-        verify(proxyCreatorMock, times(1)).createProxyReference(proxyCreationRequestCaptor.capture());
+        verify(proxyReferenceServiceMock).createProxyReference(proxyCreationRequestCaptor.capture());
         verify(dispatcherRegistryMock).send(eq(Object.class), edrRequestCaptor.capture(), any(MessageContext.class));
+        verify(proxyResolver).resolveProxyUrl(any());
 
         assertThat(result.succeeded()).isTrue();
         var edrRequest = edrRequestCaptor.getValue();
@@ -95,9 +99,27 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
         var proxyCreationRequest = proxyCreationRequestCaptor.getValue();
         assertThat(proxyCreationRequest.getId()).isEqualTo(request.getId());
         assertThat(proxyCreationRequest.getContentAddress()).isEqualTo(dataAddress);
-        assertThat(proxyCreationRequest.getProxyEndpoint()).isEqualTo(proxyEndpoint);
+        assertThat(proxyCreationRequest.getProxyEndpoint()).isEqualTo(proxyUrl);
         assertThat(proxyCreationRequest.getContractId()).isEqualTo(request.getContractId());
         assertThat(proxyCreationRequest.getProperties()).isEmpty();
+    }
+
+    @Test
+    void proxyUrlResolutionFails_shouldReturnFailedResult() {
+        var request = createDataRequest(HTTP_PROXY);
+        var policy = Policy.Builder.newInstance().build();
+        var dataAddress = testDataAddress();
+        var errorMsg = FAKER.lorem().sentence();
+
+        when(proxyResolver.resolveProxyUrl(dataAddress)).thenReturn(Result.failure(errorMsg));
+
+        var result = controller.initiateFlow(request, dataAddress, policy);
+
+        verify(dispatcherRegistryMock, never()).send(any(), any(), any());
+        verify(proxyResolver).resolveProxyUrl(any());
+
+        assertThat(result.failed()).isTrue();
+        assertThat(result.getFailureMessages()).allSatisfy(s -> assertThat(s).contains(errorMsg));
     }
 
     @Test
@@ -106,10 +128,14 @@ class ProviderDataPlaneProxyDataFlowControllerTest {
         var policy = Policy.Builder.newInstance().build();
         var dataAddress = testDataAddress();
         var errorMsg = FAKER.lorem().sentence();
+        var proxyUrl = FAKER.internet().url();
 
-        when(proxyCreatorMock.createProxyReference(any())).thenReturn(Result.failure(errorMsg));
+        when(proxyResolver.resolveProxyUrl(dataAddress)).thenReturn(Result.success(proxyUrl));
+        when(proxyReferenceServiceMock.createProxyReference(any())).thenReturn(Result.failure(errorMsg));
 
         var result = controller.initiateFlow(request, dataAddress, policy);
+
+        verify(proxyResolver).resolveProxyUrl(any());
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).allSatisfy(s -> assertThat(s).contains(errorMsg));

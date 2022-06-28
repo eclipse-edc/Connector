@@ -28,7 +28,7 @@ import java.time.Clock;
 import java.util.Date;
 import java.util.HashMap;
 
-import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.CONTRACT_ID;
+import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.CONTRACT_ID;
 
 public class DataPlaneTransferProxyReferenceServiceImpl implements DataPlaneTransferProxyReferenceService {
 
