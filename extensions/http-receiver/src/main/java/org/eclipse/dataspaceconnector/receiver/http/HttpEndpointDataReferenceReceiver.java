@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.receiver.http;
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -30,8 +30,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import static dev.failsafe.Failsafe.with;
 import static java.lang.String.format;
-import static net.jodah.failsafe.Failsafe.with;
 import static org.eclipse.dataspaceconnector.common.string.StringUtils.isNullOrBlank;
 
 /**

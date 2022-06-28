@@ -18,7 +18,7 @@ plugins {
 }
 
 val storageBlobVersion: String by project
-val jodahFailsafeVersion: String by project
+val failsafeVersion: String by project
 val jupiterVersion: String by project
 val faker: String by project
 

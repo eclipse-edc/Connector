@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline;
 
 import com.github.javafaker.Faker;
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures;
 import org.eclipse.dataspaceconnector.azure.blob.core.adapter.BlobAdapter;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
@@ -76,7 +76,7 @@ class AzureDataSourceToDataSinkTest {
                 .sharedKey(sourceSharedKey)
                 .blobName(fakeSource.name)
                 .requestId(requestId)
-                .retryPolicy(new RetryPolicy<>())
+                .retryPolicy(RetryPolicy.ofDefaults())
                 .blobStoreApi(fakeSourceFactory)
                 .monitor(monitor)
                 .build();
@@ -135,7 +135,7 @@ class AzureDataSourceToDataSinkTest {
                 .sharedKey(sourceSharedKey)
                 .blobName(fakeSource.name)
                 .requestId(requestId)
-                .retryPolicy(new RetryPolicy<>())
+                .retryPolicy(RetryPolicy.ofDefaults())
                 .blobStoreApi(fakeSourceFactory)
                 .monitor(monitor)
                 .build();
@@ -184,7 +184,7 @@ class AzureDataSourceToDataSinkTest {
                 .sharedKey(sourceSharedKey)
                 .blobName(fakeSource.name)
                 .requestId(requestId)
-                .retryPolicy(new RetryPolicy<>())
+                .retryPolicy(RetryPolicy.ofDefaults())
                 .blobStoreApi(fakeSourceFactory)
                 .monitor(monitor)
                 .build();

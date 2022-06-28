@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -32,8 +32,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import static dev.failsafe.Failsafe.with;
 import static java.lang.String.format;
-import static net.jodah.failsafe.Failsafe.with;
 
 /**
  * Pulls data from a source using an HTTP GET.
