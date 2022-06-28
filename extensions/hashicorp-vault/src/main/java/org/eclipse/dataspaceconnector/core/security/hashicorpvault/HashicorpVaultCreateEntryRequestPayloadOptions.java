@@ -21,26 +21,22 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonDeserialize(builder = HashicorpVaultCreateEntryResponsePayload.Builder.class)
-class HashicorpVaultCreateEntryResponsePayload {
+@JsonDeserialize(builder = HashicorpVaultCreateEntryRequestPayloadOptions.Builder.class)
+class HashicorpVaultCreateEntryRequestPayloadOptions {
+    @JsonProperty("cas")
+    private Integer cas;
 
-    @JsonProperty("data")
-    private HashicorpVaultEntryMetadata data;
-
-    HashicorpVaultCreateEntryResponsePayload(HashicorpVaultEntryMetadata data) {
-        this.data = data;
+    HashicorpVaultCreateEntryRequestPayloadOptions(Integer cas) {
+        this.cas = cas;
     }
 
-    HashicorpVaultCreateEntryResponsePayload() {
-    }
-
-    public HashicorpVaultEntryMetadata getData() {
-        return this.data;
+    public Integer getCas() {
+        return this.cas;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private HashicorpVaultEntryMetadata data;
+        private Integer cas;
 
         Builder() {
         }
@@ -50,14 +46,14 @@ class HashicorpVaultCreateEntryResponsePayload {
             return new Builder();
         }
 
-        @JsonProperty("data")
-        public Builder data(HashicorpVaultEntryMetadata data) {
-            this.data = data;
+        @JsonProperty("cas")
+        public Builder cas(Integer cas) {
+            this.cas = cas;
             return this;
         }
 
-        public HashicorpVaultCreateEntryResponsePayload build() {
-            return new HashicorpVaultCreateEntryResponsePayload(data);
+        public HashicorpVaultCreateEntryRequestPayloadOptions build() {
+            return new HashicorpVaultCreateEntryRequestPayloadOptions(cas);
         }
     }
 }

@@ -47,16 +47,16 @@ class HashicorpVaultClient {
     @NotNull
     private final TypeManager typeManager;
 
-    public HashicorpVaultClient(@NotNull HashicorpVaultClientConfig config, @NotNull OkHttpClient okHttpClient, @NotNull TypeManager typeManager) {
+    HashicorpVaultClient(@NotNull HashicorpVaultClientConfig config, @NotNull OkHttpClient okHttpClient, @NotNull TypeManager typeManager) {
         this.config = config;
         this.okHttpClient = okHttpClient;
         this.typeManager = typeManager;
     }
 
     Result<String> getSecretValue(@NotNull String key) {
-        var requestURI = getSecretUrl(key, VAULT_SECRET_DATA_PATH);
+        var requestUri = getSecretUrl(key, VAULT_SECRET_DATA_PATH);
         var headers = getHeaders();
-        var request = new Request.Builder().url(requestURI).headers(headers).get().build();
+        var request = new Request.Builder().url(requestUri).headers(headers).get().build();
 
         try (var response = okHttpClient.newCall(request).execute()) {
 
@@ -82,15 +82,15 @@ class HashicorpVaultClient {
 
     Result<HashicorpVaultCreateEntryResponsePayload> setSecret(
             @NotNull String key, @NotNull String value) {
-        var requestURI = getSecretUrl(key, VAULT_SECRET_DATA_PATH);
+        var requestUri = getSecretUrl(key, VAULT_SECRET_DATA_PATH);
         var headers = getHeaders();
         var requestPayload =
-                HashicorpVaultCreateEntryRequestPayload.builder()
+                HashicorpVaultCreateEntryRequestPayload.Builder.newInstance()
                         .data(Collections.singletonMap(VAULT_DATA_ENTRY_NAME, value))
                         .build();
         var request =
                 new Request.Builder()
-                        .url(requestURI)
+                        .url(requestUri)
                         .headers(headers)
                         .post(createRequestBody(requestPayload))
                         .build();
@@ -110,9 +110,9 @@ class HashicorpVaultClient {
     }
 
     Result<Void> destroySecret(@NotNull String key) {
-        var requestURI = getSecretUrl(key, VAULT_SECRET_METADATA_PATH);
+        var requestUri = getSecretUrl(key, VAULT_SECRET_METADATA_PATH);
         var headers = getHeaders();
-        var request = new Request.Builder().url(requestURI).headers(headers).delete().build();
+        var request = new Request.Builder().url(requestUri).headers(headers).delete().build();
 
         try (var response = okHttpClient.newCall(request).execute()) {
             return response.isSuccessful() || response.code() == 404

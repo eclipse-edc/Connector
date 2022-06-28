@@ -25,7 +25,7 @@ import java.util.UUID;
 
 @IntegrationTest
 @Tag("HashicorpVaultIntegrationTest")
-class HashicorpVaultIT extends AbstractHashicorpIT {
+class HashicorpVaultIntegrationTest extends AbstractHashicorpIntegrationTest {
 
     @Test
     @DisplayName("Resolve a secret that exists")

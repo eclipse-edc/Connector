@@ -78,7 +78,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
                     String.format("For Vault authentication [%s] is required", VAULT_TOKEN));
         }
 
-        return HashicorpVaultClientConfig.builder()
+        return HashicorpVaultClientConfig.Builder.newInstance()
                 .vaultUrl(vaultUrl)
                 .vaultToken(vaultToken)
                 .timeout(vaultTimeoutDuration)

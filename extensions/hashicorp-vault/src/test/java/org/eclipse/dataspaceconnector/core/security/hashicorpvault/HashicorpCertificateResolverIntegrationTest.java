@@ -26,7 +26,7 @@ import java.util.UUID;
 
 @IntegrationTest
 @Tag("HashicorpVaultIntegrationTest")
-class HashicorpCertificateResolverIT extends AbstractHashicorpIT {
+class HashicorpCertificateResolverIntegrationTest extends AbstractHashicorpIntegrationTest {
 
     @Test
     @DisplayName("Resolve a valid certificate")

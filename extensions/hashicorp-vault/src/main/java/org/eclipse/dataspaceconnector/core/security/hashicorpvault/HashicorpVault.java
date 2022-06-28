@@ -30,7 +30,7 @@ class HashicorpVault implements Vault {
     @NotNull
     private final Monitor monitor;
 
-    public HashicorpVault(@NotNull HashicorpVaultClient hashicorpVaultClient, @NotNull Monitor monitor) {
+    HashicorpVault(@NotNull HashicorpVaultClient hashicorpVaultClient, @NotNull Monitor monitor) {
         this.hashicorpVaultClient = hashicorpVaultClient;
         this.monitor = monitor;
     }

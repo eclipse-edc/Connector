@@ -21,14 +21,10 @@ class HashicorpVaultClientConfig {
     private final String vaultToken;
     private final Duration timeout;
 
-    public HashicorpVaultClientConfig(String vaultUrl, String vaultToken, Duration timeout) {
+    HashicorpVaultClientConfig(String vaultUrl, String vaultToken, Duration timeout) {
         this.vaultUrl = vaultUrl;
         this.vaultToken = vaultToken;
         this.timeout = timeout;
-    }
-
-    public static HashicorpVaultClientConfigBuilder builder() {
-        return new HashicorpVaultClientConfigBuilder();
     }
 
     public String getVaultUrl() {
@@ -43,35 +39,35 @@ class HashicorpVaultClientConfig {
         return this.timeout;
     }
 
-    public static class HashicorpVaultClientConfigBuilder {
+    public static class Builder {
         private String vaultUrl;
         private String vaultToken;
         private Duration timeout;
 
-        HashicorpVaultClientConfigBuilder() {
+        Builder() {
         }
 
-        public HashicorpVaultClientConfigBuilder vaultUrl(String vaultUrl) {
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+        public Builder vaultUrl(String vaultUrl) {
             this.vaultUrl = vaultUrl;
             return this;
         }
 
-        public HashicorpVaultClientConfigBuilder vaultToken(String vaultToken) {
+        public Builder vaultToken(String vaultToken) {
             this.vaultToken = vaultToken;
             return this;
         }
 
-        public HashicorpVaultClientConfigBuilder timeout(Duration timeout) {
+        public Builder timeout(Duration timeout) {
             this.timeout = timeout;
             return this;
         }
 
         public HashicorpVaultClientConfig build() {
             return new HashicorpVaultClientConfig(vaultUrl, vaultToken, timeout);
-        }
-
-        public String toString() {
-            return "HashicorpVaultClientConfig.HashicorpVaultClientConfigBuilder(vaultUrl=" + this.vaultUrl + ", vaultToken=" + this.vaultToken + ", timeout=" + this.timeout + ")";
         }
     }
 }

@@ -28,7 +28,7 @@ import static org.eclipse.dataspaceconnector.core.security.hashicorpvault.Hashic
 import static org.eclipse.dataspaceconnector.core.security.hashicorpvault.HashicorpVaultExtension.VAULT_URL;
 
 @ExtendWith(EdcExtension.class)
-class AbstractHashicorpIT {
+class AbstractHashicorpIntegrationTest {
     static final String VAULT_TEST_URL = "http://127.0.0.1:8200";
     static final String VAULT_TEST_TOKEN = "test-token";
 

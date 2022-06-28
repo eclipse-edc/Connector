@@ -14,127 +14,64 @@
 
 package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonDeserialize(builder = HashicorpVaultCreateEntryRequestPayload.Builder.class)
 class HashicorpVaultCreateEntryRequestPayload {
 
     @JsonProperty("options")
-    private Options options;
+    private HashicorpVaultCreateEntryRequestPayloadOptions options;
 
     @JsonProperty("data")
     private Map<String, String> data;
 
-    public HashicorpVaultCreateEntryRequestPayload(Options options, Map<String, String> data) {
+    HashicorpVaultCreateEntryRequestPayload(HashicorpVaultCreateEntryRequestPayloadOptions options, Map<String, String> data) {
         this.options = options;
         this.data = data;
     }
 
-    public HashicorpVaultCreateEntryRequestPayload() {
-    }
-
-    public static HashicorpVaultCreateEntryRequestPayloadBuilder builder() {
-        return new HashicorpVaultCreateEntryRequestPayloadBuilder();
-    }
-
-    public Options getOptions() {
+    public HashicorpVaultCreateEntryRequestPayloadOptions getOptions() {
         return this.options;
-    }
-
-    @JsonProperty("options")
-    public void setOptions(Options options) {
-        this.options = options;
     }
 
     public Map<String, String> getData() {
         return this.data;
     }
 
-    @JsonProperty("data")
-    public void setData(Map<String, String> data) {
-        this.data = data;
-    }
-
-    public String toString() {
-        return "HashicorpVaultCreateEntryRequestPayload(options=" + this.getOptions() + ", data=" + this.getData() + ")";
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    static class Options {
-        @JsonProperty("cas")
-        private Integer cas;
-
-        public Options(Integer cas) {
-            this.cas = cas;
-        }
-
-        public Options() {
-        }
-
-        public static OptionsBuilder builder() {
-            return new OptionsBuilder();
-        }
-
-        public Integer getCas() {
-            return this.cas;
-        }
-
-        @JsonProperty("cas")
-        public void setCas(Integer cas) {
-            this.cas = cas;
-        }
-
-        public String toString() {
-            return "HashicorpVaultCreateEntryRequestPayload.Options(cas=" + this.getCas() + ")";
-        }
-
-        public static class OptionsBuilder {
-            private Integer cas;
-
-            OptionsBuilder() {
-            }
-
-            public OptionsBuilder cas(Integer cas) {
-                this.cas = cas;
-                return this;
-            }
-
-            public Options build() {
-                return new Options(cas);
-            }
-
-            public String toString() {
-                return "HashicorpVaultCreateEntryRequestPayload.Options.OptionsBuilder(cas=" + this.cas + ")";
-            }
-        }
-    }
-
-    public static class HashicorpVaultCreateEntryRequestPayloadBuilder {
-        private Options options;
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder {
+        private HashicorpVaultCreateEntryRequestPayloadOptions options;
         private Map<String, String> data;
 
-        HashicorpVaultCreateEntryRequestPayloadBuilder() {
+        Builder() {
         }
 
-        public HashicorpVaultCreateEntryRequestPayloadBuilder options(Options options) {
+        @JsonCreator
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+        @JsonProperty("options")
+        public Builder options(HashicorpVaultCreateEntryRequestPayloadOptions options) {
             this.options = options;
             return this;
         }
 
-        public HashicorpVaultCreateEntryRequestPayloadBuilder data(Map<String, String> data) {
+        @JsonProperty("data")
+        public Builder data(Map<String, String> data) {
             this.data = data;
             return this;
         }
 
         public HashicorpVaultCreateEntryRequestPayload build() {
             return new HashicorpVaultCreateEntryRequestPayload(options, data);
-        }
-
-        public String toString() {
-            return "HashicorpVaultCreateEntryRequestPayload.HashicorpVaultCreateEntryRequestPayloadBuilder(options=" + this.options + ", data=" + this.data + ")";
         }
     }
 }

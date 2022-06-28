@@ -20,27 +20,35 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+import java.util.Map;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonDeserialize(builder = HashicorpVaultCreateEntryResponsePayload.Builder.class)
-class HashicorpVaultCreateEntryResponsePayload {
+@JsonDeserialize(builder = HashicorpVaultGetEntryResponsePayloadGetVaultEntryData.Builder.class)
+class HashicorpVaultGetEntryResponsePayloadGetVaultEntryData {
 
     @JsonProperty("data")
-    private HashicorpVaultEntryMetadata data;
+    private Map<String, String> data;
 
-    HashicorpVaultCreateEntryResponsePayload(HashicorpVaultEntryMetadata data) {
+    @JsonProperty("metadata")
+    private HashicorpVaultEntryMetadata metadata;
+
+    HashicorpVaultGetEntryResponsePayloadGetVaultEntryData(Map<String, String> data, HashicorpVaultEntryMetadata metadata) {
         this.data = data;
+        this.metadata = metadata;
     }
 
-    HashicorpVaultCreateEntryResponsePayload() {
-    }
-
-    public HashicorpVaultEntryMetadata getData() {
+    public Map<String, String> getData() {
         return this.data;
+    }
+
+    public HashicorpVaultEntryMetadata getMetadata() {
+        return this.metadata;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private HashicorpVaultEntryMetadata data;
+        private Map<String, String> data;
+        private HashicorpVaultEntryMetadata metadata;
 
         Builder() {
         }
@@ -51,13 +59,19 @@ class HashicorpVaultCreateEntryResponsePayload {
         }
 
         @JsonProperty("data")
-        public Builder data(HashicorpVaultEntryMetadata data) {
+        public Builder data(Map<String, String> data) {
             this.data = data;
             return this;
         }
 
-        public HashicorpVaultCreateEntryResponsePayload build() {
-            return new HashicorpVaultCreateEntryResponsePayload(data);
+        @JsonProperty("metadata")
+        public Builder metadata(HashicorpVaultEntryMetadata metadata) {
+            this.metadata = metadata;
+            return this;
+        }
+
+        public HashicorpVaultGetEntryResponsePayloadGetVaultEntryData build() {
+            return new HashicorpVaultGetEntryResponsePayloadGetVaultEntryData(data, metadata);
         }
     }
 }

@@ -37,7 +37,7 @@ class HashicorpVaultClientTest {
         var vaultUrl = "https://mock.url";
         var vaultToken = UUID.randomUUID().toString();
         var hashicorpVaultClientConfig =
-                HashicorpVaultClientConfig.builder().vaultUrl(vaultUrl).vaultToken(vaultToken).build();
+                HashicorpVaultClientConfig.Builder.newInstance().vaultUrl(vaultUrl).vaultToken(vaultToken).build();
 
         var okHttpClient = Mockito.mock(OkHttpClient.class);
         var vaultClient =
@@ -74,7 +74,7 @@ class HashicorpVaultClientTest {
         var vaultToken = UUID.randomUUID().toString();
         var secretValue = UUID.randomUUID().toString();
         var hashicorpVaultClientConfig =
-                HashicorpVaultClientConfig.builder().vaultUrl(vaultUrl).vaultToken(vaultToken).build();
+                HashicorpVaultClientConfig.Builder.newInstance().vaultUrl(vaultUrl).vaultToken(vaultToken).build();
 
         var okHttpClient = Mockito.mock(OkHttpClient.class);
         var vaultClient =
@@ -113,7 +113,7 @@ class HashicorpVaultClientTest {
         var vaultUrl = "https://mock.url";
         var vaultToken = UUID.randomUUID().toString();
         var hashicorpVaultClientConfig =
-                HashicorpVaultClientConfig.builder().vaultUrl(vaultUrl).vaultToken(vaultToken).build();
+                HashicorpVaultClientConfig.Builder.newInstance().vaultUrl(vaultUrl).vaultToken(vaultToken).build();
 
         var okHttpClient = Mockito.mock(OkHttpClient.class);
         var vaultClient =

@@ -14,128 +14,50 @@
 
 package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.Map;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonDeserialize(builder = HashicorpVaultGetEntryResponsePayload.Builder.class)
 class HashicorpVaultGetEntryResponsePayload {
 
     @JsonProperty("data")
-    private GetVaultEntryData data;
+    private HashicorpVaultGetEntryResponsePayloadGetVaultEntryData data;
 
-    public HashicorpVaultGetEntryResponsePayload(GetVaultEntryData data) {
+    HashicorpVaultGetEntryResponsePayload(HashicorpVaultGetEntryResponsePayloadGetVaultEntryData data) {
         this.data = data;
     }
 
-    public HashicorpVaultGetEntryResponsePayload() {
+    HashicorpVaultGetEntryResponsePayload() {
     }
 
-    public static HashicorpVaultGetEntryResponsePayloadBuilder builder() {
-        return new HashicorpVaultGetEntryResponsePayloadBuilder();
-    }
-
-    public GetVaultEntryData getData() {
+    public HashicorpVaultGetEntryResponsePayloadGetVaultEntryData getData() {
         return this.data;
     }
 
-    @JsonProperty("data")
-    public void setData(GetVaultEntryData data) {
-        this.data = data;
-    }
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder {
+        private HashicorpVaultGetEntryResponsePayloadGetVaultEntryData data;
 
-    public String toString() {
-        return "HashicorpVaultGetEntryResponsePayload(data=" + this.getData() + ")";
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    static class GetVaultEntryData {
-
-        @JsonProperty("data")
-        private Map<String, String> data;
-
-        @JsonProperty("metadata")
-        private HashicorpVaultEntryMetadata metadata;
-
-        public GetVaultEntryData(Map<String, String> data, HashicorpVaultEntryMetadata metadata) {
-            this.data = data;
-            this.metadata = metadata;
+        Builder() {
         }
 
-        public GetVaultEntryData() {
-        }
-
-        public static GetVaultEntryDataBuilder builder() {
-            return new GetVaultEntryDataBuilder();
-        }
-
-        public Map<String, String> getData() {
-            return this.data;
+        @JsonCreator
+        public static Builder newInstance() {
+            return new Builder();
         }
 
         @JsonProperty("data")
-        public void setData(Map<String, String> data) {
-            this.data = data;
-        }
-
-        public HashicorpVaultEntryMetadata getMetadata() {
-            return this.metadata;
-        }
-
-        @JsonProperty("metadata")
-        public void setMetadata(HashicorpVaultEntryMetadata metadata) {
-            this.metadata = metadata;
-        }
-
-        public String toString() {
-            return "HashicorpVaultGetEntryResponsePayload.GetVaultEntryData(data=" + this.getData() + ", metadata=" + this.getMetadata() + ")";
-        }
-
-        public static class GetVaultEntryDataBuilder {
-            private Map<String, String> data;
-            private HashicorpVaultEntryMetadata metadata;
-
-            GetVaultEntryDataBuilder() {
-            }
-
-            public GetVaultEntryDataBuilder data(Map<String, String> data) {
-                this.data = data;
-                return this;
-            }
-
-            public GetVaultEntryDataBuilder metadata(HashicorpVaultEntryMetadata metadata) {
-                this.metadata = metadata;
-                return this;
-            }
-
-            public GetVaultEntryData build() {
-                return new GetVaultEntryData(data, metadata);
-            }
-
-            public String toString() {
-                return "HashicorpVaultGetEntryResponsePayload.GetVaultEntryData.GetVaultEntryDataBuilder(data=" + this.data + ", metadata=" + this.metadata + ")";
-            }
-        }
-    }
-
-    public static class HashicorpVaultGetEntryResponsePayloadBuilder {
-        private GetVaultEntryData data;
-
-        HashicorpVaultGetEntryResponsePayloadBuilder() {
-        }
-
-        public HashicorpVaultGetEntryResponsePayloadBuilder data(GetVaultEntryData data) {
+        public Builder data(HashicorpVaultGetEntryResponsePayloadGetVaultEntryData data) {
             this.data = data;
             return this;
         }
 
         public HashicorpVaultGetEntryResponsePayload build() {
             return new HashicorpVaultGetEntryResponsePayload(data);
-        }
-
-        public String toString() {
-            return "HashicorpVaultGetEntryResponsePayload.HashicorpVaultGetEntryResponsePayloadBuilder(data=" + this.data + ")";
         }
     }
 }
