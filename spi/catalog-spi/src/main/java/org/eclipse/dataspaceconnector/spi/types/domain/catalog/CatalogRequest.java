@@ -38,6 +38,7 @@ public class CatalogRequest implements RemoteMessage {
     }
 
     @NotNull
+    @Override
     public String getProtocol() {
         return protocol;
     }

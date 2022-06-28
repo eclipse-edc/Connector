@@ -30,6 +30,7 @@ import static java.util.stream.Collectors.joining;
 @JsonTypeName("dataspaceconnector:xone")
 public class XoneConstraint extends MultiplicityConstraint {
 
+    @Override
     public List<Constraint> getConstraints() {
         return constraints;
     }
