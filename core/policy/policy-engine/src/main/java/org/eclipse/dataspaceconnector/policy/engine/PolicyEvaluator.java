@@ -209,6 +209,16 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
         return expression.getValue();
     }
     
+    /**
+     * Evaluates and, if required, modifies the given ResourceManifest so that the given policy
+     * is fulfilled. Internally evaluates each {@link ResourceDefinition} that's part of the
+     * manifest separately.
+     *
+     * @param resourceManifest the resource manifest to evaluate.
+     * @param policy the policy.
+     * @return a result containing either the verified/modified resource manifest or the problems
+     *         encountered during evaluation.
+     */
     public Result<ResourceManifest> evaluateManifest(ResourceManifest resourceManifest, Policy policy) {
         var modifiedResourceDefinitions = new ArrayList<ResourceDefinition>();
         var failures = new ArrayList<String>();
@@ -263,25 +273,24 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
         
         for (var constraint : rule.getConstraints()) {
             if (!(constraint instanceof AtomicConstraint)) {
-                failures.add(format("Constraint %s is not an atomic constraint. Cannot evaluate.", constraint));
                 continue;
             }
         
             var atomicConstraint = (AtomicConstraint) constraint;
             Object leftRawValue = atomicConstraint.getLeftExpression().accept(this);
             if (!(leftRawValue instanceof String)) {
-                failures.add(format("Left expression %s of constraint is not a String literal. Cannot evaluate.", leftRawValue));
                 continue;
             }
         
             var functionKey = new ResourceDefinitionConstraintFunctionKey((String) leftRawValue, resourceDefinition.getClass());
             var function = functions.get(functionKey);
-            var result = ((ResourceDefinitionAtomicConstraintFunction<R, D>) function).evaluate(atomicConstraint.getOperator(), atomicConstraint.getRightExpression(), rule, resourceDefinition);
-            if (result.succeeded()) {
-                resourceDefinition = result.getContent();
-            } else {
-                failures.addAll(result.getFailureMessages());
+            if (function == null) {
+                // No function available for evaluating the given constraint
+                continue;
             }
+            
+            var result = ((ResourceDefinitionAtomicConstraintFunction<R, D>) function).evaluate(atomicConstraint.getOperator(), atomicConstraint.getRightExpression(), rule, resourceDefinition);
+            resourceDefinition = processResourceDefinitionResult(result, resourceDefinition, failures);
         }
         
         return failures.isEmpty() ? Result.success(resourceDefinition) : Result.failure(failures);
@@ -294,13 +303,9 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
     
         var functionsForType = functions.get(resourceDefinition.getClass());
         if (functionsForType != null) {
-            for (var dutyFunction : functionsForType) {
-                var result = ((ResourceDefinitionRuleFunction<R, D>) dutyFunction).evaluate(rule, resourceDefinition);
-                if (result.succeeded()) {
-                    resourceDefinition = result.getContent();
-                } else {
-                    failures.addAll(result.getFailureMessages());
-                }
+            for (var function : functionsForType) {
+                var result = ((ResourceDefinitionRuleFunction<R, D>) function).evaluate(rule, resourceDefinition);
+                resourceDefinition = processResourceDefinitionResult(result, resourceDefinition, failures);
             }
         }
     

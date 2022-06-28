@@ -35,7 +35,7 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.policy.engine.model.PolicyTestFunctions.createLiteralAtomicConstraint;
-import static org.eclipse.dataspaceconnector.policy.engine.model.PolicyTestFunctions.ResourceDefinitionFunctionsArguments;
+import static org.eclipse.dataspaceconnector.policy.engine.model.PolicyTestFunctions.RuleTypeArguments;
 import static org.eclipse.dataspaceconnector.policy.engine.model.PolicyTestFunctions.TestDefinition;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -183,7 +183,7 @@ class PolicyEvaluatorTest {
     }
     
     @ParameterizedTest
-    @ArgumentsSource(ResourceDefinitionFunctionsArguments.class)
+    @ArgumentsSource(RuleTypeArguments.class)
     void verifyResourceDefinitionRuleFunctions(Class<? extends Rule> ruleType) {
         var originalKey = "someValue";
         var newKey = "someOtherValue";
@@ -241,7 +241,7 @@ class PolicyEvaluatorTest {
     }
 
     @ParameterizedTest
-    @ArgumentsSource(ResourceDefinitionFunctionsArguments.class)
+    @ArgumentsSource(RuleTypeArguments.class)
     void verifyResourceDefinitionConstraintFunctions(Class<? extends Rule> ruleType) {
         var leftOperand = "leftOperand";
         var rightValue = "rightValue";
@@ -306,5 +306,45 @@ class PolicyEvaluatorTest {
         assertThat(evaluatedDefinition.getKey())
                 .isNotEqualTo(originalKey)
                 .isEqualTo(rightValue);
+    }
+    
+    @Test
+    void verifyResourceDefinitionConstraintFunction_otherLeftOperand() {
+        var originalKey = "someValue";
+        var otherKey = "otherValue";
+    
+        var definition = TestDefinition.Builder.newInstance().id("id").key(originalKey).build();
+        var manifest = ResourceManifest.Builder.newInstance().definitions(List.of(definition)).build();
+    
+        var constraint = AtomicConstraint.Builder.newInstance()
+                .leftExpression(new LiteralExpression("leftOperand"))
+                .operator(Operator.EQ)
+                .rightExpression(new LiteralExpression("rightValue"))
+                .build();
+    
+        var policy = Policy.Builder.newInstance()
+                .permission(Permission.Builder.newInstance()
+                    .action(Action.Builder.newInstance().type("USE").build())
+                    .constraint(constraint)
+                    .build())
+                .build();
+        var evaluator = PolicyEvaluator.Builder.newInstance()
+                .resourceDefinitionConstraintPermissionFunction("registrationKey", TestDefinition.class, (op, rv, r, d) -> {
+                    d.setKey(otherKey);
+                    return Result.success(d);
+                })
+                .build();
+    
+        var result = evaluator.evaluateManifest(manifest, policy);
+        assertThat(result.succeeded()).isTrue();
+    
+        var evaluatedDefinitions = result.getContent().getDefinitions();
+        assertThat(evaluatedDefinitions).hasSize(1);
+    
+        var evaluatedDefinition = (TestDefinition) evaluatedDefinitions.get(0);
+        assertThat(evaluatedDefinition.getId()).isEqualTo(definition.getId());
+        assertThat(evaluatedDefinition.getKey())
+                .isNotEqualTo(otherKey)
+                .isEqualTo(originalKey);
     }
 }

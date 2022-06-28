@@ -73,7 +73,7 @@ public class PolicyTestFunctions {
         }
     }
     
-    public static class ResourceDefinitionFunctionsArguments implements ArgumentsProvider {
+    public static class RuleTypeArguments implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
