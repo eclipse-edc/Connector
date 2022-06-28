@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 
-import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
+import org.eclipse.dataspaceconnector.common.util.junit.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;

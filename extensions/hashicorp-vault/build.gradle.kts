@@ -25,11 +25,10 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation(project(":common:util"))
 
-    testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))
     testImplementation("org.mockito:mockito-inline:${mockitoVersion}")
 }
-
 
 publishing {
     publications {

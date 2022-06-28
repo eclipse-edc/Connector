@@ -22,6 +22,7 @@ import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509ExtensionUtils;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -60,39 +61,40 @@ public final class X509CertificateTestUtil {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
 
-    public static X509Certificate generateCertificate(int validity, String cn)
-            throws CertificateException, OperatorCreationException, IOException,
-            NoSuchAlgorithmException {
+    public static X509Certificate generateCertificate(int validity, String cn) {
+        try {
+            var keyPair = generateKeyPair();
 
-        var keyPair = generateKeyPair();
-
-        var now = Instant.now();
-        var contentSigner =
-                new JcaContentSignerBuilder(SIGNATURE_ALGORITHM).build(keyPair.getPrivate());
-        var issuer =
-                new X500Name(
-                        String.format(
-                                "CN=%s",
-                                Optional.ofNullable(cn)
-                                        .map(String::trim)
-                                        .filter(s -> !s.isEmpty())
-                                        .orElse("rootCA")));
-        var serial = BigInteger.valueOf(now.toEpochMilli());
-        var notBefore = Date.from(now);
-        var notAfter = Date.from(now.plus(Duration.ofDays(validity)));
-        var publicKey = keyPair.getPublic();
-        X509v3CertificateBuilder certificateBuilder =
-                new JcaX509v3CertificateBuilder(issuer, serial, notBefore, notAfter, issuer, publicKey);
-        certificateBuilder =
-                certificateBuilder.addExtension(
-                        Extension.subjectKeyIdentifier, false, createSubjectKeyId(publicKey));
-        certificateBuilder =
-                certificateBuilder.addExtension(
-                        Extension.authorityKeyIdentifier, false, createAuthorityKeyId(publicKey));
-        certificateBuilder =
-                certificateBuilder.addExtension(
-                        Extension.basicConstraints, true, new BasicConstraints(true));
-        return JCA_X509_CERTIFICATE_CONVERTER.getCertificate(certificateBuilder.build(contentSigner));
+            var now = Instant.now();
+            var contentSigner =
+                    new JcaContentSignerBuilder(SIGNATURE_ALGORITHM).build(keyPair.getPrivate());
+            var issuer =
+                    new X500Name(
+                            String.format(
+                                    "CN=%s",
+                                    Optional.ofNullable(cn)
+                                            .map(String::trim)
+                                            .filter(s -> !s.isEmpty())
+                                            .orElse("rootCA")));
+            var serial = BigInteger.valueOf(now.toEpochMilli());
+            var notBefore = Date.from(now);
+            var notAfter = Date.from(now.plus(Duration.ofDays(validity)));
+            var publicKey = keyPair.getPublic();
+            X509v3CertificateBuilder certificateBuilder =
+                    new JcaX509v3CertificateBuilder(issuer, serial, notBefore, notAfter, issuer, publicKey);
+            certificateBuilder =
+                    certificateBuilder.addExtension(
+                            Extension.subjectKeyIdentifier, false, createSubjectKeyId(publicKey));
+            certificateBuilder =
+                    certificateBuilder.addExtension(
+                            Extension.authorityKeyIdentifier, false, createAuthorityKeyId(publicKey));
+            certificateBuilder =
+                    certificateBuilder.addExtension(
+                            Extension.basicConstraints, true, new BasicConstraints(true));
+            return JCA_X509_CERTIFICATE_CONVERTER.getCertificate(certificateBuilder.build(contentSigner));
+        } catch (NoSuchAlgorithmException | OperatorCreationException | CertIOException | CertificateException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 
     private static KeyPair generateKeyPair() throws NoSuchAlgorithmException {

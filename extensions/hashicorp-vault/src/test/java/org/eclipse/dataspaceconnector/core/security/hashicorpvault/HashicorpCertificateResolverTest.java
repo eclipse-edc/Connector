@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 
-import org.bouncycastle.operator.OperatorCreationException;
 import org.eclipse.dataspaceconnector.common.testfixtures.X509CertificateTestUtil;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,8 +21,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 
 class HashicorpCertificateResolverTest {
     private static final String key = "key";
@@ -40,7 +37,7 @@ class HashicorpCertificateResolverTest {
     }
 
     @Test
-    void resolveCertificate() throws CertificateException, IOException, NoSuchAlgorithmException, OperatorCreationException {
+    void resolveCertificate() throws RuntimeException, IOException {
         // prepare
         var certificateExpected = X509CertificateTestUtil.generateCertificate(5, "Test");
         var pem = X509CertificateTestUtil.convertToPem(certificateExpected);
