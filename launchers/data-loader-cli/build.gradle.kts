@@ -15,7 +15,7 @@
 plugins {
     `java-library`
     id("application")
-    id("com.github.johnrengelman.shadow") version "7.0.0"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 val jupiterVersion: String by project
@@ -35,7 +35,7 @@ dependencies {
 
 
     // lightweight lib for CLI args
-    implementation("info.picocli:picocli:4.6.2")
+    implementation("info.picocli:picocli:4.6.3")
 
     testImplementation(project(":extensions:junit"))
 

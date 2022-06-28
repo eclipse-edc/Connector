@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Microsoft Corporation - Use IDS Webhook address for JWT audience claim
  *
  */
 
@@ -26,6 +27,9 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.ids.api.configuration.IdsApiConfigurationExtension.DEFAULT_IDS_API_PATH;
+import static org.eclipse.dataspaceconnector.ids.api.configuration.IdsApiConfigurationExtension.DEFAULT_IDS_WEBHOOK_ADDRESS;
+import static org.eclipse.dataspaceconnector.ids.api.configuration.IdsApiConfigurationExtension.IDS_WEBHOOK_ADDRESS;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -35,23 +39,25 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class IdsApiConfigurationExtensionTest {
-    
+
     private WebServer webServer;
     private ServiceExtensionContext context;
     private IdsApiConfigurationExtension extension;
-    
+
     private ArgumentCaptor<String> contextNameCaptor;
     private ArgumentCaptor<Integer> portCaptor;
     private ArgumentCaptor<String> pathCaptor;
     private ArgumentCaptor<IdsApiConfiguration> apiConfigCaptor;
-    
+
     @BeforeEach
     void setUp() {
         var monitor = new ConsoleMonitor();
         webServer = mock(WebServer.class);
         context = mock(ServiceExtensionContext.class);
         when(context.getMonitor()).thenReturn(monitor);
-        
+        when(context.getSetting(IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS))
+                .thenReturn(DEFAULT_IDS_WEBHOOK_ADDRESS);
+
         extension = new IdsApiConfigurationExtension();
         contextNameCaptor = ArgumentCaptor.forClass(String.class);
         portCaptor = ArgumentCaptor.forClass(Integer.class);
@@ -76,11 +82,12 @@ public class IdsApiConfigurationExtensionTest {
         verify(context, times(1)).getMonitor();
         verify(context, times(1)).getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG);
         verify(context, times(1)).registerService(eq(IdsApiConfiguration.class), apiConfigCaptor.capture());
+        verify(context, times(1)).getSetting(IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS);
         verifyNoMoreInteractions(context);
         
         var idsApiConfig = apiConfigCaptor.getValue();
         assertThat(idsApiConfig.getContextAlias()).isEqualTo("ids");
-        assertThat(idsApiConfig.getPath()).isEqualTo(IdsApiConfigurationExtension.DEFAULT_IDS_API_PATH);
+        assertThat(idsApiConfig.getIdsWebhookAddress()).isEqualTo(DEFAULT_IDS_WEBHOOK_ADDRESS + DEFAULT_IDS_API_PATH + "/data");
     }
     
     @Test
@@ -89,10 +96,14 @@ public class IdsApiConfigurationExtensionTest {
         var apiConfig = new HashMap<String, String>();
         apiConfig.put("port", String.valueOf(8765));
         apiConfig.put("path", path);
-    
+
         var config = ConfigFactory.fromMap(apiConfig);
         when(context.getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG)).thenReturn(config);
-        
+
+        var address = "http://somehost:1234";
+        when(context.getSetting(IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS))
+                .thenReturn(address);
+
         extension.initialize(context);
         
         verifyNoInteractions(webServer);
@@ -100,11 +111,12 @@ public class IdsApiConfigurationExtensionTest {
         verify(context, times(1)).getMonitor();
         verify(context, times(1)).getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG);
         verify(context, times(1)).registerService(eq(IdsApiConfiguration.class), apiConfigCaptor.capture());
+        verify(context, times(1)).getSetting(IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS);
         verifyNoMoreInteractions(context);
         
         var idsApiConfig = apiConfigCaptor.getValue();
         assertThat(idsApiConfig.getContextAlias()).isEqualTo("ids");
-        assertThat(idsApiConfig.getPath()).isEqualTo(path);
+        assertThat(idsApiConfig.getIdsWebhookAddress()).isEqualTo(address + path + "/data");
     }
     
     @Test
@@ -122,11 +134,12 @@ public class IdsApiConfigurationExtensionTest {
         verify(context, times(1)).getMonitor();
         verify(context, times(1)).getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG);
         verify(context, times(1)).registerService(eq(IdsApiConfiguration.class), apiConfigCaptor.capture());
+        verify(context, times(1)).getSetting(IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS);
         verifyNoMoreInteractions(context);
     
         var idsApiConfig = apiConfigCaptor.getValue();
         assertThat(idsApiConfig.getContextAlias()).isEqualTo("ids");
-        assertThat(idsApiConfig.getPath()).isEqualTo(IdsApiConfigurationExtension.DEFAULT_IDS_API_PATH);
+        assertThat(idsApiConfig.getIdsWebhookAddress()).isEqualTo(DEFAULT_IDS_WEBHOOK_ADDRESS + DEFAULT_IDS_API_PATH + "/data");
     }
     
     @Test
@@ -145,11 +158,12 @@ public class IdsApiConfigurationExtensionTest {
         verify(context, times(1)).getMonitor();
         verify(context, times(1)).getConfig(IdsApiConfigurationExtension.IDS_API_CONFIG);
         verify(context, times(1)).registerService(eq(IdsApiConfiguration.class), apiConfigCaptor.capture());
+        verify(context, times(1)).getSetting(IDS_WEBHOOK_ADDRESS, DEFAULT_IDS_WEBHOOK_ADDRESS);
         verifyNoMoreInteractions(context);
     
         var idsApiConfig = apiConfigCaptor.getValue();
         assertThat(idsApiConfig.getContextAlias()).isEqualTo("ids");
-        assertThat(idsApiConfig.getPath()).isEqualTo(path);
+        assertThat(idsApiConfig.getIdsWebhookAddress()).isEqualTo(DEFAULT_IDS_WEBHOOK_ADDRESS + path + "/data");
     }
     
     private void setJettyService() {

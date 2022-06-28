@@ -104,7 +104,7 @@ public class CosmosContractDefinitionStoreIntegrationTest {
         container.createItem(doc2);
 
         store.reload();
-        assertThat(store.findAll()).hasSize(2).containsExactlyInAnyOrder(doc1.getWrappedInstance(), doc2.getWrappedInstance());
+        assertThat(store.findAll(QuerySpec.max())).hasSize(2).containsExactlyInAnyOrder(doc1.getWrappedInstance(), doc2.getWrappedInstance());
     }
 
     @Test
@@ -114,12 +114,12 @@ public class CosmosContractDefinitionStoreIntegrationTest {
         container.createItem(doc1);
         container.createItem(doc2);
 
-        assertThat(store.findAll()).hasSize(2);
+        assertThat(store.findAll(QuerySpec.max())).hasSize(2);
     }
 
     @Test
     void findAll_emptyResult() {
-        assertThat(store.findAll()).isNotNull().isEmpty();
+        assertThat(store.findAll(QuerySpec.max())).isNotNull().isEmpty();
     }
 
     @Test
@@ -187,11 +187,11 @@ public class CosmosContractDefinitionStoreIntegrationTest {
     void save_delete_find_shouldNotExist() {
         var def1 = generateDefinition();
         store.save(def1);
-        assertThat(store.findAll()).containsOnly(def1);
+        assertThat(store.findAll(QuerySpec.max())).containsOnly(def1);
 
         store.deleteById(def1.getId());
 
-        assertThat(store.findAll()).doesNotContain(def1);
+        assertThat(store.findAll(QuerySpec.max())).doesNotContain(def1);
     }
 
     @Test
@@ -332,7 +332,7 @@ public class CosmosContractDefinitionStoreIntegrationTest {
         // add an object
         var def = generateDefinition();
         store.save(def);
-        assertThat(store.findAll()).containsExactly(def);
+        assertThat(store.findAll(QuerySpec.max())).containsExactly(def);
 
         // modify the object
         var modifiedDef = ContractDefinition.Builder.newInstance().id(def.getId())

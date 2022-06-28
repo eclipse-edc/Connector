@@ -19,10 +19,7 @@ import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema;
-import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -34,22 +31,11 @@ import static org.mockito.Mockito.when;
 class DataFlowRequestFactoryTest {
 
     private static final Faker FAKER = new Faker();
-    private static final TypeManager TYPE_MANAGER = new TypeManager();
-
-    private DataFlowRequestFactory factory;
-
-    @BeforeEach
-    public void setUp() {
-        factory = new DataFlowRequestFactory(TYPE_MANAGER);
-    }
 
     @Test
     void from_requestWithoutBody() {
         var contextApi = mock(ContainerRequestContextApi.class);
         var address = createDataAddress();
-        var claimToken = ClaimToken.Builder.newInstance()
-                .claim("dad", TYPE_MANAGER.writeValueAsString(address))
-                .build();
 
         var method = HttpMethod.GET;
         var queryParams = FAKER.lorem().word();
@@ -59,7 +45,7 @@ class DataFlowRequestFactoryTest {
         when(contextApi.queryParams()).thenReturn(queryParams);
         when(contextApi.path()).thenReturn(path);
 
-        var request = factory.from(contextApi, claimToken);
+        var request = DataFlowRequestFactory.from(contextApi, address);
 
         assertThat(request.isTrackable()).isFalse();
         assertThat(request.getId()).isNotBlank();
@@ -77,9 +63,6 @@ class DataFlowRequestFactoryTest {
     void from_requestWithBody() {
         var contextApi = mock(ContainerRequestContextApi.class);
         var address = createDataAddress();
-        var claimToken = ClaimToken.Builder.newInstance()
-                .claim("dad", TYPE_MANAGER.writeValueAsString(address))
-                .build();
 
         var method = HttpMethod.GET;
         var queryParams = FAKER.lorem().word();
@@ -92,7 +75,7 @@ class DataFlowRequestFactoryTest {
         when(contextApi.mediaType()).thenReturn(MediaType.TEXT_PLAIN);
         when(contextApi.body()).thenReturn(body);
 
-        var request = factory.from(contextApi, claimToken);
+        var request = DataFlowRequestFactory.from(contextApi, address);
 
         assertThat(request.isTrackable()).isFalse();
         assertThat(request.getId()).isNotBlank();

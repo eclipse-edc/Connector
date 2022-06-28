@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       Microsoft Corporation - Simplified token representation
  *
  */
 
@@ -63,15 +64,7 @@ public class TokenGenerationServiceImpl implements TokenGenerationService {
         } catch (JOSEException e) {
             return Result.failure("Failed to sign token");
         }
-        return Result.success(createTokenRepresentation(token.serialize(), claims));
-    }
-
-    private static TokenRepresentation createTokenRepresentation(String token, JWTClaimsSet claimsSet) {
-        var builder = TokenRepresentation.Builder.newInstance().token(token);
-        if (claimsSet.getExpirationTime() != null) {
-            builder.expiresIn(claimsSet.getExpirationTime().getTime());
-        }
-        return builder.build();
+        return Result.success(TokenRepresentation.Builder.newInstance().token(token.serialize()).build());
     }
 
     /**

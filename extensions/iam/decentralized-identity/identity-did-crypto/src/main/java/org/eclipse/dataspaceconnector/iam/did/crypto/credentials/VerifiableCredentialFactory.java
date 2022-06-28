@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Microsoft Corporation
+ *  Copyright (c) 2021 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -18,22 +18,21 @@ import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.crypto.ECDSAVerifier;
-import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.nimbusds.jwt.proc.BadJWTException;
+import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier;
 import org.eclipse.dataspaceconnector.iam.did.crypto.CryptoException;
-import org.eclipse.dataspaceconnector.iam.did.crypto.key.EcPrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.text.ParseException;
 import java.time.Clock;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -41,69 +40,35 @@ import java.util.UUID;
  */
 public class VerifiableCredentialFactory {
 
-    public static final String OWNER_CLAIM = "owner";
+    // RFC 7519 Registered (standard) claims
+    private static final String ISSUER_CLAIM = "iss";
+    private static final String EXPIRATION_TIME_CLAIM = "exp";
 
-
-    /**
-     * Creates a signed JWT {@link SignedJWT} that contains a set of claims and an issuer.
-     *
-     * Although all private key types are possible, in the context of Distributed Identity and ION using an Elliptic Curve key ({@code prime256v1}) is advisable. This can be
-     * achieved using OpenSSL CLI:
-     *
-     * {@code openssl ecparam -name prime256v1 -genkey -noout -out prime256v1-key.pem}
-     *
-     * @param privateKeyPemContent The contents of a private key stored in PEM format.
-     * @param claims a list of key-value-pairs that contain claims
-     * @param issuer the "owner" of the VC, in most cases this will be the connector ID. The VC will store this in the "iss" claim
-     * @param clock clock used to get current time
-     * @return a {@code SignedJWT} that is signed with the private key and contains all claims listed
-     */
-    public static SignedJWT create(String privateKeyPemContent, Map<String, String> claims, String issuer, Clock clock) {
-        try {
-            var key = ECKey.parseFromPEMEncodedObjects(privateKeyPemContent);
-            return create((ECKey) key, claims, issuer, clock);
-        } catch (JOSEException e) {
-            throw new CryptoException(e);
-        }
-    }
-
-    /**
-     * Creates a signed JWT {@link SignedJWT} that contains a set of claims and an issuer. Although all private key types are possible, in the context of Distributed Identity
-     * and ION using an Elliptic Curve key ({@code P-256}) is advisable.
-     *
-     * @param privateKey A Private Key represented as {@link ECKey}.
-     * @param claims a list of key-value-pairs that contain claims
-     * @param issuer the "owner" of the VC, in most cases this will be the DID ID. The VC will store this in the "iss" claim
-     * @param clock clock used to get current time
-     * @return a {@code SignedJWT} that is signed with the private key and contains all claims listed
-     */
-    public static SignedJWT create(ECKey privateKey, Map<String, String> claims, String issuer, Clock clock) {
-        return create(new EcPrivateKeyWrapper(privateKey), claims, issuer, clock);
-    }
+    // Subject claim value
+    public static final String VERIFIABLE_CREDENTIAL = "verifiable-credential";
 
     /**
      * Creates a signed JWT {@link SignedJWT} that contains a set of claims and an issuer. Although all private key types are possible, in the context of Distributed Identity and ION
      * using an Elliptic Curve key ({@code P-256}) is advisable.
      *
      * @param privateKey A Private Key represented as {@link PrivateKeyWrapper}.
-     * @param claims a list of key-value-pairs that contain claims
-     * @param issuer the "owner" of the VC, in most cases this will be the DID ID. The VC will store this in the "iss" claim
-     * @param clock clock used to get current time
+     * @param issuer     the "owner" of the VC, in most cases this will be the DID ID. The VC will store this in the "iss" claim
+     * @param audience   the audience of the token, e.g. the IDS Webhook address. The VC will store this in the "aud" claim
+     * @param clock      clock used to get current time
      * @return a {@code SignedJWT} that is signed with the private key and contains all claims listed
      */
-    public static SignedJWT create(PrivateKeyWrapper privateKey, Map<String, String> claims, String issuer, Clock clock) {
-        var claimssetBuilder = new JWTClaimsSet.Builder();
-
-        claims.forEach(claimssetBuilder::claim);
-        var claimsSet = claimssetBuilder.issuer(issuer)
-                .subject("verifiable-credential")
+    public static SignedJWT create(PrivateKeyWrapper privateKey, String issuer, String audience, Clock clock) {
+        var claimsSet = new JWTClaimsSet.Builder().issuer(issuer)
+                .issuer(issuer)
+                .subject(VERIFIABLE_CREDENTIAL)
+                .audience(audience)
                 .expirationTime(Date.from(clock.instant().plus(10, ChronoUnit.MINUTES)))
                 .jwtID(UUID.randomUUID().toString())
                 .build();
 
-        JWSSigner signer = privateKey.signer();
+        var signer = privateKey.signer();
         //prefer ES256 if available, otherwise use the "next best"
-        JWSAlgorithm algorithm = signer.supportedJWSAlgorithms().contains(JWSAlgorithm.ES256) ?
+        var algorithm = signer.supportedJWSAlgorithms().contains(JWSAlgorithm.ES256) ?
                 JWSAlgorithm.ES256 :
                 signer.supportedJWSAlgorithms().stream().min(Comparator.comparing(Algorithm::getRequirement))
                         .orElseThrow(() -> new CryptoException("No recommended JWS Algorithms for Private Key Signer " + signer.getClass()));
@@ -121,61 +86,45 @@ public class VerifiableCredentialFactory {
     /**
      * Verifies a VerifiableCredential using the issuer's public key
      *
-     * @param verifiableCredential a {@link SignedJWT} that was sent by the claiming party.
-     * @param publicKey The claiming party's public key
-     * @return true if verified, false otherwise
-     */
-    public static boolean verify(SignedJWT verifiableCredential, ECKey publicKey) {
-        try {
-            return verifiableCredential.verify(new ECDSAVerifier(publicKey));
-        } catch (JOSEException e) {
-            throw new CryptoException(e);
-        }
-    }
-
-    /**
-     * Verifies a VerifiableCredential using the issuer's public key
-     *
-     * @param verifiableCredential a {@link SignedJWT} that was sent by the claiming party.
+     * @param jwt       a {@link SignedJWT} that was sent by the claiming party.
      * @param publicKey The claiming party's public key, passed as a {@link PublicKeyWrapper}
+     * @param audience  The intended audience
      * @return true if verified, false otherwise
      */
-    public static boolean verify(SignedJWT verifiableCredential, PublicKeyWrapper publicKey) {
+    public static Result<Void> verify(SignedJWT jwt, PublicKeyWrapper publicKey, String audience) {
+        // verify JWT signature
         try {
-            return verifiableCredential.verify(publicKey.verifier());
+            var verified = jwt.verify(publicKey.verifier());
+            if (!verified) {
+                return Result.failure("Invalid signature");
+            }
         } catch (JOSEException e) {
-            throw new CryptoException(e);
-        }
-    }
-
-    /**
-     * Verifies a VerifiableCredential using the issuer's public key
-     *
-     * @param verifiableCredential a {@link SignedJWT} that was sent by the claiming party.
-     * @param publicKeyPemContent The claiming party's public key, i.e. the contents of the public key PEM file.
-     * @return true if verified, false otherwise
-     */
-    public static boolean verify(SignedJWT verifiableCredential, String publicKeyPemContent) {
-        try {
-            var key = ECKey.parseFromPEMEncodedObjects(publicKeyPemContent);
-            return verify(verifiableCredential, (ECKey) key);
-        } catch (JOSEException e) {
-            throw new CryptoException(e);
+            return Result.failure("Unable to verify JWT token. " + e.getMessage()); // e.g. the JWS algorithm is not supported
         }
 
-    }
-
-    /**
-     * Parses a {@link SignedJWT} back to a Java object from its serialized form.
-     *
-     * @param jwtString The serialized form of the {@code SignedJWT}, which can be generated using {@link SignedJWT#serialize()}.
-     * @return a {@link SignedJWT} containing the decoded information
-     */
-    public static SignedJWT parse(String jwtString) {
+        JWTClaimsSet jwtClaimsSet;
         try {
-            return SignedJWT.parse(jwtString);
+            jwtClaimsSet = jwt.getJWTClaimsSet();
         } catch (ParseException e) {
-            throw new CryptoException(e);
+            return Result.failure("Error verifying JWT token. The payload must represent a valid JSON object and a JWT claims set. " + e.getMessage());
         }
+
+        // verify claims
+        var exactMatchClaims = new JWTClaimsSet.Builder()
+                .audience(audience)
+                .subject(VERIFIABLE_CREDENTIAL)
+                .build();
+        var requiredClaims = Set.of(
+                ISSUER_CLAIM,
+                EXPIRATION_TIME_CLAIM);
+
+        var claimsVerifier = new DefaultJWTClaimsVerifier<>(exactMatchClaims, requiredClaims);
+        try {
+            claimsVerifier.verify(jwtClaimsSet);
+        } catch (BadJWTException e) {
+            return Result.failure("Claim verification failed. " + e.getMessage());
+        }
+
+        return Result.success();
     }
 }

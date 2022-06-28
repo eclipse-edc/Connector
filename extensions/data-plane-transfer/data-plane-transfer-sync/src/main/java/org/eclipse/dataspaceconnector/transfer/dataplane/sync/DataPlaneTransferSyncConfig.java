@@ -19,8 +19,6 @@ import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import java.util.concurrent.TimeUnit;
 
 public interface DataPlaneTransferSyncConfig {
-    @EdcSetting
-    String DATA_PROXY_ENDPOINT = "edc.transfer.proxy.endpoint";
 
     @EdcSetting
     String DATA_PROXY_TOKEN_VALIDITY_SECONDS = "edc.transfer.proxy.token.validity.seconds";

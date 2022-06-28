@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Microsoft Corporation - Use IDS Webhook address for JWT audience claim
  *
  */
 
@@ -78,7 +79,7 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
         var claimToken = ClaimToken.Builder.newInstance().claim("key", "value").build();
         identityService = mock(IdentityService.class);
         when(identityService.obtainClientCredentials(any())).thenReturn(Result.success(tokenResult));
-        when(identityService.verifyJwtToken(any(TokenRepresentation.class))).thenReturn(Result.success(claimToken));
+        when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
 
         extension.registerSystemExtension(ServiceExtension.class,
                 new IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(ASSETS, identityService));

@@ -22,18 +22,19 @@ import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
+import org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.client.DataPlaneTransferClient;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType.HTTP_PROXY;
+import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.HTTP_PROXY;
 
 /**
  * Implementation of {@link DataFlowController} that delegates data transfer to Data Plane instance.
  * Note that Data Plane can be embedded in current runtime (test, samples...) or accessed remotely.
  * The present {@link DataFlowController} is triggered when destination type in the {@link DataRequest} is different from
- * {@link org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType#HTTP_PROXY}, as this one is reserved for synchronous data transfers.
+ * {@link DataPlaneTransferConstants#HTTP_PROXY}, as this one is reserved for synchronous data transfers.
  */
 public class DataPlaneTransferFlowController implements DataFlowController {
     private final DataPlaneTransferClient client;

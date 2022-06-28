@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Daimler TSS GmbH
+ *  Copyright (c) 2021 - 2022 Daimler TSS GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -10,6 +10,7 @@
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Fraunhofer Institute for Software and Systems Engineering - Improvements
+ *       Microsoft Corporation - Use IDS Webhook address for JWT audience claim
  *
  */
 
@@ -66,17 +67,20 @@ public class MultipartController {
     private final List<Handler> multipartHandlers;
     private final ObjectMapper objectMapper;
     private final IdentityService identityService;
+    private final String idsWebhookAddress;
 
     public MultipartController(@NotNull Monitor monitor,
                                @NotNull String connectorId,
                                @NotNull ObjectMapper objectMapper,
                                @NotNull IdentityService identityService,
-                               @NotNull List<Handler> multipartHandlers) {
+                               @NotNull List<Handler> multipartHandlers,
+                               @NotNull String idsWebhookAddress) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
         this.objectMapper = Objects.requireNonNull(objectMapper);
         this.multipartHandlers = Objects.requireNonNull(multipartHandlers);
         this.identityService = Objects.requireNonNull(identityService);
+        this.idsWebhookAddress = Objects.requireNonNull(idsWebhookAddress);
     }
 
     @POST
@@ -117,7 +121,7 @@ public class MultipartController {
                 .additional(additional)
                 .build();
 
-        Result<ClaimToken> verificationResult = identityService.verifyJwtToken(tokenRepresentation);
+        Result<ClaimToken> verificationResult = identityService.verifyJwtToken(tokenRepresentation, idsWebhookAddress);
 
         if (verificationResult.failed()) {
             monitor.warning(format("MultipartController: Token validation failed %s", verificationResult.getFailure().getMessages()));

@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.dataplane.api;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataplane.api.controller.DataPlaneControlApiController;
 import org.eclipse.dataspaceconnector.dataplane.api.controller.DataPlanePublicApiController;
-import org.eclipse.dataspaceconnector.dataplane.api.validation.RemoteTokenValidationService;
+import org.eclipse.dataspaceconnector.dataplane.api.validation.TokenValidationClient;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.WebService;
@@ -29,11 +29,13 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import java.util.concurrent.Executors;
 
 /**
- * Provides the control plane and public APIs for a data plane server.
+ * This extension provides the Data Plane API:
+ * - Control API: set of endpoints to trigger/monitor/cancel data transfers that should be accessible only from the Control Plane.
+ * - Public API: generic endpoint open to other participants of the Dataspace and used to proxy a data request to the actual data source.
  */
 public class DataPlaneApiExtension implements ServiceExtension {
     @EdcSetting
-    private static final String CONTROL_PLANE_VALIDATION_ENDPOINT = "edc.controlplane.validation-endpoint";
+    private static final String CONTROL_PLANE_VALIDATION_ENDPOINT = "edc.dataplane.token.validation.endpoint";
 
     private static final String CONTROL = "control";
     private static final String PUBLIC = "public";
@@ -54,15 +56,19 @@ public class DataPlaneApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var controlPlaneAddress = context.getSetting(CONTROL_PLANE_VALIDATION_ENDPOINT, "/api/validation");
-        var tokenValidationClient = new RemoteTokenValidationService(httpClient, controlPlaneAddress, context.getTypeManager().getMapper());
+        var monitor = context.getMonitor();
+        var typeManager = context.getTypeManager();
+
+        var validationEndpoint = context.getConfig().getString(CONTROL_PLANE_VALIDATION_ENDPOINT);
+
+        var tokenValidationClient = new TokenValidationClient(httpClient, validationEndpoint, typeManager.getMapper(), monitor);
 
         var executorService = context.getService(ExecutorInstrumentation.class)
                 .instrument(Executors.newSingleThreadExecutor(), DataPlanePublicApiController.class.getSimpleName());
 
         webService.registerResource(CONTROL, new DataPlaneControlApiController(dataPlaneManager));
 
-        var publicApiController = new DataPlanePublicApiController(dataPlaneManager, tokenValidationClient, context.getMonitor(), context.getTypeManager(), executorService);
+        var publicApiController = new DataPlanePublicApiController(dataPlaneManager, tokenValidationClient, monitor, executorService);
         webService.registerResource(PUBLIC, publicApiController);
     }
 }

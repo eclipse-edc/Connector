@@ -217,7 +217,8 @@ public class Participant {
                 "id", UUID.randomUUID().toString(),
                 "url", dataPlaneControl + "/transfer",
                 "allowedSourceTypes", List.of("HttpData", "HttpProvision"),
-                "allowedDestTypes", List.of("HttpData", "HttpProvision")
+                "allowedDestTypes", List.of("HttpData", "HttpProvision", "HttpProxy"),
+                "properties", Map.of("publicApiUrl", dataPlanePublic.toString())
         );
 
         given()
@@ -353,7 +354,7 @@ public class Participant {
                 put("web.http.public.path", "/public");
                 put("web.http.control.port", String.valueOf(dataPlaneControl.getPort()));
                 put("web.http.control.path", dataPlaneControl.getPath());
-                put("edc.controlplane.validation-endpoint", controlPlaneValidation + "/token");
+                put("edc.dataplane.token.validation.endpoint", controlPlaneValidation + "/token");
             }
         };
     }

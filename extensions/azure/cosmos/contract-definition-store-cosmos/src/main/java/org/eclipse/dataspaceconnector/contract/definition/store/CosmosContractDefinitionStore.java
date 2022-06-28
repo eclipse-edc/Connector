@@ -63,11 +63,6 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
     }
 
     @Override
-    public @NotNull Collection<ContractDefinition> findAll() {
-        return getCache().values();
-    }
-
-    @Override
     public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
         return lockManager.readLock(() -> queryResolver.query(getCache().values().stream(), spec));
     }
