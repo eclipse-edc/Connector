@@ -27,26 +27,24 @@ import org.mockito.ArgumentCaptor;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.CONTRACT_ID;
+import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.CONTRACT_ID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class DataPlaneTransferConsumerProxyTransformerTest {
-
     private static final Faker FAKER = new Faker();
 
-    private String proxyEndpoint;
-    private DataPlaneTransferProxyReferenceService proxyCreatorMock;
+    private DataPlaneTransferProxyResolver proxyResolverMock;
+    private DataPlaneTransferProxyReferenceService proxyReferenceServiceMock;
     private DataPlaneTransferConsumerProxyTransformer transformer;
 
     @BeforeEach
     public void setUp() {
-        proxyEndpoint = FAKER.internet().url();
-        proxyCreatorMock = mock(DataPlaneTransferProxyReferenceService.class);
-        transformer = new DataPlaneTransferConsumerProxyTransformer(proxyEndpoint, proxyCreatorMock);
+        proxyResolverMock = mock(DataPlaneTransferProxyResolver.class);
+        proxyReferenceServiceMock = mock(DataPlaneTransferProxyReferenceService.class);
+        transformer = new DataPlaneTransferConsumerProxyTransformer(proxyResolverMock, proxyReferenceServiceMock);
     }
 
     /**
@@ -57,12 +55,14 @@ class DataPlaneTransferConsumerProxyTransformerTest {
         var inputEdr = createEndpointDataReference();
         var outputEdr = createEndpointDataReference();
         var proxyCreationRequestCapture = ArgumentCaptor.forClass(DataPlaneTransferProxyCreationRequest.class);
+        var proxyUrl = FAKER.internet().url();
 
-        when(proxyCreatorMock.createProxyReference(any())).thenReturn(Result.success(outputEdr));
+        when(proxyResolverMock.resolveProxyUrl(any())).thenReturn(Result.success(proxyUrl));
+        when(proxyReferenceServiceMock.createProxyReference(any())).thenReturn(Result.success(outputEdr));
 
         var result = transformer.transform(inputEdr);
 
-        verify(proxyCreatorMock, times(1)).createProxyReference(proxyCreationRequestCapture.capture());
+        verify(proxyReferenceServiceMock).createProxyReference(proxyCreationRequestCapture.capture());
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).isEqualTo(outputEdr);
@@ -70,7 +70,7 @@ class DataPlaneTransferConsumerProxyTransformerTest {
         var proxyCreationRequest = proxyCreationRequestCapture.getValue();
         assertThat(proxyCreationRequest.getId()).isEqualTo(inputEdr.getId());
         assertThat(proxyCreationRequest.getContractId()).isEqualTo(inputEdr.getProperties().get(CONTRACT_ID));
-        assertThat(proxyCreationRequest.getProxyEndpoint()).isEqualTo(proxyEndpoint);
+        assertThat(proxyCreationRequest.getProxyEndpoint()).isEqualTo(proxyUrl);
         assertThat(proxyCreationRequest.getProperties()).containsExactlyInAnyOrderEntriesOf(inputEdr.getProperties());
         assertThat(proxyCreationRequest.getContentAddress()).satisfies(address -> {
             assertThat(address.getType()).isEqualTo(HttpDataAddress.DATA_TYPE);

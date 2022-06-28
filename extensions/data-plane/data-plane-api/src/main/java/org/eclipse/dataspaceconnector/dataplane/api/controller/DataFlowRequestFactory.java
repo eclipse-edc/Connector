@@ -14,10 +14,7 @@
 
 package org.eclipse.dataspaceconnector.dataplane.api.controller;
 
-import org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSinkFactory;
-import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
@@ -34,22 +31,18 @@ import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowReques
 
 public class DataFlowRequestFactory {
 
-    private final TypeManager typeManager;
-
-    public DataFlowRequestFactory(TypeManager typeManager) {
-        this.typeManager = typeManager;
+    private DataFlowRequestFactory() {
     }
 
     /**
      * Create a {@link DataFlowRequest} based on incoming request and claims decoded from the access token.
      *
-     * @param contextApi Api for accessing request properties.
-     * @param claims     Claims token decoded from incoming access token.
+     * @param contextApi  Api for accessing request properties.
+     * @param dataAddress Source data address.
      * @return DataFlowRequest
      */
-    public DataFlowRequest from(ContainerRequestContextApi contextApi, ClaimToken claims) {
+    public static DataFlowRequest from(ContainerRequestContextApi contextApi, DataAddress dataAddress) {
         var props = createProps(contextApi);
-        var dataAddress = typeManager.readValue((String) claims.getClaims().get(DataPlaneConstants.DATA_ADDRESS), DataAddress.class);
         return DataFlowRequest.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())
                 .sourceDataAddress(dataAddress)
