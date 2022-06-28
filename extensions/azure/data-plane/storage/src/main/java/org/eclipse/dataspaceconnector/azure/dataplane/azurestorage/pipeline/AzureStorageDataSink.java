@@ -42,6 +42,7 @@ public class AzureStorageDataSink extends ParallelSink {
     /**
      * Writes data into an Azure storage container.
      */
+    @Override
     protected StatusResult<Void> transferParts(List<DataSource.Part> parts) {
         for (DataSource.Part part : parts) {
             String blobName = part.name();
@@ -111,6 +112,7 @@ public class AzureStorageDataSink extends ParallelSink {
             return this;
         }
 
+        @Override
         protected void validate() {
             Objects.requireNonNull(sink.accountName, "accountName");
             Objects.requireNonNull(sink.containerName, "containerName");

@@ -80,7 +80,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         var targetAssets = assetIndex.queryAssets(QuerySpec.Builder.newInstance().filter(criteria).build());
         var targetAsset = targetAssets.findFirst().orElse(null);
         if (targetAsset == null) {
-            return Result.failure("Invalid target: " + offer.getAsset());
+            return Result.failure("Invalid target: " + offer.getAsset().getId());
         }
 
         var contractPolicyDef = policyStore.findById(contractDefinition.getContractPolicyId());

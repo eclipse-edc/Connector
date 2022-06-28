@@ -27,10 +27,12 @@ public class RuleBindingRegistryImpl implements RuleBindingRegistry {
 
     private Map<String, Set<String>> ruleBindings = new HashMap<>();
 
+    @Override
     public void bind(String ruleType, String scope) {
         ruleBindings.computeIfAbsent(ruleType, k -> new HashSet<>()).add(scope + DELIMITER);
     }
 
+    @Override
     public boolean isInScope(String ruleType, String scope) {
         var boundScopes = ruleBindings.get(ruleType);
         if (boundScopes == null) {
