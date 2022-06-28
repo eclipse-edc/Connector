@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.Connector;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -55,6 +56,7 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMes
 
 @Consumes({MediaType.MULTIPART_FORM_DATA})
 @Produces({MediaType.MULTIPART_FORM_DATA})
+@Tag(name = "International Data Spaces")
 @Path(MultipartController.PATH)
 public class MultipartController {
     public static final String PATH = "/data";

@@ -1,0 +1,22 @@
+openapi: 3.0.1
+paths:
+  /data:
+    post:
+      operationId: request
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                header:
+                  type: object
+                payload:
+                  type: string
+      responses:
+        default:
+          content:
+            multipart/form-data: {}
+          description: default response
+      tags:
+      - International Data Spaces

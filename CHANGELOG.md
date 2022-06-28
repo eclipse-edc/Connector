@@ -22,6 +22,7 @@ in the detailed section referring to by linking pull requests or issues.
 * SQL Translation layer (#1357, #1459)
 * Permit API verbose error response (#1479)
 * Fix TODO and document `:extensions:data-plane-transfer` (#1519)
+* Add OpenAPI spec of IDS endpoint (#1563)
 
 #### Changed
 
