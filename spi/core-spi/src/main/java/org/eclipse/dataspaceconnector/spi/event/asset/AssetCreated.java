@@ -27,7 +27,7 @@ public class AssetCreated extends Event<AssetCreated.Payload> {
     private AssetCreated() {
     }
 
-    public static class Builder extends Event.Builder<AssetCreated, Payload> {
+    public static class Builder extends Event.Builder<AssetCreated, Payload, Builder> {
 
         public static Builder newInstance() {
             return new Builder();

@@ -12,47 +12,43 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.event.policydefinition;
+package org.eclipse.dataspaceconnector.events.cloudevents.http;
 
 import org.eclipse.dataspaceconnector.spi.event.Event;
 import org.eclipse.dataspaceconnector.spi.event.EventPayload;
 
-import java.util.Objects;
+class TestEvent extends Event<TestEvent.Payload> {
 
-/**
- * Describe a new PolicyDefinition deletion, after this has emitted, the PolicyDefinition represented by the id won't be available anymore.
- */
-public class PolicyDefinitionDeleted extends Event<PolicyDefinitionDeleted.Payload> {
-
-    private PolicyDefinitionDeleted() {
-    }
-
-    public static class Builder extends Event.Builder<PolicyDefinitionDeleted, Payload, Builder> {
+    public static class Builder extends Event.Builder<TestEvent, Payload, Builder> {
 
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            super(new PolicyDefinitionDeleted(), new Payload());
+            super(new TestEvent(), new Payload());
         }
 
-        public Builder id(String id) {
-            event.payload.policyDefinitionId = id;
+        public Builder data(String data) {
+            this.event.payload.data = data;
             return this;
         }
 
         @Override
         protected void validate() {
-            Objects.requireNonNull(event.payload.policyDefinitionId);
+
         }
     }
 
     public static class Payload extends EventPayload {
-        private String policyDefinitionId;
+        private String data;
 
-        public String getPolicyDefinitionId() {
-            return policyDefinitionId;
+        public String getData() {
+            return data;
+        }
+
+        public void setData(String data) {
+            this.data = data;
         }
     }
 }
