@@ -79,6 +79,17 @@ public class DataAddress {
         properties.put(KEY_NAME, keyName);
     }
 
+    public Builder toBuilder() {
+        return new Builder(copy());
+    }
+
+    public DataAddress copy() {
+        // No dedicated copy of type and key name as they are already part of the properties map.
+        return Builder.newInstance()
+                .properties(this.properties)
+                .build();
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         protected final DataAddress address;
@@ -104,7 +115,7 @@ public class DataAddress {
         }
 
         public Builder properties(Map<String, String> properties) {
-            properties.forEach(this::property);
+            address.properties.putAll(properties);
             return this;
         }
 

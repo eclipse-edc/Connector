@@ -49,7 +49,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
     private boolean managedResources = true;
 
-    private Map<String, String> properties = new HashMap<>();
+    private final Map<String, String> properties = new HashMap<>();
 
     private TransferType transferType;
 
@@ -140,18 +140,23 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     }
 
     public DataRequest copy(String newId) {
+        return toBuilder().id(newId).build();
+    }
+
+    public DataRequest copy() {
         return Builder.newInstance()
-                .id(newId)
+                .id(id)
                 .processId(processId)
                 .connectorAddress(connectorAddress)
                 .protocol(protocol)
                 .connectorId(connectorId)
-                .assetId(assetId)
                 .contractId(contractId)
-                .dataAddress(dataDestination)
-                .transferType(transferType)
+                .assetId(assetId)
+                .destinationType(getDestinationType())
+                .dataDestination(dataDestination)
                 .managedResources(managedResources)
                 .properties(properties)
+                .transferType(transferType)
                 .build();
     }
 
@@ -163,12 +168,20 @@ public class DataRequest implements RemoteMessage, Polymorphic {
         return transferType;
     }
 
+    public Builder toBuilder() {
+        return new DataRequest.Builder(copy());
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private final DataRequest request;
 
         private Builder() {
-            request = new DataRequest();
+            this(new DataRequest());
+        }
+
+        private Builder(DataRequest dataRequest) {
+            request = dataRequest;
         }
 
         @JsonCreator
@@ -181,8 +194,8 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             return this;
         }
 
-        public Builder processId(String id) {
-            request.processId = id;
+        public Builder processId(String processId) {
+            request.processId = processId;
             return this;
         }
 
@@ -231,8 +244,8 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             return this;
         }
 
-        public Builder properties(Map<String, String> value) {
-            request.properties = value;
+        public Builder properties(Map<String, String> properties) {
+            request.properties.putAll(properties);
             return this;
         }
 
@@ -247,11 +260,5 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             request.transferType = transferType;
             return this;
         }
-
-        private Builder dataAddress(DataAddress dataAddress) {
-            request.dataDestination = dataAddress;
-            return this;
-        }
-
     }
 }
