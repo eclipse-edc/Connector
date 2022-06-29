@@ -24,7 +24,7 @@ import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintImpl;
 import org.eclipse.dataspaceconnector.ids.spi.domain.DefaultValues;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
-import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.serializer.JsonldSerDes;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.mock;
 class MultipartEndpointDataReferenceRequestSenderTest {
 
     private MultipartEndpointDataReferenceRequestSender sender;
-    private JsonldSerializer serializer;
+    private JsonldSerDes serDes;
 
     @BeforeEach
     public void setUp() {
@@ -52,11 +52,11 @@ class MultipartEndpointDataReferenceRequestSenderTest {
         var transformerRegistry = mock(IdsTransformerRegistry.class);
         var identityService = mock(IdentityService.class);
 
-        serializer = new JsonldSerializer(monitor);
-        serializer.setContext(DefaultValues.CONTEXT);
-        serializer.setSubtypes(IdsConstraintImpl.class);
+        serDes = new JsonldSerDes(monitor);
+        serDes.setContext(DefaultValues.CONTEXT);
+        serDes.setSubtypes(IdsConstraintImpl.class);
 
-        sender = new MultipartEndpointDataReferenceRequestSender(connectorId, httpClient, serializer, monitor, identityService, transformerRegistry);
+        sender = new MultipartEndpointDataReferenceRequestSender(connectorId, httpClient, serDes, monitor, identityService, transformerRegistry);
     }
 
     @Test
@@ -86,7 +86,7 @@ class MultipartEndpointDataReferenceRequestSenderTest {
         var request = createEdrRequest();
         var payload = sender.buildMessagePayload(request);
 
-        var edr = (EndpointDataReference) serializer.deserialize(payload, EndpointDataReference.class);
+        var edr = serDes.deserialize(payload, EndpointDataReference.class);
         assertThat(edr.getAuthCode()).isEqualTo(request.getEndpointDataReference().getAuthCode());
         assertThat(edr.getId()).isEqualTo(request.getEndpointDataReference().getId());
         assertThat(edr.getProperties()).isEqualTo(request.getEndpointDataReference().getProperties());
@@ -97,7 +97,7 @@ class MultipartEndpointDataReferenceRequestSenderTest {
     void getResponseContent() throws Exception {
         var header = new NotificationMessageBuilder()._contentVersion_(UUID.randomUUID().toString()).build();
         var payload = UUID.randomUUID().toString();
-        var parts = new IdsMultipartParts(new ByteArrayInputStream(serializer.serialize(header).getBytes()), new ByteArrayInputStream(payload.getBytes()));
+        var parts = new IdsMultipartParts(new ByteArrayInputStream(serDes.serialize(header).getBytes()), new ByteArrayInputStream(payload.getBytes()));
         var response = sender.getResponseContent(parts);
 
         assertThat(response).isNotNull();

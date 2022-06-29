@@ -25,7 +25,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
-import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.serializer.JsonldSerDes;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -49,11 +49,11 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
 
     private final Vault vault;
     private final String idsWebhookAddress;
-    private final JsonldSerializer serializer;
+    private final JsonldSerDes serDes;
 
     public MultipartArtifactRequestSender(@NotNull String connectorId,
                                           @NotNull OkHttpClient httpClient,
-                                          @NotNull JsonldSerializer serializer,
+                                          @NotNull JsonldSerDes serDes,
                                           @NotNull Monitor monitor,
                                           @NotNull Vault vault,
                                           @NotNull IdentityService identityService,
@@ -63,7 +63,7 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
 
         this.vault = Objects.requireNonNull(vault);
         this.idsWebhookAddress = idsWebhookAddress;
-        this.serializer = serializer;
+        this.serDes = serDes;
     }
 
     @Override
@@ -128,12 +128,12 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
             requestPayloadBuilder = requestPayloadBuilder.secret(secret);
         }
 
-        return serializer.serialize(requestPayloadBuilder.build());
+        return serDes.serialize(requestPayloadBuilder.build());
     }
 
     @Override
     protected MultipartRequestInProcessResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        var header = (Message) serializer.deserialize(new String(parts.getHeader().readAllBytes(), StandardCharsets.UTF_8), Message.class);
+        var header = serDes.deserialize(new String(parts.getHeader().readAllBytes(), StandardCharsets.UTF_8), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());

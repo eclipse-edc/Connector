@@ -27,7 +27,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.serializer.JsonldSerDes;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -50,7 +50,7 @@ import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_AD
 public class ContractRequestHandler implements Handler {
 
     private final Monitor monitor;
-    private final JsonldSerializer serializer;
+    private final JsonldSerDes serDes;
     private final String connectorId;
     private final ProviderContractNegotiationManager negotiationManager;
     private final IdsTransformerRegistry transformerRegistry;
@@ -60,14 +60,14 @@ public class ContractRequestHandler implements Handler {
     public ContractRequestHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
-            @NotNull JsonldSerializer serializer,
+            @NotNull JsonldSerDes serDes,
             @NotNull ProviderContractNegotiationManager negotiationManager,
             @NotNull IdsResponseMessageFactory responseMessageFactory,
             @NotNull IdsTransformerRegistry transformerRegistry,
             @NotNull AssetIndex assetIndex) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
-        this.serializer = Objects.requireNonNull(serializer);
+        this.serDes = Objects.requireNonNull(serDes);
         this.negotiationManager = Objects.requireNonNull(negotiationManager);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
         this.assetIndex = Objects.requireNonNull(assetIndex);
@@ -90,7 +90,7 @@ public class ContractRequestHandler implements Handler {
 
         ContractRequest contractRequest;
         try {
-            contractRequest = (ContractRequest) serializer.deserialize(multipartRequest.getPayload(), ContractRequest.class);
+            contractRequest = serDes.deserialize(multipartRequest.getPayload(), ContractRequest.class);
         } catch (IOException e) {
             monitor.severe("ContractRequestHandler: Contract Request is invalid", e);
             return createBadParametersErrorMultipartResponse(message);

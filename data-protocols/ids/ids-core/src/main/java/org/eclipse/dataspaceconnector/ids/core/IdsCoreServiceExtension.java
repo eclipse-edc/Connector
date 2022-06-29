@@ -26,7 +26,6 @@ import org.eclipse.dataspaceconnector.ids.spi.descriptor.IdsDescriptorService;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
@@ -44,7 +43,7 @@ import java.util.List;
  * Implements the IDS Controller REST API.
  */
 @Provides({ CatalogService.class, ConnectorService.class, IdsDescriptorService.class,
-        CatalogService.class, ConnectorService.class, IdsTransformerRegistry.class, JsonldSerializer.class })
+        CatalogService.class, ConnectorService.class, IdsTransformerRegistry.class })
 public class IdsCoreServiceExtension implements ServiceExtension {
 
     @EdcSetting

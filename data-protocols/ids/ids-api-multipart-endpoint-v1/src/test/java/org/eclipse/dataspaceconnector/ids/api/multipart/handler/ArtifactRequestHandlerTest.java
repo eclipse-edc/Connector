@@ -27,7 +27,7 @@ import org.eclipse.dataspaceconnector.ids.spi.domain.DefaultValues;
 import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.serializer.JsonldSerDes;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -86,11 +86,11 @@ class ArtifactRequestHandlerTest {
         contractNegotiationStore = mock(ContractNegotiationStore.class);
         Vault vault = mock(Vault.class);
 
-        var serializer = new JsonldSerializer(monitor);
-        serializer.setContext(DefaultValues.CONTEXT);
-        serializer.setSubtypes(IdsConstraintImpl.class);
+        var serDes = new JsonldSerDes(monitor);
+        serDes.setContext(DefaultValues.CONTEXT);
+        serDes.setSubtypes(IdsConstraintImpl.class);
 
-        handler = new ArtifactRequestHandler(monitor, connectorId, serializer, contractNegotiationStore, contractValidationService, transferProcessManager, vault);
+        handler = new ArtifactRequestHandler(monitor, connectorId, serDes, contractNegotiationStore, contractValidationService, transferProcessManager, vault);
     }
 
     @Test

@@ -35,7 +35,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.domain.DefaultValues;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.serializer.JsonldSerDes;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
@@ -140,13 +140,13 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
                 .add("Content-Disposition", "form-data; name=\"header\"")
                 .build();
 
-        var serializer = new JsonldSerializer(monitor);
-        serializer.setContext(DefaultValues.CONTEXT);
-        serializer.setSubtypes(IdsConstraintImpl.class);
+        var serDes = new JsonldSerDes(monitor);
+        serDes.setContext(DefaultValues.CONTEXT);
+        serDes.setSubtypes(IdsConstraintImpl.class);
 
         RequestBody headerRequestBody;
         try {
-            headerRequestBody = RequestBody.create(serializer.serialize(message),
+            headerRequestBody = RequestBody.create(serDes.serialize(message),
                     okhttp3.MediaType.get(MediaType.APPLICATION_JSON));
         } catch (IOException exception) {
             return failedFuture(exception);

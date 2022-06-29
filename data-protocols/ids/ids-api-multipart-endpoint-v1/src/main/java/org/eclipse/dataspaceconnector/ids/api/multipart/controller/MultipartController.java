@@ -26,7 +26,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
-import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.serializer.JsonldSerDes;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -62,19 +62,19 @@ public class MultipartController {
     private final Monitor monitor;
     private final String connectorId;
     private final List<Handler> multipartHandlers;
-    private final JsonldSerializer serializer;
+    private final JsonldSerDes serDes;
     private final IdentityService identityService;
     private final String idsWebhookAddress;
 
     public MultipartController(@NotNull Monitor monitor,
                                @NotNull String connectorId,
-                               @NotNull JsonldSerializer serializer,
+                               @NotNull JsonldSerDes serDes,
                                @NotNull IdentityService identityService,
                                @NotNull List<Handler> multipartHandlers,
                                @NotNull String idsWebhookAddress) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
-        this.serializer = Objects.requireNonNull(serializer);
+        this.serDes = Objects.requireNonNull(serDes);
         this.multipartHandlers = Objects.requireNonNull(multipartHandlers);
         this.identityService = Objects.requireNonNull(identityService);
         this.idsWebhookAddress = Objects.requireNonNull(idsWebhookAddress);
@@ -88,7 +88,7 @@ public class MultipartController {
 
         Message header;
         try {
-            header = (Message) serializer.deserialize(new String(headerInputStream.readAllBytes(), StandardCharsets.UTF_8), Message.class);
+            header = serDes.deserialize(new String(headerInputStream.readAllBytes(), StandardCharsets.UTF_8), Message.class);
         } catch (IOException e) {
             return Response.ok(createFormDataMultiPart(malformedMessage(null, connectorId), null)).build();
         }
@@ -107,7 +107,7 @@ public class MultipartController {
         // IDS token validation requires issuerConnector and securityProfile
         additional.put("issuerConnector", header.getIssuerConnector());
         try {
-            additional.put("securityProfile", ((Connector) serializer.deserialize(payload, Connector.class)).getSecurityProfile());
+            additional.put("securityProfile", (serDes.deserialize(payload, Connector.class)).getSecurityProfile());
         } catch (Exception e) {
             // payload no connector instance, nothing to do
         }
@@ -151,7 +151,7 @@ public class MultipartController {
         var multiPart = new FormDataMultiPart();
         if (header != null) {
             try {
-                multiPart.bodyPart(new FormDataBodyPart(HEADER, serializer.serialize(header), MediaType.APPLICATION_JSON_TYPE));
+                multiPart.bodyPart(new FormDataBodyPart(HEADER, serDes.serialize(header), MediaType.APPLICATION_JSON_TYPE));
             } catch (IOException e) {
                 throw new EdcException(e);
             }
@@ -159,7 +159,7 @@ public class MultipartController {
 
         if (payload != null) {
             try {
-                multiPart.bodyPart(new FormDataBodyPart(PAYLOAD, serializer.serialize(payload), MediaType.APPLICATION_JSON_TYPE));
+                multiPart.bodyPart(new FormDataBodyPart(PAYLOAD, serDes.serialize(payload), MediaType.APPLICATION_JSON_TYPE));
             } catch (IOException e) {
                 throw new EdcException(e);
             }

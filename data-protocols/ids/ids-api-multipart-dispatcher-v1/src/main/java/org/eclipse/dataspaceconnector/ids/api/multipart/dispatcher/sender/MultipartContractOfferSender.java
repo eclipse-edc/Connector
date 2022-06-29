@@ -23,7 +23,7 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
-import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.serializer.JsonldSerDes;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -43,19 +43,19 @@ import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_AD
  * expects an IDS RequestInProcessMessage as the response.
  */
 public class MultipartContractOfferSender extends IdsMultipartSender<ContractOfferRequest, MultipartRequestInProcessResponse> {
-    private final JsonldSerializer serializer;
+    private final JsonldSerDes serDes;
     private final String idsWebhookAddress;
 
     public MultipartContractOfferSender(@NotNull String connectorId,
                                         @NotNull OkHttpClient httpClient,
-                                        @NotNull JsonldSerializer serializer,
+                                        @NotNull JsonldSerDes serDes,
                                         @NotNull Monitor monitor,
                                         @NotNull IdentityService identityService,
                                         @NotNull IdsTransformerRegistry transformerRegistry,
                                         @NotNull String idsWebhookAddress) {
         super(connectorId, httpClient, monitor, identityService, transformerRegistry);
 
-        this.serializer = serializer;
+        this.serDes = serDes;
         this.idsWebhookAddress = idsWebhookAddress;
     }
 
@@ -105,15 +105,15 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
         var contractOffer = request.getContractOffer();
 
         if (request.getType() == ContractOfferRequest.Type.INITIAL) {
-            return serializer.serialize(createContractRequest(contractOffer));
+            return serDes.serialize(createContractRequest(contractOffer));
         } else {
-            return serializer.serialize(createContractOffer(contractOffer));
+            return serDes.serialize(createContractOffer(contractOffer));
         }
     }
 
     @Override
     protected MultipartRequestInProcessResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        var header = (Message) serializer.deserialize(new String(parts.getHeader().readAllBytes(), StandardCharsets.UTF_8), Message.class);
+        var header = serDes.deserialize(new String(parts.getHeader().readAllBytes(), StandardCharsets.UTF_8), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());

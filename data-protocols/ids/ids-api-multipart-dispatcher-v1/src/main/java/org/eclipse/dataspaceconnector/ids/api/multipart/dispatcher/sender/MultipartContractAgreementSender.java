@@ -24,7 +24,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
-import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.serializer.JsonldSerDes;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -42,12 +42,12 @@ import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_AD
  * expects an IDS RequestInProcessMessage as the response.
  */
 public class MultipartContractAgreementSender extends IdsMultipartSender<ContractAgreementRequest, MultipartMessageProcessedResponse> {
-    private final JsonldSerializer serializer;
+    private final JsonldSerDes serDes;
     private final String idsWebhookAddress;
 
     public MultipartContractAgreementSender(@NotNull String connectorId,
                                             @NotNull OkHttpClient httpClient,
-                                            @NotNull JsonldSerializer serializer,
+                                            @NotNull JsonldSerDes serDes,
                                             @NotNull Monitor monitor,
                                             @NotNull IdentityService identityService,
                                             @NotNull IdsTransformerRegistry transformerRegistry,
@@ -55,7 +55,7 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
         super(connectorId, httpClient, monitor, identityService, transformerRegistry);
 
         this.idsWebhookAddress = idsWebhookAddress;
-        this.serializer = serializer;
+        this.serDes = serDes;
     }
 
     @Override
@@ -100,12 +100,12 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
         }
 
         var idsContractAgreement = transformationResult.getContent();
-        return serializer.serialize(idsContractAgreement);
+        return serDes.serialize(idsContractAgreement);
     }
 
     @Override
     protected MultipartMessageProcessedResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        var header = (Message) serializer.deserialize(new String(parts.getHeader().readAllBytes(), StandardCharsets.UTF_8), Message.class);
+        var header = serDes.deserialize(new String(parts.getHeader().readAllBytes(), StandardCharsets.UTF_8), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());

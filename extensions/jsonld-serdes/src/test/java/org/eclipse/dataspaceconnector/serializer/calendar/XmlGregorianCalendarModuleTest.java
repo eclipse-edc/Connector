@@ -12,12 +12,14 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.serializer.jsonld.calendar;
+package org.eclipse.dataspaceconnector.serializer.calendar;
 
 import de.fraunhofer.iais.eis.ContractAgreement;
 import de.fraunhofer.iais.eis.ContractAgreementBuilder;
+import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintImpl;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
-import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.ids.spi.domain.DefaultValues;
+import org.eclipse.dataspaceconnector.serializer.JsonldSerDes;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,45 +32,43 @@ import static org.mockito.Mockito.mock;
 
 class XmlGregorianCalendarModuleTest {
 
-    private JsonldSerializer serializer;
+    private JsonldSerDes serDes;
 
     @BeforeEach
     void setUp() {
-        serializer = new JsonldSerializer(mock(Monitor.class));
+        serDes = new JsonldSerDes(mock(Monitor.class));
     }
 
     @Test
-    void serializeAndDeserializeDate() {
+    void serializeAndDeserializeDate() throws IOException {
         var xmlGregorian = CalendarUtil.gregorianNow();
 
-        try {
-            var serialized = serializer.serialize(xmlGregorian);
-            var xmlGregorianDeserialized = serializer.getObjectMapper().readValue(serialized, XMLGregorianCalendar.class);
+        var serialized = serDes.serialize(xmlGregorian);
+        var xmlGregorianDeserialized = serDes.deserialize(serialized, XMLGregorianCalendar.class);
+        var serialized2 = serDes.serialize(xmlGregorianDeserialized);
 
-            assertThat(xmlGregorian).isEqualTo(xmlGregorianDeserialized);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        assertThat(xmlGregorian).isEqualTo(xmlGregorianDeserialized);
+        assertThat(serialized).isEqualTo(serialized2);
     }
 
     @Test
-    void serializeAndDeserializeAgreement() {
-        var xmlGregorian = CalendarUtil.gregorianNow();
+    void serializeAndDeserializeAgreement() throws IOException {
+        serDes.setContext(DefaultValues.CONTEXT);
+        serDes.setSubtypes(IdsConstraintImpl.class);
 
+        var xmlGregorian = CalendarUtil.gregorianNow();
         var agreement = new ContractAgreementBuilder()
                 ._contractDate_(xmlGregorian)
                 ._contractStart_(xmlGregorian)
                 ._contractEnd_(xmlGregorian)
                 .build();
 
-        try {
-            var serialized = serializer.serialize(agreement);
-            var agreementDeserialized = serializer.getObjectMapper().readValue(serialized, ContractAgreement.class);
+        var serialized = serDes.serialize(agreement);
+        var agreementDeserialized = serDes.deserialize(serialized, ContractAgreement.class);
+        var serialized2 = serDes.serialize(agreementDeserialized);
 
-            assertThat(agreement).isEqualTo(agreementDeserialized);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        assertThat(agreement).isEqualTo(agreementDeserialized);
+        assertThat(serialized).isEqualTo(serialized2);
     }
 
 }

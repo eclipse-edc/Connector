@@ -21,7 +21,7 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
-import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.serializer.JsonldSerDes;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceMessage;
@@ -36,17 +36,17 @@ import java.util.Collections;
  * expects an IDS DescriptionResponseMessage as the response.
  */
 public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSender<EndpointDataReferenceMessage, MultipartMessageProcessedResponse> {
-    private final JsonldSerializer serializer;
+    private final JsonldSerDes serDes;
 
     public MultipartEndpointDataReferenceRequestSender(@NotNull String connectorId,
                                                        @NotNull OkHttpClient httpClient,
-                                                       @NotNull JsonldSerializer serializer,
+                                                       @NotNull JsonldSerDes serDes,
                                                        @NotNull Monitor monitor,
                                                        @NotNull IdentityService identityService,
                                                        @NotNull IdsTransformerRegistry transformerRegistry) {
         super(connectorId, httpClient, monitor, identityService, transformerRegistry);
 
-        this.serializer = serializer;
+        this.serDes = serDes;
     }
 
     @Override
@@ -72,12 +72,12 @@ public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSen
 
     @Override
     protected String buildMessagePayload(EndpointDataReferenceMessage request) throws Exception {
-        return serializer.serialize(request.getEndpointDataReference());
+        return serDes.serialize(request.getEndpointDataReference());
     }
 
     @Override
     protected MultipartMessageProcessedResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        var header = (Message) serializer.deserialize(new String(parts.getHeader().readAllBytes(), StandardCharsets.UTF_8), Message.class);
+        var header = serDes.deserialize(new String(parts.getHeader().readAllBytes(), StandardCharsets.UTF_8), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());

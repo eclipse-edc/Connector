@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.serializer.jsonld.calendar;
+package org.eclipse.dataspaceconnector.serializer.calendar;
 
 import com.fasterxml.jackson.databind.module.SimpleModule;
 

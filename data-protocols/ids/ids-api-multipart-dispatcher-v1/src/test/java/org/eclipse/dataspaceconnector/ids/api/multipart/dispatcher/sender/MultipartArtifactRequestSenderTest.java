@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.domain.DefaultValues;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
-import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.serializer.JsonldSerDes;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -60,11 +60,11 @@ class MultipartArtifactRequestSenderTest {
         transformerRegistry = mock(IdsTransformerRegistry.class);
         idsWebhookAddress = UUID.randomUUID() + "/api/v1/ids/data";
 
-        var serializer = new JsonldSerializer(monitor);
-        serializer.setContext(DefaultValues.CONTEXT);
-        serializer.setSubtypes(IdsConstraintImpl.class);
+        var serDes = new JsonldSerDes(monitor);
+        serDes.setContext(DefaultValues.CONTEXT);
+        serDes.setSubtypes(IdsConstraintImpl.class);
 
-        sender = new MultipartArtifactRequestSender(connectorId, httpClient, serializer, monitor, vault, identityService, transformerRegistry, idsWebhookAddress);
+        sender = new MultipartArtifactRequestSender(connectorId, httpClient, serDes, monitor, vault, identityService, transformerRegistry, idsWebhookAddress);
     }
 
     @Test

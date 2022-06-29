@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.serializer;
 import de.fraunhofer.iais.eis.DescriptionRequestMessageBuilder;
 import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintImpl;
 import org.eclipse.dataspaceconnector.ids.spi.domain.DefaultValues;
-import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.Test;
 
@@ -28,27 +27,26 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
-class JsonldSerializerTest {
+class JsonldSerDesTest {
 
     @Test
     void serialize() throws IOException {
-        var serializer = new JsonldSerializer(mock(Monitor.class));
+        var serDes = new JsonldSerDes(mock(Monitor.class));
 
         var msg = new DescriptionRequestMessageBuilder()
                 ._issuerConnector_(URI.create("test"))
                 ._modelVersion_("4.2.0")
                 .build();
 
-        var stringWithoutContext = serializer.getObjectMapper().writeValueAsString(msg);
+        var stringWithoutContext = serDes.getObjectMapper().writeValueAsString(msg);
         assertFalse(stringWithoutContext.contains("@context"));
 
-        var jsonWithoutContext = serializer.serialize(msg);
+        var jsonWithoutContext = serDes.serialize(msg);
         assertFalse(jsonWithoutContext.contains("@context"));
 
-        serializer.setContext(DefaultValues.CONTEXT);
-        serializer.setSubtypes(IdsConstraintImpl.class);
-        var jsonWithContext = serializer.serialize(msg);
+        serDes.setContext(DefaultValues.CONTEXT);
+        serDes.setSubtypes(IdsConstraintImpl.class);
+        var jsonWithContext = serDes.serialize(msg);
         assertTrue(jsonWithContext.contains("@context"));
-        assertTrue(jsonWithContext.startsWith("{\"@context\": "));
     }
 }

@@ -12,15 +12,17 @@
 | :extensions:data-plane-selector |  |
 | :extensions:data-plane-transfer | Provides resources used to delegate data transfer to the Data Plane, or to use the Data Plane as a proxy for querying the data. |
 | :extensions:dataloading         |  |
+| :extensions:events              | Provides a way to register endpoints where the domain events will be sent as soon as they occur. |
 | :extensions:filesystem          |  |
 | :extensions:http                |  |
 | :extensions:http-provisioner    |  |
 | :extensions:http-receiver       |  |
 | :extensions:iam                 | Provides multiple implementations of identity management. |
 | :extensions:jdk-logger-monitor  | Provides a `Logger` which is an implementation of edc `Monitor` interface. |
+| :extensions:jsonld-serdes       | Provides a serializer and deserializer from/to JSON-LD strings. |
+| :extensions:junit                 |  |
 | :extensions:sql                 |  |
 | :extensions:transaction         |  |
-| :extensions:transfer-functions  | Provides required services and the SPI for the Transfer Functions feature. |
 
 ## :extensions:api
 
@@ -92,6 +94,12 @@
 
 No submodules
 
+## :extensions:events
+
+| Module | Description | Details
+| :----- | :---------- | :------ |
+| :cloudevents-http |  | [link]({{extensions}}events/cloudevents-http) |
+
 ## :extensions:filesystem
 
 | Module | Description | Details
@@ -129,6 +137,14 @@ No submodules
 
 No submodules
 
+## :extensions:jsonld-serdes
+
+No submodules
+
+## :extensions:junit
+
+No submodules
+
 ## :extensions:sql
 
 | Module | Description | Details
@@ -150,4 +166,3 @@ No submodules
 | :transaction-datasource-api |  | [link]({{extensions}}transaction/transaction-datasource-api) |
 | :transaction-local          |  | [link]({{extensions}}transaction/transaction-local) |
 | :transaction-spi            |  | [link]({{extensions}}transaction/transaction-spi) |
-

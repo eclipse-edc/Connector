@@ -23,7 +23,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.exceptions.InvalidCorrelationMessageException;
-import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.serializer.JsonldSerDes;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -42,7 +42,7 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMes
 public class ContractOfferHandler implements Handler {
 
     private final Monitor monitor;
-    private final JsonldSerializer serializer;
+    private final JsonldSerDes serDes;
     private final String connectorId;
     private final ProviderContractNegotiationManager providerNegotiationManager;
     private final ConsumerContractNegotiationManager consumerNegotiationManager;
@@ -51,13 +51,13 @@ public class ContractOfferHandler implements Handler {
     public ContractOfferHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
-            @NotNull JsonldSerializer serializer,
+            @NotNull JsonldSerDes serDes,
             @NotNull ProviderContractNegotiationManager providerNegotiationManager,
             @NotNull ConsumerContractNegotiationManager consumerNegotiationManager,
             @NotNull IdsResponseMessageFactory responseMessageFactory) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
-        this.serializer = Objects.requireNonNull(serializer);
+        this.serDes = Objects.requireNonNull(serDes);
         this.providerNegotiationManager = Objects.requireNonNull(providerNegotiationManager);
         this.consumerNegotiationManager = Objects.requireNonNull(consumerNegotiationManager);
         this.responseMessageFactory = Objects.requireNonNull(responseMessageFactory);
@@ -79,7 +79,7 @@ public class ContractOfferHandler implements Handler {
 
         ContractOffer contractOffer = null;
         try {
-            contractOffer = (ContractOffer) serializer.deserialize(multipartRequest.getPayload(), ContractOffer.class);
+            contractOffer = serDes.deserialize(multipartRequest.getPayload(), ContractOffer.class);
         } catch (IOException e) {
             monitor.severe("ContractOfferHandler: Contract Offer is invalid", e);
             return createBadParametersErrorMultipartResponse(message);

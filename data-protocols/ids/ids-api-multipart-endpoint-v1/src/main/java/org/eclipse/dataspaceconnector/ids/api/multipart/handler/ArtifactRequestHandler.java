@@ -23,7 +23,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
-import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.serializer.JsonldSerDes;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -47,7 +47,7 @@ public class ArtifactRequestHandler implements Handler {
     private final TransferProcessManager transferProcessManager;
     private final String connectorId;
     private final Monitor monitor;
-    private final JsonldSerializer serializer;
+    private final JsonldSerDes serDes;
     private final ContractValidationService contractValidationService;
     private final ContractNegotiationStore contractNegotiationStore;
     private final Vault vault;
@@ -55,14 +55,14 @@ public class ArtifactRequestHandler implements Handler {
     public ArtifactRequestHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
-            @NotNull JsonldSerializer serializer,
+            @NotNull JsonldSerDes serDes,
             @NotNull ContractNegotiationStore contractNegotiationStore,
             @NotNull ContractValidationService contractValidationService,
             @NotNull TransferProcessManager transferProcessManager,
             @NotNull Vault vault) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
-        this.serializer = Objects.requireNonNull(serializer);
+        this.serDes = Objects.requireNonNull(serDes);
         this.contractNegotiationStore = Objects.requireNonNull(contractNegotiationStore);
         this.contractValidationService = Objects.requireNonNull(contractValidationService);
         this.transferProcessManager = Objects.requireNonNull(transferProcessManager);
@@ -116,7 +116,7 @@ public class ArtifactRequestHandler implements Handler {
 
         ArtifactRequestMessagePayload payload;
         try {
-            payload = (ArtifactRequestMessagePayload) serializer.deserialize(multipartRequest.getPayload(), ArtifactRequestMessagePayload.class);
+            payload = serDes.deserialize(multipartRequest.getPayload(), ArtifactRequestMessagePayload.class);
         } catch (IOException e) {
             return createBadParametersErrorMultipartResponse(message);
         }

@@ -45,7 +45,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.domain.DefaultValues;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
-import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.serializer.JsonldSerDes;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -74,7 +74,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
     private static final AtomicReference<Integer> IDS_PORT = new AtomicReference<>();
     private static final List<Asset> ASSETS = new LinkedList<>();
 
-    private JsonldSerializer serializer;
+    private JsonldSerDes serDes;
 
     @AfterEach
     void after() {
@@ -90,9 +90,9 @@ abstract class AbstractMultipartControllerIntegrationTest {
 
     @BeforeEach
     protected void before(EdcExtension extension) {
-        serializer = new JsonldSerializer(mock(Monitor.class));
-        serializer.setContext(DefaultValues.CONTEXT);
-        serializer.setSubtypes(IdsConstraintImpl.class);
+        serDes = new JsonldSerDes(mock(Monitor.class));
+        serDes.setContext(DefaultValues.CONTEXT);
+        serDes.setSubtypes(IdsConstraintImpl.class);
 
         PORT.set(getFreePort());
         IDS_PORT.set(getFreePort());
@@ -235,7 +235,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 }
 
                 if (multipartName.equalsIgnoreCase(HEADER)) {
-                    header = (Message) serializer.deserialize(part.body().readUtf8(), Message.class);
+                    header = serDes.deserialize(part.body().readUtf8(), Message.class);
                 } else if (multipartName.equalsIgnoreCase(PAYLOAD)) {
                     payload = part.body().readByteArray();
                 }
@@ -280,7 +280,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 .add("Content-Disposition", "form-data; name=\"header\"")
                 .build();
 
-        RequestBody requestBody = RequestBody.create(serializer.serialize(message),
+        RequestBody requestBody = RequestBody.create(serDes.serialize(message),
                 okhttp3.MediaType.get(MediaType.APPLICATION_JSON));
 
         return MultipartBody.Part.create(headers, requestBody);
@@ -292,7 +292,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 .add("Content-Disposition", "form-data; name=\"payload\"")
                 .build();
 
-        RequestBody requestBody = RequestBody.create(serializer.serialize(contract),
+        RequestBody requestBody = RequestBody.create(serDes.serialize(contract),
                 okhttp3.MediaType.get(MediaType.APPLICATION_JSON));
 
         return MultipartBody.Part.create(headers, requestBody);

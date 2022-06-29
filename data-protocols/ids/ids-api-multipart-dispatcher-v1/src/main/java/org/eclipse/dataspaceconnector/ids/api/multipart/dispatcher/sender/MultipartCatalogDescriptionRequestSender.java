@@ -25,7 +25,7 @@ import de.fraunhofer.iais.eis.ResourceCatalogBuilder;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
-import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.serializer.JsonldSerDes;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -49,17 +49,17 @@ import java.util.Objects;
  * expects an IDS DescriptionResponseMessage as the response.
  */
 public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender<CatalogRequest, Catalog> {
-    private final JsonldSerializer serializer;
+    private final JsonldSerDes serDes;
 
     public MultipartCatalogDescriptionRequestSender(@NotNull String connectorId,
                                                     @NotNull OkHttpClient httpClient,
-                                                    @NotNull JsonldSerializer serializer,
+                                                    @NotNull JsonldSerDes serDes,
                                                     @NotNull Monitor monitor,
                                                     @NotNull IdentityService identityService,
                                                     @NotNull IdsTransformerRegistry transformerRegistry) {
         super(connectorId, httpClient, monitor, identityService, transformerRegistry);
 
-        this.serializer = serializer;
+        this.serDes = serDes;
     }
 
     @Override
@@ -116,7 +116,7 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
     private BaseConnector getBaseConnector(IdsMultipartParts parts) {
         try {
             InputStream payload = Objects.requireNonNull(parts.getPayload());
-            return (BaseConnector) serializer.deserialize(new String(payload.readAllBytes(), StandardCharsets.UTF_8), BaseConnector.class);
+            return serDes.deserialize(new String(payload.readAllBytes(), StandardCharsets.UTF_8), BaseConnector.class);
         } catch (IOException exception) {
             throw new EdcException(String.format("Could not deserialize connector self-description: %s", exception.getMessage()));
         }
@@ -126,13 +126,13 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
         if (catalog.getProperties() != null) {
             for (Map.Entry<String, Object> entry : catalog.getProperties().entrySet()) {
                 if ("ids:offeredResource".equals(entry.getKey())) {
-                    JsonNode node = serializer.getObjectMapper().convertValue(entry.getValue(), JsonNode.class);
+                    JsonNode node = serDes.getObjectMapper().convertValue(entry.getValue(), JsonNode.class);
                     List<Resource> offeredResources = new LinkedList<>();
                     for (JsonNode objNode : node.get("objectList")) {
                         Map<String, Object> resource = new HashMap<>();
                         resource.put("@type", "ids:Resource");
-                        resource.putAll(serializer.getObjectMapper().convertValue(objNode, Map.class));
-                        offeredResources.add(serializer.getObjectMapper().convertValue(resource, Resource.class));
+                        resource.putAll(serDes.getObjectMapper().convertValue(objNode, Map.class));
+                        offeredResources.add(serDes.getObjectMapper().convertValue(resource, Resource.class));
                     }
                     catalog.setOfferedResource(offeredResources);
                 }

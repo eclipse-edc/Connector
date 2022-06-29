@@ -1,12 +1,9 @@
-# Serializer
+# JSON-LD Serializer & Deserializer
 
-This extension provides implementations for (de-)serialization.
+This extension provides implementations for (de-)serialization. The `JsonldSerializer` class provides
+a customized `ObjectMapper` to serialize and deserialize JSON-LD strings.
 
-## JSON-LD Serializer
-
-The `JsonldSerializer` class provides a customized `ObjectMapper` to serialize and deserialize JSON-LD strings.
-
-### Background
+## Background
 
 Data-describing ontologies, as e.g. the Information Model of the International Data Spaces (IDS) are
 often expressed in [RDF](https://www.w3.org/RDF/). RDF is characterized by its ability to describe a
@@ -17,23 +14,23 @@ A popular Java library for the de/serialization of JSON objects is the Jackson `
 since type information is lost in JSON, objects and attributes need to be serialized in JSON-LD format.
 This requires some adjustments, e.g. the addition of context information.
 
-#### Scope
+### Scope
 
 This extension can be used for serializing and deserializing JSON-LD Strings across the whole project.
 
-#### Use Cases
+### Use Cases
 
 This extension is used in the `:data-protocols:ids` modules, as IDS communication protocols require the
 support of JSON-LD when communicating with other systems in an IDS ecosystem.
 
-### Technical Details
+## Technical Details
 
-#### Interfaces
+### Interfaces
 
 The `JsonldSerializer` provides a customized `ObjectMapper` that can be used as-is, or be modified.
 It comes with methods that can process custom context information or subtypes.
 
-#### Dependencies
+### Dependencies
 
 | Name | Description |
 | :----| :-----------|

@@ -24,8 +24,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("jsonld-serializer") {
-            artifactId = "jsonld-serializer"
+        create<MavenPublication>("jsonld-serdes") {
+            artifactId = "jsonld-serdes"
             from(components["java"])
         }
     }

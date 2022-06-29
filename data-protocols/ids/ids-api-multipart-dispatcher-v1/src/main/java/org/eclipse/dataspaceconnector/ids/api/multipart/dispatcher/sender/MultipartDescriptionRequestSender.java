@@ -28,7 +28,7 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartDescriptionResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
-import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.serializer.JsonldSerDes;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -44,17 +44,17 @@ import java.util.Collections;
  * expects an IDS DescriptionResponseMessage as the response.
  */
 public class MultipartDescriptionRequestSender extends IdsMultipartSender<MetadataRequest, MultipartDescriptionResponse> {
-    private final JsonldSerializer serializer;
+    private final JsonldSerDes serDes;
 
     public MultipartDescriptionRequestSender(@NotNull String connectorId,
                                              @NotNull OkHttpClient httpClient,
-                                             @NotNull JsonldSerializer serializer,
+                                             @NotNull JsonldSerDes serDes,
                                              @NotNull Monitor monitor,
                                              @NotNull IdentityService identityService,
                                              @NotNull IdsTransformerRegistry transformerRegistry) {
         super(connectorId, httpClient, monitor, identityService, transformerRegistry);
 
-        this.serializer = serializer;
+        this.serDes = serDes;
     }
 
     @Override
@@ -82,30 +82,30 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
 
     @Override
     protected MultipartDescriptionResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        var header = (ResponseMessage) serializer.deserialize(new String(parts.getHeader().readAllBytes(), StandardCharsets.UTF_8), ResponseMessage.class);
+        var header = serDes.deserialize(new String(parts.getHeader().readAllBytes(), StandardCharsets.UTF_8), ResponseMessage.class);
 
         var builder = MultipartDescriptionResponse.Builder.newInstance();
         builder.header(header);
 
         if (parts.getPayload() != null) {
             String payloadString = new String(parts.getPayload().readAllBytes(), StandardCharsets.UTF_8);
-            JsonNode payloadJson = serializer.getObjectMapper().readTree(payloadString);
+            JsonNode payloadJson = serDes.getObjectMapper().readTree(payloadString);
             JsonNode type = payloadJson.get("@type");
             switch (type.textValue()) {
                 case "ids:BaseConnector":
-                    builder.payload((BaseConnector) serializer.deserialize(payloadString, BaseConnector.class));
+                    builder.payload(serDes.deserialize(payloadString, BaseConnector.class));
                     break;
                 case "ids:ResourceCatalog":
-                    builder.payload((ResourceCatalog) serializer.deserialize(payloadString, ResourceCatalog.class));
+                    builder.payload(serDes.deserialize(payloadString, ResourceCatalog.class));
                     break;
                 case "ids:Resource":
-                    builder.payload((Resource) serializer.deserialize(payloadString, Resource.class));
+                    builder.payload(serDes.deserialize(payloadString, Resource.class));
                     break;
                 case "ids:Representation":
-                    builder.payload((Representation) serializer.deserialize(payloadString, Representation.class));
+                    builder.payload(serDes.deserialize(payloadString, Representation.class));
                     break;
                 case "ids:Artifact":
-                    builder.payload((Artifact) serializer.deserialize(payloadString, Artifact.class));
+                    builder.payload(serDes.deserialize(payloadString, Artifact.class));
                     break;
                 default:
                     throw new EdcException(String.format("Unknown type: %s", type.textValue()));

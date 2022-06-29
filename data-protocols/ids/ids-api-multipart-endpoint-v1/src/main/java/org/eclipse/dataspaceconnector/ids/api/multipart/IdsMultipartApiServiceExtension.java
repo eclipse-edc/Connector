@@ -43,7 +43,7 @@ import org.eclipse.dataspaceconnector.ids.spi.domain.DefaultValues;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.serializer.JsonldSerDes;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.WebService;
@@ -110,10 +110,10 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         var resourceDescriptionRequestHandler = new ResourceDescriptionRequestHandler(monitor, connectorId, assetIndex, contractOfferService, transformerRegistry);
         var connectorDescriptionRequestHandler = new ConnectorDescriptionRequestHandler(monitor, connectorId, connectorService, transformerRegistry);
 
-        // customize serializer
-        var serializer = new JsonldSerializer(monitor);
-        serializer.setContext(DefaultValues.CONTEXT);
-        serializer.setSubtypes(IdsConstraintImpl.class);
+        // customize (de-)serializer
+        var serDes = new JsonldSerDes(monitor);
+        serDes.setContext(DefaultValues.CONTEXT);
+        serDes.setSubtypes(IdsConstraintImpl.class);
 
         // create request handler
         var descriptionHandler = new DescriptionHandler(
@@ -129,14 +129,14 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         var handlers = new LinkedList<Handler>();
         handlers.add(descriptionHandler);
 
-        var artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, serializer, contractNegotiationStore, contractValidationService, transferProcessManager, vault);
+        var artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, serDes, contractNegotiationStore, contractValidationService, transferProcessManager, vault);
         handlers.add(artifactRequestHandler);
 
         // create contract message handlers
         var responseMessageFactory = new IdsResponseMessageFactory(connectorId, identityService);
-        handlers.add(new ContractRequestHandler(monitor, connectorId, serializer, providerNegotiationManager, responseMessageFactory, transformerRegistry, assetIndex));
-        handlers.add(new ContractAgreementHandler(monitor, connectorId, serializer, consumerNegotiationManager, transformerRegistry));
-        handlers.add(new ContractOfferHandler(monitor, connectorId, serializer, providerNegotiationManager, consumerNegotiationManager, responseMessageFactory));
+        handlers.add(new ContractRequestHandler(monitor, connectorId, serDes, providerNegotiationManager, responseMessageFactory, transformerRegistry, assetIndex));
+        handlers.add(new ContractAgreementHandler(monitor, connectorId, serDes, consumerNegotiationManager, transformerRegistry));
+        handlers.add(new ContractOfferHandler(monitor, connectorId, serDes, providerNegotiationManager, consumerNegotiationManager, responseMessageFactory));
         handlers.add(new ContractRejectionHandler(monitor, connectorId, providerNegotiationManager, consumerNegotiationManager));
 
         // add notification handler and sub-handlers
@@ -146,7 +146,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         handlers.add(new NotificationMessageHandler(connectorId, notificationHandlersRegistry));
 
         // create & register controller
-        var multipartController = new MultipartController(monitor, connectorId, serializer, identityService, handlers, idsApiConfiguration.getIdsWebhookAddress());
+        var multipartController = new MultipartController(monitor, connectorId, serDes, identityService, handlers, idsApiConfiguration.getIdsWebhookAddress());
         webService.registerResource(idsApiConfiguration.getContextAlias(), multipartController);
     }
 

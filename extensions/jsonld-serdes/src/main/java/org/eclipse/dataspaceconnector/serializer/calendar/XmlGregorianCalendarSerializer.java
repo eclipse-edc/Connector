@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.serializer.jsonld.calendar;
+package org.eclipse.dataspaceconnector.serializer.calendar;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -32,9 +32,11 @@ public class XmlGregorianCalendarSerializer extends StdSerializer<XMLGregorianCa
     }
 
     @Override
-    public void serialize(XMLGregorianCalendar calendar, JsonGenerator generator, SerializerProvider serializerProvider) throws IOException {
+    public void serialize(XMLGregorianCalendar calendar, JsonGenerator generator, SerializerProvider provider) throws IOException {
         var sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        sdf.setCalendar(calendar.toGregorianCalendar());
         var formatted = sdf.format(calendar.toGregorianCalendar().getTime());
+
         generator.writeString(formatted);
     }
 

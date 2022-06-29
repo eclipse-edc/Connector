@@ -22,7 +22,7 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
-import org.eclipse.dataspaceconnector.serializer.jsonld.JsonldSerializer;
+import org.eclipse.dataspaceconnector.serializer.JsonldSerDes;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
@@ -37,17 +37,17 @@ import java.util.Collections;
  * expects an IDS RequestInProcessMessage as the response.
  */
 public class MultipartContractRejectionSender extends IdsMultipartSender<ContractRejection, MultipartMessageProcessedResponse> {
-    private final JsonldSerializer serializer;
+    private final JsonldSerDes serDes;
 
     public MultipartContractRejectionSender(@NotNull String connectorId,
                                             @NotNull OkHttpClient httpClient,
-                                            @NotNull JsonldSerializer serializer,
+                                            @NotNull JsonldSerDes serDes,
                                             @NotNull Monitor monitor,
                                             @NotNull IdentityService identityService,
                                             @NotNull IdsTransformerRegistry transformerRegistry) {
         super(connectorId, httpClient, monitor, identityService, transformerRegistry);
 
-        this.serializer = serializer;
+        this.serDes = serDes;
     }
 
     @Override
@@ -81,7 +81,7 @@ public class MultipartContractRejectionSender extends IdsMultipartSender<Contrac
 
     @Override
     protected MultipartMessageProcessedResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        var header = (Message) serializer.deserialize(new String(parts.getHeader().readAllBytes(), StandardCharsets.UTF_8), Message.class);
+        var header = serDes.deserialize(new String(parts.getHeader().readAllBytes(), StandardCharsets.UTF_8), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());
