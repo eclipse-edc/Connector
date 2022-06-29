@@ -231,8 +231,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             var policy = policyArchive.findPolicyForContract(dataRequest.getContractId());
             var policyResult = policyEngine.evaluate(NEGOTIATION_SCOPE, policy, consumerAgent);
             if (policyResult.failed()) {
-                process.transitionError(format("Policy for data request %s is not fulfilled.", dataRequest.getId()));
-                updateTransferProcess(process, l -> l.preError(process));
+                monitor.severe(format("Will not create transfer process for data request %s. Policy not fulfilled: %s",
+                        dataRequest.getId(), policyResult.getFailureMessages()));
                 return StatusResult.failure(ResponseStatus.FATAL_ERROR, format("Policy for data request %s is not fulfilled.", dataRequest.getId()));
             }
         }
@@ -260,6 +260,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             var originalManifest = manifestGenerator.generateConsumerResourceManifest(dataRequest, policy);
             var manifestResult = policyEngine.evaluate(PROVISION_SCOPE, policy, originalManifest);
             if (manifestResult.failed()) {
+                monitor.severe(format("Transitioning transfer process %s to ERROR state. Resource manifest cannot be modified to fulfil policy: %s",
+                        process.getId(), manifestResult.getFailureMessages()));
                 process.transitionError(format("Resource manifest for process %s cannot be modified to fulfil policy.", process.getId()));
                 updateTransferProcess(process, l -> l.preError(process));
                 return true;
