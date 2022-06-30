@@ -23,6 +23,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Permit API verbose error response (#1479)
 * Fix TODO and document `:extensions:data-plane-transfer` (#1519)
 * CloudEvents Http extension (#1160)
+* Full Query capabilities for SQL TransferProcess Store (#1483)
 
 #### Changed
 

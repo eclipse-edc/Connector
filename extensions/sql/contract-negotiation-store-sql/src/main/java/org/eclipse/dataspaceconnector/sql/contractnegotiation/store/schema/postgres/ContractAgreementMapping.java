@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.postgres;
 
 import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
+import org.eclipse.dataspaceconnector.sql.translation.JsonFieldMapping;
 import org.eclipse.dataspaceconnector.sql.translation.TranslationMapping;
 
 /**
@@ -41,6 +42,6 @@ class ContractAgreementMapping extends TranslationMapping {
         add(FIELD_CONTRACT_START_DATE, statements.getStartDateColumn());
         add(FIELD_CONTRACT_END_DATE, statements.getEndDateColumn());
         add(FIELD_ASSET_ID, statements.getAssetIdColumn());
-        add(FIELD_POLICY, new PolicyMapping());
+        add(FIELD_POLICY, new JsonFieldMapping("policy"));
     }
 }

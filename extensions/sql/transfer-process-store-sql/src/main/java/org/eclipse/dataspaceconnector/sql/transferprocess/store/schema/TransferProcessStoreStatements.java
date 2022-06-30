@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *  Copyright (c) 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,9 +12,11 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.transferprocess.store;
+package org.eclipse.dataspaceconnector.sql.transferprocess.store.schema;
 
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.sql.lease.LeaseStatements;
+import org.eclipse.dataspaceconnector.sql.translation.SqlQueryStatement;
 
 /**
  * Statement templates and SQL table+column names required for the TransferProcessStore
@@ -22,8 +24,6 @@ import org.eclipse.dataspaceconnector.sql.lease.LeaseStatements;
 public interface TransferProcessStoreStatements extends LeaseStatements {
 
     String getInsertStatement();
-
-    String getFindByIdStatement();
 
     String getProcessIdForTransferIdTemplate();
 
@@ -35,14 +35,14 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
 
     String getInsertDataRequestTemplate();
 
-    String getQueryStatement();
+    String getSelectTemplate();
 
 
     default String getIdColumn() {
-        return "id";
+        return "transferprocess_id";
     }
 
-    default String getTableName() {
+    default String getTransferProcessTableName() {
         return "edc_transfer_process";
     }
 
@@ -90,10 +90,6 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
         return "protocol";
     }
 
-    default String getDestinationColumn() {
-        return "data_destination";
-    }
-
     default String getConnectorIdColumn() {
         return "connector_id";
     }
@@ -126,7 +122,7 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
         return "edc_data_request";
     }
 
-    default String getTransferProcessIdColumn() {
+    default String getTransferProcessIdFkColumn() {
         return "transfer_process_id";
     }
 
@@ -138,5 +134,17 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
         return "state_count";
     }
 
+    default String getDataRequestIdColumn() {
+        return "datarequest_id";
+    }
 
+    default String getDeprovisionedResourcesColumn() {
+        return "deprovisioned_resources";
+    }
+
+    default String getFormatAsJsonOperator() {
+        return " FORMAT JSON";
+    }
+
+    SqlQueryStatement createQuery(QuerySpec querySpec);
 }

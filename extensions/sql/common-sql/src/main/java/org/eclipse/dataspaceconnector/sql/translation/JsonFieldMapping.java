@@ -12,30 +12,26 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.postgres;
+package org.eclipse.dataspaceconnector.sql.translation;
 
-import org.eclipse.dataspaceconnector.sql.translation.TranslationMapping;
+public class JsonFieldMapping extends TranslationMapping {
+    protected final String columnName;
 
-/**
- * Maps fields of a {@link org.eclipse.dataspaceconnector.policy.model.Policy} onto the corresponding SQL schema (=
- * column names)
- */
-class PolicyMapping extends TranslationMapping {
-
-    private static final String FIELD_POLICY = "policy ";
+    public JsonFieldMapping(String columnName) {
+        this.columnName = columnName;
+    }
 
     @Override
     public String getStatement(String canonicalPropertyName) {
-
         var tokens = canonicalPropertyName.split("\\.");
-        var statementBuilder = new StringBuilder(FIELD_POLICY);
+        var statementBuilder = new StringBuilder(columnName);
         int length = tokens.length;
         for (int i = 0; i < length - 1; i++) {
-            statementBuilder.append("-> ");
-            statementBuilder.append("'").append(tokens[i]).append("' ");
+            statementBuilder.append(" -> ");
+            statementBuilder.append("'").append(tokens[i]).append("'");
         }
 
-        statementBuilder.append("->> ");
+        statementBuilder.append(" ->> ");
         statementBuilder.append("'").append(tokens[length - 1]).append("'");
         return statementBuilder.toString();
     }

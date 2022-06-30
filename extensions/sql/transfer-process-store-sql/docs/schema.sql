@@ -16,7 +16,7 @@ COMMENT ON COLUMN edc_lease.lease_duration IS 'duration of lease in milliseconds
 
 CREATE TABLE IF NOT EXISTS edc_transfer_process
 (
-    id                       VARCHAR           NOT NULL
+    transferprocess_id       VARCHAR           NOT NULL
         CONSTRAINT transfer_process_pk
             PRIMARY KEY,
     type                     VARCHAR           NOT NULL,
@@ -24,11 +24,12 @@ CREATE TABLE IF NOT EXISTS edc_transfer_process
     state_count              INTEGER DEFAULT 0 NOT NULL,
     state_time_stamp         BIGINT,
     created_time_stamp       BIGINT,
-    trace_context            VARCHAR,
+    trace_context            JSON,
     error_detail             VARCHAR,
-    resource_manifest        VARCHAR,
-    provisioned_resource_set VARCHAR,
-    content_data_address     VARCHAR,
+    resource_manifest        JSON,
+    provisioned_resource_set JSON,
+    content_data_address     JSON,
+    deprovisioned_resources  JSON,
     lease_id                 VARCHAR
         CONSTRAINT transfer_process_lease_lease_id_fk
             REFERENCES edc_lease
@@ -43,13 +44,15 @@ COMMENT ON COLUMN edc_transfer_process.provisioned_resource_set IS 'ProvisionedR
 
 COMMENT ON COLUMN edc_transfer_process.content_data_address IS 'DataAddress serialized as JSON';
 
+COMMENT ON COLUMN edc_transfer_process.deprovisioned_resources IS 'List of deprovisioned resources, serialized as JSON';
+
 
 CREATE UNIQUE INDEX IF NOT EXISTS transfer_process_id_uindex
-    ON edc_transfer_process (id);
+    ON edc_transfer_process (transferprocess_id);
 
 CREATE TABLE IF NOT EXISTS edc_data_request
 (
-    id                  VARCHAR NOT NULL
+    datarequest_id      VARCHAR NOT NULL
         CONSTRAINT data_request_pk
             PRIMARY KEY,
     process_id          VARCHAR NOT NULL,
@@ -58,10 +61,10 @@ CREATE TABLE IF NOT EXISTS edc_data_request
     connector_id        VARCHAR,
     asset_id            VARCHAR NOT NULL,
     contract_id         VARCHAR NOT NULL,
-    data_destination    VARCHAR NOT NULL,
+    data_destination    JSON    NOT NULL,
     managed_resources   BOOLEAN DEFAULT TRUE,
-    properties          VARCHAR,
-    transfer_type       VARCHAR,
+    properties          JSON,
+    transfer_type       JSON,
     transfer_process_id VARCHAR NOT NULL
         CONSTRAINT data_request_transfer_process_id_fk
             REFERENCES edc_transfer_process
@@ -76,7 +79,7 @@ COMMENT ON COLUMN edc_data_request.transfer_type IS 'TransferType serialized as 
 
 
 CREATE UNIQUE INDEX IF NOT EXISTS data_request_id_uindex
-    ON edc_data_request (id);
+    ON edc_data_request (datarequest_id);
 
 CREATE UNIQUE INDEX IF NOT EXISTS lease_lease_id_uindex
     ON edc_lease (lease_id);
