@@ -212,9 +212,11 @@ public class FileTransferSampleTest {
         // convert JSON file to map
         DataRequest sampleDataRequest = MAPPER.readValue(transferJsonFile, DataRequest.class);
 
-        DataAddress newDataDestination = sampleDataRequest.getDataDestination()
-                .toBuilder()
-                .property("path", DESTINATION_FILE.getAbsolutePath())
+        var changedAddressProperties = sampleDataRequest.getDataDestination().getProperties();
+        changedAddressProperties.put("path", DESTINATION_FILE.getAbsolutePath());
+
+        DataAddress newDataDestination = DataAddress.Builder.newInstance()
+                .properties(changedAddressProperties)
                 .build();
 
         return sampleDataRequest
