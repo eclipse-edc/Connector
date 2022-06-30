@@ -16,6 +16,10 @@ package org.eclipse.dataspaceconnector.sql.transferprocess.store.schema.postgres
 
 import org.eclipse.dataspaceconnector.sql.translation.JsonFieldMapping;
 
+/**
+ * Maps fields of a {@link org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource} onto the
+ * corresponding SQL schema (= column names) enabling access through Postgres JSON operators
+ */
 class DeprovisionedResourcesMapping extends JsonFieldMapping {
 
     DeprovisionedResourcesMapping(String columnName) {

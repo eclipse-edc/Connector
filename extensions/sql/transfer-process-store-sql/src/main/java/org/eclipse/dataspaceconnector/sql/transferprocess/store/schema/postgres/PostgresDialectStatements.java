@@ -20,6 +20,9 @@ import org.eclipse.dataspaceconnector.sql.translation.SqlQueryStatement;
 
 import static java.lang.String.format;
 
+/**
+ * Postgres-specific variations of the SQL statements based on Postgres's ability to use JSON operators and -functions.
+ */
 public class PostgresDialectStatements extends BaseSqlDialectStatements {
 
     public static final String DEPROVISIONED_RESOURCES_ALIAS = "dpr"; //must be different from column name to avoid ambiguities

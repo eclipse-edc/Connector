@@ -17,6 +17,9 @@ package org.eclipse.dataspaceconnector.sql.transferprocess.store.schema.postgres
 import org.eclipse.dataspaceconnector.sql.translation.JsonFieldMapping;
 import org.eclipse.dataspaceconnector.sql.translation.TranslationMapping;
 
+/**
+ * Maps fields of a {@link ProvisionedResourceSetMapping} onto the corresponding SQL schema (= column names) using Post
+ */
 class ProvisionedResourceSetMapping extends TranslationMapping {
 
     private static final String FIELD_RESOURCES = "resources";

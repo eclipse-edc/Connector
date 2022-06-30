@@ -47,6 +47,9 @@ import javax.sql.DataSource;
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
+/**
+ * Implementation of the {@link TransferProcessStore} based on SQL.
+ */
 public class SqlTransferProcessStore implements TransferProcessStore {
     private final DataSourceRegistry dataSourceRegistry;
     private final String datasourceName;

@@ -105,11 +105,6 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
     }
 
     @Override
-    public String getQueryStatement() {
-        return "SELECT *, dr.id as edc_data_request_id FROM edc_transfer_process LEFT OUTER JOIN edc_data_request dr ON edc_transfer_process.id = dr.transfer_process_id LIMIT ? OFFSET ?";
-    }
-
-    @Override
     public String getSelectTemplate() {
         return String.format("SELECT *, edr.%s as edc_data_request_id FROM %s LEFT OUTER JOIN %s edr on %s.%s = edr.%s", getDataRequestIdColumn(),
                 getTransferProcessTableName(), getDataRequestTable(), getTransferProcessTableName(), getIdColumn(), getProcessIdColumn());

@@ -18,6 +18,10 @@ import org.eclipse.dataspaceconnector.sql.transferprocess.store.schema.TransferP
 import org.eclipse.dataspaceconnector.sql.translation.JsonFieldMapping;
 import org.eclipse.dataspaceconnector.sql.translation.TranslationMapping;
 
+/**
+ * Maps fields of a {@link org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess} onto the
+ * corresponding SQL schema (= column names) enabling access through Postgres JSON operators where applicable
+ */
 public class TransferProcessMapping extends TranslationMapping {
 
     private static final String FIELD_ID = "id";

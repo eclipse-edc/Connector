@@ -39,7 +39,6 @@ import org.eclipse.dataspaceconnector.sql.transferprocess.store.schema.postgres.
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.postgresql.ds.PGSimpleDataSource;
 
@@ -543,7 +542,6 @@ class PostgresTransferProcessStoreTest {
     }
 
     @Test
-    @Disabled("Not yet in schema")
     void find_queryByDeprovisionedResources_propNotExist() {
         var dp1 = DeprovisionedResource.Builder.newInstance()
                 .provisionedResourceId("test-rid1")
@@ -569,7 +567,6 @@ class PostgresTransferProcessStoreTest {
     }
 
     @Test
-    @Disabled("Not yet in schema")
     void find_queryByDeprovisionedResources_valueNotExist() {
         var dp1 = DeprovisionedResource.Builder.newInstance()
                 .provisionedResourceId("test-rid1")

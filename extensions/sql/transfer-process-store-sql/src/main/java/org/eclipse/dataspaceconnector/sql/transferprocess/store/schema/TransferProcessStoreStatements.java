@@ -35,8 +35,6 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
 
     String getInsertDataRequestTemplate();
 
-    String getQueryStatement();
-
     String getSelectTemplate();
 
 
