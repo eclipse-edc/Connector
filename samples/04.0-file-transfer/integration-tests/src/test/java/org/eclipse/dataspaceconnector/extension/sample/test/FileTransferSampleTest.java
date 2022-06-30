@@ -158,7 +158,7 @@ public class FileTransferSampleTest {
     void lookUpContractAgreementId() {
         // Wait for transfer to be completed.
         await().atMost(TIMEOUT).pollInterval(POLL_INTERVAL)
-            .untilAsserted(() ->
+                .untilAsserted(() ->
                 contractAgreementId = RestAssured
                     .given()
                         .headers(API_KEY_HEADER_KEY, API_KEY_HEADER_VALUE)
@@ -169,12 +169,13 @@ public class FileTransferSampleTest {
                         .body("state", equalTo("CONFIRMED"))
                         .body("contractAgreementId", not(emptyString()))
                         .extract().body().jsonPath().getString("contractAgreementId")
-            );
+        );
     }
 
     /**
      * Assert that a POST request to initiate transfer process is successful.
      * This method corresponds to the command in the sample: {@code curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/filetransfer.json "http://localhost:9192/api/v1/data/transferprocess"}
+     *
      * @throws IOException Thrown if there was an error accessing the transfer request file defined in {@link FileTransferSampleTest#TRANSFER_FILE_PATH}.
      */
     void requestTransferFile() throws IOException {
@@ -182,17 +183,17 @@ public class FileTransferSampleTest {
         DataRequest sampleDataRequest = readAndUpdateTransferJsonFile(transferJsonFile, contractAgreementId);
 
         JsonPath jsonPath = RestAssured
-            .given()
-                .headers(API_KEY_HEADER_KEY, API_KEY_HEADER_VALUE)
-                .contentType(ContentType.JSON)
-                .body(sampleDataRequest)
-            .when()
-                .post(INITIATE_TRANSFER_PROCESS_URI)
-            .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body("id", not(emptyString()))
-                .extract()
-                .jsonPath();
+                .given()
+                    .headers(API_KEY_HEADER_KEY, API_KEY_HEADER_VALUE)
+                    .contentType(ContentType.JSON)
+                    .body(sampleDataRequest)
+                .when()
+                    .post(INITIATE_TRANSFER_PROCESS_URI)
+                .then()
+                    .statusCode(HttpStatus.SC_OK)
+                    .body("id", not(emptyString()))
+                    .extract()
+                    .jsonPath();
 
         String transferProcessId = jsonPath.get("id");
 
@@ -201,6 +202,7 @@ public class FileTransferSampleTest {
 
     /**
      * Reads a transfer request file with changed value for contract agreement ID and file destination path.
+     *
      * @param transferJsonFile A {@link File} instance pointing to a JSON transfer request file.
      * @param contractAgreementId This string containing a UUID will be used as value for the contract agreement ID.
      * @return An instance of {@link DataRequest} with changed values for contract agreement ID and file destination path.
