@@ -151,7 +151,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
                 .dataAddress(dataDestination)
                 .transferType(transferType)
                 .managedResources(managedResources)
-                .properties(new HashMap<>(properties))    // deep copy to ensure immutability
+                .properties(properties)
                 .build();
     }
 
