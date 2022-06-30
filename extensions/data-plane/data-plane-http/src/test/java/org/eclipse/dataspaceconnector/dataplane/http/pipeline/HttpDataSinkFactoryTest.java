@@ -110,6 +110,34 @@ class HttpDataSinkFactoryTest {
         verify(call).execute();
     }
 
+    @Test
+    void verifyCreateAdditionalHeaders() throws InterruptedException, ExecutionException, IOException {
+        var dataAddress = HttpDataAddress.Builder.newInstance()
+                .baseUrl("http://example.com")
+                .contentType("application/test-octet-stream")
+                .addAdditionalHeader("x-ms-blob-type", "BlockBlob")
+                .build();
+
+        var validRequest = createRequest(HttpDataAddress.DATA_TYPE).destinationDataAddress(dataAddress).build();
+
+        var call = mock(Call.class);
+        when(call.execute()).thenReturn(createHttpResponse().build());
+
+        when(httpClient.newCall(isA(Request.class))).thenAnswer(r -> {
+            assertThat(((Request) r.getArgument(0)).body().contentType().toString()).isEqualTo("application/test-octet-stream");  // verify Content-Type
+            assertThat(((Request) r.getArgument(0)).headers("x-ms-blob-type").get(0)).isEqualTo("BlockBlob");  // verify x-ms-blob-type
+            return call;
+        });
+
+        var sink = factory.createSink(validRequest);
+
+        var result = sink.transfer(new InputStreamDataSource("test", new ByteArrayInputStream("test".getBytes()))).get();
+
+        assertThat(result.failed()).isFalse();
+
+        verify(call).execute();
+    }
+
     @BeforeEach
     void setUp() {
         httpClient = mock(OkHttpClient.class);

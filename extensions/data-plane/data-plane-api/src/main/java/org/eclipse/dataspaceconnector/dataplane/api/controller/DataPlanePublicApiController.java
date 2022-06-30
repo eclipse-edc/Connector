@@ -28,11 +28,10 @@ import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.dataspaceconnector.common.token.TokenValidationService;
+import org.eclipse.dataspaceconnector.dataplane.api.validation.TokenValidationClient;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSink;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
@@ -52,25 +51,25 @@ import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunc
 public class DataPlanePublicApiController {
 
     private final DataPlaneManager dataPlaneManager;
-    private final TokenValidationService tokenValidationService;
+    private final TokenValidationClient tokenValidationClient;
     private final Monitor monitor;
-    private final DataFlowRequestFactory factory;
     private final ExecutorService executorService;
 
     public DataPlanePublicApiController(DataPlaneManager dataPlaneManager,
-                                        TokenValidationService tokenValidationService,
+                                        TokenValidationClient tokenValidationClient,
                                         Monitor monitor,
-                                        TypeManager typeManager,
                                         ExecutorService executorService) {
         this.dataPlaneManager = dataPlaneManager;
-        this.tokenValidationService = tokenValidationService;
+        this.tokenValidationClient = tokenValidationClient;
         this.monitor = monitor;
-        this.factory = new DataFlowRequestFactory(typeManager);
         this.executorService = executorService;
     }
 
     /**
      * Sends a {@link GET} request to the data source and returns data.
+     *
+     * @param requestContext Request context.
+     * @param response       Data fetched from the data source.
      */
     @GET
     public void get(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
@@ -78,7 +77,10 @@ public class DataPlanePublicApiController {
     }
 
     /**
-     * Sends a {@link DELETE} request to the data source.
+     * Sends a {@link DELETE} request to the data source and returns data.
+     *
+     * @param requestContext Request context.
+     * @param response       Data fetched from the data source.
      */
     @DELETE
     public void delete(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
@@ -86,7 +88,10 @@ public class DataPlanePublicApiController {
     }
 
     /**
-     * Sends a {@link PATCH} request to the data source.
+     * Sends a {@link PATCH} request to the data source and returns data.
+     *
+     * @param requestContext Request context.
+     * @param response       Data fetched from the data source.
      */
     @PATCH
     public void patch(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
@@ -94,7 +99,10 @@ public class DataPlanePublicApiController {
     }
 
     /**
-     * Sends a {@link PUT} request to the data source.
+     * Sends a {@link PUT} request to the data source and returns data.
+     *
+     * @param requestContext Request context.
+     * @param response       Data fetched from the data source.
      */
     @PUT
     public void put(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
@@ -102,7 +110,10 @@ public class DataPlanePublicApiController {
     }
 
     /**
-     * Sends a {@link POST} request to the data source.
+     * Sends a {@link POST} request to the data source and returns data.
+     *
+     * @param requestContext Request context.
+     * @param response       Data fetched from the data source.
      */
     @POST
     public void post(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
@@ -117,13 +128,13 @@ public class DataPlanePublicApiController {
             return;
         }
 
-        var tokenValidationResult = tokenValidationService.validate(bearerToken);
+        var tokenValidationResult = tokenValidationClient.callTokenValidationServer(bearerToken);
         if (tokenValidationResult.failed()) {
             response.resume(notAuthorizedErrors(tokenValidationResult.getFailureMessages()));
             return;
         }
 
-        var dataFlowRequest = factory.from(contextApi, tokenValidationResult.getContent());
+        var dataFlowRequest = DataFlowRequestFactory.from(contextApi, tokenValidationResult.getContent());
         var validationResult = dataPlaneManager.validate(dataFlowRequest);
         if (validationResult.failed()) {
             var res = validationResult.getFailureMessages().isEmpty()

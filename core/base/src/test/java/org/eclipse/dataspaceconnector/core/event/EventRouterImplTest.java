@@ -68,7 +68,7 @@ class EventRouterImplTest {
     }
 
     private static class TestEvent extends Event<TestEvent.Payload> {
-        public static class Builder extends Event.Builder<TestEvent, Payload> {
+        public static class Builder extends Event.Builder<TestEvent, Payload, Builder> {
 
             public static Builder newInstance() {
                 return new Builder();

@@ -8,6 +8,7 @@ dependencies {
     implementation(project(":extensions:iam:decentralized-identity:identity-did-crypto"))
 
     testImplementation(testFixtures(project(":extensions:iam:decentralized-identity:identity-common-test")))
+    testImplementation(project(":extensions:junit"))
 }
 
 publishing {

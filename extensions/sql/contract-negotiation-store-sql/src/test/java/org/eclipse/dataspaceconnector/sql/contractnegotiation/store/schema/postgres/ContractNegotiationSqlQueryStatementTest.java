@@ -82,7 +82,7 @@ class ContractNegotiationSqlQueryStatementTest {
     }
 
     @Test
-    void multiNestedFieldAccess_withXpath_inOperator() {
+    void multiNestedFieldAccess_withPath_inOperator() {
         var criterion = new Criterion("contractAgreement.policy.agreements.assignee", "=", "yomama");
         var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new ContractNegotiationMapping(postresStatements));
 

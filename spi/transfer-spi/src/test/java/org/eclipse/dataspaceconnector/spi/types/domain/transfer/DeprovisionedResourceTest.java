@@ -28,13 +28,20 @@ class DeprovisionedResourceTest {
     void verifyDeserialization() throws IOException {
         var mapper = new ObjectMapper();
 
-        var resource = DeprovisionedResource.Builder.newInstance().provisionedResourceId("123").build();
+        var resource = DeprovisionedResource.Builder.newInstance().provisionedResourceId("123")
+                .inProcess(true)
+                .error(true)
+                .errorMessage("foo")
+                .build();
         var writer = new StringWriter();
         mapper.writeValue(writer, resource);
 
         var deserialized = mapper.readValue(writer.toString(), DeprovisionedResource.class);
 
-        assertThat(deserialized).isNotNull();
+        assertThat(deserialized).isNotNull().usingRecursiveComparison().isEqualTo(resource);
+        assertThat(deserialized.isInProcess()).isTrue();
+        assertThat(deserialized.isError()).isTrue();
+        assertThat(deserialized.getErrorMessage()).isEqualTo("foo");
 
     }
 }

@@ -16,17 +16,27 @@ package org.eclipse.dataspaceconnector.spi.event;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import java.util.UUID;
+
 /**
- * The Event base class.
- * It provides a default field "at" that gives the timestamp when the event was created.
- * When serialized to JSON, will add a "type" field with the name of the runtime class name.
+ * The Event base class, the fields are:
+ *  - id: unique identifier of the event (set by default at a random UUID)
+ *  - at: creation timestamp
+ *  - payload: the data provided by the event
+ *  - type: added on serialization, contains the name of the runtime class name
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", include = JsonTypeInfo.As.EXTERNAL_PROPERTY)
 public abstract class Event<P> {
 
+    protected String id;
+
     protected long at;
 
     protected P payload;
+
+    public String getId() {
+        return id;
+    }
 
     public long getAt() {
         return at;
@@ -36,7 +46,7 @@ public abstract class Event<P> {
         return payload;
     }
 
-    public abstract static class Builder<T extends Event<P>, P extends EventPayload> {
+    public abstract static class Builder<T extends Event<P>, P extends EventPayload, B extends Builder<T, P, B>> {
 
         protected final T event;
 
@@ -45,12 +55,22 @@ public abstract class Event<P> {
             this.event.payload = payload;
         }
 
-        public Builder<T, P> at(long at) {
+        @SuppressWarnings("unchecked")
+        public B id(String id) {
+            event.id = id;
+            return (B) this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public B at(long at) {
             event.at = at;
-            return this;
+            return (B) this;
         }
 
         public T build() {
+            if (event.id == null) {
+                event.id = UUID.randomUUID().toString();
+            }
             if (event.at == 0) {
                 throw new IllegalStateException("Event 'at' field must be set");
             }

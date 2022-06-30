@@ -64,7 +64,7 @@ import java.time.Clock;
 
 @Provides({
         ContractOfferService.class, ContractValidationService.class, ConsumerContractNegotiationManager.class,
-        PolicyArchive.class, ProviderContractNegotiationManager.class
+        PolicyArchive.class, ProviderContractNegotiationManager.class, ContractNegotiationObservable.class
 })
 @CoreExtension
 public class ContractServiceExtension implements ServiceExtension {

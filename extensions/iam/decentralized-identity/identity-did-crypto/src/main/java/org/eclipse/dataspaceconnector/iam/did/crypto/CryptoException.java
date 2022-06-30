@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Microsoft Corporation
+ *  Copyright (c) 2021 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -17,15 +17,12 @@ package org.eclipse.dataspaceconnector.iam.did.crypto;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
 public class CryptoException extends EdcException {
-    public CryptoException(Exception inner) {
-        super(inner);
+
+    public CryptoException(String message) {
+        super(message);
     }
 
-    public CryptoException() {
-        super("Cyptographic Exception");
-    }
-
-    public CryptoException(String s) {
-        super(s);
+    public CryptoException(Throwable cause) {
+        super(cause);
     }
 }

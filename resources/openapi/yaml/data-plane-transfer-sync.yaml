@@ -1,0 +1,32 @@
+openapi: 3.0.1
+paths:
+  /token:
+    get:
+      description: "Checks that the provided token has been signed by the present\
+        \ entity and asserts its validity. If token is valid, then the data address\
+        \ contained in its claims is decrypted and returned back to the caller."
+      operationId: validate
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Token is valid
+        "400":
+          description: Request was malformed
+        "403":
+          description: Token is invalid
+      tags:
+      - Token Validation
+components:
+  schemas:
+    DataAddress:
+      type: object
+      properties:
+        properties:
+          type: object
+          additionalProperties:
+            type: string

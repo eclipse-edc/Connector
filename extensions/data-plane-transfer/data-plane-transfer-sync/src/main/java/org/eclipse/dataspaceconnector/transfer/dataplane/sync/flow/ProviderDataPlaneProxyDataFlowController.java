@@ -24,20 +24,25 @@ import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTransferProxyCreationRequest;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.proxy.DataPlaneTransferProxyReferenceService;
+import org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy.DataPlaneTransferProxyResolver;
 import org.jetbrains.annotations.NotNull;
 
-import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferType.HTTP_PROXY;
+import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.HTTP_PROXY;
 
 public class ProviderDataPlaneProxyDataFlowController implements DataFlowController {
 
     private final String connectorId;
-    private final String proxyEndpoint;
+    private final DataPlaneTransferProxyResolver proxyResolver;
     private final RemoteMessageDispatcherRegistry dispatcherRegistry;
     private final DataPlaneTransferProxyReferenceService proxyReferenceService;
 
-    public ProviderDataPlaneProxyDataFlowController(String connectorId, String proxyEndpoint, RemoteMessageDispatcherRegistry dispatcherRegistry, DataPlaneTransferProxyReferenceService proxyReferenceService) {
+    public ProviderDataPlaneProxyDataFlowController(String connectorId,
+                                                    DataPlaneTransferProxyResolver proxyResolver,
+                                                    RemoteMessageDispatcherRegistry dispatcherRegistry,
+                                                    DataPlaneTransferProxyReferenceService proxyReferenceService) {
         this.connectorId = connectorId;
-        this.proxyEndpoint = proxyEndpoint;
+        this.proxyResolver = proxyResolver;
         this.dispatcherRegistry = dispatcherRegistry;
         this.proxyReferenceService = proxyReferenceService;
     }
@@ -49,10 +54,16 @@ public class ProviderDataPlaneProxyDataFlowController implements DataFlowControl
 
     @Override
     public @NotNull StatusResult<Void> initiateFlow(DataRequest dataRequest, DataAddress contentAddress, Policy policy) {
+        var proxyUrl = proxyResolver.resolveProxyUrl(contentAddress);
+        if (proxyUrl.failed()) {
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR,
+                    format("Failed to resolve proxy url for data request %s%n %s", dataRequest.getId(), String.join(",", proxyUrl.getFailureMessages())));
+        }
+
         var proxyCreationRequest = DataPlaneTransferProxyCreationRequest.Builder.newInstance()
                 .id(dataRequest.getId())
                 .contentAddress(contentAddress)
-                .proxyEndpoint(proxyEndpoint)
+                .proxyEndpoint(proxyUrl.getContent())
                 .contractId(dataRequest.getContractId())
                 .build();
         var proxyCreationResult = proxyReferenceService.createProxyReference(proxyCreationRequest);

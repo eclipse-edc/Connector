@@ -35,6 +35,8 @@ public abstract class AbstractEndToEndTransfer {
 
     @Test
     void httpPullDataTransfer() {
+        PROVIDER.registerDataPlane();
+        CONSUMER.registerDataPlane();
         String definitionId = "1";
         createAssetAndContractDefinitionOnProvider("asset-id", definitionId, "HttpData");
 
@@ -68,6 +70,8 @@ public abstract class AbstractEndToEndTransfer {
 
     @Test
     void httpPullDataTransferProvisioner() {
+        PROVIDER.registerDataPlane();
+        CONSUMER.registerDataPlane();
         String definitionId = "1";
         createAssetAndContractDefinitionOnProvider("asset-id", definitionId, "HttpProvision");
 

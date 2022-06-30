@@ -14,6 +14,7 @@
 
 plugins {
     `java-library`
+    id("io.swagger.core.v3.swagger-gradle-plugin")
 }
 
 val rsApi: String by project
@@ -29,10 +30,11 @@ dependencies {
 
     api(project(":extensions:data-plane-transfer:data-plane-transfer-spi"))
     api(project(":extensions:data-plane:data-plane-spi"))
+    api(project(":extensions:data-plane-selector:selector-spi"))
 
     implementation(project(":common:token-validation-lib"))
     implementation(project(":common:token-generation-lib"))
-    
+
     api("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     api("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
     // Note: nimbus requires bouncycastle as mentioned in documentation:

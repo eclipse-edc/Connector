@@ -20,7 +20,7 @@ plugins {
 val h2Version: String by project
 val assertj: String by project
 val awaitility: String by project
-
+val postgresVersion: String by project
 
 dependencies {
     api(project(":spi:core-spi"))
@@ -39,6 +39,7 @@ dependencies {
     testImplementation("org.assertj:assertj-core:${assertj}")
     testImplementation("org.awaitility:awaitility:${awaitility}")
     testImplementation(testFixtures(project(":common:util")))
+    testImplementation("org.postgresql:postgresql:${postgresVersion}")
 
 }
 

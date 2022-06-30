@@ -66,6 +66,7 @@ public interface DataSource {
             throw new UnsupportedOperationException("Random access not supported");
         }
 
+        @Override
         default void close() throws Exception {
             // no-op
         }

@@ -1,13 +1,23 @@
 version: 2
 updates:
-  - package-ecosystem: "gradle"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    target-branch: "main"
-    open-pull-requests-limit: 50
+  # maintain dependencies for GitHub actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
+      interval: "weekly" # default = monday
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github_actions"
+      - "no-changelog"
+
+  # maintain dependencies for Gradle
+  - package-ecosystem: "gradle" # checks build.gradle(.kts) and settings.gradle(.kts)
+    directory: "/"
+    schedule:
       interval: "daily"
-    target-branch: "main"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "java"
+      - "no-changelog"

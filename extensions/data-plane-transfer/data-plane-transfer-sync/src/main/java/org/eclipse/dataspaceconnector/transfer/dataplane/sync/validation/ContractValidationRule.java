@@ -27,7 +27,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.Map;
 
-import static org.eclipse.dataspaceconnector.dataplane.spi.DataPlaneConstants.CONTRACT_ID;
+import static org.eclipse.dataspaceconnector.transfer.dataplane.spi.DataPlaneTransferConstants.CONTRACT_ID;
 
 /**
  * Assert that contract still allows access to the data. As of current implementation it only validates the contract end date.

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Microsoft Corporation
+ *  Copyright (c) 2021 - 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - Improvements
+ *       Microsoft Corporation - Use IDS Webhook address for JWT audience claim
  *
  */
 
@@ -24,10 +25,12 @@ import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.JwkPublicKey;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.Service;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.VerificationMethod;
+import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
+import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -36,36 +39,33 @@ import org.jetbrains.annotations.NotNull;
 import java.text.ParseException;
 import java.time.Clock;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 public class DecentralizedIdentityService implements IdentityService {
-    private final Supplier<SignedJWT> verifiableCredentialProvider;
     private final DidResolverRegistry resolverRegistry;
     private final CredentialsVerifier credentialsVerifier;
     private final Monitor monitor;
+    private final PrivateKeyWrapper privateKey;
+    private final String issuer;
     private final Clock clock;
 
-    public DecentralizedIdentityService(Supplier<SignedJWT> vcProvider, DidResolverRegistry resolverRegistry, CredentialsVerifier credentialsVerifier, Monitor monitor, Clock clock) {
-        verifiableCredentialProvider = vcProvider;
+    public DecentralizedIdentityService(DidResolverRegistry resolverRegistry, CredentialsVerifier credentialsVerifier, Monitor monitor, PrivateKeyWrapper privateKey, String issuer, Clock clock) {
         this.resolverRegistry = resolverRegistry;
         this.credentialsVerifier = credentialsVerifier;
         this.monitor = monitor;
+        this.privateKey = privateKey;
+        this.issuer = issuer;
         this.clock = clock;
     }
 
     @Override
-    public Result<TokenRepresentation> obtainClientCredentials(String scope) {
-
-        var jwt = verifiableCredentialProvider.get();
+    public Result<TokenRepresentation> obtainClientCredentials(TokenParameters parameters) {
+        var jwt = VerifiableCredentialFactory.create(privateKey, issuer, parameters.getAudience(), clock);
         var token = jwt.serialize();
-        var expiration = clock.millis() + TimeUnit.MINUTES.toMillis(10);
-
-        return Result.success(TokenRepresentation.Builder.newInstance().token(token).expiresIn(expiration).build());
+        return Result.success(TokenRepresentation.Builder.newInstance().token(token).build());
     }
 
     @Override
-    public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation) {
+    public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, String audience) {
         try {
             var jwt = SignedJWT.parse(tokenRepresentation.getToken());
             monitor.debug("Starting verification...");
@@ -88,7 +88,9 @@ public class DecentralizedIdentityService implements IdentityService {
             PublicKeyWrapper publicKeyWrapper = KeyConverter.toPublicKeyWrapper(publicKeyJwk, publicKey.get().getId());
 
             monitor.debug("Verifying JWT with public key...");
-            if (!VerifiableCredentialFactory.verify(jwt, publicKeyWrapper)) {
+            Result<Void> verified = VerifiableCredentialFactory.verify(jwt, publicKeyWrapper, audience);
+            if (verified.failed()) {
+                verified.getFailureMessages().forEach(m -> monitor.debug(() -> "Failure in token verification: " + m));
                 return Result.failure("Token could not be verified!");
             }
             monitor.debug("verification successful! Fetching data from IdentityHub");

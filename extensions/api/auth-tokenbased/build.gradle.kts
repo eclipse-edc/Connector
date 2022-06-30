@@ -23,6 +23,8 @@ plugins {
 dependencies {
     api(project(":extensions:api:auth-spi"))
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+
+    testImplementation(project(":extensions:junit"))
 }
 
 publishing {

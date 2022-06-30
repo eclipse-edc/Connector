@@ -79,21 +79,25 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTING;
 
 /**
- * This transfer process manager receives a {@link TransferProcess} and transitions it through its internal state machine (cf {@link TransferProcessStates}.
- * When submitting a new {@link TransferProcess} it gets created and inserted into the {@link TransferProcessStore}, then returns to the caller.
+ * This transfer process manager receives a {@link TransferProcess} and transitions it through its internal state
+ * machine (cf {@link TransferProcessStates}. When submitting a new {@link TransferProcess} it gets created and inserted
+ * into the {@link TransferProcessStore}, then returns to the caller.
  * <p>
- * All subsequent state transitions happen asynchronously, the {@code AsyncTransferProcessManager#initiate*Request()} will return immediately.
+ * All subsequent state transitions happen asynchronously, the {@code AsyncTransferProcessManager#initiate*Request()}
+ * will return immediately.
  * <p>
- * A data transfer processes transitions through a series of states, which allows the system to model both terminating and non-terminating (e.g. streaming) transfers. Transitions
- * occur asynchronously, since long-running processes such as resource provisioning may need to be completed before transitioning to a subsequent state. The permissible state
+ * A data transfer processes transitions through a series of states, which allows the system to model both terminating
+ * and non-terminating (e.g. streaming) transfers. Transitions occur asynchronously, since long-running processes such
+ * as resource provisioning may need to be completed before transitioning to a subsequent state. The permissible state
  * transitions are defined by {@link org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates}.
  * <p>
- * The transfer manager performs continual iterations, which seek to advance the state of transfer processes, including recovery, in a FIFO state-based ordering.
- * Each iteration will seek to transition a set number of processes for each state to avoid situations where an excessive number of processes in one state block progress of
- * processes in other states.
+ * The transfer manager performs continual iterations, which seek to advance the state of transfer processes, including
+ * recovery, in a FIFO state-based ordering. Each iteration will seek to transition a set number of processes for each
+ * state to avoid situations where an excessive number of processes in one state block progress of processes in other
+ * states.
  * <p>
- * If no processes need to be transitioned, the transfer manager will wait according to the defined {@link WaitStrategy} before conducting the next iteration.
- * A wait strategy may implement a backoff scheme.
+ * If no processes need to be transitioned, the transfer manager will wait according to the defined {@link WaitStrategy}
+ * before conducting the next iteration. A wait strategy may implement a backoff scheme.
  */
 public class TransferProcessManagerImpl implements TransferProcessManager, ProvisionCallbackDelegate {
     private int batchSize = 5;
@@ -222,8 +226,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     /**
-     * Process INITIAL transfer<p>
-     * set it to PROVISIONING
+     * Process INITIAL transfer<p> set it to PROVISIONING
      *
      * @param process the INITIAL transfer fetched
      * @return if the transfer has been processed or not
@@ -255,11 +258,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     /**
-     * Process PROVISIONING transfer<p>
-     * Launch provision process. On completion, set to PROVISIONED if succeeded, ERROR otherwise
+     * Process PROVISIONING transfer<p> Launch provision process. On completion, set to PROVISIONED if succeeded, ERROR
+     * otherwise
      * <p>
-     * On a consumer, provisioning may entail setting up a data destination and supporting infrastructure. On a provider, provisioning is initiated when a request is received and
-     * map involve preprocessing data or other operations.
+     * On a consumer, provisioning may entail setting up a data destination and supporting infrastructure. On a
+     * provider, provisioning is initiated when a request is received and map involve preprocessing data or other
+     * operations.
      *
      * @param process the PROVISIONING transfer fetched
      * @return if the transfer has been processed or not
@@ -284,8 +288,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     /**
-     * Process PROVISIONED transfer<p>
-     * If CONSUMER, set it to REQUESTING, if PROVIDER initiate data transfer
+     * Process PROVISIONED transfer<p> If CONSUMER, set it to REQUESTING, if PROVIDER initiate data transfer
      *
      * @param process the PROVISIONED transfer fetched
      * @return if the transfer has been processed or not
@@ -303,8 +306,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     /**
-     * Process REQUESTING transfer<p>
-     * If CONSUMER, send request to the provider, should never be PROVIDER
+     * Process REQUESTING transfer<p> If CONSUMER, send request to the provider, should never be PROVIDER
      *
      * @param process the REQUESTING transfer fetched
      * @return if the transfer has been processed or not
@@ -321,8 +323,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     /**
-     * Process REQUESTED transfer<p>
-     * If is managed or there are provisioned resources set IN_PROGRESS or STREAMING, do nothing otherwise
+     * Process REQUESTED transfer<p> If is managed or there are provisioned resources set IN_PROGRESS or STREAMING, do
+     * nothing otherwise
      *
      * @param process the REQUESTED transfer fetched
      * @return if the transfer has been processed or not
@@ -341,8 +343,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     /**
-     * Process IN PROGRESS transfer<p>
-     * if is completed or there's no checker and it's not managed, set to COMPLETE, nothing otherwise.
+     * Process IN PROGRESS transfer<p> if is completed or there's no checker and it's not managed, set to COMPLETE,
+     * nothing otherwise.
      *
      * @param process the IN PROGRESS transfer fetched
      * @return if the transfer has been processed or not
@@ -378,8 +380,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     /**
-     * Process DEPROVISIONING transfer<p>
-     * Launch deprovision process. On completion, set to DEPROVISIONED if succeeded, ERROR otherwise
+     * Process DEPROVISIONING transfer<p> Launch deprovision process. On completion, set to DEPROVISIONED if succeeded,
+     * ERROR otherwise
      *
      * @param process the DEPROVISIONING transfer fetched
      * @return if the transfer has been processed or not
@@ -407,8 +409,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     }
 
     /**
-     * Process DEPROVISIONED transfer<p>
-     * Set it to ENDED.
+     * Process DEPROVISIONED transfer<p> Set it to ENDED.
      *
      * @param process the DEPROVISIONED transfer fetched
      * @return if the transfer has been processed or not

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Daimler TSS GmbH, Fraunhofer Institute for Software and Systems Engineering
+ *  Copyright (c) 2021 - 2022 Daimler TSS GmbH, Fraunhofer Institute for Software and Systems Engineering
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -11,6 +11,7 @@
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Fraunhofer Institute for Software and Systems Engineering - Improvements
  *       Daimler TSS GmbH - introduce factory to create RequestInProcessMessage
+ *       Microsoft Corporation - Use IDS Webhook address for JWT audience claim
  *
  */
 
@@ -170,7 +171,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         handlers.add(new NotificationMessageHandler(connectorId, notificationHandlersRegistry));
 
         // create & register controller
-        var multipartController = new MultipartController(monitor, connectorId, objectMapper, identityService, handlers);
+        var multipartController = new MultipartController(monitor, connectorId, objectMapper, identityService, handlers, idsApiConfiguration.getIdsWebhookAddress());
         webService.registerResource(idsApiConfiguration.getContextAlias(), multipartController);
     }
 

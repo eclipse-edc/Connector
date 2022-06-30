@@ -71,6 +71,7 @@ org.eclipse.dataspaceconnector:data-plane-selector-store:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-transfer-client:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-transfer-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-transfer-sync:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:cloudevents-http:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:filesystem-configuration:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:filesystem-vault:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:jersey:0.0.1-SNAPSHOT
