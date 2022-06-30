@@ -180,7 +180,7 @@ public class FileTransferSampleTest {
      */
     void requestTransferFile() throws IOException {
         File transferJsonFile = getFileFromRelativePath(TRANSFER_FILE_PATH);
-        DataRequest sampleDataRequest = readAndUpdateTransferJsonFile(transferJsonFile, contractAgreementId);
+        DataRequest sampleDataRequest = readAndUpdateDataRequestFromJsonFile(transferJsonFile, contractAgreementId);
 
         JsonPath jsonPath = RestAssured
                 .given()
@@ -208,7 +208,7 @@ public class FileTransferSampleTest {
      * @return An instance of {@link DataRequest} with changed values for contract agreement ID and file destination path.
      * @throws IOException Thrown if there was an error accessing the file given in transferJsonFile.
      */
-    static DataRequest readAndUpdateTransferJsonFile(File transferJsonFile, String contractAgreementId) throws IOException {
+    static DataRequest readAndUpdateDataRequestFromJsonFile(File transferJsonFile, String contractAgreementId) throws IOException {
         // convert JSON file to map
         DataRequest sampleDataRequest = MAPPER.readValue(transferJsonFile, DataRequest.class);
 
@@ -219,11 +219,21 @@ public class FileTransferSampleTest {
                 .properties(changedAddressProperties)
                 .build();
 
-        return sampleDataRequest
-                .toBuilder()
+        return DataRequest.Builder.newInstance()
+                // copy unchanged values from JSON file
+                .id(sampleDataRequest.getId())
+                .processId(sampleDataRequest.getProcessId())
+                .connectorAddress(sampleDataRequest.getConnectorAddress())
+                .protocol(sampleDataRequest.getProtocol())
+                .connectorId(sampleDataRequest.getConnectorId())
+                .assetId(sampleDataRequest.getAssetId())
+                .destinationType(sampleDataRequest.getDestinationType())
+                .transferType(sampleDataRequest.getTransferType())
+                .managedResources(sampleDataRequest.isManagedResources())
+                .properties(sampleDataRequest.getProperties())
+                // set changed values
                 .contractId(contractAgreementId)
                 .dataDestination(newDataDestination)
                 .build();
     }
-
 }

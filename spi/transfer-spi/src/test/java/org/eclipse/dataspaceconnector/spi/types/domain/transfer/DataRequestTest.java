@@ -58,30 +58,25 @@ class DataRequestTest {
     void verifyCopy() {
         DataRequest dataRequest = newSampleDataRequest();
 
-        var copy = dataRequest.copy();
+        var copy = dataRequest.copy(dataRequest.getId());
 
-        assertDataRequestsAreEqual(dataRequest, copy);
+        assertThat(copy).usingRecursiveComparison().isEqualTo(dataRequest);
+        assertThat(copy.getDataDestination().getProperty(DATA_ADDRESS_PROPERTY_KEY))
+                .isEqualTo(dataRequest.getDataDestination().getProperty(DATA_ADDRESS_PROPERTY_KEY));
+        assertThat(copy.getProperties().get(DATA_REQUEST_PROPERTIES_KEY))
+                .isEqualTo(dataRequest.getProperties().get(DATA_REQUEST_PROPERTIES_KEY));
     }
 
     @Test
     void verifyDeepCopy() {
         DataRequest dataRequest = newSampleDataRequest();
 
-        var copy = dataRequest.copy();
+        var copy = dataRequest.copy(dataRequest.getId());
 
         var copyProperties = copy.getProperties();
         copyProperties.put(DATA_REQUEST_PROPERTIES_KEY, DATA_REQUEST_PROPERTIES_VALUE_CHANGED);
 
         assertThat(dataRequest.getProperties().get(DATA_REQUEST_PROPERTIES_KEY)).isEqualTo(DATA_REQUEST_PROPERTIES_VALUE_ORIGINAL);
-    }
-
-    @Test
-    void verifyToBuilder() {
-        DataRequest dataRequest = newSampleDataRequest();
-
-        var copy = dataRequest.toBuilder().build();
-
-        assertDataRequestsAreEqual(dataRequest, copy);
     }
 
     private DataRequest newSampleDataRequest() {
@@ -115,13 +110,5 @@ class DataRequestTest {
                 .properties(properties)
                 .transferType(transferType)
                 .build();
-    }
-
-    private void assertDataRequestsAreEqual(DataRequest dataRequest, DataRequest copy) {
-        assertThat(copy).usingRecursiveComparison().isEqualTo(dataRequest);
-        assertThat(copy.getDataDestination().getProperty(DATA_ADDRESS_PROPERTY_KEY))
-                .isEqualTo(dataRequest.getDataDestination().getProperty(DATA_ADDRESS_PROPERTY_KEY));
-        assertThat(copy.getProperties().get(DATA_REQUEST_PROPERTIES_KEY))
-                .isEqualTo(dataRequest.getProperties().get(DATA_REQUEST_PROPERTIES_KEY));
     }
 }
