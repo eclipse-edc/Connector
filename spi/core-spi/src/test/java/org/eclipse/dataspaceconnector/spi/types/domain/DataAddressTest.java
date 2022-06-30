@@ -33,7 +33,6 @@ class DataAddressTest {
                 .type("test")
                 .keyName("somekey")
                 .property("foo", "bar").build();
-
         StringWriter writer = new StringWriter();
         mapper.writeValue(writer, dataAddress);
 
