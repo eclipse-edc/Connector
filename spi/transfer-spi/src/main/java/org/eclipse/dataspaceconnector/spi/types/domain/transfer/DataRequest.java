@@ -252,6 +252,6 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             request.dataDestination = dataAddress;
             return this;
         }
-    }
 
+    }
 }
