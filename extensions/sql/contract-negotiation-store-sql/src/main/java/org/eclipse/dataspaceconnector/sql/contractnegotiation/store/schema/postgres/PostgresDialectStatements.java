@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.post
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.BaseSqlDialectStatements;
 import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
+import org.eclipse.dataspaceconnector.sql.dialect.PostgresDialect;
 import org.eclipse.dataspaceconnector.sql.translation.SqlQueryStatement;
 
 /**
@@ -45,6 +46,6 @@ public class PostgresDialectStatements extends BaseSqlDialectStatements {
      */
     @Override
     protected String getFormatJsonOperator() {
-        return "::json";
+        return PostgresDialect.getJsonCastOperator();
     }
 }

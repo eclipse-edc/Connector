@@ -22,9 +22,9 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
-import org.eclipse.dataspaceconnector.sql.policy.store.PostgressStatements;
 import org.eclipse.dataspaceconnector.sql.policy.store.SqlPolicyDefinitionStore;
-import org.eclipse.dataspaceconnector.sql.policy.store.SqlPolicyStoreStatements;
+import org.eclipse.dataspaceconnector.sql.policy.store.schema.SqlPolicyStoreStatements;
+import org.eclipse.dataspaceconnector.sql.policy.store.schema.postgres.PostgresDialectStatements;
 
 @Provides(PolicyDefinitionStore.class)
 public class SqlPolicyStoreExtension implements ServiceExtension {
@@ -53,7 +53,7 @@ public class SqlPolicyStoreExtension implements ServiceExtension {
      * returns an externally-provided sql statement dialect, or postgres as a default
      */
     private SqlPolicyStoreStatements getStatementImpl() {
-        return statements != null ? statements : new PostgressStatements();
+        return statements != null ? statements : new PostgresDialectStatements();
     }
 
     private String getDataSourceName(ServiceExtensionContext context) {

@@ -70,4 +70,8 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
         var select = format("SELECT * FROM %s", getContractDefinitionTable());
         return new SqlQueryStatement(select, querySpec, new ContractDefinitionMapping(this));
     }
+
+    protected String getSelectStatement() {
+        return "SELECT * FROM " + getContractDefinitionTable();
+    }
 }

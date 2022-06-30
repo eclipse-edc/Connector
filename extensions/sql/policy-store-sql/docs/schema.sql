@@ -13,27 +13,27 @@
 
 -- Statements are designed for and tested with Postgres only!
 
--- table: edc_policies
-CREATE TABLE IF NOT EXISTS edc_policies
+-- table: edc_policydefinitions
+CREATE TABLE IF NOT EXISTS edc_policydefinitions
 (
-    policy_id VARCHAR NOT NULL,
-    permissions VARCHAR,
-    prohibitions VARCHAR,
-    duties VARCHAR,
-    extensible_properties VARCHAR,
-    inherits_from VARCHAR,
-    assigner VARCHAR,
-    assignee VARCHAR,
-    target VARCHAR,
-    policy_type VARCHAR NOT NULL,
+    policy_id             VARCHAR NOT NULL,
+    permissions           JSON,
+    prohibitions          JSON,
+    duties                JSON,
+    extensible_properties JSON,
+    inherits_from         VARCHAR,
+    assigner              VARCHAR,
+    assignee              VARCHAR,
+    target                VARCHAR,
+    policy_type           VARCHAR NOT NULL,
     PRIMARY KEY (policy_id)
 );
 
-COMMENT ON COLUMN edc_policies.permissions IS 'Java List<Permission> serialized as JSON';
-COMMENT ON COLUMN edc_policies.prohibitions IS 'Java List<Prohibition> serialized as JSON';
-COMMENT ON COLUMN edc_policies.duties IS 'Java List<Duty> serialized as JSON';
-COMMENT ON COLUMN edc_policies.extensible_properties IS 'Java Map<String, Object> serialized as JSON';
-COMMENT ON COLUMN edc_policies.policy_type IS 'Java PolicyType serialized as JSON';
+COMMENT ON COLUMN edc_policydefinitions.permissions IS 'Java List<Permission> serialized as JSON';
+COMMENT ON COLUMN edc_policydefinitions.prohibitions IS 'Java List<Prohibition> serialized as JSON';
+COMMENT ON COLUMN edc_policydefinitions.duties IS 'Java List<Duty> serialized as JSON';
+COMMENT ON COLUMN edc_policydefinitions.extensible_properties IS 'Java Map<String, Object> serialized as JSON';
+COMMENT ON COLUMN edc_policydefinitions.policy_type IS 'Java PolicyType serialized as JSON';
 
-CREATE UNIQUE INDEX IF NOT EXISTS edc_policies_id_uindex
-    ON edc_policies (policy_id);
+CREATE UNIQUE INDEX IF NOT EXISTS edc_policydefinitions_id_uindex
+    ON edc_policydefinitions (policy_id);

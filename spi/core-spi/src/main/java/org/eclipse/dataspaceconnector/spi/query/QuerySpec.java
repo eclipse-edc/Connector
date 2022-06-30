@@ -91,6 +91,13 @@ public class QuerySpec {
         return sortOrder;
     }
 
+    /**
+     * Checks whether any {@link Criterion} contains the given left-hand operand
+     */
+    public boolean containsAnyLeftOperand(String leftOperand) {
+        return getFilterExpression().stream().anyMatch(c -> c.getOperandLeft().toString().startsWith(leftOperand));
+    }
+
     public static final class Builder {
         private static final String EQUALS_EXPRESSION_PATTERN = "[^\\s\\\\]*(\\s*)=(\\s*)[^\\\\]*";
         private final QuerySpec querySpec;
