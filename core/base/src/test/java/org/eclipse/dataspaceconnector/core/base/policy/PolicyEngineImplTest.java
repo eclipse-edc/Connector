@@ -15,8 +15,6 @@
 
 package org.eclipse.dataspaceconnector.core.base.policy;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.policy.model.Action;
@@ -34,6 +32,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
