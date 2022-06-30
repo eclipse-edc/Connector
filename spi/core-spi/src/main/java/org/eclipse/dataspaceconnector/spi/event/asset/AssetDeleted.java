@@ -27,7 +27,7 @@ public class AssetDeleted extends Event<AssetDeleted.Payload> {
     private AssetDeleted() {
     }
 
-    public static class Builder extends Event.Builder<AssetDeleted, Payload> {
+    public static class Builder extends Event.Builder<AssetDeleted, Payload, Builder> {
 
         public static Builder newInstance() {
             return new Builder();
