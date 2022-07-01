@@ -42,7 +42,7 @@ public abstract class ResourceDefinition implements Polymorphic {
         this.transferProcessId = transferProcessId;
     }
 
-    @JsonPOJOBuilder
+    @JsonPOJOBuilder(withPrefix = "")
     public static class Builder<RD extends ResourceDefinition, B extends Builder<RD, B>> {
         protected final RD resourceDefinition;
 
