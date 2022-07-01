@@ -34,9 +34,9 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.policy.engine.model.PolicyTestFunctions.createLiteralAtomicConstraint;
 import static org.eclipse.dataspaceconnector.policy.engine.model.PolicyTestFunctions.RuleTypeArguments;
 import static org.eclipse.dataspaceconnector.policy.engine.model.PolicyTestFunctions.TestDefinition;
+import static org.eclipse.dataspaceconnector.policy.engine.model.PolicyTestFunctions.createLiteralAtomicConstraint;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -204,7 +204,7 @@ class PolicyEvaluatorTest {
             evaluatorBuilder.resourceDefinitionPermissionFunction(TestDefinition.class, (r, d) -> {
                 d.setKey(newKey);
                 return Result.success(d);
-                });
+            });
         } else if (ruleType.isAssignableFrom(Prohibition.class)) {
             var prohibition = Prohibition.Builder.newInstance()
                     .action(Action.Builder.newInstance().type("USE").build())
@@ -214,7 +214,7 @@ class PolicyEvaluatorTest {
             evaluatorBuilder.resourceDefinitionProhibitionFunction(TestDefinition.class, (r, d) -> {
                 d.setKey(newKey);
                 return Result.success(d);
-                });
+            });
         } else {
             var duty = Duty.Builder.newInstance()
                     .action(Action.Builder.newInstance().type("USE").build())
@@ -224,7 +224,7 @@ class PolicyEvaluatorTest {
             evaluatorBuilder.resourceDefinitionDutyFunction(TestDefinition.class, (r, d) -> {
                 d.setKey(newKey);
                 return Result.success(d);
-                });
+            });
         }
         
         var result = evaluatorBuilder.build().evaluateManifest(manifest, policyBuilder.build());
@@ -268,9 +268,9 @@ class PolicyEvaluatorTest {
             policyBuilder.permission(permission);
             
             evaluatorBuilder.resourceDefinitionConstraintPermissionFunction(leftOperand, TestDefinition.class, (op, rv, r, d) -> {
-                        d.setKey(((LiteralExpression) rv).asString());
-                        return Result.success(d);
-                });
+                d.setKey(((LiteralExpression) rv).asString());
+                return Result.success(d);
+            });
         } else if (ruleType.isAssignableFrom(Prohibition.class)) {
             var prohibition = Prohibition.Builder.newInstance()
                     .action(Action.Builder.newInstance().type("USE").build())
@@ -279,9 +279,9 @@ class PolicyEvaluatorTest {
             policyBuilder.prohibition(prohibition);
     
             evaluatorBuilder.resourceDefinitionConstraintProhibitionFunction(leftOperand, TestDefinition.class, (op, rv, r, d) -> {
-                        d.setKey(((LiteralExpression) rv).asString());
-                        return Result.success(d);
-                });
+                d.setKey(((LiteralExpression) rv).asString());
+                return Result.success(d);
+            });
         } else {
             var duty = Duty.Builder.newInstance()
                     .action(Action.Builder.newInstance().type("USE").build())
@@ -290,9 +290,9 @@ class PolicyEvaluatorTest {
             policyBuilder.duty(duty);
     
             evaluatorBuilder.resourceDefinitionConstraintDutyFunction(leftOperand, TestDefinition.class, (op, rv, r, d) -> {
-                        d.setKey(((LiteralExpression) rv).asString());
-                        return Result.success(d);
-                });
+                d.setKey(((LiteralExpression) rv).asString());
+                return Result.success(d);
+            });
         }
     
         var result = evaluatorBuilder.build().evaluateManifest(manifest, policyBuilder.build());
