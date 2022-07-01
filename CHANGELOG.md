@@ -31,7 +31,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Documentation for `:extensions:data-plane:data-plane-api` (#1579)
 * Allow `TypeManager` to support multiple serialization contexts (#1581)
 * ResourceManifest evaluation through PolicyEngine (#1446)
-* Policy scopes: `contract.offer-generation`, `provision` (#1446)
+* Policy scopes: `contract.cataloging`, `provision.manifest.verify` (#1446)
 
 #### Changed
 
