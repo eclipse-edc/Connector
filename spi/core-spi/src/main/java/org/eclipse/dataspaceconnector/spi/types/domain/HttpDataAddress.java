@@ -45,7 +45,7 @@ public class HttpDataAddress extends DataAddress {
     private static final String PROXY_PATH = "proxyPath";
     private static final String PROXY_QUERY_PARAMS = "proxyQueryParams";
     private static final String PROXY_METHOD = "proxyMethod";
-    public static final String ADDITIONAL_HEADER = "header:";
+    public static final String ADDITIONAL_HEADER = "header_";
     public static final String CONTENT_TYPE = "contentType";
     public static final String OCTET_STREAM = "application/octet-stream";
     public static final Set<String> ADDITIONAL_HEADERS_TO_IGNORE = Set.of("content-type");
