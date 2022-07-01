@@ -1,8 +1,8 @@
 # Implement a simple transfer listener
 
-In this sample, we build upon the [file transfer sample](../04-file-transfer) to add functionality to react to transfer completion on the consumer connector side.
+In this sample, we build upon the [file transfer sample](../04.0-file-transfer) to add functionality to react to transfer completion on the consumer connector side.
 
-We will use the provider from the [file transfer sample](../04-file-transfer), and the consumer built on the consumer from that sample, with a transfer process listener added.
+We will use the provider from the [file transfer sample](../04.0-file-transfer), and the consumer built on the consumer from that sample, with a transfer process listener added.
 
 Also, in order to keep things organized, the code in this example has been separated into several Java modules:
 
@@ -60,9 +60,9 @@ curl -X GET -H 'X-Api-Key: password' "http://localhost:9192/api/v1/data/contract
 curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/filetransfer.json "http://localhost:9192/api/v1/data/transferprocess"
 ```
 
-> **Replace `{negotiation ID}` in the second request with the UUID received as the response to the first request!**
+> **Replace `{UUID}` in the second request with the UUID received as the response to the first request!**
 >
-> **Copy the contract agreement's ID from the second response, substitute it for `{agreement ID}` in the last request json body and adjust the `dataDestination.properties.path` to match your local dev machine!**
+> **In `samples/04.0-file-transfer/filetransfer.json`: Copy the contract agreement's ID from the second response, substitute it for `{agreement ID}` in the last request JSON body and adjust the `dataDestination.properties.path` to match your local dev machine!**
 
 - `curl` will return the ID of the transfer process on the consumer connector.
 
