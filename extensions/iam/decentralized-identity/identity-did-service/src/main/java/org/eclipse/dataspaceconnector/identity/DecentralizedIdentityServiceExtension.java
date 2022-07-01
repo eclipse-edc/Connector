@@ -58,7 +58,7 @@ public class DecentralizedIdentityServiceExtension implements ServiceExtension {
 
         // we'll use the connector name to restore the Private Key
         var connectorName = context.getConnectorId();
-        var privateKey = privateKeyResolver.resolvePrivateKey(connectorName, PrivateKeyWrapper.class); //to get the private key
+        var privateKey = privateKeyResolver.resolvePrivateKey(connectorName, PrivateKeyWrapper.class);
         Objects.requireNonNull(privateKey, "Couldn't resolve private key for " + connectorName);
 
         return new DecentralizedIdentityService(resolverRegistry, credentialsVerifier, context.getMonitor(), privateKey, didUrl, context.getClock());
