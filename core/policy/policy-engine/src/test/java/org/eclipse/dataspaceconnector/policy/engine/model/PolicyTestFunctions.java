@@ -15,8 +15,6 @@
 
 package org.eclipse.dataspaceconnector.policy.engine.model;
 
-import java.util.stream.Stream;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
@@ -29,6 +27,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefiniti
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
+
+import java.util.stream.Stream;
 
 /**
  * Functions used for testing.
