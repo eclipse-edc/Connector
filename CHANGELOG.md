@@ -52,6 +52,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Fix race condition in `ContractNegotiationIntegrationTest` (#1505)
 * Fix for change in Cosmos DB behavior on missing sort fields (#1514)
 * Effectively removed default LIMIT in SQL Contract Def Store (#1515)
+* Dataplane http Additional headers uses colon which collides with http spec (#1573)
 
 ## [milestone-4] - 2022-06-07
 
