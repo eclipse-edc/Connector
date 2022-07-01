@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -30,11 +31,13 @@ public class CatalogRequest implements RemoteMessage {
     private final String protocol;
     private final String connectorId;
     private final String connectorAddress;
+    private final Map<String, Object> additionalProperties;
 
-    private CatalogRequest(@NotNull String protocol, @NotNull String connectorId, @NotNull String connectorAddress) {
+    private CatalogRequest(@NotNull String protocol, @NotNull String connectorId, @NotNull String connectorAddress, @NotNull Map<String, Object> additionalProperties) {
         this.protocol = protocol;
         this.connectorId = connectorId;
         this.connectorAddress = connectorAddress;
+        this.additionalProperties = additionalProperties;
     }
 
     @NotNull
@@ -48,6 +51,10 @@ public class CatalogRequest implements RemoteMessage {
         return connectorId;
     }
 
+    public Map<String, Object> getAdditionalProperties() {
+        return additionalProperties;
+    }
+
     @NotNull
     public String getConnectorAddress() {
         return connectorAddress;
@@ -57,6 +64,7 @@ public class CatalogRequest implements RemoteMessage {
         private String protocol;
         private String connectorId;
         private String connectorAddress;
+        private Map<String, Object> additionalProperties = Map.of();
 
         private Builder() {
         }
@@ -81,12 +89,17 @@ public class CatalogRequest implements RemoteMessage {
             return this;
         }
 
+        public CatalogRequest.Builder additionalProperties(Map<String, Object> additionalProperties) {
+            this.additionalProperties = additionalProperties;
+            return this;
+        }
+
         public CatalogRequest build() {
             Objects.requireNonNull(protocol, "protocol");
             Objects.requireNonNull(connectorId, "connectorId");
             Objects.requireNonNull(connectorAddress, "connectorAddress");
 
-            return new CatalogRequest(protocol, connectorId, connectorAddress);
+            return new CatalogRequest(protocol, connectorId, connectorAddress, additionalProperties);
         }
     }
 }

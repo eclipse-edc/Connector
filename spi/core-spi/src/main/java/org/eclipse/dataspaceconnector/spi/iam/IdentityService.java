@@ -18,6 +18,8 @@ package org.eclipse.dataspaceconnector.spi.iam;
 
 import org.eclipse.dataspaceconnector.spi.result.Result;
 
+import java.util.Map;
+
 /**
  * Obtains client security tokens from an identity provider.
  * Providers may implement different authorization protocols such as OAuth2.
@@ -31,6 +33,19 @@ public interface IdentityService {
      * @return generated client token.
      */
     Result<TokenRepresentation> obtainClientCredentials(TokenParameters parameters);
+
+    default Result<TokenRepresentation> obtainClientCredentials(TokenParameters parameters, Map<String, Object> additionalProperties) {
+        var result = obtainClientCredentials(parameters);
+        if (!result.failed()) {
+            var tokenRepresentation = TokenRepresentation.Builder.newInstance()
+                    .token(result.getContent().getToken())
+                    .additional(additionalProperties)
+                    .build();
+            return Result.success(tokenRepresentation);
+        }
+
+        return result;
+    }
 
     /**
      * Verifies a JWT bearer token.

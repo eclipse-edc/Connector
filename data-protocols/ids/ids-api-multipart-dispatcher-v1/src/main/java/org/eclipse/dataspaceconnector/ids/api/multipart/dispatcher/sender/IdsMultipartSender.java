@@ -28,6 +28,7 @@ import okhttp3.MultipartReader;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.ids.core.message.FutureCallback;
 import org.eclipse.dataspaceconnector.ids.core.message.IdsMessageSender;
@@ -50,6 +51,7 @@ import java.net.URI;
 import java.net.http.HttpHeaders;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.failedFuture;
@@ -68,6 +70,23 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
     private final Monitor monitor;
     private final IdentityService identityService;
     private final IdsTransformerRegistry transformerRegistry;
+    private final Function<PostProcessorContext, R> postProcessor;
+
+    protected class PostProcessorContext {
+        private final CompletableFuture<R> future;
+        private final Response response;
+        private final String requestUrl;
+
+        public PostProcessorContext(CompletableFuture<R> future, Response response, String requestUrl) {
+            this.future = future;
+            this.response = response;
+            this.requestUrl = requestUrl;
+        }
+
+        CompletableFuture<R> getFuture() {
+            return future;
+        }
+    }
 
     protected IdsMultipartSender(@NotNull String connectorId,
                                  @NotNull OkHttpClient httpClient,
@@ -81,6 +100,42 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
         this.monitor = Objects.requireNonNull(monitor, "monitor");
         this.identityService = Objects.requireNonNull(identityService, "identityService");
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry, "transformerRegistry");
+        this.postProcessor = context -> {
+            try (context.response) {
+                monitor.debug("Response received from connector. Status " + context.response.code());
+                if (context.response.isSuccessful()) {
+                    try (var body = context.response.body()) {
+                        if (body == null) {
+                            context.future.completeExceptionally(new EdcException("Received an empty body response from connector"));
+                        } else {
+                            IdsMultipartParts parts = extractResponseParts(body);
+                            return getResponseContent(parts);
+                        }
+                    } catch (Exception e) {
+                        context.future.completeExceptionally(e);
+                    }
+                } else {
+                    context.future.completeExceptionally(new EdcException(format("Received an error from connector (%s): %s %s", context.requestUrl, context.response.code(), context.response.message())));
+                }
+                return null;
+            }
+        };
+    }
+
+    protected IdsMultipartSender(@NotNull String connectorId,
+                                 @NotNull OkHttpClient httpClient,
+                                 @NotNull ObjectMapper objectMapper,
+                                 @NotNull Monitor monitor,
+                                 @NotNull IdentityService identityService,
+                                 @NotNull IdsTransformerRegistry transformerRegistry,
+                                 @NotNull Function<PostProcessorContext, R> postProcessor) {
+        this.connectorId = createConnectorIdUri(Objects.requireNonNull(connectorId, "connectorId"));
+        this.httpClient = Objects.requireNonNull(httpClient, "httpClient");
+        this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
+        this.monitor = Objects.requireNonNull(monitor, "monitor");
+        this.identityService = Objects.requireNonNull(identityService, "identityService");
+        this.transformerRegistry = Objects.requireNonNull(transformerRegistry, "transformerRegistry");
+        this.postProcessor = postProcessor;
     }
 
     private static URI createConnectorIdUri(String connectorId) {
@@ -108,7 +163,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
                 .scope(TOKEN_SCOPE)
                 .audience(remoteConnectorAddress)
                 .build();
-        var tokenResult = identityService.obtainClientCredentials(tokenParameters);
+        var tokenResult = identityService.obtainClientCredentials(tokenParameters, request.getAdditionalProperties());
         if (tokenResult.failed()) {
             String message = "Failed to obtain token: " + String.join(",", tokenResult.getFailureMessages());
             monitor.severe(message);
@@ -119,7 +174,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
                 ._tokenFormat_(TokenFormat.JWT)
                 ._tokenValue_(tokenResult.getContent().getToken())
                 .build();
-
+        tokenResult.getContent().getAdditional().forEach(token::setProperty);
 
         // Get recipient address
         var requestUrl = HttpUrl.parse(remoteConnectorAddress);
@@ -193,26 +248,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
         // Execute call
         var future = new CompletableFuture<R>();
 
-        httpClient.newCall(httpRequest).enqueue(new FutureCallback<>(future, r -> {
-            try (r) {
-                monitor.debug("Response received from connector. Status " + r.code());
-                if (r.isSuccessful()) {
-                    try (var body = r.body()) {
-                        if (body == null) {
-                            future.completeExceptionally(new EdcException("Received an empty body response from connector"));
-                        } else {
-                            IdsMultipartParts parts = extractResponseParts(body);
-                            return getResponseContent(parts);
-                        }
-                    } catch (Exception e) {
-                        future.completeExceptionally(e);
-                    }
-                } else {
-                    future.completeExceptionally(new EdcException(format("Received an error from connector (%s): %s %s", requestUrl, r.code(), r.message())));
-                }
-                return null;
-            }
-        }));
+        httpClient.newCall(httpRequest).enqueue(new FutureCallback<>(future, r -> postProcessor.apply(new PostProcessorContext(future, r, requestUrl.toString()))));
 
         return future;
     }

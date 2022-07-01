@@ -16,6 +16,8 @@ package org.eclipse.dataspaceconnector.api.datamanagement.catalog;
 
 import com.github.javafaker.Faker;
 import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedHashMap;
 import org.eclipse.dataspaceconnector.api.datamanagement.catalog.service.CatalogService;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -24,7 +26,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -43,6 +47,8 @@ class CatalogApiControllerTest {
     void shouldGetTheCatalog() {
         var controller = new CatalogApiController(service);
         var response = mock(AsyncResponse.class);
+        var headers = mock(HttpHeaders.class);
+        var headersMap = new MultivaluedHashMap<String, String>();
         var offer = ContractOffer.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .policy(Policy.Builder.newInstance().build())
@@ -50,9 +56,14 @@ class CatalogApiControllerTest {
                 .build();
         var catalog = Catalog.Builder.newInstance().id("any").contractOffers(List.of(offer)).build();
         var url = FAKER.internet().url();
-        when(service.getByProviderUrl(url)).thenReturn(completedFuture(catalog));
 
-        controller.getCatalog(url, response);
+        headersMap.put("property_partition", Collections.singletonList("part1"));
+        headersMap.put("some header", Collections.singletonList("header val"));
+
+        when(headers.getRequestHeaders()).thenReturn(headersMap);
+        when(service.getByProviderUrl(url, Map.of("partition", "part1"))).thenReturn(completedFuture(catalog));
+
+        controller.getCatalog(url, headers, response);
 
         verify(response).resume(Mockito.<Catalog>argThat(c -> c.getContractOffers().equals(List.of(offer))));
     }
@@ -62,9 +73,13 @@ class CatalogApiControllerTest {
         var controller = new CatalogApiController(service);
         var response = mock(AsyncResponse.class);
         var url = FAKER.internet().url();
-        when(service.getByProviderUrl(url)).thenReturn(failedFuture(new EdcException("error")));
+        var headers = mock(HttpHeaders.class);
+        var headersMap = new MultivaluedHashMap<String, String>();
 
-        controller.getCatalog(url, response);
+        when(headers.getRequestHeaders()).thenReturn(headersMap);
+        when(service.getByProviderUrl(url, Map.of())).thenReturn(failedFuture(new EdcException("error")));
+
+        controller.getCatalog(url, headers, response);
 
         verify(response).resume(isA(EdcException.class));
     }

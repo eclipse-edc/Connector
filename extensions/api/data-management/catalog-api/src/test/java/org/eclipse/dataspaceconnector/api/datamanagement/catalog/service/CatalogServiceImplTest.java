@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -51,7 +52,7 @@ class CatalogServiceImplTest {
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
         when(dispatcher.send(any(), any(), any())).thenReturn(completedFuture(catalog));
 
-        var future = service.getByProviderUrl(FAKER.internet().url());
+        var future = service.getByProviderUrl(FAKER.internet().url(), Map.of());
 
         assertThat(future).succeedsWithin(1, SECONDS).extracting(Catalog::getContractOffers, InstanceOfAssertFactories.list(ContractOffer.class)).hasSize(1);
         verify(dispatcher).send(eq(Catalog.class), isA(CatalogRequest.class), any());

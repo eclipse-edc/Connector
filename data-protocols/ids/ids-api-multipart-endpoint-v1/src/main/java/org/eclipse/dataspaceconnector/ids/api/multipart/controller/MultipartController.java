@@ -115,6 +115,7 @@ public class MultipartController {
         } catch (Exception e) {
             //payload no connector instance, nothing to do
         }
+        dynamicAttributeToken.getProperties().forEach(additional::put);
 
         var tokenRepresentation = TokenRepresentation.Builder.newInstance()
                 .token(dynamicAttributeToken.getTokenValue())
@@ -129,6 +130,10 @@ public class MultipartController {
         }
 
         var claimToken = verificationResult.getContent();
+        dynamicAttributeToken.getProperties().forEach((key, val) -> claimToken.getClaims().put(key, val));
+
+        monitor.debug(() -> "ClaimToken claims " + claimToken.getClaims());
+
         var multipartRequest = MultipartRequest.Builder.newInstance()
                 .header(header)
                 .payload(payload)
