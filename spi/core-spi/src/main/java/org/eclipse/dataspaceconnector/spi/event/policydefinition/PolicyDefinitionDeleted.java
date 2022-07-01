@@ -27,7 +27,7 @@ public class PolicyDefinitionDeleted extends Event<PolicyDefinitionDeleted.Paylo
     private PolicyDefinitionDeleted() {
     }
 
-    public static class Builder extends Event.Builder<PolicyDefinitionDeleted, Payload> {
+    public static class Builder extends Event.Builder<PolicyDefinitionDeleted, Payload, Builder> {
 
         public static Builder newInstance() {
             return new Builder();

@@ -41,8 +41,8 @@ import static org.eclipse.dataspaceconnector.transfer.provision.http.impl.HttpPr
 import static org.eclipse.dataspaceconnector.transfer.provision.http.impl.HttpProvisionerRequest.Type.PROVISION;
 
 /**
- * Invokes an HTTP endpoint to provision asset data. The endpoint will asynchronously return a content data address to a callback supplied with the address that can be used to
- * resolve the provisioned data.
+ * Invokes an HTTP endpoint to provision asset data. The endpoint will asynchronously return a content data address to a
+ * callback supplied with the address that can be used to resolve the provisioned data.
  */
 public class HttpProviderProvisioner implements Provisioner<HttpProviderResourceDefinition, HttpProvisionedContentResource> {
     private static final MediaType JSON = MediaType.get("application/json");

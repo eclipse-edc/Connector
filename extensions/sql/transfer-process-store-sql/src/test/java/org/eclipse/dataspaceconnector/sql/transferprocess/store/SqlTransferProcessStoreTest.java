@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.eclipse.dataspaceconnector.sql.lease.LeaseUtil;
+import org.eclipse.dataspaceconnector.sql.transferprocess.store.schema.BaseSqlDialectStatements;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,13 +55,13 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @ComponentTest
-class SqlTransferProcessStoreTest {
+public class SqlTransferProcessStoreTest {
     private static final String DATASOURCE_NAME = "transferprocess";
     private static final String CONNECTOR_NAME = "test-connector";
     private SqlTransferProcessStore store;
+    private DataSourceRegistry dataSourceRegistry;
     private LeaseUtil leaseUtil;
     private Connection connection;
-    private DataSourceRegistry dataSourceRegistry;
 
     @BeforeEach
     void setUp() throws SQLException, IOException {
@@ -77,7 +78,7 @@ class SqlTransferProcessStoreTest {
         var datasourceMock = mock(DataSource.class);
         when(datasourceMock.getConnection()).thenReturn(connection);
         when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
-        var statements = new PostgresStatements();
+        var statements = new H2DialectStatements();
         store = new SqlTransferProcessStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new ObjectMapper(), statements, CONNECTOR_NAME, Clock.systemUTC());
 
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
@@ -432,5 +433,8 @@ class SqlTransferProcessStoreTest {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static class H2DialectStatements extends BaseSqlDialectStatements {
     }
 }

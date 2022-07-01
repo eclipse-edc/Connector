@@ -22,21 +22,26 @@ in the detailed section referring to by linking pull requests or issues.
 * SQL Translation layer (#1357, #1459)
 * Permit API verbose error response (#1479)
 * Fix TODO and document `:extensions:data-plane-transfer` (#1519)
+* CloudEvents Http extension (#1160)
+* Full Query capabilities for SQL TransferProcess Store (#1483)
 
 #### Changed
 
-* Provided default no-op `TransactionContext` (#1461)
-* Refactored query capabilities for `Asset` (#1459)
-* Refactored query capabilities for `ContractDefinition` (#1458)
-* Refactored state machine and in-memory persistence (#1511)
+* Provide default no-op `TransactionContext` (#1461)
+* Refactor query capabilities for `Asset` (#1459)
+* Refactor query capabilities for `ContractDefinition` (#1458)
+* Refactor state machine and in-memory persistence (#1511)
+* Token based Authentication can retrieve key from vault (#1537)
+* JWT audience claim check with DID (#1520)
 
 #### Removed
 
 * Old RegistrationService (was used for a PoC) (#164)
-* Deprecated `InlineDataFlowController` (replaced by the Data Plane) (#1464)
+* Deprecate `InlineDataFlowController` (replaced by the Data Plane) (#1464)
 * Unused classes and interfaces at `ids.spi.policy` (#1471)
 * Remove modules `:extensions:transfer-functions:transfer-functions-spi` and `:extensions:transfer-functions:transfer-functions-core` (#1482)
 * Remove `ConnectorVersionProvider`, provide version as static string (#1470)
+* Remove `samples/other/run-from-junit` (#1456)
 
 #### Fixed
 

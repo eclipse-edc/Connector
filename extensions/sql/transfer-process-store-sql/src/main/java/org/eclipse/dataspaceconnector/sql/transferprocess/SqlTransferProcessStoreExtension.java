@@ -22,9 +22,9 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
-import org.eclipse.dataspaceconnector.sql.transferprocess.store.PostgresStatements;
 import org.eclipse.dataspaceconnector.sql.transferprocess.store.SqlTransferProcessStore;
-import org.eclipse.dataspaceconnector.sql.transferprocess.store.TransferProcessStoreStatements;
+import org.eclipse.dataspaceconnector.sql.transferprocess.store.schema.TransferProcessStoreStatements;
+import org.eclipse.dataspaceconnector.sql.transferprocess.store.schema.postgres.PostgresDialectStatements;
 
 import java.time.Clock;
 
@@ -55,7 +55,7 @@ public class SqlTransferProcessStoreExtension implements ServiceExtension {
      * returns an externally-provided sql statement dialect, or postgres as a default
      */
     private TransferProcessStoreStatements getStatementImpl() {
-        return statements != null ? statements : new PostgresStatements();
+        return statements != null ? statements : new PostgresDialectStatements();
     }
 
     private String getDataSourceName(ServiceExtensionContext context) {

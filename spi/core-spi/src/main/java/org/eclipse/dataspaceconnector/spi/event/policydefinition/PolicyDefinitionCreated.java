@@ -27,7 +27,7 @@ public class PolicyDefinitionCreated extends Event<PolicyDefinitionCreated.Paylo
     private PolicyDefinitionCreated() {
     }
 
-    public static class Builder extends Event.Builder<PolicyDefinitionCreated, Payload> {
+    public static class Builder extends Event.Builder<PolicyDefinitionCreated, Payload, Builder> {
 
         public static Builder newInstance() {
             return new Builder();

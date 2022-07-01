@@ -30,6 +30,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
 import org.eclipse.dataspaceconnector.sql.lease.SqlLeaseContextBuilder;
+import org.eclipse.dataspaceconnector.sql.transferprocess.store.schema.TransferProcessStoreStatements;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,12 +40,16 @@ import java.sql.SQLException;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
+/**
+ * Implementation of the {@link TransferProcessStore} based on SQL.
+ */
 public class SqlTransferProcessStore implements TransferProcessStore {
     private final DataSourceRegistry dataSourceRegistry;
     private final String datasourceName;
@@ -89,13 +94,8 @@ public class SqlTransferProcessStore implements TransferProcessStore {
     @Override
     public @Nullable TransferProcess find(String id) {
         return transactionContext.execute(() -> {
-            try (var conn = getConnection()) {
-                var stmt = statements.getFindByIdStatement();
-
-                return single(executeQuery(conn, this::mapTransferProcess, stmt, id));
-            } catch (SQLException e) {
-                throw new EdcPersistenceException(e);
-            }
+            var q = QuerySpec.Builder.newInstance().filter("id = " + id).build();
+            return single(findAll(q).collect(Collectors.toList()));
         });
     }
 
@@ -170,9 +170,8 @@ public class SqlTransferProcessStore implements TransferProcessStore {
     public Stream<TransferProcess> findAll(QuerySpec querySpec) {
         return transactionContext.execute(() -> {
             try (var conn = getConnection()) {
-                var stmt = statements.getQueryStatement();
-                //todo: add filtering, sorting
-                return executeQuery(conn, this::mapTransferProcess, stmt, querySpec.getLimit(), querySpec.getOffset()).stream();
+                var statement = statements.createQuery(querySpec);
+                return executeQuery(conn, this::mapTransferProcess, statement.getQueryAsString(), statement.getParameters()).stream();
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -189,12 +188,13 @@ public class SqlTransferProcessStore implements TransferProcessStore {
                 toJson(process.getResourceManifest()),
                 toJson(process.getProvisionedResourceSet()),
                 toJson(process.getContentDataAddress()),
+                toJson(process.getDeprovisionedResources()),
                 transferProcessId);
     }
 
     /**
-     * Returns either a single element from the list, or null if empty.
-     * Throws an IllegalStateException if the list has more than 1 element
+     * Returns either a single element from the list, or null if empty. Throws an IllegalStateException if the list has
+     * more than 1 element
      */
     @Nullable
     private <T> T single(List<T> list) {
@@ -224,7 +224,8 @@ public class SqlTransferProcessStore implements TransferProcessStore {
                         toJson(process.getResourceManifest()),
                         toJson(process.getProvisionedResourceSet()),
                         toJson(process.getContentDataAddress()),
-                        process.getType().toString());
+                        process.getType().toString(),
+                        toJson(process.getDeprovisionedResources()));
 
                 //insert DataRequest
                 var dr = process.getDataRequest();
@@ -260,21 +261,20 @@ public class SqlTransferProcessStore implements TransferProcessStore {
                 .resourceManifest(fromJson(resultSet.getString(statements.getResourceManifestColumn()), ResourceManifest.class))
                 .provisionedResourceSet(fromJson(resultSet.getString(statements.getProvisionedResourcesetColumn()), ProvisionedResourceSet.class))
                 .errorDetail(resultSet.getString(statements.getErrorDetailColumn()))
-                .dataRequest(extractDataRequest(resultSet))
+                .dataRequest(mapDataRequest(resultSet))
                 .contentDataAddress(fromJson(resultSet.getString(statements.getContentDataAddressColumn()), DataAddress.class))
+                .deprovisionedResources(fromJson(resultSet.getString(statements.getDeprovisionedResourcesColumn()), new TypeReference<>() {
+                }))
                 .build();
     }
 
-    private DataRequest extractDataRequest(ResultSet resultSet) throws SQLException {
-        return mapDataRequest(resultSet);
-    }
 
     private DataRequest mapDataRequest(ResultSet resultSet) throws SQLException {
         return DataRequest.Builder.newInstance()
                 .id(resultSet.getString("edc_data_request_id"))
                 .assetId(resultSet.getString(statements.getAssetIdColumn()))
                 .protocol(resultSet.getString(statements.getProtocolColumn()))
-                .dataDestination(fromJson(resultSet.getString(statements.getDestinationColumn()), DataAddress.class))
+                .dataDestination(fromJson(resultSet.getString(statements.getDataDestinationColumn()), DataAddress.class))
                 .connectorId(resultSet.getString(statements.getConnectorIdColumn()))
                 .connectorAddress(resultSet.getString(statements.getConnectorAddressColumn()))
                 .contractId(resultSet.getString(statements.getContractIdColumn()))
@@ -282,6 +282,7 @@ public class SqlTransferProcessStore implements TransferProcessStore {
                 .transferType(fromJson(resultSet.getString(statements.getTransferTypeColumn()), TransferType.class))
                 .processId(resultSet.getString(statements.getProcessIdColumn()))
                 .properties(fromJson(resultSet.getString(statements.getPropertiesColumn()), getTypeRef()))
+
                 .build();
     }
 

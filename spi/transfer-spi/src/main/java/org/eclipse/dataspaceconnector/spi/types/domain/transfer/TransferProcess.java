@@ -55,9 +55,10 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
 /**
  * Represents a data transfer process.
  * <p>
- * A data transfer process exists on both the consumer and provider connector; it is a representation of the data sharing transaction from the perspective of each endpoint. The data
- * transfer process is modeled as a "loosely" coordinated state machine on each connector. The state transitions are symmetric on the consumer and provider with the exception that
- * the consumer process has two additional states for request/request ack.
+ * A data transfer process exists on both the consumer and provider connector; it is a representation of the data
+ * sharing transaction from the perspective of each endpoint. The data transfer process is modeled as a "loosely"
+ * coordinated state machine on each connector. The state transitions are symmetric on the consumer and provider with
+ * the exception that the consumer process has two additional states for request/request ack.
  * <p>
  * The consumer transitions are:
  *
@@ -103,6 +104,10 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     private List<DeprovisionedResource> deprovisionedResources = new ArrayList<>();
 
     private TransferProcess() {
+    }
+
+    public List<DeprovisionedResource> getDeprovisionedResources() {
+        return deprovisionedResources;
     }
 
     public Type getType() {
@@ -294,12 +299,18 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
                 .dataRequest(dataRequest)
                 .provisionedResourceSet(provisionedResourceSet)
                 .contentDataAddress(contentDataAddress)
+                .deprovisionedResources(deprovisionedResources)
                 .type(type);
         return copy(builder);
     }
 
     public Builder toBuilder() {
         return new Builder(copy());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
     @Override
@@ -312,11 +323,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         }
         TransferProcess that = (TransferProcess) o;
         return id.equals(that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
     }
 
     @Override

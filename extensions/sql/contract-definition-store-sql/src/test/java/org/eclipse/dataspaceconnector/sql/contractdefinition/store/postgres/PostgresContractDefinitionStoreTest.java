@@ -29,6 +29,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.sql.contractdefinition.store.SqlContractDefinitionStore;
 import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.BaseSqlDialectStatements;
 import org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema.postgres.PostgresDialectStatements;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,13 +49,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.dataspaceconnector.sql.contractdefinition.store.TestFunctions.getContractDefinitions;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @PostgresqlDbIntegrationTest
-public class PostgresContractDefinitionStoreTest {
+class PostgresContractDefinitionStoreTest {
     protected static final String DATASOURCE_NAME = "contractdefinition";
     private static final String POSTGRES_USER = "postgres";
     private static final String POSTGRES_PASSWORD = "password";
@@ -104,6 +106,17 @@ public class PostgresContractDefinitionStoreTest {
         } catch (Exception exc) {
             fail(exc);
         }
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+
+        transactionContext.execute(() -> {
+            var dialect = new PostgresDialectStatements();
+            executeQuery(connection, "DROP TABLE " + dialect.getContractDefinitionTable() + " CASCADE");
+        });
+        doCallRealMethod().when(connection).close();
+        connection.close();
     }
 
     @Test

@@ -16,6 +16,7 @@
 package org.eclipse.dataspaceconnector.spi.types.domain.transfer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
@@ -40,6 +41,7 @@ public class DeprovisionedResource {
         return provisionedResourceId;
     }
 
+    @JsonProperty("error")
     public boolean isError() {
         return error;
     }
@@ -76,6 +78,7 @@ public class DeprovisionedResource {
             return this;
         }
 
+        @JsonProperty("inProcess")
         public Builder inProcess(boolean value) {
             resource.inProcess = value;
             return this;
@@ -84,6 +87,7 @@ public class DeprovisionedResource {
         /**
          * Method for deserialization.
          */
+        @JsonProperty("error")
         Builder error(boolean value) {
             resource.error = value;
             return this;
