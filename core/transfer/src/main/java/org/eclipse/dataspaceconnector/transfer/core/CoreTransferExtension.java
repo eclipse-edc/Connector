@@ -126,7 +126,7 @@ public class CoreTransferExtension implements ServiceExtension {
         var dataFlowManager = new DataFlowManagerImpl();
         context.registerService(DataFlowManager.class, dataFlowManager);
 
-        var manifestGenerator = new ResourceManifestGeneratorImpl();
+        var manifestGenerator = new ResourceManifestGeneratorImpl(policyEngine);
         context.registerService(ResourceManifestGenerator.class, manifestGenerator);
 
         var statusCheckerRegistry = new StatusCheckerRegistryImpl();

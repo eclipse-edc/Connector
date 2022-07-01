@@ -9,16 +9,20 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - Initial implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - policy evaluation
  *
  */
 
 package org.eclipse.dataspaceconnector.transfer.core.provision;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ConsumerResourceDefinitionGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProviderResourceDefinitionGenerator;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.transfer.core.TestResourceDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,12 +39,15 @@ class ResourceManifestGeneratorImplTest {
 
     private final ConsumerResourceDefinitionGenerator consumerGenerator = mock(ConsumerResourceDefinitionGenerator.class);
     private final ProviderResourceDefinitionGenerator providerGenerator = mock(ProviderResourceDefinitionGenerator.class);
-    private final ResourceManifestGeneratorImpl generator = new ResourceManifestGeneratorImpl();
+    private ResourceManifestGeneratorImpl generator;
     private Policy policy;
     private DataAddress dataAddress;
+    private PolicyEngine policyEngine;
 
     @BeforeEach
     void setUp() {
+        policyEngine = mock(PolicyEngine.class);
+        generator = new ResourceManifestGeneratorImpl(policyEngine);
         generator.registerGenerator(consumerGenerator);
         generator.registerGenerator(providerGenerator);
         policy = Policy.Builder.newInstance().build();
@@ -52,10 +59,12 @@ class ResourceManifestGeneratorImplTest {
         var dataRequest = createDataRequest(true);
         var resourceDefinition = TestResourceDefinition.Builder.newInstance().id(UUID.randomUUID().toString()).build();
         when(consumerGenerator.generate(any(), any())).thenReturn(resourceDefinition);
+        when(policyEngine.evaluate(any(), any(), any(ResourceManifest.class))).thenAnswer(i -> Result.success(i.getArgument(2)));
 
-        var resourceManifest = generator.generateConsumerResourceManifest(dataRequest, policy);
-
-        assertThat(resourceManifest.getDefinitions()).hasSize(1).containsExactly(resourceDefinition);
+        var result = generator.generateConsumerResourceManifest(dataRequest, policy);
+    
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent().getDefinitions()).hasSize(1).containsExactly(resourceDefinition);
         verifyNoInteractions(providerGenerator);
     }
 
@@ -63,11 +72,24 @@ class ResourceManifestGeneratorImplTest {
     void shouldGenerateEmptyResourceManifestForEmptyConsumerNotManagedTransferProcess() {
         var dataRequest = createDataRequest(false);
 
-        var resourceManifest = generator.generateConsumerResourceManifest(dataRequest, policy);
-
-        assertThat(resourceManifest.getDefinitions()).isEmpty();
+        var result = generator.generateConsumerResourceManifest(dataRequest, policy);
+    
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent().getDefinitions()).isEmpty();
         verifyNoInteractions(consumerGenerator);
         verifyNoInteractions(providerGenerator);
+    }
+    
+    @Test
+    void shouldReturnFailedResultForConsumerWhenPolicyEvaluationFailed() {
+        var dataRequest = createDataRequest(true);
+        var resourceDefinition = TestResourceDefinition.Builder.newInstance().id(UUID.randomUUID().toString()).build();
+        when(consumerGenerator.generate(any(), any())).thenReturn(resourceDefinition);
+        when(policyEngine.evaluate(any(), any(), any(ResourceManifest.class))).thenReturn(Result.failure("error"));
+    
+        var result = generator.generateConsumerResourceManifest(dataRequest, policy);
+        
+        assertThat(result.succeeded()).isFalse();
     }
 
     @Test
