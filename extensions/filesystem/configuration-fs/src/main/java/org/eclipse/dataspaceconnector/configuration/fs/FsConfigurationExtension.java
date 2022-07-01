@@ -37,7 +37,7 @@ import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationF
 public class FsConfigurationExtension implements ConfigurationExtension {
 
     @EdcSetting
-    private static final String CONFIG_LOCATION = propOrEnv("edc.fs.config", "dataspaceconnector-configuration.properties");
+    private static final String FS_CONFIG = "edc.fs.config";
 
     private Config config;
     private Path configFile;
@@ -62,9 +62,11 @@ public class FsConfigurationExtension implements ConfigurationExtension {
 
     @Override
     public void initialize(Monitor monitor) {
-        var configPath = configFile != null ? configFile : Paths.get(FsConfigurationExtension.CONFIG_LOCATION);
+        var configLocation = propOrEnv(FS_CONFIG, "dataspaceconnector-configuration.properties");
+        var configPath = configFile != null ? configFile : Paths.get(configLocation);
+
         if (!Files.exists(configPath)) {
-            monitor.info(format("Configuration file does not exist: %s. Ignoring.", FsConfigurationExtension.CONFIG_LOCATION));
+            monitor.info(format("Configuration file does not exist: %s. Ignoring.", configLocation));
             return;
         }
 
