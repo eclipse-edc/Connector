@@ -133,7 +133,7 @@ public class PolicyEngineImpl implements PolicyEngine {
                     } else if (Prohibition.class.isAssignableFrom(entry.ruleType)) {
                         evalBuilder.resourceDefinitionProhibitionFunction(entry.resourceType, (prohibition, definition) -> entry.function.evaluate(prohibition, definition));
                     }
-        });
+                });
         
         resourceDefinitionConstraintFunctions.entrySet().stream()
                 .filter(entry -> scopeFilter(entry.getKey(), delimitedScope))
@@ -148,7 +148,7 @@ public class PolicyEngineImpl implements PolicyEngine {
                         evalBuilder.resourceDefinitionConstraintProhibitionFunction(entry.key, entry.resourceType,
                                 (operator, rightValue, prohibition, definition) -> entry.function.evaluate(operator, rightValue, prohibition, definition));
                     }
-        });
+                });
     
         var evaluator = evalBuilder.build();
     

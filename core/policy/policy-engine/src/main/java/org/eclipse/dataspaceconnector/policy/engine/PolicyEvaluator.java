@@ -236,7 +236,7 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
     private <D extends ResourceDefinition> Result<D> evaluateResourceDefinition(D resourceDefinition, Policy policy) {
         var failures = new ArrayList<String>();
         
-        for (var permission: policy.getPermissions()) {
+        for (var permission : policy.getPermissions()) {
             var result = visitResourceDefinitionRule(permission, resourceDefinition, resourceDefinitionPermissionFunctions);
             resourceDefinition = processResourceDefinitionResult(result, resourceDefinition, failures);
             
