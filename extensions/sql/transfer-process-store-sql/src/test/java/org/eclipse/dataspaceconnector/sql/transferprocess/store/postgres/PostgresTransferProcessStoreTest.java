@@ -632,7 +632,6 @@ class PostgresTransferProcessStoreTest {
     @JsonDeserialize(builder = TestResourceDef.Builder.class)
     static class TestResourceDef extends ResourceDefinition {
 
-        @JsonPOJOBuilder(withPrefix = "")
         public static class Builder extends ResourceDefinition.Builder<TestResourceDef, Builder> {
             private Builder() {
                 super(new TestResourceDef());
@@ -649,7 +648,6 @@ class PostgresTransferProcessStoreTest {
     @JsonTypeName("dataspaceconnector:testprovisionedresource")
     static class TestProvisionedResource extends ProvisionedResource {
 
-        @JsonPOJOBuilder(withPrefix = "")
         public static class Builder extends ProvisionedResource.Builder<TestProvisionedResource, Builder> {
             private Builder() {
                 super(new TestProvisionedResource());

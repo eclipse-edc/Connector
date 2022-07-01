@@ -55,7 +55,7 @@ public abstract class ProvisionedResource implements Polymorphic {
         return hasToken;
     }
 
-    @JsonPOJOBuilder
+    @JsonPOJOBuilder(withPrefix = "")
     public static class Builder<PR extends ProvisionedResource, B extends Builder<PR, B>> {
         protected PR provisionedResource;
 
