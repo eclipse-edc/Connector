@@ -18,6 +18,7 @@ package org.eclipse.dataspaceconnector.sql.assetindex.schema;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.sql.dialect.BaseSqlDialect;
 import org.eclipse.dataspaceconnector.sql.translation.SqlConditionExpression;
 import org.eclipse.dataspaceconnector.sql.translation.SqlQueryStatement;
 
@@ -98,7 +99,7 @@ public class BaseSqlDialectStatements implements AssetStatements {
 
     @Override
     public String getFormatAsJsonOperator() {
-        return " FORMAT JSON";
+        return BaseSqlDialect.getJsonCastOperator();
     }
 
     @Override
