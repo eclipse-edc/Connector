@@ -20,47 +20,48 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
+import org.eclipse.dataspaceconnector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunctions.validationError;
 import static org.eclipse.dataspaceconnector.dataplane.api.response.ResponseFunctions.validationErrors;
 
-/**
- * Handles incoming control requests for the data plane.
- */
-@Consumes({MediaType.APPLICATION_JSON})
-@Produces({MediaType.APPLICATION_JSON})
 @Path("/transfer")
-public class DataPlaneControlApiController {
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
+public class DataPlaneControlApiController implements DataPlaneControlApi {
     private final DataPlaneManager dataPlaneManager;
 
     public DataPlaneControlApiController(DataPlaneManager dataPlaneManager) {
         this.dataPlaneManager = dataPlaneManager;
     }
 
-    /**
-     * Initiates a data transfer for the given request. The transfer will be performed asynchronously.
-     */
     @POST
-    public Response initiateRequest(DataFlowRequest request) {
+    @Override
+    public void initiateTransfer(DataFlowRequest request, @Suspended AsyncResponse response) {
         // TODO token authentication
         var result = dataPlaneManager.validate(request);
-        if (result.failed()) {
-            return result.getFailureMessages().isEmpty() ? validationError(format("Invalid request: %s", request.getId())) : validationErrors(result.getFailureMessages());
+        if (result.succeeded()) {
+            dataPlaneManager.initiateTransfer(request);
+            response.resume(Response.ok().build());
+        } else {
+            var resp = result.getFailureMessages().isEmpty() ?
+                    validationError(format("Failed to validate request: %s", request.getId())) :
+                    validationErrors(result.getFailureMessages());
+            response.resume(resp);
         }
-        dataPlaneManager.initiateTransfer(request);
-        return Response.ok().build();
     }
 
     @GET
+    @Override
     @Path("/{processId}")
-    public Response transferResult(@PathParam("processId") String processId) {
-        return Response
-                .ok(dataPlaneManager.transferState(processId))
-                .build();
+    public DataPlaneStore.State getTransferState(@PathParam("processId") String processId) {
+        return dataPlaneManager.transferState(processId);
     }
 }

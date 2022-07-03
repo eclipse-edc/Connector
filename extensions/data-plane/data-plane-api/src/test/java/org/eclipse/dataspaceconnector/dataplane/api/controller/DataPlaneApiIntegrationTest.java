@@ -16,12 +16,14 @@
 package org.eclipse.dataspaceconnector.dataplane.api.controller;
 
 import com.github.javafaker.Faker;
+import io.restassured.http.ContentType;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.dataspaceconnector.dataplane.api.validation.TokenValidationClient;
+import jakarta.ws.rs.core.Response;
+import org.eclipse.dataspaceconnector.dataplane.spi.api.TokenValidationClient;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSinkFactory;
@@ -36,11 +38,13 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
+import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 
+import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
@@ -52,139 +56,187 @@ import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFre
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(EdcExtension.class)
-class DataPlanePublicApiControllerTest {
+class DataPlaneApiIntegrationTest {
 
     private static final Faker FAKER = new Faker();
 
+    private static final int PUBLIC_API_PORT = getFreePort();
+    private static final int CONTROL_API_PORT = getFreePort();
+    private static final int VALIDATION_API_PORT = getFreePort();
+
     private final DataPlaneManager dataPlaneManager = mock(DataPlaneManager.class);
     private final TokenValidationClient tokenValidationClient = mock(TokenValidationClient.class);
-    private final int port = getFreePort();
-    private final int validationPort = getFreePort();
 
     @BeforeEach
     void setUp(EdcExtension extension) {
         extension.registerSystemExtension(ServiceExtension.class, new TestServiceExtension());
         extension.setConfiguration(Map.of(
-                "web.http.public.port", String.valueOf(port),
+                "web.http.public.port", String.valueOf(PUBLIC_API_PORT),
                 "web.http.public.path", "/public",
-                "web.http.control.port", String.valueOf(getFreePort()),
-                "web.http.validation.port", String.valueOf(validationPort),
+                "web.http.control.port", String.valueOf(CONTROL_API_PORT),
+                "web.http.control.path", "/control",
+                "web.http.validation.port", String.valueOf(VALIDATION_API_PORT),
                 "web.http.validation.path", "/validation",
-                "edc.dataplane.token.validation.endpoint", "http://localhost:" + validationPort + "/validation/token"
+                "edc.dataplane.token.validation.endpoint", "http://localhost:" + VALIDATION_API_PORT + "/validation/token"
         ));
     }
 
     @Test
-    void postFailure_missingTokenInRequest() {
-        given()
-                .port(port)
+    void controlApi_should_callDataPlaneManager_if_requestIsValid() {
+        var flowRequest = DataFlowRequest.Builder.newInstance()
+                .id(FAKER.internet().uuid())
+                .processId(FAKER.internet().uuid())
+                .sourceDataAddress(testDestAddress())
+                .destinationDataAddress(testDestAddress())
+                .build();
+
+        when(dataPlaneManager.validate(isA(DataFlowRequest.class))).thenReturn(Result.success(Boolean.TRUE));
+
+        given().port(CONTROL_API_PORT)
+                .when()
+                .contentType(ContentType.JSON)
+                .body(flowRequest)
+                .post("/control/transfer")
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
+
+        verify(dataPlaneManager).initiateTransfer(isA(DataFlowRequest.class));
+    }
+
+    @Test
+    void controlApi_should_returnBadRequest_if_requestIsInValid() {
+        var errorMsg = FAKER.lorem().word();
+        var flowRequest = DataFlowRequest.Builder.newInstance()
+                .id(FAKER.internet().uuid())
+                .processId(FAKER.internet().uuid())
+                .sourceDataAddress(testDestAddress())
+                .destinationDataAddress(testDestAddress())
+                .build();
+
+        when(dataPlaneManager.validate(isA(DataFlowRequest.class))).thenReturn(Result.failure(errorMsg));
+
+        given().port(CONTROL_API_PORT)
+                .when()
+                .contentType(ContentType.JSON)
+                .body(flowRequest)
+                .post("/control/transfer")
+                .then()
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode())
+                .body("errors", CoreMatchers.equalTo(List.of(errorMsg)));
+
+        verify(dataPlaneManager, never()).initiateTransfer(any());
+    }
+
+    @Test
+    void publicApi_should_returnBadRequest_if_missingAuthorizationHeader() {
+        given().port(PUBLIC_API_PORT)
                 .when()
                 .post("/public/any")
                 .then()
-                .statusCode(401)
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode())
                 .body("errors[0]", is("Missing bearer token"));
     }
 
     @Test
-    void postFailure_tokenValidationFailure() {
+    void publicApi_should_returnForbidden_if_tokenValidationFails() {
         var token = FAKER.internet().uuid();
         var errorMsg = FAKER.internet().uuid();
-        when(tokenValidationClient.callTokenValidationServer(token)).thenReturn(Result.failure(errorMsg));
+        when(tokenValidationClient.call(token)).thenReturn(Result.failure(errorMsg));
 
-        given()
-                .port(port)
+        given().port(PUBLIC_API_PORT)
                 .header(AUTHORIZATION, token)
                 .when()
                 .post("/public/any")
                 .then()
-                .statusCode(401)
+                .statusCode(Response.Status.FORBIDDEN.getStatusCode())
                 .body("errors.size()", is(1));
 
-        verify(tokenValidationClient).callTokenValidationServer(token);
+        verify(tokenValidationClient).call(token);
     }
 
     @Test
-    void postFailure_requestValidationFailure() {
+    void publicApi_should_returnBadRequest_if_requestValidationFails() {
         var token = FAKER.internet().uuid();
         var errorMsg = FAKER.internet().uuid();
-        when(tokenValidationClient.callTokenValidationServer(token)).thenReturn(Result.success(testDestAddress()));
+        when(tokenValidationClient.call(token)).thenReturn(Result.success(testDestAddress()));
         when(dataPlaneManager.validate(any())).thenReturn(Result.failure(errorMsg));
 
         given()
-                .port(port)
+                .port(PUBLIC_API_PORT)
                 .header(AUTHORIZATION, token)
                 .when()
                 .post("/public/any")
                 .then()
-                .statusCode(400)
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode())
                 .body("errors.size()", is(1));
     }
 
     @Test
-    void postFailure_transferFailure() {
+    void publicApi_should_returnInternalServerError_if_transferFails() {
         var token = FAKER.internet().uuid();
         var errorMsg = FAKER.internet().uuid();
-        when(tokenValidationClient.callTokenValidationServer(token)).thenReturn(Result.success(testDestAddress()));
+        when(tokenValidationClient.call(token)).thenReturn(Result.success(testDestAddress()));
         when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
         when(dataPlaneManager.transfer(any(DataSink.class), any()))
                 .thenReturn(completedFuture(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg)));
 
         given()
-                .port(port)
+                .port(PUBLIC_API_PORT)
                 .header(AUTHORIZATION, token)
                 .when()
                 .post("/public/any")
                 .then()
-                .statusCode(500)
+                .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
                 .body("errors[0]", is(errorMsg));
     }
 
     @Test
-    void postFailure_transferErrorUnhandledException() {
+    void publicApi_should_returnInternalServerError_if_transferThrows() {
         var token = FAKER.internet().uuid();
         var errorMsg = FAKER.internet().uuid();
-        when(tokenValidationClient.callTokenValidationServer(token)).thenReturn(Result.success(testDestAddress()));
+        when(tokenValidationClient.call(token)).thenReturn(Result.success(testDestAddress()));
         when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
         when(dataPlaneManager.transfer(any(DataSink.class), any(DataFlowRequest.class)))
                 .thenReturn(failedFuture(new RuntimeException(errorMsg)));
 
         given()
-                .port(port)
+                .port(PUBLIC_API_PORT)
                 .header(AUTHORIZATION, token)
                 .when()
                 .post("/public/any")
                 .then()
-                .statusCode(500)
-                .body("errors[0]", is("Unhandled exception: " + errorMsg));
+                .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .body("errors[0]", is("Unhandled exception occurred during data transfer: " + errorMsg));
     }
 
     @Test
-    void postSuccess() {
+    void publicApi_should_returnDataFromSource_if_transferSuccessful() {
         var token = FAKER.internet().uuid();
         var address = testDestAddress();
         var requestCaptor = ArgumentCaptor.forClass(DataFlowRequest.class);
 
-        when(tokenValidationClient.callTokenValidationServer(anyString())).thenReturn(Result.success(address));
+        when(tokenValidationClient.call(anyString())).thenReturn(Result.success(address));
         when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
         when(dataPlaneManager.transfer(any(DataSink.class), any()))
                 .thenReturn(completedFuture(StatusResult.success()));
 
         given()
-                .port(port)
+                .port(PUBLIC_API_PORT)
                 .header(AUTHORIZATION, token)
                 .when()
                 .post("/public/any?foo=bar")
                 .then()
-                .statusCode(200);
+                .statusCode(Response.Status.OK.getStatusCode());
 
-        verify(dataPlaneManager, times(1)).validate(requestCaptor.capture());
-        verify(dataPlaneManager, times(1)).transfer(ArgumentCaptor.forClass(DataSink.class).capture(), requestCaptor.capture());
+        verify(dataPlaneManager).validate(requestCaptor.capture());
+        verify(dataPlaneManager).transfer(ArgumentCaptor.forClass(DataSink.class).capture(), requestCaptor.capture());
         var capturedRequests = requestCaptor.getAllValues();
         assertThat(capturedRequests)
                 .hasSize(2)
@@ -218,7 +270,7 @@ class DataPlanePublicApiControllerTest {
         @Produces(MediaType.APPLICATION_JSON)
         @Path("/token")
         public DataAddress validate(@HeaderParam("Authorization") String token) {
-            var result = tokenValidationClient.callTokenValidationServer(token);
+            var result = tokenValidationClient.call(token);
             if (result.succeeded()) {
                 return result.getContent();
             } else {
