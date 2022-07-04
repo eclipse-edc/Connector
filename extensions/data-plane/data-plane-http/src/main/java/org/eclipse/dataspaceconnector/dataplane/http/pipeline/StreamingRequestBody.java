@@ -17,19 +17,21 @@ package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okio.BufferedSink;
-import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.function.Supplier;
 
 /**
  * Streams content into an OK HTTP buffered sink.
  */
 public class StreamingRequestBody extends RequestBody {
-    private final DataSource.Part part;
+    private final Supplier<InputStream> bodySupplier;
     private final String contentType;
 
-    public StreamingRequestBody(DataSource.Part part, String contentType) {
-        this.part = part;
+    public StreamingRequestBody(Supplier<InputStream> contentSupplier, String contentType) {
+        this.bodySupplier = contentSupplier;
         this.contentType = contentType;
     }
 
@@ -39,10 +41,9 @@ public class StreamingRequestBody extends RequestBody {
     }
 
     @Override
-    public void writeTo(BufferedSink sink) throws IOException {
-        try (var stream = sink.outputStream()) {
-            part.openStream().transferTo(stream);
+    public void writeTo(@NotNull BufferedSink sink) throws IOException {
+        try (var os = sink.outputStream(); var is = bodySupplier.get()) {
+            is.transferTo(os);
         }
     }
-
 }

@@ -17,12 +17,16 @@ package org.eclipse.dataspaceconnector.dataplane.http;
 import com.github.javafaker.Faker;
 import okhttp3.MediaType;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import okio.Okio;
 import org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 
@@ -60,6 +64,22 @@ public class HttpTestFixtures {
         var body = ResponseBody.create("{}", MediaType.get("application/json"));
         var request = new Request.Builder().url("https://test.com").build();
         return new Response.Builder().code(200).body(body).request(request).protocol(HTTP_2).message("");
+    }
+
+    /**
+     * Extract body from the {@link RequestBody} and format is a string.
+     *
+     * @param requestBody the request body
+     * @return Body formatted as a string.
+     * @throws IOException if body extraction fails.
+     */
+    public static String formatRequestBodyAsString(RequestBody requestBody) throws IOException {
+        try (var os = new ByteArrayOutputStream()) {
+            var sink = Okio.sink(os);
+            var bufferedSink = Okio.buffer(sink);
+            requestBody.writeTo(bufferedSink);
+            return os.toString();
+        }
     }
 
     private HttpTestFixtures() {
