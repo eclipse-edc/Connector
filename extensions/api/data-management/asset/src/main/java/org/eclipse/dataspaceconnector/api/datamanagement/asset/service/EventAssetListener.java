@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.asset.service;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.event.asset.AssetCreated;
 import org.eclipse.dataspaceconnector.spi.event.asset.AssetDeleted;
+import org.eclipse.dataspaceconnector.spi.observe.asset.AssetListener;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 import java.time.Clock;
