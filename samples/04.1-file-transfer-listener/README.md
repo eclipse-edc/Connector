@@ -78,4 +78,4 @@ DEBUG 2022-04-14T16:23:18.9048494 Process 6804ed96-298e-4992-b72d-2366d97cf7a6 i
 INFO 2022-04-14T16:23:18.9048494 Transfer Listener successfully wrote file C:\Users\pechande\dev\coding\EDC\marker.txt
 ```
 
-then check `/path/on/yourmachine`, which should now contain a file named `marker.txt` in addition to the file named `test-document.txt`.
+Then check `/path/on/yourmachine`, which should now contain a file named `marker.txt` in addition to the file defined in `dataDestination.properties.path` in `samples/04.0-file-transfer/filetransfer.json`.
