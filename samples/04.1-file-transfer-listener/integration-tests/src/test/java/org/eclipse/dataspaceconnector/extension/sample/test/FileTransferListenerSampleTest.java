@@ -53,10 +53,13 @@ public class FileTransferListenerSampleTest {
     // Reuse an already existing file for the test. Could be set to any other existing file in the repository.
     static final String SAMPLE_ASSET_FILE_PATH = "samples/04.1-file-transfer-listener/README.md";
     static final String DESTINATION_FILE_PATH = "samples/requested.test.txt";
+    // marker.txt is a fixed name and always in the same directory as the file defined with DESTINATION_FILE_PATH.
+    static final String MARKER_FILE_PATH = "samples/marker.txt";
     static final Duration TIMEOUT = Duration.ofSeconds(15);
     static final Duration POLL_INTERVAL = Duration.ofMillis(500);
     static final String API_KEY_HEADER_KEY = "X-Api-Key";
     static final String API_KEY_HEADER_VALUE = "password";
+    static final String MARKER_FILE_CONTENT = "Transfer complete";
     @RegisterExtension
     static EdcRuntimeExtension provider = new EdcRuntimeExtension(
             ":samples:04.0-file-transfer:provider",
@@ -77,6 +80,7 @@ public class FileTransferListenerSampleTest {
     );
     static final File DESTINATION_FILE = getFileFromRelativePath(FileTransferListenerSampleTest.DESTINATION_FILE_PATH);
     static final File SAMPLE_ASSET_FILE = getFileFromRelativePath(FileTransferListenerSampleTest.SAMPLE_ASSET_FILE_PATH);
+    static final File MARKER_FILE = getFileFromRelativePath(FileTransferListenerSampleTest.MARKER_FILE_PATH);
     String contractNegotiationId;
     String contractAgreementId;
 
@@ -101,6 +105,7 @@ public class FileTransferListenerSampleTest {
         lookUpContractAgreementId();
         requestTransferFile();
         assertDestinationFileContent();
+        assertMarkerFileContent();
 
         cleanTemporaryTestFiles();
     }
@@ -111,6 +116,7 @@ public class FileTransferListenerSampleTest {
      */
     void assertTestPrerequisites() {
         assertThat(DESTINATION_FILE).doesNotExist();
+        assertThat(MARKER_FILE).doesNotExist();
     }
 
     /**
@@ -120,6 +126,7 @@ public class FileTransferListenerSampleTest {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     void cleanTemporaryTestFiles() {
         DESTINATION_FILE.delete();
+        MARKER_FILE.delete();
     }
 
     /**
@@ -129,6 +136,15 @@ public class FileTransferListenerSampleTest {
     void assertDestinationFileContent() {
         await().atMost(TIMEOUT).pollInterval(POLL_INTERVAL).untilAsserted(()
                 -> assertThat(DESTINATION_FILE).hasSameBinaryContentAs(SAMPLE_ASSET_FILE));
+    }
+
+    /**
+     * Assert that the file to be copied exists at the expected location.
+     * This method waits a duration which is defined in {@link FileTransferListenerSampleTest#TIMEOUT}.
+     */
+    private void assertMarkerFileContent() {
+        await().atMost(TIMEOUT).pollInterval(POLL_INTERVAL).untilAsserted(()
+                -> assertThat(MARKER_FILE).hasContent(MARKER_FILE_CONTENT));
     }
 
     /**
