@@ -33,28 +33,30 @@ import java.util.Map;
  * Manages system types and is used to deserialize polymorphic types.
  */
 public class TypeManager {
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper defaultMapper;
 
     /**
-     * Concurrent support is not needed since this map is only populated a boot, which is single-threaded
+     * Concurrent support is not needed since this map is only populated a boot, which is single-threaded.
      */
     private final Map<String, ObjectMapper> objectMappers = new HashMap<>();
 
     /**
-     * Constructor without params.
+     * Default constructor.
      */
     public TypeManager() {
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule()); // configure ISO 8601 time de/serialization
-        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false); // serialize dates in ISO 8601 format
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        defaultMapper = new ObjectMapper();
+        defaultMapper.registerModule(new JavaTimeModule()); // configure ISO 8601 time de/serialization
+        defaultMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false); // serialize dates in ISO 8601 format
+        defaultMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+        registerContext("default", defaultMapper);
     }
 
     /**
      * Returns the object mapper for the default serialization context.
      */
     public ObjectMapper getMapper() {
-        return objectMapper;
+        return defaultMapper;
     }
 
     /**
@@ -62,14 +64,20 @@ public class TypeManager {
      */
     @NotNull
     public ObjectMapper getMapper(String key) {
-        return objectMappers.computeIfAbsent(key, k -> objectMapper.copy());
+        return objectMappers.computeIfAbsent(key, k -> defaultMapper.copy());
+    }
+
+    /**
+     * Add custom mapper by key to list of object mappers.
+     */
+    public void registerContext(String key, ObjectMapper mapper) {
+        objectMappers.put(key, mapper);
     }
 
     /**
      * Registers types with all contexts.
      */
     public void registerTypes(Class<?>... type) {
-        objectMapper.registerSubtypes(type);
         objectMappers.values().forEach(m -> m.registerSubtypes(type));
     }
 
@@ -77,7 +85,6 @@ public class TypeManager {
      * Registers types with all contexts.
      */
     public void registerTypes(NamedType... type) {
-        objectMapper.registerSubtypes(type);
         objectMappers.values().forEach(m -> m.registerSubtypes(type));
     }
 
