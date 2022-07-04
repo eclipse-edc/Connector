@@ -222,6 +222,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         }
         observable.invokeForEach(l -> l.preCreated(process));
         transferProcessStore.create(process);
+        observable.invokeForEach(l -> l.initialized(process));
         return StatusResult.success(process.getId());
     }
 
@@ -244,8 +245,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             var assetId = process.getDataRequest().getAssetId();
             var dataAddress = addressResolver.resolveForAsset(assetId);
             if (dataAddress == null) {
-                process.transitionError("Asset not found: " + assetId);
-                updateTransferProcess(process, l -> l.preError(process));
+                transitionToError(process, "Asset not found: " + assetId, null);
             }
             // default the content address to the asset address; this may be overridden during provisioning
             process.addContentDataAddress(dataAddress);
@@ -417,8 +417,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     @WithSpan
     private boolean processDeprovisioned(TransferProcess process) {
         process.transitionEnded();
-        transferProcessStore.update(process);
         observable.invokeForEach(l -> l.preEnded(process));
+        transferProcessStore.update(process);
+        observable.invokeForEach(l -> l.ended(process));
         monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
         return true;
     }
@@ -461,13 +462,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         if (!fatalErrors.isEmpty()) {
             var errors = join("\n", fatalErrors);
-            monitor.severe(format("Transitioning transfer process %s to ERROR state due to fatal provisioning errors: \n%s", transferProcess.getId(), errors));
-            transferProcess.transitionError("Fatal provisioning errors encountered. See logs for details.");
-            transferProcessStore.update(transferProcess);
+            var message = format("Transitioning transfer process %s to ERROR state due to fatal provisioning errors: \n%s", transferProcess.getId(), errors);
+            transitionToError(transferProcess, message, null);
         } else if (transferProcess.provisioningComplete()) {
             transferProcess.transitionProvisioned();
-            transferProcessStore.update(transferProcess);
             observable.invokeForEach(l -> l.preProvisioned(transferProcess));
+            transferProcessStore.update(transferProcess);
+            observable.invokeForEach(l -> l.provisioned(transferProcess));
         } else {
             transferProcessStore.update(transferProcess);
         }
@@ -516,13 +517,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         if (!fatalErrors.isEmpty()) {
             var errors = join("\n", fatalErrors);
-            monitor.severe(format("Transitioning transfer process %s to ERROR state due to fatal deprovisioning errors: \n%s", transferProcess.getId(), errors));
-            transferProcess.transitionError("Fatal depprovisioning errors encountered. See logs for details.");
-            transferProcessStore.update(transferProcess);
+            var message = format("Transitioning transfer process %s to ERROR state due to fatal deprovisioning errors: \n%s", transferProcess.getId(), errors);
+            transitionToError(transferProcess, message, null);
         } else if (transferProcess.deprovisionComplete()) {
             transferProcess.transitionDeprovisioned();
-            transferProcessStore.update(transferProcess);
             observable.invokeForEach(l -> l.preDeprovisioned(transferProcess));
+            transferProcessStore.update(transferProcess);
+            observable.invokeForEach(l -> l.deprovisioned(transferProcess));
         } else {
             transferProcessStore.update(transferProcess);
         }
@@ -555,6 +556,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         process.transitionCompleted();
         monitor.debug("Process " + process.getId() + " is now " + COMPLETED);
         updateTransferProcess(process, l -> l.preCompleted(process));
+        observable.invokeForEach(l -> l.completed(process));
     }
 
     private void transitionToError(String id, Throwable throwable, String message) {
@@ -564,9 +566,14 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return;
         }
 
+        transitionToError(transferProcess, format("%s: %s", message, throwable.getLocalizedMessage()), throwable);
+    }
+
+    private void transitionToError(TransferProcess process, String message, Throwable throwable) {
         monitor.severe(message, throwable);
-        transferProcess.transitionError(format("%s: %s", message, throwable.getLocalizedMessage()));
-        updateTransferProcess(transferProcess, l -> l.preError(transferProcess));
+        process.transitionError(message);
+        updateTransferProcess(process, l -> l.preError(process));
+        observable.invokeForEach(l -> l.failed(process));
     }
 
     private void processProviderRequest(TransferProcess process) {
@@ -586,9 +593,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 process.transitionProvisioned();
                 updateTransferProcess(process, l -> l.preProvisioned(process));
             } else {
-                monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), join(", ", response.getFailureMessages())));
-                process.transitionError(response.getFailureMessages().stream().findFirst().orElse(""));
-                updateTransferProcess(process, l -> l.preError(process));
+                var message = format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), join(", ", response.getFailureMessages()));
+                transitionToError(process, message, null);
             }
         }
     }
@@ -607,19 +613,19 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private void sendConsumerRequest(TransferProcess process, DataRequest dataRequest) {
         monitor.debug(format("TransferProcessManager: Sending process %s request to %s", process.getId(), dataRequest.getConnectorAddress()));
         dispatcherRegistry.send(Object.class, dataRequest, process::getId)
-                .thenApply(result -> {
-                    sendConsumerRequestSuccess(process);
-                    return result;
-                })
-                .exceptionally(e -> {
-                    sendCustomerRequestFailure(process, e);
-                    return e;
+                .whenComplete((result, throwable) -> {
+                    if (throwable == null) {
+                        sendConsumerRequestSuccess(process);
+                    } else {
+                        sendCustomerRequestFailure(process, throwable);
+                    }
                 });
     }
 
     private void sendConsumerRequestSuccess(TransferProcess transferProcess) {
         transferProcess.transitionRequested();
         updateTransferProcess(transferProcess, l -> l.preRequested(transferProcess));
+        observable.invokeForEach(l -> l.requested(transferProcess));
         monitor.debug("TransferProcessManager: Process " + transferProcess.getId() + " is now " + TransferProcessStates.from(transferProcess.getState()));
     }
 

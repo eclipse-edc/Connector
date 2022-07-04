@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.command.handlers;
 
+import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
@@ -25,8 +26,11 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.CancelTr
  */
 public class CancelTransferCommandHandler extends SingleTransferProcessCommandHandler<CancelTransferCommand> {
 
-    public CancelTransferCommandHandler(TransferProcessStore store) {
+    private final TransferProcessObservable observable;
+
+    public CancelTransferCommandHandler(TransferProcessStore store, TransferProcessObservable observable) {
         super(store);
+        this.observable = observable;
     }
 
     @Override
@@ -45,5 +49,10 @@ public class CancelTransferCommandHandler extends SingleTransferProcessCommandHa
         }
         process.transitionCancelled();
         return true;
+    }
+
+    @Override
+    protected void postAction(TransferProcess process) {
+        observable.invokeForEach(l -> l.cancelled(process));
     }
 }
