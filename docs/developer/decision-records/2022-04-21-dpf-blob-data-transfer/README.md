@@ -27,7 +27,7 @@ This sequence diagram describes the flow if the 2 participants are using Azure b
 
 The sequence starts from the client triggering the transfer on the consumer side and finishes when the consumer deprovisions its resources.
 
-![blob-transfer](architecture/data-transfer/diagrams/blob-transfer.png)
+![blob-transfer](../../../architecture/data-transfer/diagrams/blob-transfer.png)
 
 1. The client calls the data management API to trigger a transfer process. The requested asset is identified by the `assetId` and the `contractId` from previous contract negotiation. The client get the `PROCESS_ID` corresponding to the `transferProcess`. This `PROCESS_ID` will be used to get the transfer status. For now, `managedResources` needs to be set to true, to make sure that the consumer provisions the blob container. `managedResources=false` would be used if the client wants to use a pre-existing container without creating a new one, but this feature is not supported yet.  
 2. Consumer gets the destination storage account access key in its Vault.  

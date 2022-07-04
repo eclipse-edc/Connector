@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.sql.transferprocess.store.schema;
 
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.sql.dialect.BaseSqlDialect;
 import org.eclipse.dataspaceconnector.sql.lease.LeaseStatements;
 import org.eclipse.dataspaceconnector.sql.translation.SqlQueryStatement;
 
@@ -143,7 +144,7 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
     }
 
     default String getFormatAsJsonOperator() {
-        return " FORMAT JSON";
+        return BaseSqlDialect.getJsonCastOperator();
     }
 
     SqlQueryStatement createQuery(QuerySpec querySpec);

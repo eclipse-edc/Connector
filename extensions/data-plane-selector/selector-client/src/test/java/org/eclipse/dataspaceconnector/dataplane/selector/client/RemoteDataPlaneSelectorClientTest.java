@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.dataplane.selector.client;
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.dataplane.selector.DataPlaneSelectorService;
 import org.eclipse.dataspaceconnector.dataplane.selector.api.DataplaneSelectorApiController;
 import org.eclipse.dataspaceconnector.dataplane.selector.instance.DataPlaneInstance;
@@ -78,7 +78,7 @@ class RemoteDataPlaneSelectorClientTest {
         jetty = startRestApi();
 
         // set up client
-        RetryPolicy<Object> retryPolicy = new RetryPolicy<>();
+        RetryPolicy<Object> retryPolicy = RetryPolicy.ofDefaults();
         var url = format(BASE_URL, port);
         client = new RemoteDataPlaneSelectorClient(testOkHttpClient(), url, retryPolicy, typeManager.getMapper());
     }

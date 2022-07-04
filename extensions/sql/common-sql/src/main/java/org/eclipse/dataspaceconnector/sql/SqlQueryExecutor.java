@@ -36,7 +36,7 @@ public final class SqlQueryExecutor {
     /**
      * Intended for mutating queries.
      *
-     * @param sql       the parametrized sql query
+     * @param sql the parametrized sql query
      * @param arguments the parameters to interpolate with the parametrized sql query
      * @return rowsChanged
      */
@@ -57,9 +57,9 @@ public final class SqlQueryExecutor {
      * Intended for reading queries.
      *
      * @param resultSetMapper able to map a row to an object e.g. pojo.
-     * @param sql             the parametrized sql query
-     * @param arguments       the parameteres to interpolate with the parametrized sql query
-     * @param <T>             generic type returned after mapping from the executed query
+     * @param sql the parametrized sql query
+     * @param arguments the parameteres to interpolate with the parametrized sql query
+     * @param <T> generic type returned after mapping from the executed query
      * @return results
      */
     public static <T> List<T> executeQuery(Connection connection, ResultSetMapper<T> resultSetMapper, String sql, Object... arguments) {

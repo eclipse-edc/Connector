@@ -14,7 +14,8 @@
 
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
+import io.netty.handler.codec.http.HttpMethod;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -45,6 +46,7 @@ import static org.mockito.Mockito.when;
 
 class DataSourceToDataSinkTests {
     private static final String NULL_ENDPOINT = "https://example.com/sink";
+    private static final String CONTENT_TYPE = "application/json";
 
     private ExecutorService executor;
     private Monitor monitor;
@@ -80,13 +82,14 @@ class DataSourceToDataSinkTests {
                 .build();
 
         var dataSource = HttpDataSource.Builder.newInstance()
-                .sourceUrl(NULL_ENDPOINT)
+                .params(HttpRequestParams.Builder.newInstance()
+                        .baseUrl(NULL_ENDPOINT)
+                        .method(HttpMethod.GET.name())
+                        .build())
                 .name("test.json")
                 .requestId("1")
-                .retryPolicy(new RetryPolicy<>())
+                .retryPolicy(RetryPolicy.ofDefaults())
                 .httpClient(sourceClient)
-                .monitor(monitor)
-                .method("GET")
                 .build();
 
         var sinkClient = testOkHttpClient().newBuilder()
@@ -94,7 +97,11 @@ class DataSourceToDataSinkTests {
                 .build();
 
         var dataSink = HttpDataSink.Builder.newInstance()
-                .endpoint("https://example.com/sink")
+                .params(HttpRequestParams.Builder.newInstance()
+                        .baseUrl("https://example.com/sink")
+                        .method(HttpMethod.POST.name())
+                        .contentType(CONTENT_TYPE)
+                        .build())
                 .requestId("1")
                 .httpClient(sinkClient)
                 .executorService(executor)
@@ -124,19 +131,24 @@ class DataSourceToDataSinkTests {
                 .build();
 
         var dataSource = HttpDataSource.Builder.newInstance()
-                .sourceUrl(NULL_ENDPOINT)
+                .params(HttpRequestParams.Builder.newInstance()
+                        .baseUrl(NULL_ENDPOINT)
+                        .method(HttpMethod.GET.name())
+                        .build())
                 .name("test.json")
                 .requestId("1")
-                .retryPolicy(new RetryPolicy<>())
+                .retryPolicy(RetryPolicy.ofDefaults())
                 .httpClient(sourceClient)
-                .monitor(monitor)
-                .method("GET")
                 .build();
 
         var sinkClient = mock(OkHttpClient.class);
 
         var dataSink = HttpDataSink.Builder.newInstance()
-                .endpoint("https://example.com/sink")
+                .params(HttpRequestParams.Builder.newInstance()
+                        .baseUrl("https://example.com/sink")
+                        .method(HttpMethod.POST.name())
+                        .contentType(CONTENT_TYPE)
+                        .build())
                 .requestId("1")
                 .httpClient(sinkClient)
                 .executorService(executor)
@@ -165,13 +177,14 @@ class DataSourceToDataSinkTests {
                 .build();
 
         var dataSource = HttpDataSource.Builder.newInstance()
-                .sourceUrl(NULL_ENDPOINT)
+                .params(HttpRequestParams.Builder.newInstance()
+                        .baseUrl(NULL_ENDPOINT)
+                        .method(HttpMethod.GET.name())
+                        .build())
                 .name("test.json")
                 .requestId("1")
-                .retryPolicy(new RetryPolicy<>())
+                .retryPolicy(RetryPolicy.ofDefaults())
                 .httpClient(sourceClient)
-                .monitor(monitor)
-                .method("GET")
                 .build();
 
         // sink endpoint raises an exception
@@ -185,7 +198,11 @@ class DataSourceToDataSinkTests {
                 .build();
 
         var dataSink = HttpDataSink.Builder.newInstance()
-                .endpoint(NULL_ENDPOINT)
+                .params(HttpRequestParams.Builder.newInstance()
+                        .baseUrl(NULL_ENDPOINT)
+                        .method(HttpMethod.POST.name())
+                        .contentType(CONTENT_TYPE)
+                        .build())
                 .requestId("1")
                 .httpClient(sinkClient)
                 .executorService(executor)

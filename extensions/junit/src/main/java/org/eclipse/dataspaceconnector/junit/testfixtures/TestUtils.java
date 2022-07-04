@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class TestUtils {
     public static final int MAX_TCP_PORT = 65_535;
     public static final String GRADLE_WRAPPER;
+    private static File buildRoot = null;
     private static final String GRADLE_WRAPPER_UNIX = "gradlew";
     private static final String GRADLE_WRAPPER_WINDOWS = "gradlew.bat";
 
@@ -145,21 +146,25 @@ public class TestUtils {
 
     /**
      * Utility method to locate the Gradle project root.
+     * Search for build root will be done only once and cached for subsequent calls.
      *
      * @return The Gradle project root directory.
      */
     public static File findBuildRoot() {
+        // Use cached value if already existing.
+        if (buildRoot != null) return buildRoot;
+
         File canonicalFile;
         try {
             canonicalFile = new File(".").getCanonicalFile();
         } catch (IOException e) {
             throw new IllegalStateException("Could not resolve current directory.", e);
         }
-        var root = findBuildRoot(canonicalFile);
-        if (root == null) {
+        buildRoot = findBuildRoot(canonicalFile);
+        if (buildRoot == null) {
             throw new IllegalStateException("Could not find " + GRADLE_WRAPPER + " in parent directories.");
         }
-        return root;
+        return buildRoot;
     }
 
     private static File findBuildRoot(File path) {

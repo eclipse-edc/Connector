@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.catalog.node.directory.azure;
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.catalog.node.directory.azure.model.FederatedCacheNodeDocument;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNode;
@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static net.jodah.failsafe.Failsafe.with;
+import static dev.failsafe.Failsafe.with;
 
 public class CosmosFederatedCacheNodeDirectory implements FederatedCacheNodeDirectory {
 

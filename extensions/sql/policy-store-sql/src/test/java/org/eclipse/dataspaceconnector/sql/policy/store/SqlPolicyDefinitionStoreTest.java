@@ -9,25 +9,22 @@
  *
  *  Contributors:
  *       ZF Friedrichshafen AG - Initial API and Implementation
+ *       Microsoft Corporation - updates, refactoring
  *
  */
 
-package org.eclipse.dataspaceconnector.slq.policy.store;
+package org.eclipse.dataspaceconnector.sql.policy.store;
 
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
-import org.eclipse.dataspaceconnector.policy.model.Duty;
-import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
-import org.eclipse.dataspaceconnector.policy.model.PolicyType;
-import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
-import org.eclipse.dataspaceconnector.sql.policy.store.PostgressStatements;
-import org.eclipse.dataspaceconnector.sql.policy.store.SqlPolicyDefinitionStore;
+import org.eclipse.dataspaceconnector.sql.dialect.BaseSqlDialect;
+import org.eclipse.dataspaceconnector.sql.policy.store.schema.postgres.PostgresDialectStatements;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +43,7 @@ import java.util.stream.IntStream;
 import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.sql.policy.TestFunctions.createPolicy;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -74,7 +72,7 @@ class SqlPolicyDefinitionStoreTest {
         var datasourceMock = mock(DataSource.class);
         when(datasourceMock.getConnection()).thenReturn(connection);
         when(dataSourceRegistry.resolve(DATASOURCE_NAME)).thenReturn(datasourceMock);
-        sqlPolicyStore = new SqlPolicyDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new TypeManager(), new PostgressStatements());
+        sqlPolicyStore = new SqlPolicyDefinitionStore(dataSourceRegistry, DATASOURCE_NAME, transactionContext, new TypeManager(), new H2DialectStatements());
 
         var schema = Files.readString(Paths.get("./docs/schema.sql"));
         transactionContext.execute(() -> SqlQueryExecutor.executeQuery(connection, schema));
@@ -89,7 +87,7 @@ class SqlPolicyDefinitionStoreTest {
     @Test
     @DisplayName("Save a single policy that not exists ")
     void save_notExisting() {
-        var policy = getDummyPolicy(getRandomId());
+        var policy = createPolicy(getRandomId());
 
         sqlPolicyStore.save(policy);
 
@@ -126,7 +124,7 @@ class SqlPolicyDefinitionStoreTest {
     @Test
     @DisplayName("Find policy by ID that exists")
     void findById_whenPresent() {
-        var policy = getDummyPolicy(getRandomId());
+        var policy = createPolicy(getRandomId());
         sqlPolicyStore.save(policy);
 
         var policyFromDb = sqlPolicyStore.findById(policy.getUid());
@@ -196,7 +194,7 @@ class SqlPolicyDefinitionStoreTest {
     @Test
     @DisplayName("Delete existing policy")
     void deleteById_whenExists() {
-        var policy = getDummyPolicy(getRandomId());
+        var policy = createPolicy(getRandomId());
 
         sqlPolicyStore.save(policy);
 
@@ -214,34 +212,14 @@ class SqlPolicyDefinitionStoreTest {
         return UUID.randomUUID().toString();
     }
 
-    private PolicyDefinition getDummyPolicy(String id) {
-        var permission = Permission.Builder.newInstance()
-                .uid(id)
-                .build();
-
-        var prohibition = Prohibition.Builder.newInstance()
-                .uid(id)
-                .build();
-
-        var duty = Duty.Builder.newInstance()
-                .uid(id)
-                .build();
-
-        var p = Policy.Builder.newInstance()
-                .permission(permission)
-                .prohibition(prohibition)
-                .duties(List.of(duty))
-                .inheritsFrom("sampleInheritsFrom")
-                .assigner("sampleAssigner")
-                .assignee("sampleAssignee")
-                .target("sampleTarget")
-                .type(PolicyType.SET)
-                .build();
-        return PolicyDefinition.Builder.newInstance().uid(id).policy(p).build();
-    }
-
     private List<PolicyDefinition> getDummyPolicies(int count) {
-        return IntStream.range(0, count).mapToObj(i -> getDummyPolicy(getRandomId())).collect(Collectors.toList());
+        return IntStream.range(0, count).mapToObj(i -> createPolicy(getRandomId())).collect(Collectors.toList());
     }
 
+    private static class H2DialectStatements extends PostgresDialectStatements {
+        @Override
+        public String getFormatAsJsonOperator() {
+            return BaseSqlDialect.getJsonCastOperator();
+        }
+    }
 }

@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema;
 
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.sql.dialect.BaseSqlDialect;
 import org.eclipse.dataspaceconnector.sql.translation.SqlQueryStatement;
 
 import static java.lang.String.format;
@@ -147,7 +148,7 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
      * Overridable operator to convert strings to JSON. For postgres, this is the "::json" operator
      */
     protected String getFormatJsonOperator() {
-        return " FORMAT JSON";
+        return BaseSqlDialect.getJsonCastOperator();
     }
 
 }

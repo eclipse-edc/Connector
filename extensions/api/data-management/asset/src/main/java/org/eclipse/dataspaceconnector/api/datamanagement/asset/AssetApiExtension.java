@@ -16,7 +16,6 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetObservableImpl;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetService;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetServiceImpl;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.EventAssetListener;
@@ -30,6 +29,7 @@ import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
+import org.eclipse.dataspaceconnector.spi.observe.asset.AssetObservableImpl;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;

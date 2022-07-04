@@ -15,10 +15,11 @@
 package org.eclipse.dataspaceconnector.sql.assetindex.schema.postgres;
 
 import org.eclipse.dataspaceconnector.sql.assetindex.schema.BaseSqlDialectStatements;
+import org.eclipse.dataspaceconnector.sql.dialect.PostgresDialect;
 
 public class PostgresDialectStatements extends BaseSqlDialectStatements {
     @Override
     public String getFormatAsJsonOperator() {
-        return "::json";
+        return PostgresDialect.getJsonCastOperator();
     }
 }

@@ -18,7 +18,7 @@ import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
 import com.azure.cosmos.models.PartitionKey;
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.azure.testfixtures.CosmosTestClient;
@@ -82,7 +82,7 @@ class CosmosAssetIndexIntegrationTest {
         TypeManager typeManager = new TypeManager();
         typeManager.registerTypes(Asset.class, AssetDocument.class);
         var api = new CosmosDbApiImpl(container, true);
-        assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, new RetryPolicy<>(), mock(Monitor.class));
+        assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, RetryPolicy.ofDefaults(), mock(Monitor.class));
     }
 
     @AfterEach
