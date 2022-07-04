@@ -19,7 +19,6 @@ import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -30,16 +29,12 @@ import java.util.stream.Stream;
 import static dev.failsafe.Failsafe.with;
 import static java.lang.String.format;
 
-/**
- * Pulls data from a source using an HTTP GET.
- */
 public class HttpDataSource implements DataSource {
     private String name;
     private HttpRequestParams params;
     private String requestId;
     private RetryPolicy<Object> retryPolicy;
     private OkHttpClient httpClient;
-    private Monitor monitor;
 
     @Override
     public Stream<Part> openPartStream() {
@@ -51,15 +46,11 @@ public class HttpDataSource implements DataSource {
             if (response.isSuccessful()) {
                 var responseBody = response.body();
                 if (responseBody == null) {
-                    var errorMsg = format("Received empty response body transferring HTTP data for request %s: %s", requestId, response.code());
-                    monitor.severe(errorMsg);
-                    throw new EdcException(errorMsg);
+                    throw new EdcException(format("Received empty response body transferring HTTP data for request %s: %s", requestId, response.code()));
                 }
                 return new HttpPart(name, responseBody.bytes());
             } else {
-                var errorMsg = format("Received code transferring HTTP data for request %s: %s - %s", requestId, response.code(), response.message());
-                monitor.severe(errorMsg);
-                throw new EdcException(errorMsg);
+                throw new EdcException(format("Received code transferring HTTP data for request %s: %s - %s", requestId, response.code(), response.message()));
             }
         } catch (IOException e) {
             throw new EdcException(e);
@@ -101,15 +92,9 @@ public class HttpDataSource implements DataSource {
             return this;
         }
 
-        public Builder monitor(Monitor monitor) {
-            dataSource.monitor = monitor;
-            return this;
-        }
-
         public HttpDataSource build() {
             Objects.requireNonNull(dataSource.requestId, "requestId");
             Objects.requireNonNull(dataSource.httpClient, "httpClient");
-            Objects.requireNonNull(dataSource.monitor, "monitor");
             Objects.requireNonNull(dataSource.retryPolicy, "retryPolicy");
             return dataSource;
         }

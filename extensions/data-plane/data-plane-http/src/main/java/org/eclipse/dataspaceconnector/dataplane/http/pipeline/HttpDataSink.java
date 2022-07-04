@@ -33,10 +33,7 @@ public class HttpDataSink extends ParallelSink {
 
     private HttpRequestParams params;
     private OkHttpClient httpClient;
-
-    /**
-     * Sends the parts to the destination endpoint using an HTTP POST.
-     */
+    
     @Override
     protected StatusResult<Void> transferParts(List<DataSource.Part> parts) {
         for (DataSource.Part part : parts) {

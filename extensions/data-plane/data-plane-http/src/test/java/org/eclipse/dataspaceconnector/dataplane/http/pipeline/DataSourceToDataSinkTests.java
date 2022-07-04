@@ -90,7 +90,6 @@ class DataSourceToDataSinkTests {
                 .requestId("1")
                 .retryPolicy(RetryPolicy.ofDefaults())
                 .httpClient(sourceClient)
-                .monitor(monitor)
                 .build();
 
         var sinkClient = testOkHttpClient().newBuilder()
@@ -140,7 +139,6 @@ class DataSourceToDataSinkTests {
                 .requestId("1")
                 .retryPolicy(RetryPolicy.ofDefaults())
                 .httpClient(sourceClient)
-                .monitor(monitor)
                 .build();
 
         var sinkClient = mock(OkHttpClient.class);
@@ -187,7 +185,6 @@ class DataSourceToDataSinkTests {
                 .requestId("1")
                 .retryPolicy(RetryPolicy.ofDefaults())
                 .httpClient(sourceClient)
-                .monitor(monitor)
                 .build();
 
         // sink endpoint raises an exception

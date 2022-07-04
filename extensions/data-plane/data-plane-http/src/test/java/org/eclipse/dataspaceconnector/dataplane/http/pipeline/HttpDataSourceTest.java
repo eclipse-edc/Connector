@@ -23,7 +23,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -98,12 +97,10 @@ class HttpDataSourceTest {
     }
 
     private HttpDataSource.Builder defaultBuilder(Interceptor interceptor) {
-        var monitor = mock(Monitor.class);
         var retryPolicy = RetryPolicy.builder().withMaxAttempts(1).build();
         var httpClient = testOkHttpClient().newBuilder().addInterceptor(interceptor).build();
         return HttpDataSource.Builder.newInstance()
                 .httpClient(httpClient)
-                .monitor(monitor)
                 .name(FAKER.lorem().word())
                 .requestId(requestId)
                 .retryPolicy(retryPolicy);

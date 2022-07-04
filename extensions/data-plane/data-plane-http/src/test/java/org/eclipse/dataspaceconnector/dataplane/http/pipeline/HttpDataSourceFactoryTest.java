@@ -22,7 +22,6 @@ import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
@@ -41,15 +40,14 @@ class HttpDataSourceFactoryTest {
     private static final Faker FAKER = new Faker();
     private static final OkHttpClient HTTP_CLIENT = mock(OkHttpClient.class);
     private static final RetryPolicy<Object> RETRY_POLICY = RetryPolicy.ofDefaults();
-    private static final Monitor MONITOR = mock(Monitor.class);
 
     private final HttpRequestParamsSupplier supplierMock = mock(HttpRequestParamsSupplier.class);
-    
+
     private HttpDataSourceFactory factory;
 
     @BeforeEach
     void setUp() {
-        factory = new HttpDataSourceFactory(HTTP_CLIENT, RETRY_POLICY, MONITOR, supplierMock);
+        factory = new HttpDataSourceFactory(HTTP_CLIENT, RETRY_POLICY, supplierMock);
     }
 
     @Test
@@ -94,7 +92,6 @@ class HttpDataSourceFactoryTest {
                 .name(address.getName())
                 .requestId(request.getId())
                 .retryPolicy(RETRY_POLICY)
-                .monitor(MONITOR)
                 .httpClient(HTTP_CLIENT)
                 .build();
 

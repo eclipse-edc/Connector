@@ -19,7 +19,6 @@ import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSourceFactory;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
@@ -34,13 +33,11 @@ public class HttpDataSourceFactory implements DataSourceFactory {
 
     private final OkHttpClient httpClient;
     private final RetryPolicy<Object> retryPolicy;
-    private final Monitor monitor;
     private final HttpRequestParamsSupplier supplier;
 
-    public HttpDataSourceFactory(OkHttpClient httpClient, RetryPolicy<Object> retryPolicy, Monitor monitor, HttpRequestParamsSupplier supplier) {
+    public HttpDataSourceFactory(OkHttpClient httpClient, RetryPolicy<Object> retryPolicy, HttpRequestParamsSupplier supplier) {
         this.httpClient = httpClient;
         this.retryPolicy = retryPolicy;
-        this.monitor = monitor;
         this.supplier = supplier;
     }
 
@@ -54,7 +51,7 @@ public class HttpDataSourceFactory implements DataSourceFactory {
         try {
             createSource(request);
         } catch (Exception e) {
-            return Result.failure(e.getMessage());
+            return Result.failure("Failed to build HttpDataSource: " + e.getMessage());
         }
         return VALID;
     }
@@ -70,7 +67,6 @@ public class HttpDataSourceFactory implements DataSourceFactory {
                 .name(dataAddress.getName())
                 .params(supplier.apply(request))
                 .retryPolicy(retryPolicy)
-                .monitor(monitor)
                 .build();
     }
 }

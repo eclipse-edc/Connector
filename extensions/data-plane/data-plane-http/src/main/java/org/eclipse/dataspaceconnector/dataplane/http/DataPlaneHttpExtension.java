@@ -64,7 +64,7 @@ public class DataPlaneHttpExtension implements ServiceExtension {
         var monitor = context.getMonitor();
         var sinkPartitionSize = context.getSetting(EDC_DATAPLANE_HTTP_SINK_PARTITION_SIZE, DEFAULT_PART_SIZE);
 
-        @SuppressWarnings("unchecked") var sourceFactory = new HttpDataSourceFactory(httpClient, retryPolicy, monitor, new HttpSourceRequestParamsSupplier(vault));
+        @SuppressWarnings("unchecked") var sourceFactory = new HttpDataSourceFactory(httpClient, retryPolicy, new HttpSourceRequestParamsSupplier(vault));
         pipelineService.registerFactory(sourceFactory);
 
         var sinkFactory = new HttpDataSinkFactory(httpClient, executorContainer.getExecutorService(), sinkPartitionSize, monitor, new HttpSinkRequestParamsSupplier(vault));
