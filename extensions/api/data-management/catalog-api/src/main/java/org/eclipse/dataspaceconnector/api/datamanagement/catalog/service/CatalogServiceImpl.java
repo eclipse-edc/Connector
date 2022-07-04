@@ -15,12 +15,14 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.catalog.service;
 
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
 
 import java.util.concurrent.CompletableFuture;
 
 public class CatalogServiceImpl implements CatalogService {
+
     private final RemoteMessageDispatcherRegistry dispatcher;
 
     public CatalogServiceImpl(RemoteMessageDispatcherRegistry dispatcher) {
@@ -28,11 +30,12 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     @Override
-    public CompletableFuture<Catalog> getByProviderUrl(String providerUrl) {
+    public CompletableFuture<Catalog> getByProviderUrl(String providerUrl, QuerySpec spec) {
         var request = CatalogRequest.Builder.newInstance()
                 .protocol("ids-multipart")
                 .connectorId(providerUrl)
                 .connectorAddress(providerUrl)
+                .range(spec.getRange())
                 .build();
 
         return dispatcher.send(Catalog.class, request, () -> null);
