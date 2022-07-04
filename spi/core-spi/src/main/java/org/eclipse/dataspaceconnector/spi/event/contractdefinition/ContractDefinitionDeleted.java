@@ -27,7 +27,7 @@ public class ContractDefinitionDeleted extends Event<ContractDefinitionDeleted.P
     private ContractDefinitionDeleted() {
     }
 
-    public static class Builder extends Event.Builder<ContractDefinitionDeleted, Payload> {
+    public static class Builder extends Event.Builder<ContractDefinitionDeleted, Payload, Builder> {
 
         public static Builder newInstance() {
             return new Builder();
