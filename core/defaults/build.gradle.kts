@@ -19,7 +19,7 @@ plugins {
 }
 
 val awaitility: String by project
-val jodahFailsafeVersion: String by project
+val failsafeVersion: String by project
 val jupiterVersion: String by project
 val okHttpVersion: String by project
 

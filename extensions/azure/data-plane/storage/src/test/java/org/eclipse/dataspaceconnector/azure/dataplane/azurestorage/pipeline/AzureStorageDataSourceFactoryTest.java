@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline;
 
 import com.github.javafaker.Faker;
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -37,7 +37,7 @@ class AzureStorageDataSourceFactoryTest {
     static Faker faker = new Faker();
     BlobStoreApi blobStoreApi = mock(BlobStoreApi.class);
     Vault vault = mock(Vault.class);
-    AzureStorageDataSourceFactory factory = new AzureStorageDataSourceFactory(blobStoreApi, new RetryPolicy<>(), mock(Monitor.class), vault);
+    AzureStorageDataSourceFactory factory = new AzureStorageDataSourceFactory(blobStoreApi, RetryPolicy.ofDefaults(), mock(Monitor.class), vault);
     DataFlowRequest.Builder request = createRequest(AzureBlobStoreSchema.TYPE);
     DataFlowRequest.Builder invalidRequest = createRequest(faker.lorem().word());
     DataAddress.Builder dataAddress = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE);

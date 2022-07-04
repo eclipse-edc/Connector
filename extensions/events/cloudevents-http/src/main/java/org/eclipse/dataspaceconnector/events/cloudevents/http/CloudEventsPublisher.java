@@ -14,11 +14,11 @@
 
 package org.eclipse.dataspaceconnector.events.cloudevents.http;
 
+import dev.failsafe.FailsafeException;
+import dev.failsafe.RetryPolicy;
 import io.cloudevents.core.v1.CloudEventBuilder;
 import io.cloudevents.http.HttpMessageFactory;
 import io.cloudevents.http.impl.HttpMessageWriter;
-import net.jodah.failsafe.FailsafeException;
-import net.jodah.failsafe.RetryPolicy;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -35,9 +35,9 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 
+import static dev.failsafe.Failsafe.with;
 import static java.lang.String.format;
 import static java.time.ZoneOffset.UTC;
-import static net.jodah.failsafe.Failsafe.with;
 
 class CloudEventsPublisher implements EventSubscriber {
     private static final String APPLICATION_JSON = "application/json";

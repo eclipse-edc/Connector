@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.cosmos.policy.store;
 
 import com.azure.cosmos.models.SqlQuerySpec;
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument;
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
@@ -55,7 +55,7 @@ class CosmosPolicyDefinitionStoreTest {
     void setup() {
         cosmosDbApiMock = mock(CosmosDbApi.class);
         var typeManager = new TypeManager();
-        var retryPolicy = new RetryPolicy<>();
+        var retryPolicy = RetryPolicy.ofDefaults();
         store = new CosmosPolicyDefinitionStore(cosmosDbApiMock, typeManager, retryPolicy, TEST_PART_KEY);
     }
 

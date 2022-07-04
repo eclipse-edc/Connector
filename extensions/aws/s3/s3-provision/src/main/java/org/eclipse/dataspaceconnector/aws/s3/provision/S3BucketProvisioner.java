@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.aws.s3.provision;
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.aws.s3.core.AwsTemporarySecretToken;
 import org.eclipse.dataspaceconnector.aws.s3.core.ClientProvider;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -45,9 +45,10 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
         this.clientProvider = clientProvider;
         this.monitor = monitor;
         this.configuration = configuration;
-        this.retryPolicy = retryPolicy.copy()
+        this.retryPolicy = RetryPolicy.builder(retryPolicy.getConfig())
                 .withMaxRetries(configuration.getMaxRetries())
-                .handle(AwsServiceException.class);
+                .handle(AwsServiceException.class)
+                .build();
     }
 
     @Override

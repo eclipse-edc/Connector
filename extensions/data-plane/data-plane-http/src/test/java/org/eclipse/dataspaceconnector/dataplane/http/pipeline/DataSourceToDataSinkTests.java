@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -83,7 +83,7 @@ class DataSourceToDataSinkTests {
                 .sourceUrl(NULL_ENDPOINT)
                 .name("test.json")
                 .requestId("1")
-                .retryPolicy(new RetryPolicy<>())
+                .retryPolicy(RetryPolicy.ofDefaults())
                 .httpClient(sourceClient)
                 .monitor(monitor)
                 .method("GET")
@@ -127,7 +127,7 @@ class DataSourceToDataSinkTests {
                 .sourceUrl(NULL_ENDPOINT)
                 .name("test.json")
                 .requestId("1")
-                .retryPolicy(new RetryPolicy<>())
+                .retryPolicy(RetryPolicy.ofDefaults())
                 .httpClient(sourceClient)
                 .monitor(monitor)
                 .method("GET")
@@ -168,7 +168,7 @@ class DataSourceToDataSinkTests {
                 .sourceUrl(NULL_ENDPOINT)
                 .name("test.json")
                 .requestId("1")
-                .retryPolicy(new RetryPolicy<>())
+                .retryPolicy(RetryPolicy.ofDefaults())
                 .httpClient(sourceClient)
                 .monitor(monitor)
                 .method("GET")

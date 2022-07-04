@@ -17,8 +17,8 @@ package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
+import dev.failsafe.RetryPolicy;
 import io.netty.handler.codec.http.HttpMethod;
-import net.jodah.failsafe.RetryPolicy;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.Request;
@@ -153,7 +153,7 @@ class HttpDataSourceTest {
 
     private HttpDataSource.Builder defaultBuilder() {
         var monitor = mock(Monitor.class);
-        var retryPolicy = new RetryPolicy<>().withMaxAttempts(1);
+        var retryPolicy = RetryPolicy.builder().withMaxAttempts(1).build();
         var httpClient = testOkHttpClient().newBuilder().addInterceptor(interceptor).build();
         return HttpDataSource.Builder.newInstance()
                 .httpClient(httpClient)

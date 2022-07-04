@@ -34,6 +34,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Refactor state machine and in-memory persistence (#1511)
 * Token based Authentication can retrieve key from vault (#1537)
 * JWT audience claim check with DID (#1520)
+* Bump `failsafe` library to version 3.2.4 (#1559)
 
 #### Removed
 

@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.aws.s3.provision;
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.aws.s3.core.ClientProvider;
 import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
 import org.eclipse.dataspaceconnector.aws.testfixtures.AbstractS3Test;
@@ -49,7 +49,7 @@ class S3StatusCheckerIntegrationTest extends AbstractS3Test {
 
     @BeforeEach
     void setup() {
-        RetryPolicy<Object> retryPolicy = new RetryPolicy<>().withMaxRetries(3).withBackoff(200, 1000, ChronoUnit.MILLIS);
+        var retryPolicy = RetryPolicy.builder().withMaxRetries(3).withBackoff(200, 1000, ChronoUnit.MILLIS).build();
         ClientProvider providerMock = mock(ClientProvider.class);
         when(providerMock.clientFor(eq(S3AsyncClient.class), anyString())).thenReturn(client);
         checker = new S3StatusChecker(providerMock, retryPolicy);

@@ -19,7 +19,7 @@ plugins {
 }
 
 val awaitility: String by project
-val jodahFailsafeVersion: String by project
+val failsafeVersion: String by project
 val jupiterVersion: String by project
 val okHttpVersion: String by project
 val bouncycastleVersion: String by project
@@ -33,7 +33,7 @@ dependencies {
     implementation(project(":extensions:dataloading"))
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    implementation("net.jodah:failsafe:${jodahFailsafeVersion}")
+    implementation("dev.failsafe:failsafe:${failsafeVersion}")
     implementation("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
 
     testImplementation(project(":extensions:junit"))

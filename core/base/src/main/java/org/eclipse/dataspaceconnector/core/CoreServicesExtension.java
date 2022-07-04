@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.core;
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import okhttp3.EventListener;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.core.base.CommandHandlerRegistryImpl;
@@ -158,9 +158,10 @@ public class CoreServicesExtension implements ServiceExtension {
         var minBackoff = context.getSetting(BACKOFF_MIN_MILLIS, 500);
         var maxBackoff = context.getSetting(BACKOFF_MAX_MILLIS, 10_000);
 
-        return new RetryPolicy<>()
+        return RetryPolicy.builder()
                 .withMaxRetries(maxRetries)
-                .withBackoff(minBackoff, maxBackoff, ChronoUnit.MILLIS);
+                .withBackoff(minBackoff, maxBackoff, ChronoUnit.MILLIS)
+                .build();
     }
 
     @Provider
