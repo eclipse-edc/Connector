@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.catalog.cache;
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.catalog.cache.controller.FederatedCatalogApiController;
 import org.eclipse.dataspaceconnector.catalog.cache.crawler.CrawlerImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.crawler.NodeQueryAdapterRegistryImpl;

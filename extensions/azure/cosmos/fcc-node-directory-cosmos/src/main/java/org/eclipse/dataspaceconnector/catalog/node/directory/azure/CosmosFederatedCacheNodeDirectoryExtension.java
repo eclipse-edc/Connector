@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.catalog.node.directory.azure;
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosClientProvider;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.catalog.node.directory.azure.model.FederatedCacheNodeDocument;

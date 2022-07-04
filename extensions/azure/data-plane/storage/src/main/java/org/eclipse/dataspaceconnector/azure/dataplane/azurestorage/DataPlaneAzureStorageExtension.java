@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage;
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageDataSinkFactory;
 import org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline.AzureStorageDataSourceFactory;

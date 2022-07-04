@@ -16,7 +16,7 @@
 package org.eclipse.dataspaceconnector.contract.definition.store;
 
 import com.azure.cosmos.models.SqlQuerySpec;
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument;
 import org.eclipse.dataspaceconnector.cosmos.policy.store.model.ContractDefinitionDocument;
@@ -57,7 +57,7 @@ class CosmosContractDefinitionStoreTest {
     void setup() {
         cosmosDbApiMock = mock(CosmosDbApi.class);
         var typeManager = new TypeManager();
-        var retryPolicy = new RetryPolicy<>();
+        var retryPolicy = RetryPolicy.ofDefaults();
         store = new CosmosContractDefinitionStore(cosmosDbApiMock, typeManager, retryPolicy, TEST_PART_KEY);
     }
 

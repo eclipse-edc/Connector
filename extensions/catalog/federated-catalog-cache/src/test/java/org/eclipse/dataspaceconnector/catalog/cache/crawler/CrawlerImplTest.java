@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.catalog.cache.crawler;
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.catalog.cache.DefaultWorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
 import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapter;
@@ -203,7 +203,7 @@ class CrawlerImplTest {
     }
 
     private RetryPolicy<Object> createRetryPolicy() {
-        return new RetryPolicy<>().withMaxRetries(1);
+        return RetryPolicy.builder().withMaxRetries(1).build();
     }
 
 }

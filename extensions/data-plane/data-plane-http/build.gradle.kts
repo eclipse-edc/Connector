@@ -13,7 +13,7 @@
  */
 
 val okHttpVersion: String by project
-val jodahFailsafeVersion: String by project
+val failsafeVersion: String by project
 val rsApi: String by project
 val faker: String by project
 val restAssured: String by project
@@ -28,7 +28,7 @@ dependencies {
     api(project(":extensions:data-plane:data-plane-spi"))
     implementation(project(":common:util"))
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    implementation("net.jodah:failsafe:${jodahFailsafeVersion}")
+    implementation("dev.failsafe:failsafe:${failsafeVersion}")
 
     testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))

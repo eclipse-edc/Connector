@@ -18,8 +18,8 @@
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
 import com.github.javafaker.Faker;
+import dev.failsafe.RetryPolicy;
 import io.netty.handler.codec.http.HttpMethod;
-import net.jodah.failsafe.RetryPolicy;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures;
@@ -68,7 +68,7 @@ class HttpDataSourceFactoryTest {
     @BeforeAll
     public static void init() {
         httpClient = mock(OkHttpClient.class);
-        retryPolicy = new RetryPolicy<>();
+        retryPolicy = RetryPolicy.ofDefaults();
         monitor = mock(Monitor.class);
         secretName = FAKER.lorem().word();
         secretValue = FAKER.internet().uuid();

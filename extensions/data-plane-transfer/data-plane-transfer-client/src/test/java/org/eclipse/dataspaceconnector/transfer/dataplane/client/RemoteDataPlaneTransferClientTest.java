@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.transfer.dataplane.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.dataplane.selector.client.DataPlaneSelectorClient;
 import org.eclipse.dataspaceconnector.dataplane.selector.instance.DataPlaneInstance;
 import org.eclipse.dataspaceconnector.dataplane.spi.response.TransferErrorResponse;
@@ -92,7 +92,7 @@ class RemoteDataPlaneTransferClientTest {
         var okHttpClient = testOkHttpClient();
         selectorClientMock = mock(DataPlaneSelectorClient.class);
         var selectionStrategy = FAKER.internet().uuid();
-        transferClient = new RemoteDataPlaneTransferClient(okHttpClient, selectorClientMock, selectionStrategy, new RetryPolicy<>(), MAPPER);
+        transferClient = new RemoteDataPlaneTransferClient(okHttpClient, selectorClientMock, selectionStrategy, RetryPolicy.ofDefaults(), MAPPER);
     }
 
     @Test

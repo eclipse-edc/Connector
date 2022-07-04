@@ -24,6 +24,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Fix TODO and document `:extensions:data-plane-transfer` (#1519)
 * CloudEvents Http extension (#1160)
 * Full Query capabilities for SQL TransferProcess Store (#1483)
+* Full Query capabilities for SQL PolicyDefinition Store (#1484)
 
 #### Changed
 
@@ -33,6 +34,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Refactor state machine and in-memory persistence (#1511)
 * Token based Authentication can retrieve key from vault (#1537)
 * JWT audience claim check with DID (#1520)
+* Bump `failsafe` library to version 3.2.4 (#1559)
 
 #### Removed
 

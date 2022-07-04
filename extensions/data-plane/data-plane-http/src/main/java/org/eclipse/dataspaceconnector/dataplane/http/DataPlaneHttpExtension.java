@@ -15,7 +15,7 @@
 
 package org.eclipse.dataspaceconnector.dataplane.http;
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataplane.http.pipeline.HttpDataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.http.pipeline.HttpDataSourceFactory;

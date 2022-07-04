@@ -17,7 +17,7 @@ plugins {
 }
 
 val cosmosSdkVersion: String by project
-val jodahFailsafeVersion: String by project
+val failsafeVersion: String by project
 val awaitility: String by project
 
 dependencies {
@@ -27,7 +27,7 @@ dependencies {
     api(project(":extensions:dataloading"))
 
     implementation("com.azure:azure-cosmos:${cosmosSdkVersion}")
-    implementation("net.jodah:failsafe:${jodahFailsafeVersion}")
+    implementation("dev.failsafe:failsafe:${failsafeVersion}")
 
     testImplementation(project(":core:contract"))
 

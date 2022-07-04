@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.sql.contractdefinition.store.schema;
 
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.sql.dialect.BaseSqlDialect;
 import org.eclipse.dataspaceconnector.sql.translation.SqlQueryStatement;
 
 /**
@@ -54,6 +55,6 @@ public interface ContractDefinitionStatements {
     SqlQueryStatement createQuery(QuerySpec querySpec);
 
     default String getFormatAsJsonOperator() {
-        return " FORMAT JSON";
+        return BaseSqlDialect.getJsonCastOperator();
     }
 }

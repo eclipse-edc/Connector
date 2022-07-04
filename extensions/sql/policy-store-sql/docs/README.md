@@ -2,7 +2,8 @@
 
 Provides SQL persistence for policies.
 
-Note that the SQL statements (DDL) are specific to and only tested with PostgreSQL. Using it with other RDBMS may work but might have unexpected side effects!
+Note that the SQL statements (DDL) are specific to and only tested with PostgreSQL. Using it with other RDBMS may work
+but might have unexpected side effects!
 
 ## Prerequisites
 
@@ -14,7 +15,7 @@ Please apply this [schema](schema.sql) to your SQL database.
 <!--
 ```plantuml
 @startuml
-entity edc_policies {
+entity edc_policydefinitions {
   * policy_id: string <<PK>>
   --
   * access_policy: string <<json>>
