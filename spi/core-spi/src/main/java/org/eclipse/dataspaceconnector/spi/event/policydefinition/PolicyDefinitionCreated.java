@@ -37,7 +37,7 @@ public class PolicyDefinitionCreated extends Event<PolicyDefinitionCreated.Paylo
             super(new PolicyDefinitionCreated(), new Payload());
         }
 
-        public Builder id(String policyDefinitionId) {
+        public Builder policyDefinitionId(String policyDefinitionId) {
             event.payload.policyDefinitionId = policyDefinitionId;
             return this;
         }

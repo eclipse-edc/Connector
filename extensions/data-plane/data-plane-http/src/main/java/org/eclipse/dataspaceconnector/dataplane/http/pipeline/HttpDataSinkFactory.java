@@ -18,7 +18,6 @@ package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
@@ -37,12 +36,18 @@ public class HttpDataSinkFactory implements DataSinkFactory {
     private final ExecutorService executorService;
     private final int partitionSize;
     private final Monitor monitor;
+    private final HttpRequestParamsSupplier supplier;
 
-    public HttpDataSinkFactory(OkHttpClient httpClient, ExecutorService executorService, int partitionSize, Monitor monitor) {
+    public HttpDataSinkFactory(OkHttpClient httpClient,
+                               ExecutorService executorService,
+                               int partitionSize,
+                               Monitor monitor,
+                               HttpRequestParamsSupplier supplier) {
         this.httpClient = httpClient;
         this.executorService = executorService;
         this.partitionSize = partitionSize;
         this.monitor = monitor;
+        this.supplier = supplier;
     }
 
     @Override
@@ -52,46 +57,23 @@ public class HttpDataSinkFactory implements DataSinkFactory {
 
     @Override
     public @NotNull Result<Boolean> validate(DataFlowRequest request) {
-        var result = createDataSink(request);
-        return result.succeeded() ? VALID : Result.failure(result.getFailureMessages());
+        try {
+            createSink(request);
+        } catch (Exception e) {
+            return Result.failure("Failed to build HttpDataSink: " + e.getMessage());
+        }
+        return VALID;
     }
 
     @Override
     public DataSink createSink(DataFlowRequest request) {
-        var result = createDataSink(request);
-        if (result.failed()) {
-            throw new EdcException("Failed to create sink: " + String.join(",", result.getFailureMessages()));
-        }
-        return result.getContent();
-    }
-
-    private Result<DataSink> createDataSink(DataFlowRequest request) {
-        var dataAddress = HttpDataAddress.Builder.newInstance()
-                .copyFrom(request.getDestinationDataAddress())
-                .build();
-        var requestId = request.getId();
-        var baseUrl = dataAddress.getBaseUrl();
-        if (baseUrl == null) {
-            return Result.failure("Missing mandatory base url for request: " + requestId);
-        }
-        var authKey = dataAddress.getAuthKey();
-        var authCode = dataAddress.getAuthCode();
-        var additionalHeaders = dataAddress.getAdditionalHeaders();
-        var contentType = dataAddress.getContentType();
-
-        var sink = HttpDataSink.Builder.newInstance()
-                .endpoint(baseUrl)
-                .requestId(requestId)
+        return HttpDataSink.Builder.newInstance()
+                .params(supplier.apply(request))
+                .requestId(request.getId())
                 .partitionSize(partitionSize)
-                .authKey(authKey)
-                .authCode(authCode)
                 .httpClient(httpClient)
-                .contentType(contentType)
-                .additionalHeaders(additionalHeaders)
                 .executorService(executorService)
                 .monitor(monitor)
                 .build();
-
-        return Result.success(sink);
     }
 }

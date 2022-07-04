@@ -171,6 +171,7 @@ include(":samples:03-configuration")
 include(":samples:04.0-file-transfer:consumer")
 include(":samples:04.0-file-transfer:provider")
 include(":samples:04.0-file-transfer:transfer-file")
+include(":samples:04.0-file-transfer:integration-tests")
 
 include(":samples:04.1-file-transfer-listener:consumer")
 include(":samples:04.1-file-transfer-listener:listener")
@@ -204,3 +205,4 @@ include(":system-tests:runtimes:azure-data-factory-transfer-consumer")
 include(":system-tests:runtimes:azure-storage-transfer-consumer")
 include(":system-tests:azure-tests")
 include(":system-tests:azure-data-factory-tests")
+

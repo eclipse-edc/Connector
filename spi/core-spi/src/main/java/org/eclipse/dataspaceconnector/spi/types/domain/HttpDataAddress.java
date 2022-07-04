@@ -37,6 +37,8 @@ public class HttpDataAddress extends DataAddress {
     public static final String DATA_TYPE = "HttpData";
 
     private static final String NAME = "name";
+    private static final String PATH = "path";
+    private static final String METHOD = "method";
     private static final String BASE_URL = "baseUrl";
     private static final String AUTH_KEY = "authKey";
     private static final String AUTH_CODE = "authCode";
@@ -62,6 +64,16 @@ public class HttpDataAddress extends DataAddress {
     @JsonIgnore
     public String getBaseUrl() {
         return getProperty(BASE_URL);
+    }
+
+    @JsonIgnore
+    public String getPath() {
+        return getProperty(PATH);
+    }
+
+    @JsonIgnore
+    public String getMethod() {
+        return getProperty(METHOD);
     }
 
     @JsonIgnore
@@ -112,7 +124,6 @@ public class HttpDataAddress extends DataAddress {
 
     }
 
-
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder extends DataAddress.Builder {
 
@@ -133,6 +144,16 @@ public class HttpDataAddress extends DataAddress {
 
         public Builder baseUrl(String baseUrl) {
             this.property(BASE_URL, baseUrl);
+            return this;
+        }
+
+        public Builder path(String path) {
+            this.property(PATH, path);
+            return this;
+        }
+
+        public Builder method(String method) {
+            this.property(METHOD, method);
             return this;
         }
 

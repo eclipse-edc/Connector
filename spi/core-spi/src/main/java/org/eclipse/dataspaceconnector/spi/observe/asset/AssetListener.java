@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api.datamanagement.asset.service;
+package org.eclipse.dataspaceconnector.spi.observe.asset;
 
 import org.eclipse.dataspaceconnector.spi.observe.Observable;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;

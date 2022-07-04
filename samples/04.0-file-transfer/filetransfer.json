@@ -1,4 +1,5 @@
 {
+  "edctype": "dataspaceconnector:datarequest",
   "protocol": "ids-multipart",
   "assetId": "test-document",
   "contractId": "{agreement ID}",

@@ -12,10 +12,13 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api.datamanagement.policy.service;
+package org.eclipse.dataspaceconnector.spi.observe.policydefinition;
 
-import org.eclipse.dataspaceconnector.spi.observe.ObservableImpl;
+import org.eclipse.dataspaceconnector.spi.observe.Observable;
 
-public class PolicyDefinitionObservableImpl extends ObservableImpl<PolicyDefinitionListener> implements PolicyDefinitionObservable {
+/**
+ * Manages and invokes {@link PolicyDefinitionListener}s when a state change related to a policy definition has happened.
+ */
+public interface PolicyDefinitionObservable extends Observable<PolicyDefinitionListener> {
 
 }

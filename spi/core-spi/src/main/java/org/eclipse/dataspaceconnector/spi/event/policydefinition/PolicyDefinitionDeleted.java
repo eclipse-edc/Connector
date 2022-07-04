@@ -20,7 +20,7 @@ import org.eclipse.dataspaceconnector.spi.event.EventPayload;
 import java.util.Objects;
 
 /**
- * Describe a new PolicyDefinition deletion, after this has emitted, the PolicyDefinition represented by the id won't be available anymore.
+ * Describe a PolicyDefinition deletion, after this has emitted, the PolicyDefinition represented by the id won't be available anymore.
  */
 public class PolicyDefinitionDeleted extends Event<PolicyDefinitionDeleted.Payload> {
 
@@ -37,8 +37,8 @@ public class PolicyDefinitionDeleted extends Event<PolicyDefinitionDeleted.Paylo
             super(new PolicyDefinitionDeleted(), new Payload());
         }
 
-        public Builder id(String id) {
-            event.payload.policyDefinitionId = id;
+        public Builder policyDefinitionId(String policyDefinitionId) {
+            event.payload.policyDefinitionId = policyDefinitionId;
             return this;
         }
 

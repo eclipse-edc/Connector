@@ -13,9 +13,10 @@
  *
  */
 
-val rsApi: String by project
-val restAssured: String by project
+val awaitility: String by project
 val jerseyVersion: String by project
+val restAssured: String by project
+val rsApi: String by project
 
 plugins {
     `java-library`
@@ -35,6 +36,7 @@ dependencies {
 
     testImplementation(project(":extensions:junit"))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
+    testImplementation("org.awaitility:awaitility:${awaitility}")
 }
 
 publishing {
