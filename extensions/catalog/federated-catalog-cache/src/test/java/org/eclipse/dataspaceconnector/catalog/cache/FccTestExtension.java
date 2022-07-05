@@ -29,6 +29,7 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -101,7 +102,7 @@ public class FccTestExtension implements ServiceExtension {
 
         @Override
         @NotNull
-        public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query) {
+        public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query, Range range) {
             return assets.stream().map(asset ->
                     ContractOffer.Builder.newInstance()
                             .id("1")

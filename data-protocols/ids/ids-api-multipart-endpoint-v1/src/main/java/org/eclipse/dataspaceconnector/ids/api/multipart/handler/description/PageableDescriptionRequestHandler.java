@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
@@ -30,17 +31,18 @@ import java.net.URI;
 import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionResponseMessageUtil.createDescriptionResponseMessage;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartRequestUtil.getInt;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartResponseUtil.createBadParametersErrorMultipartResponse;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartResponseUtil.createNotFoundErrorMultipartResponse;
 
-abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionRequestHandler {
+abstract class PageableDescriptionRequestHandler<T, S> implements DescriptionRequestHandler {
     protected final String connectorId;
     protected final Monitor monitor;
     protected final IdsTransformerRegistry transformerRegistry;
     protected final IdsType targetIdsType;
     protected final Class<S> resultType;
 
-    AbstractDescriptionRequestHandler(
+    protected PageableDescriptionRequestHandler(
             @NotNull String connectorId,
             @NotNull Monitor monitor,
             @NotNull IdsTransformerRegistry transformerRegistry,
@@ -82,7 +84,13 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
-        T retrievedObject = retrieveObject(idsId, claimToken);
+        //TODO: IDS REFACTORING: this should be a named property of the message object
+        // extract paging information, default to 0 ... Integer.MAX_VALUE
+        var from = getInt(descriptionRequestMessage, Range.FROM, 0);
+        var to = getInt(descriptionRequestMessage, Range.TO, Integer.MAX_VALUE);
+        var range = new Range(from, to);
+
+        T retrievedObject = retrieveObject(idsId, claimToken, range);
         if (retrievedObject == null) {
             return createNotFoundErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
@@ -110,5 +118,6 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
                 .build();
     }
 
-    protected abstract T retrieveObject(@NotNull IdsId idsId, @NotNull ClaimToken verificationResult);
+    protected abstract T retrieveObject(@NotNull IdsId idsId, @NotNull ClaimToken verificationResult, Range range);
+
 }

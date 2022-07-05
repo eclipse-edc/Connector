@@ -14,6 +14,9 @@
 
 package org.eclipse.dataspaceconnector.spi.query;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.eclipse.dataspaceconnector.spi.message.Range;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -83,6 +86,11 @@ public class QuerySpec {
         return limit;
     }
 
+    @JsonIgnore
+    public Range getRange() {
+        return new Range(offset, offset + limit);
+    }
+
     public List<Criterion> getFilterExpression() {
         return filterExpression;
     }
@@ -122,6 +130,12 @@ public class QuerySpec {
             if (limit != null) {
                 querySpec.limit = limit;
             }
+            return this;
+        }
+
+        public Builder range(Range range) {
+            offset(range.getFrom());
+            limit(range.getTo() - range.getFrom());
             return this;
         }
 
