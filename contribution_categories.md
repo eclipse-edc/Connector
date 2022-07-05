@@ -19,7 +19,7 @@ This is the easiest way to "get in" and will be the suitable form of adoption fo
 
 This means the contribution gets added to the EDC code base, and is henceforth maintained by the EDC core team. The barrier of entry for this is much higher than for "friends", and a more in-depth review of the code will be performed. 
 
-Note that this covers both what what we call the [EDC Core repository](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector) as well as any current or future repositories in the `eclipse-dataspaceconnector` GitHub organization.
+Note that this covers both what we call the [EDC Core repository](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector) as well as any current or future repositories in the `eclipse-dataspaceconnector` GitHub organization.
 It is up to the committers to decide where the code will eventually be hosted in case of adoption.
 
 However, in order to do a preliminary check, please go through the following bullet points:
@@ -34,7 +34,7 @@ EDC is a platform rather than an application, therefore we are extremely careful
 #### Would this feature limit platform independence in any way? If so, how and why?
 Features that do not work well in clustered environments are difficult to adopt, since EDC is designed from the ground up to be stateless and clusterable. Similarly, features, that have dependencies onto certain operating systems are difficult to argue.
 #### Is it going to be a self-contained feature, or would it cut across the entire code base?
-Features that have a large impact on the code base are very complex to to thoroughly test, they have a high chance to destabilize the code and require careful inspection. Self-contained features on the other hand are easier to isolate and test.
+Features that have a large impact on the code base are very complex to thoroughly test, they have a high chance to destabilize the code and require careful inspection. Self-contained features on the other hand are easier to isolate and test.
 
 And on a more general level:
 - does your contribution comply with our [licensing](LICENSE)?
@@ -48,4 +48,4 @@ Note that even if all of the aforementioned points are answered satisfactorily, 
 
 ## Submitting an application
 
-Please open in issue using the `Adoption request` template, fill out all the sections to the best of your knowledge and wait to hear back from the EDC core team. We will comment in the issue, or reach out to you directly. Be aware that omitting sections from the application will greatly diminish the chance of approval.
+Please open in issue using the [Adoption request](.github/ISSUE_TEMPLATE/adoption_request.md) template, fill out all the sections to the best of your knowledge and wait to hear back from the EDC core team. We will comment in the issue, or reach out to you directly. Be aware that omitting sections from the application will greatly diminish the chance of approval.
