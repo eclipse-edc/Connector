@@ -26,8 +26,6 @@ val jupiterVersion: String by project
 dependencies {
     testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))
-    testImplementation("io.rest-assured:rest-assured:${restAssured}")
-    testImplementation("org.awaitility:awaitility:${awaitility}")
 
     testFixturesImplementation(project(":extensions:junit"))
     testFixturesImplementation(testFixtures(project(":common:util")))
