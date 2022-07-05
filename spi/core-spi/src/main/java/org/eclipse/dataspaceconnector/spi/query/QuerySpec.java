@@ -135,7 +135,7 @@ public class QuerySpec {
 
         public Builder range(Range range) {
             offset(range.getFrom());
-            limit(range.getTo());
+            limit(range.getTo() - range.getFrom());
             return this;
         }
 
