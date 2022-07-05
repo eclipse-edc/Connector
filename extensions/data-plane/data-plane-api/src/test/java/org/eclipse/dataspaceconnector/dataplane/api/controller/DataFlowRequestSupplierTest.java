@@ -28,12 +28,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class DataFlowRequestFactoryTest {
+class DataFlowRequestSupplierTest {
 
     private static final Faker FAKER = new Faker();
 
+    private final DataFlowRequestSupplier supplier = new DataFlowRequestSupplier();
+
     @Test
-    void from_requestWithoutBody() {
+    void verifyMapping_noInputBody() {
         var contextApi = mock(ContainerRequestContextApi.class);
         var address = createDataAddress();
 
@@ -45,7 +47,7 @@ class DataFlowRequestFactoryTest {
         when(contextApi.queryParams()).thenReturn(queryParams);
         when(contextApi.path()).thenReturn(path);
 
-        var request = DataFlowRequestFactory.from(contextApi, address);
+        var request = supplier.apply(contextApi, address);
 
         assertThat(request.isTrackable()).isFalse();
         assertThat(request.getId()).isNotBlank();
@@ -60,7 +62,7 @@ class DataFlowRequestFactoryTest {
     }
 
     @Test
-    void from_requestWithBody() {
+    void veirfyMapping_withInputBody() {
         var contextApi = mock(ContainerRequestContextApi.class);
         var address = createDataAddress();
 
@@ -75,7 +77,7 @@ class DataFlowRequestFactoryTest {
         when(contextApi.mediaType()).thenReturn(MediaType.TEXT_PLAIN);
         when(contextApi.body()).thenReturn(body);
 
-        var request = DataFlowRequestFactory.from(contextApi, address);
+        var request = supplier.apply(contextApi, address);
 
         assertThat(request.isTrackable()).isFalse();
         assertThat(request.getId()).isNotBlank();

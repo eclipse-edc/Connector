@@ -26,6 +26,8 @@ in the detailed section referring to by linking pull requests or issues.
 * CloudEvents Http extension (#1160)
 * Full Query capabilities for SQL TransferProcess Store (#1483)
 * Full Query capabilities for SQL PolicyDefinition Store (#1484)
+* Documentation for `:extensions:data-plane:data-plane-api` (#1579)
+* Allow `TypeManager` to support multiple serialization contexts (#1581)
 
 #### Changed
 

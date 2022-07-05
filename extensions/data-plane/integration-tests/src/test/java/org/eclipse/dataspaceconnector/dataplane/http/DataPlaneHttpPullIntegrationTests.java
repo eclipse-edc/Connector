@@ -56,7 +56,7 @@ import static org.mockserver.model.HttpResponse.response;
 import static org.mockserver.stop.Stop.stopQuietly;
 
 /**
- * System Test for Data Plane HTTP extension.
+ * Integration tests for Data Plane public API querying to a http data source.
  */
 @ExtendWith(EdcExtension.class)
 @ComponentTest
@@ -111,21 +111,21 @@ public class DataPlaneHttpPullIntegrationTests {
     }
 
     private static Stream<Arguments> providerTestInstances() {
-        var get = new TestInstance(HttpMethod.GET.name());
+        var get = new Scenario(HttpMethod.GET.name());
         var path = FAKER.lorem().word() + "/" + FAKER.lorem().word();
         var body = FAKER.lorem().sentence();
 
-        var getWithQueryParams = new TestInstance(HttpMethod.GET.name())
+        var getWithQueryParams = new Scenario(HttpMethod.GET.name())
                 .queryParam(FAKER.lorem().word(), FAKER.lorem().word())
                 .queryParam(FAKER.lorem().word(), FAKER.lorem().word());
 
-        var getWithPath = new TestInstance(HttpMethod.GET.name())
+        var getWithPath = new Scenario(HttpMethod.GET.name())
                 .path(path);
 
-        var post = new TestInstance(HttpMethod.POST.name())
+        var post = new Scenario(HttpMethod.POST.name())
                 .requestBody(body);
 
-        var postWithPath = new TestInstance(HttpMethod.POST.name())
+        var postWithPath = new Scenario(HttpMethod.POST.name())
                 .path(path)
                 .requestBody(body);
 
@@ -154,21 +154,21 @@ public class DataPlaneHttpPullIntegrationTests {
 
     @ParameterizedTest(name = "{index} {0}")
     @MethodSource("providerTestInstances")
-    void test(String name, TestInstance instance) throws JsonProcessingException {
+    void test(String name, Scenario scenario) throws JsonProcessingException {
         // prepare server of the data source
-        httpSourceClientAndServer.when(instance.expectedSourceRequest, once())
-                .respond(withResponse(HttpStatusCode.OK_200, OBJECT_MAPPER.writeValueAsString(instance.sourceResponse)));
+        httpSourceClientAndServer.when(scenario.expectedSourceRequest, once())
+                .respond(withResponse(HttpStatusCode.OK_200, OBJECT_MAPPER.writeValueAsString(scenario.sourceResponse)));
 
         // prepare validation server of the control plane
-        var validationRequest = request().withMethod(HttpMethod.GET.name()).withHeader(AUTH_HEADER_KEY, instance.token);
+        var validationRequest = request().withMethod(HttpMethod.GET.name()).withHeader(AUTH_HEADER_KEY, scenario.token);
         validationClientAndServer.when(validationRequest, once())
-                .respond(withResponse(HttpStatusCode.OK_200, OBJECT_MAPPER.writeValueAsString(instance.sourceAddress)));
+                .respond(withResponse(HttpStatusCode.OK_200, OBJECT_MAPPER.writeValueAsString(scenario.sourceAddress)));
 
-        instance.dataplaneRequest.request(instance.method).then().assertThat()
+        scenario.dataplaneRequest.request(scenario.method).then().assertThat()
                 .statusCode(200)
                 .body("some", CoreMatchers.equalTo("info"));
 
-        httpSourceClientAndServer.verify(instance.expectedSourceRequest, VerificationTimes.once());
+        httpSourceClientAndServer.verify(scenario.expectedSourceRequest, VerificationTimes.once());
     }
 
     /**
@@ -193,10 +193,7 @@ public class DataPlaneHttpPullIntegrationTests {
         return response;
     }
 
-    /**
-     * One test instance for the parameterized test.
-     */
-    private static final class TestInstance {
+    private static final class Scenario {
         private final Map<String, String> sourceResponse = Map.of("some", "info");
         private final String method;
         private final String token;
@@ -204,50 +201,39 @@ public class DataPlaneHttpPullIntegrationTests {
         private final HttpRequest expectedSourceRequest;
         private final DataAddress sourceAddress;
 
-        TestInstance(String method) {
+        Scenario(String method) {
             this.method = method;
             token = FAKER.internet().uuid();
-            dataplaneRequest = givenDpfRequest(token);
-            sourceAddress = testHttpSource();
+            dataplaneRequest = given()
+                    .baseUri(DPF_PUBLIC_API_HOST)
+                    .basePath(DPF_DATA_PATH)
+                    .header(AUTH_HEADER_KEY, token);
+            sourceAddress = HttpDataAddress.Builder.newInstance()
+                    .baseUrl(HTTP_SOURCE_API_HOST)
+                    .proxyBody(Boolean.TRUE.toString())
+                    .proxyMethod(Boolean.TRUE.toString())
+                    .proxyPath(Boolean.TRUE.toString())
+                    .proxyQueryParams(Boolean.TRUE.toString())
+                    .build();
             expectedSourceRequest = new HttpRequest();
         }
 
-        public TestInstance requestBody(String requestBody) {
+        public Scenario requestBody(String requestBody) {
             dataplaneRequest.body(requestBody);
             expectedSourceRequest.withBody(requestBody);
             return this;
         }
 
-        public TestInstance path(String path) {
+        public Scenario path(String path) {
             dataplaneRequest.basePath(DPF_DATA_PATH + path);
             expectedSourceRequest.withPath(path.startsWith("/") ? path : "/" + path);
             return this;
         }
 
-        public TestInstance queryParam(String key, String value) {
+        public Scenario queryParam(String key, String value) {
             dataplaneRequest.queryParam(key, value);
             expectedSourceRequest.withQueryStringParameter(key, value);
             return this;
-        }
-
-        private RequestSpecification givenDpfRequest(String token) {
-            return given()
-                    .baseUri(DPF_PUBLIC_API_HOST)
-                    .basePath(DPF_DATA_PATH)
-                    .header(AUTH_HEADER_KEY, token);
-        }
-
-        /**
-         * Create a minimal http address composed of an endpoint only.
-         */
-        private DataAddress testHttpSource() {
-            return HttpDataAddress.Builder.newInstance()
-                    .baseUrl(HTTP_SOURCE_API_HOST)
-                    .proxyBody("true")
-                    .proxyMethod("true")
-                    .proxyPath("true")
-                    .proxyQueryParams("true")
-                    .build();
         }
     }
 }
