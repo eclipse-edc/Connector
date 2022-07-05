@@ -27,7 +27,6 @@ public class FileTransferSampleTest {
 
     static final String CONSUMER_CONFIG_PROPERTIES_FILE_PATH = "samples/04.0-file-transfer/consumer/config.properties";
     static final String PROVIDER_CONFIG_PROPERTIES_FILE_PATH = "samples/04.0-file-transfer/provider/config.properties";
-    // Reuse an already existing file for the test. Could be set to any other existing file in the repository.
     static final String SAMPLE_ASSET_FILE_PATH = "samples/04.0-file-transfer/README.md";
     @RegisterExtension
     static EdcRuntimeExtension provider = new EdcRuntimeExtension(
