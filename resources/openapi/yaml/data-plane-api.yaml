@@ -1,0 +1,141 @@
+openapi: 3.0.1
+tags:
+- description: 'Api targeted by the Control Plane to delegate a data transfer (Provider
+    Push or Streaming) to the Data Plane after the contract has been successfully
+    negotiated and agreed between the two participants. '
+  name: Data Plane control API
+- description: "The public API of the Data Plane is a data proxy enabling a data consumer\
+    \ to actively querydata from the provider data source (e.g. backend Rest API,\
+    \ internal database...) through its Data Planeinstance. Thus the Data Plane is\
+    \ the only entry/output door for the data, which avoids the provider to exposedirectly\
+    \ its data externally.The Data Plane public API being a proxy, it supports all\
+    \ verbs (i.e. GET, POST, PUT, PATCH, DELETE), whichcan then conveyed until the\
+    \ data source is required. This is especially useful when the actual data sourceis\
+    \ a Rest API itself.In the same manner, any set of arbitrary query parameters,\
+    \ path parameters and request body are supported (in the limits fixed by the HTTP\
+    \ server) and can also conveyed to the actual data source."
+  name: Data Plane public API
+paths:
+  /transfer:
+    post:
+      description: Initiates a data transfer for the given request. The transfer will
+        be performed asynchronously.
+      operationId: initiateTransfer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataFlowRequest'
+      responses:
+        "200":
+          description: Data transfer initiated
+        "400":
+          description: Failed to validate request
+      tags:
+      - Data Plane control API
+  /transfer/{processId}:
+    get:
+      description: Get the current state of a data transfer.
+      operationId: getTransferState
+      parameters:
+      - in: path
+        name: processId
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Missing access token
+      tags:
+      - Data Plane control API
+  /{any}:
+    delete:
+      description: Send `DELETE` data query to the Data Plane.
+      operationId: delete
+      responses:
+        "400":
+          description: Missing access token
+        "403":
+          description: Access token is expired or invalid
+        "500":
+          description: Failed to transfer data
+      tags:
+      - Data Plane public API
+    get:
+      description: Send `GET` data query to the Data Plane.
+      operationId: get
+      responses:
+        "400":
+          description: Missing access token
+        "403":
+          description: Access token is expired or invalid
+        "500":
+          description: Failed to transfer data
+      tags:
+      - Data Plane public API
+    patch:
+      description: Send `PATCH` data query to the Data Plane.
+      operationId: patch
+      responses:
+        "400":
+          description: Missing access token
+        "403":
+          description: Access token is expired or invalid
+        "500":
+          description: Failed to transfer data
+      tags:
+      - Data Plane public API
+    post:
+      description: Send `POST` data query to the Data Plane.
+      operationId: post
+      responses:
+        "400":
+          description: Missing access token
+        "403":
+          description: Access token is expired or invalid
+        "500":
+          description: Failed to transfer data
+      tags:
+      - Data Plane public API
+    put:
+      description: Send `PUT` data query to the Data Plane.
+      operationId: put
+      responses:
+        "400":
+          description: Missing access token
+        "403":
+          description: Access token is expired or invalid
+        "500":
+          description: Failed to transfer data
+      tags:
+      - Data Plane public API
+components:
+  schemas:
+    DataAddress:
+      type: object
+      properties:
+        properties:
+          type: object
+          additionalProperties:
+            type: string
+    DataFlowRequest:
+      type: object
+      properties:
+        destinationDataAddress:
+          $ref: '#/components/schemas/DataAddress'
+        id:
+          type: string
+        processId:
+          type: string
+        properties:
+          type: object
+          additionalProperties:
+            type: string
+        sourceDataAddress:
+          $ref: '#/components/schemas/DataAddress'
+        traceContext:
+          type: object
+          additionalProperties:
+            type: string
+        trackable:
+          type: boolean

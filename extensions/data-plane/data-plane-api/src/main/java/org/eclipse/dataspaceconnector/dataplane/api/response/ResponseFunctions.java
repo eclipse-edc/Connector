@@ -20,8 +20,8 @@ import org.eclipse.dataspaceconnector.dataplane.spi.response.TransferErrorRespon
 import java.util.List;
 
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
 import static jakarta.ws.rs.core.Response.status;
 
 /**
@@ -36,7 +36,7 @@ public final class ResponseFunctions {
      * @return Error response.
      */
     public static Response notAuthorizedErrors(List<String> errors) {
-        return createErrorResponse(UNAUTHORIZED, errors);
+        return createErrorResponse(FORBIDDEN, errors);
     }
 
     /**

@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BiFunction;
 
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.BODY;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.MEDIA_TYPE;
@@ -29,10 +30,7 @@ import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowReques
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.PATH;
 import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema.QUERY_PARAMS;
 
-public class DataFlowRequestFactory {
-
-    private DataFlowRequestFactory() {
-    }
+public class DataFlowRequestSupplier implements BiFunction<ContainerRequestContextApi, DataAddress, DataFlowRequest> {
 
     /**
      * Create a {@link DataFlowRequest} based on incoming request and claims decoded from the access token.
@@ -41,7 +39,8 @@ public class DataFlowRequestFactory {
      * @param dataAddress Source data address.
      * @return DataFlowRequest
      */
-    public static DataFlowRequest from(ContainerRequestContextApi contextApi, DataAddress dataAddress) {
+    @Override
+    public DataFlowRequest apply(ContainerRequestContextApi contextApi, DataAddress dataAddress) {
         var props = createProps(contextApi);
         return DataFlowRequest.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())

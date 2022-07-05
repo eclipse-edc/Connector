@@ -18,38 +18,29 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.HttpHeaders;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import org.eclipse.dataspaceconnector.dataplane.spi.api.TokenValidationClient;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 
 import java.io.IOException;
 
-/**
- * Client used by the data plane to hit the validation server (that can be hosted by the Control Plane for example).
- * The validation server will assert the validity of the token following a set of rules, and if successful, it will
- * return the decrypted data address contained in the input token.
- */
-public class TokenValidationClient {
+public class TokenValidationClientImpl implements TokenValidationClient {
 
     private final OkHttpClient httpClient;
     private final String endpoint;
     private final ObjectMapper mapper;
     private final Monitor monitor;
 
-    public TokenValidationClient(OkHttpClient httpClient, String endpoint, ObjectMapper mapper, Monitor monitor) {
+    public TokenValidationClientImpl(OkHttpClient httpClient, String endpoint, ObjectMapper mapper, Monitor monitor) {
         this.httpClient = httpClient;
         this.endpoint = endpoint;
         this.mapper = mapper;
         this.monitor = monitor;
     }
-
-    /**
-     * Hits the token validation endpoint to verify if the provided token is valid.
-     *
-     * @param token Token received in input of the data plane.
-     * @return Decrypted {@link DataAddress} contained in the input claim token.
-     */
-    public Result<DataAddress> callTokenValidationServer(String token) {
+    
+    @Override
+    public Result<DataAddress> call(String token) {
         monitor.debug("Start call to validation server");
 
         var request = new Request.Builder().url(endpoint).header(HttpHeaders.AUTHORIZATION, token).get().build();
