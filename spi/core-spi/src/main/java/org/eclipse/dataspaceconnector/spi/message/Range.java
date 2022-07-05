@@ -29,8 +29,8 @@ public class Range {
     }
 
     /**
-     * The maximum number of items. Note that the actual number may be lower if the range overshoots the bounds of the
-     * collection
+     * The index of the last item to be included in the range. Note that the actual number may be lower if the range
+     * overshoots the bounds of the collection
      */
     public int getTo() {
         return to;

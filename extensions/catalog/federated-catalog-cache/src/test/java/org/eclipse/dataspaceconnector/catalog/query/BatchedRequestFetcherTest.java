@@ -60,17 +60,18 @@ class BatchedRequestFetcherTest {
         var request = createRequest();
 
         var offers = fetcher.fetch(request, 0, 5);
-        assertThat(offers).hasSize(13)
-                .allSatisfy(offer -> assertThat(offer.getId()).matches("(id)\\d|1[0-3]")); //regex: 0 ... 13
+        assertThat(offers).isCompletedWithValueMatching(list -> list.size() == 13 &&
+                list.stream().allMatch(o -> o.getId().matches("(id)\\d|1[0-3]")));
+
 
         var captor = forClass(CatalogRequest.class);
-        verify(dispatcherMock, times(3)).send(eq(Catalog.class), captor.capture(), any());
+        verify(dispatcherMock, times(4)).send(eq(Catalog.class), captor.capture(), any());
 
         // verify the sequence of requests
         assertThat(captor.getAllValues())
                 .extracting(CatalogRequest::getRange)
                 .usingRecursiveFieldByFieldElementComparator()
-                .containsExactly(new Range(0, 5), new Range(5, 10), new Range(10, 15));
+                .containsExactly(new Range(0, 5), new Range(5, 10), new Range(10, 15), new Range(15, 20));
 
     }
 

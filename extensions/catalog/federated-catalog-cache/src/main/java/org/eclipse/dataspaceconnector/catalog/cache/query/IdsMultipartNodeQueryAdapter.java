@@ -20,9 +20,7 @@ import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -44,9 +42,9 @@ public class IdsMultipartNodeQueryAdapter implements NodeQueryAdapter {
                 .connectorAddress(getNodeUrl(updateRequest))
                 .connectorId(connectorId)
                 .build();
-        List<ContractOffer> allOffers = requestFetcher.fetch(catalogRequest, 0, 100);
+        var allOffers = requestFetcher.fetch(catalogRequest, 0, 100);
 
-        return CompletableFuture.completedFuture(new UpdateResponse(getNodeUrl(updateRequest), Catalog.Builder.newInstance().id(UUID.randomUUID().toString()).contractOffers(allOffers).build()));
+        return allOffers.thenApply(list -> new UpdateResponse(getNodeUrl(updateRequest), Catalog.Builder.newInstance().id(UUID.randomUUID().toString()).contractOffers(list).build()));
     }
 
 

@@ -21,8 +21,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Helper class that runs through a loop and sends {@link CatalogRequest}s until no more {@link ContractOffer}s are
@@ -46,22 +46,27 @@ public class BatchedRequestFetcher {
      * @return A list of {@link ContractOffer} objects
      */
     @NotNull
-    public List<ContractOffer> fetch(CatalogRequest catalogRequest, int from, int batchSize) {
-        int fetched;
-        List<ContractOffer> allOffers = new ArrayList<>();
-        var to = from + batchSize;
+    public CompletableFuture<List<ContractOffer>> fetch(CatalogRequest catalogRequest, int from, int batchSize) {
+        var range = new Range(from, from + batchSize);
+        var rq = catalogRequest.toBuilder().range(range).build();
 
-        do {
-
-            Catalog catalog = getCatalog(catalogRequest, from, to);
-            fetched = catalog.getContractOffers().size();
-            allOffers.addAll(catalog.getContractOffers());
-            to += batchSize;
-            from += batchSize;
-        } while (fetched >= batchSize);
-
-        return allOffers;
+        return dispatcherRegistry.send(Catalog.class, rq, () -> null)
+                .thenApply(Catalog::getContractOffers)
+                .thenCompose(offers -> {
+                    if (offers.size() > 0) {
+                        return fetch(rq, range.getFrom() + batchSize, batchSize)
+                                .thenApply(o -> concat(offers, o));
+                    } else {
+                        return CompletableFuture.completedFuture(offers);
+                    }
+                });
     }
+
+    private List<ContractOffer> concat(List<ContractOffer> list1, List<ContractOffer> list2) {
+        list1.addAll(list2);
+        return list1;
+    }
+
 
     private Catalog getCatalog(CatalogRequest catalogRequest, int from, int to) {
         var future = dispatcherRegistry.send(Catalog.class, catalogRequest.toBuilder().range(new Range(from, to)).build(), () -> null);
