@@ -130,7 +130,7 @@ public class FileTransferListenerSampleTest {
     }
 
     /**
-     * Assert that the file to be copied exists at the expected location.
+     * Assert that the file to be copied exists at the expected location with the expected content.
      * This method waits a duration which is defined in {@link FileTransferListenerSampleTest#TIMEOUT}.
      */
     void assertDestinationFileContent() {
@@ -139,7 +139,7 @@ public class FileTransferListenerSampleTest {
     }
 
     /**
-     * Assert that the file to be copied exists at the expected location.
+     * Assert that the marker file has been created at the expected location with the expected content.
      * This method waits a duration which is defined in {@link FileTransferListenerSampleTest#TIMEOUT}.
      */
     private void assertMarkerFileContent() {
