@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.aws.s3.provision;
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.aws.s3.core.AwsTemporarySecretToken;
 import org.eclipse.dataspaceconnector.aws.s3.core.ClientProvider;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -68,7 +68,7 @@ class S3BucketProvisionerTest {
 
         var configuration = new S3BucketProvisionerConfiguration(2, 3600);
 
-        provisioner = new S3BucketProvisioner(clientProvider, mock(Monitor.class), new RetryPolicy<>(), configuration);
+        provisioner = new S3BucketProvisioner(clientProvider, mock(Monitor.class), RetryPolicy.ofDefaults(), configuration);
     }
 
     @Test

@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.provision.azure.blob;
 
 import com.azure.storage.blob.models.BlobStorageException;
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureSasToken;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -44,7 +44,7 @@ class ObjectStorageProvisionerTest {
 
     @BeforeEach
     void setup() {
-        RetryPolicy<Object> retryPolicy = new RetryPolicy<>().withMaxRetries(0);
+        RetryPolicy<Object> retryPolicy = RetryPolicy.builder().withMaxRetries(0).build();
         provisioner = new ObjectStorageProvisioner(retryPolicy, mock(Monitor.class), blobStoreApiMock);
         policy = Policy.Builder.newInstance().build();
     }

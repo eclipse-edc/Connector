@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.catalog.cache.management;
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.catalog.cache.DefaultWorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.cache.crawler.CrawlerImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.crawler.NodeQueryAdapterRegistryImpl;
@@ -81,7 +81,7 @@ class PartitionManagerImplIntegrationTest {
 
         BlockingQueue<UpdateResponse> loaderQueueMock = mock(BlockingQueue.class);
         generatorFunction = workItemQueue -> CrawlerImpl.Builder.newInstance()
-                .retryPolicy(new RetryPolicy<>())
+                .retryPolicy(RetryPolicy.ofDefaults())
                 .monitor(monitorMock)
                 .workQueuePollTimeout(() -> Duration.of(1, ChronoUnit.MILLIS)) //basically don't wait during polling the queue
                 .workItems(workItemQueue)

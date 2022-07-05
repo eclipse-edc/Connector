@@ -20,7 +20,7 @@ import com.azure.cosmos.CosmosDatabase;
 import com.azure.cosmos.implementation.BadRequestException;
 import com.azure.cosmos.models.CosmosStoredProcedureProperties;
 import com.azure.cosmos.models.PartitionKey;
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.azure.testfixtures.CosmosTestClient;
 import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureCosmosDbIntegrationTest;
@@ -105,7 +105,8 @@ class CosmosContractNegotiationStoreIntegrationTest {
         typeManager = new TypeManager();
         typeManager.registerTypes(ContractDefinition.class, ContractNegotiationDocument.class);
         var cosmosDbApi = new CosmosDbApiImpl(container, true);
-        store = new CosmosContractNegotiationStore(cosmosDbApi, typeManager, new RetryPolicy<>().withMaxRetries(3).withBackoff(1, 5, ChronoUnit.SECONDS), CONNECTOR_ID);
+        var retryPolicy = RetryPolicy.builder().withMaxRetries(3).withBackoff(1, 5, ChronoUnit.SECONDS).build();
+        store = new CosmosContractNegotiationStore(cosmosDbApi, typeManager, retryPolicy, CONNECTOR_ID);
     }
 
     @AfterEach

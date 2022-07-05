@@ -15,72 +15,34 @@
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
 
-import net.jodah.failsafe.RetryPolicy;
-import okhttp3.MediaType;
+import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import static dev.failsafe.Failsafe.with;
 import static java.lang.String.format;
-import static net.jodah.failsafe.Failsafe.with;
 
-/**
- * Pulls data from a source using an HTTP GET.
- */
 public class HttpDataSource implements DataSource {
     private String name;
-    private String sourceEndpoint;
-    private String path;
-    private String queryParams;
-    private MediaType mediaType;
-    private String body;
-    private final Map<String, String> headers = new HashMap<>();
-    private String method;
+    private HttpRequestParams params;
     private String requestId;
     private RetryPolicy<Object> retryPolicy;
     private OkHttpClient httpClient;
-    private Monitor monitor;
 
     @Override
     public Stream<Part> openPartStream() {
         return Stream.of(getPart());
     }
 
-    private String createUrl() {
-        var url = sourceEndpoint;
-        if (path != null && !path.isBlank()) {
-            url += "/" + path;
-        }
-        if (queryParams != null && !queryParams.isBlank()) {
-            url += "?" + queryParams;
-        }
-        return url;
-    }
-
-    private boolean hasValidRequestBody() {
-        return mediaType != null && body != null;
-    }
-
     private HttpPart getPart() {
-        var url = createUrl();
-        var requestBody = hasValidRequestBody() ? RequestBody.create(body, mediaType) : null;
-        var requestBuilder = new Request.Builder()
-                .url(url)
-                .method(method, requestBody);
-        headers.forEach(requestBuilder::addHeader);
-
-        try (var response = with(retryPolicy).get(() -> httpClient.newCall(requestBuilder.build()).execute())) {
+        try (var response = with(retryPolicy).get(() -> httpClient.newCall(params.toRequest()).execute())) {
             if (response.isSuccessful()) {
                 var responseBody = response.body();
                 if (responseBody == null) {
@@ -105,39 +67,13 @@ public class HttpDataSource implements DataSource {
             return new Builder();
         }
 
-        public Builder sourceUrl(String sourceUrl) {
-            dataSource.sourceEndpoint = sourceUrl;
-            return this;
-        }
-
-        public Builder queryParams(String queryParams) {
-            dataSource.queryParams = queryParams;
-            return this;
-        }
-
-        public Builder method(String method) {
-            dataSource.method = method;
-            return this;
-        }
-
-        public Builder header(String key, String value) {
-            dataSource.headers.put(key, value);
-            return this;
-        }
-
-        public Builder requestBody(MediaType mediaType, String body) {
-            dataSource.mediaType = mediaType;
-            dataSource.body = body;
+        public Builder params(HttpRequestParams params) {
+            dataSource.params = params;
             return this;
         }
 
         public Builder name(String name) {
             dataSource.name = name;
-            return this;
-        }
-
-        public Builder path(String path) {
-            dataSource.path = path;
             return this;
         }
 
@@ -156,18 +92,9 @@ public class HttpDataSource implements DataSource {
             return this;
         }
 
-        public Builder monitor(Monitor monitor) {
-            dataSource.monitor = monitor;
-            return this;
-        }
-
         public HttpDataSource build() {
-            dataSource.headers.forEach((s, s2) -> Objects.requireNonNull(s2, "value for header: " + s));
-            Objects.requireNonNull(dataSource.sourceEndpoint, "sourceEndpoint");
-            Objects.requireNonNull(dataSource.method, "method");
             Objects.requireNonNull(dataSource.requestId, "requestId");
             Objects.requireNonNull(dataSource.httpClient, "httpClient");
-            Objects.requireNonNull(dataSource.monitor, "monitor");
             Objects.requireNonNull(dataSource.retryPolicy, "retryPolicy");
             return dataSource;
         }

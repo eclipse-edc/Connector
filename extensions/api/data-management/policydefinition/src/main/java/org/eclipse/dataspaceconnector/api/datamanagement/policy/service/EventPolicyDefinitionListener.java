@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.event.policydefinition.PolicyDefinitionCreated;
 import org.eclipse.dataspaceconnector.spi.event.policydefinition.PolicyDefinitionDeleted;
+import org.eclipse.dataspaceconnector.spi.observe.policydefinition.PolicyDefinitionListener;
 
 import java.time.Clock;
 
@@ -36,7 +37,7 @@ public class EventPolicyDefinitionListener implements PolicyDefinitionListener {
     @Override
     public void created(PolicyDefinition policyDefinition) {
         var event = PolicyDefinitionCreated.Builder.newInstance()
-                .id(policyDefinition.getUid())
+                .policyDefinitionId(policyDefinition.getUid())
                 .at(clock.millis())
                 .build();
 
@@ -46,7 +47,7 @@ public class EventPolicyDefinitionListener implements PolicyDefinitionListener {
     @Override
     public void deleted(PolicyDefinition policyDefinition) {
         var event = PolicyDefinitionDeleted.Builder.newInstance()
-                .id(policyDefinition.getUid())
+                .policyDefinitionId(policyDefinition.getUid())
                 .at(clock.millis())
                 .build();
 

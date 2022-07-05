@@ -12,12 +12,13 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api.datamanagement.asset.service;
+package org.eclipse.dataspaceconnector.spi.observe.asset;
 
-import org.eclipse.dataspaceconnector.spi.observe.ObservableImpl;
+import org.eclipse.dataspaceconnector.spi.observe.Observable;
 
 /**
- * Observes Asset livecycle state changes.
+ * Manages and invokes {@link AssetListener}s when a state change related to an asset has happened.
  */
-public class AssetObservableImpl extends ObservableImpl<AssetListener> implements AssetObservable {
+public interface AssetObservable extends Observable<AssetListener> {
+
 }

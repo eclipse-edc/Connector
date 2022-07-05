@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.cosmos.policy.store;
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosClientProvider;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;

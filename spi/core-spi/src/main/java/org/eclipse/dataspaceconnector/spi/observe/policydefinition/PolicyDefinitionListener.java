@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api.datamanagement.policy.service;
+package org.eclipse.dataspaceconnector.spi.observe.policydefinition;
 
 
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;

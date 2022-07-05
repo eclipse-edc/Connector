@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.cosmos.policy.store;
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
@@ -33,7 +33,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static net.jodah.failsafe.Failsafe.with;
+import static dev.failsafe.Failsafe.with;
 
 /**
  * Implementation of the {@link PolicyDefinitionStore} based on CosmosDB. This store implements simple write-through

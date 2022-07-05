@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.events.cloudevents.http;
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;

@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.catalog.cache.crawler;
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
 import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
 import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapter;
@@ -35,8 +35,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
+import static dev.failsafe.Failsafe.with;
 import static java.lang.String.format;
-import static net.jodah.failsafe.Failsafe.with;
 
 public class CrawlerImpl implements Crawler {
 

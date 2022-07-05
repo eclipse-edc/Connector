@@ -20,9 +20,9 @@ import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.implementation.RequestRateTooLargeException;
 import com.azure.cosmos.models.CosmosQueryRequestOptions;
 import com.fasterxml.jackson.core.type.TypeReference;
-import net.jodah.failsafe.FailsafeExecutor;
-import net.jodah.failsafe.Fallback;
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.FailsafeExecutor;
+import dev.failsafe.Fallback;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument;
 import org.eclipse.dataspaceconnector.azure.cosmos.dialect.SqlStatement;
@@ -44,7 +44,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static net.jodah.failsafe.Failsafe.with;
+import static dev.failsafe.Failsafe.with;
 
 public class CosmosTransferProcessStore implements TransferProcessStore {
 
@@ -80,9 +80,10 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
         leaseHolderName = leaseHolder;
         tracingOptions = new CosmosQueryRequestOptions();
         tracingOptions.setQueryMetricsEnabled(true);
-        rateLimitRetry = new RetryPolicy<>()
+        rateLimitRetry = RetryPolicy.builder()
                 .handle(RequestRateTooLargeException.class)
-                .withMaxRetries(1).withDelay(Duration.ofSeconds(5));
+                .withMaxRetries(1).withDelay(Duration.ofSeconds(5))
+                .build();
 
         generalRetry = retryPolicy;
 
