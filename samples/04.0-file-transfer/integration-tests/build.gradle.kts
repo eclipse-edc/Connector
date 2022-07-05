@@ -34,13 +34,6 @@ dependencies {
     testFixturesImplementation("org.assertj:assertj-core:${assertj}")
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
 
-    testFixturesImplementation(project(":extensions:junit"))
-    testFixturesImplementation(testFixtures(project(":common:util")))
-    testFixturesImplementation("io.rest-assured:rest-assured:${restAssured}")
-    testFixturesImplementation("org.awaitility:awaitility:${awaitility}")
-    testFixturesImplementation("org.assertj:assertj-core:${assertj}")
-    testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
-
     testCompileOnly(project(":samples:04.0-file-transfer:consumer"))
     testCompileOnly(project(":samples:04.0-file-transfer:provider"))
 }
