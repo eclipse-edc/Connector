@@ -12,13 +12,10 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api.datamanagement.asset.service;
+package org.eclipse.dataspaceconnector.spi.observe.policydefinition;
 
-import org.eclipse.dataspaceconnector.spi.observe.Observable;
+import org.eclipse.dataspaceconnector.spi.observe.ObservableImpl;
 
-/**
- * Manages and invokes {@link AssetListener}s when a state change related to an asset has happened.
- */
-public interface AssetObservable extends Observable<AssetListener> {
+public class PolicyDefinitionObservableImpl extends ObservableImpl<PolicyDefinitionListener> implements PolicyDefinitionObservable {
 
 }

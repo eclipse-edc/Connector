@@ -336,7 +336,7 @@ if (project.hasProperty("dependency.analysis")) {
                     exclude(
                         // some common dependencies are intentionally exported by core:base for simplicity
                         "com.squareup.okhttp3:okhttp",
-                        "net.jodah:failsafe",
+                        "dev.failsafe:failsafe",
                     )
                 }
                 onUsedTransitiveDependencies {

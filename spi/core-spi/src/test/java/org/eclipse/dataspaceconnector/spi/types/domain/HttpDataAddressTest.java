@@ -23,7 +23,7 @@ class HttpDataAddressTest {
 
     @Test
     void verifyGetProperties() {
-        HttpDataAddress dataAddress = HttpDataAddress.Builder.newInstance()
+        var dataAddress = HttpDataAddress.Builder.newInstance()
                 .name("name1")
                 .baseUrl("http://myendpoint")
                 .authCode("secret")
@@ -36,6 +36,8 @@ class HttpDataAddressTest {
                 .proxyBody("proxyBody1")
                 .proxyMethod("proxyMethod1")
                 .proxyPath("proxyPath1")
+                .path("foo/bar")
+                .method("GET")
                 .proxyQueryParams("proxyQueryParams1")
                 .build();
 
@@ -50,17 +52,20 @@ class HttpDataAddressTest {
         assertThat(dataAddress.getProxyQueryParams()).isEqualTo("proxyQueryParams1");
         assertThat(dataAddress.getSecretName()).isEqualTo("mysecret");
         assertThat(dataAddress.getContentType()).isEqualTo("application/octet-stream");
-        assertThat(dataAddress.getAdditionalHeaders().size()).isEqualTo(2);
-        assertThat(dataAddress.getAdditionalHeaders().get("Keep-Alive")).isEqualTo("timeout=5, max=1000");
-        assertThat(dataAddress.getAdditionalHeaders().get("x-ms-blob-type")).isEqualTo("BlockBlob");
+        assertThat(dataAddress.getMethod()).isEqualTo("GET");
+        assertThat(dataAddress.getPath()).isEqualTo("foo/bar");
+        assertThat(dataAddress.getAdditionalHeaders()).hasSize(2);
+        assertThat(dataAddress.getAdditionalHeaders())
+                .containsEntry("Keep-Alive", "timeout=5, max=1000")
+                .containsEntry("x-ms-blob-type", "BlockBlob");
     }
 
     @Test
     void verifyGetDefaultValues() {
-        HttpDataAddress dataAddress = HttpDataAddress.Builder.newInstance().build();
+        var dataAddress = HttpDataAddress.Builder.newInstance().build();
 
         assertThat(dataAddress.getType()).isEqualTo("HttpData");
-        assertThat(dataAddress.getAdditionalHeaders().size()).isEqualTo(0);
+        assertThat(dataAddress.getAdditionalHeaders()).isEmpty();
         assertThat(dataAddress.getContentType()).isEqualTo("application/octet-stream");
     }
 }

@@ -27,6 +27,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.eclipse.dataspaceconnector.sql.contractnegotiation.store.schema.postgres.PostgresDialectStatements;
+import org.eclipse.dataspaceconnector.sql.dialect.BaseSqlDialect;
 import org.eclipse.dataspaceconnector.sql.lease.LeaseUtil;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.AfterEach;
@@ -613,7 +614,7 @@ class SqlContractNegotiationStoreTest {
     private static class H2DialectStatements extends PostgresDialectStatements {
         @Override
         protected String getFormatJsonOperator() {
-            return " FORMAT JSON";
+            return BaseSqlDialect.getJsonCastOperator();
         }
     }
 }

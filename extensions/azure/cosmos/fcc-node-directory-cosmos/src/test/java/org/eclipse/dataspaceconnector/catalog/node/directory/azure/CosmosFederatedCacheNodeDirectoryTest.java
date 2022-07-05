@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.catalog.node.directory.azure;
 
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.catalog.node.directory.azure.model.FederatedCacheNodeDocument;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNode;
@@ -62,7 +62,7 @@ class CosmosFederatedCacheNodeDirectoryTest {
     public void setUp() {
         TypeManager typeManager = new TypeManager();
         typeManager.registerTypes(FederatedCacheNodeDocument.class, FederatedCacheNode.class);
-        RetryPolicy<Object> retryPolicy = new RetryPolicy<>().withMaxRetries(1);
+        var retryPolicy = RetryPolicy.builder().withMaxRetries(1).build();
         api = mock(CosmosDbApi.class);
         directory = new CosmosFederatedCacheNodeDirectory(api, PARTITION_KEY, typeManager, retryPolicy);
     }

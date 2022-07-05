@@ -17,7 +17,7 @@ plugins {
 }
 
 val storageBlobVersion: String by project
-val jodahFailsafeVersion: String by project
+val failsafeVersion: String by project
 
 
 dependencies {
@@ -26,7 +26,7 @@ dependencies {
 
     implementation("com.azure:azure-storage-blob:${storageBlobVersion}")
 
-    api("net.jodah:failsafe:${jodahFailsafeVersion}")
+    api("dev.failsafe:failsafe:${failsafeVersion}")
 
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))
 

@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.aws.s3.provision;
 
-import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.Failsafe;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.aws.s3.core.ClientProvider;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;

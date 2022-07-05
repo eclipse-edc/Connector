@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.assetindex.azure;
 
 import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.models.SqlQuerySpec;
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.junit.matchers.PredicateMatcher;
@@ -66,7 +66,7 @@ class CosmosAssetIndexTest {
     public void setUp() {
         typeManager = new TypeManager();
         typeManager.registerTypes(AssetDocument.class, Asset.class);
-        retryPolicy = new RetryPolicy<>().withMaxRetries(1);
+        retryPolicy = RetryPolicy.builder().withMaxRetries(1).build();
         api = mock(CosmosDbApi.class);
         assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, retryPolicy, mock(Monitor.class));
     }
