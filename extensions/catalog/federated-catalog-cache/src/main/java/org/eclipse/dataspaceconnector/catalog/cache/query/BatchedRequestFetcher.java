@@ -24,7 +24,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * Helper class that runs through a loop and sends {@link CatalogRequest}s until no more {@link ContractOffer}s are
+ * received. This is useful to avoid overloading the provider connector by chunking the resulting response payload
+ * size.
+ */
 public class BatchedRequestFetcher {
     private final RemoteMessageDispatcherRegistry dispatcherRegistry;
 
