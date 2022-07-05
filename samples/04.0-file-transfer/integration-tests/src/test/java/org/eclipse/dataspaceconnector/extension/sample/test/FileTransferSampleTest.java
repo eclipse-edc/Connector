@@ -20,7 +20,6 @@ import org.eclipse.dataspaceconnector.junit.extensions.EdcRuntimeExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import java.io.File;
 import java.util.Map;
 
 @EndToEndTest
@@ -28,10 +27,8 @@ public class FileTransferSampleTest {
 
     static final String CONSUMER_CONFIG_PROPERTIES_FILE_PATH = "samples/04.0-file-transfer/consumer/config.properties";
     static final String PROVIDER_CONFIG_PROPERTIES_FILE_PATH = "samples/04.0-file-transfer/provider/config.properties";
-    static final String TRANSFER_FILE_PATH = "samples/04.0-file-transfer/filetransfer.json";
     // Reuse an already existing file for the test. Could be set to any other existing file in the repository.
-    static final String SAMPLE_ASSET_FILE_PATH = TRANSFER_FILE_PATH;
-    static final String DESTINATION_FILE_PATH = "samples/04.0-file-transfer/consumer/requested.test.txt";
+    static final String SAMPLE_ASSET_FILE_PATH = "samples/04.0-file-transfer/README.md";
     @RegisterExtension
     static EdcRuntimeExtension provider = new EdcRuntimeExtension(
             ":samples:04.0-file-transfer:provider",
@@ -50,8 +47,6 @@ public class FileTransferSampleTest {
                     "edc.fs.config", FileTransferSampleTestUtils.getFileFromRelativePath(CONSUMER_CONFIG_PROPERTIES_FILE_PATH).getAbsolutePath()
             )
     );
-    static final File DESTINATION_FILE = FileTransferSampleTestUtils.getFileFromRelativePath(FileTransferSampleTest.DESTINATION_FILE_PATH);
-    static final File SAMPLE_ASSET_FILE = FileTransferSampleTestUtils.getFileFromRelativePath(FileTransferSampleTest.SAMPLE_ASSET_FILE_PATH);
 
     /**
      * Run all sample steps in one single test.
@@ -60,7 +55,7 @@ public class FileTransferSampleTest {
      */
     @Test
     void runSampleSteps() throws Exception {
-        var testUtils = new FileTransferSampleTestUtils();
+        var testUtils = new FileTransferSampleTestUtils(SAMPLE_ASSET_FILE_PATH);
 
         testUtils.assertTestPrerequisites();
 

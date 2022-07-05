@@ -51,15 +51,19 @@ public class FileTransferSampleTestUtils {
     //endregion
 
     //region changeable test settings
-    // Reuse an already existing file for the test. Could be set to any other existing file in the repository.
-    String sampleAssetFilePath = TRANSFER_FILE_PATH;
-    File sampleAssetFile = getFileFromRelativePath(sampleAssetFilePath);
+    final String sampleAssetFilePath;
+    final File sampleAssetFile;
     Duration timeout = Duration.ofSeconds(15);
     Duration pollInterval = Duration.ofMillis(500);
     //endregion
 
     String contractNegotiationId;
     String contractAgreementId;
+
+    FileTransferSampleTestUtils(@NotNull String sampleAssetFilePath) {
+        this.sampleAssetFilePath = sampleAssetFilePath;
+        this.sampleAssetFile  = getFileFromRelativePath(sampleAssetFilePath);
+    }
 
     /**
      * Assert that prerequisites are fulfilled before running the test.
