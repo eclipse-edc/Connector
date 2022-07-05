@@ -48,4 +48,4 @@ Note that even if all of the aforementioned points are answered satisfactorily, 
 
 ## Submitting an application
 
-Please open in issue using the `Adoption request` template, fill out all the sections to the best of your knowledge and wait to hear back from the EDC core team. We will comment in the issue, or reach out to you directly. Be aware that omitting sections from the application will greatly diminish the chance of approval.
+Please open in issue using the [Adoption request](.github/ISSUE_TEMPLATE/adoption_request.md) template, fill out all the sections to the best of your knowledge and wait to hear back from the EDC core team. We will comment in the issue, or reach out to you directly. Be aware that omitting sections from the application will greatly diminish the chance of approval.

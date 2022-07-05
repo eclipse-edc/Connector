@@ -25,14 +25,14 @@ _If you choose to be referenced as a "friend", these will be added to the [known
 _If you choose to add your feature as a core EDC component, links to your current code and correlated issues,
 discussions, and pull requests are of great importance._
 
-| Title | Description | Maintainer | Links
+| Title | Description | Contact | Links
 | :--- | :--- | :--- | :---
-| _My awesome project_ | _This is an example._ | _name of organization or GitHub user_ | _link to repository, homepage, discussion, etc._
+| _My awesome project_ | _This is an example._ | _e-mail-address_ | _link to repository, homepage, discussion, etc._
 
 
 ## Adoption level
 
-Next, please tell us what level of adoption you intend to provide.
+Next, please tell us what level of adoption you intend to provide. _(pick only one)_
 
 - [ ] Reference a feature as "friend"
 - [ ] Incorporate a feature as core EDC component
