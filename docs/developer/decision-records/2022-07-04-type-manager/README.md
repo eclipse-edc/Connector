@@ -3,8 +3,9 @@
 ## Decision
 
 As the EDC should integrate into several deployments and (possibly domain-specific) use cases, the
-EDC runtime requires the ability to support the configuration of multiple serialization contexts.
-This should be provided by the `TypeManager`:
+EDC needs to support the configuration of multiple serialization contexts. This targets the serialization
+formats of Java objects that are converted to/from, e.g., JSON or JSON-LD. The enhanced capabilities
+should be provided by the `TypeManager`:
 
 - A default context will define base configuration and be inherited by all other contexts. The existing
   `TypeManager.getObjectMapper()` will return the default context.
@@ -19,10 +20,18 @@ This should be provided by the `TypeManager`:
 
 ## Rationale
 
-The EDC runtime requires the ability to support configuration of multiple serialization contexts. For
-example, an API may require different serialization characteristics than another API. Related to this,
-users may want to serialize additional metadata such as JSON-LD for certain types such as extensible
-`Asset` properties or IDS messages.
+The EDC runtime requires the ability to support the configuration of multiple serialization contexts. For
+example, provided interfaces may require different serialization characteristics. Naming, some connected
+systems require JSON as input to further processing, whereas communication within an IDS ecosystem
+expect a JSON-LD string with a specific date-time-format. 
+
+To being able to adjust or replace (de-)serialization of objects to Strings and vice versa for specific
+extensions or added properties (e.g., caused by a domain-specific extension of an `Asset`), the `TypeManager`
+allows to register customized processors that extend or overwrite default functionalities.
+
+This feature and decision targets the adaptability to existing interfaces and systems and the interoperability
+requirements within varying data spaces. What is not intended is customization on a level that e.g. each
+http endpoint provides a different output format.
 
 ## Approach
 
