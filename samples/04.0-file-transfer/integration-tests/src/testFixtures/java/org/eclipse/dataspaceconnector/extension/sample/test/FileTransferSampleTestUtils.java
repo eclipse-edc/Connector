@@ -51,10 +51,10 @@ public class FileTransferSampleTestUtils {
     //endregion
 
     //region changeable test settings
-    final String sampleAssetFilePath;
-    final File sampleAssetFile;
-    Duration timeout = Duration.ofSeconds(15);
-    Duration pollInterval = Duration.ofMillis(500);
+    @NotNull final String sampleAssetFilePath;
+    @NotNull final File sampleAssetFile;
+    @NotNull Duration timeout = Duration.ofSeconds(15);
+    @NotNull Duration pollInterval = Duration.ofMillis(500);
     //endregion
 
     String contractNegotiationId;
@@ -103,7 +103,7 @@ public class FileTransferSampleTestUtils {
      * Assert that the marker file has been created at the expected location with the expected content.
      * This method waits a duration which is defined in {@link FileTransferSampleTestUtils#timeout}.
      */
-    void assertFileContent(File markerFile, String markerFileContent) {
+    void assertFileContent(File markerFile, @NotNull String markerFileContent) {
         await().atMost(timeout).pollInterval(pollInterval).untilAsserted(()
                 -> assertThat(markerFile).hasContent(markerFileContent));
     }
@@ -185,7 +185,7 @@ public class FileTransferSampleTestUtils {
      * @return An instance of {@link DataRequest} with changed values for contract agreement ID and file destination path.
      * @throws IOException Thrown if there was an error accessing the file given in transferJsonFile.
      */
-    static DataRequest readAndUpdateDataRequestFromJsonFile(File transferJsonFile, String contractAgreementId) throws IOException {
+    static DataRequest readAndUpdateDataRequestFromJsonFile(@NotNull File transferJsonFile, @NotNull String contractAgreementId) throws IOException {
         // convert JSON file to map
         DataRequest sampleDataRequest = MAPPER.readValue(transferJsonFile, DataRequest.class);
 
