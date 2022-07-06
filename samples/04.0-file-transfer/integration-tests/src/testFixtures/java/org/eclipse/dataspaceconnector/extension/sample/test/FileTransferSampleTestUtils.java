@@ -47,7 +47,7 @@ public class FileTransferSampleTestUtils {
     static final String DESTINATION_FILE_PATH = "samples/requested.test.txt";
     static final String API_KEY_HEADER_KEY = "X-Api-Key";
     static final String API_KEY_HEADER_VALUE = "password";
-    static final File DESTINATION_FILE = getFileFromRelativePath(FileTransferSampleTestUtils.DESTINATION_FILE_PATH);
+    static final File DESTINATION_FILE = getFileFromRelativePath(DESTINATION_FILE_PATH);
     //endregion
 
     //region changeable test settings
