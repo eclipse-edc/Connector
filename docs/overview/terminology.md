@@ -19,6 +19,7 @@
 | **Contract Offer Framework** | **Contract Offer Framework**<p>* generates **Contract Offer Templates**<p>* provided by **Extensions**<p>* may be implemented in custom extensions to created contract offers based on existing systems
 | **Contract Offer Template**  | Blueprint of a **Contract Offer**
 | **Consumer**                 |
+| **Consumer Pull**            |
 | **Data**                     |
 | **DataAddress**              |
 | **DataFlow**                 |
@@ -41,6 +42,8 @@
 | **Offer Framework**          | see **Contract Offer Framework**
 | **Monitor**                  |
 | **Policy**                   | logical collection of rules
+| **Policy Requirements**      |
+| **Policy Points**            |
 | **PolicyArchive**            |
 | **PolicyContext**            |
 | **PolicyDefinitionStore**    |
@@ -51,6 +54,7 @@
 | **Resource**                 |
 | **Resource Manifest**        |
 | **Rule**                     | **Rules**<p>* bound to a **Contract Offer**, **Contract Agreement** or **Contract Offer Framework**<p>* exist independent from an **Asset**
+| **State Machine**            |
 | **Transaction**              |
 | **TransactionContext**       |
 | **TransactionResource**      |
@@ -59,4 +63,5 @@
 | **TransformerContext**       |
 | **TypeManager**              |
 | **TypeTransformer**          |
+| **UsageControl**             |
 | **Vault**                    |
