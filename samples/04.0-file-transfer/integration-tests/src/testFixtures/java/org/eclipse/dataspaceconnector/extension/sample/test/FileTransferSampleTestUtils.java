@@ -100,6 +100,15 @@ public class FileTransferSampleTestUtils {
     }
 
     /**
+     * Assert that the marker file has been created at the expected location with the expected content.
+     * This method waits a duration which is defined in {@link FileTransferSampleTestUtils#timeout}.
+     */
+    void assertFileContent(File markerFile, String markerFileContent) {
+        await().atMost(timeout).pollInterval(pollInterval).untilAsserted(()
+                -> assertThat(markerFile).hasContent(markerFileContent));
+    }
+
+    /**
      * Assert that a POST request to initiate a contract negotiation is successful.
      * This method corresponds to the command in the sample: {@code curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9192/api/v1/data/contractnegotiations"}
      */
