@@ -4,68 +4,67 @@
 
 An entity represents any singular, identifiable and separate object inside an application.
 
-The decision based on the definition explained above is to add a timestamp to the EDC entities in their state of
-creation. These Entities are `ContractAgreement`, `ContractDefinition`, `PolicyDefinition`, and `Asset`.
-
-The entity classes `ContractNegotiation` and `TransferProcess` will extend the `StatefulEntity` class. The other
-entities will extend the `Entity` class. the `Entity` class will take the attributes `id` and `createdTimestamp` from
-`statefulEntity` and it will become its superclass.
+The decision based on the definition explained above is to add a timestamp to the EDC business objects in their state of
+creation. These Entities are `ContractAgreement`, `ContractDefinition`, `PolicyDefinition`, and `Asset`. Since they do
+not change of state as the classes `ContractNegotiation` and `TransferProcess` there is no need to add a change of state
+timestamp.
 
 ## Rationale
 
-As it was already done with the entities which extended the `StatefulEntity` class, where the entities can store the
-timestamp of their creation and also the last change of state timestamp.
-
-The idea of this change is to provide timestamps for creation of entities. This approach is similar to the entities that
-are extended from the class `StatefulEntity`
+The idea of this change is to add helpful information to the metadata of these business objects, giving for example the
+possibility of searching for them based on their date and time of creation.
 
 ## Approach
 
-Since some entities once are created, do not change their state, it is possible to differentiate them from the ones that
-do it. This is the reason why an abstraction called `Entity` was extracted from the class `StatefulEntity`.
+The classes `Asset` , `ContractDefinition`, `PolicyDefinition` and `ContractAgreement` will contain each one an
+attribute called `createdTimestamp`. Their SQL schemas will also be modified, so that the timestamps can also be stored
+persistently.
 
-The class Entity will contain 2 attributes
-
-```java
-
-public abstract class Entity<T extends Entity<T>> {
-
-    protected String id;
-    protected long createdTimestamp;
-
-    protected Entity() {
-    }
-
-    ...
-}    
-```
-
-The class StatefulEntity will extend Entity
-
-```java
-public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Entity implements TraceCarrier {
-
-    ...
-}
-
-```
-
-The timestamp will be measured as epoch seconds, using systemDefault (UTC) as ZoneId.
-
-```java
-
-Clock clock=Clock.systemDefaultZone();
-        var sample=clock.instant();
-        var sampleSec=clock.instant().getEpochSecond();
-```
-
-As it was explained in the **Decision** section, a class `Entity` will be the superclass of the class `StatefulEntity`.
-This class will contain and `id` and a `timestamp` as attributes when the entity was created. The entity classes `Asset`
-, `ContractDefinition`, `PolicyDefinition` and `ContractAgreement` will extend this class. Their SQL schemas will also
-be modified, so that the timestamps can also be stored persistently.
+The timestamp at the time of creation of the Entity, will be valued with the method `Clock.millis()`
 
 With the adding of the attribute `createdTimestamp` the module `ContractDefinitionStore`, and its classes would be
 modified like the following:
+
+### Contract Definition
+
+Class `ContractDefinition`
+
+```Java
+public class ContractDefinition {
+...
+    private long createdTimestamp;
+
+    ...
+
+    @NotNull
+    public Long getCreatedTimestamp() {
+        return createdTimestamp;
+    }
+
+    ...
+
+    public static class Builder {
+    
+    ...
+
+        public Builder createdTimestamp(long createdTimestamp) {
+            definition.createdTimestamp = createdTimestamp;
+            return this;
+        }
+
+        ...
+
+        public ContractDefinition build() {
+            Objects.requireNonNull(definition.id);
+            Objects.requireNonNull(definition.accessPolicyId);
+            Objects.requireNonNull(definition.contractPolicyId);
+            Objects.requireNonNull(definition.selectorExpression);
+            Objects.requireNonNull(definition.createdTimestamp);
+            return definition;
+        }
+    ...
+    }
+```
 
 `Schema.sql`
 
