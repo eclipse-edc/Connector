@@ -34,6 +34,9 @@ import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 
+/**
+ * Utility class for common steps and assertions for samples 04.0 and 04.1.
+ */
 public class FileTransferSampleTestUtils {
 
     static final ObjectMapper MAPPER = new ObjectMapper();
