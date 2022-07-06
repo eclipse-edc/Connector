@@ -17,13 +17,13 @@ Having a dedicated branch for all releases will it make easier in the future to 
 ## Approach
 
 There will be a new branch called `releases`, which is only used to record the history of our releases, i.e. receive
-merge commits for every release. Then, a new GitHub workflow will be created that:
+merge commits for every release. In addition, a new GitHub workflow will be created that:
 
-- prompts the user to input version string. This must be a SemVer string.
-- creates a tag on `main` with that version string, e.g. `v0.0.1-SNAPSHOT`
-- creates a merge-commit `main`->`releases`, where the version string is used in the commit message
-- triggers the release job on JIPP supplying the version string as input parameter
-- creates a GitHub Release
+1. prompts the user to input version string. This must be a SemVer string.
+2. creates a tag on `main` with that version string, e.g. `v0.0.1-SNAPSHOT`. This could be done automatically in step 5.
+3. creates a merge-commit `main`->`releases`, where the version string is used in the commit message
+4. triggers the release job on JIPP supplying the version string as input parameter
+5. creates a GitHub Release
 
 The JIPP then builds and publishes the version to MavenCentral, or OSSRH Snapshots if the version string ends
 with `-SNAPSHOT`. For that, a new job will be created on Jenkins, that does _not_ have a cron-based build trigger.
