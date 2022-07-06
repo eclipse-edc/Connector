@@ -25,12 +25,12 @@ example, provided interfaces may require different serialization characteristics
 systems require JSON as input to further processing, whereas communication within an IDS ecosystem
 expect a JSON-LD string with a specific date-time-format. 
 
-To being able to adjust or replace (de-)serialization of objects to Strings and vice versa for specific
-extensions or added properties (e.g., caused by a domain-specific extension of an `Asset`), the `TypeManager`
+Being able to adjust or replace (de-)serialization of objects and vice versa for specific
+extensions or added properties (e.g. required by a domain-specific extension of an `Asset`), the `TypeManager`
 allows to register customized processors that extend or overwrite default functionalities.
 
-This feature and decision targets the adaptability to existing interfaces and systems and the interoperability
-requirements within varying data spaces. What is not intended is customization on a level that e.g. each
+This feature targets the adaptability to existing interfaces and systems and the interoperability
+requirements within different data spaces. The goal is not to enable customization on the API level, such that e.g. each
 http endpoint provides a different output format.
 
 ## Approach
