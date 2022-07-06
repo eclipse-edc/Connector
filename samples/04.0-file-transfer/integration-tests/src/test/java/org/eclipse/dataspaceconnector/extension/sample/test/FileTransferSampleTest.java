@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.extension.sample.test;
 
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.EndToEndTest;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcRuntimeExtension;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -48,6 +49,7 @@ public class FileTransferSampleTest {
                     "edc.fs.config", getFileFromRelativePath(CONSUMER_CONFIG_PROPERTIES_FILE_PATH).getAbsolutePath()
             )
     );
+    final FileTransferSampleTestUtils testUtils = new FileTransferSampleTestUtils(SAMPLE_ASSET_FILE_PATH);
 
     /**
      * Run all sample steps in one single test.
@@ -56,15 +58,16 @@ public class FileTransferSampleTest {
      */
     @Test
     void runSampleSteps() throws Exception {
-        var testUtils = new FileTransferSampleTestUtils(SAMPLE_ASSET_FILE_PATH);
-
         testUtils.assertTestPrerequisites();
 
         testUtils.initiateContractNegotiation();
         testUtils.lookUpContractAgreementId();
         testUtils.requestTransferFile();
         testUtils.assertDestinationFileContent();
+    }
 
+    @AfterEach
+    protected void tearDown() {
         testUtils.cleanTemporaryTestFiles();
     }
 }
