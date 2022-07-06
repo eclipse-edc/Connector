@@ -93,7 +93,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
     @POST
     @Override
     public void createContractDefinition(@Valid ContractDefinitionDto dto) {
-        monitor.debug("create new contract definition");
+        monitor.debug("Create new contract definition");
         var transformResult = transformerRegistry.transform(dto, ContractDefinition.class);
         if (transformResult.failed()) {
             throw new IllegalArgumentException("Request is not well formatted");
@@ -103,7 +103,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
         var result = service.create(contractDefinition);
         if (result.succeeded()) {
-            monitor.debug(format("Contract negotiation created %s", result.getContent().getId()));
+            monitor.debug(format("Contract definition created %s", result.getContent().getId()));
         } else {
             throw new ObjectExistsException(ContractDefinition.class, dto.getId());
         }
@@ -116,7 +116,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
         monitor.debug(format("Attempting to delete contract definition with id %s", id));
         var result = service.delete(id);
         if (result.succeeded()) {
-            monitor.debug(format("Contract negotiation deleted %s", result.getContent().getId()));
+            monitor.debug(format("Contract definition deleted %s", result.getContent().getId()));
         } else {
             handleFailedResult(result, id);
         }
