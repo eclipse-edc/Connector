@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response;
 
 import de.fraunhofer.iais.eis.Message;
 import org.jetbrains.annotations.NotNull;
