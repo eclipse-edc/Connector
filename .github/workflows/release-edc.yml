@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       edc_version:
-        description: 'Version string that is used for publishing. Appending -SNAPSHOT will create a snapshot release.'
+        description: 'Version string that is used for publishing (e.g. "1.0.0", NOT "v1.0.0"). Appending -SNAPSHOT will create a snapshot release.'
         required: true
         type: string
 
