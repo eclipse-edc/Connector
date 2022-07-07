@@ -17,9 +17,9 @@ package org.eclipse.dataspaceconnector.transfer.core;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.system.CoreExtension;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
-import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.transfer.core.command.handlers.CancelTransferCommandHandler;
 import org.eclipse.dataspaceconnector.transfer.core.command.handlers.DeprovisionRequestHandler;
@@ -28,20 +28,19 @@ import org.eclipse.dataspaceconnector.transfer.core.command.handlers.Deprovision
  * Registers command handlers that the core provides
  */
 @CoreExtension
-@Provides({ CommandHandlerRegistry.class })
 public class TransferProcessCommandExtension implements ServiceExtension {
 
     @Inject
     private TransferProcessStore store;
 
+    @Inject
+    private TransferProcessObservable observable;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
-        CommandHandlerRegistry registry = context.getService(CommandHandlerRegistry.class);
-        registerDefaultCommands(registry);
-    }
+        var registry = context.getService(CommandHandlerRegistry.class);
 
-    private void registerDefaultCommands(CommandHandlerRegistry registry) {
-        registry.register(new CancelTransferCommandHandler(store));
+        registry.register(new CancelTransferCommandHandler(store, observable));
         registry.register(new DeprovisionRequestHandler(store));
     }
 

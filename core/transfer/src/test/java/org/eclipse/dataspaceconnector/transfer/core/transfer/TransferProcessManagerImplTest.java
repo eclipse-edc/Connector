@@ -35,7 +35,7 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
-import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
+import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
@@ -55,6 +55,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessS
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
 import org.eclipse.dataspaceconnector.transfer.core.TestProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.transfer.core.TestResourceDefinition;
+import org.eclipse.dataspaceconnector.transfer.core.observe.TransferProcessObservableImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -65,13 +66,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
@@ -93,7 +93,6 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -105,7 +104,6 @@ import static org.mockito.Mockito.when;
 class TransferProcessManagerImplTest {
 
     private static final String DESTINATION_TYPE = "test-type";
-    private static final long TIMEOUT = 5;
     private static final int TRANSFER_MANAGER_BATCHSIZE = 10;
     private static final String PROVISIONED_RESOURCE_ID = "1";
 
@@ -121,12 +119,15 @@ class TransferProcessManagerImplTest {
     private final Vault vault = mock(Vault.class);
     @SuppressWarnings("unchecked")
     private final SendRetryManager<StatefulEntity> sendRetryManager = mock(SendRetryManager.class);
+    private final TransferProcessListener listener = mock(TransferProcessListener.class);
 
     private TransferProcessManagerImpl manager;
 
     @SuppressWarnings("unchecked")
     @BeforeEach
     void setup() {
+        var observable = new TransferProcessObservableImpl();
+        observable.registerListener(listener);
         manager = TransferProcessManagerImpl.Builder.newInstance()
                 .provisionManager(provisionManager)
                 .dataFlowManager(dataFlowManager)
@@ -140,7 +141,7 @@ class TransferProcessManagerImplTest {
                 .typeManager(new TypeManager())
                 .clock(Clock.fixed(Instant.ofEpochMilli(currentTime), UTC))
                 .statusCheckerRegistry(statusCheckerRegistry)
-                .observable(mock(TransferProcessObservable.class))
+                .observable(observable)
                 .transferProcessStore(transferProcessStore)
                 .policyArchive(policyArchive)
                 .vault(vault)
@@ -176,10 +177,11 @@ class TransferProcessManagerImplTest {
         manager.stop();
 
         verify(transferProcessStore, times(1)).create(argThat(p -> p.getCreatedTimestamp() == currentTime));
+        verify(listener).initialized(any());
     }
 
     @Test
-    void initial_shouldTransitionToProvisioning() throws InterruptedException {
+    void initial_shouldTransitionToProvisioning() {
         var process = createTransferProcess(INITIAL);
 
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
@@ -189,19 +191,17 @@ class TransferProcessManagerImplTest {
         var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
         when(manifestGenerator.generateConsumerResourceManifest(any(DataRequest.class), any(Policy.class))).thenReturn(resourceManifest);
 
-        var latch = countDownOnUpdateLatch();
-
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-
-        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-        verifyNoInteractions(provisionManager);
-        verify(transferProcessStore).update(argThat(p -> p.getState() == PROVISIONING.code()));
+        await().untilAsserted(() -> {
+            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+            verifyNoInteractions(provisionManager);
+            verify(transferProcessStore).update(argThat(p -> p.getState() == PROVISIONING.code()));
+        });
     }
 
     @Test
-    void provisioning_shouldTransitionToProvisionedOnDataDestination() throws InterruptedException {
+    void provisioning_shouldTransitionToProvisionedOnDataDestination() {
         var process = createTransferProcess(PROVISIONING).toBuilder()
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
@@ -213,19 +213,19 @@ class TransferProcessManagerImplTest {
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
         when(transferProcessStore.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
-        var latch = countDownOnUpdateLatch();
 
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-
-        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-        verify(transferProcessStore).find(process.getId());
-        verify(transferProcessStore).update(argThat(p -> p.getState() == PROVISIONED.code()));
+        await().untilAsserted(() -> {
+            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+            verify(transferProcessStore).find(process.getId());
+            verify(transferProcessStore).update(argThat(p -> p.getState() == PROVISIONED.code()));
+            verify(listener).provisioned(process);
+        });
     }
 
     @Test
-    void provisioning_shouldTransitionToProvisionedOnContentAddress() throws InterruptedException {
+    void provisioning_shouldTransitionToProvisionedOnContentAddress() {
         var resourceDefinition = TestResourceDefinition.Builder.newInstance().id("3").build();
 
         var process = createTransferProcess(PROVISIONING).toBuilder()
@@ -253,20 +253,18 @@ class TransferProcessManagerImplTest {
         when(transferProcessStore.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
 
-
-        var latch = countDownOnUpdateLatch();
-
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-
-        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-        verify(transferProcessStore).update(argThat(p -> p.getState() == PROVISIONED.code()));
-        verify(vault).storeSecret(any(), any());
+        await().untilAsserted(() -> {
+            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+            verify(transferProcessStore).update(argThat(p -> p.getState() == PROVISIONED.code()));
+            verify(vault).storeSecret(any(), any());
+            verify(listener).provisioned(process);
+        });
     }
 
     @Test
-    void provisioning_shouldTransitionToErrorOnProvisionError() throws InterruptedException {
+    void provisioning_shouldTransitionToErrorOnProvisionError() {
         var process = createTransferProcess(PROVISIONING).toBuilder()
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
@@ -276,17 +274,17 @@ class TransferProcessManagerImplTest {
         when(transferProcessStore.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
 
-        var latch = countDownOnUpdateLatch();
-
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-        verify(transferProcessStore).update(argThat(p -> p.getState() == ERROR.code()));
+        await().untilAsserted(() -> {
+            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+            verify(transferProcessStore).update(argThat(p -> p.getState() == ERROR.code()));
+            verify(listener).failed(process);
+        });
     }
 
     @Test
-    void provisioning_shouldTransitionToErrorOnFatalProvisionError() throws InterruptedException {
+    void provisioning_shouldTransitionToErrorOnFatalProvisionError() {
         var process = createTransferProcess(PROVISIONING).toBuilder()
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
@@ -297,17 +295,17 @@ class TransferProcessManagerImplTest {
         when(transferProcessStore.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
 
-        var latch = countDownOnUpdateLatch();
-
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-        verify(transferProcessStore).update(argThat(p -> p.getState() == ERROR.code()));
+        await().untilAsserted(() -> {
+            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+            verify(transferProcessStore).update(argThat(p -> p.getState() == ERROR.code()));
+            verify(listener).failed(process);
+        });
     }
 
     @Test
-    void provisioning_shouldContinueOnRetryProvisionError() throws InterruptedException {
+    void provisioning_shouldContinueOnRetryProvisionError() {
         var process = createTransferProcess(PROVISIONING).toBuilder()
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
@@ -317,79 +315,77 @@ class TransferProcessManagerImplTest {
         when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
         when(transferProcessStore.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
-        var latch = countDownOnUpdateLatch();
 
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-        verify(transferProcessStore).update(argThat(p -> p.getState() == PROVISIONING.code()));
+        await().untilAsserted(() -> {
+            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+            verify(transferProcessStore).update(argThat(p -> p.getState() == PROVISIONING.code()));
+        });
     }
 
     @Test
-    void provisionedConsumer_shouldTransitionToRequesting() throws InterruptedException {
+    void provisionedConsumer_shouldTransitionToRequesting() {
         var process = createTransferProcess(PROVISIONED).toBuilder().type(CONSUMER).build();
-
         when(transferProcessStore.nextForState(eq(PROVISIONED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
 
-        var latch = countDownOnUpdateLatch();
-
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(transferProcessStore, atLeastOnce()).nextForState(eq(PROVISIONED.code()), anyInt());
-        verify(transferProcessStore).update(argThat(p -> p.getState() == REQUESTING.code()));
+        await().untilAsserted(() -> {
+            verify(transferProcessStore, atLeastOnce()).nextForState(eq(PROVISIONED.code()), anyInt());
+            verify(transferProcessStore).update(argThat(p -> p.getState() == REQUESTING.code()));
+        });
     }
 
     @Test
-    void provisionedProvider_shouldTransitionToInProgress() throws InterruptedException {
+    void provisionedProvider_shouldTransitionToInProgress() {
         var process = createTransferProcess(PROVISIONED).toBuilder().type(PROVIDER).build();
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(transferProcessStore.nextForState(eq(PROVISIONED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(dataFlowManager.initiate(any(), any(), any())).thenReturn(StatusResult.success());
-        var latch = countDownOnUpdateLatch();
 
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-        verify(transferProcessStore).update(argThat(p -> p.getState() == IN_PROGRESS.code()));
+        await().untilAsserted(() -> {
+            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+            verify(transferProcessStore).update(argThat(p -> p.getState() == IN_PROGRESS.code()));
+        });
     }
 
     @Test
-    void requesting_shouldTransitionToRequested() throws InterruptedException {
+    void requesting_shouldTransitionToRequested() {
         var process = createTransferProcess(REQUESTING);
-        var latch = countDownOnUpdateLatch(1);
         when(dispatcherRegistry.send(eq(Object.class), any(), any())).thenReturn(completedFuture("any"));
         when(transferProcessStore.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
 
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(transferProcessStore, times(1)).update(argThat(p -> p.getState() == REQUESTED.code()));
+        await().untilAsserted(() -> {
+            verify(transferProcessStore, times(1)).update(argThat(p -> p.getState() == REQUESTED.code()));
+            verify(listener).requested(process);
+        });
     }
 
     @Test
-    void requesting_OnFailureAndRetriesNotExhausted_updatesStateCountForRetry() throws InterruptedException {
+    void requesting_OnFailureAndRetriesNotExhausted_updatesStateCountForRetry() {
         var process = createTransferProcess(REQUESTING);
-        var latch = countDownOnUpdateLatch(1);
         when(dispatcherRegistry.send(eq(Object.class), any(), any())).thenReturn(failedFuture(new EdcException("send failed")));
         when(transferProcessStore.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
 
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(transferProcessStore, times(1)).update(argThat(p -> p.getState() == REQUESTING.code()));
+        await().untilAsserted(() -> {
+            verify(transferProcessStore, times(1)).update(argThat(p -> p.getState() == REQUESTING.code()));
+        });
     }
 
     @Test
-    void requesting_OnFailureAndRetriesExhausted_updatesStateCountForRetry() throws InterruptedException {
+    void requesting_OnFailureAndRetriesExhausted_updatesStateCountForRetry() {
         var process = createTransferProcess(REQUESTING);
-        var latch = countDownOnUpdateLatch(1);
         when(dispatcherRegistry.send(eq(Object.class), any(), any())).thenReturn(failedFuture(new EdcException("send failed")));
         when(transferProcessStore.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
@@ -397,78 +393,72 @@ class TransferProcessManagerImplTest {
 
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(transferProcessStore, times(1)).update(argThat(p -> p.getState() == ERROR.code()));
+        await().untilAsserted(() -> {
+            verify(transferProcessStore, times(1)).update(argThat(p -> p.getState() == ERROR.code()));
+            verify(listener).failed(process);
+        });
     }
 
     @Test
-    void requesting_whenShouldWait_updatesStateCount() throws InterruptedException {
+    void requesting_whenShouldWait_updatesStateCount() {
         var process = createTransferProcess(REQUESTING);
         when(sendRetryManager.shouldDelay(process)).thenReturn(true);
-        var latch = countDownOnUpdateLatch(1);
         when(dispatcherRegistry.send(eq(Object.class), any(), any())).thenReturn(completedFuture("any"));
         when(transferProcessStore.nextForState(eq(REQUESTING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
 
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verifyNoInteractions(dispatcherRegistry);
-        verify(transferProcessStore, times(1)).update(argThat(p -> p.getState() == REQUESTING.code()));
+        await().untilAsserted(() -> {
+            verifyNoInteractions(dispatcherRegistry);
+            verify(transferProcessStore, times(1)).update(argThat(p -> p.getState() == REQUESTING.code()));
+        });
     }
 
     @Test
-    void requested_shouldTransitionToInProgressIfTransferIsFinite() throws InterruptedException {
+    void requested_shouldTransitionToInProgressIfTransferIsFinite() {
         var process = createTransferProcess(REQUESTED);
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
         when(transferProcessStore.nextForState(eq(REQUESTED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
 
-        var latch = countDownOnUpdateLatch();
-
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(transferProcessStore).update(argThat(p -> p.getState() == IN_PROGRESS.code()));
+        await().untilAsserted(() -> {
+            verify(transferProcessStore).update(argThat(p -> p.getState() == IN_PROGRESS.code()));
+        });
     }
 
     @Test
-    void requested_shouldTransitionToStreamingIfTransferIsNonFinite() throws InterruptedException {
+    void requested_shouldTransitionToStreamingIfTransferIsNonFinite() {
         var nonFinite = TransferType.Builder.transferType().isFinite(false).build();
         var process = createTransferProcess(REQUESTED, nonFinite, true);
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
-
-        var latch = countDownOnUpdateLatch();
-
         when(transferProcessStore.nextForState(eq(REQUESTED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
 
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(transferProcessStore).update(argThat(p -> p.getState() == STREAMING.code()));
+        await().untilAsserted(() -> {
+            verify(transferProcessStore).update(argThat(p -> p.getState() == STREAMING.code()));
+        });
     }
 
     @Test
-    void requested_shouldNotTransitionIfProvisionedResourcesAreEmpty() throws InterruptedException {
+    void requested_shouldNotTransitionIfProvisionedResourcesAreEmpty() {
         var process = createTransferProcess(REQUESTED);
-
-        var latch = new CountDownLatch(1);
-
-        when(transferProcessStore.nextForState(eq(REQUESTED.code()), anyInt())).thenAnswer(i -> {
-            latch.countDown();
-            return List.of(process);
-        });
+        when(transferProcessStore.nextForState(eq(REQUESTED.code()), anyInt())).thenReturn(List.of(process));
         doThrow(new AssertionError("update() should not be called as process was not updated"))
                 .when(transferProcessStore).update(process);
 
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(transferProcessStore, never()).update(any());
+        await().untilAsserted(() -> {
+            verify(transferProcessStore, never()).update(any());
+        });
     }
 
     @Test
     @DisplayName("checkComplete: should transition process with managed resources if checker returns completed")
-    void verifyCompletedManagedResources() throws InterruptedException {
+    void verifyCompletedManagedResources() {
         var process = createTransferProcess(IN_PROGRESS);
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
@@ -476,96 +466,93 @@ class TransferProcessManagerImplTest {
         when(transferProcessStore.nextForState(eq(IN_PROGRESS.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(statusCheckerRegistry.resolve(anyString())).thenReturn((tp, resources) -> true);
 
-        var latch = countDownOnUpdateLatch();
-
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
-        verify(transferProcessStore).update(argThat(p -> p.getState() == COMPLETED.code()));
+        await().untilAsserted(() -> {
+            verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
+            verify(transferProcessStore).update(argThat(p -> p.getState() == COMPLETED.code()));
+            verify(listener).completed(process);
+        });
     }
 
     @Test
     @DisplayName("checkComplete: should transition process with no managed resources if checker returns completed")
-    void verifyCompletedNonManagedResources() throws InterruptedException {
+    void verifyCompletedNonManagedResources() {
         TransferProcess process = createTransferProcess(REQUESTED, new TransferType(), false);
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
 
         when(transferProcessStore.nextForState(eq(IN_PROGRESS.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(statusCheckerRegistry.resolve(anyString())).thenReturn((tp, resources) -> true);
-        var latch = countDownOnUpdateLatch();
 
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
-        verify(transferProcessStore).update(argThat(p -> p.getState() == COMPLETED.code()));
+        await().untilAsserted(() -> {
+            verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
+            verify(transferProcessStore).update(argThat(p -> p.getState() == COMPLETED.code()));
+            verify(listener).completed(process);
+        });
     }
 
     @Test
     @DisplayName("checkComplete: should break lease and not transition process if checker returns not yet completed")
-    void verifyCompleted_notAllYetCompleted() throws InterruptedException {
+    void verifyCompleted_notAllYetCompleted() {
         var process = createTransferProcess(IN_PROGRESS);
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
-
-        var latch = countDownOnUpdateLatch();
 
         when(transferProcessStore.nextForState(eq(IN_PROGRESS.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(statusCheckerRegistry.resolve(anyString())).thenReturn((tp, resources) -> false);
 
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(transferProcessStore).update(argThat(p -> p.getState() == IN_PROGRESS.code()));
+        await().untilAsserted(() -> {
+            verify(transferProcessStore).update(argThat(p -> p.getState() == IN_PROGRESS.code()));
+        });
     }
 
     @Test
     @DisplayName("checkComplete: should not transition process with managed resources but no status checker")
-    void verifyCompleted_noCheckerForManaged() throws InterruptedException {
+    void verifyCompleted_noCheckerForManaged() {
         var process = createTransferProcess(IN_PROGRESS);
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
         var latch = new CountDownLatch(1);
-        when(transferProcessStore.nextForState(eq(IN_PROGRESS.code()), anyInt())).thenAnswer(i -> {
-            latch.countDown();
-            return List.of(process);
-        });
+        when(transferProcessStore.nextForState(eq(IN_PROGRESS.code()), anyInt())).thenReturn(List.of(process));
         doThrow(new AssertionError("update() should not be called as process was not updated"))
                 .when(transferProcessStore).update(process);
 
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(transferProcessStore, never()).update(any());
+        await().untilAsserted(() -> {
+            verify(transferProcessStore, never()).update(any());
+        });
     }
 
     @Test
     @DisplayName("checkComplete: should automatically transition process with no managed resources if no checker")
-    void verifyCompleted_noCheckerForSomeResources() throws InterruptedException {
+    void verifyCompleted_noCheckerForSomeResources() {
         var process = createTransferProcess(IN_PROGRESS, new TransferType(), false);
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
-
-        var latch = countDownOnUpdateLatch();
 
         when(transferProcessStore.nextForState(eq(IN_PROGRESS.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(statusCheckerRegistry.resolve(anyString())).thenReturn(null);
 
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
-        verify(transferProcessStore).update(argThat(p -> p.getState() == COMPLETED.code()));
+        await().untilAsserted(() -> {
+            verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
+            verify(transferProcessStore).update(argThat(p -> p.getState() == COMPLETED.code()));
+            verify(listener).completed(process);
+        });
     }
 
     @Test
-    void deprovisioning_shouldTransitionToDeprovisioned() throws InterruptedException {
+    void deprovisioning_shouldTransitionToDeprovisioned() {
         var manifest = ResourceManifest.Builder.newInstance()
                 .definitions(List.of(new TestResourceDefinition()))
                 .build();
-
 
         var resourceSet = ProvisionedResourceSet.Builder.newInstance()
                 .resources(List.of(new TokenTestProvisionResource("test", PROVISIONED_RESOURCE_ID)))
@@ -586,19 +573,19 @@ class TransferProcessManagerImplTest {
         when(transferProcessStore.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
 
-        var latch = countDownOnUpdateLatch();
-
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-        verify(transferProcessStore).find(process.getId());
-        verify(transferProcessStore).update(argThat(p -> p.getState() == DEPROVISIONED.code()));
-        verify(vault).deleteSecret(any());
+        await().untilAsserted(() -> {
+            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+            verify(transferProcessStore).find(process.getId());
+            verify(transferProcessStore).update(argThat(p -> p.getState() == DEPROVISIONED.code()));
+            verify(vault).deleteSecret(any());
+            verify(listener).deprovisioned(process);
+        });
     }
 
     @Test
-    void deprovisioning_shouldTransitionToErrorOnFatalDeprovisionError() throws InterruptedException {
+    void deprovisioning_shouldTransitionToErrorOnFatalDeprovisionError() {
         var manifest = ResourceManifest.Builder.newInstance()
                 .definitions(List.of(new TestResourceDefinition()))
                 .build();
@@ -618,17 +605,18 @@ class TransferProcessManagerImplTest {
         when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(deprovisionResult)));
         when(transferProcessStore.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
-        var latch = countDownOnUpdateLatch();
 
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-        verify(transferProcessStore).update(argThat(p -> p.getState() == ERROR.code()));
+        await().untilAsserted(() -> {
+            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+            verify(transferProcessStore).update(argThat(p -> p.getState() == ERROR.code()));
+            verify(listener).failed(process);
+        });
     }
 
     @Test
-    void deprovisioning_shouldNotTransitionOnRetriableDeprovisionError() throws InterruptedException {
+    void deprovisioning_shouldNotTransitionOnRetriableDeprovisionError() {
         var manifest = ResourceManifest.Builder.newInstance()
                 .definitions(List.of(new TestResourceDefinition()))
                 .build();
@@ -648,17 +636,17 @@ class TransferProcessManagerImplTest {
         when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(deprovisionResult)));
         when(transferProcessStore.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
-        var latch = countDownOnUpdateLatch();
 
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(transferProcessStore).update(argThat(p -> p.getState() == DEPROVISIONING.code()));
-        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+        await().untilAsserted(() -> {
+            verify(transferProcessStore).update(argThat(p -> p.getState() == DEPROVISIONING.code()));
+            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+        });
     }
 
     @Test
-    void deprovisioning_shouldTransitionToErrorOnDeprovisionException() throws InterruptedException {
+    void deprovisioning_shouldTransitionToErrorOnDeprovisionException() {
         var process = createTransferProcess(DEPROVISIONING).toBuilder()
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
@@ -666,25 +654,27 @@ class TransferProcessManagerImplTest {
         when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(failedFuture(new EdcException("provision failed")));
         when(transferProcessStore.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
         when(transferProcessStore.find(process.getId())).thenReturn(process);
-        var latch = countDownOnUpdateLatch();
 
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-        verify(transferProcessStore).update(argThat(p -> p.getState() == ERROR.code()));
+        await().untilAsserted(() -> {
+            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+            verify(transferProcessStore).update(argThat(p -> p.getState() == ERROR.code()));
+            verify(listener).failed(process);
+        });
     }
 
     @Test
-    void deprovisioned_shouldTransitionToEnded() throws InterruptedException {
+    void deprovisioned_shouldTransitionToEnded() {
         var process = createTransferProcess(DEPROVISIONED);
         when(transferProcessStore.nextForState(eq(DEPROVISIONED.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        var latch = countDownOnUpdateLatch();
 
         manager.start();
 
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verify(transferProcessStore).update(argThat(p -> p.getState() == ENDED.code()));
+        await().untilAsserted(() -> {
+            verify(transferProcessStore).update(argThat(p -> p.getState() == ENDED.code()));
+            verify(listener).ended(process);
+        });
     }
 
     private TransferProcess createTransferProcess(TransferProcessStates inState) {
@@ -713,21 +703,6 @@ class TransferProcessManagerImplTest {
 
     private ProvisionedDataDestinationResource provisionedDataDestinationResource() {
         return new TestProvisionedDataDestinationResource("test-resource", PROVISIONED_RESOURCE_ID);
-    }
-
-    private CountDownLatch countDownOnUpdateLatch() {
-        return countDownOnUpdateLatch(1);
-    }
-
-    private CountDownLatch countDownOnUpdateLatch(int count) {
-        var latch = new CountDownLatch(count);
-
-        doAnswer(i -> {
-            latch.countDown();
-            return null;
-        }).when(transferProcessStore).update(any());
-
-        return latch;
     }
 
     @JsonTypeName("dataspaceconnector:testprovisioneddcontentresource")

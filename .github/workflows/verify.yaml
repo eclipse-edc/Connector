@@ -22,7 +22,6 @@ jobs:
 
       # lets run Checkstyle explicitly (as opposed to within gradle) due to better reporting capabilities
       - name: Run Checkstyle
-        if: github.event_name == 'pull_request'
         uses: nikitasavinov/checkstyle-action@0.6.0
         with:
           checkstyle_config: resources/edc-checkstyle-config.xml

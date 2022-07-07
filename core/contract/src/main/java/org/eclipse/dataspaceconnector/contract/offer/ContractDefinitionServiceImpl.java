@@ -80,14 +80,14 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
         var accessResult = evaluate(definition.getAccessPolicyId(), agent);
 
         if (accessResult.failed()) {
-            monitor.info(format("Problem evaluating access control policy for %s: \n%s", definition.getId(), String.join("\n", accessResult.getFailureMessages())));
+            monitor.debug(format("Access not granted for %s: \n%s", definition.getId(), String.join("\n", accessResult.getFailureMessages())));
             return false;
         }
 
         var controlResult = evaluate(definition.getContractPolicyId(), agent);
 
         if (controlResult.failed()) {
-            monitor.info(format("Problem evaluating usage control policy for %s: \n%s", definition.getId(), String.join("\n", controlResult.getFailureMessages())));
+            monitor.debug(format("Evaluation of usage control policy failed for %s: \n%s", definition.getId(), String.join("\n", controlResult.getFailureMessages())));
             return false;
         }
 
