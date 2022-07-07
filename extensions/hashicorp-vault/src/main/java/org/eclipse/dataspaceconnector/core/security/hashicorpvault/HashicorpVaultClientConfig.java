@@ -14,17 +14,13 @@
 
 package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 
-import java.time.Duration;
-
 class HashicorpVaultClientConfig {
     private final String vaultUrl;
     private final String vaultToken;
-    private final Duration timeout;
 
-    HashicorpVaultClientConfig(String vaultUrl, String vaultToken, Duration timeout) {
+    HashicorpVaultClientConfig(String vaultUrl, String vaultToken) {
         this.vaultUrl = vaultUrl;
         this.vaultToken = vaultToken;
-        this.timeout = timeout;
     }
 
     public String getVaultUrl() {
@@ -35,14 +31,9 @@ class HashicorpVaultClientConfig {
         return this.vaultToken;
     }
 
-    public Duration getTimeout() {
-        return this.timeout;
-    }
-
     public static class Builder {
         private String vaultUrl;
         private String vaultToken;
-        private Duration timeout;
 
         Builder() {
         }
@@ -61,13 +52,8 @@ class HashicorpVaultClientConfig {
             return this;
         }
 
-        public Builder timeout(Duration timeout) {
-            this.timeout = timeout;
-            return this;
-        }
-
         public HashicorpVaultClientConfig build() {
-            return new HashicorpVaultClientConfig(vaultUrl, vaultToken, timeout);
+            return new HashicorpVaultClientConfig(vaultUrl, vaultToken);
         }
     }
 }

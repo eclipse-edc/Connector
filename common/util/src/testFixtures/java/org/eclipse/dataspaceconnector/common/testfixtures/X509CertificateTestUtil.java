@@ -51,15 +51,13 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 
+
+//TODO: remove
 public final class X509CertificateTestUtil {
     private static final String SIGNATURE_ALGORITHM = "SHA256WithRSAEncryption";
     private static final Provider PROVIDER = new BouncyCastleProvider();
     private static final JcaX509CertificateConverter JCA_X509_CERTIFICATE_CONVERTER =
             new JcaX509CertificateConverter().setProvider(PROVIDER);
-
-    private X509CertificateTestUtil() {
-        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
-    }
 
     public static X509Certificate generateCertificate(int validity, String cn) {
         try {

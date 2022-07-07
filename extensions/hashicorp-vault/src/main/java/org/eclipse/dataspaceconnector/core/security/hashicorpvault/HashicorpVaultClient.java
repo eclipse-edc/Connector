@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 
+import dev.failsafe.RetryPolicy;
 import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -29,6 +30,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Objects;
+
+import static dev.failsafe.Failsafe.with;
 
 class HashicorpVaultClient {
     static final String VAULT_DATA_ENTRY_NAME = "content";
@@ -46,11 +49,14 @@ class HashicorpVaultClient {
     private final OkHttpClient okHttpClient;
     @NotNull
     private final TypeManager typeManager;
+    @NotNull
+    private final RetryPolicy<Object> retryPolicy;
 
-    HashicorpVaultClient(@NotNull HashicorpVaultClientConfig config, @NotNull OkHttpClient okHttpClient, @NotNull TypeManager typeManager) {
+    HashicorpVaultClient(@NotNull HashicorpVaultClientConfig config, @NotNull OkHttpClient okHttpClient, @NotNull TypeManager typeManager, @NotNull RetryPolicy<Object> retryPolicy) {
         this.config = config;
         this.okHttpClient = okHttpClient;
         this.typeManager = typeManager;
+        this.retryPolicy = retryPolicy;
     }
 
     Result<String> getSecretValue(@NotNull String key) {
@@ -58,7 +64,7 @@ class HashicorpVaultClient {
         var headers = getHeaders();
         var request = new Request.Builder().url(requestUri).headers(headers).get().build();
 
-        try (var response = okHttpClient.newCall(request).execute()) {
+        try (var response = with(retryPolicy).get(() -> okHttpClient.newCall(request).execute())) {
 
             if (response.isSuccessful()) {
                 if (response.code() == 404) {
@@ -66,9 +72,12 @@ class HashicorpVaultClient {
                             String.format(CALL_UNSUCCESSFUL_ERROR_TEMPLATE, "Secret not found"));
                 }
 
-                var responseBody = Objects.requireNonNull(response.body()).string();
-                var payload = typeManager.readValue(responseBody, HashicorpVaultGetEntryResponsePayload.class);
-                var value = Objects.requireNonNull(payload.getData().getData().get(VAULT_DATA_ENTRY_NAME));
+                var responseBody = response.body();
+                if (responseBody == null) {
+                    return Result.failure(String.format(CALL_UNSUCCESSFUL_ERROR_TEMPLATE, "Response body empty"));
+                }
+                var payload = typeManager.readValue(responseBody.string(), HashicorpVaultGetEntryResponsePayload.class);
+                var value = payload.getData().getData().get(VAULT_DATA_ENTRY_NAME);
 
                 return Result.success(value);
             } else {
@@ -95,7 +104,7 @@ class HashicorpVaultClient {
                         .post(createRequestBody(requestPayload))
                         .build();
 
-        try (var response = okHttpClient.newCall(request).execute()) {
+        try (var response = with(retryPolicy).get(() -> okHttpClient.newCall(request).execute())) {
             if (response.isSuccessful()) {
                 var responseBody = Objects.requireNonNull(response.body()).string();
                 var responsePayload =
@@ -114,12 +123,10 @@ class HashicorpVaultClient {
         var headers = getHeaders();
         var request = new Request.Builder().url(requestUri).headers(headers).delete().build();
 
-        try (var response = okHttpClient.newCall(request).execute()) {
+        try (var response = with(retryPolicy).get(() -> okHttpClient.newCall(request).execute())) {
             return response.isSuccessful() || response.code() == 404
                     ? Result.success()
                     : Result.failure(String.format(CALL_UNSUCCESSFUL_ERROR_TEMPLATE, response.code()));
-        } catch (IOException e) {
-            return Result.failure(e.getMessage());
         }
     }
 
@@ -144,12 +151,11 @@ class HashicorpVaultClient {
     }
 
     private String getSecretUrl(String key, String entryType) {
-
-        key = URLEncoder.encode(key, StandardCharsets.UTF_8);
+        var encodedKey = URLEncoder.encode(key, StandardCharsets.UTF_8);
         return URI.create(
                         String.format(
                                 "%s/%s/%s/%s/%s",
-                                getBaseUrl(), VAULT_API_VERSION, VAULT_SECRET_PATH, entryType, key))
+                                getBaseUrl(), VAULT_API_VERSION, VAULT_SECRET_PATH, entryType, encodedKey))
                 .toString();
     }
 

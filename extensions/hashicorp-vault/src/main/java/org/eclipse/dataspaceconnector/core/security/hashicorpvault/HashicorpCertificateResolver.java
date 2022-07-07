@@ -21,11 +21,7 @@ import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.cert.CertificateException;
+import java.security.GeneralSecurityException;
 import java.security.cert.X509Certificate;
 
 /**
@@ -48,15 +44,9 @@ public class HashicorpCertificateResolver implements CertificateResolver {
         if (certificateRepresentation == null) {
             return null;
         }
-        try (InputStream inputStream =
-                     new ByteArrayInputStream(certificateRepresentation.getBytes(StandardCharsets.UTF_8))) {
-            var x509Certificate = PemUtil.readX509Certificate(inputStream);
-            if (x509Certificate == null) {
-                monitor.warning(
-                        String.format("Expected PEM certificate on key %s, but value not PEM.", id));
-            }
-            return x509Certificate;
-        } catch (IOException | CertificateException e) {
+        try {
+            return PemUtil.readX509Certificate(certificateRepresentation);
+        } catch (GeneralSecurityException e) {
             throw new EdcException(e.getMessage(), e);
         }
     }

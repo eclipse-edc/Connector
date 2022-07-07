@@ -14,6 +14,7 @@
 
 val mockitoVersion: String by project
 val okHttpVersion: String by project
+val failsafeVersion: String by project
 
 plugins {
     `java-library`
@@ -24,6 +25,7 @@ dependencies {
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation(project(":common:util"))
+    implementation("dev.failsafe:failsafe:${failsafeVersion}")
 
     testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))

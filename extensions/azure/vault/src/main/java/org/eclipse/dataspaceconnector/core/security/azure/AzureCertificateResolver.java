@@ -14,22 +14,18 @@
 
 package org.eclipse.dataspaceconnector.core.security.azure;
 
+import org.eclipse.dataspaceconnector.common.security.PemUtil;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 
-import java.io.ByteArrayInputStream;
 import java.security.GeneralSecurityException;
-import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.Base64;
 
 /**
  * Resolves an X.509 certificate in Azure vault.
  */
 public class AzureCertificateResolver implements CertificateResolver {
-    private static final String HEADER = "-----BEGIN CERTIFICATE-----";
-    private static final String FOOTER = "-----END CERTIFICATE-----";
     private final Vault vault;
 
     public AzureCertificateResolver(Vault vault) {
@@ -43,10 +39,7 @@ public class AzureCertificateResolver implements CertificateResolver {
             if (encoded == null) {
                 return null;
             }
-            encoded = encoded.replace(HEADER, "").replaceAll(System.lineSeparator(), "").replace(FOOTER, "");
-
-            CertificateFactory fact = CertificateFactory.getInstance("X.509");
-            return (X509Certificate) fact.generateCertificate(new ByteArrayInputStream(Base64.getDecoder().decode(encoded.getBytes())));
+            return PemUtil.readX509Certificate(encoded);
         } catch (GeneralSecurityException e) {
             throw new EdcException(e);
         }

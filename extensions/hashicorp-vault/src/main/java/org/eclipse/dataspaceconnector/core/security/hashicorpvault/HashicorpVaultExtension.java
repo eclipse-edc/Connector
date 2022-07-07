@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 
+import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
@@ -25,8 +26,6 @@ import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
-import java.time.Duration;
-
 @Provides({Vault.class, PrivateKeyResolver.class, CertificateResolver.class})
 public class HashicorpVaultExtension implements ServiceExtension {
 
@@ -35,9 +34,6 @@ public class HashicorpVaultExtension implements ServiceExtension {
 
     @EdcSetting(required = true)
     public static final String VAULT_TOKEN = "edc.vault.hashicorp.token";
-
-    @EdcSetting
-    private static final String VAULT_TIMEOUT_SECONDS = "edc.vault.hashicorp.timeout.seconds";
 
     @Override
     public String name() {
@@ -48,8 +44,9 @@ public class HashicorpVaultExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var config = loadHashicorpVaultClientConfig(context);
 
-        var okHttpClient = new OkHttpClient.Builder().callTimeout(config.getTimeout()).readTimeout(config.getTimeout()).build();
-        var client = new HashicorpVaultClient(config, okHttpClient, context.getTypeManager());
+        var retryPolicy = context.getService(RetryPolicy.class);
+        var okHttpClient = new OkHttpClient.Builder().build();
+        var client = new HashicorpVaultClient(config, okHttpClient, context.getTypeManager(), retryPolicy);
 
         var vault = new HashicorpVault(client, context.getMonitor());
         var certificateResolver = new HashicorpCertificateResolver(vault, context.getMonitor());
@@ -68,9 +65,6 @@ public class HashicorpVaultExtension implements ServiceExtension {
             throw new EdcException(String.format("Vault URL (%s) must be defined", VAULT_URL));
         }
 
-        var vaultTimeoutSeconds = Math.max(0, context.getSetting(VAULT_TIMEOUT_SECONDS, 30));
-        var vaultTimeoutDuration = Duration.ofSeconds(vaultTimeoutSeconds);
-
         var vaultToken = context.getSetting(VAULT_TOKEN, null);
 
         if (vaultToken == null) {
@@ -81,7 +75,6 @@ public class HashicorpVaultExtension implements ServiceExtension {
         return HashicorpVaultClientConfig.Builder.newInstance()
                 .vaultUrl(vaultUrl)
                 .vaultToken(vaultToken)
-                .timeout(vaultTimeoutDuration)
                 .build();
     }
 }

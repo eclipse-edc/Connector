@@ -26,7 +26,6 @@ import java.util.UUID;
 class HashicorpVaultTest {
     private static final String KEY = "key";
 
-    // mocks
     private HashicorpVaultClient vaultClient;
     private HashicorpVault vault;
 
@@ -39,48 +38,35 @@ class HashicorpVaultTest {
 
     @Test
     void getSecret() {
-        // prepare
         var value = UUID.randomUUID().toString();
-        var result = Mockito.mock(Result.class);
+        var result = Result.success(value);
         Mockito.when(vaultClient.getSecretValue(KEY)).thenReturn(result);
-        Mockito.when(result.getContent()).thenReturn(value);
-        Mockito.when(result.succeeded()).thenReturn(true);
 
-        // invoke
         var returnValue = vault.resolveSecret(KEY);
 
-        // verify
         Mockito.verify(vaultClient, Mockito.times(1)).getSecretValue(KEY);
         Assertions.assertEquals(value, returnValue);
     }
 
     @Test
     void setSecret() {
-        // prepare
         var value = UUID.randomUUID().toString();
-        var result = Mockito.mock(Result.class);
+        var result = Result.success(Mockito.mock(HashicorpVaultCreateEntryResponsePayload.class));
         Mockito.when(vaultClient.setSecret(KEY, value)).thenReturn(result);
-        Mockito.when(result.succeeded()).thenReturn(true);
 
-        // invoke
         var returnValue = vault.storeSecret(KEY, value);
 
-        // verify
         Mockito.verify(vaultClient, Mockito.times(1)).setSecret(KEY, value);
         Assertions.assertTrue(returnValue.succeeded());
     }
 
     @Test
     void destroySecret() {
-        // prepare
-        var result = Mockito.mock(Result.class);
+        var result = Result.success();
         Mockito.when(vaultClient.destroySecret(KEY)).thenReturn(result);
-        Mockito.when(result.succeeded()).thenReturn(true);
 
-        // invoke
         var returnValue = vault.deleteSecret(KEY);
 
-        // verify
         Mockito.verify(vaultClient, Mockito.times(1)).destroySecret(KEY);
         Assertions.assertTrue(returnValue.succeeded());
     }

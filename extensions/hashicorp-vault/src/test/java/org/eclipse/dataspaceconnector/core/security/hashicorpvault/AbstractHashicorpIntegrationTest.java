@@ -17,12 +17,10 @@ package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
-import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.HashMap;
+import java.util.Map;
 
 import static org.eclipse.dataspaceconnector.core.security.hashicorpvault.HashicorpVaultExtension.VAULT_TOKEN;
 import static org.eclipse.dataspaceconnector.core.security.hashicorpvault.HashicorpVaultExtension.VAULT_URL;
@@ -31,37 +29,15 @@ import static org.eclipse.dataspaceconnector.core.security.hashicorpvault.Hashic
 class AbstractHashicorpIntegrationTest {
     static final String VAULT_TEST_URL = "http://127.0.0.1:8200";
     static final String VAULT_TEST_TOKEN = "test-token";
-
-    final TestExtension testExtension = new TestExtension();
+    Vault vault;
+    CertificateResolver certificateResolver;
 
     @BeforeEach
     final void beforeEach(EdcExtension extension) {
-        extension.setConfiguration(
-                new HashMap<>() {
-                    {
-                        put(VAULT_URL, VAULT_TEST_URL);
-                        put(VAULT_TOKEN, VAULT_TEST_TOKEN);
-                    }
-                });
-        extension.registerSystemExtension(ServiceExtension.class, testExtension);
+        extension.setConfiguration(Map.of(VAULT_URL, VAULT_TEST_URL, VAULT_TOKEN, VAULT_TEST_TOKEN));
+
+        vault = extension.getContext().getService(Vault.class);
+        certificateResolver = extension.getContext().getService(CertificateResolver.class);
     }
 
-    static class TestExtension implements ServiceExtension {
-        private Vault vault;
-        private CertificateResolver certificateResolver;
-
-        @Override
-        public void initialize(ServiceExtensionContext context) {
-            vault = context.getService(Vault.class);
-            certificateResolver = context.getService(CertificateResolver.class);
-        }
-
-        Vault getVault() {
-            return this.vault;
-        }
-
-        CertificateResolver getCertificateResolver() {
-            return this.certificateResolver;
-        }
-    }
 }
