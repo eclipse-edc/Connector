@@ -12,6 +12,7 @@
  *
  */
 
+val awaitility: String by project
 val openTelemetryVersion: String by project
 
 plugins {
@@ -28,6 +29,7 @@ dependencies {
     testImplementation(project(":extensions:junit"))
     testImplementation(project(":core:defaults")) //used in the component test
     testImplementation(testFixtures(project(":common:util")))
+    testImplementation("org.awaitility:awaitility:${awaitility}")
 }
 
 

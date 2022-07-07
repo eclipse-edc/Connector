@@ -39,4 +39,9 @@ public class DeprovisionRequestHandler extends SingleTransferProcessCommandHandl
         process.transitionDeprovisioning();
         return true;
     }
+
+    @Override
+    protected void postAction(TransferProcess process) {
+
+    }
 }

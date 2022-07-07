@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,14 +56,14 @@ class CatalogServiceImplTest {
                         .policy(Policy.Builder.newInstance().build())
                         .id("1")
                         .build());
-        when(contractOfferService.queryContractOffers(any(ContractOfferQuery.class))).thenReturn(offers.stream());
+        when(contractOfferService.queryContractOffers(any(ContractOfferQuery.class), any())).thenReturn(offers.stream());
 
-        var result = dataCatalogService.getDataCatalog(claimToken);
+        var result = dataCatalogService.getDataCatalog(claimToken, new Range(0, 100));
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(CATALOG_ID);
         assertThat(result.getContractOffers()).hasSameElementsAs(offers);
-        verify(contractOfferService).queryContractOffers(any(ContractOfferQuery.class));
+        verify(contractOfferService).queryContractOffers(any(ContractOfferQuery.class), any());
     }
 
 }

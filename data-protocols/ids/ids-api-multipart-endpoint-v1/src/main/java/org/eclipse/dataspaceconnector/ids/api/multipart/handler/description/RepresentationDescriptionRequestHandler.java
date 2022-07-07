@@ -20,13 +20,14 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public class RepresentationDescriptionRequestHandler extends AbstractDescriptionRequestHandler<Asset, Representation> {
+public class RepresentationDescriptionRequestHandler extends PageableDescriptionRequestHandler<Asset, Representation> {
     private final AssetIndex assetIndex;
 
     public RepresentationDescriptionRequestHandler(
@@ -45,7 +46,7 @@ public class RepresentationDescriptionRequestHandler extends AbstractDescription
     }
 
     @Override
-    protected Asset retrieveObject(@NotNull IdsId idsId, @NotNull ClaimToken claimToken) {
+    protected Asset retrieveObject(@NotNull IdsId idsId, @NotNull ClaimToken claimToken, Range range) {
         return assetIndex.findById(idsId.getValue());
     }
 }

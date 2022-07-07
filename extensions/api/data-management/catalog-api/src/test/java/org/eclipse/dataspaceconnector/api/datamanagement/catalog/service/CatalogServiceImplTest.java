@@ -18,6 +18,7 @@ import com.github.javafaker.Faker;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -32,6 +33,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -49,11 +51,12 @@ class CatalogServiceImplTest {
                 .assetId(FAKER.internet().uuid())
                 .build();
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
-        when(dispatcher.send(any(), any(), any())).thenReturn(completedFuture(catalog));
+        when(dispatcher.send(any(), any(), any())).thenReturn(completedFuture(catalog))
+                .thenReturn(completedFuture(Catalog.Builder.newInstance().id("id2").contractOffers(List.of()).build()));
 
-        var future = service.getByProviderUrl(FAKER.internet().url());
+        var future = service.getByProviderUrl(FAKER.internet().url(), new QuerySpec());
 
         assertThat(future).succeedsWithin(1, SECONDS).extracting(Catalog::getContractOffers, InstanceOfAssertFactories.list(ContractOffer.class)).hasSize(1);
-        verify(dispatcher).send(eq(Catalog.class), isA(CatalogRequest.class), any());
+        verify(dispatcher, times(1)).send(eq(Catalog.class), isA(CatalogRequest.class), any());
     }
 }

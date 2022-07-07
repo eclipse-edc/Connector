@@ -26,14 +26,15 @@ As a developer, I do not want to ...
 - [Customize policy engine](policy-engine.md)
 - [Dependency resolution](dependency_resolution.md)
 - [Data plane framework](data-plane-framework/README.md)
+- [Dynamic SQL Queries](sql_queries.md)
 - [Events](events.md)
 - [Logging](logging.md)
 - [Metrics](metrics.md)
-- [State machine](state-machine.md)
 - [Releases](releases.md)
+- [Serialization Context](./decision-records/2022-07-04-type-manager/README.md)
+- [State machine](state-machine.md)
 - [Style guide](_helper/styleguide.md)
 - [Testing](testing.md)
-- [Dynamic SQL Queries](sql_queries.md)
 
 > All implementations have to follow existing design principles and architectural patterns that are provided as
 > [Decision Records](decision-records/README.md). Please make sure to continuously check and extend the

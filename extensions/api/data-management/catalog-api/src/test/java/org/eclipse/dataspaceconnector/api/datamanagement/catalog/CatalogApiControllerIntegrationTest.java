@@ -63,6 +63,7 @@ public class CatalogApiControllerIntegrationTest {
                 "web.http.data.path", "/api/v1/data",
                 "edc.api.auth.key", authKey
         ));
+
     }
 
     @Test
@@ -73,7 +74,9 @@ public class CatalogApiControllerIntegrationTest {
                 .assetId(UUID.randomUUID().toString())
                 .build();
         var catalog = Catalog.Builder.newInstance().id("id").contractOffers(List.of(contractOffer)).build();
-        when(dispatcher.send(any(), any(), any())).thenReturn(completedFuture(catalog));
+        var emptyCatalog = Catalog.Builder.newInstance().id("id2").contractOffers(List.of()).build();
+        when(dispatcher.send(any(), any(), any())).thenReturn(completedFuture(catalog))
+                .thenReturn(completedFuture(emptyCatalog));
 
         baseRequest()
                 .queryParam("providerUrl", FAKER.internet().url())

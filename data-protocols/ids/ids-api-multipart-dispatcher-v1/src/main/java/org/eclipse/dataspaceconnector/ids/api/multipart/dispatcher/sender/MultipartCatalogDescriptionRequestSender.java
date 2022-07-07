@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
@@ -44,8 +45,8 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * IdsMultipartSender implementation for connector catalog requests. Sends IDS DescriptionRequestMessages and
- * expects an IDS DescriptionResponseMessage as the response.
+ * IdsMultipartSender implementation for connector catalog requests. Sends IDS DescriptionRequestMessages and expects an
+ * IDS DescriptionResponseMessage as the response.
  */
 public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender<CatalogRequest, Catalog> {
 
@@ -70,7 +71,7 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
 
     @Override
     protected Message buildMessageHeader(CatalogRequest request, DynamicAttributeToken token) {
-        return new DescriptionRequestMessageBuilder()
+        var message = new DescriptionRequestMessageBuilder()
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                 //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
                 ._securityToken_(token)
@@ -78,6 +79,10 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
                 ._senderAgent_(getConnectorId())
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 .build();
+        //TODO: IDS REFACTORING: incorporate this into the protocol itself
+        message.setProperty(Range.FROM, request.getRange().getFrom());
+        message.setProperty(Range.TO, request.getRange().getTo());
+        return message;
     }
 
     @Override

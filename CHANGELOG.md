@@ -20,6 +20,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Event Framework for Asset entity (#1453)
 * Event Framework for ContractDefinition entity (#1436)
 * Event Framework for PolicyDefinition entity (#1437)
+* Event Framework for TransferProcess entity (#1439)
 * SQL Translation layer (#1357, #1459)
 * Permit API verbose error response (#1479)
 * Fix TODO and document `:extensions:data-plane-transfer` (#1519)
@@ -39,6 +40,7 @@ in the detailed section referring to by linking pull requests or issues.
 * JWT audience claim check with DID (#1520)
 * Bump `failsafe` library to version 3.2.4 (#1559)
 * Harmonize logics of `HttpDataSource` and `HttpDataSink` (#1475)
+* Log correct type in contract-definition API (#1584)
 
 #### Removed
 

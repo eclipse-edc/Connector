@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.ids.spi.service;
 
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,5 +30,5 @@ public interface CatalogService {
      * @return data catalog
      */
     @NotNull
-    Catalog getDataCatalog(ClaimToken claimToken);
+    Catalog getDataCatalog(ClaimToken claimToken, Range range);
 }
