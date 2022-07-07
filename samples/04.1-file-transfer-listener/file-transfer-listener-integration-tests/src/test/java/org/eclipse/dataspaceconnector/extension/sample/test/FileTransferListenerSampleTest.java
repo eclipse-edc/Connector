@@ -24,6 +24,7 @@ import java.io.File;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.extension.sample.test.FileTransferSampleTestCommon.getFileFromRelativePath;
 
 @EndToEndTest
 public class FileTransferListenerSampleTest {
@@ -35,7 +36,7 @@ public class FileTransferListenerSampleTest {
     static final String DESTINATION_FILE_PATH = "samples/04.1-file-transfer-listener/requested.test.txt";
     // marker.txt is a fixed name and always in the same directory as the file defined with DESTINATION_FILE_PATH.
     static final String MARKER_FILE_PATH = "samples/04.1-file-transfer-listener/marker.txt";
-    static final File MARKER_FILE = FileTransferSampleTestCommon.getFileFromRelativePath(FileTransferListenerSampleTest.MARKER_FILE_PATH);
+    static final File MARKER_FILE = getFileFromRelativePath(FileTransferListenerSampleTest.MARKER_FILE_PATH);
     static final String MARKER_FILE_CONTENT = "Transfer complete";
     @RegisterExtension
     static EdcRuntimeExtension provider = new EdcRuntimeExtension(
@@ -43,8 +44,8 @@ public class FileTransferListenerSampleTest {
             "provider",
             Map.of(
                     // Override 'edc.samples.04.asset.path' implicitly set via property 'edc.fs.config'.
-                    "edc.samples.04.asset.path", FileTransferSampleTestCommon.getFileFromRelativePath(SAMPLE_ASSET_FILE_PATH).getAbsolutePath(),
-                    "edc.fs.config", FileTransferSampleTestCommon.getFileFromRelativePath(PROVIDER_CONFIG_PROPERTIES_FILE_PATH).getAbsolutePath()
+                    "edc.samples.04.asset.path", getFileFromRelativePath(SAMPLE_ASSET_FILE_PATH).getAbsolutePath(),
+                    "edc.fs.config", getFileFromRelativePath(PROVIDER_CONFIG_PROPERTIES_FILE_PATH).getAbsolutePath()
             )
     );
     @RegisterExtension
@@ -52,7 +53,7 @@ public class FileTransferListenerSampleTest {
             ":samples:04.1-file-transfer-listener:consumer",
             "consumer",
             Map.of(
-                    "edc.fs.config", FileTransferSampleTestCommon.getFileFromRelativePath(CONSUMER_CONFIG_PROPERTIES_FILE_PATH).getAbsolutePath()
+                    "edc.fs.config", getFileFromRelativePath(CONSUMER_CONFIG_PROPERTIES_FILE_PATH).getAbsolutePath()
             )
     );
     private final FileTransferSampleTestCommon testUtils = new FileTransferSampleTestCommon(SAMPLE_ASSET_FILE_PATH, DESTINATION_FILE_PATH);
