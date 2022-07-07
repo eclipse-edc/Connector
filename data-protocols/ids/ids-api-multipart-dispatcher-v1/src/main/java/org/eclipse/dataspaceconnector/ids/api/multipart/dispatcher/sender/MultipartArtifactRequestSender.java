@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
-import de.fraunhofer.iais.eis.RequestInProcessMessage;
+import de.fraunhofer.iais.eis.RejectionMessage;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
@@ -159,7 +159,7 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
             payload = new String(parts.getPayload().readAllBytes());
         }
 
-        if (!(header instanceof RequestInProcessMessage)) {
+        if (header instanceof RejectionMessage) {
             throw new EdcException("Received rejection message as response to artifact request.");
         }
 
