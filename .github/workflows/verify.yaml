@@ -72,9 +72,9 @@ jobs:
 
       - name: Check that static SwaggerUI HTML content is up-to-date
         run: |
-          cp -r docs/swaggerui tmp-swaggerui
+          mv -f docs/swaggerui tmp-swui
           ./gradlew generateSwaggerUI
-          diff -r docs/swaggerui tmp-swaggerui
+          diff -r docs/swaggerui tmp-swui
 
   Unit-Tests:
     runs-on: ubuntu-latest
