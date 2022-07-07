@@ -17,7 +17,9 @@ package org.eclipse.dataspaceconnector.common.security;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
@@ -31,5 +33,16 @@ public final class PemUtil {
 
         CertificateFactory fact = CertificateFactory.getInstance("X.509");
         return (X509Certificate) fact.generateCertificate(new ByteArrayInputStream(Base64.getDecoder().decode(encoded.getBytes())));
+    }
+
+    public static String convertCertificateToPem(@NotNull X509Certificate certificate) throws CertificateEncodingException {
+        var base64Encoder = Base64.getMimeEncoder(64, System.lineSeparator().getBytes(StandardCharsets.UTF_8));
+        var encodedCert = new String(base64Encoder.encode(certificate.getEncoded()));
+        return String.format("%s%s%s%s%s",
+                HEADER,
+                System.lineSeparator(),
+                encodedCert,
+                System.lineSeparator(),
+                FOOTER);
     }
 }
