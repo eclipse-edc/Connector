@@ -73,7 +73,7 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
     protected String retrieveRemoteConnectorAddress(DataRequest request) {
         return request.getConnectorAddress();
     }
-    
+
     /**
      * Builds an {@link de.fraunhofer.iais.eis.ArtifactRequestMessage} for the given {@link DataRequest}.
      *
@@ -121,7 +121,7 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
         request.getProperties().forEach(message::setProperty);
         return message;
     }
-    
+
     /**
      * Builds the payload for the artifact request. The payload contains the data destination and a secret key.
      *
@@ -139,10 +139,10 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
             String secret = vault.resolveSecret(request.getDataDestination().getKeyName());
             requestPayloadBuilder = requestPayloadBuilder.secret(secret);
         }
-        
+
         return getObjectMapper().writeValueAsString(requestPayloadBuilder.build());
     }
-    
+
     /**
      * Parses the response content.
      *

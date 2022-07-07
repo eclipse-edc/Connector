@@ -69,7 +69,7 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
     protected String retrieveRemoteConnectorAddress(ContractOfferRequest request) {
         return request.getConnectorAddress();
     }
-    
+
     /**
      * Builds a {@link de.fraunhofer.iais.eis.ContractRequestMessage} or a {@link de.fraunhofer.iais.eis.ContractOfferMessage}
      * for the given {@link ContractOfferRequest} depending on whether it is an initial request.
@@ -108,7 +108,7 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
             return message;
         }
     }
-    
+
     /**
      * Builds the payload for the contract offer request. The payload contains either a {@link de.fraunhofer.iais.eis.ContractRequest}
      * or a {@link de.fraunhofer.iais.eis.ContractOffer} depending on whether it is an initial request.
@@ -127,7 +127,7 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
             return getObjectMapper().writeValueAsString(createContractOffer(contractOffer));
         }
     }
-    
+
     /**
      * Parses the response content.
      *

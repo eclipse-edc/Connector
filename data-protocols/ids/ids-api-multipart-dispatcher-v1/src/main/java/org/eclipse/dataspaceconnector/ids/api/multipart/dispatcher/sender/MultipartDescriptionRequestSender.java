@@ -65,7 +65,7 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
     protected String retrieveRemoteConnectorAddress(MetadataRequest request) {
         return request.getConnectorAddress();
     }
-    
+
     /**
      * Builds a {@link de.fraunhofer.iais.eis.DescriptionRequestMessage} for the given {@link MetadataRequest}.
      *
@@ -85,7 +85,7 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
                 ._requestedElement_(request.getRequestedAsset())
                 .build();
     }
-    
+
     /**
      * Parses the response content. Tries to parse the payload to the correct IDS information model type.
      *
