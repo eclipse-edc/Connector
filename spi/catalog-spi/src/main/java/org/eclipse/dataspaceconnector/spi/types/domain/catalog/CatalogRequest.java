@@ -16,8 +16,10 @@ package org.eclipse.dataspaceconnector.spi.types.domain.catalog;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -30,11 +32,13 @@ public class CatalogRequest implements RemoteMessage {
     private final String protocol;
     private final String connectorId;
     private final String connectorAddress;
+    private final Range range;
 
-    private CatalogRequest(@NotNull String protocol, @NotNull String connectorId, @NotNull String connectorAddress) {
+    private CatalogRequest(@NotNull String protocol, @NotNull String connectorId, @NotNull String connectorAddress, @Nullable Range range) {
         this.protocol = protocol;
         this.connectorId = connectorId;
         this.connectorAddress = connectorAddress;
+        this.range = range;
     }
 
     @NotNull
@@ -53,12 +57,30 @@ public class CatalogRequest implements RemoteMessage {
         return connectorAddress;
     }
 
+    public Range getRange() {
+        return range;
+    }
+
+
+    public Builder toBuilder() {
+        return new Builder(protocol, connectorId, connectorAddress, range);
+    }
+
     public static class Builder {
         private String protocol;
         private String connectorId;
         private String connectorAddress;
+        private Range range;
 
         private Builder() {
+
+        }
+
+        private Builder(String protocol, String connectorId, String connectorAddress, Range range) {
+            this.protocol = protocol;
+            this.connectorId = connectorId;
+            this.connectorAddress = connectorAddress;
+            this.range = range;
         }
 
         @JsonCreator
@@ -81,12 +103,17 @@ public class CatalogRequest implements RemoteMessage {
             return this;
         }
 
+        public CatalogRequest.Builder range(Range range) {
+            this.range = range;
+            return this;
+        }
+
         public CatalogRequest build() {
             Objects.requireNonNull(protocol, "protocol");
             Objects.requireNonNull(connectorId, "connectorId");
             Objects.requireNonNull(connectorAddress, "connectorAddress");
 
-            return new CatalogRequest(protocol, connectorId, connectorAddress);
+            return new CatalogRequest(protocol, connectorId, connectorAddress, range);
         }
     }
 }

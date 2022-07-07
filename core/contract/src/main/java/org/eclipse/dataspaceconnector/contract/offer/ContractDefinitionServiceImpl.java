@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
@@ -55,9 +56,10 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
 
     @NotNull
     @Override
-    public Stream<ContractDefinition> definitionsFor(ParticipantAgent agent) {
-        //todo: once IDS supports pagination, replace this with the actual paging parameters
-        return definitionStore.findAll(QuerySpec.max())
+    public Stream<ContractDefinition> definitionsFor(ParticipantAgent agent, Range range) {
+        return definitionStore.findAll(QuerySpec.Builder.newInstance()
+                        .range(range)
+                        .build())
                 .filter(definition -> evaluatePolicies(definition, agent));
     }
 
@@ -78,14 +80,14 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
         var accessResult = evaluate(definition.getAccessPolicyId(), agent);
 
         if (accessResult.failed()) {
-            monitor.info(format("Problem evaluating access control policy for %s: \n%s", definition.getId(), String.join("\n", accessResult.getFailureMessages())));
+            monitor.debug(format("Access not granted for %s: \n%s", definition.getId(), String.join("\n", accessResult.getFailureMessages())));
             return false;
         }
 
         var controlResult = evaluate(definition.getContractPolicyId(), agent);
 
         if (controlResult.failed()) {
-            monitor.info(format("Problem evaluating usage control policy for %s: \n%s", definition.getId(), String.join("\n", controlResult.getFailureMessages())));
+            monitor.debug(format("Evaluation of usage control policy failed for %s: \n%s", definition.getId(), String.join("\n", controlResult.getFailureMessages())));
             return false;
         }
 

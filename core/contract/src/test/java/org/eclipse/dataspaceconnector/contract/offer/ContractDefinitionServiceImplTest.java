@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
@@ -45,6 +46,7 @@ import static org.mockito.Mockito.when;
 
 class ContractDefinitionServiceImplTest {
 
+    private static final Range DEFAULT_RANGE = new Range(0, 10);
     private final PolicyEngine policyEngine = mock(PolicyEngine.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final ContractDefinitionStore definitionStore = mock(ContractDefinitionStore.class);
@@ -62,13 +64,13 @@ class ContractDefinitionServiceImplTest {
         var def = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
         when(policyStore.findById(any())).thenReturn(def);
         when(policyEngine.evaluate(NEGOTIATION_SCOPE, def.getPolicy(), agent)).thenReturn(Result.success(def.getPolicy()));
-        when(definitionStore.findAll(eq(QuerySpec.max()))).thenReturn(Stream.of(ContractDefinition.Builder.newInstance().id("1").accessPolicyId("access").contractPolicyId("contract").selectorExpression(SELECT_ALL).build()));
+        when(definitionStore.findAll(any())).thenReturn(Stream.of(ContractDefinition.Builder.newInstance().id("1").accessPolicyId("access").contractPolicyId("contract").selectorExpression(SELECT_ALL).build()));
 
-        var definitions = definitionService.definitionsFor(agent);
+        var definitions = definitionService.definitionsFor(agent, DEFAULT_RANGE);
 
         assertThat(definitions).hasSize(1);
         verify(policyEngine, atLeastOnce()).evaluate(NEGOTIATION_SCOPE, def.getPolicy(), agent);
-        verify(definitionStore).findAll(eq(QuerySpec.max()));
+        verify(definitionStore).findAll(any());
     }
 
     @Test
@@ -78,13 +80,13 @@ class ContractDefinitionServiceImplTest {
         when(policyStore.findById(any())).thenReturn(definition);
         var contractDefinition = ContractDefinition.Builder.newInstance().id("1").accessPolicyId("access").contractPolicyId("contract").selectorExpression(SELECT_ALL).build();
         when(policyEngine.evaluate(any(), any(), any())).thenReturn(Result.failure("invalid"));
-        when(definitionStore.findAll(eq(QuerySpec.max()))).thenReturn(Stream.of(contractDefinition));
+        when(definitionStore.findAll(any())).thenReturn(Stream.of(contractDefinition));
 
-        var result = definitionService.definitionsFor(agent);
+        var result = definitionService.definitionsFor(agent, DEFAULT_RANGE);
 
         assertThat(result).isEmpty();
         verify(policyEngine, atLeastOnce()).evaluate(NEGOTIATION_SCOPE, definition.getPolicy(), agent);
-        verify(definitionStore).findAll(eq(QuerySpec.max()));
+        verify(definitionStore).findAll(any());
     }
 
     @Test
@@ -97,13 +99,13 @@ class ContractDefinitionServiceImplTest {
         when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), any(), any()))
                 .thenReturn(Result.success(definition.getPolicy()))
                 .thenReturn(Result.failure("invalid"));
-        when(definitionStore.findAll(eq(QuerySpec.max()))).thenReturn(Stream.of(contractDefinition));
+        when(definitionStore.findAll(any())).thenReturn(Stream.of(contractDefinition));
 
-        var result = definitionService.definitionsFor(agent);
+        var result = definitionService.definitionsFor(agent, DEFAULT_RANGE);
 
         assertThat(result).isEmpty();
         verify(policyEngine, atLeastOnce()).evaluate(NEGOTIATION_SCOPE, definition.getPolicy(), agent);
-        verify(definitionStore).findAll(QuerySpec.max());
+        verify(definitionStore).findAll(any());
     }
 
     @Test
@@ -114,7 +116,7 @@ class ContractDefinitionServiceImplTest {
         when(policyEngine.evaluate(NEGOTIATION_SCOPE, policy, agent)).thenReturn(Result.success(policy));
         when(definitionStore.findAll(QuerySpec.max())).thenReturn(Stream.of(ContractDefinition.Builder.newInstance().id("1").accessPolicyId("access").contractPolicyId("contract").selectorExpression(SELECT_ALL).build()));
 
-        var definitions = definitionService.definitionsFor(agent);
+        var definitions = definitionService.definitionsFor(agent, DEFAULT_RANGE);
 
         assertThat(definitions).hasSize(0);
         verify(policyEngine, never()).evaluate(any(), any(), any());

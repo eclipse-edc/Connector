@@ -22,7 +22,6 @@ jobs:
 
       # lets run Checkstyle explicitly (as opposed to within gradle) due to better reporting capabilities
       - name: Run Checkstyle
-        if: github.event_name == 'pull_request'
         uses: nikitasavinov/checkstyle-action@0.6.0
         with:
           checkstyle_config: resources/edc-checkstyle-config.xml
@@ -30,10 +29,11 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tool_name: 'checkstyle'
           checkstyle_version: '9.0'
-          # Filtering does not work on github-check, needs github-pr-check
-          reporter: 'github-pr-check'
+          reporter: 'github-check'
           # Include only violations on added or modified files
           filter_mode: 'file'
+          # Only works when level is set to error
+          fail_on_error: true
 
   Dependency-analysis:
     runs-on: ubuntu-latest

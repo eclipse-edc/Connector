@@ -35,6 +35,7 @@ import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidation
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
@@ -157,7 +158,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
 
         @Override
         @NotNull
-        public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query) {
+        public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query, Range range) {
             return assets.stream().map(asset ->
                     ContractOffer.Builder.newInstance()
                             .policy(createEverythingAllowedPolicy())

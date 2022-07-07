@@ -8,6 +8,31 @@ paths:
         name: providerUrl
         schema:
           type: string
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          format: int32
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          format: int32
+      - in: query
+        name: filter
+        schema:
+          type: string
+      - in: query
+        name: sort
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - in: query
+        name: sortField
+        schema:
+          type: string
       responses:
         default:
           content:
