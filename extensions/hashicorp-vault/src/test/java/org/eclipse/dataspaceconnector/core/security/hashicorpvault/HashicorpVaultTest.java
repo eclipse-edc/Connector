@@ -19,9 +19,13 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.util.UUID;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class HashicorpVaultTest {
     private static final String KEY = "key";
@@ -31,8 +35,8 @@ class HashicorpVaultTest {
 
     @BeforeEach
     void setup() {
-        vaultClient = Mockito.mock(HashicorpVaultClient.class);
-        final Monitor monitor = Mockito.mock(Monitor.class);
+        vaultClient = mock(HashicorpVaultClient.class);
+        var monitor = mock(Monitor.class);
         vault = new HashicorpVault(vaultClient, monitor);
     }
 
@@ -40,34 +44,34 @@ class HashicorpVaultTest {
     void getSecret() {
         var value = UUID.randomUUID().toString();
         var result = Result.success(value);
-        Mockito.when(vaultClient.getSecretValue(KEY)).thenReturn(result);
+        when(vaultClient.getSecretValue(KEY)).thenReturn(result);
 
         var returnValue = vault.resolveSecret(KEY);
 
-        Mockito.verify(vaultClient, Mockito.times(1)).getSecretValue(KEY);
+        verify(vaultClient, times(1)).getSecretValue(KEY);
         Assertions.assertEquals(value, returnValue);
     }
 
     @Test
     void setSecret() {
         var value = UUID.randomUUID().toString();
-        var result = Result.success(Mockito.mock(HashicorpVaultCreateEntryResponsePayload.class));
-        Mockito.when(vaultClient.setSecret(KEY, value)).thenReturn(result);
+        var result = Result.success(mock(HashicorpVaultCreateEntryResponsePayload.class));
+        when(vaultClient.setSecret(KEY, value)).thenReturn(result);
 
         var returnValue = vault.storeSecret(KEY, value);
 
-        Mockito.verify(vaultClient, Mockito.times(1)).setSecret(KEY, value);
+        verify(vaultClient, times(1)).setSecret(KEY, value);
         Assertions.assertTrue(returnValue.succeeded());
     }
 
     @Test
     void destroySecret() {
         var result = Result.success();
-        Mockito.when(vaultClient.destroySecret(KEY)).thenReturn(result);
+        when(vaultClient.destroySecret(KEY)).thenReturn(result);
 
         var returnValue = vault.deleteSecret(KEY);
 
-        Mockito.verify(vaultClient, Mockito.times(1)).destroySecret(KEY);
+        verify(vaultClient, times(1)).destroySecret(KEY);
         Assertions.assertTrue(returnValue.succeeded());
     }
 }

@@ -4,6 +4,7 @@ org.eclipse.dataspaceconnector:spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:state-machine-lib:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:token-generation-lib:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:token-validation-lib:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:core-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:common-util:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:core-base:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:core-boot:0.0.1-SNAPSHOT
@@ -28,7 +29,6 @@ org.eclipse.dataspaceconnector:dataloader-cli:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:data-plane-server:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:catalog-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:contract-spi:0.0.1-SNAPSHOT
-org.eclipse.dataspaceconnector:core-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:policy-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transaction-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transfer-spi:0.0.1-SNAPSHOT

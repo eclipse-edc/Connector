@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.common.security;
 
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
@@ -28,21 +29,29 @@ public final class PemUtil {
     private static final String HEADER = "-----BEGIN CERTIFICATE-----";
     private static final String FOOTER = "-----END CERTIFICATE-----";
 
-    public static X509Certificate readX509Certificate(@NotNull String encoded) throws GeneralSecurityException {
+    public static X509Certificate readX509Certificate(@NotNull String encoded) {
         encoded = encoded.replace(HEADER, "").replaceAll(System.lineSeparator(), "").replace(FOOTER, "");
 
-        CertificateFactory fact = CertificateFactory.getInstance("X.509");
-        return (X509Certificate) fact.generateCertificate(new ByteArrayInputStream(Base64.getDecoder().decode(encoded.getBytes())));
+        try {
+            CertificateFactory fact = CertificateFactory.getInstance("X.509");
+            return (X509Certificate) fact.generateCertificate(new ByteArrayInputStream(Base64.getDecoder().decode(encoded.getBytes())));
+        } catch (GeneralSecurityException e) {
+            throw new EdcException(e.getMessage(), e);
+        }
     }
 
-    public static String convertCertificateToPem(@NotNull X509Certificate certificate) throws CertificateEncodingException {
+    public static String convertCertificateToPem(@NotNull X509Certificate certificate) {
         var base64Encoder = Base64.getMimeEncoder(64, System.lineSeparator().getBytes(StandardCharsets.UTF_8));
-        var encodedCert = new String(base64Encoder.encode(certificate.getEncoded()));
-        return String.format("%s%s%s%s%s",
-                HEADER,
-                System.lineSeparator(),
-                encodedCert,
-                System.lineSeparator(),
-                FOOTER);
+        try {
+            var encodedCert = new String(base64Encoder.encode(certificate.getEncoded()));
+            return String.format("%s%s%s%s%s",
+                    HEADER,
+                    System.lineSeparator(),
+                    encodedCert,
+                    System.lineSeparator(),
+                    FOOTER);
+        } catch (CertificateEncodingException e) {
+            throw new EdcException(e.getMessage(), e);
+        }
     }
 }

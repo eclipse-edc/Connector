@@ -34,10 +34,10 @@ class AbstractHashicorpIntegrationTest {
 
     @BeforeEach
     final void beforeEach(EdcExtension extension) {
-        extension.setConfiguration(Map.of(VAULT_URL, VAULT_TEST_URL, VAULT_TOKEN, VAULT_TEST_TOKEN));
-
         vault = extension.getContext().getService(Vault.class);
         certificateResolver = extension.getContext().getService(CertificateResolver.class);
+
+        extension.setConfiguration(Map.of(VAULT_URL, VAULT_TEST_URL, VAULT_TOKEN, VAULT_TEST_TOKEN));
     }
 
 }

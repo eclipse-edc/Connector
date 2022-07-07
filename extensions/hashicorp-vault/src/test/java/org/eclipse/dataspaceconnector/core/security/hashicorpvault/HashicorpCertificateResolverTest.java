@@ -19,11 +19,14 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.io.IOException;
-import java.security.cert.CertificateEncodingException;
 import java.util.Objects;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 class HashicorpCertificateResolverTest {
@@ -35,21 +38,21 @@ class HashicorpCertificateResolverTest {
 
     @BeforeEach
     void setup() {
-        vault = Mockito.mock(HashicorpVault.class);
-        final Monitor monitor = Mockito.mock(Monitor.class);
+        vault = mock(HashicorpVault.class);
+        final Monitor monitor = mock(Monitor.class);
         certificateResolver = new HashicorpCertificateResolver(vault, monitor);
     }
 
     @Test
-    void resolveCertificate() throws RuntimeException, IOException, CertificateEncodingException {
+    void resolveCertificate() throws RuntimeException, IOException {
         var classloader = Thread.currentThread().getContextClassLoader();
         var pemExpected =  new String(Objects.requireNonNull(classloader.getResourceAsStream(TEST_CERT_FILE)).readAllBytes());
-        Mockito.when(vault.resolveSecret(KEY)).thenReturn(pemExpected);
+        when(vault.resolveSecret(KEY)).thenReturn(pemExpected);
 
         var certificate = Objects.requireNonNull(certificateResolver.resolveCertificate(KEY));
         var pemReceived = PemUtil.convertCertificateToPem(certificate);
 
-        Mockito.verify(vault, Mockito.times(1)).resolveSecret(KEY);
+        verify(vault, times(1)).resolveSecret(KEY);
         Assertions.assertEquals(pemExpected, pemReceived);
     }
 }
