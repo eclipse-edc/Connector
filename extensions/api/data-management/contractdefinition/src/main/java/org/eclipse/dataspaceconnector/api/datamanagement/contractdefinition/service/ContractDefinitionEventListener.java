@@ -25,11 +25,11 @@ import java.time.Clock;
 /**
  * Listener responsible for creating and publishing events regarding ContractDefinition state changes
  */
-public class EventContractDefinitionListener implements ContractDefinitionListener {
+public class ContractDefinitionEventListener implements ContractDefinitionListener {
     private final Clock clock;
     private final EventRouter eventRouter;
 
-    public EventContractDefinitionListener(Clock clock, EventRouter eventRouter) {
+    public ContractDefinitionEventListener(Clock clock, EventRouter eventRouter) {
         this.clock = clock;
         this.eventRouter = eventRouter;
     }

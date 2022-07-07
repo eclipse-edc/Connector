@@ -177,7 +177,7 @@ class TransferProcessManagerImplTest {
         manager.stop();
 
         verify(transferProcessStore, times(1)).create(argThat(p -> p.getCreatedTimestamp() == currentTime));
-        verify(listener).initialized(any());
+        verify(listener).initiated(any());
     }
 
     @Test

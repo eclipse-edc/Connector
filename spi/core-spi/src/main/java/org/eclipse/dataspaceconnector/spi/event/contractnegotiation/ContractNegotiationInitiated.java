@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.event.transferprocess;
+package org.eclipse.dataspaceconnector.spi.event.contractnegotiation;
 
 import org.eclipse.dataspaceconnector.spi.event.Event;
 import org.eclipse.dataspaceconnector.spi.event.EventPayload;
@@ -20,39 +20,39 @@ import org.eclipse.dataspaceconnector.spi.event.EventPayload;
 import java.util.Objects;
 
 /**
- * This event is raised when the TransferProcess has failed.
+ * This event is raised when the ContractNegotiation has been inititated.
  */
-public class TransferProcessFailed extends Event<TransferProcessFailed.Payload> {
+public class ContractNegotiationInitiated extends Event<ContractNegotiationInitiated.Payload> {
 
-    private TransferProcessFailed() {
+    private ContractNegotiationInitiated() {
     }
 
-    public static class Builder extends Event.Builder<TransferProcessFailed, Payload, Builder> {
+    public static class Builder extends Event.Builder<ContractNegotiationInitiated, Payload, Builder> {
 
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            super(new TransferProcessFailed(), new Payload());
+            super(new ContractNegotiationInitiated(), new Payload());
         }
 
-        public Builder transferProcessId(String transferProcessId) {
-            event.payload.transferProcessId = transferProcessId;
+        public Builder contractNegotiationId(String contractNegotiationId) {
+            event.payload.contractNegotiationId = contractNegotiationId;
             return this;
         }
 
         @Override
         protected void validate() {
-            Objects.requireNonNull(event.payload.transferProcessId);
+            Objects.requireNonNull(event.payload.contractNegotiationId);
         }
     }
 
     public static class Payload extends EventPayload {
-        private String transferProcessId;
+        private String contractNegotiationId;
 
-        public String getTransferProcessId() {
-            return transferProcessId;
+        public String getContractNegotiationId() {
+            return contractNegotiationId;
         }
     }
 }

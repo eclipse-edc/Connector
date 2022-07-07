@@ -76,6 +76,8 @@ components:
           type: string
         failure:
           $ref: '#/components/schemas/Failure'
+        failureDetail:
+          type: string
         isHealthy:
           type: boolean
     HealthStatus:

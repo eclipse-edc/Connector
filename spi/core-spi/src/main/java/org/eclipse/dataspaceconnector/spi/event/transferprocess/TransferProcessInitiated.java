@@ -20,21 +20,21 @@ import org.eclipse.dataspaceconnector.spi.event.EventPayload;
 import java.util.Objects;
 
 /**
- * This event is raised when the TransferProcess has failed.
+ * This event is raised when the TransferProcess has been initiated.
  */
-public class TransferProcessFailed extends Event<TransferProcessFailed.Payload> {
+public class TransferProcessInitiated extends Event<TransferProcessInitiated.Payload> {
 
-    private TransferProcessFailed() {
+    private TransferProcessInitiated() {
     }
 
-    public static class Builder extends Event.Builder<TransferProcessFailed, Payload, Builder> {
+    public static class Builder extends Event.Builder<TransferProcessInitiated, Payload, Builder> {
 
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            super(new TransferProcessFailed(), new Payload());
+            super(new TransferProcessInitiated(), new Payload());
         }
 
         public Builder transferProcessId(String transferProcessId) {

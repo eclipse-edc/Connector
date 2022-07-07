@@ -37,8 +37,8 @@ public class TransferProcessRequested extends Event<TransferProcessRequested.Pay
             super(new TransferProcessRequested(), new Payload());
         }
 
-        public Builder transferProcessId(String contractDefinitionId) {
-            event.payload.transferProcessId = contractDefinitionId;
+        public Builder transferProcessId(String transferProcessId) {
+            event.payload.transferProcessId = transferProcessId;
             return this;
         }
 

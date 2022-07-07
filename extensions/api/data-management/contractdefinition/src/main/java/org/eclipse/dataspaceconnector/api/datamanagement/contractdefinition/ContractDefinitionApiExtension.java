@@ -16,9 +16,9 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition;
 
 import org.eclipse.dataspaceconnector.api.datamanagement.configuration.DataManagementApiConfiguration;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service.ContractDefinitionEventListener;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service.ContractDefinitionServiceImpl;
-import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service.EventContractDefinitionListener;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform.ContractDefinitionDtoToContractDefinitionTransformer;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform.ContractDefinitionToContractDefinitionDtoTransformer;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
@@ -74,7 +74,7 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
         var monitor = context.getMonitor();
 
         var contractDefinitionObservable = new ContractDefinitionObservableImpl();
-        contractDefinitionObservable.registerListener(new EventContractDefinitionListener(clock, eventRouter));
+        contractDefinitionObservable.registerListener(new ContractDefinitionEventListener(clock, eventRouter));
 
         var service = new ContractDefinitionServiceImpl(contractDefinitionStore, contractDefinitionLoader, transactionContext, contractDefinitionObservable);
         context.registerService(ContractDefinitionService.class, service);

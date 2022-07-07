@@ -127,11 +127,11 @@ public interface TransferProcessListener {
     }
 
     /**
-     * Called after a {@link TransferProcess} was initialized.
+     * Called after a {@link TransferProcess} was initiated.
      *
-     * @param process the transfer process that has been initialized.
+     * @param process the transfer process that has been initiated.
      */
-    default void initialized(TransferProcess process) {
+    default void initiated(TransferProcess process) {
 
     }
 
