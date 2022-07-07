@@ -137,10 +137,8 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
             payload = new String(parts.getPayload().readAllBytes());
         }
 
-        if (header instanceof RequestInProcessMessage) {
-            // TODO Update TransferProcess State Machine
-        } else {
-            // TODO Update TransferProcess State Machine
+        if (!(header instanceof RequestInProcessMessage)) {
+            throw new EdcException("Received rejection message as response to artifact request.");
         }
 
         return new MultipartResponse<>(header, payload);
