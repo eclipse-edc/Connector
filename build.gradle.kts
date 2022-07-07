@@ -11,6 +11,8 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+import org.hidetake.gradle.swagger.generator.GenerateSwaggerUI
+
 
 plugins {
     `java-library`
@@ -23,12 +25,17 @@ plugins {
     id("com.autonomousapps.dependency-analysis") version "1.10.0" apply (false)
     id("org.gradle.crypto.checksum") version "1.4.0"
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
+    id("org.hidetake.swagger.generator") version "2.19.2"
 }
 
 repositories {
     mavenCentral()
 }
 
+dependencies {
+    "swaggerCodegen"("org.openapitools:openapi-generator-cli:6.0.0")
+    "swaggerUI"("org.webjars:swagger-ui:4.11.1")
+}
 
 val jetBrainsAnnotationsVersion: String by project
 val jacksonVersion: String by project
@@ -193,8 +200,6 @@ allprojects {
         }
 
     }
-
-
 
     pluginManager.withPlugin("io.swagger.core.v3.swagger-gradle-plugin") {
 
@@ -365,3 +370,12 @@ nexusPublishing {
     }
 }
 
+swaggerSources {
+    create("edc").apply {
+        setInputFile(file("./resources/openapi/openapi.yaml"))
+        ui(closureOf<GenerateSwaggerUI> {
+            outputDir = file("docs/swaggerui")
+            wipeOutputDir = true
+        })
+    }
+}

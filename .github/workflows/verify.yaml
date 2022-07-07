@@ -60,6 +60,7 @@ jobs:
         run: |
           ./gradlew resolve
           ./gradlew mergeOpenApiFiles
+          ./gradlew generateSwaggerUI
 
       # Can be used (and yq tasks removed) when https://github.com/kpramesh2212/openapi-merger-plugin/pull/11/files is merged
       #- name: Check OpenAPI definitions match code

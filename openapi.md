@@ -1,42 +1,55 @@
 # Generating the OpenApi Spec (*.yaml)
 
-It is possible to generate an OpenApi spec in the form of a `*.yaml` file by invoking two simple Gradle
-tasks.
-
+It is possible to generate an OpenApi spec in the form of a `*.yaml` file by invoking two simple Gradle tasks.
 
 ## Generate `*.yaml` files
 
-Every module (=subproject) that contains REST endpoints is scanned for Jakarta Annotations which are then
-used to generate a `*.yaml` specification for that particular module. 
-This means that there is one `*.yaml`file _per module_, resulting in several `*.yaml` files.
+Every module (=subproject) that contains REST endpoints is scanned for Jakarta Annotations which are then used to
+generate a `*.yaml` specification for that particular module. This means that there is one `*.yaml`file _per module_,
+resulting in several `*.yaml` files.
 
-Those files are named `MODULENAME.yaml`, e.g. `observability.yaml` or `control.yaml`. 
+Those files are named `MODULENAME.yaml`, e.g. `observability.yaml` or `control.yaml`.
 
-To re-generate those files, simply invoke 
+To re-generate those files, simply invoke
+
 ```shell
 ./gradlew clean resolve
 ```
+
 This will generate all `*.yaml` files in the `resources/openapi/yaml` directory.
 
 ### Merge the files
-Unfortunately those files are not yet usable, because they need to be **merged together**. For that we need
-another Gradle task:
+
+Unfortunately those files are not yet usable, because they need to be **merged together**. For that we need another
+Gradle task:
 
 ```shell
 ./gradlew mergeOpenApiFiles
 ```
-which takes all `*.yaml` files located in `resources/openapi/yaml`, combines them into a single
-file and puts that into `resources/openapi/openapi.yaml`
 
+which takes all `*.yaml` files located in `resources/openapi/yaml`, combines them into a single file and puts that
+into `resources/openapi/openapi.yaml`
 
-The resulting `openapi.yaml` can then be used to generate client code, expose static web content,
-etc.
+The resulting `openapi.yaml` can then be used to generate client code, expose static web content, etc.
 
-> **IMPORTANT: these two Gradle tasks must be executed separately! `./gradlew resolve mergeOpenApiFiles` will NOT work!**
+> **IMPORTANT: these two Gradle tasks must be executed separately! `./gradlew resolve mergeOpenApiFiles` will NOT
+work!**
+
+### Generate static SwaggerUI
+
+Finally, after the new OpenAPI spec has been generated, we should re-generate the Swagger UI. It is available as static
+web content located [in the docs folder](docs/swaggerui/index.html).
+
+To do that, simply execute the following Gradle task:
+
+```shell
+./gradlew generateSwaggerUi
+```
 
 ## Gradle Plugins
 
 We use two different Gradle plugins:
+
 - `"io.swagger.core.v3.swagger-gradle-plugin"`: used to generate a `*.yaml` file per module
 - `"com.rameshkp.openapi-merger-gradle-plugin"`: used to merge all the `*.yaml` files together
 
@@ -61,21 +74,11 @@ dependencies {
 If you developed a REST endpoint, you very likely already have the `jakarta.ws.rs:....` part in your build file.
 However, if you leave it out, the Swagger Gradle Plugin will report an error.
 
-## Note of omission
+## How to generate code
 
-This feature does **neither** expose the generated files through a REST endpoint, nor does it serve static
-web content with the ever-so-popular Swagger UI.
-The EDC is a framework rather than an application, and in our point of view it is the application that is 
-responsible for serving web content.
+This feature does **neither** expose the generated files through a REST endpoint providing any sort of live try-out
+feature, **nor** does it generate any sort of client code. The static web content for Swagger UI is merely served
+through our [documentation page](https://eclipse-dataspaceconnector.github.io/DataSpaceConnector/).
 
-Furthermore, **no** client code is auto-generated, as this will be highly dependent on the frameworks used 
-on the client side. 
-
-A pointer on how to expose the YAML file and the Swagger UI using Jetty can be found [here](https://anirtek.github.io/java/jetty/swagger/openapi/2021/06/12/Hooking-up-OpenAPI-with-Jetty.html).
-
-To just take a quick look at the generated API documentation with Swagger UI, you can run it in a Docker container:
-
-```shell
-docker run -p 80:8080 -e SWAGGER_JSON=/openapi.yaml -v $(pwd)/resources/openapi/openapi.yaml:/openapi.yaml swaggerapi/swagger-ui
-```
-
+However, the same gradle plugin we use for generating the static HTML content is also capable of generating client code.
+Please refer to the [official documentation](https://github.com/int128/gradle-swagger-generator-plugin).  
