@@ -35,6 +35,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.Multip
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
+import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -54,6 +55,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -62,6 +65,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOkHttpClient;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -114,10 +118,18 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
     void testSendArtifactRequestMessage() throws Exception {
         var asset = Asset.Builder.newInstance().id("1").build();
         addAsset(asset);
-        when(transformerRegistry.transform(any(), any()))
-                .thenReturn(Result.success(URI.create("urn:artifact:1")));
-        when(transformerRegistry.transform(any(), any()))
+        when(transformerRegistry.transform(isA(IdsId.class), eq(URI.class)))
+                .thenReturn(Result.success(URI.create("urn:artifact:1")))
                 .thenReturn(Result.success(URI.create("urn:contract:1")));
+        when(negotiationStore.findContractAgreement(any())).thenReturn(ContractAgreement.Builder.newInstance()
+                .providerAgentId("provider")
+                .consumerAgentId("consumer")
+                .assetId("1")
+                .policy(Policy.Builder.newInstance().build())
+                .contractSigningDate(Instant.now().getEpochSecond())
+                .contractStartDate(Instant.now().getEpochSecond())
+                .contractEndDate(Instant.now().plus(1, ChronoUnit.DAYS).getEpochSecond())
+                .id("1:2").build());
 
         var request = DataRequest.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)

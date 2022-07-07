@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
@@ -77,16 +78,18 @@ import static org.mockito.Mockito.mock;
         AssetIndex.class, TransferProcessStore.class, ContractDefinitionStore.class, IdentityService.class,
         ContractNegotiationManager.class, ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class,
         ContractOfferService.class, ContractValidationService.class, PolicyArchive.class,
-        ObjectMapperFactory.class
+        ObjectMapperFactory.class, ContractNegotiationStore.class
 })
 class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements ServiceExtension {
     private final List<Asset> assets;
 
     private final IdentityService identityService;
+    private final ContractNegotiationStore negotiationStore;
 
-    IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(List<Asset> assets, IdentityService identityService) {
+    IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(List<Asset> assets, IdentityService identityService, ContractNegotiationStore negotiationStore) {
         this.assets = Objects.requireNonNull(assets);
         this.identityService = identityService;
+        this.negotiationStore = negotiationStore;
     }
 
     private static ContractNegotiation fakeContractNegotiation() {
@@ -123,6 +126,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         context.registerService(ConsumerContractNegotiationManager.class, new FakeConsumerContractNegotiationManager());
         context.registerService(PolicyArchive.class, mock(PolicyArchive.class));
         context.registerService(ObjectMapperFactory.class, new ObjectMapperFactory());
+        context.registerService(ContractNegotiationStore.class, negotiationStore);
     }
 
     private static class FakeAssetIndex implements AssetIndex {
