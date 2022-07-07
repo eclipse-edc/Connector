@@ -33,6 +33,8 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URI;
 import java.util.Collections;
 
+import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.util.ResponseUtil.parseMultipartStringResponse;
+
 /**
  * IdsMultipartSender implementation for contract rejections. Sends IDS ContractRequestMessages and
  * expects an IDS RequestInProcessMessage as the response.
@@ -79,12 +81,6 @@ public class MultipartContractRejectionSender extends IdsMultipartSender<Contrac
 
     @Override
     protected MultipartResponse<String> getResponseContent(IdsMultipartParts parts) throws Exception {
-        Message header = getObjectMapper().readValue(parts.getHeader(), Message.class);
-        String payload = null;
-        if (parts.getPayload() != null) {
-            payload = new String(parts.getPayload().readAllBytes());
-        }
-
-        return new MultipartResponse<>(header, payload);
+        return parseMultipartStringResponse(parts, getObjectMapper());
     }
 }
