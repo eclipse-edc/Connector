@@ -34,7 +34,10 @@ import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 
-public class FileTransferSampleTestUtils {
+/**
+ * Encapsulates common settings, test steps, and helper methods for the test for samples 4.0 and 4.1.
+ */
+public class FileTransferSampleTestCommon {
 
     static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -44,15 +47,15 @@ public class FileTransferSampleTestUtils {
     static final String INITIATE_TRANSFER_PROCESS_URI = "http://localhost:9192/api/v1/data/transferprocess";
     static final String CONTRACT_OFFER_FILE_PATH = "samples/04.0-file-transfer/contractoffer.json";
     static final String TRANSFER_FILE_PATH = "samples/04.0-file-transfer/filetransfer.json";
-    static final String DESTINATION_FILE_PATH = "samples/requested.test.txt";
     static final String API_KEY_HEADER_KEY = "X-Api-Key";
     static final String API_KEY_HEADER_VALUE = "password";
-    static final File DESTINATION_FILE = getFileFromRelativePath(DESTINATION_FILE_PATH);
     //endregion
 
     //region changeable test settings
     final String sampleAssetFilePath;
     final File sampleAssetFile;
+    final String destinationFilePath;
+    final File destinationFile;
     Duration timeout = Duration.ofSeconds(15);
     Duration pollInterval = Duration.ofMillis(500);
     //endregion
@@ -60,9 +63,18 @@ public class FileTransferSampleTestUtils {
     String contractNegotiationId;
     String contractAgreementId;
 
-    FileTransferSampleTestUtils(@NotNull String sampleAssetFilePath) {
+    /**
+     * Creates a new {@code FileTransferSampleTestCommon} instance.
+     *
+     * @param sampleAssetFilePath Relative path starting from the root of the project to a file which will be read from for transfer.
+     * @param destinationFilePath Relative path starting from the root of the project where the transferred file will be written to.
+     */
+    FileTransferSampleTestCommon(@NotNull String sampleAssetFilePath, @NotNull String destinationFilePath) {
         this.sampleAssetFilePath = sampleAssetFilePath;
         this.sampleAssetFile  = getFileFromRelativePath(sampleAssetFilePath);
+
+        this.destinationFilePath = sampleAssetFilePath;
+        this.destinationFile  = getFileFromRelativePath(destinationFilePath);
     }
 
     /**
@@ -70,7 +82,7 @@ public class FileTransferSampleTestUtils {
      * This assertion checks only whether the file to be copied is not existing already.
      */
     void assertTestPrerequisites() {
-        assertThat(DESTINATION_FILE).doesNotExist();
+        assertThat(destinationFile).doesNotExist();
     }
 
     /**
@@ -79,7 +91,7 @@ public class FileTransferSampleTestUtils {
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
     void cleanTemporaryTestFiles() {
-        DESTINATION_FILE.delete();
+        destinationFile.delete();
     }
 
     /**
@@ -92,11 +104,11 @@ public class FileTransferSampleTestUtils {
 
     /**
      * Assert that the file to be copied exists at the expected location.
-     * This method waits a duration which is defined in {@link FileTransferSampleTestUtils#timeout}.
+     * This method waits a duration which is defined in {@link FileTransferSampleTestCommon#timeout}.
      */
     void assertDestinationFileContent() {
         await().atMost(timeout).pollInterval(pollInterval).untilAsserted(()
-                -> assertThat(DESTINATION_FILE).hasSameBinaryContentAs(sampleAssetFile));
+                -> assertThat(destinationFile).hasSameBinaryContentAs(sampleAssetFile));
     }
 
     /**
@@ -144,7 +156,7 @@ public class FileTransferSampleTestUtils {
      * Assert that a POST request to initiate transfer process is successful.
      * This method corresponds to the command in the sample: {@code curl -X POST -H "Content-Type: application/json" -H "X-Api-Key: password" -d @samples/04.0-file-transfer/filetransfer.json "http://localhost:9192/api/v1/data/transferprocess"}
      *
-     * @throws IOException Thrown if there was an error accessing the transfer request file defined in {@link FileTransferSampleTestUtils#TRANSFER_FILE_PATH}.
+     * @throws IOException Thrown if there was an error accessing the transfer request file defined in {@link FileTransferSampleTestCommon#TRANSFER_FILE_PATH}.
      */
     void requestTransferFile() throws IOException {
         var transferJsonFile = getFileFromRelativePath(TRANSFER_FILE_PATH);
@@ -176,12 +188,12 @@ public class FileTransferSampleTestUtils {
      * @return An instance of {@link DataRequest} with changed values for contract agreement ID and file destination path.
      * @throws IOException Thrown if there was an error accessing the file given in transferJsonFile.
      */
-    static DataRequest readAndUpdateDataRequestFromJsonFile(File transferJsonFile, String contractAgreementId) throws IOException {
+    DataRequest readAndUpdateDataRequestFromJsonFile(File transferJsonFile, String contractAgreementId) throws IOException {
         // convert JSON file to map
         DataRequest sampleDataRequest = MAPPER.readValue(transferJsonFile, DataRequest.class);
 
         var changedAddressProperties = sampleDataRequest.getDataDestination().getProperties();
-        changedAddressProperties.put("path", DESTINATION_FILE.getAbsolutePath());
+        changedAddressProperties.put("path", destinationFile.getAbsolutePath());
 
         DataAddress newDataDestination = DataAddress.Builder.newInstance()
                 .properties(changedAddressProperties)

@@ -23,7 +23,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Map;
 
-import static org.eclipse.dataspaceconnector.extension.sample.test.FileTransferSampleTestUtils.getFileFromRelativePath;
+import static org.eclipse.dataspaceconnector.extension.sample.test.FileTransferSampleTestCommon.getFileFromRelativePath;
 
 @EndToEndTest
 public class FileTransferSampleTest {
@@ -31,6 +31,8 @@ public class FileTransferSampleTest {
     static final String CONSUMER_CONFIG_PROPERTIES_FILE_PATH = "samples/04.0-file-transfer/consumer/config.properties";
     static final String PROVIDER_CONFIG_PROPERTIES_FILE_PATH = "samples/04.0-file-transfer/provider/config.properties";
     static final String SAMPLE_ASSET_FILE_PATH = "samples/04.0-file-transfer/README.md";
+    static final String DESTINATION_FILE_PATH = "samples/04.0-file-transfer/requested.test.txt";
+
     @RegisterExtension
     static EdcRuntimeExtension provider = new EdcRuntimeExtension(
             ":samples:04.0-file-transfer:provider",
@@ -49,7 +51,7 @@ public class FileTransferSampleTest {
                     "edc.fs.config", getFileFromRelativePath(CONSUMER_CONFIG_PROPERTIES_FILE_PATH).getAbsolutePath()
             )
     );
-    final FileTransferSampleTestUtils testUtils = new FileTransferSampleTestUtils(SAMPLE_ASSET_FILE_PATH);
+    final FileTransferSampleTestCommon testUtils = new FileTransferSampleTestCommon(SAMPLE_ASSET_FILE_PATH, DESTINATION_FILE_PATH);
 
     /**
      * Run all sample steps in one single test.
