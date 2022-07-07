@@ -60,7 +60,6 @@ jobs:
         run: |
           ./gradlew resolve
           ./gradlew mergeOpenApiFiles
-          ./gradlew generateSwaggerUI
 
       # Can be used (and yq tasks removed) when https://github.com/kpramesh2212/openapi-merger-plugin/pull/11/files is merged
       #- name: Check OpenAPI definitions match code
@@ -70,6 +69,12 @@ jobs:
         run: |
           yq -P 'sort_keys(..)' resources/openapi/openapi.yaml > openapi-ci-sorted.yaml
           diff openapi-git-sorted.yaml openapi-ci-sorted.yaml
+
+      - name: Check that static SwaggerUI HTML content is up-to-date
+        run: |
+          cp -r docs/swaggerui tmp-swaggerui
+          ./gradlew generateSwaggerUI
+          diff -r docs/swaggerui tmp-swaggerui
 
   Unit-Tests:
     runs-on: ubuntu-latest
