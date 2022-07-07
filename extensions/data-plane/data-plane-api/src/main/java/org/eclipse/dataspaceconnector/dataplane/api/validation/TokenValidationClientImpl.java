@@ -25,6 +25,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 
 import java.io.IOException;
 
+import static java.lang.String.format;
+
 public class TokenValidationClientImpl implements TokenValidationClient {
 
     private final OkHttpClient httpClient;
@@ -38,11 +40,9 @@ public class TokenValidationClientImpl implements TokenValidationClient {
         this.mapper = mapper;
         this.monitor = monitor;
     }
-    
+
     @Override
     public Result<DataAddress> call(String token) {
-        monitor.debug("Start call to validation server");
-
         var request = new Request.Builder().url(endpoint).header(HttpHeaders.AUTHORIZATION, token).get().build();
         try (var response = httpClient.newCall(request).execute()) {
             var body = response.body();
@@ -54,7 +54,7 @@ public class TokenValidationClientImpl implements TokenValidationClient {
             if (response.isSuccessful()) {
                 return Result.success(mapper.readValue(stringBody, DataAddress.class));
             } else {
-                return Result.failure(String.format("Call to token validation sever failed: %s - %s. %s", response.code(), response.message(), stringBody));
+                return Result.failure(format("Call to token validation sever failed: %s - %s. %s", response.code(), response.message(), stringBody));
             }
         } catch (IOException e) {
             return Result.failure("Unhandled exception occurred during call to token validation server: " + e.getMessage());
