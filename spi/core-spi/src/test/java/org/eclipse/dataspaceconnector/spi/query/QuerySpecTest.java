@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.query;
 
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -106,6 +107,29 @@ class QuerySpecTest {
     void verify_filterWithValueContainsSpaces() {
         var spec = QuerySpec.Builder.newInstance().filter("key instanceof some value").build();
         assertThat(spec.getFilterExpression()).hasSize(1).containsOnly(new Criterion("key", "instanceof", "some value"));
+    }
+
+    @Test
+    void range_verifyCorrectConversion() {
+        var spec = QuerySpec.Builder.newInstance()
+                .range(new Range(37, 40))
+                .build();
+
+        assertThat(spec.getLimit()).isEqualTo(3);
+        assertThat(spec.getOffset()).isEqualTo(37);
+
+    }
+
+    @Test
+    void getRange_verifyCorrectConversion() {
+        var spec = QuerySpec.Builder.newInstance()
+                .limit(20)
+                .offset(37)
+                .build();
+
+        var range = spec.getRange();
+        assertThat(range.getFrom()).isEqualTo(37);
+        assertThat(range.getTo()).isEqualTo(57);
     }
 
 }

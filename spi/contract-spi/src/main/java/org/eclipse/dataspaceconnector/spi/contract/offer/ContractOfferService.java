@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.contract.offer;
 
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,6 +29,6 @@ public interface ContractOfferService {
      * Resolves contract offers.
      */
     @NotNull
-    Stream<ContractOffer> queryContractOffers(ContractOfferQuery query);
+    Stream<ContractOffer> queryContractOffers(ContractOfferQuery query, Range range);
 
 }
