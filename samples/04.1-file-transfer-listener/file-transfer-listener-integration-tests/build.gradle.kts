@@ -27,8 +27,6 @@ dependencies {
     testImplementation("org.awaitility:awaitility:${awaitility}")
     testImplementation(testFixtures(project(":samples:04.0-file-transfer:integration-tests")))
 
-//    testCompileOnly(project(":samples:04.1-file-transfer-listener:consumer"))
-//    testCompileOnly(project(":samples:04.0-file-transfer:provider"))
-    testRuntimeOnly(project(":samples:04.1-file-transfer-listener:consumer"))
-    testRuntimeOnly(project(":samples:04.0-file-transfer:provider"))
+    testCompileOnly(project(":samples:04.1-file-transfer-listener:consumer"))
+    testCompileOnly(project(":samples:04.0-file-transfer:provider"))
 }

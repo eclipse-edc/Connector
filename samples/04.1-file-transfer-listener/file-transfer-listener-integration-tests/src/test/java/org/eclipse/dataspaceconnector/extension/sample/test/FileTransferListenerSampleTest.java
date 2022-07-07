@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.extension.sample.test;
 
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.EndToEndTest;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcRuntimeExtension;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -31,9 +32,10 @@ public class FileTransferListenerSampleTest {
     static final String PROVIDER_CONFIG_PROPERTIES_FILE_PATH = "samples/04.0-file-transfer/provider/config.properties";
     // Reuse an already existing file for the test. Could be set to any other existing file in the repository.
     static final String SAMPLE_ASSET_FILE_PATH = "samples/04.1-file-transfer-listener/README.md";
-    // marker.txt is a fixed name and always in the same directory as the file defined with FileTransferSampleTestUtils.DESTINATION_FILE_PATH.
-    static final String MARKER_FILE_PATH = "samples/marker.txt";
-    static final File MARKER_FILE = FileTransferSampleTestUtils.getFileFromRelativePath(FileTransferListenerSampleTest.MARKER_FILE_PATH);
+    static final String DESTINATION_FILE_PATH = "samples/04.1-file-transfer-listener/requested.test.txt";
+    // marker.txt is a fixed name and always in the same directory as the file defined with DESTINATION_FILE_PATH.
+    static final String MARKER_FILE_PATH = "samples/04.1-file-transfer-listener/marker.txt";
+    static final File MARKER_FILE = FileTransferSampleTestCommon.getFileFromRelativePath(FileTransferListenerSampleTest.MARKER_FILE_PATH);
     static final String MARKER_FILE_CONTENT = "Transfer complete";
     @RegisterExtension
     static EdcRuntimeExtension provider = new EdcRuntimeExtension(
@@ -41,8 +43,8 @@ public class FileTransferListenerSampleTest {
             "provider",
             Map.of(
                     // Override 'edc.samples.04.asset.path' implicitly set via property 'edc.fs.config'.
-                    "edc.samples.04.asset.path", FileTransferSampleTestUtils.getFileFromRelativePath(SAMPLE_ASSET_FILE_PATH).getAbsolutePath(),
-                    "edc.fs.config", FileTransferSampleTestUtils.getFileFromRelativePath(PROVIDER_CONFIG_PROPERTIES_FILE_PATH).getAbsolutePath()
+                    "edc.samples.04.asset.path", FileTransferSampleTestCommon.getFileFromRelativePath(SAMPLE_ASSET_FILE_PATH).getAbsolutePath(),
+                    "edc.fs.config", FileTransferSampleTestCommon.getFileFromRelativePath(PROVIDER_CONFIG_PROPERTIES_FILE_PATH).getAbsolutePath()
             )
     );
     @RegisterExtension
@@ -50,10 +52,10 @@ public class FileTransferListenerSampleTest {
             ":samples:04.1-file-transfer-listener:consumer",
             "consumer",
             Map.of(
-                    "edc.fs.config", FileTransferSampleTestUtils.getFileFromRelativePath(CONSUMER_CONFIG_PROPERTIES_FILE_PATH).getAbsolutePath()
+                    "edc.fs.config", FileTransferSampleTestCommon.getFileFromRelativePath(CONSUMER_CONFIG_PROPERTIES_FILE_PATH).getAbsolutePath()
             )
     );
-    private final FileTransferSampleTestUtils testUtils = new FileTransferSampleTestUtils(SAMPLE_ASSET_FILE_PATH);
+    private final FileTransferSampleTestCommon testUtils = new FileTransferSampleTestCommon(SAMPLE_ASSET_FILE_PATH, DESTINATION_FILE_PATH);
 
     /**
      * Run all sample steps in one single test.
@@ -69,7 +71,10 @@ public class FileTransferListenerSampleTest {
         testUtils.requestTransferFile();
         testUtils.assertDestinationFileContent();
         testUtils.assertFileContent(MARKER_FILE, MARKER_FILE_CONTENT);
+    }
 
+    @AfterEach
+    protected void tearDown() {
         cleanTemporaryTestFiles();
     }
 
@@ -85,7 +90,7 @@ public class FileTransferListenerSampleTest {
 
     /**
      * Remove files created while running the tests.
-     * The copied file will be deleted.
+     * The copied file and the marker file will be deleted.
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
     void cleanTemporaryTestFiles() {
