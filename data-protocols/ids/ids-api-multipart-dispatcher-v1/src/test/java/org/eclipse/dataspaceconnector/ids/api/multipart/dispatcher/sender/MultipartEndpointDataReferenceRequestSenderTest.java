@@ -93,7 +93,10 @@ class MultipartEndpointDataReferenceRequestSenderTest {
     void getResponseContent() throws Exception {
         var header = new NotificationMessageBuilder()._contentVersion_(UUID.randomUUID().toString()).build();
         var payload = UUID.randomUUID().toString();
-        var parts = new IdsMultipartParts(new ByteArrayInputStream(mapper.writeValueAsBytes(header)), new ByteArrayInputStream(payload.getBytes()));
+        var parts = IdsMultipartParts.Builder.newInstance()
+                .header(new ByteArrayInputStream(mapper.writeValueAsBytes(header)))
+                .payload(new ByteArrayInputStream(payload.getBytes()))
+                .build();
         var response = sender.getResponseContent(parts);
 
         assertThat(response).isNotNull();
