@@ -118,21 +118,20 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
     @Override
     protected String buildMessagePayload(DataRequest request) throws Exception {
 
-        ArtifactRequestMessagePayload.Builder requestPayloadBuilder = ArtifactRequestMessagePayload.Builder.newInstance()
+        var requestPayloadBuilder = ArtifactRequestMessagePayload.Builder.newInstance()
                 .dataDestination(request.getDataDestination());
 
         if (request.getDataDestination().getKeyName() != null) {
             String secret = vault.resolveSecret(request.getDataDestination().getKeyName());
             requestPayloadBuilder = requestPayloadBuilder.secret(secret);
         }
-
-        ObjectMapper objectMapper = getObjectMapper();
-        return objectMapper.writeValueAsString(requestPayloadBuilder.build());
+        
+        return getObjectMapper().writeValueAsString(requestPayloadBuilder.build());
     }
 
     @Override
     protected MultipartResponse<String> getResponseContent(IdsMultipartParts parts) throws Exception {
-        Message header = getObjectMapper().readValue(parts.getHeader(), Message.class);
+        var header = getObjectMapper().readValue(parts.getHeader(), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());
