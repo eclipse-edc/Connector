@@ -151,7 +151,7 @@ To trigger a new release please follow these simple steps:
 
 - update `CHANGELOG.md`: put the current "Unreleased" section under a new headline containing the new version string,
   add a new "Unreleased" section.
-- update `gradle.properties`: set the `defaultVersion` entry to the new version. 
+- update `gradle.properties`: set the `defaultVersion` entry to the new version.
 - trigger the actual release in GitHub:
     - on the `Actions` tab pick the `Create EDC Release` workflow
     - Select the `main` branch
@@ -168,8 +168,10 @@ The GitHub workflow then performs these steps
    happens. Note that this process may take quite a bit of time, as every module is signed and uploaded. **Important: if
    the version string contains the `-SNAPSHOT` suffix, the version is uploaded to OSSRH Snapshots instead of
    MavenCentral!**
-4. Creates a GitHub release including an automatically generated changelog. This is only for informational purposes, no
-   artifacts are uploaded. In addition, the GitHub Release has the following properties:
+4. Creates a GitHub release including an automatically generated changelog, if the release is not a `-SNAPSHOT`. This is
+   only for informational purposes, no additionsl artifacts are uploaded. The GitHub Release has the following
+   properties:
+    - only created on non-snapshots
     - always created off of `main` branch
     - the release notes are auto-generated based on the last available tag and the `.github/releases.yaml` file
     - no pre-releases are supported

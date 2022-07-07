@@ -53,9 +53,12 @@ jobs:
               "VERSION": "${{ env.EDC_VERSION }}"
             }
           job_timeout: "3600" # Default 30 sec. (optional)
-
+    outputs:
+      edc-version: ${{ env.EDC_VERSION }}
 
   Github-Release:
+    # cannot use the workflow-level env yet as it does not yet exist, must take output from previous job
+    if:  ${{ !endsWith( needs.Prepare-Release.outputs.edc-version, '-SNAPSHOT') }}
     needs:
       - Prepare-Release
     runs-on: ubuntu-latest
