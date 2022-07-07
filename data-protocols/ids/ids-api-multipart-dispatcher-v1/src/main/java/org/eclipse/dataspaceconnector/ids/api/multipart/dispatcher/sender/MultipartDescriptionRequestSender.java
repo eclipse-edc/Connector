@@ -65,7 +65,14 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
     protected String retrieveRemoteConnectorAddress(MetadataRequest request) {
         return request.getConnectorAddress();
     }
-
+    
+    /**
+     * Builds a {@link de.fraunhofer.iais.eis.DescriptionRequestMessage} for the given {@link MetadataRequest}.
+     *
+     * @param request the request.
+     * @param token   the dynamic attribute token.
+     * @return a DescriptionRequestMessage.
+     */
     @Override
     protected Message buildMessageHeader(MetadataRequest request, DynamicAttributeToken token) {
         return new DescriptionRequestMessageBuilder()
@@ -78,7 +85,14 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
                 ._requestedElement_(request.getRequestedAsset())
                 .build();
     }
-
+    
+    /**
+     * Parses the response content. Tries to parse the payload to the correct IDS information model type.
+     *
+     * @param parts container object for response header and payload InputStreams.
+     * @return a MultipartResponse containing the message header and the information model object representing the payload.
+     * @throws Exception if parsing header or payload fails or the payload type cannot be determined.
+     */
     @Override
     protected MultipartResponse<ModelClass> getResponseContent(IdsMultipartParts parts) throws Exception {
         ObjectMapper objectMapper = getObjectMapper();

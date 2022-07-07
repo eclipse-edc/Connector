@@ -22,7 +22,7 @@ import java.util.Objects;
 
 /**
  * Container object for the header and payload part of an IDS multipart response as
- * {@link InputStream}s, so that they can easily be parsed to the correct form.
+ * {@link InputStream}s, so that they can easily be parsed to the correct format.
  */
 public class IdsMultipartParts {
 
@@ -31,7 +31,7 @@ public class IdsMultipartParts {
     @Nullable
     private final InputStream payload;
 
-    IdsMultipartParts(@NotNull InputStream header, @Nullable InputStream payload) {
+    private IdsMultipartParts(@NotNull InputStream header, @Nullable InputStream payload) {
         this.header = header;
         this.payload = payload;
     }

@@ -69,7 +69,15 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
     protected String retrieveRemoteConnectorAddress(ContractOfferRequest request) {
         return request.getConnectorAddress();
     }
-
+    
+    /**
+     * Builds a {@link de.fraunhofer.iais.eis.ContractRequestMessage} or a {@link de.fraunhofer.iais.eis.ContractOfferMessage}
+     * for the given {@link ContractOfferRequest} depending on whether it is an initial request.
+     *
+     * @param request the request.
+     * @param token   the dynamic attribute token.
+     * @return a ContractRequestMessage or ContractOfferMessage
+     */
     @Override
     protected Message buildMessageHeader(ContractOfferRequest request, DynamicAttributeToken token) {
         if (request.getType() == ContractOfferRequest.Type.INITIAL) {
@@ -100,7 +108,15 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
             return message;
         }
     }
-
+    
+    /**
+     * Builds the payload for the contract offer request. The payload contains either a {@link de.fraunhofer.iais.eis.ContractRequest}
+     * or a {@link de.fraunhofer.iais.eis.ContractOffer} depending on whether it is an initial request.
+     *
+     * @param request the request.
+     * @return the contract request/offer as JSON-LD.
+     * @throws Exception if parsing the request/offer fails.
+     */
     @Override
     protected String buildMessagePayload(ContractOfferRequest request) throws Exception {
         var contractOffer = request.getContractOffer();
@@ -111,7 +127,14 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
             return getObjectMapper().writeValueAsString(createContractOffer(contractOffer));
         }
     }
-
+    
+    /**
+     * Parses the response content.
+     *
+     * @param parts container object for response header and payload InputStreams.
+     * @return a MultipartResponse containing the message header and the response payload as string.
+     * @throws Exception if parsing header or payload fails.
+     */
     @Override
     protected MultipartResponse<String> getResponseContent(IdsMultipartParts parts) throws Exception {
         return parseMultipartStringResponse(parts, getObjectMapper());

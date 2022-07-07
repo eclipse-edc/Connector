@@ -59,7 +59,14 @@ public class MultipartContractRejectionSender extends IdsMultipartSender<Contrac
     protected String retrieveRemoteConnectorAddress(ContractRejection rejection) {
         return rejection.getConnectorAddress();
     }
-
+    
+    /**
+     * Builds a {@link de.fraunhofer.iais.eis.ContractRejectionMessage} for the given {@link ContractRejection}.
+     *
+     * @param rejection the rejection request.
+     * @param token   the dynamic attribute token.
+     * @return a ContractRejectionMessage
+     */
     @Override
     protected Message buildMessageHeader(ContractRejection rejection, DynamicAttributeToken token) throws Exception {
         return new ContractRejectionMessageBuilder()
@@ -73,12 +80,25 @@ public class MultipartContractRejectionSender extends IdsMultipartSender<Contrac
                 ._transferContract_(URI.create(rejection.getCorrelationId()))
                 .build();
     }
-
+    
+    /**
+     * Builds the payload for the rejection. The payload contains the rejection reason.
+     *
+     * @param rejection the rejection request.
+     * @return the rejection reason.
+     */
     @Override
     protected String buildMessagePayload(ContractRejection rejection) throws Exception {
         return rejection.getRejectionReason();
     }
-
+    
+    /**
+     * Parses the response content.
+     *
+     * @param parts container object for response header and payload InputStreams.
+     * @return a MultipartResponse containing the message header and the response payload as string.
+     * @throws Exception if parsing header or payload fails.
+     */
     @Override
     protected MultipartResponse<String> getResponseContent(IdsMultipartParts parts) throws Exception {
         return parseMultipartStringResponse(parts, getObjectMapper());

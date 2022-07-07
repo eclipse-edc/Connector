@@ -73,7 +73,14 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
     protected String retrieveRemoteConnectorAddress(DataRequest request) {
         return request.getConnectorAddress();
     }
-
+    
+    /**
+     * Builds an {@link de.fraunhofer.iais.eis.ArtifactRequestMessage} for the given {@link DataRequest}.
+     *
+     * @param request the request.
+     * @param token   the dynamic attribute token.
+     * @return an ArtifactRequestMessage
+     */
     @Override
     protected Message buildMessageHeader(DataRequest request, DynamicAttributeToken token) {
         var artifactIdsId = IdsId.Builder.newInstance()
@@ -114,7 +121,14 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
         request.getProperties().forEach(message::setProperty);
         return message;
     }
-
+    
+    /**
+     * Builds the payload for the artifact request. The payload contains the data destination and a secret key.
+     *
+     * @param request the request.
+     * @return the message payload.
+     * @throws Exception if parsing the payload fails.
+     */
     @Override
     protected String buildMessagePayload(DataRequest request) throws Exception {
 
@@ -128,7 +142,15 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
         
         return getObjectMapper().writeValueAsString(requestPayloadBuilder.build());
     }
-
+    
+    /**
+     * Parses the response content.
+     *
+     * @param parts container object for response header and payload input streams.
+     * @return a MultipartResponse containing the message header and the response payload as string.
+     * @throws Exception if parsing header or payload fails or if the response header is not of type
+     *                   RequestInProcessMessage.
+     */
     @Override
     protected MultipartResponse<String> getResponseContent(IdsMultipartParts parts) throws Exception {
         var header = getObjectMapper().readValue(parts.getHeader(), Message.class);

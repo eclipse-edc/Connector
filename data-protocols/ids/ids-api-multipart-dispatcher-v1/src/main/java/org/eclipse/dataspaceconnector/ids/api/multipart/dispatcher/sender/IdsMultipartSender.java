@@ -93,8 +93,8 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
     }
 
     /**
-     * Builds and sends the IDS multipart request. Reads header and payload as {@link InputStream}
-     * from the multipart response.
+     * Builds and sends an IDS multipart request. Parses the response to the output type defined
+     * for the sub-class.
      *
      * @param request the request.
      * @param context the message context.

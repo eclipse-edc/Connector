@@ -68,7 +68,15 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
     protected String retrieveRemoteConnectorAddress(ContractAgreementRequest request) {
         return request.getConnectorAddress();
     }
-
+    
+    /**
+     * Builds a {@link de.fraunhofer.iais.eis.ContractAgreementMessage} for the given {@link ContractAgreementRequest}.
+     *
+     * @param request the request.
+     * @param token   the dynamic attribute token.
+     * @return a ContractAgreementMessage.
+     * @throws Exception if the agreement ID cannot be parsed.
+     */
     @Override
     protected Message buildMessageHeader(ContractAgreementRequest request, DynamicAttributeToken token) throws Exception {
         var id = request.getContractAgreement().getId();
@@ -92,7 +100,14 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
 
         return message;
     }
-
+    
+    /**
+     * Builds the payload for the agreement request. The payload contains the {@link ContractAgreement}.
+     *
+     * @param request the request.
+     * @return the contract agreement as JSON-LD.
+     * @throws Exception if parsing the agreement fails.
+     */
     @Override
     protected String buildMessagePayload(ContractAgreementRequest request) throws Exception {
         var transformationResult = getTransformerRegistry().transform(request, ContractAgreement.class);
@@ -103,7 +118,14 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
         var idsContractAgreement = transformationResult.getContent();
         return getObjectMapper().writeValueAsString(idsContractAgreement);
     }
-
+    
+    /**
+     * Parses the response content.
+     *
+     * @param parts container object for response header and payload InputStreams.
+     * @return a MultipartResponse containing the message header and the response payload as string.
+     * @throws Exception if parsing header or payload fails.
+     */
     @Override
     protected MultipartResponse<String> getResponseContent(IdsMultipartParts parts) throws Exception {
         return parseMultipartStringResponse(parts, getObjectMapper());

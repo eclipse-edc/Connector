@@ -35,7 +35,7 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.util.R
 
 /**
  * IdsMultipartSender implementation for transferring Endpoint Data Reference (EDR). Sends IDS NotificationMessage and
- * expects an IDS DescriptionResponseMessage as the response.
+ * expects an IDS MessageProcessedMessage as the response.
  */
 public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSender<EndpointDataReferenceMessage, MultipartResponse<String>> {
 
@@ -57,7 +57,14 @@ public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSen
     protected String retrieveRemoteConnectorAddress(EndpointDataReferenceMessage request) {
         return request.getConnectorAddress();
     }
-
+    
+    /**
+     * Builds a {@link de.fraunhofer.iais.eis.ParticipantUpdateMessage} for the given {@link EndpointDataReferenceMessage}.
+     *
+     * @param request the request.
+     * @param token   the dynamic attribute token.
+     * @return a ParticipantUpdateMessage.
+     */
     @Override
     protected Message buildMessageHeader(EndpointDataReferenceMessage request, DynamicAttributeToken token) {
         return new ParticipantUpdateMessageBuilder()
@@ -68,12 +75,26 @@ public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSen
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 .build();
     }
-
+    
+    /**
+     * Builds the payload for the endpoint data reference message. The payload contains the message as JSON.
+     *
+     * @param request the request.
+     * @return the request as JSON.
+     * @throws Exception if parsing the request fails.
+     */
     @Override
     protected String buildMessagePayload(EndpointDataReferenceMessage request) throws Exception {
         return getObjectMapper().writeValueAsString(request.getEndpointDataReference());
     }
-
+    
+    /**
+     * Parses the response content.
+     *
+     * @param parts container object for response header and payload InputStreams.
+     * @return a MultipartResponse containing the message header and the response payload as string.
+     * @throws Exception if parsing header or payload fails.
+     */
     @Override
     protected MultipartResponse<String> getResponseContent(IdsMultipartParts parts) throws Exception {
         return parseMultipartStringResponse(parts, getObjectMapper());
