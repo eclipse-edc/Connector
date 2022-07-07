@@ -20,7 +20,8 @@ import de.fraunhofer.iais.eis.ContractAgreementMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
@@ -41,7 +42,7 @@ import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_AD
  * IdsMultipartSender implementation for contract agreements. Sends IDS ContractAgreementMessages and
  * expects an IDS RequestInProcessMessage as the response.
  */
-public class MultipartContractAgreementSender extends IdsMultipartSender<ContractAgreementRequest, MultipartMessageProcessedResponse> {
+public class MultipartContractAgreementSender extends IdsMultipartSender<ContractAgreementRequest, MultipartResponse<String>> {
 
     private final String idsWebhookAddress;
 
@@ -103,17 +104,14 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
     }
 
     @Override
-    protected MultipartMessageProcessedResponse getResponseContent(IdsMultipartParts parts) throws Exception {
+    protected MultipartResponse<String> getResponseContent(IdsMultipartParts parts) throws Exception {
         var header = getObjectMapper().readValue(parts.getHeader(), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());
         }
 
-        return MultipartMessageProcessedResponse.Builder.newInstance()
-                .header(header)
-                .payload(payload)
-                .build();
+        return new MultipartResponse<>(header, payload);
     }
 
 

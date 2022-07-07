@@ -19,7 +19,7 @@ import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessageBuilder;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -34,7 +34,7 @@ import java.util.Collections;
  * IdsMultipartSender implementation for transferring Endpoint Data Reference (EDR). Sends IDS NotificationMessage and
  * expects an IDS DescriptionResponseMessage as the response.
  */
-public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSender<EndpointDataReferenceMessage, MultipartMessageProcessedResponse> {
+public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSender<EndpointDataReferenceMessage, MultipartResponse<String>> {
 
     public MultipartEndpointDataReferenceRequestSender(@NotNull String connectorId,
                                                        @NotNull OkHttpClient httpClient,
@@ -72,16 +72,13 @@ public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSen
     }
 
     @Override
-    protected MultipartMessageProcessedResponse getResponseContent(IdsMultipartParts parts) throws Exception {
+    protected MultipartResponse<String> getResponseContent(IdsMultipartParts parts) throws Exception {
         var header = getObjectMapper().readValue(parts.getHeader(), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());
         }
 
-        return MultipartMessageProcessedResponse.Builder.newInstance()
-                .header(header)
-                .payload(payload)
-                .build();
+        return new MultipartResponse<>(header, payload);
     }
 }

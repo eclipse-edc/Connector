@@ -15,26 +15,49 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message;
 
 import de.fraunhofer.iais.eis.Message;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * Interface for multipart responses.
+ * Represents a multipart response received from another connector. A multipart response consists
+ * of a {@link Message} as header and an optional payload.
  *
  * @param <T> the payload type of the response.
  */
-public interface MultipartResponse<T> {
+public class MultipartResponse<T> {
+    
+    private final Message header;
+    
+    @Nullable
+    private final T payload;
+    
+    /**
+     * Constructs a new MultipartResponse.
+     *
+     * @param header the response header.
+     * @param payload the response payload.
+     */
+    public MultipartResponse(@NotNull Message header, @Nullable T payload) {
+        this.header = header;
+        this.payload = payload;
+    }
 
     /**
      * Returns the response header.
      *
      * @return the response header.
      */
-    Message getHeader();
+    public @NotNull Message getHeader() {
+        return header;
+    }
 
     /**
-     * Returns the response payload.
+     * Returns the response payload. May be null.
      *
      * @return the response payload.
      */
-    T getPayload();
+    public @Nullable T getPayload() {
+        return payload;
+    }
 
 }

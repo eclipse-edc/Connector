@@ -21,7 +21,8 @@ import de.fraunhofer.iais.eis.ContractRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
@@ -42,7 +43,7 @@ import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_AD
  * IdsMultipartSender implementation for contract requests. Sends IDS ContractRequestMessages and
  * expects an IDS RequestInProcessMessage as the response.
  */
-public class MultipartContractOfferSender extends IdsMultipartSender<ContractOfferRequest, MultipartRequestInProcessResponse> {
+public class MultipartContractOfferSender extends IdsMultipartSender<ContractOfferRequest, MultipartResponse<String>> {
 
     private final String idsWebhookAddress;
 
@@ -111,17 +112,14 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
     }
 
     @Override
-    protected MultipartRequestInProcessResponse getResponseContent(IdsMultipartParts parts) throws Exception {
+    protected MultipartResponse<String> getResponseContent(IdsMultipartParts parts) throws Exception {
         Message header = getObjectMapper().readValue(parts.getHeader(), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());
         }
 
-        return MultipartRequestInProcessResponse.Builder.newInstance()
-                .header(header)
-                .payload(payload)
-                .build();
+        return new MultipartResponse<>(header, payload);
     }
 
     private de.fraunhofer.iais.eis.ContractRequest createContractRequest(ContractOffer offer) {

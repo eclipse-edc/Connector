@@ -27,9 +27,7 @@ import de.fraunhofer.iais.eis.RequestInProcessMessageImpl;
 import de.fraunhofer.iais.eis.ResponseMessage;
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.IdsMultipartRemoteMessageDispatcher;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartDescriptionResponse;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartArtifactRequestSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartCatalogDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractAgreementSender;
@@ -103,7 +101,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .protocol(Protocols.IDS_MULTIPART)
                 .build();
 
-        var result = multipartDispatcher.send(MultipartDescriptionResponse.class, request, () -> null).get();
+        var result = multipartDispatcher.send(MultipartResponse.class, request, () -> null).get();
 
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
@@ -130,7 +128,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .dataDestination(DataAddress.Builder.newInstance().type("test-type").build())
                 .build();
 
-        var result = multipartDispatcher.send(MultipartRequestInProcessResponse.class, request, () -> null).get();
+        var result = multipartDispatcher.send(MultipartResponse.class, request, () -> null).get();
 
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
@@ -156,7 +154,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .correlationId("1")
                 .build();
 
-        var result = multipartDispatcher.send(MultipartRequestInProcessResponse.class, request, () -> null).get();
+        var result = multipartDispatcher.send(MultipartResponse.class, request, () -> null).get();
 
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
@@ -181,7 +179,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .correlationId("1")
                 .build();
 
-        var result = multipartDispatcher.send(MultipartRequestInProcessResponse.class, request, () -> null).get();
+        var result = multipartDispatcher.send(MultipartResponse.class, request, () -> null).get();
 
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
@@ -214,7 +212,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .policy(Policy.Builder.newInstance().build())
                 .build();
 
-        var result = multipartDispatcher.send(MultipartMessageProcessedResponse.class, request, () -> null).get();
+        var result = multipartDispatcher.send(MultipartResponse.class, request, () -> null).get();
 
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
@@ -234,7 +232,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .correlationId(UUID.randomUUID().toString())
                 .build();
 
-        var result = multipartDispatcher.send(MultipartMessageProcessedResponse.class, rejection, () -> null).get();
+        var result = multipartDispatcher.send(MultipartResponse.class, rejection, () -> null).get();
 
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
