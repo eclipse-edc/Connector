@@ -15,16 +15,38 @@
 package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.IntegrationTest;
+import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
+import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Map;
 import java.util.UUID;
+
+import static org.eclipse.dataspaceconnector.core.security.hashicorpvault.HashicorpVaultExtension.VAULT_TOKEN;
+import static org.eclipse.dataspaceconnector.core.security.hashicorpvault.HashicorpVaultExtension.VAULT_URL;
 
 @IntegrationTest
 @Tag("HashicorpVaultIntegrationTest")
-class HashicorpVaultIntegrationTest extends AbstractHashicorpIntegrationTest {
+@ExtendWith(EdcExtension.class)
+class HashicorpVaultIntegrationTest {
+    private static final String VAULT_TEST_URL = "http://127.0.0.1:8200";
+    private static final String VAULT_TEST_TOKEN = "test-token";
+    private Vault vault;
+    private CertificateResolver certificateResolver;
+
+    @BeforeEach
+    final void beforeEach(EdcExtension extension) {
+        vault = extension.getContext().getService(Vault.class);
+        certificateResolver = extension.getContext().getService(CertificateResolver.class);
+
+        extension.setConfiguration(Map.of(VAULT_URL, VAULT_TEST_URL, VAULT_TOKEN, VAULT_TEST_TOKEN));
+    }
 
     @Test
     @DisplayName("Resolve a secret that exists")

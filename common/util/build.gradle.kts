@@ -23,8 +23,6 @@ val mockitoVersion: String by project
 val okHttpVersion: String by project
 
 dependencies {
-    api(project(":spi:core-spi"))
-
     testFixturesImplementation("org.mockito:mockito-core:${mockitoVersion}")
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")

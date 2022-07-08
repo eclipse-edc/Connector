@@ -12,7 +12,6 @@
  *
  */
 
-val mockitoVersion: String by project
 val okHttpVersion: String by project
 val failsafeVersion: String by project
 
@@ -29,7 +28,6 @@ dependencies {
 
     testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))
-    testImplementation("org.mockito:mockito-inline:${mockitoVersion}")
 }
 
 publishing {

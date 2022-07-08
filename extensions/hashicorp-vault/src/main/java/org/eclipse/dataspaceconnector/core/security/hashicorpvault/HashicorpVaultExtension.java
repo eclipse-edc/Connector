@@ -18,7 +18,6 @@ import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.security.VaultPrivateKeyResolver;
@@ -26,7 +25,7 @@ import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
-@Provides({Vault.class, PrivateKeyResolver.class, CertificateResolver.class})
+@Provides({ Vault.class, PrivateKeyResolver.class })
 public class HashicorpVaultExtension implements ServiceExtension {
 
     @EdcSetting(required = true)
@@ -49,11 +48,9 @@ public class HashicorpVaultExtension implements ServiceExtension {
         var client = new HashicorpVaultClient(config, okHttpClient, context.getTypeManager(), retryPolicy);
 
         var vault = new HashicorpVault(client, context.getMonitor());
-        var certificateResolver = new HashicorpCertificateResolver(vault, context.getMonitor());
         var privateKeyResolver = new VaultPrivateKeyResolver(vault);
 
         context.registerService(Vault.class, vault);
-        context.registerService(CertificateResolver.class, certificateResolver);
         context.registerService(PrivateKeyResolver.class, privateKeyResolver);
     }
 
