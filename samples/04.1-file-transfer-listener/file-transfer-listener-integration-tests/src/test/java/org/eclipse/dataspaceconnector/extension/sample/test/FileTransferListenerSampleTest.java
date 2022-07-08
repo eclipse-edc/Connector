@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.extension.sample.test;
 
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.EndToEndTest;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcRuntimeExtension;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -24,6 +25,7 @@ import java.io.File;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.eclipse.dataspaceconnector.extension.sample.test.FileTransferSampleTestCommon.getFileFromRelativePath;
 
 @EndToEndTest
@@ -36,7 +38,7 @@ public class FileTransferListenerSampleTest {
     static final String DESTINATION_FILE_PATH = "samples/04.1-file-transfer-listener/requested.test.txt";
     // marker.txt is a fixed name and always in the same directory as the file defined with DESTINATION_FILE_PATH.
     static final String MARKER_FILE_PATH = "samples/04.1-file-transfer-listener/marker.txt";
-    static final File MARKER_FILE = getFileFromRelativePath(FileTransferListenerSampleTest.MARKER_FILE_PATH);
+    static final File MARKER_FILE = getFileFromRelativePath(MARKER_FILE_PATH);
     static final String MARKER_FILE_CONTENT = "Transfer complete";
     @RegisterExtension
     static EdcRuntimeExtension provider = new EdcRuntimeExtension(
@@ -56,7 +58,7 @@ public class FileTransferListenerSampleTest {
                     "edc.fs.config", getFileFromRelativePath(CONSUMER_CONFIG_PROPERTIES_FILE_PATH).getAbsolutePath()
             )
     );
-    private final FileTransferSampleTestCommon testUtils = new FileTransferSampleTestCommon(SAMPLE_ASSET_FILE_PATH, DESTINATION_FILE_PATH);
+    private final FileTransferSampleTestCommon common = new FileTransferSampleTestCommon(SAMPLE_ASSET_FILE_PATH, DESTINATION_FILE_PATH);
 
     /**
      * Run all sample steps in one single test.
@@ -67,11 +69,11 @@ public class FileTransferListenerSampleTest {
     void runSampleSteps() throws Exception {
         assertTestPrerequisites();
 
-        testUtils.initiateContractNegotiation();
-        testUtils.lookUpContractAgreementId();
-        testUtils.requestTransferFile();
-        testUtils.assertDestinationFileContent();
-        testUtils.assertFileContent(MARKER_FILE, MARKER_FILE_CONTENT);
+        common.initiateContractNegotiation();
+        common.lookUpContractAgreementId();
+        common.requestTransferFile();
+        common.assertDestinationFileContent();
+        assertFileContent(MARKER_FILE, MARKER_FILE_CONTENT);
     }
 
     @AfterEach
@@ -84,7 +86,7 @@ public class FileTransferListenerSampleTest {
      * This assertion checks only whether the file to be copied is not existing already.
      */
     void assertTestPrerequisites() {
-        testUtils.assertTestPrerequisites();
+        common.assertTestPrerequisites();
 
         assertThat(MARKER_FILE).doesNotExist();
     }
@@ -95,8 +97,17 @@ public class FileTransferListenerSampleTest {
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
     void cleanTemporaryTestFiles() {
-        testUtils.cleanTemporaryTestFiles();
+        common.cleanTemporaryTestFiles();
 
         MARKER_FILE.delete();
+    }
+
+    /**
+     * Assert that the marker file has been created at the expected location with the expected content.
+     * This method waits a duration which is defined in {@link FileTransferSampleTestCommon#timeout}.
+     */
+    void assertFileContent(File markerFile, @NotNull String markerFileContent) {
+        await().atMost(common.timeout).pollInterval(common.pollInterval).untilAsserted(()
+                -> assertThat(markerFile).hasContent(markerFileContent));
     }
 }
