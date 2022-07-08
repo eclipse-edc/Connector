@@ -15,8 +15,8 @@
 
 package org.eclipse.dataspaceconnector.identity;
 
-import org.eclipse.dataspaceconnector.iam.did.crypto.key.EcPrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
+import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -58,7 +58,7 @@ public class DecentralizedIdentityServiceExtension implements ServiceExtension {
 
         // we'll use the connector name to restore the Private Key
         var connectorName = context.getConnectorId();
-        var privateKey = privateKeyResolver.resolvePrivateKey(connectorName, EcPrivateKeyWrapper.class); //to get the private key
+        var privateKey = privateKeyResolver.resolvePrivateKey(connectorName, PrivateKeyWrapper.class);
         Objects.requireNonNull(privateKey, "Couldn't resolve private key for " + connectorName);
 
         return new DecentralizedIdentityService(resolverRegistry, credentialsVerifier, context.getMonitor(), privateKey, didUrl, context.getClock());

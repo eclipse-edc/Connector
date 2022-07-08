@@ -17,7 +17,7 @@ plugins {
 }
 
 val httpMockServer: String by project
-val jodahFailsafeVersion: String by project
+val failsafeVersion: String by project
 val okHttpVersion: String by project
 val openTelemetryVersion: String by project
 val faker: String by project
@@ -30,7 +30,7 @@ dependencies {
     api(project(":extensions:data-plane-selector:selector-spi"))
     implementation(project(":common:util"))
 
-    implementation("net.jodah:failsafe:${jodahFailsafeVersion}")
+    implementation("dev.failsafe:failsafe:${failsafeVersion}")
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 

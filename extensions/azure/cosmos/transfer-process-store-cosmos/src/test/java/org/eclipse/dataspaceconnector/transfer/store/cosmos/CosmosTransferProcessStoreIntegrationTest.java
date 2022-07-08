@@ -22,7 +22,7 @@ import com.azure.cosmos.models.CosmosStoredProcedureRequestOptions;
 import com.azure.cosmos.models.CosmosStoredProcedureResponse;
 import com.azure.cosmos.models.PartitionKey;
 import com.azure.cosmos.util.CosmosPagedIterable;
-import net.jodah.failsafe.RetryPolicy;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.azure.testfixtures.CosmosTestClient;
 import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureCosmosDbIntegrationTest;
@@ -99,7 +99,7 @@ class CosmosTransferProcessStoreIntegrationTest {
         var containerIfNotExists = database.createContainerIfNotExists(containerName, "/partitionKey");
         container = database.getContainer(containerIfNotExists.getProperties().getId());
 
-        var retryPolicy = new RetryPolicy<>().withMaxRetries(5).withBackoff(1, 3, ChronoUnit.SECONDS);
+        var retryPolicy = RetryPolicy.builder().withMaxRetries(5).withBackoff(1, 3, ChronoUnit.SECONDS).build();
         var cosmosDbApi = new CosmosDbApiImpl(container, false);
         cosmosDbApi.uploadStoredProcedure("nextForState");
         cosmosDbApi.uploadStoredProcedure("lease");

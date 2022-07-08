@@ -93,6 +93,7 @@ public class AzureDataFactoryTransferIntegrationTest {
                     Map.entry("web.http.ids.port", valueOf(CONSUMER_IDS_API_PORT)),
                     Map.entry("web.http.ids.path", IDS_PATH),
                     Map.entry("ids.webhook.address", CONSUMER_IDS_API),
+                    Map.entry(EDC_FS_CONFIG, runtimeSettingsPath()),
                     Map.entry(EDC_VAULT_NAME, KEY_VAULT_NAME),
                     Map.entry(EDC_VAULT_CLIENT_ID, AZURE_CLIENT_ID),
                     Map.entry(EDC_VAULT_TENANT_ID, AZURE_TENANT_ID),

@@ -18,7 +18,7 @@ plugins {
 }
 
 val okHttpVersion: String by project
-val jodahFailsafeVersion: String by project
+val failsafeVersion: String by project
 val rsApi: String by project
 val restAssured: String by project
 val jerseyVersion: String by project
@@ -31,7 +31,7 @@ dependencies {
     implementation(project(":core:transfer")) // needs the AddProvisionedResourceCommand
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    implementation("net.jodah:failsafe:${jodahFailsafeVersion}")
+    implementation("dev.failsafe:failsafe:${failsafeVersion}")
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
     testImplementation(project(":core:contract"))

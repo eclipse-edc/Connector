@@ -20,7 +20,9 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.container.AsyncResponse;
+import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 
 @OpenAPIDefinition
@@ -30,6 +32,6 @@ public interface CatalogApi {
     @Operation(responses = {
             @ApiResponse(content = @Content(mediaType = "application/json", schema = @Schema(implementation = Catalog.class)), description = "Gets contract offers (=catalog) of a single connector")
     })
-    void getCatalog(String provider, AsyncResponse response);
+    void getCatalog(String provider, @Valid QuerySpecDto querySpec, AsyncResponse response);
 
 }

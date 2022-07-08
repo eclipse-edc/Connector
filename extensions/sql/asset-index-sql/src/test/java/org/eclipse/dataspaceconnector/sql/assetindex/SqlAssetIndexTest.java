@@ -30,6 +30,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.sql.SqlQueryExecutor;
 import org.eclipse.dataspaceconnector.sql.assetindex.schema.BaseSqlDialectStatements;
+import org.eclipse.dataspaceconnector.sql.dialect.BaseSqlDialect;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -448,7 +449,7 @@ public class SqlAssetIndexTest {
     private static class H2DialectStatements extends BaseSqlDialectStatements {
         @Override
         public String getFormatAsJsonOperator() {
-            return " FORMAT JSON";
+            return BaseSqlDialect.getJsonCastOperator();
         }
     }
 }

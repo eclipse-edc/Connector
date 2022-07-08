@@ -26,7 +26,7 @@ import java.util.UUID;
  *  - type: added on serialization, contains the name of the runtime class name
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", include = JsonTypeInfo.As.EXTERNAL_PROPERTY)
-public abstract class Event<P> {
+public abstract class Event<P extends EventPayload> {
 
     protected String id;
 

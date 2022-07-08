@@ -18,12 +18,17 @@ in the detailed section referring to by linking pull requests or issues.
 #### Added
 
 * Event Framework for Asset entity (#1453)
+* Event Framework for ContractDefinition entity (#1436)
 * Event Framework for PolicyDefinition entity (#1437)
+* Event Framework for TransferProcess entity (#1439)
 * SQL Translation layer (#1357, #1459)
 * Permit API verbose error response (#1479)
 * Fix TODO and document `:extensions:data-plane-transfer` (#1519)
 * CloudEvents Http extension (#1160)
 * Full Query capabilities for SQL TransferProcess Store (#1483)
+* Full Query capabilities for SQL PolicyDefinition Store (#1484)
+* Documentation for `:extensions:data-plane:data-plane-api` (#1579)
+* Allow `TypeManager` to support multiple serialization contexts (#1581)
 
 #### Changed
 
@@ -33,6 +38,9 @@ in the detailed section referring to by linking pull requests or issues.
 * Refactor state machine and in-memory persistence (#1511)
 * Token based Authentication can retrieve key from vault (#1537)
 * JWT audience claim check with DID (#1520)
+* Bump `failsafe` library to version 3.2.4 (#1559)
+* Harmonize logics of `HttpDataSource` and `HttpDataSink` (#1475)
+* Log correct type in contract-definition API (#1584)
 
 #### Removed
 

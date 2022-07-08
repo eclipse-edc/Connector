@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.catalog.service;
 
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 
 import java.util.concurrent.CompletableFuture;
@@ -25,5 +26,5 @@ public interface CatalogService {
      * @param providerUrl the url of the provider
      * @return the provider's catalog
      */
-    CompletableFuture<Catalog> getByProviderUrl(String providerUrl);
+    CompletableFuture<Catalog> getByProviderUrl(String providerUrl, QuerySpec spec);
 }

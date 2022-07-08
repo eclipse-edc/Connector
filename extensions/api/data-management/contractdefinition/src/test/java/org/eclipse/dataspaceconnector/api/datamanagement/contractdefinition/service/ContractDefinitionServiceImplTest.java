@@ -16,12 +16,16 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.ser
 
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.contract.definition.observe.ContractDefinitionListener;
+import org.eclipse.dataspaceconnector.spi.contract.definition.observe.ContractDefinitionObservable;
+import org.eclipse.dataspaceconnector.spi.contract.definition.observe.ContractDefinitionObservableImpl;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -30,6 +34,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason.CONFLICT;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.isA;
@@ -43,7 +48,15 @@ class ContractDefinitionServiceImplTest {
     private final ContractDefinitionStore store = mock(ContractDefinitionStore.class);
     private final ContractDefinitionLoader loader = mock(ContractDefinitionLoader.class);
     private final TransactionContext transactionContext = new NoopTransactionContext();
-    private final ContractDefinitionServiceImpl service = new ContractDefinitionServiceImpl(store, loader, transactionContext);
+    private final ContractDefinitionObservable observable = new ContractDefinitionObservableImpl();
+    private final ContractDefinitionListener listener = mock(ContractDefinitionListener.class);
+
+    private final ContractDefinitionServiceImpl service = new ContractDefinitionServiceImpl(store, loader, transactionContext, observable);
+
+    @BeforeEach
+    void setUp() {
+        observable.registerListener(listener);
+    }
 
     @Test
     void findById_filtersById() {
@@ -85,6 +98,7 @@ class ContractDefinitionServiceImplTest {
         assertThat(inserted.succeeded()).isTrue();
         assertThat(inserted.getContent()).matches(hasId(definition.getId()));
         verify(loader).accept(argThat(it -> definition.getId().equals(it.getId())));
+        verify(listener).created(any());
     }
 
     @Test
@@ -97,6 +111,7 @@ class ContractDefinitionServiceImplTest {
         assertThat(inserted.failed()).isTrue();
         assertThat(inserted.reason()).isEqualTo(CONFLICT);
         verifyNoInteractions(loader);
+        verifyNoInteractions(listener);
     }
 
     @Test
@@ -108,6 +123,7 @@ class ContractDefinitionServiceImplTest {
 
         assertThat(deleted.succeeded()).isTrue();
         assertThat(deleted.getContent()).matches(hasId(definition.getId()));
+        verify(listener).deleted(any());
     }
 
     @NotNull

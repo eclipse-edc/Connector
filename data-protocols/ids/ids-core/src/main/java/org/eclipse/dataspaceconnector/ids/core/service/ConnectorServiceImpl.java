@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.types.Connector;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
@@ -44,10 +45,10 @@ public class ConnectorServiceImpl implements ConnectorService {
 
     @NotNull
     @Override
-    public Connector getConnector(@NotNull ClaimToken claimToken) {
+    public Connector getConnector(@NotNull ClaimToken claimToken, Range range) {
         Objects.requireNonNull(claimToken);
 
-        Catalog catalog = dataCatalogService.getDataCatalog(claimToken);
+        Catalog catalog = dataCatalogService.getDataCatalog(claimToken, range);
 
         return Connector.Builder
                 .newInstance()

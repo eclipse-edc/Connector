@@ -39,6 +39,7 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.descripti
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -74,7 +75,6 @@ public class ResourceDescriptionRequestHandlerTest {
     }
 
     @Test
-    @SuppressWarnings("ConstantConditions")
     public void testConstructorArgumentsNotNullable() {
         assertThrows(NullPointerException.class,
                 () -> new ResourceDescriptionRequestHandler(null, CONNECTOR_ID, assetIndex, contractOfferService, transformerRegistry));
@@ -94,7 +94,7 @@ public class ResourceDescriptionRequestHandlerTest {
         when(assetIndex.findById(anyString())).thenReturn(Asset.Builder.newInstance().build());
         var resourceResult = Result.success(resource);
         when(transformerRegistry.transform(isA(OfferedAsset.class), eq(Resource.class))).thenReturn(resourceResult);
-        when(contractOfferService.queryContractOffers(isA(ContractOfferQuery.class))).thenReturn(Stream.empty());
+        when(contractOfferService.queryContractOffers(isA(ContractOfferQuery.class), any())).thenReturn(Stream.empty());
 
         var result = resourceDescriptionRequestHandler.handle(descriptionRequestMessage, claimToken, null);
 
@@ -104,6 +104,6 @@ public class ResourceDescriptionRequestHandlerTest {
         verify(resource).getId();
         verify(assetIndex).findById(anyString());
         verify(transformerRegistry).transform(isA(OfferedAsset.class), eq(Resource.class));
-        verify(contractOfferService).queryContractOffers(isA(ContractOfferQuery.class));
+        verify(contractOfferService).queryContractOffers(isA(ContractOfferQuery.class), any());
     }
 }

@@ -11,7 +11,7 @@ Contributors:
 
 
 @startuml
-entity edc_policies {
+entity edc_policydefinitions {
   * policy_id: string <<PK>>
   --
   permissions: string <<json>>
