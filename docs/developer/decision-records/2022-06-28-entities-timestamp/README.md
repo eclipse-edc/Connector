@@ -4,19 +4,21 @@
 
 An entity represents any singular, identifiable and separate business object inside an application.
 
-The decision based on the definition explained above is to add a timestamp to the EDC entities in their state of
-creation. These Entities are `ContractAgreement`, `ContractDefinition`, `PolicyDefinition`, and `Asset`. The classes
-`ContractNegotiation` and `TransferProcess` have it already added. timestamp.
+The decision based on the definition explained above is to add a timestamp to the EDC entities identifying their creation. 
+These Entities are `ContractAgreement`, `ContractDefinition`, `PolicyDefinition`, and `Asset`. The `ContractNegotiation` 
+and `TransferProcess` entities have it already.
 
 ## Rationale
 
-The idea of this change is to add helpful information to the metadata of these business objects, giving for example the
-possibility of searching for them based on their date and time of creation.
+The idea of this change is to add helpful information to the metadata of these entities, giving for example the
+possibility of searching them by the creation timestamp.
 
 ## Approach
 
-The classes `Asset` , `ContractDefinition`, `PolicyDefinition` and `ContractAgreement` will contain each one an
-attribute called `createdTimestamp` of type long and will be valued using the millis() method from the `Clock` service.
+The classes `Asset`, `ContractDefinition`, `PolicyDefinition` and `ContractAgreement` will contain each one a
+field called `createdTimestamp` whose type will be long and that will be valued using the `millis()` method from the `Clock` service,
+that represent the current UTC timestamp in milliseconds.
+
 The SQL schemas related to the entities will also be modified, so that the timestamps can also be stored persistently.
 
 ### Asset
