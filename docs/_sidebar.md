@@ -21,7 +21,7 @@ and https://github.com/docsifyjs/docsify/issues/1139)
     - <a href="#/architecture/domain-model">Domain Model</a>
     - <a href="#/architecture/identity-management/README">Identity Management</a>
     - <a href="#/architecture/ids/README">IDS Standard</a>
-    - <a href="/swaggerui/index.html" target="_blank" title="Swagger UI in new tab">OpenAPI Specification</a>
+    - <a href="/DataSpaceConnector/swaggerui/index.html" target="_blank" title="Swagger UI in new tab">OpenAPI Specification</a>
     - <a href="#/architecture/usage-control/README">Usage Control</a>
 
 - Appendix
