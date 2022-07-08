@@ -35,7 +35,6 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.Conn
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DataCatalogDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.RepresentationDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ResourceDescriptionRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
 import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
@@ -158,10 +157,9 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         handlers.add(artifactRequestHandler);
 
         // create contract message handlers
-        var responseMessageFactory = new IdsResponseMessageFactory(connectorId, identityService);
-        handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager, responseMessageFactory, transformerRegistry, assetIndex));
+        handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager, transformerRegistry, assetIndex));
         handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager, transformerRegistry));
-        handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper, providerNegotiationManager, consumerNegotiationManager, responseMessageFactory));
+        handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper, providerNegotiationManager, consumerNegotiationManager));
         handlers.add(new ContractRejectionHandler(monitor, connectorId, providerNegotiationManager, consumerNegotiationManager));
 
         // add notification handler and sub-handlers

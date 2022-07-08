@@ -19,6 +19,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageBuilder;
 import de.fraunhofer.iais.eis.NotificationMessage;
+import de.fraunhofer.iais.eis.RequestInProcessMessageBuilder;
 import de.fraunhofer.iais.eis.ResponseMessage;
 import de.fraunhofer.iais.eis.ResponseMessageBuilder;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
@@ -37,21 +38,14 @@ class ResponseMessageUtil {
     public static ResponseMessage createDummyResponse(
             @Nullable String connectorId,
             @Nullable Message correlationMessage) {
-
-        URI messageId = URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, IdsType.MESSAGE.getValue(), UUID.randomUUID().toString()));
+        URI messageId = getMessageId();
         ResponseMessageBuilder builder = new ResponseMessageBuilder(messageId);
 
         builder._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
         builder._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
         builder._issued_(CalendarUtil.gregorianNow());
 
-        String connectorIdUrn = String.join(
-                IdsIdParser.DELIMITER,
-                IdsIdParser.SCHEME,
-                IdsType.CONNECTOR.getValue(),
-                connectorId);
-
-        URI connectorIdUri = URI.create(connectorIdUrn);
+        URI connectorIdUri = getConnectorUrn(connectorId);
 
         builder._issuerConnector_(connectorIdUri);
         builder._senderAgent_(connectorIdUri);
@@ -79,20 +73,13 @@ class ResponseMessageUtil {
     public static NotificationMessage createMessageProcessedNotificationMessage(
             @Nullable String connectorId,
             @Nullable Message correlationMessage) {
-
-        var messageId = URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, IdsType.MESSAGE.getValue(), UUID.randomUUID().toString()));
+        var messageId = getMessageId();
         var builder = new MessageProcessedNotificationMessageBuilder(messageId);
 
         builder._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
         builder._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
 
-        var connectorIdUrn = String.join(
-                IdsIdParser.DELIMITER,
-                IdsIdParser.SCHEME,
-                IdsType.CONNECTOR.getValue(),
-                connectorId);
-
-        var connectorIdUri = URI.create(connectorIdUrn);
+        var connectorIdUri = getConnectorUrn(connectorId);
 
         builder._issuerConnector_(connectorIdUri);
         builder._senderAgent_(connectorIdUri);
@@ -116,5 +103,54 @@ class ResponseMessageUtil {
         }
 
         return builder.build();
+    }
+    
+    public static NotificationMessage createRequestInProcessMessage(@Nullable String connectorId,
+                                                                    @Nullable Message correlationMessage) {
+        var messageId = getMessageId();
+        var builder = new RequestInProcessMessageBuilder(messageId);
+    
+        builder._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
+        builder._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
+    
+        var connectorIdUri = getConnectorUrn(connectorId);
+    
+        builder._issuerConnector_(connectorIdUri);
+        builder._senderAgent_(connectorIdUri);
+    
+        if (correlationMessage != null) {
+            var id = correlationMessage.getId();
+            if (id != null) {
+                builder._correlationMessage_(id);
+            }
+        
+            var senderAgent = correlationMessage.getSenderAgent();
+            if (senderAgent != null) {
+                builder._recipientAgent_(new ArrayList<>(Collections.singletonList(senderAgent)));
+            }
+        
+            var issuerConnector = correlationMessage.getIssuerConnector();
+            if (issuerConnector != null) {
+                builder._recipientConnector_(new ArrayList<>(Collections.singletonList(issuerConnector)));
+            }
+        }
+    
+        return builder.build();
+    }
+    
+    private static URI getMessageId() {
+        return URI.create(String.join(
+                IdsIdParser.DELIMITER,
+                IdsIdParser.SCHEME,
+                IdsType.MESSAGE.getValue(),
+                UUID.randomUUID().toString()));
+    }
+    
+    private static URI getConnectorUrn(String connectorId) {
+        return URI.create(String.join(
+                IdsIdParser.DELIMITER,
+                IdsIdParser.SCHEME,
+                IdsType.CONNECTOR.getValue(),
+                connectorId));
     }
 }

@@ -19,11 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractOffer;
 import de.fraunhofer.iais.eis.ContractOfferMessage;
 import de.fraunhofer.iais.eis.Message;
-import de.fraunhofer.iais.eis.RequestInProcessMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
-import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.exceptions.InvalidCorrelationMessageException;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -35,6 +32,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.messageTypeNotSupported;
 
 /**
  * This class handles and processes incoming IDS {@link ContractOfferMessage}s.
@@ -46,21 +44,18 @@ public class ContractOfferHandler implements Handler {
     private final String connectorId;
     private final ProviderContractNegotiationManager providerNegotiationManager;
     private final ConsumerContractNegotiationManager consumerNegotiationManager;
-    private final IdsResponseMessageFactory responseMessageFactory;
 
     public ContractOfferHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
             @NotNull ObjectMapper objectMapper,
             @NotNull ProviderContractNegotiationManager providerNegotiationManager,
-            @NotNull ConsumerContractNegotiationManager consumerNegotiationManager,
-            @NotNull IdsResponseMessageFactory responseMessageFactory) {
+            @NotNull ConsumerContractNegotiationManager consumerNegotiationManager) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
         this.objectMapper = Objects.requireNonNull(objectMapper);
         this.providerNegotiationManager = Objects.requireNonNull(providerNegotiationManager);
         this.consumerNegotiationManager = Objects.requireNonNull(consumerNegotiationManager);
-        this.responseMessageFactory = Objects.requireNonNull(responseMessageFactory);
     }
 
     @Override
@@ -84,24 +79,10 @@ public class ContractOfferHandler implements Handler {
             monitor.severe("ContractOfferHandler: Contract Offer is invalid", e);
             return createBadParametersErrorMultipartResponse(message);
         }
+    
+        // TODO similar implementation to ContractRequestHandler (only required if counter offers supported, not needed for M1)
 
-        Message response;
-
-        try {
-            response = responseMessageFactory.createRequestInProcessMessage(message);
-        } catch (Exception e) {
-            if (e instanceof InvalidCorrelationMessageException) {
-                monitor.debug(String.format("Rejecting invalid IDS contract offer message [Msg-ID: %s]", message.getId()), e);
-            } else {
-                monitor.severe(String.format("Exception while creating IDS RequestInProcessMessage to answer contract offer [Msg-ID: %s]", message.getId()), e);
-            }
-
-            response = responseMessageFactory.createRejectionMessage(message, e);
-        }
-
-        if (response instanceof RequestInProcessMessage) {
-            // TODO similar implementation to ContractRequestHandler (only required if counter offers supported, not needed for M1)
-        }
+        var response = messageTypeNotSupported(message, connectorId);
 
         return MultipartResponse.Builder.newInstance()
                 .header(response)

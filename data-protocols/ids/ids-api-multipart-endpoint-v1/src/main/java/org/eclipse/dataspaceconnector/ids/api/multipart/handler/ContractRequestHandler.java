@@ -19,11 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractRequest;
 import de.fraunhofer.iais.eis.ContractRequestMessage;
 import de.fraunhofer.iais.eis.Message;
-import de.fraunhofer.iais.eis.RequestInProcessMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
-import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.exceptions.InvalidCorrelationMessageException;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
@@ -41,7 +38,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.Objects;
 
+import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.ResponseMessageUtil.createRequestInProcessMessage;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.internalRecipientError;
 import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 /**
@@ -55,14 +54,12 @@ public class ContractRequestHandler implements Handler {
     private final ProviderContractNegotiationManager negotiationManager;
     private final IdsTransformerRegistry transformerRegistry;
     private final AssetIndex assetIndex;
-    private final IdsResponseMessageFactory responseMessageFactory;
 
     public ContractRequestHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
             @NotNull ObjectMapper objectMapper,
             @NotNull ProviderContractNegotiationManager negotiationManager,
-            @NotNull IdsResponseMessageFactory responseMessageFactory,
             @NotNull IdsTransformerRegistry transformerRegistry,
             @NotNull AssetIndex assetIndex) {
         this.monitor = Objects.requireNonNull(monitor);
@@ -71,7 +68,6 @@ public class ContractRequestHandler implements Handler {
         this.negotiationManager = Objects.requireNonNull(negotiationManager);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
         this.assetIndex = Objects.requireNonNull(assetIndex);
-        this.responseMessageFactory = Objects.requireNonNull(responseMessageFactory);
     }
 
     @Override
@@ -147,24 +143,18 @@ public class ContractRequestHandler implements Handler {
                 .correlationId(String.valueOf(message.getTransferContract()))
                 .contractOffer(contractOffer)
                 .build();
-
+        
+        var negotiationInitiateResult = negotiationManager.requested(claimToken, requestObj);
+    
         Message response;
-
-        try {
-            response = responseMessageFactory.createRequestInProcessMessage(message);
-        } catch (Exception e) {
-            if (e instanceof InvalidCorrelationMessageException) {
-                monitor.debug(String.format("Rejecting invalid IDS contract request message [Msg-ID: %s]", message.getId()), e);
+        if (negotiationInitiateResult.succeeded()) {
+            response = createRequestInProcessMessage(connectorId, message);
+        } else {
+            if (negotiationInitiateResult.fatalError()) {
+                response = badParameters(message, connectorId);
             } else {
-                monitor.severe(String.format("Exception while creating IDS RequestInProcessMessage to answer contract request [Msg-ID: %s]", message.getId()), e);
+                response = internalRecipientError(message, connectorId);
             }
-
-            response = responseMessageFactory.createRejectionMessage(message, e);
-        }
-
-        if (response instanceof RequestInProcessMessage) {
-            // Start negotiation process
-            negotiationManager.requested(claimToken, requestObj);
         }
 
         return MultipartResponse.Builder.newInstance()
