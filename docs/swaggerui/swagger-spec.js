@@ -2139,9 +2139,6 @@ window.swaggerSpec={
           "failure" : {
             "$ref" : "#/components/schemas/Failure"
           },
-          "failureDetail" : {
-            "type" : "string"
-          },
           "isHealthy" : {
             "type" : "boolean"
           }
