@@ -31,8 +31,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.Objects;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.messageTypeNotSupported;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.badParameters;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.messageTypeNotSupported;
 
 /**
  * This class handles and processes incoming IDS {@link ContractOfferMessage}s.

@@ -38,9 +38,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.Objects;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.ResponseMessageUtil.createRequestInProcessMessage;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.internalRecipientError;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.badParameters;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.createRequestInProcessMessage;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.internalRecipientError;
 import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 /**

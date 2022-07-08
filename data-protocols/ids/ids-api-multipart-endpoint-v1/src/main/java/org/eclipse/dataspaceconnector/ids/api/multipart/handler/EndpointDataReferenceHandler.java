@@ -29,7 +29,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.internalRecipientError;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.createMessageProcessedNotificationMessage;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.internalRecipientError;
 
 /**
  * Implementation of the {@link Handler} class for handling of {@link EndpointDataReferenceMessage}.
@@ -84,7 +85,7 @@ public class EndpointDataReferenceHandler implements Handler {
         }
 
         return MultipartResponse.Builder.newInstance()
-                .header(ResponseMessageUtil.createMessageProcessedNotificationMessage(connectorId, multipartRequest.getHeader()))
+                .header(createMessageProcessedNotificationMessage(connectorId, multipartRequest.getHeader()))
                 .build();
     }
 

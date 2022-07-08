@@ -19,7 +19,6 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.Connector;
-import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -31,11 +30,9 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -45,14 +42,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.malformedMessage;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.messageTypeNotSupported;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.notAuthenticated;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.notFound;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.malformedMessage;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.messageTypeNotSupported;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.notAuthenticated;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.notFound;
 
 @Consumes({MediaType.MULTIPART_FORM_DATA})
 @Produces({MediaType.MULTIPART_FORM_DATA})
@@ -100,14 +96,19 @@ public class MultipartController {
         if (header == null) {
             return Response.ok(createFormDataMultiPart(malformedMessage(null, connectorId))).build();
         }
+        
+        // Check if any required field missing
+        if (header.getId() == null || header.getIssuerConnector() == null || header.getSenderAgent() == null) {
+            return Response.ok(createFormDataMultiPart(malformedMessage(header, connectorId))).build();
+        }
 
-        DynamicAttributeToken dynamicAttributeToken = header.getSecurityToken();
+        var dynamicAttributeToken = header.getSecurityToken();
         if (dynamicAttributeToken == null || dynamicAttributeToken.getTokenValue() == null) {
             monitor.warning("MultipartController: Token is missing in header");
             return Response.ok(createFormDataMultiPart(notAuthenticated(header, connectorId))).build();
         }
 
-        Map<String, Object> additional = new HashMap<>();
+        var additional = new HashMap<String, Object>();
         //IDS token validation requires issuerConnector and securityProfile
         additional.put("issuerConnector", header.getIssuerConnector());
         try {
@@ -121,7 +122,7 @@ public class MultipartController {
                 .additional(additional)
                 .build();
 
-        Result<ClaimToken> verificationResult = identityService.verifyJwtToken(tokenRepresentation, idsWebhookAddress);
+        var verificationResult = identityService.verifyJwtToken(tokenRepresentation, idsWebhookAddress);
 
         if (verificationResult.failed()) {
             monitor.warning(format("MultipartController: Token validation failed %s", verificationResult.getFailure().getMessages()));
@@ -143,7 +144,7 @@ public class MultipartController {
             return Response.ok(createFormDataMultiPart(messageTypeNotSupported(header, connectorId))).build();
         }
 
-        MultipartResponse multipartResponse = handler.handleRequest(multipartRequest, claimToken);
+        var multipartResponse = handler.handleRequest(multipartRequest, claimToken);
         if (multipartResponse != null) {
             return Response.ok(createFormDataMultiPart(multipartResponse)).build();
         }

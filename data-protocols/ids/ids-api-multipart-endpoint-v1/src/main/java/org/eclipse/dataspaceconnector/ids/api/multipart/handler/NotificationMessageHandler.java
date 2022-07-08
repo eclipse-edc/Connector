@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.messageTypeNotSupported;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.messageTypeNotSupported;
 
 /**
  * Implementation of the {@link Handler} class for handling of {@link NotificationMessage}

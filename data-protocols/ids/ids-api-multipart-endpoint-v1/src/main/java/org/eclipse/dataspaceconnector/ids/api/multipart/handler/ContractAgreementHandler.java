@@ -32,7 +32,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.Objects;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.badParameters;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.createMessageProcessedNotificationMessage;
 
 /**
  * This class handles and processes incoming IDS {@link ContractAgreementMessage}s.
@@ -115,7 +116,7 @@ public class ContractAgreementHandler implements Handler {
         }
 
         return MultipartResponse.Builder.newInstance()
-                .header(ResponseMessageUtil.createMessageProcessedNotificationMessage(connectorId, message))
+                .header(createMessageProcessedNotificationMessage(connectorId, message))
                 .build();
     }
 
