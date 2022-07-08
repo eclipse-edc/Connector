@@ -204,42 +204,6 @@ public abstract class AbstractContractNegotiationIntegrationTest {
     }
 
     /**
-     * Implementation of the ContractNegotiationListener that signals a CountDownLatch when the confirmed state has been
-     * reached.
-     */
-    protected static class ConfirmedContractNegotiationListener implements ContractNegotiationListener {
-
-        private final CountDownLatch countDownLatch;
-
-        public ConfirmedContractNegotiationListener(CountDownLatch countDownLatch) {
-            this.countDownLatch = countDownLatch;
-        }
-
-        @Override
-        public void preConfirmed(ContractNegotiation negotiation) {
-            countDownLatch.countDown();
-        }
-    }
-
-    /**
-     * Implementation of the ContractNegotiationListener that signals a CountDownLatch when the declined state has been
-     * reached.
-     */
-    protected static class DeclinedContractNegotiationListener implements ContractNegotiationListener {
-
-        private final CountDownLatch countDownLatch;
-
-        public DeclinedContractNegotiationListener(CountDownLatch countDownLatch) {
-            this.countDownLatch = countDownLatch;
-        }
-
-        @Override
-        public void preDeclined(ContractNegotiation negotiation) {
-            countDownLatch.countDown();
-        }
-    }
-
-    /**
      * Implementation of the RemoteMessageDispatcherRegistry for the provider that delegates the requests to the
      * consumer negotiation manager directly.
      */
