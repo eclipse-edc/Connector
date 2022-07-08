@@ -4,8 +4,9 @@
 
 An entity represents any singular, identifiable and separate business object inside an application.
 
-The decision based on the definition explained above is to add a timestamp to the EDC entities identifying their creation. 
-These Entities are `ContractAgreement`, `ContractDefinition`, `PolicyDefinition`, and `Asset`. The `ContractNegotiation` 
+The decision based on the definition explained above is to add a timestamp to the EDC entities identifying their
+creation. These Entities are `ContractAgreement`, `ContractDefinition`, `PolicyDefinition`, and `Asset`.
+The `ContractNegotiation`
 and `TransferProcess` entities have it already.
 
 ## Rationale
@@ -15,9 +16,9 @@ possibility of searching them by the creation timestamp.
 
 ## Approach
 
-The classes `Asset`, `ContractDefinition`, `PolicyDefinition` and `ContractAgreement` will contain each one a
-field called `createdTimestamp` whose type will be long and that will be valued using the `millis()` method from the `Clock` service,
-that represent the current UTC timestamp in milliseconds.
+The classes `Asset`, `ContractDefinition`, `PolicyDefinition` and `ContractAgreement` will contain each one a field
+called `createdTimestamp` whose type will be long and that will be valued using the `millis()` method from the `Clock`
+service, that represent the current UTC timestamp in milliseconds.
 
 The SQL schemas related to the entities will also be modified, so that the timestamps can also be stored persistently.
 
@@ -67,7 +68,7 @@ CREATE TABLE IF NOT EXISTS edc_asset
 ...
 ```
 
-Class `AssetStatements`
+Interface `AssetStatements`
 
 ```java
 public interface AssetStatements {
@@ -152,7 +153,7 @@ CREATE TABLE IF NOT EXISTS edc_policies
 ...
 ```
 
-Class `SqlPolicyStoreStatements`
+Interface `SqlPolicyStoreStatements`
 
 ```java
 public interface SqlPolicyStoreStatements {
@@ -285,7 +286,7 @@ CREATE TABLE IF NOT EXISTS edc_contract_definitions
         );
 ```
 
-Class `contractDefinitionStatements`
+Interface `contractDefinitionStatements`
 
 ```java
 public interface ContractDefinitionStatements {
@@ -298,7 +299,7 @@ public interface ContractDefinitionStatements {
 }
 ```
 
-`class BaseSqlDialectStatements`
+Class `BaseSqlDialectStatements`
 
 ```java
 public class BaseSqlDialectStatements implements ContractDefinitionStatements {
@@ -319,3 +320,130 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
 }
 ```
 
+### Contract Agreement
+
+The changes related to the entity `ContractAgreement` are the following:
+
+Class `ContractAgreement`
+
+```java
+public class ContractAgreement {
+    ...
+    private long createdTimestamp;
+    ...
+
+    private ContractAgreement(@NotNull String id,
+                              @NotNull String providerAgentId,
+                              @NotNull String consumerAgentId,
+                              long contractSigningDate,
+                              long contractStartDate,
+                              long contractEndDate,
+                              @NotNull Policy policy,
+                              @NotNull String assetId,
+                              long createdTimestamp) {
+        ...
+        this.createdTimestamp = createdTimestamp;
+    }    
+    ...
+
+    /**
+     * Creation timestamp of the {@link ContractAgreement}.
+     *
+     * @return contract id
+     */
+    @NotNull
+    public long getCreatedTimestamp() {
+        return createdTimestamp;
+    }
+    ...
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder {
+
+        private String id;
+        private long createdTimestamp;
+        ...
+
+        public Builder createdTimestamp(long createdTimestamp) {
+            this.createdTimestamp = createdTimestamp;
+            return this;
+        }
+        ...
+
+        public ContractAgreement build() {
+            return new ContractAgreement(id, providerAgentId, consumerAgentId, contractSigningDate, contractStartDate, contractEndDate, policy, assetId, createdTimestamp);
+        }
+        ...
+    }
+}
+```
+
+file `schema.sql`
+
+```roomsql
+...
+CREATE TABLE IF NOT EXISTS edc_contract_agreement
+(
+    agr_id            VARCHAR NOT NULL
+        CONSTRAINT contract_agreement_pk
+            PRIMARY KEY,
+    provider_agent_id VARCHAR,
+    consumer_agent_id VARCHAR,
+    created_timestamp BIGINT,
+    signing_date      BIGINT,
+    start_date        BIGINT,
+    end_date          INTEGER,
+    asset_id          VARCHAR NOT NULL,
+    policy            JSON
+);
+...
+```
+
+class `ContractAgreementMapping`
+
+```java
+class ContractAgreementMapping extends TranslationMapping {
+
+    ...
+    private static final String FIELD_CREATED_TIMESTAMP = "createdTimestamp";
+    ...
+
+    ContractAgreementMapping(ContractNegotiationStatements statements) {
+        add(FIELD_ID, statements.getContractAgreementIdColumn());
+        add(FIELD_CREATED_TIMESTAMP, statements.getContractAgreementCreatedTimestamp());
+        add(FIELD_PROVIDER_AGENT_ID, statements.getProviderAgentColumn());
+        ...
+    }
+}
+```
+
+class `BaseSqlDialectStatements`
+
+```java
+public class BaseSqlDialectStatements implements ContractNegotiationStatements {
+    ...
+
+    @Override
+    public String getInsertAgreementTemplate() { //Added method getContractAgreementCreatedTimestamp() inside the query
+        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?%s);",
+                getContractAgreementTable(), getContractAgreementIdColumn(), getContractAgreementCreatedTimestamp(), getProviderAgentColumn(),
+                getConsumerAgentColumn(), getSigningDateColumn(), getStartDateColumn(), getEndDateColumn(), getAssetIdColumn(), getPolicyColumn(),
+                getFormatJsonOperator());
+    }
+    ...
+}
+
+```
+
+Inteface `ContractNegotiationStatements`
+
+```java
+public interface ContractNegotiationStatements extends LeaseStatements {
+    ...
+
+    default String getContractAgreementCreatedTimestamp() {
+        return "created_timestamp";
+    }
+    ...
+}
+```
