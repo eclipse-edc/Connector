@@ -188,7 +188,7 @@ public class FileTransferSampleTestCommon {
      * @return An instance of {@link DataRequest} with changed values for contract agreement ID and file destination path.
      * @throws IOException Thrown if there was an error accessing the file given in transferJsonFile.
      */
-    DataRequest readAndUpdateDataRequestFromJsonFile(File transferJsonFile, String contractAgreementId) throws IOException {
+    DataRequest readAndUpdateDataRequestFromJsonFile(@NotNull File transferJsonFile, @NotNull String contractAgreementId) throws IOException {
         // convert JSON file to map
         DataRequest sampleDataRequest = MAPPER.readValue(transferJsonFile, DataRequest.class);
 
