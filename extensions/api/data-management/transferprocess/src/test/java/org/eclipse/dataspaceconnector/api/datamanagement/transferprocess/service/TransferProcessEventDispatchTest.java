@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Masatake Iwasaki (NTT DATA) - fixed failure due to assertion timeout
  *
  */
 
@@ -35,7 +36,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinPool;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
@@ -50,7 +53,8 @@ public class TransferProcessEventDispatchTest {
 
     @BeforeEach
     void setUp(EdcExtension extension) {
-        extension.setConfiguration(Map.of("edc.transfer.send.retry.limit", "0"));
+        extension.setConfiguration(Map.of("edc.transfer.send.retry.limit", "0",
+                                          "edc.transfer.send.retry.base-delay.ms", "0"));
         extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
     }
 
@@ -71,6 +75,7 @@ public class TransferProcessEventDispatchTest {
 
         var initiateResult = service.initiateTransfer(dataRequest);
 
+        ForkJoinPool.commonPool().awaitQuiescence(10, SECONDS);
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(isA(TransferProcessInitiated.class));
             verify(eventSubscriber).on(isA(TransferProcessProvisioned.class));
@@ -80,6 +85,7 @@ public class TransferProcessEventDispatchTest {
 
         service.deprovision(initiateResult.getContent());
 
+        ForkJoinPool.commonPool().awaitQuiescence(10, SECONDS);
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(isA(TransferProcessDeprovisioned.class));
             verify(eventSubscriber).on(isA(TransferProcessEnded.class));
@@ -105,6 +111,7 @@ public class TransferProcessEventDispatchTest {
 
         service.cancel(initiateResult.getContent());
 
+        ForkJoinPool.commonPool().awaitQuiescence(10, SECONDS);
         await().untilAsserted(() -> verify(eventSubscriber).on(isA(TransferProcessCancelled.class)));
     }
 
@@ -125,6 +132,7 @@ public class TransferProcessEventDispatchTest {
 
         service.initiateTransfer(dataRequest);
 
+        ForkJoinPool.commonPool().awaitQuiescence(10, SECONDS);
         await().untilAsserted(() -> verify(eventSubscriber).on(isA(TransferProcessFailed.class)));
     }
 }
