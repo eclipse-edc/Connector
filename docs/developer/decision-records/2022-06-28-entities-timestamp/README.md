@@ -36,8 +36,7 @@ public class Asset {
     
     ...
 
-    @NotNull
-    public Long getCreatedTimestamp() {
+    public long getCreatedTimestamp() {
         return createdTimestamp;
     }
     ...
@@ -245,8 +244,7 @@ public class ContractDefinition {
     private long createdTimestamp;
     ...
 
-    @NotNull
-    public Long getCreatedTimestamp() {
+    public long getCreatedTimestamp() {
         return createdTimestamp;
     }
     ...
@@ -308,7 +306,8 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
     @Override
     public String getInsertTemplate() {
         return format("INSERT INTO %s (%s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?%s)",
-                getContractDefinitionTable(),
+                */
+        getContractDefinitionTable(),
                 getIdColumn(),
                 getAccessPolicyIdColumn(),
                 getContractPolicyIdColumn(),
@@ -349,31 +348,30 @@ public class ContractAgreement {
     /**
      * Creation timestamp of the {@link ContractAgreement}.
      *
-     * @return contract id
-     */
-    @NotNull
+     * @return timestamp when the ContractAgreement was created
+     * */
     public long getCreatedTimestamp() {
         return createdTimestamp;
     }
-    ...
+...
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
 
         private String id;
         private long createdTimestamp;
-        ...
+ ...
 
         public Builder createdTimestamp(long createdTimestamp) {
             this.createdTimestamp = createdTimestamp;
             return this;
         }
-        ...
+ ...
 
         public ContractAgreement build() {
             return new ContractAgreement(id, providerAgentId, consumerAgentId, contractSigningDate, contractStartDate, contractEndDate, policy, assetId, createdTimestamp);
         }
-        ...
+ ...
     }
 }
 ```
