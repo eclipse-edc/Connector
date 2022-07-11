@@ -306,8 +306,7 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
     @Override
     public String getInsertTemplate() {
         return format("INSERT INTO %s (%s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?%s)",
-                */
-        getContractDefinitionTable(),
+                getContractDefinitionTable(),
                 getIdColumn(),
                 getAccessPolicyIdColumn(),
                 getContractPolicyIdColumn(),
