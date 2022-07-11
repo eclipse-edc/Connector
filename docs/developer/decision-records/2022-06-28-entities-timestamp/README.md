@@ -6,8 +6,7 @@ An entity represents any singular, identifiable and separate business object ins
 
 The decision based on the definition explained above is to add a timestamp to the EDC entities identifying their
 creation. These Entities are `ContractAgreement`, `ContractDefinition`, `PolicyDefinition`, and `Asset`.
-The `ContractNegotiation`
-and `TransferProcess` entities have it already.
+The `ContractNegotiation` and `TransferProcess` entities have it already.
 
 ## Rationale
 
@@ -55,7 +54,7 @@ public class Asset {
 
 File `Schema.sql`
 
-```roomsql
+```sql
 ...
 -- table: edc_asset
 CREATE TABLE IF NOT EXISTS edc_asset
@@ -132,7 +131,7 @@ public class PolicyDefinition {
 
 File `Schema.sql`
 
-```roomsql
+```sql
 ...
 CREATE TABLE IF NOT EXISTS edc_policies
 (
@@ -272,7 +271,7 @@ public class ContractDefinition {
 
 File `Schema.sql`
 
-```roomsql
+```sql
 CREATE TABLE IF NOT EXISTS edc_contract_definitions
         (
         contract_definition_id VARCHAR NOT NULL,
@@ -377,7 +376,7 @@ public class ContractAgreement {
 
 file `schema.sql`
 
-```roomsql
+```sql
 ...
 CREATE TABLE IF NOT EXISTS edc_contract_agreement
 (
