@@ -347,7 +347,7 @@ public class ContractAgreement {
      * Creation timestamp of the {@link ContractAgreement}.
      *
      * @return timestamp when the ContractAgreement was created
-     * */
+     */
     public long getCreatedTimestamp() {
         return createdTimestamp;
     }
