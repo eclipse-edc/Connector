@@ -358,18 +358,18 @@ public class ContractAgreement {
 
         private String id;
         private long createdTimestamp;
- ...
+...
 
         public Builder createdTimestamp(long createdTimestamp) {
             this.createdTimestamp = createdTimestamp;
             return this;
         }
- ...
+...
 
         public ContractAgreement build() {
             return new ContractAgreement(id, providerAgentId, consumerAgentId, contractSigningDate, contractStartDate, contractEndDate, policy, assetId, createdTimestamp);
         }
- ...
+...
     }
 }
 ```
