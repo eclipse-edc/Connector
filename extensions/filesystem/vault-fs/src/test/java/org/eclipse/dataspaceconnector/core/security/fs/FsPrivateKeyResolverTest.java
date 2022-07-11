@@ -18,37 +18,38 @@ package org.eclipse.dataspaceconnector.core.security.fs;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.InputStream;
 import java.security.KeyStore;
-import java.security.PrivateKey;
-import java.security.interfaces.RSAPrivateKey;
+import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
-class FsRsaPrivateKeyResolverTest {
+class FsPrivateKeyResolverTest {
     private static final String PASSWORD = "test123";
     private static final String TEST_KEYSTORE = "edc-test-keystore.jks";
 
     private FsPrivateKeyResolver keyResolver;
 
     @Test
-    public void verifyResolution() {
-        assertNotNull(keyResolver.resolvePrivateKey("testkey", PrivateKey.class));
+    void verifyResolutionOk() {
+        assertThat(keyResolver.getEncodedKey("testkey"))
+                .isNotNull()
+                .contains("-----BEGIN RSA PRIVATE KEY-----");
     }
 
     @Test
-    public void verifyResolution_Rsa() {
-        assertNotNull(keyResolver.resolvePrivateKey("testkey", RSAPrivateKey.class));
+    void verifyResolutionKo() {
+        assertThat(keyResolver.getEncodedKey("testkeyxx"))
+                .isNull();
     }
 
     @BeforeEach
     void setUp() throws Exception {
-        var url = getClass().getClassLoader().getResource(FsRsaPrivateKeyResolverTest.TEST_KEYSTORE);
-        KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-        assert url != null;
-        try (InputStream stream = url.openStream()) {
-            keyStore.load(stream, FsRsaPrivateKeyResolverTest.PASSWORD.toCharArray());
+        var url = getClass().getClassLoader().getResource(FsPrivateKeyResolverTest.TEST_KEYSTORE);
+        Objects.requireNonNull(url);
+        var keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        try (var stream = url.openStream()) {
+            keyStore.load(stream, FsPrivateKeyResolverTest.PASSWORD.toCharArray());
         }
-        keyResolver = new FsPrivateKeyResolver(FsRsaPrivateKeyResolverTest.PASSWORD, keyStore);
+        keyResolver = new FsPrivateKeyResolver(FsPrivateKeyResolverTest.PASSWORD, keyStore);
     }
 }

@@ -16,9 +16,13 @@ plugins {
     `java-library`
 }
 
+val bouncycastleVersion: String by project
+
 dependencies {
     api(project(":spi"))
     implementation(project(":common:util"))
+
+    implementation("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
 }
 
 publishing {
