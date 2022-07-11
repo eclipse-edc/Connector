@@ -20,7 +20,7 @@ import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessC
 import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessDeprovisioned;
 import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessEnded;
 import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessFailed;
-import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessInitialized;
+import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessInitiated;
 import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessProvisioned;
 import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessRequested;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessListener;
@@ -31,18 +31,18 @@ import java.time.Clock;
 /**
  * Listener responsible for creating and publishing events regarding TransferProcess state changes
  */
-public class EventTransferProcessListener implements TransferProcessListener {
+public class TransferProcessEventListener implements TransferProcessListener {
     private final EventRouter eventRouter;
     private final Clock clock;
 
-    public EventTransferProcessListener(EventRouter eventRouter, Clock clock) {
+    public TransferProcessEventListener(EventRouter eventRouter, Clock clock) {
         this.eventRouter = eventRouter;
         this.clock = clock;
     }
 
     @Override
-    public void initialized(TransferProcess process) {
-        var event = TransferProcessInitialized.Builder.newInstance()
+    public void initiated(TransferProcess process) {
+        var event = TransferProcessInitiated.Builder.newInstance()
                 .transferProcessId(process.getId())
                 .at(clock.millis())
                 .build();
