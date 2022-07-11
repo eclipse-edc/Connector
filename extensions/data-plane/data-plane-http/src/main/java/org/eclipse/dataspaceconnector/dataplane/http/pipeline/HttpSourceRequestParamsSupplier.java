@@ -43,6 +43,11 @@ public class HttpSourceRequestParamsSupplier extends HttpRequestParamsSupplier {
     }
 
     @Override
+    protected Boolean extractTransferChunked(HttpDataAddress address) {
+        return null;
+    }
+
+    @Override
     protected @NotNull DataAddress selectAddress(DataFlowRequest request) {
         return request.getSourceDataAddress();
     }

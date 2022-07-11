@@ -66,9 +66,12 @@ public abstract class HttpRequestParamsSupplier implements Function<DataFlowRequ
                     params.contentType(ct);
                     params.body(extractBody(address, request));
                 });
+        Optional.ofNullable(extractTransferChunked(address)).ifPresent(params::transferChuncked);
 
         return params.build();
     }
+
+    protected abstract Boolean extractTransferChunked(HttpDataAddress address);
 
     @NotNull
     protected abstract DataAddress selectAddress(DataFlowRequest request);

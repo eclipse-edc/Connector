@@ -50,6 +50,8 @@ public class HttpDataAddress extends DataAddress {
     public static final String ADDITIONAL_HEADER = "header:";
     public static final String CONTENT_TYPE = "contentType";
     public static final String OCTET_STREAM = "application/octet-stream";
+    public static final String TRANSFER_CHUNKED = "transferChunked";
+    public static final String DEFAULT_TRANSFER_CHUNKED = Boolean.TRUE.toString();
     public static final Set<String> ADDITIONAL_HEADERS_TO_IGNORE = Set.of("content-type");
 
     private HttpDataAddress() {
@@ -122,6 +124,11 @@ public class HttpDataAddress extends DataAddress {
                 .filter(entry -> entry.getKey().startsWith(ADDITIONAL_HEADER))
                 .collect(Collectors.toMap(entry -> entry.getKey().replace(ADDITIONAL_HEADER, ""), Map.Entry::getValue));
 
+    }
+
+    @JsonIgnore
+    public Boolean getTransferChunked() {
+        return Boolean.parseBoolean(getProperty(TRANSFER_CHUNKED, DEFAULT_TRANSFER_CHUNKED));
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -203,6 +210,11 @@ public class HttpDataAddress extends DataAddress {
 
         public Builder contentType(String contentType) {
             this.property(CONTENT_TYPE, contentType);
+            return this;
+        }
+
+        public Builder transferChunked(String transferChunked) {
+            this.property(TRANSFER_CHUNKED, transferChunked);
             return this;
         }
 

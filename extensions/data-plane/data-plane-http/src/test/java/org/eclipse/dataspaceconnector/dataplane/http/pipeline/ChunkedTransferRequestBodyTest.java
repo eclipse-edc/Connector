@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class StreamingRequestBodyTest {
+class ChunkedTransferRequestBodyTest {
     private static final Faker FAKER = new Faker();
 
     @Test
@@ -38,7 +38,7 @@ class StreamingRequestBodyTest {
 
         when(sink.outputStream()).thenReturn(outputStream);
 
-        var body = new StreamingRequestBody(() -> new ByteArrayInputStream(content.getBytes()), HttpDataAddress.OCTET_STREAM);
+        var body = new ChunkedTransferRequestBody(() -> new ByteArrayInputStream(content.getBytes()), HttpDataAddress.OCTET_STREAM);
         body.writeTo(sink);
 
         assertThat(outputStream).hasToString(content);
