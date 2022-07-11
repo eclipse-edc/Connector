@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.service;
 
+import org.eclipse.dataspaceconnector.core.event.EventExecutorServiceContainer;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.event.EventSubscriber;
@@ -36,9 +37,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Executors;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
@@ -56,6 +56,8 @@ public class TransferProcessEventDispatchTest {
         extension.setConfiguration(Map.of("edc.transfer.send.retry.limit", "0",
                                           "edc.transfer.send.retry.base-delay.ms", "0"));
         extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
+        extension.registerServiceMock(EventExecutorServiceContainer.class,
+                                      new EventExecutorServiceContainer(Executors.newSingleThreadExecutor()));
     }
 
     @Test
@@ -75,7 +77,6 @@ public class TransferProcessEventDispatchTest {
 
         var initiateResult = service.initiateTransfer(dataRequest);
 
-        ForkJoinPool.commonPool().awaitQuiescence(10, SECONDS);
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(isA(TransferProcessInitiated.class));
             verify(eventSubscriber).on(isA(TransferProcessProvisioned.class));
@@ -85,7 +86,6 @@ public class TransferProcessEventDispatchTest {
 
         service.deprovision(initiateResult.getContent());
 
-        ForkJoinPool.commonPool().awaitQuiescence(10, SECONDS);
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(isA(TransferProcessDeprovisioned.class));
             verify(eventSubscriber).on(isA(TransferProcessEnded.class));
@@ -111,7 +111,6 @@ public class TransferProcessEventDispatchTest {
 
         service.cancel(initiateResult.getContent());
 
-        ForkJoinPool.commonPool().awaitQuiescence(10, SECONDS);
         await().untilAsserted(() -> verify(eventSubscriber).on(isA(TransferProcessCancelled.class)));
     }
 
@@ -132,7 +131,6 @@ public class TransferProcessEventDispatchTest {
 
         service.initiateTransfer(dataRequest);
 
-        ForkJoinPool.commonPool().awaitQuiescence(10, SECONDS);
         await().untilAsserted(() -> verify(eventSubscriber).on(isA(TransferProcessFailed.class)));
     }
 }
