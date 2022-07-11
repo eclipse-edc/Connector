@@ -67,7 +67,7 @@ class NonChunkedTransferRequestBodyTest {
     }
 
     @Test
-    void verifyTransferDataSupplierThrowsIOException() throws IOException {
+    void verifyTransferWhenThrows() throws IOException {
         var sink = mock(BufferedSink.class);
         var outputStream = new ByteArrayOutputStream();
         var inputStream = mock(InputStream.class);
