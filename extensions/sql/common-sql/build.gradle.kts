@@ -22,6 +22,7 @@ val h2Version: String by project
 
 dependencies {
     api(project((":spi")))
+    implementation(project(":common:util"))
     testImplementation("com.h2database:h2:${h2Version}")
 }
 

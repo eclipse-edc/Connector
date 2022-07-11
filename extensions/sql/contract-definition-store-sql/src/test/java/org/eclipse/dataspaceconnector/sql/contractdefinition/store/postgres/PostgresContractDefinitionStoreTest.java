@@ -128,7 +128,7 @@ class PostgresContractDefinitionStoreTest {
         store.save(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
-                .filter(format("selectorExpression.criteria.left = %s", Asset.PROPERTY_ID))
+                .filter(format("selectorExpression.criteria.operandLeft = %s", Asset.PROPERTY_ID))
                 .build();
 
         var definitionsRetrieved = store.findAll(spec).collect(Collectors.toList());
@@ -146,7 +146,7 @@ class PostgresContractDefinitionStoreTest {
         store.save(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
-                .filter("selectorExpression.criteria.right = foobar-asset")
+                .filter("selectorExpression.criteria.operandRight = foobar-asset")
                 .build();
 
         var definitionsRetrieved = store.findAll(spec).collect(Collectors.toList());
@@ -163,7 +163,7 @@ class PostgresContractDefinitionStoreTest {
         store.save(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("selectorExpression.criteria.right", "=", "test-asset"),
+                .filter(List.of(new Criterion("selectorExpression.criteria.operandRight", "=", "test-asset"),
                         new Criterion("contractPolicyId", "=", "contract4")))
                 .build();
 
@@ -180,7 +180,7 @@ class PostgresContractDefinitionStoreTest {
         store.save(definitionsExpected);
 
         var spec = QuerySpec.Builder.newInstance()
-                .filter(List.of(new Criterion("selectorExpression.criteria.right", "=", "test-asset"),
+                .filter(List.of(new Criterion("selectorExpression.criteria.operandRigh", "=", "test-asset"),
                         new Criterion("contractPolicyId", "=", "contract4")))
                 .build();
 

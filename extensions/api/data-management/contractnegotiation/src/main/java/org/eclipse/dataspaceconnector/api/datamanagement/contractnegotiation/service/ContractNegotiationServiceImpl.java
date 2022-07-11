@@ -20,11 +20,13 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractN
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.QueryValidator;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
+import org.eclipse.dataspaceconnector.sql.translation.EdcQueryException;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -38,11 +40,13 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
     private final ContractNegotiationStore store;
     private final ConsumerContractNegotiationManager manager;
     private final TransactionContext transactionContext;
+    private final QueryValidator queryValidator;
 
     public ContractNegotiationServiceImpl(ContractNegotiationStore store, ConsumerContractNegotiationManager manager, TransactionContext transactionContext) {
         this.store = store;
         this.manager = manager;
         this.transactionContext = transactionContext;
+        queryValidator = new QueryValidator(ContractNegotiation.class);
     }
 
     @Override
@@ -52,6 +56,11 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
 
     @Override
     public Collection<ContractNegotiation> query(QuerySpec query) {
+        var result = queryValidator.validate(query);
+
+        if (result.failed()) {
+            throw new EdcQueryException(format("Error validating schema: %s", String.join(", ", result.getFailureMessages())));
+        }
         return transactionContext.execute(() -> store.queryNegotiations(query).collect(toList()));
     }
 

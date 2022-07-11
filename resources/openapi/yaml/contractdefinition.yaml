@@ -127,9 +127,9 @@ components:
     Criterion:
       type: object
       properties:
-        left:
+        operandLeft:
           type: object
-        op:
+        operandRight:
+          type: object
+        operator:
           type: string
-        right:
-          type: object

@@ -26,15 +26,19 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
+import org.eclipse.dataspaceconnector.sql.translation.EdcQueryException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
@@ -73,6 +77,36 @@ class AssetServiceImplTest {
         var assets = service.query(QuerySpec.none());
 
         assertThat(assets).hasSize(1).first().matches(hasId("assetId"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            Asset.PROPERTY_ID,
+            Asset.PROPERTY_NAME,
+            Asset.PROPERTY_DESCRIPTION,
+            Asset.PROPERTY_VERSION,
+            Asset.PROPERTY_CONTENT_TYPE
+    })
+    void query_validFilter(String filter) {
+        var query = QuerySpec.Builder.newInstance()
+                .filter(filter + "=somevalue")
+                .build();
+        service.query(query);
+        verify(index).queryAssets(query);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "asset_prop_id in (foo, bar)", // invalid key
+            "customProp=whatever", // no custom properties supported
+    })
+    void query_invalidFilter(String filter) {
+        var query = QuerySpec.Builder.newInstance()
+                .filter(filter)
+                .build();
+        assertThatThrownBy(() -> service.query(query))
+                .isInstanceOf(EdcQueryException.class)
+                .hasMessageStartingWith("Error validating schema: Currently only named properties of Asset are supported");
     }
 
     @Test

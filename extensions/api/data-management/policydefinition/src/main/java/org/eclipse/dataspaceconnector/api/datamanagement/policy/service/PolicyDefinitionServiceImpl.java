@@ -15,15 +15,27 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.policy.service;
 
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
+import org.eclipse.dataspaceconnector.policy.model.AndConstraint;
+import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
+import org.eclipse.dataspaceconnector.policy.model.Constraint;
+import org.eclipse.dataspaceconnector.policy.model.Expression;
+import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
+import org.eclipse.dataspaceconnector.policy.model.MultiplicityConstraint;
+import org.eclipse.dataspaceconnector.policy.model.OrConstraint;
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
+import org.eclipse.dataspaceconnector.policy.model.XoneConstraint;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.observe.policydefinition.PolicyDefinitionObservable;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.QueryValidator;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
+import org.eclipse.dataspaceconnector.sql.translation.EdcQueryException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -34,6 +46,7 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
     private final PolicyDefinitionStore policyStore;
     private final ContractDefinitionStore contractDefinitionStore;
     private final PolicyDefinitionObservable observable;
+    private final QueryValidator queryValidator;
 
     public PolicyDefinitionServiceImpl(TransactionContext transactionContext, PolicyDefinitionStore policyStore,
                                        ContractDefinitionStore contractDefinitionStore, PolicyDefinitionObservable observable) {
@@ -41,6 +54,7 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
         this.policyStore = policyStore;
         this.contractDefinitionStore = contractDefinitionStore;
         this.observable = observable;
+        queryValidator = new QueryValidator(PolicyDefinition.class, getSubtypeMap());
     }
 
     @Override
@@ -51,9 +65,15 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
 
     @Override
     public @NotNull Collection<PolicyDefinition> query(QuerySpec query) {
+        var result = queryValidator.validate(query);
+
+        if (result.failed()) {
+            throw new EdcQueryException(format("Error validating schema: %s", String.join(", ", result.getFailureMessages())));
+        }
         return transactionContext.execute(() ->
                 policyStore.findAll(query).collect(toList()));
     }
+
 
     @Override
     public @NotNull ServiceResult<PolicyDefinition> deleteById(String policyId) {
@@ -101,5 +121,13 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
                 return ServiceResult.conflict(format("PolicyDefinition %s cannot be created because it already exists", policyDefinition.getUid()));
             }
         });
+    }
+
+    private Map<Class<?>, List<Class<?>>> getSubtypeMap() {
+        return Map.of(
+                Constraint.class, List.of(MultiplicityConstraint.class, AtomicConstraint.class),
+                MultiplicityConstraint.class, List.of(AndConstraint.class, OrConstraint.class, XoneConstraint.class),
+                Expression.class, List.of(LiteralExpression.class)
+        );
     }
 }
