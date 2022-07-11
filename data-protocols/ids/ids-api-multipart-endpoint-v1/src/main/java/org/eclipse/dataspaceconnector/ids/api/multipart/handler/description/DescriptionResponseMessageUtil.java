@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.UUID;
 
-class DescriptionResponseMessageUtil {
+public class DescriptionResponseMessageUtil {
 
     public static DescriptionResponseMessage createDescriptionResponseMessage(
             @Nullable String connectorId,

@@ -22,7 +22,7 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMess
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.messageTypeNotSupported;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.notFound;
 
-class MultipartResponseUtil {
+public class MultipartResponseUtil {
 
     public static MultipartResponse createBadParametersErrorMultipartResponse(@Nullable String connectorId, @Nullable Message message) {
         return MultipartResponse.Builder.newInstance()

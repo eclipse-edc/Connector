@@ -14,55 +14,67 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
+import de.fraunhofer.iais.eis.Artifact;
+import de.fraunhofer.iais.eis.Connector;
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import de.fraunhofer.iais.eis.Message;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ArtifactDescriptionRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ConnectorDescriptionRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DataCatalogDescriptionRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.RepresentationDescriptionRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ResourceDescriptionRequestHandler;
+import de.fraunhofer.iais.eis.ModelClass;
+import de.fraunhofer.iais.eis.Representation;
+import de.fraunhofer.iais.eis.Resource;
+import de.fraunhofer.iais.eis.ResourceCatalog;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
+import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
+import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.badParameters;
+import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionResponseMessageUtil.createDescriptionResponseMessage;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartRequestUtil.getInt;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartResponseUtil.createBadParametersErrorMultipartResponse;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.messageTypeNotSupported;
 
 public class DescriptionHandler implements Handler {
     private final Monitor monitor;
     private final String connectorId;
     private final IdsTransformerRegistry transformerRegistry;
-    private final ArtifactDescriptionRequestHandler artifactDescriptionRequestHandler;
-    private final DataCatalogDescriptionRequestHandler dataCatalogDescriptionRequestHandler;
-    private final RepresentationDescriptionRequestHandler representationDescriptionRequestHandler;
-    private final ResourceDescriptionRequestHandler resourceDescriptionRequestHandler;
-    private final ConnectorDescriptionRequestHandler connectorDescriptionRequestHandler;
+    private final AssetIndex assetIndex;
+    private final CatalogService catalogService;
+    private final ContractOfferService contractOfferService;
+    private final ConnectorService connectorService;
 
     public DescriptionHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
             @NotNull IdsTransformerRegistry transformerRegistry,
-            @NotNull ArtifactDescriptionRequestHandler artifactDescriptionRequestHandler,
-            @NotNull DataCatalogDescriptionRequestHandler dataCatalogDescriptionRequestHandler,
-            @NotNull RepresentationDescriptionRequestHandler representationDescriptionRequestHandler,
-            @NotNull ResourceDescriptionRequestHandler resourceDescriptionRequestHandler,
-            @NotNull ConnectorDescriptionRequestHandler connectorDescriptionRequestHandler) {
+            @NotNull AssetIndex assetIndex,
+            @NotNull CatalogService catalogService,
+            @NotNull ContractOfferService contractOfferService,
+            @NotNull ConnectorService connectorService) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
-        this.artifactDescriptionRequestHandler = Objects.requireNonNull(artifactDescriptionRequestHandler);
-        this.dataCatalogDescriptionRequestHandler = Objects.requireNonNull(dataCatalogDescriptionRequestHandler);
-        this.representationDescriptionRequestHandler = Objects.requireNonNull(representationDescriptionRequestHandler);
-        this.resourceDescriptionRequestHandler = Objects.requireNonNull(resourceDescriptionRequestHandler);
-        this.connectorDescriptionRequestHandler = Objects.requireNonNull(connectorDescriptionRequestHandler);
+        this.assetIndex = Objects.requireNonNull(assetIndex);
+        this.catalogService = Objects.requireNonNull(catalogService);
+        this.contractOfferService = Objects.requireNonNull(contractOfferService);
+        this.connectorService = Objects.requireNonNull(connectorService);
     }
 
     @Override
@@ -81,7 +93,7 @@ public class DescriptionHandler implements Handler {
         try {
             return handleRequestInternal(multipartRequest, claimToken);
         } catch (EdcException exception) {
-            monitor.severe(String.format("Could not handle multipart request: %s", exception.getMessage()), exception);
+            monitor.severe(format("Could not handle multipart request: %s", exception.getMessage()), exception);
         }
 
         return createErrorMultipartResponse(multipartRequest.getHeader());
@@ -94,47 +106,87 @@ public class DescriptionHandler implements Handler {
 
         var descriptionRequestMessage = (DescriptionRequestMessage) multipartRequest.getHeader();
 
-        var payload = multipartRequest.getPayload();
-
         var requestedElement = descriptionRequestMessage.getRequestedElement();
         IdsId idsId = null;
         if (requestedElement != null) {
             var result = transformerRegistry.transform(requestedElement, IdsId.class);
             if (result.failed()) {
                 monitor.warning(
-                        String.format(
+                        format(
                                 "Could not transform URI to IdsId: [%s]",
                                 String.join(", ", result.getFailureMessages())
                         )
                 );
-                return createBadParametersErrorMultipartResponse(descriptionRequestMessage);
+                return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
             }
 
             idsId = result.getContent();
         }
-
+    
+        //TODO: IDS REFACTORING: this should be a named property of the message object
+        // extract paging information, default to 0 ... Integer.MAX_VALUE
+        var from = getInt(descriptionRequestMessage, Range.FROM, 0);
+        var to = getInt(descriptionRequestMessage, Range.TO, Integer.MAX_VALUE);
+        var range = new Range(from, to);
+        
+        Result<? extends ModelClass> requestedElementResult;
+    
         if (idsId == null || (idsId.getType() == IdsType.CONNECTOR)) {
-            return connectorDescriptionRequestHandler.handle(descriptionRequestMessage, claimToken, payload);
+            requestedElementResult = retrieveConnector(claimToken, range);
+        } else {
+            requestedElementResult = retrieveRequestedElement(idsId, claimToken, range);
         }
+    
+        if (requestedElementResult.failed()) {
+            if (idsId == null) {
+                monitor.warning(String.format("Could not construct connector description: [%s]",
+                        String.join(", ", requestedElementResult.getFailureMessages())));
+            } else {
+                monitor.warning(String.format("Could not retrieve requested element with ID %s:%s: [%s]",
+                        idsId.getType(), idsId.getValue(), String.join(", ", requestedElementResult.getFailureMessages())));
+            }
+    
+            return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
+        }
+        
+        var descriptionResponseMessage = createDescriptionResponseMessage(connectorId, descriptionRequestMessage);
+    
+        return MultipartResponse.Builder.newInstance()
+                .header(descriptionResponseMessage)
+                .payload(requestedElementResult.getContent())
+                .build();
+    }
+    
+    private Result<Connector> retrieveConnector(ClaimToken claimToken, Range range) {
+        return transformerRegistry.transform(connectorService.getConnector(claimToken, range), de.fraunhofer.iais.eis.Connector.class);
+    }
+    
+    private Result<? extends ModelClass> retrieveRequestedElement(IdsId idsId, ClaimToken claimToken, Range range) {
         var type = idsId.getType();
         switch (type) {
             case ARTIFACT:
-                return artifactDescriptionRequestHandler.handle(descriptionRequestMessage, claimToken, payload);
+               return transformerRegistry.transform(assetIndex.findById(idsId.getValue()), Artifact.class);
             case CATALOG:
-                return dataCatalogDescriptionRequestHandler.handle(descriptionRequestMessage, claimToken, payload);
+                return transformerRegistry.transform(catalogService.getDataCatalog(claimToken, range), ResourceCatalog.class);
             case REPRESENTATION:
-                return representationDescriptionRequestHandler.handle(descriptionRequestMessage, claimToken, payload);
+                return transformerRegistry.transform(assetIndex.findById(idsId.getValue()), Representation.class);
             case RESOURCE:
-                return resourceDescriptionRequestHandler.handle(descriptionRequestMessage, claimToken, payload);
+                var assetId = idsId.getValue();
+                var asset = assetIndex.findById(assetId);
+                if (asset == null) {
+                    return Result.failure(format("Asset with ID %s does not exist.", assetId));
+                }
+            
+                var contractOfferQuery = ContractOfferQuery.Builder.newInstance()
+                        .claimToken(claimToken)
+                        .criterion(new Criterion(Asset.PROPERTY_ID, "=", assetId))
+                        .build();
+                var targetingContractOffers = contractOfferService.queryContractOffers(contractOfferQuery, range).collect(toList());
+            
+                return transformerRegistry.transform(new OfferedAsset(asset, targetingContractOffers), Resource.class);
             default:
-                return createErrorMultipartResponse(descriptionRequestMessage);
+                return Result.failure(format("Unknown requested element type: %s", type));
         }
-    }
-
-    private MultipartResponse createBadParametersErrorMultipartResponse(Message message) {
-        return MultipartResponse.Builder.newInstance()
-                .header(badParameters(message, connectorId))
-                .build();
     }
 
     private MultipartResponse createErrorMultipartResponse(Message message) {

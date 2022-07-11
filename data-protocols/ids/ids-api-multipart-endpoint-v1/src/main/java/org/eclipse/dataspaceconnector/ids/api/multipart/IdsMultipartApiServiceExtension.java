@@ -30,11 +30,6 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.EndpointDataRefe
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.NotificationMessageHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.NotificationMessageHandlerRegistry;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ArtifactDescriptionRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ConnectorDescriptionRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DataCatalogDescriptionRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.RepresentationDescriptionRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ResourceDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
@@ -127,13 +122,6 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
         var connectorId = resolveConnectorId(serviceExtensionContext);
 
-        // create description request handlers
-        var artifactDescriptionRequestHandler = new ArtifactDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry);
-        var dataCatalogDescriptionRequestHandler = new DataCatalogDescriptionRequestHandler(monitor, connectorId, dataCatalogService, transformerRegistry);
-        var representationDescriptionRequestHandler = new RepresentationDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry);
-        var resourceDescriptionRequestHandler = new ResourceDescriptionRequestHandler(monitor, connectorId, assetIndex, contractOfferService, transformerRegistry);
-        var connectorDescriptionRequestHandler = new ConnectorDescriptionRequestHandler(monitor, connectorId, connectorService, transformerRegistry);
-
         // create & register controller
         // TODO ObjectMapper needs to be replaced by one capable to write proper IDS JSON-LD
         //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
@@ -141,14 +129,8 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
         // create request handler
         var descriptionHandler = new DescriptionHandler(
-                monitor,
-                connectorId,
-                transformerRegistry,
-                artifactDescriptionRequestHandler,
-                dataCatalogDescriptionRequestHandler,
-                representationDescriptionRequestHandler,
-                resourceDescriptionRequestHandler,
-                connectorDescriptionRequestHandler);
+                monitor, connectorId, transformerRegistry,
+                assetIndex, dataCatalogService, contractOfferService, connectorService);
 
         var handlers = new LinkedList<Handler>();
         handlers.add(descriptionHandler);
