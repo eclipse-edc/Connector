@@ -24,15 +24,19 @@ import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
+import org.eclipse.dataspaceconnector.sql.translation.EdcQueryException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason.CONFLICT;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -86,6 +90,32 @@ class ContractDefinitionServiceImplTest {
 
         String id = definition.getId();
         assertThat(result).hasSize(1).first().matches(hasId(id));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "selectorExpression.criteria.leftHand=foo", //invalid path
+            "accessPolicyId'LIKE/**/?/**/LIMIT/**/?/**/OFFSET/**/?;DROP/**/TABLE/**/test/**/--%20=%20ABC--", //some SQL injection
+    })
+    void query_invalidFilter(String invalidFilter) {
+        var query = QuerySpec.Builder.newInstance()
+                .filter(invalidFilter)
+                .build();
+        assertThatThrownBy(() -> service.query(query)).isInstanceOf(EdcQueryException.class);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "selectorExpression.criteria.operandLeft=foo", //invalid path
+            "selectorExpression.criteria.operator=LIKE", //invalid path
+            "selectorExpression.criteria.operandRight=bar" //invalid path
+    })
+    void query_validFilter(String validFilter) {
+        var query = QuerySpec.Builder.newInstance()
+                .filter(validFilter)
+                .build();
+        service.query(query);
+        verify(store).findAll(query);
     }
 
     @Test

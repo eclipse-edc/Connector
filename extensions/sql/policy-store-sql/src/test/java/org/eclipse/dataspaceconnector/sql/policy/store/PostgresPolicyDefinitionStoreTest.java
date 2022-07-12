@@ -266,14 +266,14 @@ class PostgresPolicyDefinitionStoreTest {
         store.save(policyDef);
 
         // query by prohibition assignee
-        var query = createQuery("prohibitions.assignee=test-assignee");
+        var query = createQuery("policy.prohibitions.assignee=test-assignee");
         var result = store.findAll(query);
         assertThat(result).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(policyDef);
 
         //query by prohibition action constraint
-        var query2 = createQuery("prohibitions.action.constraint.leftExpression.value=foo");
+        var query2 = createQuery("policy.prohibitions.action.constraint.leftExpression.value=foo");
         var result2 = store.findAll(query2);
         assertThat(result2).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
@@ -293,9 +293,8 @@ class PostgresPolicyDefinitionStoreTest {
         store.save(policyDef);
 
         // query by prohibition assignee
-        var query = createQuery("prohibitions.fooBarProperty=someval");
-        var result = store.findAll(query);
-        assertThat(result).isEmpty();
+        var query = createQuery("policy.prohibitions.fooBarProperty=someval");
+        assertThat(store.findAll(query)).isEmpty();
     }
 
     @Test
@@ -311,7 +310,7 @@ class PostgresPolicyDefinitionStoreTest {
         store.save(policyDef);
 
         // query by prohibition assignee
-        var query = createQuery("prohibitions.action.constraint.leftExpression.value=someval");
+        var query = createQuery("policy.prohibitions.action.constraint.leftExpression.value=someval");
         var result = store.findAll(query);
         assertThat(result).isEmpty();
     }
@@ -329,14 +328,14 @@ class PostgresPolicyDefinitionStoreTest {
         store.save(policyDef);
 
         // query by prohibition assignee
-        var query = createQuery("permissions.assignee=test-assignee");
+        var query = createQuery("policy.permissions.assignee=test-assignee");
         var result = store.findAll(query);
         assertThat(result).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(policyDef);
 
         //query by prohibition action constraint
-        var query2 = createQuery("permissions.action.constraint.leftExpression.value=foo");
+        var query2 = createQuery("policy.permissions.action.constraint.leftExpression.value=foo");
         var result2 = store.findAll(query2);
         assertThat(result2).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
@@ -356,9 +355,8 @@ class PostgresPolicyDefinitionStoreTest {
         store.save(policyDef);
 
         // query by prohibition assignee
-        var query = createQuery("permissions.fooBarProperty=someval");
-        var result = store.findAll(query);
-        assertThat(result).isEmpty();
+        var query = createQuery("policy.permissions.fooBarProperty=someval");
+        assertThat(store.findAll(query)).isEmpty();
     }
 
     @Test
@@ -374,7 +372,7 @@ class PostgresPolicyDefinitionStoreTest {
         store.save(policyDef);
 
         // query by prohibition assignee
-        var query = createQuery("permissions.action.constraint.leftExpression=someval");
+        var query = createQuery("policy.permissions.action.constraint.leftExpression=someval");
         var result = store.findAll(query);
         assertThat(result).isEmpty();
     }
@@ -393,14 +391,14 @@ class PostgresPolicyDefinitionStoreTest {
         store.save(createPolicy("another-policy"));
 
         // query by prohibition assignee
-        var query = createQuery("obligations.assignee=test-assignee");
+        var query = createQuery("policy.obligations.assignee=test-assignee");
         var result = store.findAll(query);
         assertThat(result).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(policyDef);
 
         //query by prohibition action constraint
-        var query2 = createQuery("obligations.action.constraint.rightExpression.value=bar");
+        var query2 = createQuery("policy.obligations.action.constraint.rightExpression.value=bar");
         var result2 = store.findAll(query2);
         assertThat(result2).hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
@@ -420,9 +418,8 @@ class PostgresPolicyDefinitionStoreTest {
         store.save(policyDef);
 
         // query by prohibition assignee
-        var query = createQuery("obligations.fooBarProperty=someval");
-        var result = store.findAll(query);
-        assertThat(result).isEmpty();
+        var query = createQuery("policy.obligations.fooBarProperty=someval");
+        assertThat(store.findAll(query)).isEmpty();
     }
 
     @Test
@@ -438,7 +435,7 @@ class PostgresPolicyDefinitionStoreTest {
         store.save(policyDef);
 
         // query by prohibition assignee
-        var query = createQuery("obligations.action.constraint.rightExpression.value=notexist");
+        var query = createQuery("policy.obligations.action.constraint.rightExpression.value=notexist");
         var result = store.findAll(query);
         assertThat(result).isEmpty();
     }
@@ -461,7 +458,7 @@ class PostgresPolicyDefinitionStoreTest {
         store.save(policyDef2);
 
         // query by prohibition assignee
-        assertThat(store.findAll(createQuery("assignee=test-assignee")))
+        assertThat(store.findAll(createQuery("policy.assignee=test-assignee")))
                 .hasSize(1)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(policyDef1);
@@ -494,7 +491,7 @@ class PostgresPolicyDefinitionStoreTest {
         store.save(policyDef1);
 
         // query by prohibition assignee
-        assertThat(store.findAll(createQuery("assigner=notexist")))
+        assertThat(store.findAll(createQuery("policy.assigner=notexist")))
                 .isEmpty();
     }
 

@@ -36,4 +36,37 @@ class ResultTest {
         assertThat(result.getFailureMessages()).containsExactly("error");
     }
 
+    @Test
+    void merge_twoFailures() {
+        var r1 = Result.failure("reason 1");
+        var r2 = Result.failure("reason 2");
+
+        var result = r1.merge(r2);
+        assertThat(result.failed()).isTrue();
+        assertThat(result.getFailureMessages()).hasSize(2)
+                .containsExactly("reason 1", "reason 2");
+    }
+
+    @Test
+    void merge_failureAndSuccess() {
+        // cannot use var, otherwise we'd have a Result<Object> and a Result<String>
+        Result<Object> r1 = Result.failure("reason 1");
+        Result<Object> r2 = Result.success("success message");
+
+        var result = r1.merge(r2);
+        assertThat(result.failed()).isTrue();
+        assertThat(result.getFailureMessages())
+                .hasSize(1)
+                .containsExactly("reason 1");
+
+    }
+
+    @Test
+    void merge_twoSuccesses() {
+        var r1 = Result.success("msg 1");
+        var r2 = Result.success("msg 2");
+
+        var result = r1.merge(r2);
+        assertThat(result.succeeded()).isTrue();
+    }
 }

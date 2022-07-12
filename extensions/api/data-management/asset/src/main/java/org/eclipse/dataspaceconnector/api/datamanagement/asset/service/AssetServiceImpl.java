@@ -21,9 +21,11 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNeg
 import org.eclipse.dataspaceconnector.spi.observe.asset.AssetObservable;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.QueryValidator;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.sql.translation.EdcQueryException;
 
 import java.util.Collection;
 import java.util.List;
@@ -38,6 +40,7 @@ public class AssetServiceImpl implements AssetService {
     private final ContractNegotiationStore contractNegotiationStore;
     private final TransactionContext transactionContext;
     private final AssetObservable observable;
+    private final QueryValidator queryValidator;
 
     public AssetServiceImpl(AssetIndex index, AssetLoader loader, ContractNegotiationStore contractNegotiationStore, TransactionContext transactionContext, AssetObservable observable) {
         this.index = index;
@@ -45,6 +48,7 @@ public class AssetServiceImpl implements AssetService {
         this.contractNegotiationStore = contractNegotiationStore;
         this.transactionContext = transactionContext;
         this.observable = observable;
+        queryValidator = new AssetQueryValidator();
     }
 
     @Override
@@ -54,6 +58,11 @@ public class AssetServiceImpl implements AssetService {
 
     @Override
     public Collection<Asset> query(QuerySpec query) {
+        var result = queryValidator.validate(query);
+
+        if (result.failed()) {
+            throw new EdcQueryException(format("Error validating schema: %s", result.getFailureDetail()));
+        }
         return transactionContext.execute(() -> index.queryAssets(query).collect(toList()));
     }
 
