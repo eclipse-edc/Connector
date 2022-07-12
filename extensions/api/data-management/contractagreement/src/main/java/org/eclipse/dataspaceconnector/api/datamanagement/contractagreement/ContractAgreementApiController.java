@@ -25,6 +25,8 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.model.ContractAgreementDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.service.ContractAgreementService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
+import org.eclipse.dataspaceconnector.api.result.ServiceFailure;
+import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -32,6 +34,7 @@ import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -64,7 +67,12 @@ public class ContractAgreementApiController implements ContractAgreementApi {
 
         monitor.debug(format("get all contract agreements from %s", spec));
 
-        return service.query(spec).stream()
+        var queryResult = service.query(spec);
+
+        //will throw an exception
+        handleFailureResult(queryResult);
+
+        return queryResult.getContent().stream()
                 .map(it -> transformerRegistry.transform(it, ContractAgreementDto.class))
                 .filter(Result::succeeded)
                 .map(Result::getContent)
@@ -83,6 +91,12 @@ public class ContractAgreementApiController implements ContractAgreementApi {
                 .filter(Result::succeeded)
                 .map(Result::getContent)
                 .orElseThrow(() -> new ObjectNotFoundException(ContractAgreement.class, id));
+    }
+
+    private void handleFailureResult(ServiceResult<Collection<ContractAgreement>> queryResult) {
+        if (queryResult.failed() && queryResult.reason() == ServiceFailure.Reason.BAD_REQUEST) {
+            throw new IllegalArgumentException(queryResult.getFailureDetail());
+        }
     }
 
 }

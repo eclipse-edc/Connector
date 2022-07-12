@@ -14,22 +14,27 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.service;
 
+import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.QueryValidator;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 
 import java.util.Collection;
 
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
 public class ContractAgreementServiceImpl implements ContractAgreementService {
     private final ContractNegotiationStore store;
     private final TransactionContext transactionContext;
+    private final QueryValidator queryValidator;
 
     public ContractAgreementServiceImpl(ContractNegotiationStore store, TransactionContext transactionContext) {
         this.store = store;
         this.transactionContext = transactionContext;
+        queryValidator = new QueryValidator(ContractAgreement.class);
     }
 
     @Override
@@ -38,7 +43,13 @@ public class ContractAgreementServiceImpl implements ContractAgreementService {
     }
 
     @Override
-    public Collection<ContractAgreement> query(QuerySpec query) {
-        return transactionContext.execute(() -> store.queryAgreements(query).collect(toList()));
+    public ServiceResult<Collection<ContractAgreement>> query(QuerySpec query) {
+        var result = queryValidator.validate(query);
+
+        if (result.failed()) {
+            return ServiceResult.badRequest(format("Error validating schema: %s", result.getFailureDetail()));
+        }
+
+        return ServiceResult.success(transactionContext.execute(() -> store.queryAgreements(query).collect(toList())));
     }
 }

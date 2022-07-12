@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.service;
 
+import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 
@@ -21,7 +22,6 @@ import java.util.Collection;
 
 /**
  * Service that permits actions and queries on ContractAgreement entity.
- *
  */
 public interface ContractAgreementService {
 
@@ -39,6 +39,6 @@ public interface ContractAgreementService {
      * @param query request
      * @return the collection of contract agreements that match the query
      */
-    Collection<ContractAgreement> query(QuerySpec query);
+    ServiceResult<Collection<ContractAgreement>> query(QuerySpec query);
 
 }
