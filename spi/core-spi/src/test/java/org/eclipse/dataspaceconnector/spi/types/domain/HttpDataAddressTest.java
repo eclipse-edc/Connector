@@ -37,7 +37,7 @@ class HttpDataAddressTest {
                 .proxyMethod("proxyMethod1")
                 .proxyPath("proxyPath1")
                 .path("foo/bar")
-                .transferChunked("false")
+                .transferChunked(false)
                 .method("GET")
                 .proxyQueryParams("proxyQueryParams1")
                 .build();

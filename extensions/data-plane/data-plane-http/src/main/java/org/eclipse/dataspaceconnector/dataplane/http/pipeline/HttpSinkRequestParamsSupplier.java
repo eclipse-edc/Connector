@@ -29,15 +29,14 @@ import java.util.Optional;
 public class HttpSinkRequestParamsSupplier extends HttpRequestParamsSupplier {
 
     private static final String DEFAULT_METHOD = "POST";
-    private static final Boolean DEFAULT_TRANSFER_CHUNKED = Boolean.TRUE;
 
     public HttpSinkRequestParamsSupplier(Vault vault) {
         super(vault);
     }
 
     @Override
-    protected Boolean extractTransferChunked(HttpDataAddress address) {
-        return Optional.ofNullable(address.getTransferChunked()).orElse(DEFAULT_TRANSFER_CHUNKED);
+    protected boolean extractTransferChunked(HttpDataAddress address) {
+        return address.getTransferChunked();
     }
 
     @Override

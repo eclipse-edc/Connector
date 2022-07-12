@@ -177,12 +177,12 @@ class HttpRequestParamsSupplierTest {
         private final String queryParams;
         private final String contentType;
         private final String body;
-        private final Boolean chunked;
+        private final boolean chunked;
 
         private TestHttpRequestParamsSupplier(Vault vault) {
             super(vault);
             this.method = new Random().nextBoolean() ? HttpMethod.PUT.name() : HttpMethod.POST.name();
-            this.chunked = new Random().nextBoolean() ? true : null;
+            this.chunked = true;
             this.path = FAKER.lorem().word();
             this.queryParams = FAKER.lorem().word();
             this.contentType = new Random().nextBoolean() ? APPLICATION_JSON : APPLICATION_X_WWW_FORM_URLENCODED;
@@ -200,7 +200,7 @@ class HttpRequestParamsSupplierTest {
         }
 
         @Override
-        protected Boolean extractTransferChunked(HttpDataAddress address) {
+        protected boolean extractTransferChunked(HttpDataAddress address) {
             return chunked;
         }
 

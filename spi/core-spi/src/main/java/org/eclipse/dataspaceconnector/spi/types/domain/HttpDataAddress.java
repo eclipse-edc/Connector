@@ -127,7 +127,7 @@ public class HttpDataAddress extends DataAddress {
     }
 
     @JsonIgnore
-    public Boolean getTransferChunked() {
+    public boolean getTransferChunked() {
         return Boolean.parseBoolean(getProperty(TRANSFER_CHUNKED, DEFAULT_TRANSFER_CHUNKED));
     }
 
@@ -213,8 +213,8 @@ public class HttpDataAddress extends DataAddress {
             return this;
         }
 
-        public Builder transferChunked(String transferChunked) {
-            this.property(TRANSFER_CHUNKED, transferChunked);
+        public Builder transferChunked(boolean transferChunked) {
+            this.property(TRANSFER_CHUNKED, String.valueOf(transferChunked));
             return this;
         }
 

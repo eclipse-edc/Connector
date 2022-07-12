@@ -21,28 +21,32 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
- * Streams content into an OK HTTP buffered sink.
+ * Writes content into an OK HTTP buffered sink
+ *
+ * The extra Transfer-Encoding is not created because the Content-Length is provided upfront.
+ * Note that means that the all content is loaded into memory, so this method can be used for small files (up to 50MB) for e.g.
+ *
+ * @see <a href="https://github.com/square/okhttp/blob/master/docs/features/calls.md">OkHttp Dcoumentation</a>
  */
 public class NonChunkedTransferRequestBody extends RequestBody {
-    private Optional<byte[]> bytes;
+    private byte[] bytes;
     private final String contentType;
 
     public NonChunkedTransferRequestBody(Supplier<InputStream> contentSupplier, String contentType) {
         try {
-            this.bytes = Optional.of(contentSupplier.get().readAllBytes());
+            this.bytes = contentSupplier.get().readAllBytes();
         } catch (IOException e) {
-            this.bytes = Optional.empty();
+            //do nothing
         }
         this.contentType = contentType;
     }
 
     @Override
     public long contentLength() {
-        return bytes.map(value -> value.length).orElse(0);
+        return bytes == null ? 0 : bytes.length;
     }
 
     @Override
@@ -52,12 +56,12 @@ public class NonChunkedTransferRequestBody extends RequestBody {
 
     @Override
     public void writeTo(@NotNull BufferedSink sink) throws IOException {
-        if (!bytes.isPresent()) {
+        if (bytes == null) {
             return;
         }
 
         try (var os = sink.outputStream()) {
-            os.write(bytes.get());
+            os.write(bytes);
         }
     }
 }

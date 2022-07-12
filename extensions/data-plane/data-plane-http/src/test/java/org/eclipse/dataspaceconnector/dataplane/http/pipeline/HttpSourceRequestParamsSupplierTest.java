@@ -235,7 +235,7 @@ class HttpSourceRequestParamsSupplierTest {
     void extractTransferChunked() {
         var chunked = new Random().nextBoolean();
         var address = HttpDataAddress.Builder.newInstance()
-                .transferChunked(String.valueOf(chunked))
+                .transferChunked(chunked)
                 .build();
 
         var result = supplier.extractTransferChunked(address);

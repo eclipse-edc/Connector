@@ -27,7 +27,7 @@ import java.util.function.Supplier;
 public class HttpRequestParams {
 
     private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream";
-    private static final Boolean DEFAULT_TRANSFER_CHUNKED = Boolean.TRUE;
+    private static final boolean DEFAULT_TRANSFER_CHUNKED = true;
 
     private String method;
     private String baseUrl;
@@ -35,7 +35,7 @@ public class HttpRequestParams {
     private String queryParams;
     private String contentType = DEFAULT_CONTENT_TYPE;
     private String body;
-    private Boolean transferChuncked = DEFAULT_TRANSFER_CHUNKED;
+    private boolean transferChunked = DEFAULT_TRANSFER_CHUNKED;
     private final Map<String, String> headers = new HashMap<>();
 
     /**
@@ -71,7 +71,7 @@ public class HttpRequestParams {
             return null;
         }
 
-        return transferChuncked ?
+        return transferChunked ?
                 new ChunkedTransferRequestBody(bodySupplier, contentType) : new NonChunkedTransferRequestBody(bodySupplier, contentType);
     }
 
@@ -139,8 +139,8 @@ public class HttpRequestParams {
             return this;
         }
 
-        public HttpRequestParams.Builder transferChuncked(Boolean transferChuncked) {
-            params.transferChuncked = transferChuncked;
+        public HttpRequestParams.Builder transferChunked(boolean transferChunked) {
+            params.transferChunked = transferChunked;
             return this;
         }
 
