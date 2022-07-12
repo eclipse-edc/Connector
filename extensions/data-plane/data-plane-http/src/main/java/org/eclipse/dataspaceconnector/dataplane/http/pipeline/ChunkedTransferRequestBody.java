@@ -27,6 +27,7 @@ import java.util.function.Supplier;
  * Streams content into an OK HTTP buffered sink in chunks.
  *
  * Due to OkHttp implementation an extra header will be created (no-overridable) Transfer-Encoding with value chunked
+ *
  * @see <a href="https://github.com/square/okhttp/blob/master/docs/features/calls.md">OkHttp Dcoumentation</a>
  */
 public class ChunkedTransferRequestBody extends RequestBody {
