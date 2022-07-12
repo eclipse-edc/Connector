@@ -28,6 +28,7 @@ import de.fraunhofer.iais.eis.RequestInProcessMessageBuilder;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,6 +89,18 @@ public class ResponseMessageUtil {
                 ._recipientAgent_(new ArrayList<>(Collections.singletonList(correlationMessage.getSenderAgent())))
                 ._recipientConnector_(new ArrayList<>(Collections.singletonList(correlationMessage.getIssuerConnector())))
                 .build();
+    }
+    
+    public static Message createResponseMessageForStatusResult(StatusResult<?> statusResult, String connectorId, Message correlationMessage) {
+        if (statusResult.succeeded()) {
+            return createRequestInProcessMessage(connectorId, correlationMessage);
+        } else {
+            if (statusResult.fatalError()) {
+                return badParameters(correlationMessage, connectorId);
+            } else {
+                return internalRecipientError(correlationMessage, connectorId);
+            }
+        }
     }
     
     @NotNull

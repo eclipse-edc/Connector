@@ -39,8 +39,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.badParameters;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.createRequestInProcessMessage;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.internalRecipientError;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.createResponseMessageForStatusResult;
 import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 /**
@@ -145,20 +144,9 @@ public class ContractRequestHandler implements Handler {
                 .build();
         
         var negotiationInitiateResult = negotiationManager.requested(claimToken, requestObj);
-    
-        Message response;
-        if (negotiationInitiateResult.succeeded()) {
-            response = createRequestInProcessMessage(connectorId, message);
-        } else {
-            if (negotiationInitiateResult.fatalError()) {
-                response = badParameters(message, connectorId);
-            } else {
-                response = internalRecipientError(message, connectorId);
-            }
-        }
 
         return MultipartResponse.Builder.newInstance()
-                .header(response)
+                .header(createResponseMessageForStatusResult(negotiationInitiateResult, connectorId, message))
                 .build();
     }
 
