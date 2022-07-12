@@ -134,6 +134,7 @@ allprojects {
     checkstyle {
         toolVersion = "9.0"
         configFile = rootProject.file("resources/edc-checkstyle-config.xml")
+        configDirectory.set(rootProject.file("resources"))
         maxErrors = 0 // does not tolerate errors
     }
 
