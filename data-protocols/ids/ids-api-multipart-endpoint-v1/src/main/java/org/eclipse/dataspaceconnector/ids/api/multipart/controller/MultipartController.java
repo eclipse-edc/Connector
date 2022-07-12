@@ -57,6 +57,7 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMess
 @Produces({MediaType.MULTIPART_FORM_DATA})
 @Path(MultipartController.PATH)
 public class MultipartController {
+    
     public static final String PATH = "/data";
     private static final String HEADER = "header";
     private static final String PAYLOAD = "payload";
@@ -82,7 +83,16 @@ public class MultipartController {
         this.identityService = Objects.requireNonNull(identityService);
         this.idsWebhookAddress = Objects.requireNonNull(idsWebhookAddress);
     }
-
+    
+    /**
+     * Processes an incoming IDS multipart request. Validates the message header before passing the
+     * request to a handler depending on the message type.
+     *
+     * @param headerInputStream the multipart header part.
+     * @param payload the multipart payload part.
+     * @return a multipart response with code 200. In case of error, the multipart header is a
+     *         rejection message.
+     */
     @POST
     public Response request(@FormDataParam(HEADER) InputStream headerInputStream,
                             @FormDataParam(PAYLOAD) String payload) {
@@ -155,17 +165,38 @@ public class MultipartController {
 
         return Response.ok(createResponse(notFound(header, connectorId))).build();
     }
-
+    
+    /**
+     * Creates a multipart body for the given response. Adds the security token to the response
+     * header.
+     *
+     * @param multipartResponse the multipart response.
+     * @return a multipart body.
+     */
     private FormDataMultiPart createResponse(MultipartResponse multipartResponse) {
         addTokenToResponseHeader(multipartResponse.getHeader());
         return createFormDataMultiPart(multipartResponse.getHeader(), multipartResponse.getPayload());
     }
-
+    
+    /**
+     * Creates a multipart body with the given message header and no payload. Adds the security
+     * token to the response header.
+     *
+     * @param header the multipart response.
+     * @return a multipart body.
+     */
     private FormDataMultiPart createResponse(Message header) {
         addTokenToResponseHeader(header);
         return createFormDataMultiPart(header, null);
     }
-
+    
+    /**
+     * Builds a form-data multipart body with the given header and payload.
+     *
+     * @param header the header.
+     * @param payload the payload.
+     * @return a multipart body.
+     */
     private FormDataMultiPart createFormDataMultiPart(Message header, Object payload) {
         var multiPart = new FormDataMultiPart();
         if (header != null) {
@@ -179,6 +210,11 @@ public class MultipartController {
         return multiPart;
     }
     
+    /**
+     * Retrieves an identity token and adds it to the given message.
+     *
+     * @param header the message.
+     */
     private void addTokenToResponseHeader(Message header) {
         var tokenBuilder = new DynamicAttributeTokenBuilder()
                 ._tokenFormat_(TokenFormat.JWT);
@@ -194,6 +230,7 @@ public class MultipartController {
         } else {
             tokenBuilder._tokenValue_("invalid");
         }
+        
         header.setSecurityToken(tokenBuilder.build());
     }
 
