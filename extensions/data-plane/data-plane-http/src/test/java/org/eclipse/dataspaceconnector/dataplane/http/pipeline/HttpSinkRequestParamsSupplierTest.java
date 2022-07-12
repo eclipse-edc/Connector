@@ -110,13 +110,13 @@ class HttpSinkRequestParamsSupplierTest {
     }
 
     @Test
-    void extractTransferChunked() {
+    void extractTransferInOneGo() {
         var chunked = new Random().nextBoolean();
         var address = HttpDataAddress.Builder.newInstance()
-                .transferChunked(chunked)
+                .transferInOneGo(chunked)
                 .build();
 
-        var result = supplier.extractTransferChunked(address);
+        var result = supplier.extractTransferInOneGo(address);
 
         assertThat(result).isEqualTo(chunked);
     }

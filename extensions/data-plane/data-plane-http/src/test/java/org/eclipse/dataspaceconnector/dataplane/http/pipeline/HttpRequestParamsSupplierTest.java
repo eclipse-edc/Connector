@@ -150,7 +150,7 @@ class HttpRequestParamsSupplierTest {
                 .build();
         var request = createRequest(dataAddress);
 
-        var supplier = new TestHttpRequestParamsSupplier(vaultMock, false);
+        var supplier = new TestHttpRequestParamsSupplier(vaultMock, true);
         var httpRequest = supplier.apply(request).toRequest();
 
         assertThat(httpRequest.url().url()).hasToString(dataAddress.getBaseUrl() + "/" + supplier.path + "?" + supplier.queryParams);
@@ -177,22 +177,22 @@ class HttpRequestParamsSupplierTest {
         private final String queryParams;
         private final String contentType;
         private final String body;
-        private final boolean chunked;
+        private final boolean isOneGo;
 
         private TestHttpRequestParamsSupplier(Vault vault) {
             super(vault);
             this.method = new Random().nextBoolean() ? HttpMethod.PUT.name() : HttpMethod.POST.name();
-            this.chunked = true;
+            this.isOneGo = false;
             this.path = FAKER.lorem().word();
             this.queryParams = FAKER.lorem().word();
             this.contentType = new Random().nextBoolean() ? APPLICATION_JSON : APPLICATION_X_WWW_FORM_URLENCODED;
             this.body = FAKER.lorem().word();
         }
 
-        private TestHttpRequestParamsSupplier(Vault vault, boolean chunked) {
+        private TestHttpRequestParamsSupplier(Vault vault, boolean isOneGo) {
             super(vault);
             this.method = new Random().nextBoolean() ? HttpMethod.PUT.name() : HttpMethod.POST.name();
-            this.chunked = chunked;
+            this.isOneGo = isOneGo;
             this.path = FAKER.lorem().word();
             this.queryParams = FAKER.lorem().word();
             this.contentType = new Random().nextBoolean() ? APPLICATION_JSON : APPLICATION_X_WWW_FORM_URLENCODED;
@@ -200,8 +200,8 @@ class HttpRequestParamsSupplierTest {
         }
 
         @Override
-        protected boolean extractTransferChunked(HttpDataAddress address) {
-            return chunked;
+        protected boolean extractTransferInOneGo(HttpDataAddress address) {
+            return isOneGo;
         }
 
         @Override

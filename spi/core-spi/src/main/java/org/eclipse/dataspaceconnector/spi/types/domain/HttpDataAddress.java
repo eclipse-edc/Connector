@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.common.string.StringUtils;
 
 import java.util.Map;
 import java.util.Objects;
@@ -50,8 +51,7 @@ public class HttpDataAddress extends DataAddress {
     public static final String ADDITIONAL_HEADER = "header:";
     public static final String CONTENT_TYPE = "contentType";
     public static final String OCTET_STREAM = "application/octet-stream";
-    public static final String TRANSFER_CHUNKED = "transferChunked";
-    public static final String DEFAULT_TRANSFER_CHUNKED = Boolean.TRUE.toString();
+    public static final String TRANSFER_IN_ONE_GO = "transferInOneGo";
     public static final Set<String> ADDITIONAL_HEADERS_TO_IGNORE = Set.of("content-type");
 
     private HttpDataAddress() {
@@ -127,8 +127,9 @@ public class HttpDataAddress extends DataAddress {
     }
 
     @JsonIgnore
-    public boolean getTransferChunked() {
-        return Boolean.parseBoolean(getProperty(TRANSFER_CHUNKED, DEFAULT_TRANSFER_CHUNKED));
+    public boolean getTransferInOneGo() {
+        var transferInOneGo = getProperty(TRANSFER_IN_ONE_GO);
+        return !StringUtils.isNullOrBlank(transferInOneGo) && Boolean.parseBoolean(transferInOneGo);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -213,8 +214,8 @@ public class HttpDataAddress extends DataAddress {
             return this;
         }
 
-        public Builder transferChunked(boolean transferChunked) {
-            this.property(TRANSFER_CHUNKED, String.valueOf(transferChunked));
+        public Builder transferInOneGo(boolean transferInOneGo) {
+            this.property(TRANSFER_IN_ONE_GO, String.valueOf(transferInOneGo));
             return this;
         }
 

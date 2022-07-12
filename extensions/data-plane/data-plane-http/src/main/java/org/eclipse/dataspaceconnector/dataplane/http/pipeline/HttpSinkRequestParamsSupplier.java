@@ -35,8 +35,8 @@ public class HttpSinkRequestParamsSupplier extends HttpRequestParamsSupplier {
     }
 
     @Override
-    protected boolean extractTransferChunked(HttpDataAddress address) {
-        return address.getTransferChunked();
+    protected boolean extractTransferInOneGo(HttpDataAddress address) {
+        return address.getTransferInOneGo();
     }
 
     @Override

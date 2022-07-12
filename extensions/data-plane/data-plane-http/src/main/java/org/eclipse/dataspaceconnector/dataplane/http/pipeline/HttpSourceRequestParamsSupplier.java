@@ -43,8 +43,8 @@ public class HttpSourceRequestParamsSupplier extends HttpRequestParamsSupplier {
     }
 
     @Override
-    protected boolean extractTransferChunked(HttpDataAddress address) {
-        return true;
+    protected boolean extractTransferInOneGo(HttpDataAddress address) {
+        return false;
     }
 
     @Override
