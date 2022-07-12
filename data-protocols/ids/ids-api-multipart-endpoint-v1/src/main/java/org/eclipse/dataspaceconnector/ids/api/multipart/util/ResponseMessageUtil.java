@@ -16,6 +16,8 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.util;
 
+import de.fraunhofer.iais.eis.DescriptionResponseMessage;
+import de.fraunhofer.iais.eis.DescriptionResponseMessageBuilder;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageBuilder;
 import de.fraunhofer.iais.eis.NotificationMessage;
@@ -36,6 +38,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.UUID;
 
+import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregorianNow;
+
 public class ResponseMessageUtil {
 
     public static ResponseMessage createDummyResponse(
@@ -47,6 +51,7 @@ public class ResponseMessageUtil {
         return new ResponseMessageBuilder(messageId)
                 ._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                ._issued_(gregorianNow())
                 ._issuerConnector_(connectorIdUri)
                 ._senderAgent_(connectorIdUri)
                 ._correlationMessage_(correlationMessage.getId())
@@ -63,6 +68,7 @@ public class ResponseMessageUtil {
         return new MessageProcessedNotificationMessageBuilder(messageId)
                 ._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                ._issued_(gregorianNow())
                 ._issuerConnector_(connectorIdUri)
                 ._senderAgent_(connectorIdUri)
                 ._correlationMessage_(correlationMessage.getId())
@@ -78,9 +84,27 @@ public class ResponseMessageUtil {
         return new RequestInProcessMessageBuilder(messageId)
                 ._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                ._issued_(gregorianNow())
                 ._issuerConnector_(connectorIdUri)
                 ._senderAgent_(connectorIdUri)
                 ._correlationMessage_(correlationMessage.getId())
+                ._recipientConnector_(new ArrayList<>(Collections.singletonList(correlationMessage.getIssuerConnector())))
+                .build();
+    }
+    
+    public static DescriptionResponseMessage createDescriptionResponseMessage(@Nullable String connectorId,
+                                                                              @NotNull Message correlationMessage) {
+        var messageId = getMessageId();
+        var connectorIdUri = getConnectorUrn(connectorId);
+    
+        return new DescriptionResponseMessageBuilder(messageId)
+                ._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                ._issued_(gregorianNow())
+                ._issuerConnector_(connectorIdUri)
+                ._senderAgent_(connectorIdUri)
+                ._correlationMessage_(correlationMessage.getId())
+                ._recipientAgent_(new ArrayList<>(Collections.singletonList(correlationMessage.getSenderAgent())))
                 ._recipientConnector_(new ArrayList<>(Collections.singletonList(correlationMessage.getIssuerConnector())))
                 .build();
     }
@@ -151,10 +175,9 @@ public class ResponseMessageUtil {
         var builder = new RejectionMessageBuilder(messageId)
                 ._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                ._issued_(gregorianNow())
                 ._issuerConnector_(connectorIdUri)
                 ._senderAgent_(connectorIdUri);
-        
-        //builder._issued_(CalendarUtil.gregorianNow()); TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
         
         if (correlationMessage != null) {
             builder._correlationMessage_(correlationMessage.getId());

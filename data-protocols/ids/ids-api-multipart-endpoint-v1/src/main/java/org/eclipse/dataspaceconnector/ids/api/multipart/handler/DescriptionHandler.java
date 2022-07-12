@@ -18,8 +18,6 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 import de.fraunhofer.iais.eis.Artifact;
 import de.fraunhofer.iais.eis.Connector;
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
-import de.fraunhofer.iais.eis.DescriptionResponseMessage;
-import de.fraunhofer.iais.eis.DescriptionResponseMessageBuilder;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.ModelClass;
 import de.fraunhofer.iais.eis.Representation;
@@ -28,13 +26,11 @@ import de.fraunhofer.iais.eis.ResourceCatalog;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
-import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
-import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
@@ -46,19 +42,15 @@ import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Objects;
-import java.util.UUID;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartRequestUtil.getInt;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createBadParametersErrorMultipartResponse;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createNotFoundErrorMultipartResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.createDescriptionResponseMessage;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.messageTypeNotSupported;
 
 public class DescriptionHandler implements Handler {
@@ -121,12 +113,8 @@ public class DescriptionHandler implements Handler {
         if (requestedElement != null) {
             var idsIdResult = transformerRegistry.transform(requestedElement, IdsId.class);
             if (idsIdResult.failed()) {
-                monitor.warning(
-                        format(
-                                "Could not transform URI to IdsId: [%s]",
-                                String.join(", ", idsIdResult.getFailureMessages())
-                        )
-                );
+                monitor.warning(format("Could not transform URI to IdsId: [%s]",
+                        String.join(", ", idsIdResult.getFailureMessages())));
                 return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
             }
 
@@ -147,7 +135,7 @@ public class DescriptionHandler implements Handler {
             if (retrievedObject == null) {
                 return createNotFoundErrorMultipartResponse(connectorId, descriptionRequestMessage);
             }
-            result = transformRequestedElement(idsId, retrievedObject);
+            result = transformRequestedElement(retrievedObject, idsId.getType());
         }
     
         if (result.failed()) {
@@ -201,8 +189,7 @@ public class DescriptionHandler implements Handler {
         }
     }
     
-    private Result<? extends ModelClass> transformRequestedElement(IdsId idsId, Object object) {
-        var type = idsId.getType();
+    private Result<? extends ModelClass> transformRequestedElement(Object object, IdsType type) {
         switch (type) {
             case ARTIFACT:
                 return transformerRegistry.transform(object, Artifact.class);
@@ -221,36 +208,5 @@ public class DescriptionHandler implements Handler {
         return MultipartResponse.Builder.newInstance()
                 .header(messageTypeNotSupported(message, connectorId))
                 .build();
-    }
-    
-    private DescriptionResponseMessage createDescriptionResponseMessage(
-            @Nullable String connectorId,
-            @NotNull Message correlationMessage) {
-    
-        var messageId = URI.create(String.join(
-                IdsIdParser.DELIMITER,
-                IdsIdParser.SCHEME,
-                IdsType.MESSAGE.getValue(),
-                UUID.randomUUID().toString()));
-    
-        var connectorIdUrn = String.join(
-                IdsIdParser.DELIMITER,
-                IdsIdParser.SCHEME,
-                IdsType.CONNECTOR.getValue(),
-                connectorId);
-    
-        var connectorIdUri = URI.create(connectorIdUrn);
-        
-      return new DescriptionResponseMessageBuilder(messageId)
-                ._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
-                ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
-                ._issuerConnector_(connectorIdUri)
-                ._senderAgent_(connectorIdUri)
-                ._correlationMessage_(correlationMessage.getId())
-                ._recipientAgent_(new ArrayList<>(Collections.singletonList(correlationMessage.getSenderAgent())))
-                ._recipientConnector_(new ArrayList<>(Collections.singletonList(correlationMessage.getIssuerConnector())))
-                .build();
-    
-        //builder._issued_(CalendarUtil.gregorianNow()); TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
     }
 }
