@@ -79,7 +79,11 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
 
         monitor.debug(format("Get all contract definitions %s", spec));
 
-        return service.query(spec).stream()
+        var queryResult = service.query(spec);
+        if (queryResult.failed()) {
+            handleFailedResult(queryResult, null);
+        }
+        return queryResult.getContent().stream()
                 .map(it -> transformerRegistry.transform(it, ContractNegotiationDto.class))
                 .filter(Result::succeeded)
                 .map(Result::getContent)
@@ -174,12 +178,14 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
                 initiateDto.getOffer().getOfferId(), initiateDto.getOffer().getAssetId());
     }
 
-    private void handleFailedResult(ServiceResult<ContractNegotiation> result, String id) {
+    private void handleFailedResult(ServiceResult<?> result, String id) {
         switch (result.reason()) {
             case NOT_FOUND:
                 throw new ObjectNotFoundException(ContractNegotiation.class, id);
             case CONFLICT:
                 throw new ObjectExistsException(ContractNegotiation.class, id);
+            case BAD_REQUEST:
+                throw new IllegalArgumentException(result.getFailureDetail());
             default:
                 throw new EdcException("unexpected error");
         }

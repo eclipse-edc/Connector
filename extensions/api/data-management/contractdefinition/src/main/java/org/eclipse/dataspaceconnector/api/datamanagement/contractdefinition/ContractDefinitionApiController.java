@@ -128,7 +128,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
         }
     }
 
-    private <T> void handleFailedResult(ServiceResult<T> result, String id) {
+    private void handleFailedResult(ServiceResult<?> result, String id) {
         switch (result.reason()) {
             case NOT_FOUND:
                 throw new ObjectNotFoundException(ContractDefinition.class, id);

@@ -38,7 +38,7 @@ public interface ContractNegotiationService {
      * @param query request
      * @return the collection of contract negotiations that match the query
      */
-    Collection<ContractNegotiation> query(QuerySpec query);
+    ServiceResult<Collection<ContractNegotiation>> query(QuerySpec query);
 
     /**
      * Get negotiation state
@@ -49,8 +49,8 @@ public interface ContractNegotiationService {
     String getState(String negotiationId);
 
     /**
-     * Fetches the {@linkplain ContractAgreement} for a given {@linkplain ContractNegotiation},
-     * or null if either the negotiation does not exist, or no agreement has yet been reached.
+     * Fetches the {@linkplain ContractAgreement} for a given {@linkplain ContractNegotiation}, or null if either the
+     * negotiation does not exist, or no agreement has yet been reached.
      *
      * @param negotiationId the id of contract negotiation
      * @return the contract agreement, null if the negotiation does not exist or no agreement attached.
