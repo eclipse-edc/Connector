@@ -22,6 +22,7 @@ import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse;
+import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -72,7 +73,7 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
         if (request.getType() == ContractOfferRequest.Type.INITIAL) {
             var message = new ContractRequestMessageBuilder()
                     ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
-                    //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+                    ._issued_(CalendarUtil.gregorianNow())
                     ._securityToken_(token)
                     ._issuerConnector_(getConnectorId())
                     ._senderAgent_(getConnectorId())
@@ -85,7 +86,7 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
         } else {
             var message = new ContractOfferMessageBuilder()
                     ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
-                    //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+                    ._issued_(CalendarUtil.gregorianNow())
                     ._securityToken_(token)
                     ._issuerConnector_(getConnectorId())
                     ._senderAgent_(getConnectorId())
