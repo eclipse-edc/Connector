@@ -27,12 +27,9 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicyDefinitionService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
-import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
-import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -42,6 +39,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.handleFailedResult;
 
 @Produces({ MediaType.APPLICATION_JSON })
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -73,7 +71,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
 
         var queryResult = policyDefinitionService.query(spec);
         if (queryResult.failed()) {
-            handleFailedResult(queryResult, null);
+            handleFailedResult(queryResult, PolicyDefinition.class, null);
         }
         return new ArrayList<>(queryResult.getContent());
 
@@ -98,7 +96,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
         if (result.succeeded()) {
             monitor.debug(format("Policy created %s", policy.getUid()));
         } else {
-            handleFailedResult(result, policy.getUid());
+            handleFailedResult(result, PolicyDefinition.class, policy.getUid());
         }
     }
 
@@ -111,20 +109,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
         if (result.succeeded()) {
             monitor.debug(format("Policy deleted %s", id));
         } else {
-            handleFailedResult(result, id);
-        }
-    }
-
-    private void handleFailedResult(ServiceResult<?> result, String id) {
-        switch (result.reason()) {
-            case NOT_FOUND:
-                throw new ObjectNotFoundException(Policy.class, id);
-            case CONFLICT:
-                throw new ObjectExistsException(Policy.class, id);
-            case BAD_REQUEST:
-                throw new IllegalArgumentException(result.getFailureDetail());
-            default:
-                throw new EdcException("unexpected error");
+            handleFailedResult(result, PolicyDefinition.class, id);
         }
     }
 

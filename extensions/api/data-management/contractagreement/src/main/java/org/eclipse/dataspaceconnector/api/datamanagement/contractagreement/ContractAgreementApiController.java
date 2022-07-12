@@ -25,21 +25,20 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.model.ContractAgreementDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.service.ContractAgreementService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
-import org.eclipse.dataspaceconnector.api.result.ServiceFailure;
-import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.handleFailedResult;
 
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/contractagreements")
@@ -70,7 +69,9 @@ public class ContractAgreementApiController implements ContractAgreementApi {
         var queryResult = service.query(spec);
 
         //will throw an exception
-        handleFailureResult(queryResult);
+        if (queryResult.failed()) {
+            handleFailedResult(queryResult, ContractDefinition.class, null);
+        }
 
         return queryResult.getContent().stream()
                 .map(it -> transformerRegistry.transform(it, ContractAgreementDto.class))
@@ -93,10 +94,5 @@ public class ContractAgreementApiController implements ContractAgreementApi {
                 .orElseThrow(() -> new ObjectNotFoundException(ContractAgreement.class, id));
     }
 
-    private void handleFailureResult(ServiceResult<Collection<ContractAgreement>> queryResult) {
-        if (queryResult.failed() && queryResult.reason() == ServiceFailure.Reason.BAD_REQUEST) {
-            throw new IllegalArgumentException(queryResult.getFailureDetail());
-        }
-    }
 
 }
