@@ -19,6 +19,7 @@ package org.eclipse.dataspaceconnector.contract;
 
 import org.eclipse.dataspaceconnector.common.statemachine.retry.EntitySendRetryManager;
 import org.eclipse.dataspaceconnector.common.statemachine.retry.SendRetryManager;
+import org.eclipse.dataspaceconnector.contract.listener.ContractNegotiationEventListener;
 import org.eclipse.dataspaceconnector.contract.negotiation.ConsumerContractNegotiationManagerImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.ProviderContractNegotiationManagerImpl;
 import org.eclipse.dataspaceconnector.contract.observe.ContractNegotiationObservableImpl;
@@ -43,6 +44,7 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
+import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
@@ -118,6 +120,9 @@ public class ContractServiceExtension implements ServiceExtension {
     @Inject
     private Clock clock;
 
+    @Inject
+    private EventRouter eventRouter;
+
     @Override
     public String name() {
         return "Core Contract Service";
@@ -162,6 +167,8 @@ public class ContractServiceExtension implements ServiceExtension {
         CommandRunner<ContractNegotiationCommand> commandRunner = new CommandRunner<>(commandHandlerRegistry, monitor);
 
         var observable = new ContractNegotiationObservableImpl();
+        observable.registerListener(new ContractNegotiationEventListener(eventRouter, clock));
+
         context.registerService(ContractNegotiationObservable.class, observable);
         context.registerService(PolicyArchive.class, new PolicyArchiveImpl(store));
 

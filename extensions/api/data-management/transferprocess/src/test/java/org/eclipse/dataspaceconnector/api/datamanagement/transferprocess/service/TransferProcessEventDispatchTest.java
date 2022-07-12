@@ -22,11 +22,12 @@ import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessC
 import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessDeprovisioned;
 import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessEnded;
 import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessFailed;
-import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessInitialized;
+import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessInitiated;
 import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessProvisioned;
 import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessRequested;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.transfer.retry.TransferWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,6 +51,7 @@ public class TransferProcessEventDispatchTest {
     @BeforeEach
     void setUp(EdcExtension extension) {
         extension.setConfiguration(Map.of("edc.transfer.send.retry.limit", "0"));
+        extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
     }
 
     @Test
@@ -70,7 +72,7 @@ public class TransferProcessEventDispatchTest {
         var initiateResult = service.initiateTransfer(dataRequest);
 
         await().untilAsserted(() -> {
-            verify(eventSubscriber).on(isA(TransferProcessInitialized.class));
+            verify(eventSubscriber).on(isA(TransferProcessInitiated.class));
             verify(eventSubscriber).on(isA(TransferProcessProvisioned.class));
             verify(eventSubscriber).on(isA(TransferProcessRequested.class));
             verify(eventSubscriber).on(isA(TransferProcessCompleted.class));

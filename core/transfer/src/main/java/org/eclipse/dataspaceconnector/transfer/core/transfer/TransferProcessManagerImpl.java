@@ -222,7 +222,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         }
         observable.invokeForEach(l -> l.preCreated(process));
         transferProcessStore.create(process);
-        observable.invokeForEach(l -> l.initialized(process));
+        observable.invokeForEach(l -> l.initiated(process));
         return StatusResult.success(process.getId());
     }
 

@@ -19,6 +19,7 @@ in the detailed section referring to by linking pull requests or issues.
 
 * Event Framework for Asset entity (#1453)
 * Event Framework for ContractDefinition entity (#1436)
+* Event Framework for ContractNegotiation entity (#1434)
 * Event Framework for PolicyDefinition entity (#1437)
 * Event Framework for TransferProcess entity (#1439)
 * SQL Translation layer (#1357, #1459)

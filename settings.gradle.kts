@@ -177,6 +177,7 @@ include(":samples:04.1-file-transfer-listener:consumer")
 include(":samples:04.1-file-transfer-listener:listener")
 include(":samples:04.1-file-transfer-listener:transfer-file")
 include(":samples:04.1-file-transfer-listener:api")
+include(":samples:04.1-file-transfer-listener:file-transfer-listener-integration-tests")
 
 include(":samples:04.2-modify-transferprocess:consumer")
 include(":samples:04.2-modify-transferprocess:watchdog")

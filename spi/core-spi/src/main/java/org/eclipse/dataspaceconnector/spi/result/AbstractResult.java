@@ -60,4 +60,13 @@ public abstract class AbstractResult<T, F extends Failure> {
         return !succeeded();
     }
 
+    /**
+     * Returns a string that contains all the failure messages.
+     *
+     * @return a string that contains all the failure messages.
+     */
+    @JsonIgnore // will cause problems during JSON serialization if failure is null
+    public String getFailureDetail() {
+        return String.join(", ", getFailureMessages());
+    }
 }

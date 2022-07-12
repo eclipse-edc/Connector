@@ -25,11 +25,11 @@ import java.time.Clock;
 /**
  * Listener responsible for creating and publishing events regarding PolicyDefinition state changes
  */
-public class EventPolicyDefinitionListener implements PolicyDefinitionListener {
+public class PolicyDefinitionEventListener implements PolicyDefinitionListener {
     private final Clock clock;
     private final EventRouter eventRouter;
 
-    public EventPolicyDefinitionListener(Clock clock, EventRouter eventRouter) {
+    public PolicyDefinitionEventListener(Clock clock, EventRouter eventRouter) {
         this.clock = clock;
         this.eventRouter = eventRouter;
     }

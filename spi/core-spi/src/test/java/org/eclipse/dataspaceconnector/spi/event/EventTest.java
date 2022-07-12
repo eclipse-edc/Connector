@@ -19,8 +19,23 @@ import org.eclipse.dataspaceconnector.spi.event.asset.AssetCreated;
 import org.eclipse.dataspaceconnector.spi.event.asset.AssetDeleted;
 import org.eclipse.dataspaceconnector.spi.event.contractdefinition.ContractDefinitionCreated;
 import org.eclipse.dataspaceconnector.spi.event.contractdefinition.ContractDefinitionDeleted;
+import org.eclipse.dataspaceconnector.spi.event.contractnegotiation.ContractNegotiationApproved;
+import org.eclipse.dataspaceconnector.spi.event.contractnegotiation.ContractNegotiationConfirmed;
+import org.eclipse.dataspaceconnector.spi.event.contractnegotiation.ContractNegotiationDeclined;
+import org.eclipse.dataspaceconnector.spi.event.contractnegotiation.ContractNegotiationFailed;
+import org.eclipse.dataspaceconnector.spi.event.contractnegotiation.ContractNegotiationInitiated;
+import org.eclipse.dataspaceconnector.spi.event.contractnegotiation.ContractNegotiationOffered;
+import org.eclipse.dataspaceconnector.spi.event.contractnegotiation.ContractNegotiationRequested;
 import org.eclipse.dataspaceconnector.spi.event.policydefinition.PolicyDefinitionCreated;
 import org.eclipse.dataspaceconnector.spi.event.policydefinition.PolicyDefinitionDeleted;
+import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessCancelled;
+import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessCompleted;
+import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessDeprovisioned;
+import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessEnded;
+import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessFailed;
+import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessInitiated;
+import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessProvisioned;
+import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessRequested;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -59,10 +74,25 @@ class EventTest {
             var eventBuilders = Stream.of(
                     AssetCreated.Builder.newInstance().assetId("id"),
                     AssetDeleted.Builder.newInstance().assetId("id"),
+                    ContractDefinitionCreated.Builder.newInstance().contractDefinitionId("id"),
+                    ContractDefinitionDeleted.Builder.newInstance().contractDefinitionId("id"),
+                    ContractNegotiationApproved.Builder.newInstance().contractNegotiationId("id"),
+                    ContractNegotiationConfirmed.Builder.newInstance().contractNegotiationId("id"),
+                    ContractNegotiationDeclined.Builder.newInstance().contractNegotiationId("id"),
+                    ContractNegotiationFailed.Builder.newInstance().contractNegotiationId("id"),
+                    ContractNegotiationInitiated.Builder.newInstance().contractNegotiationId("id"),
+                    ContractNegotiationOffered.Builder.newInstance().contractNegotiationId("id"),
+                    ContractNegotiationRequested.Builder.newInstance().contractNegotiationId("id"),
                     PolicyDefinitionCreated.Builder.newInstance().policyDefinitionId("id"),
                     PolicyDefinitionDeleted.Builder.newInstance().policyDefinitionId("id"),
-                    ContractDefinitionCreated.Builder.newInstance().contractDefinitionId("id"),
-                    ContractDefinitionDeleted.Builder.newInstance().contractDefinitionId("id")
+                    TransferProcessCancelled.Builder.newInstance().transferProcessId("id"),
+                    TransferProcessCompleted.Builder.newInstance().transferProcessId("id"),
+                    TransferProcessDeprovisioned.Builder.newInstance().transferProcessId("id"),
+                    TransferProcessEnded.Builder.newInstance().transferProcessId("id"),
+                    TransferProcessFailed.Builder.newInstance().transferProcessId("id"),
+                    TransferProcessInitiated.Builder.newInstance().transferProcessId("id"),
+                    TransferProcessProvisioned.Builder.newInstance().transferProcessId("id"),
+                    TransferProcessRequested.Builder.newInstance().transferProcessId("id")
             );
 
             return eventBuilders

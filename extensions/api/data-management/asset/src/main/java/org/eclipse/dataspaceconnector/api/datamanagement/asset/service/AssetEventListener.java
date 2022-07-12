@@ -25,11 +25,11 @@ import java.time.Clock;
 /**
  * Listener responsible for creating and publishing events regarding Asset state changes
  */
-public class EventAssetListener implements AssetListener {
+public class AssetEventListener implements AssetListener {
     private final Clock clock;
     private final EventRouter eventRouter;
 
-    public EventAssetListener(Clock clock, EventRouter eventRouter) {
+    public AssetEventListener(Clock clock, EventRouter eventRouter) {
         this.clock = clock;
         this.eventRouter = eventRouter;
     }
