@@ -29,6 +29,13 @@ public class MultipartResponseUtil {
                 .header(badParameters(message, connectorId))
                 .build();
     }
+    
+    public static MultipartResponse createBadParametersErrorMultipartResponse(@Nullable String connectorId, @Nullable Message message, String payload) {
+        return MultipartResponse.Builder.newInstance()
+                .header(badParameters(message, connectorId))
+                .payload(payload)
+                .build();
+    }
 
     public static MultipartResponse createNotFoundErrorMultipartResponse(@Nullable String connectorId, @Nullable Message message) {
         return MultipartResponse.Builder.newInstance()
