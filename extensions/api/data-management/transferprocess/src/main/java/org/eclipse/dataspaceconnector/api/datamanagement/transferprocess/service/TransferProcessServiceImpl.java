@@ -30,7 +30,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.CancelTransferCommand;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.DeprovisionRequest;
-import org.eclipse.dataspaceconnector.sql.translation.EdcQueryException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,13 +61,13 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     }
 
     @Override
-    public @NotNull Collection<TransferProcess> query(QuerySpec query) {
+    public ServiceResult<Collection<TransferProcess>> query(QuerySpec query) {
         var result = queryValidator.validate(query);
 
         if (result.failed()) {
-            throw new EdcQueryException(format("Error validating schema: %s", result.getFailureDetail()));
+            return ServiceResult.badRequest(format("Error validating schema: %s", result.getFailureDetail()));
         }
-        return transactionContext.execute(() -> transferProcessStore.findAll(query).collect(toList()));
+        return ServiceResult.success(transactionContext.execute(() -> transferProcessStore.findAll(query).collect(toList())));
     }
 
     @Override

@@ -73,7 +73,7 @@ class TransferProcessApiControllerTest {
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
         var querySpec = QuerySpecDto.Builder.newInstance().build();
-        when(service.query(any())).thenReturn(List.of(transferProcess));
+        when(service.query(any())).thenReturn(ServiceResult.success(List.of(transferProcess)));
 
         var transferProcesses = controller.getAllTransferProcesses(querySpec);
 
@@ -88,7 +88,7 @@ class TransferProcessApiControllerTest {
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
         when(transformerRegistry.transform(isA(TransferProcess.class), eq(TransferProcessDto.class))).thenReturn(Result.failure("failure"));
-        when(service.query(any())).thenReturn(List.of(transferProcess));
+        when(service.query(any())).thenReturn(ServiceResult.success(List.of(transferProcess)));
 
         var transferProcesses = controller.getAllTransferProcesses(QuerySpecDto.Builder.newInstance().build());
 

@@ -41,6 +41,7 @@ import org.eclipse.dataspaceconnector.spi.result.AbstractResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -73,7 +74,11 @@ public class TransferProcessApiController implements TransferProcessApi {
 
         var spec = result.getContent();
 
-        return service.query(spec).stream()
+        var queryResult = service.query(spec);
+        if (queryResult.failed()) {
+            handleFailedResult(queryResult, null);
+        }
+        return queryResult.getContent().stream()
                 .map(tp -> transformerRegistry.transform(tp, TransferProcessDto.class))
                 .filter(Result::succeeded)
                 .map(Result::getContent)
@@ -149,12 +154,14 @@ public class TransferProcessApiController implements TransferProcessApi {
         }
     }
 
-    private void handleFailedResult(ServiceResult<TransferProcess> result, String id) {
+    private void handleFailedResult(ServiceResult<?> result, @Nullable String id) {
         switch (result.reason()) {
             case NOT_FOUND:
                 throw new ObjectNotFoundException(TransferProcess.class, id);
             case CONFLICT:
                 throw new ObjectExistsException(TransferProcess.class, id);
+            case BAD_REQUEST:
+                throw new IllegalArgumentException(result.getFailureDetail());
             default:
                 throw new EdcException("unexpected error");
         }
