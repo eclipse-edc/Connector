@@ -240,7 +240,7 @@ class HttpSourceRequestParamsSupplierTest {
 
         var result = supplier.extractTransferChunked(address);
 
-        assertThat(result).isEqualTo(null);
+        assertThat(result).isTrue();
     }
 
     private static DataFlowRequest createRequest(DataAddress source) {
