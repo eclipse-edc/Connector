@@ -56,9 +56,9 @@ import java.util.UUID;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartRequestUtil.getInt;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartResponseUtil.createBadParametersErrorMultipartResponse;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartResponseUtil.createNotFoundErrorMultipartResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartRequestUtil.getInt;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createBadParametersErrorMultipartResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createNotFoundErrorMultipartResponse;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.messageTypeNotSupported;
 
 public class DescriptionHandler implements Handler {
