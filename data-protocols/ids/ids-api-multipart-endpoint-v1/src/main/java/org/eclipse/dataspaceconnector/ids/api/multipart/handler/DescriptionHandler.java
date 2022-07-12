@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *
  */
 
@@ -49,6 +50,7 @@ import static java.util.stream.Collectors.toList;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionResponseMessageUtil.createDescriptionResponseMessage;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartRequestUtil.getInt;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartResponseUtil.createBadParametersErrorMultipartResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartResponseUtil.createNotFoundErrorMultipartResponse;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.messageTypeNotSupported;
 
 public class DescriptionHandler implements Handler {
@@ -109,18 +111,18 @@ public class DescriptionHandler implements Handler {
         var requestedElement = descriptionRequestMessage.getRequestedElement();
         IdsId idsId = null;
         if (requestedElement != null) {
-            var result = transformerRegistry.transform(requestedElement, IdsId.class);
-            if (result.failed()) {
+            var idsIdResult = transformerRegistry.transform(requestedElement, IdsId.class);
+            if (idsIdResult.failed()) {
                 monitor.warning(
                         format(
                                 "Could not transform URI to IdsId: [%s]",
-                                String.join(", ", result.getFailureMessages())
+                                String.join(", ", idsIdResult.getFailureMessages())
                         )
                 );
                 return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
             }
 
-            idsId = result.getContent();
+            idsId = idsIdResult.getContent();
         }
     
         //TODO: IDS REFACTORING: this should be a named property of the message object
@@ -129,21 +131,24 @@ public class DescriptionHandler implements Handler {
         var to = getInt(descriptionRequestMessage, Range.TO, Integer.MAX_VALUE);
         var range = new Range(from, to);
         
-        Result<? extends ModelClass> requestedElementResult;
-    
+        Result<? extends ModelClass> result;
         if (idsId == null || (idsId.getType() == IdsType.CONNECTOR)) {
-            requestedElementResult = retrieveConnector(claimToken, range);
+            result = getConnector(claimToken, range);
         } else {
-            requestedElementResult = retrieveRequestedElement(idsId, claimToken, range);
+            var retrievedObject = retrieveRequestedElement(idsId, claimToken, range);
+            if (retrievedObject == null) {
+                return createNotFoundErrorMultipartResponse(connectorId, descriptionRequestMessage);
+            }
+            result = transformRequestedElement(idsId, retrievedObject);
         }
     
-        if (requestedElementResult.failed()) {
+        if (result.failed()) {
             if (idsId == null) {
                 monitor.warning(String.format("Could not construct connector description: [%s]",
-                        String.join(", ", requestedElementResult.getFailureMessages())));
+                        String.join(", ", result.getFailureMessages())));
             } else {
                 monitor.warning(String.format("Could not retrieve requested element with ID %s:%s: [%s]",
-                        idsId.getType(), idsId.getValue(), String.join(", ", requestedElementResult.getFailureMessages())));
+                        idsId.getType(), idsId.getValue(), String.join(", ", result.getFailureMessages())));
             }
     
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
@@ -153,23 +158,22 @@ public class DescriptionHandler implements Handler {
     
         return MultipartResponse.Builder.newInstance()
                 .header(descriptionResponseMessage)
-                .payload(requestedElementResult.getContent())
+                .payload(result.getContent())
                 .build();
     }
     
-    private Result<Connector> retrieveConnector(ClaimToken claimToken, Range range) {
+    private Result<Connector> getConnector(ClaimToken claimToken, Range range) {
         return transformerRegistry.transform(connectorService.getConnector(claimToken, range), de.fraunhofer.iais.eis.Connector.class);
     }
     
-    private Result<? extends ModelClass> retrieveRequestedElement(IdsId idsId, ClaimToken claimToken, Range range) {
+    private Object retrieveRequestedElement(IdsId idsId, ClaimToken claimToken, Range range) {
         var type = idsId.getType();
         switch (type) {
             case ARTIFACT:
-               return transformerRegistry.transform(assetIndex.findById(idsId.getValue()), Artifact.class);
-            case CATALOG:
-                return transformerRegistry.transform(catalogService.getDataCatalog(claimToken, range), ResourceCatalog.class);
             case REPRESENTATION:
-                return transformerRegistry.transform(assetIndex.findById(idsId.getValue()), Representation.class);
+                return assetIndex.findById(idsId.getValue());
+            case CATALOG:
+                return catalogService.getDataCatalog(claimToken, range);
             case RESOURCE:
                 var assetId = idsId.getValue();
                 var asset = assetIndex.findById(assetId);
@@ -183,7 +187,23 @@ public class DescriptionHandler implements Handler {
                         .build();
                 var targetingContractOffers = contractOfferService.queryContractOffers(contractOfferQuery, range).collect(toList());
             
-                return transformerRegistry.transform(new OfferedAsset(asset, targetingContractOffers), Resource.class);
+                return new OfferedAsset(asset, targetingContractOffers);
+            default:
+                return null;
+        }
+    }
+    
+    private Result<? extends ModelClass> transformRequestedElement(IdsId idsId, Object object) {
+        var type = idsId.getType();
+        switch (type) {
+            case ARTIFACT:
+                return transformerRegistry.transform(object, Artifact.class);
+            case CATALOG:
+                return transformerRegistry.transform(object, ResourceCatalog.class);
+            case REPRESENTATION:
+                return transformerRegistry.transform(object, Representation.class);
+            case RESOURCE:
+                return transformerRegistry.transform(object, Resource.class);
             default:
                 return Result.failure(format("Unknown requested element type: %s", type));
         }
