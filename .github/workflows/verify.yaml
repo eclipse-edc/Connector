@@ -24,18 +24,11 @@ jobs:
       # lets run Checkstyle explicitly (as opposed to within gradle) due to better reporting capabilities
       - name: Run Checkstyle
         run: ./gradlew checkstyleMain checkstyleTest checkstyleTestFixtures
-  #        with:
-  #          checkstyle_config: edc-checkstyle-config.xml
-  #          level: error
-  #          github_token: ${{ secrets.GITHUB_TOKEN }}
-  #          tool_name: 'checkstyle'
-  #          checkstyle_version: '9.0'
-  #          reporter: 'github-check'
-  #          # Include only violations on added or modified files
-  #          filter_mode: 'file'
-  #          # Only works when level is set to error
-  #          fail_on_error: true
 
+      - uses: jwgmeligmeyling/checkstyle-github-action@master
+        continue-on-error: true # make it optional
+        with:
+          path: '**/reports/checkstyle/main.xml'
   Dependency-analysis:
     runs-on: ubuntu-latest
     steps:

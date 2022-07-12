@@ -263,7 +263,7 @@ allprojects {
         reports {
             // lets not generate any reports because that is done from within the Github Actions workflow
             html.required.set(false)
-            xml.required.set(false)
+            xml.required.set(true)
         }
     }
 
