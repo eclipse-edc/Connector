@@ -58,7 +58,7 @@ class ContractDefinitionApiControllerTest {
     @Test
     void getAll() {
         var contractDefinition = createContractDefinition();
-        when(service.query(any())).thenReturn(List.of(contractDefinition));
+        when(service.query(any())).thenReturn(ServiceResult.success(List.of(contractDefinition)));
         var dto = ContractDefinitionDto.Builder.newInstance().id(contractDefinition.getId()).build();
         when(transformerRegistry.transform(any(), eq(ContractDefinitionDto.class))).thenReturn(Result.success(dto));
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
@@ -76,7 +76,7 @@ class ContractDefinitionApiControllerTest {
     @Test
     void getAll_filtersOutFailedTransforms() {
         var contractDefinition = createContractDefinition();
-        when(service.query(any())).thenReturn(List.of(contractDefinition));
+        when(service.query(any())).thenReturn(ServiceResult.success(List.of(contractDefinition)));
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
         when(transformerRegistry.transform(isA(ContractDefinition.class), eq(ContractDefinitionDto.class)))

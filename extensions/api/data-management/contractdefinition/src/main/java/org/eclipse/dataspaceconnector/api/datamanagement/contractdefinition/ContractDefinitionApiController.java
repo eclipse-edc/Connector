@@ -69,7 +69,13 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
         monitor.debug(format("get all contract definitions %s", spec));
 
-        return service.query(spec).stream()
+        var queryResult = service.query(spec);
+        if (queryResult.failed()) {
+            handleFailedResult(queryResult, null);
+        }
+
+        return queryResult.getContent()
+                .stream()
                 .map(it -> transformerRegistry.transform(it, ContractDefinitionDto.class))
                 .filter(Result::succeeded)
                 .map(Result::getContent)
@@ -122,12 +128,14 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
         }
     }
 
-    private void handleFailedResult(ServiceResult<ContractDefinition> result, String id) {
+    private <T> void handleFailedResult(ServiceResult<T> result, String id) {
         switch (result.reason()) {
             case NOT_FOUND:
                 throw new ObjectNotFoundException(ContractDefinition.class, id);
             case CONFLICT:
                 throw new ObjectExistsException(ContractDefinition.class, id);
+            case BAD_REQUEST:
+                throw new IllegalArgumentException(result.getFailureDetail());
             default:
                 throw new EdcException("unexpected error");
         }
