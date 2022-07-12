@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.Artifact;
 import de.fraunhofer.iais.eis.BaseConnector;
 import de.fraunhofer.iais.eis.DescriptionRequestMessageBuilder;
+import de.fraunhofer.iais.eis.DescriptionResponseMessageImpl;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.ModelClass;
@@ -40,12 +41,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * IdsMultipartSender implementation for metadata requests. Sends IDS DescriptionRequestMessages and
  * expects an IDS DescriptionResponseMessage as the response.
  */
-public class MultipartDescriptionRequestSender extends IdsMultipartSender<MetadataRequest, MultipartResponse<ModelClass>> {
+public class MultipartDescriptionRequestSender extends IdsMultipartSender<MetadataRequest, ModelClass> {
 
     public MultipartDescriptionRequestSender(@NotNull String connectorId,
                                              @NotNull OkHttpClient httpClient,
@@ -126,5 +128,10 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
         }
 
         return new MultipartResponse<>(header, payload);
+    }
+
+    @Override
+    protected List<Class<? extends Message>> getAllowedResponseTypes() {
+        return List.of(DescriptionResponseMessageImpl.class);
     }
 }

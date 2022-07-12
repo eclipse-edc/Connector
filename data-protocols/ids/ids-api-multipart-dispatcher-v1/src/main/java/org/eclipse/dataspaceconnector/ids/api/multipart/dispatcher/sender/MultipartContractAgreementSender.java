@@ -19,6 +19,7 @@ import de.fraunhofer.iais.eis.ContractAgreement;
 import de.fraunhofer.iais.eis.ContractAgreementMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageImpl;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
@@ -35,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.List;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.util.ResponseUtil.parseMultipartStringResponse;
 import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
@@ -43,7 +45,7 @@ import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_AD
  * IdsMultipartSender implementation for contract agreements. Sends IDS ContractAgreementMessages and
  * expects an IDS RequestInProcessMessage as the response.
  */
-public class MultipartContractAgreementSender extends IdsMultipartSender<ContractAgreementRequest, MultipartResponse<String>> {
+public class MultipartContractAgreementSender extends IdsMultipartSender<ContractAgreementRequest, String> {
 
     private final String idsWebhookAddress;
 
@@ -131,5 +133,9 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
         return parseMultipartStringResponse(parts, getObjectMapper());
     }
 
+    @Override
+    protected List<Class<? extends Message>> getAllowedResponseTypes() {
+        return List.of(MessageProcessedNotificationMessageImpl.class);
+    }
 
 }
