@@ -25,6 +25,7 @@ import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.ResourceCatalogBuilder;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
+import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -69,7 +70,7 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
     protected String retrieveRemoteConnectorAddress(CatalogRequest request) {
         return request.getConnectorAddress();
     }
-    
+
     /**
      * Builds a {@link de.fraunhofer.iais.eis.DescriptionRequestMessage} for requesting another
      * connector's self description. Includes paging information defined in the {@link CatalogRequest}.
@@ -93,7 +94,7 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
         message.setProperty(Range.TO, request.getRange().getTo());
         return message;
     }
-    
+
     /**
      * Parses the response content and extracts the catalog from the received self description.
      *

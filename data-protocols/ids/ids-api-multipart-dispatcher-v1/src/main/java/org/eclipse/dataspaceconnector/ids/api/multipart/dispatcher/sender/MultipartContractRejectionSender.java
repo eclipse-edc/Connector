@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URI;
 import java.util.Collections;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.util.ResponseUtil.parseMultipartStringResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.util.ResponseUtil.parseMultipartStringResponse;
 
 /**
  * IdsMultipartSender implementation for contract rejections. Sends IDS ContractRequestMessages and

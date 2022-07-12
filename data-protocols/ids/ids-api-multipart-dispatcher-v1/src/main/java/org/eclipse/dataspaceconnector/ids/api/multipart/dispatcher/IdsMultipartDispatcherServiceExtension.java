@@ -49,16 +49,25 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
 
     @Inject
     private Monitor monitor;
+
     @Inject
     private OkHttpClient httpClient;
+
     @Inject
     private IdentityService identityService;
+
     @Inject
     private IdsTransformerRegistry transformerRegistry;
+
     @Inject
     private IdsApiConfiguration idsApiConfiguration;
+
     @Inject
     private ObjectMapperFactory objectMapperFactory;
+
+    @Inject
+    private RemoteMessageDispatcherRegistry dispatcherRegistry;
+
     @Inject
     private Vault vault;
 
@@ -86,15 +95,13 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         multipartDispatcher.register(new MultipartCatalogDescriptionRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartEndpointDataReferenceRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
 
-        var registry = context.getService(RemoteMessageDispatcherRegistry.class);
-        registry.register(multipartDispatcher);
+        dispatcherRegistry.register(multipartDispatcher);
     }
 
     private String resolveConnectorId(@NotNull ServiceExtensionContext context) {
         Objects.requireNonNull(context);
 
-        var value = getSetting(context, EDC_IDS_ID, DEFAULT_EDC_IDS_ID);
-
+        var value = context.getSetting(EDC_IDS_ID, DEFAULT_EDC_IDS_ID);
         try {
             // Hint: use stringified uri to keep uri path and query
             var idsId = IdsIdParser.parse(value);
@@ -107,19 +114,6 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         }
 
         return value;
-    }
-
-    @NotNull
-    private String getSetting(@NotNull ServiceExtensionContext context, String key, String defaultValue) {
-        var value = context.getSetting(key, null);
-
-        if (value == null) {
-            var message = "IDS Settings: No setting found for key '%s'. Using default value '%s'";
-            monitor.warning(String.format(message, key, defaultValue));
-            return defaultValue;
-        } else {
-            return value;
-        }
     }
 
 }

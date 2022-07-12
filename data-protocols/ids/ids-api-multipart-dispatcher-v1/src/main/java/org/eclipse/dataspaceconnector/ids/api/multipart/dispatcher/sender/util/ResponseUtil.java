@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.util;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.Message;
@@ -25,7 +25,7 @@ import java.io.IOException;
  * Utility class for processing IDS multipart responses.
  */
 public class ResponseUtil {
-    
+
     /**
      * Creates a {@link MultipartResponse} with payload type string from an {@link IdsMultipartParts}.
      *
@@ -36,13 +36,13 @@ public class ResponseUtil {
      */
     public static MultipartResponse<String> parseMultipartStringResponse(IdsMultipartParts parts, ObjectMapper objectMapper) throws IOException {
         var header = objectMapper.readValue(parts.getHeader(), Message.class);
-        
+
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());
         }
-    
+
         return new MultipartResponse<>(header, payload);
     }
-    
+
 }

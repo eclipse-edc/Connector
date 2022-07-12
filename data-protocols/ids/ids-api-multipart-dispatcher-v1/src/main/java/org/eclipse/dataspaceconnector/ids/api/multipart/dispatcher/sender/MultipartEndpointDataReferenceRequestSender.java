@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URI;
 import java.util.Collections;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.util.ResponseUtil.parseMultipartStringResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.util.ResponseUtil.parseMultipartStringResponse;
 
 /**
  * IdsMultipartSender implementation for transferring Endpoint Data Reference (EDR). Sends IDS NotificationMessage and
@@ -57,7 +57,7 @@ public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSen
     protected String retrieveRemoteConnectorAddress(EndpointDataReferenceMessage request) {
         return request.getConnectorAddress();
     }
-    
+
     /**
      * Builds a {@link de.fraunhofer.iais.eis.ParticipantUpdateMessage} for the given {@link EndpointDataReferenceMessage}.
      *
@@ -75,7 +75,7 @@ public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSen
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 .build();
     }
-    
+
     /**
      * Builds the payload for the endpoint data reference message. The payload contains the message as JSON.
      *
@@ -87,7 +87,7 @@ public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSen
     protected String buildMessagePayload(EndpointDataReferenceMessage request) throws Exception {
         return getObjectMapper().writeValueAsString(request.getEndpointDataReference());
     }
-    
+
     /**
      * Parses the response content.
      *
