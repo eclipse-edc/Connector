@@ -68,7 +68,7 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
         var result = queryValidator.validate(query);
 
         if (result.failed()) {
-            throw new EdcQueryException(format("Error validating schema: %s", String.join(", ", result.getFailureMessages())));
+            throw new EdcQueryException(format("Error validating schema: %s", result.getFailureDetail()));
         }
         return transactionContext.execute(() ->
                 policyStore.findAll(query).collect(toList()));

@@ -59,10 +59,7 @@ public class QueryValidator {
                 .map(Criterion::getOperandLeft)
                 .map(Object::toString)
                 .map(this::isValid)
-                .reduce((res1, res2) -> {
-                    res1.getFailureMessages().addAll(res2.getFailureMessages());
-                    return res1;
-                })
+                .reduce(Result::merge)
                 .orElse(Result.success());
     }
 
@@ -94,7 +91,7 @@ public class QueryValidator {
                     type = (Class<?>) genericType.getActualTypeArguments()[0];
                 }
             } else {
-                return Result.failure(format("Field %s not found on type %s", token, canonicalType));
+                return Result.failure(format("Field %s not found on type %s", token, type));
             }
         }
         return Result.success();

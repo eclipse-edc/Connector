@@ -48,7 +48,7 @@ public class AssetServiceImpl implements AssetService {
         this.contractNegotiationStore = contractNegotiationStore;
         this.transactionContext = transactionContext;
         this.observable = observable;
-        queryValidator = new AssetQueryValidator(Asset.class);
+        queryValidator = new AssetQueryValidator();
     }
 
     @Override
@@ -61,7 +61,7 @@ public class AssetServiceImpl implements AssetService {
         var result = queryValidator.validate(query);
 
         if (result.failed()) {
-            throw new EdcQueryException(format("Error validating schema: %s", String.join(", ", result.getFailureMessages())));
+            throw new EdcQueryException(format("Error validating schema: %s", result.getFailureDetail()));
         }
         return transactionContext.execute(() -> index.queryAssets(query).collect(toList()));
     }

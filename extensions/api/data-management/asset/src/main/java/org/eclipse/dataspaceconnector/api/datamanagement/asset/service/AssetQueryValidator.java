@@ -31,8 +31,8 @@ class AssetQueryValidator extends QueryValidator {
             Asset.PROPERTY_CONTENT_TYPE
     );
 
-    AssetQueryValidator(Class<Asset> assetClass) {
-        super(assetClass);
+    AssetQueryValidator() {
+        super(Asset.class);
     }
 
     /**
