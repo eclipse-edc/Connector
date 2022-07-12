@@ -25,8 +25,6 @@ import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RejectionMessageBuilder;
 import de.fraunhofer.iais.eis.RejectionReason;
 import de.fraunhofer.iais.eis.RequestInProcessMessageBuilder;
-import de.fraunhofer.iais.eis.ResponseMessage;
-import de.fraunhofer.iais.eis.ResponseMessageBuilder;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
@@ -41,23 +39,6 @@ import java.util.UUID;
 import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregorianNow;
 
 public class ResponseMessageUtil {
-
-    public static ResponseMessage createDummyResponse(
-            @NotNull String connectorId,
-            @NotNull Message correlationMessage) {
-        var messageId = getMessageId();
-        var connectorIdUri = getConnectorUrn(connectorId);
-        
-        return new ResponseMessageBuilder(messageId)
-                ._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
-                ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
-                ._issued_(gregorianNow())
-                ._issuerConnector_(connectorIdUri)
-                ._senderAgent_(connectorIdUri)
-                ._correlationMessage_(correlationMessage.getId())
-                ._recipientConnector_(new ArrayList<>(Collections.singletonList(correlationMessage.getIssuerConnector())))
-                .build();
-    }
 
     public static NotificationMessage createMessageProcessedNotificationMessage(
             @NotNull String connectorId,

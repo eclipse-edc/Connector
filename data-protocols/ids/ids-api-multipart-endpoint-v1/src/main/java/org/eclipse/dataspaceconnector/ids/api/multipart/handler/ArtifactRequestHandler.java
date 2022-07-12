@@ -41,7 +41,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.badParameters;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.createDummyResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.createRequestInProcessMessage;
 import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 public class ArtifactRequestHandler implements Handler {
@@ -161,7 +161,7 @@ public class ArtifactRequestHandler implements Handler {
         }
 
         return MultipartResponse.Builder.newInstance()
-                .header(createDummyResponse(connectorId, artifactRequestMessage)) // TODO Change this response so that it matches our UML pictures
+                .header(createRequestInProcessMessage(connectorId, artifactRequestMessage))
                 .build();
     }
 
