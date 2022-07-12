@@ -71,7 +71,7 @@ class PolicyDefinitionApiControllerTest {
 
     @Test
     void getAllPolicies() {
-        when(service.query(any())).thenReturn(List.of(TestFunctions.createPolicy("id")));
+        when(service.query(any())).thenReturn(ServiceResult.success(List.of(TestFunctions.createPolicy("id"))));
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
         var querySpec = QuerySpecDto.Builder.newInstance().build();

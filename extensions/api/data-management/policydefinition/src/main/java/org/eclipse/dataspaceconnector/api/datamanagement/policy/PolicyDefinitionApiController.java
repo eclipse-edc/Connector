@@ -71,7 +71,11 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
 
         monitor.debug(format("get all policies %s", spec));
 
-        return new ArrayList<>(policyDefinitionService.query(spec));
+        var queryResult = policyDefinitionService.query(spec);
+        if (queryResult.failed()) {
+            handleFailedResult(queryResult, null);
+        }
+        return new ArrayList<>(queryResult.getContent());
 
     }
 
@@ -111,12 +115,14 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
         }
     }
 
-    private void handleFailedResult(ServiceResult<PolicyDefinition> result, String id) {
+    private void handleFailedResult(ServiceResult<?> result, String id) {
         switch (result.reason()) {
             case NOT_FOUND:
                 throw new ObjectNotFoundException(Policy.class, id);
             case CONFLICT:
                 throw new ObjectExistsException(Policy.class, id);
+            case BAD_REQUEST:
+                throw new IllegalArgumentException(result.getFailureDetail());
             default:
                 throw new EdcException("unexpected error");
         }

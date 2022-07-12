@@ -24,7 +24,6 @@ import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
-import org.eclipse.dataspaceconnector.sql.translation.EdcQueryException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -34,7 +33,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -67,7 +65,8 @@ public class PolicyDefinitionServiceImplTest {
         when(policyStore.findAll(any(QuerySpec.class))).thenReturn(Stream.of(policy));
         var policies = policyServiceImpl.query(QuerySpec.none());
 
-        assertThat(policies).containsExactly(policy);
+        assertThat(policies.succeeded()).isTrue();
+        assertThat(policies.getContent()).containsExactly(policy);
     }
 
     @ParameterizedTest
@@ -81,7 +80,7 @@ public class PolicyDefinitionServiceImplTest {
                 .filter(invalidFilter)
                 .build();
 
-        assertThatThrownBy(() -> policyServiceImpl.query(query)).isInstanceOf(EdcQueryException.class);
+        assertThat(policyServiceImpl.query(query).failed()).isTrue();
     }
 
     @Test
