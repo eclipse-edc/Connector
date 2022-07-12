@@ -19,7 +19,9 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.Connector;
+import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.TokenFormat;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -31,6 +33,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
+import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
@@ -57,6 +60,7 @@ public class MultipartController {
     public static final String PATH = "/data";
     private static final String HEADER = "header";
     private static final String PAYLOAD = "payload";
+    private static final String TOKEN_SCOPE = "idsc:IDS_CONNECTOR_ATTRIBUTES_ALL";
 
     private final Monitor monitor;
     private final String connectorId;
@@ -83,29 +87,29 @@ public class MultipartController {
     public Response request(@FormDataParam(HEADER) InputStream headerInputStream,
                             @FormDataParam(PAYLOAD) String payload) {
         if (headerInputStream == null) {
-            return Response.ok(createFormDataMultiPart(malformedMessage(null, connectorId))).build();
+            return Response.ok(createResponse(malformedMessage(null, connectorId))).build();
         }
 
         Message header;
         try {
             header = objectMapper.readValue(headerInputStream, Message.class);
         } catch (IOException e) {
-            return Response.ok(createFormDataMultiPart(malformedMessage(null, connectorId))).build();
+            return Response.ok(createResponse(malformedMessage(null, connectorId))).build();
         }
 
         if (header == null) {
-            return Response.ok(createFormDataMultiPart(malformedMessage(null, connectorId))).build();
+            return Response.ok(createResponse(malformedMessage(null, connectorId))).build();
         }
         
         // Check if any required field missing
         if (header.getId() == null || header.getIssuerConnector() == null || header.getSenderAgent() == null) {
-            return Response.ok(createFormDataMultiPart(malformedMessage(header, connectorId))).build();
+            return Response.ok(createResponse(malformedMessage(header, connectorId))).build();
         }
 
         var dynamicAttributeToken = header.getSecurityToken();
         if (dynamicAttributeToken == null || dynamicAttributeToken.getTokenValue() == null) {
             monitor.warning("MultipartController: Token is missing in header");
-            return Response.ok(createFormDataMultiPart(notAuthenticated(header, connectorId))).build();
+            return Response.ok(createResponse(notAuthenticated(header, connectorId))).build();
         }
 
         var additional = new HashMap<String, Object>();
@@ -126,7 +130,7 @@ public class MultipartController {
 
         if (verificationResult.failed()) {
             monitor.warning(format("MultipartController: Token validation failed %s", verificationResult.getFailure().getMessages()));
-            return Response.ok(createFormDataMultiPart(notAuthenticated(header, connectorId))).build();
+            return Response.ok(createResponse(notAuthenticated(header, connectorId))).build();
         }
 
         var claimToken = verificationResult.getContent();
@@ -141,27 +145,29 @@ public class MultipartController {
                 .findFirst()
                 .orElse(null);
         if (handler == null) {
-            return Response.ok(createFormDataMultiPart(messageTypeNotSupported(header, connectorId))).build();
+            return Response.ok(createResponse(messageTypeNotSupported(header, connectorId))).build();
         }
 
         var multipartResponse = handler.handleRequest(multipartRequest, claimToken);
         if (multipartResponse != null) {
-            return Response.ok(createFormDataMultiPart(multipartResponse)).build();
+            return Response.ok(createResponse(multipartResponse)).build();
         }
 
-        return Response.ok(createFormDataMultiPart(notFound(header, connectorId))).build();
+        return Response.ok(createResponse(notFound(header, connectorId))).build();
     }
 
-    private FormDataMultiPart createFormDataMultiPart(MultipartResponse multipartResponse) {
+    private FormDataMultiPart createResponse(MultipartResponse multipartResponse) {
+        addTokenToResponseHeader(multipartResponse.getHeader());
         return createFormDataMultiPart(multipartResponse.getHeader(), multipartResponse.getPayload());
     }
 
-    private FormDataMultiPart createFormDataMultiPart(Object header) {
+    private FormDataMultiPart createResponse(Message header) {
+        addTokenToResponseHeader(header);
         return createFormDataMultiPart(header, null);
     }
 
-    private FormDataMultiPart createFormDataMultiPart(Object header, Object payload) {
-        FormDataMultiPart multiPart = new FormDataMultiPart();
+    private FormDataMultiPart createFormDataMultiPart(Message header, Object payload) {
+        var multiPart = new FormDataMultiPart();
         if (header != null) {
             multiPart.bodyPart(new FormDataBodyPart(HEADER, toJson(header), MediaType.APPLICATION_JSON_TYPE));
         }
@@ -171,6 +177,24 @@ public class MultipartController {
         }
 
         return multiPart;
+    }
+    
+    private void addTokenToResponseHeader(Message header) {
+        var tokenBuilder = new DynamicAttributeTokenBuilder()
+                ._tokenFormat_(TokenFormat.JWT);
+        
+        var tokenParameters = TokenParameters.Builder.newInstance()
+                .scope(TOKEN_SCOPE)
+                .audience(header.getIssuerConnector().toString())
+                .build();
+        var tokenResult = identityService.obtainClientCredentials(tokenParameters);
+        
+        if (tokenResult.succeeded()) {
+            tokenBuilder._tokenValue_(tokenResult.getContent().getToken());
+        } else {
+            tokenBuilder._tokenValue_("invalid");
+        }
+        header.setSecurityToken(tokenBuilder.build());
     }
 
     private byte[] toJson(Object object) {
