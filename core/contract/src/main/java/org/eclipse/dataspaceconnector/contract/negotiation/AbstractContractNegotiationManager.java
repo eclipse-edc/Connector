@@ -18,7 +18,6 @@ import org.eclipse.dataspaceconnector.common.statemachine.retry.SendRetryManager
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
@@ -165,7 +164,7 @@ public abstract class AbstractContractNegotiationManager {
         }
     }
 
-    protected void update(ContractNegotiation negotiation) {
+    protected final void update(ContractNegotiation negotiation) {
         negotiationStore.save(negotiation);
     }
 

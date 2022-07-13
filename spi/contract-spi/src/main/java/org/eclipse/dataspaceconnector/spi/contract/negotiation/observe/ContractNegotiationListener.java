@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.spi.contract.negotiation.observe;
 
 import org.eclipse.dataspaceconnector.spi.observe.Observable;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 
 /**
  * Interface implemented by listeners registered to observe contract negotiation state changes
