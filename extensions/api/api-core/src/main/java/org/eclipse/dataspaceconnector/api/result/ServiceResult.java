@@ -18,10 +18,15 @@ import org.eclipse.dataspaceconnector.spi.result.AbstractResult;
 
 import java.util.List;
 
+import static org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason.NOT_FOUND;
 
 public class ServiceResult<T> extends AbstractResult<T, ServiceFailure> {
+
+    protected ServiceResult(T content, ServiceFailure failure) {
+        super(content, failure);
+    }
 
     public static <T> ServiceResult<T> success(T content) {
         return new ServiceResult<>(content, null);
@@ -35,8 +40,8 @@ public class ServiceResult<T> extends AbstractResult<T, ServiceFailure> {
         return new ServiceResult<>(null, new ServiceFailure(List.of(message), NOT_FOUND));
     }
 
-    protected ServiceResult(T content, ServiceFailure failure) {
-        super(content, failure);
+    public static <T> ServiceResult<T> badRequest(String... message) {
+        return new ServiceResult<>(null, new ServiceFailure(List.of(message), BAD_REQUEST));
     }
 
     public ServiceFailure.Reason reason() {

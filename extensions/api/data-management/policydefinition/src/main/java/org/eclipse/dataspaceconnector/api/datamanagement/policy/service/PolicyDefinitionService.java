@@ -43,8 +43,7 @@ public interface PolicyDefinitionService {
      * @return the collection of policies that match the query
      */
 
-    @NotNull
-    Collection<PolicyDefinition> query(QuerySpec query);
+    ServiceResult<Collection<PolicyDefinition>> query(QuerySpec query);
 
     /**
      * Delete a policy

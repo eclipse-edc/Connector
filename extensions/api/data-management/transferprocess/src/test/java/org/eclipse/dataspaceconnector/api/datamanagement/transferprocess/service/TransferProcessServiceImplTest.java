@@ -27,7 +27,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessS
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.CancelTransferCommand;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.DeprovisionRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.SingleTransferProcessCommand;
-import org.eclipse.dataspaceconnector.sql.translation.EdcQueryException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -39,7 +38,6 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.INCLUDE;
 import static org.mockito.ArgumentMatchers.any;
@@ -86,7 +84,7 @@ class TransferProcessServiceImplTest {
     @Test
     void query() {
         when(store.findAll(query)).thenReturn(Stream.of(process1, process2));
-        assertThat(service.query(query)).containsExactly(process1, process2);
+        assertThat(service.query(query).getContent()).containsExactly(process1, process2);
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
@@ -98,7 +96,7 @@ class TransferProcessServiceImplTest {
     })
     void query_invalidFilter_raiseException(String invalidFilter) {
         var spec = QuerySpec.Builder.newInstance().filter(invalidFilter).build();
-        assertThatThrownBy(() -> service.query(spec)).isInstanceOf(EdcQueryException.class);
+        assertThat(service.query(spec).failed()).isTrue();
     }
 
     @ParameterizedTest

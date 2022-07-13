@@ -24,7 +24,6 @@ import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
-import org.eclipse.dataspaceconnector.sql.translation.EdcQueryException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,7 +35,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason.CONFLICT;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -89,7 +87,8 @@ class ContractDefinitionServiceImplTest {
         var result = service.query(QuerySpec.none());
 
         String id = definition.getId();
-        assertThat(result).hasSize(1).first().matches(hasId(id));
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent()).hasSize(1).first().matches(hasId(id));
     }
 
     @ParameterizedTest
@@ -101,7 +100,7 @@ class ContractDefinitionServiceImplTest {
         var query = QuerySpec.Builder.newInstance()
                 .filter(invalidFilter)
                 .build();
-        assertThatThrownBy(() -> service.query(query)).isInstanceOf(EdcQueryException.class);
+        assertThat(service.query(query).failed()).isTrue();
     }
 
     @ParameterizedTest

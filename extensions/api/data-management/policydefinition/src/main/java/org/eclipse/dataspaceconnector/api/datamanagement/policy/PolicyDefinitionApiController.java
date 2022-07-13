@@ -27,12 +27,9 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.api.datamanagement.policy.service.PolicyDefinitionService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
-import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
-import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -42,6 +39,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
 
 @Produces({ MediaType.APPLICATION_JSON })
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -71,7 +69,11 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
 
         monitor.debug(format("get all policies %s", spec));
 
-        return new ArrayList<>(policyDefinitionService.query(spec));
+        var queryResult = policyDefinitionService.query(spec);
+        if (queryResult.failed()) {
+            throw mapToException(queryResult, PolicyDefinition.class, null);
+        }
+        return new ArrayList<>(queryResult.getContent());
 
     }
 
@@ -94,7 +96,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
         if (result.succeeded()) {
             monitor.debug(format("Policy created %s", policy.getUid()));
         } else {
-            handleFailedResult(result, policy.getUid());
+            throw mapToException(result, PolicyDefinition.class, policy.getUid());
         }
     }
 
@@ -107,18 +109,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
         if (result.succeeded()) {
             monitor.debug(format("Policy deleted %s", id));
         } else {
-            handleFailedResult(result, id);
-        }
-    }
-
-    private void handleFailedResult(ServiceResult<PolicyDefinition> result, String id) {
-        switch (result.reason()) {
-            case NOT_FOUND:
-                throw new ObjectNotFoundException(Policy.class, id);
-            case CONFLICT:
-                throw new ObjectExistsException(Policy.class, id);
-            default:
-                throw new EdcException("unexpected error");
+            throw mapToException(result, PolicyDefinition.class, id);
         }
     }
 

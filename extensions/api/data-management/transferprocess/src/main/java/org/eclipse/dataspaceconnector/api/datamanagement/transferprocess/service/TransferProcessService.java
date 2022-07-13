@@ -43,8 +43,7 @@ public interface TransferProcessService {
      * @param query request
      * @return the collection of transferProcesses that match the query
      */
-    @NotNull
-    Collection<TransferProcess> query(QuerySpec query);
+    ServiceResult<Collection<TransferProcess>> query(QuerySpec query);
 
     /**
      * Returns the state of a transferProcess by its id.
@@ -72,7 +71,8 @@ public interface TransferProcessService {
      * The return result status only reflects the successful submission of the command.
      *
      * @param transferProcessId id of the transferProcess
-     * @return a result that is successful if the transfer process was found and is in a state that can be deprovisioned
+     * @return a result that is successful if the transfer process was found and is in a state that can be
+     *         deprovisioned
      */
     @NotNull
     ServiceResult<TransferProcess> deprovision(String transferProcessId);
