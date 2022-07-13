@@ -25,7 +25,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractAgreemen
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractOfferHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractRejectionHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.EndpointDataReferenceHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.NotificationMessageHandler;
@@ -128,7 +128,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         var objectMapper = objectMapperFactory.getObjectMapper();
 
         // create request handler
-        var descriptionHandler = new DescriptionHandler(
+        var descriptionHandler = new DescriptionRequestHandler(
                 monitor, connectorId, transformerRegistry,
                 assetIndex, dataCatalogService, contractOfferService, connectorService);
 

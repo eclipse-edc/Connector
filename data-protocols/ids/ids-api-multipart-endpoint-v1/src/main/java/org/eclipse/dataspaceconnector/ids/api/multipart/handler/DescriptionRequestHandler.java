@@ -53,7 +53,7 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartRes
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.createDescriptionResponseMessage;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.messageTypeNotSupported;
 
-public class DescriptionHandler implements Handler {
+public class DescriptionRequestHandler implements Handler {
     private final Monitor monitor;
     private final String connectorId;
     private final IdsTransformerRegistry transformerRegistry;
@@ -62,7 +62,7 @@ public class DescriptionHandler implements Handler {
     private final ContractOfferService contractOfferService;
     private final ConnectorService connectorService;
 
-    public DescriptionHandler(
+    public DescriptionRequestHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
             @NotNull IdsTransformerRegistry transformerRegistry,
