@@ -83,5 +83,10 @@ class IdsMultipartSenderTest {
         public String getProtocol() {
             return null;
         }
+
+        @Override
+        public String getConnectorAddress() {
+            return null;
+        }
     }
 }
