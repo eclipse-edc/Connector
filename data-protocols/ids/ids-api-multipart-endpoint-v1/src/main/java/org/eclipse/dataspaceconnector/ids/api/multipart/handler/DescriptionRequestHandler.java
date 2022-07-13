@@ -150,7 +150,7 @@ public class DescriptionRequestHandler implements Handler {
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
         
-        var descriptionResponseMessage = createDescriptionResponseMessage(connectorId, descriptionRequestMessage);
+        var descriptionResponseMessage = createDescriptionResponseMessage(descriptionRequestMessage, connectorId);
     
         return MultipartResponse.Builder.newInstance()
                 .header(descriptionResponseMessage)

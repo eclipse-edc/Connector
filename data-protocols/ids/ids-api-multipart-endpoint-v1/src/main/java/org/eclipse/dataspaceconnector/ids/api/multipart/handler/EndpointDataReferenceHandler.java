@@ -85,7 +85,7 @@ public class EndpointDataReferenceHandler implements Handler {
         }
 
         return MultipartResponse.Builder.newInstance()
-                .header(createMessageProcessedNotificationMessage(connectorId, multipartRequest.getHeader()))
+                .header(createMessageProcessedNotificationMessage(multipartRequest.getHeader(), connectorId))
                 .build();
     }
 

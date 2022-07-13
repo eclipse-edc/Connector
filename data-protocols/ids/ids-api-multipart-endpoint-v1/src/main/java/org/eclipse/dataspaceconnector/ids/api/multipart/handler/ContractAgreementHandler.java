@@ -116,7 +116,7 @@ public class ContractAgreementHandler implements Handler {
         }
 
         return MultipartResponse.Builder.newInstance()
-                .header(createMessageProcessedNotificationMessage(connectorId, message))
+                .header(createMessageProcessedNotificationMessage(message, connectorId))
                 .build();
     }
 

@@ -41,9 +41,8 @@ import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregoria
 
 public class ResponseMessageUtil {
 
-    public static NotificationMessage createMessageProcessedNotificationMessage(
-            @NotNull String connectorId,
-            @NotNull Message correlationMessage) {
+    public static NotificationMessage createMessageProcessedNotificationMessage(@NotNull Message correlationMessage,
+                                                                                @NotNull String connectorId) {
         var messageId = getMessageId();
         var connectorIdUri = getConnectorUrn(connectorId);
         
@@ -58,8 +57,8 @@ public class ResponseMessageUtil {
                 .build();
     }
     
-    public static NotificationMessage createRequestInProcessMessage(@NotNull String connectorId,
-                                                                    @NotNull Message correlationMessage) {
+    public static NotificationMessage createRequestInProcessMessage(@NotNull Message correlationMessage,
+                                                                    @NotNull String connectorId) {
         var messageId = getMessageId();
         var connectorIdUri = getConnectorUrn(connectorId);
         
@@ -74,8 +73,8 @@ public class ResponseMessageUtil {
                 .build();
     }
     
-    public static DescriptionResponseMessage createDescriptionResponseMessage(@Nullable String connectorId,
-                                                                              @NotNull Message correlationMessage) {
+    public static DescriptionResponseMessage createDescriptionResponseMessage(@NotNull Message correlationMessage,
+                                                                              @NotNull String connectorId) {
         var messageId = getMessageId();
         var connectorIdUri = getConnectorUrn(connectorId);
     
@@ -91,9 +90,11 @@ public class ResponseMessageUtil {
                 .build();
     }
     
-    public static Message createResponseMessageForStatusResult(StatusResult<?> statusResult, String connectorId, Message correlationMessage) {
+    public static Message createResponseMessageForStatusResult(@NotNull StatusResult<?> statusResult,
+                                                               @NotNull String connectorId,
+                                                               @NotNull Message correlationMessage) {
         if (statusResult.succeeded()) {
-            return createRequestInProcessMessage(connectorId, correlationMessage);
+            return createRequestInProcessMessage(correlationMessage, connectorId);
         } else {
             if (statusResult.fatalError()) {
                 return badParameters(correlationMessage, connectorId);
@@ -104,64 +105,64 @@ public class ResponseMessageUtil {
     }
     
     @NotNull
-    public static RejectionMessage notFound(
-            @NotNull Message correlationMessage, @NotNull String connectorId) {
+    public static RejectionMessage notFound(@NotNull Message correlationMessage,
+                                            @NotNull String connectorId) {
         return createRejectionMessageBuilder(correlationMessage, connectorId)
                 ._rejectionReason_(RejectionReason.NOT_FOUND)
                 .build();
     }
     
     @NotNull
-    public static RejectionMessage notAuthenticated(
-            @NotNull Message correlationMessage, @NotNull String connectorId) {
+    public static RejectionMessage notAuthenticated(@NotNull Message correlationMessage,
+                                                    @NotNull String connectorId) {
         return createRejectionMessageBuilder(correlationMessage, connectorId)
                 ._rejectionReason_(RejectionReason.NOT_AUTHENTICATED)
                 .build();
     }
     
     @NotNull
-    public static RejectionMessage notAuthorized(
-            @NotNull Message correlationMessage, @NotNull String connectorId) {
+    public static RejectionMessage notAuthorized(@NotNull Message correlationMessage,
+                                                 @NotNull String connectorId) {
         return createRejectionMessageBuilder(correlationMessage, connectorId)
                 ._rejectionReason_(RejectionReason.NOT_AUTHORIZED)
                 .build();
     }
     
     @NotNull
-    public static RejectionMessage malformedMessage(
-            @Nullable Message correlationMessage, @NotNull String connectorId) {
+    public static RejectionMessage malformedMessage(@Nullable Message correlationMessage,
+                                                    @NotNull String connectorId) {
         return createRejectionMessageBuilder(correlationMessage, connectorId)
                 ._rejectionReason_(RejectionReason.MALFORMED_MESSAGE)
                 .build();
     }
     
     @NotNull
-    public static RejectionMessage messageTypeNotSupported(
-            @NotNull Message correlationMessage, @NotNull String connectorId) {
+    public static RejectionMessage messageTypeNotSupported(@NotNull Message correlationMessage,
+                                                           @NotNull String connectorId) {
         return createRejectionMessageBuilder(correlationMessage, connectorId)
                 ._rejectionReason_(RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED)
                 .build();
     }
     
     @NotNull
-    public static RejectionMessage badParameters(
-            @NotNull Message correlationMessage, @NotNull String connectorId) {
+    public static RejectionMessage badParameters(@NotNull Message correlationMessage,
+                                                 @NotNull String connectorId) {
         return createRejectionMessageBuilder(correlationMessage, connectorId)
                 ._rejectionReason_(RejectionReason.BAD_PARAMETERS)
                 .build();
     }
     
     @NotNull
-    public static RejectionMessage internalRecipientError(
-            @NotNull Message correlationMessage, @NotNull String connectorId) {
+    public static RejectionMessage internalRecipientError(@NotNull Message correlationMessage,
+                                                          @NotNull String connectorId) {
         return createRejectionMessageBuilder(correlationMessage, connectorId)
                 ._rejectionReason_(RejectionReason.INTERNAL_RECIPIENT_ERROR)
                 .build();
     }
     
     @NotNull
-    private static RejectionMessageBuilder createRejectionMessageBuilder(
-            @Nullable Message correlationMessage, @NotNull String connectorId) {
+    private static RejectionMessageBuilder createRejectionMessageBuilder(@Nullable Message correlationMessage,
+                                                                         @NotNull String connectorId) {
         
         var messageId = getMessageId();
         var connectorIdUri = getConnectorUrn(connectorId);
