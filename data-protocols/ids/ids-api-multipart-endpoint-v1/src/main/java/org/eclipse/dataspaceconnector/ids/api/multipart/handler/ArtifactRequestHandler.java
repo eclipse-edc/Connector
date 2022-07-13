@@ -87,31 +87,31 @@ public class ArtifactRequestHandler implements Handler {
         var artifactUri = artifactRequestMessage.getRequestedArtifact();
         var artifactIdsId = IdsIdParser.parse(artifactUri.toString());
         if (artifactIdsId.getType() != IdsType.ARTIFACT) {
-            monitor.info("ArtifactRequestHandler: Requested artifact URI not of type artifact.");
+            monitor.debug("ArtifactRequestHandler: Requested artifact URI not of type artifact.");
             return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
         }
 
         var contractUri = artifactRequestMessage.getTransferContract();
         var contractIdsId = IdsIdParser.parse(contractUri.toString());
         if (contractIdsId.getType() != IdsType.CONTRACT) {
-            monitor.info("ArtifactRequestHandler: Requested artifact URI not of type contract.");
+            monitor.debug("ArtifactRequestHandler: Transfer contract URI not of type contract.");
             return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
         }
 
         var contractAgreement = contractNegotiationStore.findContractAgreement(contractIdsId.getValue());
         if (contractAgreement == null) {
-            monitor.info(String.format("ArtifactRequestHandler: No contract agreement with id %s found.", contractIdsId.getValue()));
+            monitor.debug(String.format("ArtifactRequestHandler: No contract agreement with id %s found.", contractIdsId.getValue()));
             return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
         }
 
         var isContractValid = contractValidationService.validate(claimToken, contractAgreement);
         if (!isContractValid) {
-            monitor.info("ArtifactRequestHandler: Contract is invalid");
+            monitor.debug("ArtifactRequestHandler: Contract is invalid");
             return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
         }
 
         if (!artifactIdsId.getValue().equals(contractAgreement.getAssetId())) {
-            monitor.info(String.format("ArtifactRequestHandler: invalid artifact id specified %s for contract: %s", artifactIdsId.getValue(), contractIdsId.getValue()));
+            monitor.debug(String.format("ArtifactRequestHandler: invalid artifact id specified %s for contract: %s", artifactIdsId.getValue(), contractIdsId.getValue()));
             return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
         }
 

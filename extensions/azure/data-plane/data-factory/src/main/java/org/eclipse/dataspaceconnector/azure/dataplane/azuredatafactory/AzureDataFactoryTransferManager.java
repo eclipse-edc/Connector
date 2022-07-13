@@ -92,7 +92,7 @@ public class AzureDataFactoryTransferManager {
 
         var runId = client.runPipeline(pipeline).runId();
 
-        monitor.info("Created ADF pipeline for " + request.getProcessId() + ". Run id is " + runId);
+        monitor.debug("Created ADF pipeline for " + request.getProcessId() + ". Run id is " + runId);
 
         return awaitRunCompletion(runId)
                 .thenApply(result -> {
@@ -110,14 +110,14 @@ public class AzureDataFactoryTransferManager {
 
     @NotNull
     private CompletableFuture<StatusResult<Void>> awaitRunCompletion(String runId) {
-        monitor.info("Awaiting ADF pipeline completion for run " + runId);
+        monitor.debug("Awaiting ADF pipeline completion for run " + runId);
 
         var timeout = clock.instant().plus(maxDuration);
         while (clock.instant().isBefore(timeout)) {
             var pipelineRun = client.getPipelineRun(runId);
             var runStatusValue = pipelineRun.status();
             var message = pipelineRun.message();
-            monitor.info("ADF run status is " + runStatusValue + " with message [" + message + "] for run " + runId);
+            monitor.debug("ADF run status is " + runStatusValue + " with message [" + message + "] for run " + runId);
             DataFactoryPipelineRunStates runStatus;
 
             try {

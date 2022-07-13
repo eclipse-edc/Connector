@@ -358,7 +358,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         var checker = statusCheckerRegistry.resolve(process.getDataRequest().getDestinationType());
         if (checker == null) {
             if (process.getDataRequest().isManagedResources()) {
-                monitor.info(format("No checker found for process %s. The process will not advance to the COMPLETED state.", process.getId()));
+                monitor.warning(format("No checker found for process %s. The process will not advance to the COMPLETED state.", process.getId()));
                 return false;
             } else {
                 //no checker, transition the process to the COMPLETED state automatically
@@ -372,7 +372,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 return true;
             } else {
                 // Process is not finished yet, so it stays in the IN_PROGRESS state
-                monitor.info(format("Transfer process %s not COMPLETED yet. The process will not advance to the COMPLETED state.", process.getId()));
+                monitor.debug(format("Transfer process %s not COMPLETED yet. The process will not advance to the COMPLETED state.", process.getId()));
                 breakLease(process);
                 return false;
             }
@@ -631,13 +631,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
     private void sendCustomerRequestFailure(TransferProcess transferProcess, Throwable e) {
         if (sendRetryManager.retriesExhausted(transferProcess)) {
-            monitor.info(format("TransferProcessManager: attempt #%d failed to send transfer. Retry limit exceeded, TransferProcess %s moves to ERROR state.",
+            monitor.severe(format("TransferProcessManager: attempt #%d failed to send transfer. Retry limit exceeded, TransferProcess %s moves to ERROR state.",
                     transferProcess.getStateCount(),
                     transferProcess.getId()), e);
             transitionToError(transferProcess.getId(), e, "Retry limit exceeded");
             return;
         }
-        monitor.info(format("TransferProcessManager: attempt #%d failed to send transfer. TransferProcess %s stays in state %s.",
+        monitor.debug(format("TransferProcessManager: attempt #%d failed to send transfer. TransferProcess %s stays in state %s.",
                 transferProcess.getStateCount(),
                 transferProcess.getId(),
                 TransferProcessStates.from(transferProcess.getState())), e);

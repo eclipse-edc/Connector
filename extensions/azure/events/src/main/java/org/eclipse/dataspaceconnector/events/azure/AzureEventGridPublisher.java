@@ -99,7 +99,7 @@ class AzureEventGridPublisher implements TransferProcessListener {
 
         @Override
         protected void hookOnComplete() {
-            monitor.info("AzureEventGrid: " + message);
+            monitor.debug("AzureEventGrid: " + message);
         }
 
         @Override

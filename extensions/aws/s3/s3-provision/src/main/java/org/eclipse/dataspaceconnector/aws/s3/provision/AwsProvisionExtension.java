@@ -96,7 +96,7 @@ public class AwsProvisionExtension implements ServiceExtension {
         try {
             clientProvider.shutdown();
         } catch (Exception e) {
-            monitor.info("Error closing S3 client provider", e);
+            monitor.severe("Error closing S3 client provider", e);
         }
     }
 
