@@ -42,10 +42,4 @@ public class MultipartResponseUtil {
                 .header(notFound(message, connectorId))
                 .build();
     }
-
-    public static MultipartResponse createErrorMultipartResponse(@Nullable String connectorId, @Nullable Message message) {
-        return MultipartResponse.Builder.newInstance()
-                .header(messageTypeNotSupported(message, connectorId))
-                .build();
-    }
 }
