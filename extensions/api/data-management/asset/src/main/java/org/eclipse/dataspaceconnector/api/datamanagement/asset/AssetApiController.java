@@ -43,7 +43,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.handleFailedResult;
+import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
 
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
@@ -78,7 +78,7 @@ public class AssetApiController implements AssetApi {
         if (result.succeeded()) {
             monitor.debug(format("Asset created %s", assetEntryDto.getAsset()));
         } else {
-            handleFailedResult(result, Asset.class, asset.getId());
+            throw mapToException(result, Asset.class, asset.getId());
         }
     }
 
@@ -124,7 +124,7 @@ public class AssetApiController implements AssetApi {
         if (result.succeeded()) {
             monitor.debug(format("Asset deleted %s", id));
         } else {
-            handleFailedResult(result, Asset.class, id);
+            throw mapToException(result, Asset.class, id);
         }
     }
 }

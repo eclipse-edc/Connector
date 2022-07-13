@@ -40,7 +40,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.handleFailedResult;
+import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
 
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/contractdefinitions")
@@ -70,7 +70,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
         var queryResult = service.query(spec);
         if (queryResult.failed()) {
-            handleFailedResult(queryResult, ContractDefinition.class, null);
+            throw mapToException(queryResult, ContractDefinition.class, null);
         }
 
         return queryResult.getContent()
@@ -123,7 +123,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
         if (result.succeeded()) {
             monitor.debug(format("Contract definition deleted %s", result.getContent().getId()));
         } else {
-            handleFailedResult(result, ContractDefinition.class, id);
+            throw mapToException(result, ContractDefinition.class, id);
         }
     }
 

@@ -47,7 +47,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.handleFailedResult;
+import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
 
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
@@ -79,7 +79,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
 
         var queryResult = service.query(spec);
         if (queryResult.failed()) {
-            handleFailedResult(queryResult, ContractNegotiation.class, null);
+            throw mapToException(queryResult, ContractNegotiation.class, null);
         }
         return queryResult.getContent().stream()
                 .map(it -> transformerRegistry.transform(it, ContractNegotiationDto.class))
@@ -154,7 +154,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
         if (result.succeeded()) {
             monitor.debug(format("Contract negotiation canceled %s", result.getContent().getId()));
         } else {
-            handleFailedResult(result, ContractNegotiation.class, id);
+            throw mapToException(result, ContractNegotiation.class, id);
         }
     }
 
@@ -167,7 +167,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
         if (result.succeeded()) {
             monitor.debug(format("Contract negotiation declined %s", result.getContent().getId()));
         } else {
-            handleFailedResult(result, ContractNegotiation.class, id);
+            throw mapToException(result, ContractNegotiation.class, id);
         }
     }
 

@@ -45,7 +45,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.handleFailedResult;
+import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
 
 @Produces({ MediaType.APPLICATION_JSON })
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -74,7 +74,7 @@ public class TransferProcessApiController implements TransferProcessApi {
 
         var queryResult = service.query(spec);
         if (queryResult.failed()) {
-            handleFailedResult(queryResult, TransferProcess.class, null);
+            throw mapToException(queryResult, TransferProcess.class, null);
         }
         return queryResult.getContent().stream()
                 .map(tp -> transformerRegistry.transform(tp, TransferProcessDto.class))
@@ -114,7 +114,7 @@ public class TransferProcessApiController implements TransferProcessApi {
         if (result.succeeded()) {
             monitor.debug(format("Transfer process canceled %s", result.getContent().getId()));
         } else {
-            handleFailedResult(result, TransferProcess.class, id);
+            throw mapToException(result, TransferProcess.class, id);
         }
     }
 
@@ -127,7 +127,7 @@ public class TransferProcessApiController implements TransferProcessApi {
         if (result.succeeded()) {
             monitor.debug(format("Transfer process deprovisioned %s", result.getContent().getId()));
         } else {
-            handleFailedResult(result, TransferProcess.class, id);
+            throw mapToException(result, TransferProcess.class, id);
         }
     }
 

@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.handleFailedResult;
+import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
 
 @Produces({ MediaType.APPLICATION_JSON })
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -71,7 +71,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
 
         var queryResult = policyDefinitionService.query(spec);
         if (queryResult.failed()) {
-            handleFailedResult(queryResult, PolicyDefinition.class, null);
+            throw mapToException(queryResult, PolicyDefinition.class, null);
         }
         return new ArrayList<>(queryResult.getContent());
 
@@ -96,7 +96,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
         if (result.succeeded()) {
             monitor.debug(format("Policy created %s", policy.getUid()));
         } else {
-            handleFailedResult(result, PolicyDefinition.class, policy.getUid());
+            throw mapToException(result, PolicyDefinition.class, policy.getUid());
         }
     }
 
@@ -109,7 +109,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
         if (result.succeeded()) {
             monitor.debug(format("Policy deleted %s", id));
         } else {
-            handleFailedResult(result, PolicyDefinition.class, id);
+            throw mapToException(result, PolicyDefinition.class, id);
         }
     }
 

@@ -38,7 +38,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.handleFailedResult;
+import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
 
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/contractagreements")
@@ -70,7 +70,7 @@ public class ContractAgreementApiController implements ContractAgreementApi {
 
         //will throw an exception
         if (queryResult.failed()) {
-            handleFailedResult(queryResult, ContractDefinition.class, null);
+            throw mapToException(queryResult, ContractDefinition.class, null);
         }
 
         return queryResult.getContent().stream()
