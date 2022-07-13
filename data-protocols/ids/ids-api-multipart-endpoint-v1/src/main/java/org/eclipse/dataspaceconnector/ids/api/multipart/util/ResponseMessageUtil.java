@@ -39,8 +39,18 @@ import java.util.UUID;
 
 import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregorianNow;
 
+/**
+ * Provides utility methods for building IDS {@link Message}s for responses.
+ */
 public class ResponseMessageUtil {
-
+    
+    /**
+     * Creates a MessageProcessedNotificationMessage.
+     *
+     * @param correlationMessage the request.
+     * @param connectorId the connector ID.
+     * @return a MessageProcessedNotificationMessage.
+     */
     public static NotificationMessage createMessageProcessedNotificationMessage(@NotNull Message correlationMessage,
                                                                                 @NotNull String connectorId) {
         var messageId = getMessageId();
@@ -57,6 +67,13 @@ public class ResponseMessageUtil {
                 .build();
     }
     
+    /**
+     * Creates a RequestInProcessMessage.
+     *
+     * @param correlationMessage the request.
+     * @param connectorId the connector ID.
+     * @return a RequestInProcessMessage.
+     */
     public static NotificationMessage createRequestInProcessMessage(@NotNull Message correlationMessage,
                                                                     @NotNull String connectorId) {
         var messageId = getMessageId();
@@ -73,6 +90,13 @@ public class ResponseMessageUtil {
                 .build();
     }
     
+    /**
+     * Creates a DescriptionResponseMessage.
+     *
+     * @param correlationMessage the request.
+     * @param connectorId the connector ID.
+     * @return a DescriptionResponseMessage.
+     */
     public static DescriptionResponseMessage createDescriptionResponseMessage(@NotNull Message correlationMessage,
                                                                               @NotNull String connectorId) {
         var messageId = getMessageId();
@@ -90,9 +114,20 @@ public class ResponseMessageUtil {
                 .build();
     }
     
+    /**
+     * Creates a response message depending on the status result of a previously executed action.
+     * Returns a RequestInProcessMessage, if the result is succeeded and a rejection message otherwise.
+     * The rejection reason is BAD_PARAMETERS if the action can be retried and INTERNAL_RECIPIENT_ERROR
+     * for a fatal error.
+     *
+     * @param statusResult the status result.
+     * @param correlationMessage the request.
+     * @param connectorId the connector ID.
+     * @return the response message depending on the status result.
+     */
     public static Message createResponseMessageForStatusResult(@NotNull StatusResult<?> statusResult,
-                                                               @NotNull String connectorId,
-                                                               @NotNull Message correlationMessage) {
+                                                               @NotNull Message correlationMessage,
+                                                               @NotNull String connectorId) {
         if (statusResult.succeeded()) {
             return createRequestInProcessMessage(correlationMessage, connectorId);
         } else {
@@ -104,6 +139,13 @@ public class ResponseMessageUtil {
         }
     }
     
+    /**
+     * Creates a rejection message with reason NOT_FOUND.
+     *
+     * @param correlationMessage the request.
+     * @param connectorId the connector ID.
+     * @return the rejection message.
+     */
     @NotNull
     public static RejectionMessage notFound(@NotNull Message correlationMessage,
                                             @NotNull String connectorId) {
@@ -112,6 +154,13 @@ public class ResponseMessageUtil {
                 .build();
     }
     
+    /**
+     * Creates a rejection message with reason NOT_AUTHENTICATED.
+     *
+     * @param correlationMessage the request.
+     * @param connectorId the connector ID.
+     * @return the rejection message.
+     */
     @NotNull
     public static RejectionMessage notAuthenticated(@NotNull Message correlationMessage,
                                                     @NotNull String connectorId) {
@@ -120,6 +169,13 @@ public class ResponseMessageUtil {
                 .build();
     }
     
+    /**
+     * Creates a rejection message with reason NOT_AUTHORIZED.
+     *
+     * @param correlationMessage the request.
+     * @param connectorId the connector ID.
+     * @return the rejection message.
+     */
     @NotNull
     public static RejectionMessage notAuthorized(@NotNull Message correlationMessage,
                                                  @NotNull String connectorId) {
@@ -128,6 +184,13 @@ public class ResponseMessageUtil {
                 .build();
     }
     
+    /**
+     * Creates a rejection message with reason MALFORMED_MESSAGE.
+     *
+     * @param correlationMessage the request.
+     * @param connectorId the connector ID.
+     * @return the rejection message.
+     */
     @NotNull
     public static RejectionMessage malformedMessage(@Nullable Message correlationMessage,
                                                     @NotNull String connectorId) {
@@ -136,6 +199,13 @@ public class ResponseMessageUtil {
                 .build();
     }
     
+    /**
+     * Creates a rejection message with reason MESSAGE_TYPE_NOT_SUPPORTED.
+     *
+     * @param correlationMessage the request.
+     * @param connectorId the connector ID.
+     * @return the rejection message.
+     */
     @NotNull
     public static RejectionMessage messageTypeNotSupported(@NotNull Message correlationMessage,
                                                            @NotNull String connectorId) {
@@ -144,6 +214,13 @@ public class ResponseMessageUtil {
                 .build();
     }
     
+    /**
+     * Creates a rejection message with reason BAD_PARAMETERS.
+     *
+     * @param correlationMessage the request.
+     * @param connectorId the connector ID.
+     * @return the rejection message.
+     */
     @NotNull
     public static RejectionMessage badParameters(@NotNull Message correlationMessage,
                                                  @NotNull String connectorId) {
@@ -152,6 +229,13 @@ public class ResponseMessageUtil {
                 .build();
     }
     
+    /**
+     * Creates a rejection message with reason INTERNAL_RECIPIENT_ERROR.
+     *
+     * @param correlationMessage the request.
+     * @param connectorId the connector ID.
+     * @return the rejection message.
+     */
     @NotNull
     public static RejectionMessage internalRecipientError(@NotNull Message correlationMessage,
                                                           @NotNull String connectorId) {
@@ -160,6 +244,13 @@ public class ResponseMessageUtil {
                 .build();
     }
     
+    /**
+     * Creates a generic rejection message builder without rejection reason.
+     *
+     * @param correlationMessage the request.
+     * @param connectorId the connector ID.
+     * @return the rejection message builder.
+     */
     @NotNull
     private static RejectionMessageBuilder createRejectionMessageBuilder(@Nullable Message correlationMessage,
                                                                          @NotNull String connectorId) {
@@ -183,6 +274,11 @@ public class ResponseMessageUtil {
         return builder;
     }
     
+    /**
+     * Creates an ID for IDS messages.
+     *
+     * @return the ID.
+     */
     private static URI getMessageId() {
         return URI.create(String.join(
                 IdsIdParser.DELIMITER,
@@ -191,6 +287,12 @@ public class ResponseMessageUtil {
                 UUID.randomUUID().toString()));
     }
     
+    /**
+     * Creates the connector URN from the connector ID.
+     *
+     * @param connectorId the connector ID.
+     * @return the connector URN.
+     */
     private static URI getConnectorUrn(String connectorId) {
         return URI.create(String.join(
                 IdsIdParser.DELIMITER,

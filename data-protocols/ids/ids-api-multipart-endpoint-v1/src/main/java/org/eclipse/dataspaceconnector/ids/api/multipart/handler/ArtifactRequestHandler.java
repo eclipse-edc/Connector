@@ -160,7 +160,7 @@ public class ArtifactRequestHandler implements Handler {
         }
 
         return MultipartResponse.Builder.newInstance()
-                .header(createResponseMessageForStatusResult(transferInitiateResult, connectorId, artifactRequestMessage))
+                .header(createResponseMessageForStatusResult(transferInitiateResult, artifactRequestMessage, connectorId))
                 .build();
     }
 }

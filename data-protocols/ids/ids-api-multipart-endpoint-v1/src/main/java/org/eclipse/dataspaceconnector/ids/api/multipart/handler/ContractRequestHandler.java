@@ -146,7 +146,7 @@ public class ContractRequestHandler implements Handler {
         var negotiationInitiateResult = negotiationManager.requested(claimToken, requestObj);
 
         return MultipartResponse.Builder.newInstance()
-                .header(createResponseMessageForStatusResult(negotiationInitiateResult, connectorId, message))
+                .header(createResponseMessageForStatusResult(negotiationInitiateResult, message, connectorId))
                 .build();
     }
 
