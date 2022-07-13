@@ -16,28 +16,53 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.util;
 
 import de.fraunhofer.iais.eis.Message;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.badParameters;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.messageTypeNotSupported;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.notFound;
 
+/**
+ * Provides utility methods for building IDS multipart responses for common errors.
+ */
 public class MultipartResponseUtil {
-
-    public static MultipartResponse createBadParametersErrorMultipartResponse(@Nullable String connectorId, @Nullable Message message) {
+    
+    /**
+     * Creates a multipart response with a rejection message with reason BAD_PARAMETERS as header.
+     *
+     * @param connectorId the connector ID.
+     * @param message the request.
+     * @return the multipart response.
+     */
+    public static MultipartResponse createBadParametersErrorMultipartResponse(@NotNull String connectorId, @NotNull Message message) {
         return MultipartResponse.Builder.newInstance()
                 .header(badParameters(message, connectorId))
                 .build();
     }
     
-    public static MultipartResponse createBadParametersErrorMultipartResponse(@Nullable String connectorId, @Nullable Message message, String payload) {
+    /**
+     * Creates a multipart response with a rejection message with reason BAD_PARAMETERS as header
+     * and the given payload.
+     *
+     * @param connectorId the connector ID.
+     * @param message the request.
+     * @param payload the response payload.
+     * @return the multipart response.
+     */
+    public static MultipartResponse createBadParametersErrorMultipartResponse(@NotNull String connectorId, @NotNull Message message, String payload) {
         return MultipartResponse.Builder.newInstance()
                 .header(badParameters(message, connectorId))
                 .payload(payload)
                 .build();
     }
-
-    public static MultipartResponse createNotFoundErrorMultipartResponse(@Nullable String connectorId, @Nullable Message message) {
+    
+    /**
+     * Creates a multipart response with a rejection message with reason NOT_FOUND as header.
+     *
+     * @param connectorId the connector ID.
+     * @param message the request.
+     * @return the multipart response.
+     */
+    public static MultipartResponse createNotFoundErrorMultipartResponse(@NotNull String connectorId, @NotNull Message message) {
         return MultipartResponse.Builder.newInstance()
                 .header(notFound(message, connectorId))
                 .build();

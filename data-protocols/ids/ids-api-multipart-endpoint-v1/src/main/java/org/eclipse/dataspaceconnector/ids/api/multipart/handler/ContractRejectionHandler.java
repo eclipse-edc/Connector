@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
 import de.fraunhofer.iais.eis.ContractRejectionMessage;
-import de.fraunhofer.iais.eis.Message;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
@@ -27,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.badParameters;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createBadParametersErrorMultipartResponse;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.createMessageProcessedNotificationMessage;
 
 /**
@@ -72,7 +71,7 @@ public class ContractRejectionHandler implements Handler {
                 correlationId, rejectionReason));
 
         if (correlationId == null) {
-            return createBadParametersErrorMultipartResponse(message);
+            return createBadParametersErrorMultipartResponse(connectorId, message);
         }
 
         // abort negotiation process (one of them can handle this process by id)
@@ -90,9 +89,4 @@ public class ContractRejectionHandler implements Handler {
                 .build();
     }
 
-    private MultipartResponse createBadParametersErrorMultipartResponse(Message message) {
-        return MultipartResponse.Builder.newInstance()
-                .header(badParameters(message, connectorId))
-                .build();
-    }
 }
