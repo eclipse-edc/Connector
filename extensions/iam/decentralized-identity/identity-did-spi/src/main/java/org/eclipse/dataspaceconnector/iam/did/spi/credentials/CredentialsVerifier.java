@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.iam.did.spi.credentials;
 
-import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.util.Map;
@@ -29,9 +29,7 @@ public interface CredentialsVerifier {
     /**
      * Verifies credentials contained in the given hub.
      *
-     * @param hubBaseUrl the hub base url
-     * @param publicKey  the hub's public key to encrypt messages with
+     * @param participantDid did document of the participant.
      */
-    Result<Map<String, Object>> verifyCredentials(String hubBaseUrl, PublicKeyWrapper publicKey);
-
+    Result<Map<String, Object>> getVerifiedClaims(DidDocument participantDid);
 }

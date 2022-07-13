@@ -93,9 +93,9 @@ public class DecentralizedIdentityService implements IdentityService {
                 verified.getFailureMessages().forEach(m -> monitor.debug(() -> "Failure in token verification: " + m));
                 return Result.failure("Token could not be verified!");
             }
+
             monitor.debug("verification successful! Fetching data from IdentityHub");
-            String hubUrl = getHubUrl(didResult.getContent());
-            var credentialsResult = credentialsVerifier.verifyCredentials(hubUrl, publicKeyWrapper);
+            var credentialsResult = credentialsVerifier.getVerifiedClaims(didResult.getContent());
 
             monitor.debug("Building ClaimToken");
             var tokenBuilder = ClaimToken.Builder.newInstance();
