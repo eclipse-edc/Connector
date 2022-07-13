@@ -19,6 +19,7 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.path.json.JsonPath;
 import org.apache.http.HttpStatus;
+import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferProcessDto;
 import org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -35,7 +36,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 
 /**
- * Encapsulates common settings, test steps, and helper methods for the test for samples 4.0 and 4.1.
+ * Encapsulates common settings, test steps, and helper methods for the test for samples 4.x.
  */
 public class FileTransferSampleTestCommon {
 
@@ -44,7 +45,7 @@ public class FileTransferSampleTestCommon {
     //region constant test settings
     static final String INITIATE_CONTRACT_NEGOTIATION_URI = "http://localhost:9192/api/v1/data/contractnegotiations";
     static final String LOOK_UP_CONTRACT_AGREEMENT_URI = "http://localhost:9192/api/v1/data/contractnegotiations/{id}";
-    static final String INITIATE_TRANSFER_PROCESS_URI = "http://localhost:9192/api/v1/data/transferprocess";
+    static final String TRANSFER_PROCESS_URI = "http://localhost:9192/api/v1/data/transferprocess";
     static final String CONTRACT_OFFER_FILE_PATH = "samples/04.0-file-transfer/contractoffer.json";
     static final String TRANSFER_FILE_PATH = "samples/04.0-file-transfer/filetransfer.json";
     static final String API_KEY_HEADER_KEY = "X-Api-Key";
@@ -69,7 +70,7 @@ public class FileTransferSampleTestCommon {
      * @param sampleAssetFilePath Relative path starting from the root of the project to a file which will be read from for transfer.
      * @param destinationFilePath Relative path starting from the root of the project where the transferred file will be written to.
      */
-    FileTransferSampleTestCommon(@NotNull String sampleAssetFilePath, @NotNull String destinationFilePath) {
+    public FileTransferSampleTestCommon(@NotNull String sampleAssetFilePath, @NotNull String destinationFilePath) {
         this.sampleAssetFilePath = sampleAssetFilePath;
         this.sampleAssetFile  = getFileFromRelativePath(sampleAssetFilePath);
 
@@ -98,7 +99,7 @@ public class FileTransferSampleTestCommon {
      * Resolves a {@link File} instance from a relative path.
      */
     @NotNull
-    static File getFileFromRelativePath(String relativePath) {
+    public static File getFileFromRelativePath(String relativePath) {
         return new File(TestUtils.findBuildRoot(), relativePath);
     }
 
@@ -129,6 +130,21 @@ public class FileTransferSampleTestCommon {
                 .extract()
                 .jsonPath()
                 .get("id");
+    }
+
+    /**
+     * Gets the first transfer process as returned by the data management API.
+     *
+     * @return The transfer process.
+     */
+    public TransferProcessDto getTransferProcess() {
+        return RestAssured.given()
+                .headers(API_KEY_HEADER_KEY, API_KEY_HEADER_VALUE)
+            .when()
+                .get(TRANSFER_PROCESS_URI)
+            .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract().jsonPath().getObject("[0]", TransferProcessDto.class);
     }
 
     /**
@@ -168,7 +184,7 @@ public class FileTransferSampleTestCommon {
                     .contentType(ContentType.JSON)
                     .body(sampleDataRequest)
                 .when()
-                    .post(INITIATE_TRANSFER_PROCESS_URI)
+                    .post(TRANSFER_PROCESS_URI)
                 .then()
                     .statusCode(HttpStatus.SC_OK)
                     .body("id", not(emptyString()))
