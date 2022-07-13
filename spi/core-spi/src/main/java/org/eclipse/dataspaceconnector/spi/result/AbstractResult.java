@@ -15,16 +15,17 @@
 package org.eclipse.dataspaceconnector.spi.result;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Base result type used by services to indicate success or failure.
+ * <p>
+ * Service operations should generally never throw checked exceptions. Instead, they should return concrete result types
+ * and raise unchecked exceptions only when an unexpected event happens, such as a programming error.
  *
- * Service operations should generally never throw checked exceptions. Instead, they should return concrete result types and raise unchecked exceptions only when an
- * unexpected event happens, such as a programming error.
+ * @param <F> The type of {@link Failure}.
+ * @param <T> The type of the content
  */
 public abstract class AbstractResult<T, F extends Failure> {
 
@@ -36,7 +37,6 @@ public abstract class AbstractResult<T, F extends Failure> {
         this.failure = failure;
     }
 
-    @NotNull
     public T getContent() {
         return content;
     }
@@ -48,8 +48,7 @@ public abstract class AbstractResult<T, F extends Failure> {
     //will cause problems during JSON serialization if failure is null
     @JsonIgnore
     public List<String> getFailureMessages() {
-        Objects.requireNonNull(failure);
-        return failure.getMessages();
+        return failure == null ? List.of() : failure.getMessages();
     }
 
     public boolean succeeded() {
@@ -67,6 +66,6 @@ public abstract class AbstractResult<T, F extends Failure> {
      */
     @JsonIgnore // will cause problems during JSON serialization if failure is null
     public String getFailureDetail() {
-        return String.join(", ", getFailureMessages());
+        return failure == null ? null : String.join(", ", getFailureMessages());
     }
 }

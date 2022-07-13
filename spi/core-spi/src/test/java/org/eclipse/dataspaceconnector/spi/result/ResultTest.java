@@ -20,12 +20,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ResultTest {
 
+
+    @Test
+    void verifyFailureMessages_whenSucceeded() {
+        var r = Result.success("Foobar");
+        assertThat(r.getFailureDetail()).isNull();
+        assertThat(r.getFailureMessages()).isEmpty();
+    }
+
     @Test
     void map_appliesFunctionToContent() {
         var result = Result.success("successful").map(it -> it + " and mapped");
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).isEqualTo("successful and mapped");
+    }
+
+    @Test
+    void verifyContent_whenFailed() {
+        var r = Result.failure("random failure");
+        assertThat(r.getContent()).isNull();
     }
 
     @Test
