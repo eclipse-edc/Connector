@@ -50,7 +50,12 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
 
     @Override
     public @Nullable ContractAgreement findContractAgreement(String contractId) {
-        return store.findAll().filter(p -> contractId.equals(p.getContractAgreement().getId())).findFirst().map(ContractNegotiation::getContractAgreement).orElse(null);
+        return store.findAll()
+                .map(ContractNegotiation::getContractAgreement)
+                .filter(Objects::nonNull)
+                .filter(a -> Objects.equals(contractId, a.getId()))
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
