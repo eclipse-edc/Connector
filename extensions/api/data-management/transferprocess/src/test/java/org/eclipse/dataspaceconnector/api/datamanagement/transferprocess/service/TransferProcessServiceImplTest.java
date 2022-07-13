@@ -27,16 +27,19 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessS
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.CancelTransferCommand;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.DeprovisionRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.SingleTransferProcessCommand;
+import org.eclipse.dataspaceconnector.sql.translation.EdcQueryException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.INCLUDE;
 import static org.mockito.ArgumentMatchers.any;
@@ -62,37 +65,66 @@ class TransferProcessServiceImplTest {
     TransferProcessService service = new TransferProcessServiceImpl(store, manager, transactionContext);
 
     @AfterEach
-    @SuppressWarnings("unchecked")
     void after() {
-        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
+
+
     }
 
     @Test
     void findById_whenFound() {
         when(store.find(id)).thenReturn(process1);
         assertThat(service.findById(id)).isSameAs(process1);
+        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @Test
     void findById_whenNotFound() {
         assertThat(service.findById(id)).isNull();
+        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @Test
     void query() {
         when(store.findAll(query)).thenReturn(Stream.of(process1, process2));
         assertThat(service.query(query)).containsExactly(process1, process2);
+        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "provisionedResourceSet.resources.hastoken=true", //wrong case
+            "resourceManifest.definitions.notexist=foobar", //property not exist
+            "contentDataAddress.properties.someKey=someval", //map types not supported
+    })
+    void query_invalidFilter_raiseException(String invalidFilter) {
+        var spec = QuerySpec.Builder.newInstance().filter(invalidFilter).build();
+        assertThatThrownBy(() -> service.query(spec)).isInstanceOf(EdcQueryException.class);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "deprovisionedResources.provisionedResourceId=19",
+            "type=CONSUMER",
+            "provisionedResourceSet.resources.hasToken=true"
+    })
+    void query_validFilter(String validFilter) {
+        var spec = QuerySpec.Builder.newInstance().filter(validFilter).build();
+        service.query(spec);
+        verify(store).findAll(spec);
+        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @Test
     void getState_whenFound() {
         when(store.find(id)).thenReturn(process1);
         assertThat(service.getState(id)).isEqualTo(TransferProcessStates.from(process1.getState()).name());
+        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @Test
     void getState_whenNotFound() {
         assertThat(service.getState(id)).isNull();
+        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @ParameterizedTest
@@ -108,6 +140,7 @@ class TransferProcessServiceImplTest {
         assertThat(commandCaptor.getValue()).isInstanceOf(CancelTransferCommand.class);
         assertThat(commandCaptor.getValue().getTransferProcessId())
                 .isEqualTo(id);
+        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @ParameterizedTest
@@ -121,6 +154,7 @@ class TransferProcessServiceImplTest {
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).containsExactly("TransferProcess " + process.getId() + " cannot be canceled as it is in state " + state);
         verifyNoInteractions(manager);
+        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @Test
@@ -129,6 +163,7 @@ class TransferProcessServiceImplTest {
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).containsExactly("TransferProcess " + id + " does not exist");
+        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @Test
@@ -141,6 +176,7 @@ class TransferProcessServiceImplTest {
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).isEqualTo(processId);
+        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @ParameterizedTest
@@ -156,6 +192,7 @@ class TransferProcessServiceImplTest {
         assertThat(commandCaptor.getValue()).isInstanceOf(DeprovisionRequest.class);
         assertThat(commandCaptor.getValue().getTransferProcessId())
                 .isEqualTo(id);
+        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @ParameterizedTest
@@ -169,6 +206,7 @@ class TransferProcessServiceImplTest {
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).containsExactly("TransferProcess " + process.getId() + " cannot be deprovisioned as it is in state " + state);
         verifyNoInteractions(manager);
+        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     @Test
@@ -177,6 +215,7 @@ class TransferProcessServiceImplTest {
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).containsExactly("TransferProcess " + id + " does not exist");
+        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
     private TransferProcess transferProcess() {

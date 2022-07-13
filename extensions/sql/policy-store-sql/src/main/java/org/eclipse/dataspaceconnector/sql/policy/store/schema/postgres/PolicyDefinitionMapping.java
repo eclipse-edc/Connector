@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.sql.policy.store.schema.postgres;
 
 import org.eclipse.dataspaceconnector.sql.policy.store.schema.SqlPolicyStoreStatements;
-import org.eclipse.dataspaceconnector.sql.translation.JsonFieldMapping;
 import org.eclipse.dataspaceconnector.sql.translation.TranslationMapping;
 
 /**
@@ -25,14 +24,6 @@ import org.eclipse.dataspaceconnector.sql.translation.TranslationMapping;
 public class PolicyDefinitionMapping extends TranslationMapping {
     public PolicyDefinitionMapping(SqlPolicyStoreStatements statements) {
         add("uid", statements.getPolicyIdColumn());
-        add("permissions", new JsonFieldMapping(PostgresDialectStatements.PERMISSIONS_ALIAS));
-        add("prohibitions", new JsonFieldMapping(PostgresDialectStatements.PROHIBITIONS_ALIAS));
-        add("obligations", new JsonFieldMapping(PostgresDialectStatements.OBLIGATIONS_ALIAS));
-        add("extensibleProperties", new JsonFieldMapping(PostgresDialectStatements.EXT_PROPERTIES_ALIAS));
-        add("inheritsFrom", statements.getInheritsFromColumn());
-        add("assigner", statements.getAssignerColumn());
-        add("assignee", statements.getAssigneeColumn());
-        add("target", statements.getTargetColumn());
-        add("type", statements.getTypeColumn());
+        add("policy", new PolicyMapping(statements));
     }
 }

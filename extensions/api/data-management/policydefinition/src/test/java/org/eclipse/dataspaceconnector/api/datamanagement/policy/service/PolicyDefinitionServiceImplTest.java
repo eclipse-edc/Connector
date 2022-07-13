@@ -24,13 +24,17 @@ import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
+import org.eclipse.dataspaceconnector.sql.translation.EdcQueryException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -64,6 +68,20 @@ public class PolicyDefinitionServiceImplTest {
         var policies = policyServiceImpl.query(QuerySpec.none());
 
         assertThat(policies).containsExactly(policy);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "policy.permissions.action.constraint.noexist=someval", //wrong property
+            "permissions.action.constraint.leftExpression=someval", //missing root
+            "policy.permissions.action.leftExpression=null" //skips path element
+    })
+    void query_invalidExpression_raiseException(String invalidFilter) {
+        var query = QuerySpec.Builder.newInstance()
+                .filter(invalidFilter)
+                .build();
+
+        assertThatThrownBy(() -> policyServiceImpl.query(query)).isInstanceOf(EdcQueryException.class);
     }
 
     @Test

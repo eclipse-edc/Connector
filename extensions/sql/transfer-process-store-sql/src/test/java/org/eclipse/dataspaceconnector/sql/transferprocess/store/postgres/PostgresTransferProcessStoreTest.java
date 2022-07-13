@@ -159,9 +159,10 @@ class PostgresTransferProcessStoreTest {
                 .filter(List.of(new Criterion("dataAddress.properties.key", "=", "value")))
                 .build();
 
-        var result = store.findAll(query);
+        assertThat(store.findAll(query))
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsExactly(tp);
 
-        assertThat(result).usingRecursiveFieldByFieldElementComparatorIgnoringFields("deprovisionedResources").containsOnly(tp);
     }
 
     @Test
@@ -184,7 +185,7 @@ class PostgresTransferProcessStoreTest {
     }
 
     @Test
-    void find_queryByDataAddress_valueNotExist() {
+    void find_queryByDataAddress_invalidKey_valueNotExist() {
         var da = createDataAddressBuilder("test-type")
                 .property("key", "value")
                 .build();
@@ -561,9 +562,7 @@ class PostgresTransferProcessStoreTest {
                 .filter("deprovisionedResources.foobar=barbaz")
                 .build();
 
-        var result = store.findAll(query).collect(Collectors.toList());
-
-        assertThat(result).isEmpty();
+        assertThat(store.findAll(query)).isEmpty();
     }
 
     @Test

@@ -134,6 +134,7 @@ allprojects {
     checkstyle {
         toolVersion = "9.0"
         configFile = rootProject.file("resources/edc-checkstyle-config.xml")
+        configDirectory.set(rootProject.file("resources"))
         maxErrors = 0 // does not tolerate errors
     }
 
@@ -262,7 +263,7 @@ allprojects {
         reports {
             // lets not generate any reports because that is done from within the Github Actions workflow
             html.required.set(false)
-            xml.required.set(false)
+            xml.required.set(true)
         }
     }
 
