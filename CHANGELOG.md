@@ -51,6 +51,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Remove modules `:extensions:transfer-functions:transfer-functions-spi` and `:extensions:transfer-functions:transfer-functions-core` (#1482)
 * Remove `ConnectorVersionProvider`, provide version as static string (#1470)
 * Remove `samples/other/run-from-junit` (#1456)
+* Removed unused pre-methods in ContractNegotiationListener (#1649)
 
 #### Fixed
 

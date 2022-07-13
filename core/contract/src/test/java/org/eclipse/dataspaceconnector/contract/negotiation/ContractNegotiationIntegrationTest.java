@@ -84,8 +84,6 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                     assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
                     assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
 
-                    // verify that the preConfirmed event has occurred twice - once for cons. once for prov
-                    verify(negotiationListenerMock, times(2)).preConfirmed(any());
 
                     verify(validationService, atLeastOnce()).validate(token, offer);
                     verify(validationService, atLeastOnce()).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
@@ -133,9 +131,6 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                     // Assert that provider and consumer have the same offers stored
                     assertNegotiations(consumerNegotiation, providerNegotiation, 1);
                     assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
-
-                    // verify that the preConfirmed event has occurred twice - once for cons. once for prov
-                    verify(negotiationListenerMock, times(2)).preDeclined(any());
 
                     // Assert that no agreement has been stored on either side
                     assertThat(consumerNegotiation.getContractAgreement()).isNull();
@@ -188,8 +183,6 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                     // Assert that no agreement has been stored on either side
                     assertThat(consumerNegotiation.getContractAgreement()).isNull();
                     assertThat(providerNegotiation.getContractAgreement()).isNull();
-                    // verify that the preConfirmed event has occurred twice - once for cons. once for prov
-                    verify(negotiationListenerMock, times(2)).preDeclined(any());
 
                     verify(validationService, atLeastOnce()).validate(token, offer);
                     verify(validationService, atLeastOnce()).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
@@ -252,7 +245,6 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                     verify(validationService, atLeastOnce()).validate(token, initialOffer);
                     verify(validationService, atLeastOnce()).validate(token, counterOffer, initialOffer);
                     verify(validationService, atLeastOnce()).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
-                    verify(negotiationListenerMock, times(2)).preConfirmed(any());
                 });
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -310,8 +302,6 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                     verify(validationService, atLeastOnce()).validate(token, initialOffer);
                     verify(validationService, atLeastOnce()).validate(token, counterOffer, initialOffer);
                     verify(validationService, atLeastOnce()).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
-
-                    verify(negotiationListenerMock, times(2)).preDeclined(any());
                 });
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -385,9 +375,6 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                     verify(validationService, atLeastOnce()).validate(token, counterOffer, initialOffer);
                     verify(validationService, atLeastOnce()).validate(token, consumerCounterOffer, counterOffer);
                     verify(validationService, atLeastOnce()).validate(eq(token), any(ContractAgreement.class), eq(consumerCounterOffer));
-
-                    verify(negotiationListenerMock, times(2)).preConfirmed(any());
-
                 });
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -458,7 +445,6 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                     verify(validationService, atLeastOnce()).validate(token, initialOffer);
                     verify(validationService, atLeastOnce()).validate(token, counterOffer, initialOffer);
                     verify(validationService, atLeastOnce()).validate(token, consumerCounterOffer, counterOffer);
-                    verify(negotiationListenerMock, times(2)).preDeclined(any());
                 });
         // Stop provider and consumer negotiation managers
         providerManager.stop();
