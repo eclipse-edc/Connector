@@ -55,7 +55,7 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
 
         var connectorId = context.getConnectorId();
 
-        monitor.info("CosmosTransferProcessStore will use connector id '" + connectorId + "'");
+        monitor.debug("CosmosTransferProcessStore will use connector id '" + connectorId + "'");
         TransferProcessStoreCosmosConfig configuration = new TransferProcessStoreCosmosConfig(context);
         var client = clientProvider.createClient(vault, configuration);
         var cosmosDbApi = new CosmosDbApiImpl(configuration, client);

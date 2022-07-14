@@ -30,7 +30,6 @@ import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.QueryValidator;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
-import org.eclipse.dataspaceconnector.sql.translation.EdcQueryException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -64,14 +63,14 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
     }
 
     @Override
-    public @NotNull Collection<PolicyDefinition> query(QuerySpec query) {
+    public ServiceResult<Collection<PolicyDefinition>> query(QuerySpec query) {
         var result = queryValidator.validate(query);
 
         if (result.failed()) {
-            throw new EdcQueryException(format("Error validating schema: %s", result.getFailureDetail()));
+            return ServiceResult.badRequest(format("Error validating schema: %s", result.getFailureDetail()));
         }
-        return transactionContext.execute(() ->
-                policyStore.findAll(query).collect(toList()));
+        return ServiceResult.success(transactionContext.execute(() ->
+                policyStore.findAll(query).collect(toList())));
     }
 
 

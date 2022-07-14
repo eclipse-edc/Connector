@@ -58,7 +58,7 @@ public class ObjectStorageProvisioner implements Provisioner<ObjectStorageResour
         String containerName = resourceDefinition.getContainerName();
         String accountName = resourceDefinition.getAccountName();
 
-        monitor.info("Azure Storage Container request submitted: " + containerName);
+        monitor.debug("Azure Storage Container request submitted: " + containerName);
 
         OffsetDateTime expiryTime = OffsetDateTime.now().plusHours(1);
 

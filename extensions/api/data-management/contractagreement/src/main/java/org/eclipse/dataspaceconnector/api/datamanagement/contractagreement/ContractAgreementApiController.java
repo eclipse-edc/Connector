@@ -31,12 +31,14 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
 
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/contractagreements")
@@ -64,7 +66,14 @@ public class ContractAgreementApiController implements ContractAgreementApi {
 
         monitor.debug(format("get all contract agreements from %s", spec));
 
-        return service.query(spec).stream()
+        var queryResult = service.query(spec);
+
+        //will throw an exception
+        if (queryResult.failed()) {
+            throw mapToException(queryResult, ContractDefinition.class, null);
+        }
+
+        return queryResult.getContent().stream()
                 .map(it -> transformerRegistry.transform(it, ContractAgreementDto.class))
                 .filter(Result::succeeded)
                 .map(Result::getContent)
@@ -84,5 +93,6 @@ public class ContractAgreementApiController implements ContractAgreementApi {
                 .map(Result::getContent)
                 .orElseThrow(() -> new ObjectNotFoundException(ContractAgreement.class, id));
     }
+
 
 }

@@ -64,8 +64,6 @@ public class AzureVaultExtension implements ServiceExtension {
                 ? AzureVault.authenticateWithCertificate(context.getMonitor(), clientId, tenantId, certPath, keyVaultName)
                 : AzureVault.authenticateWithSecret(context.getMonitor(), clientId, tenantId, clientSecret, keyVaultName);
 
-        context.getMonitor().info("AzureVaultExtension: authentication/initialization complete.");
-
         context.registerService(Vault.class, vault);
         context.registerService(PrivateKeyResolver.class, new VaultPrivateKeyResolver(vault));
         context.registerService(CertificateResolver.class, new AzureCertificateResolver(vault));

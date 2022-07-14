@@ -22,7 +22,6 @@ import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.QueryValidator;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
-import org.eclipse.dataspaceconnector.sql.translation.EdcQueryException;
 
 import java.util.Collection;
 
@@ -50,13 +49,13 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
     }
 
     @Override
-    public Collection<ContractDefinition> query(QuerySpec query) {
+    public ServiceResult<Collection<ContractDefinition>> query(QuerySpec query) {
         var result = queryValidator.validate(query);
 
         if (result.failed()) {
-            throw new EdcQueryException(format("Error validating schema: %s", result.getFailureDetail()));
+            return ServiceResult.badRequest(format("Error validating schema: %s", result.getFailureDetail()));
         }
-        return transactionContext.execute(() -> store.findAll(query).collect(toList()));
+        return ServiceResult.success(transactionContext.execute(() -> store.findAll(query).collect(toList())));
     }
 
     @Override

@@ -91,6 +91,11 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     private RetryPolicy<Object> retryPolicy;
 
     @Override
+    public String name() {
+        return "Federated Catalog Cache";
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
         // QUERY SUBSYSTEM
         var queryAdapterRegistry = new CacheQueryAdapterRegistryImpl();
@@ -100,7 +105,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         var queryEngine = new QueryEngineImpl(queryAdapterRegistry);
         context.registerService(QueryEngine.class, queryEngine);
         monitor = context.getMonitor();
-        var catalogController = new FederatedCatalogApiController(monitor, queryEngine);
+        var catalogController = new FederatedCatalogApiController(queryEngine);
         webService.registerResource(catalogController);
 
         // contribute to the liveness probe
@@ -123,22 +128,18 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
 
         // lets create a simple partition manager
         partitionManager = createPartitionManager(context, updateResponseQueue, nodeQueryAdapterRegistry);
-
-        monitor.info("Federated Catalog Cache extension initialized");
     }
 
     @Override
     public void start() {
         partitionManager.schedule(partitionManagerConfig.getExecutionPlan());
         loaderManager.start(updateResponseQueue);
-        monitor.info("Federated Catalog Cache extension started");
     }
 
     @Override
     public void shutdown() {
         partitionManager.stop();
         loaderManager.stop();
-        monitor.info("Federated Catalog Cache extension stopped");
     }
 
     @Provider(isDefault = true)
@@ -205,7 +206,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
             } else {
                 var random = new Random();
                 var to = 5 + random.nextInt(20);
-                context.getMonitor().info(format("The following work item has errored out. Will re-queue after a small delay: [%s]", workItem));
+                context.getMonitor().debug(format("The following work item has errored out. Will re-queue after a small delay: [%s]", workItem));
                 Executors.newSingleThreadScheduledExecutor().schedule(() -> workItems.offer(workItem), to, TimeUnit.SECONDS);
             }
         };

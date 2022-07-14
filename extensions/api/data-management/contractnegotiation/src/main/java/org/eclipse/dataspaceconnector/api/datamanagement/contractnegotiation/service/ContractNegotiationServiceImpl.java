@@ -26,7 +26,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.Contra
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
-import org.eclipse.dataspaceconnector.sql.translation.EdcQueryException;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -55,13 +54,13 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
     }
 
     @Override
-    public Collection<ContractNegotiation> query(QuerySpec query) {
+    public ServiceResult<Collection<ContractNegotiation>> query(QuerySpec query) {
         var result = queryValidator.validate(query);
 
         if (result.failed()) {
-            throw new EdcQueryException(format("Error validating schema: %s", result.getFailureDetail()));
+            return ServiceResult.badRequest(format("Error validating schema: %s", result.getFailureDetail()));
         }
-        return transactionContext.execute(() -> store.queryNegotiations(query).collect(toList()));
+        return ServiceResult.success(transactionContext.execute(() -> store.queryNegotiations(query).collect(toList())));
     }
 
     @Override

@@ -22,7 +22,6 @@ import java.util.Collection;
 
 /**
  * Service that permits actions and queries on ContractDefinition entity.
- *
  */
 public interface ContractDefinitionService {
 
@@ -40,11 +39,11 @@ public interface ContractDefinitionService {
      * @param query request
      * @return the collection of contract definitions that match the query
      */
-    Collection<ContractDefinition> query(QuerySpec query);
+    ServiceResult<Collection<ContractDefinition>> query(QuerySpec query);
 
     /**
-     * Create a contract definition with its related data address.
-     * If a definition with the same id exists, returns CONFLICT failure.
+     * Create a contract definition with its related data address. If a definition with the same id exists, returns
+     * CONFLICT failure.
      *
      * @param contractDefinition the contract definition
      * @return successful result if the contract definition is created correctly, failure otherwise
@@ -52,9 +51,8 @@ public interface ContractDefinitionService {
     ServiceResult<ContractDefinition> create(ContractDefinition contractDefinition);
 
     /**
-     * Delete a contract definition.
-     * If the definition is already referenced by a contract agreement, returns CONFLICT failure.
-     * If the definition does not exist, returns NOT_FOUND failure.
+     * Delete a contract definition. If the definition is already referenced by a contract agreement, returns CONFLICT
+     * failure. If the definition does not exist, returns NOT_FOUND failure.
      *
      * @param contractDefinitionId the id of the contract definition to be deleted
      * @return successful result if the contract definition is deleted correctly, failure otherwise

@@ -103,7 +103,7 @@ public class DecentralizedIdentityService implements IdentityService {
 
             return Result.success(claimToken);
         } catch (ParseException e) {
-            monitor.info("Error parsing JWT", e);
+            monitor.severe("Error parsing JWT", e);
             return Result.failure("Error parsing JWT");
         }
     }
