@@ -72,7 +72,8 @@ import static org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceMani
 @CoreExtension
 @Provides({ StatusCheckerRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class,
         TransferProcessObservable.class, DataFlowManager.class, ProvisionManager.class,
-        EndpointDataReferenceReceiverRegistry.class, EndpointDataReferenceTransformerRegistry.class })
+        EndpointDataReferenceReceiverRegistry.class, EndpointDataReferenceTransformerRegistry.class,
+        ResourceManifestEvaluator.class})
 public class CoreTransferExtension implements ServiceExtension {
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
 
