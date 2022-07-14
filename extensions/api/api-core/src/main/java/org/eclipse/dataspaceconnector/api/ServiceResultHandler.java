@@ -27,8 +27,11 @@ public class ServiceResultHandler {
      * Interprets a {@link ServiceResult} based on its {@link ServiceResult#reason()} property and returns the
      * appropriate exception:
      * <table>
-     *   <th>reason</th>
-     *   <th>exception</th>
+     *  <caption></caption>
+     *   <tr>
+     *      <th>reason</th>
+     *      <th>exception</th>
+     *   </tr>
      *   <tr>
      *     <td>NOT_FOUND </td> <td>ObjectNotFoundException</td>
      *   </tr>
