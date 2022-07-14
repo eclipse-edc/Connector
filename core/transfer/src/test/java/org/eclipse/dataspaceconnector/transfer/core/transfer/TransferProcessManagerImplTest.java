@@ -209,13 +209,13 @@ class TransferProcessManagerImplTest {
         
         when(manifestGenerator.generateConsumerResourceManifest(any(DataRequest.class), any(Policy.class))).thenReturn(Result.failure("error"));
     
-        var latch = countDownOnUpdateLatch();
-    
         manager.start();
     
-        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
-        verifyNoInteractions(provisionManager);
-        verify(transferProcessStore).update(argThat(p -> p.getState() == ERROR.code()));
+        await().untilAsserted(() -> {
+            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+            verifyNoInteractions(provisionManager);
+            verify(transferProcessStore).update(argThat(p -> p.getState() == ERROR.code()));
+        });
     }
 
     @Test
