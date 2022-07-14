@@ -26,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
 public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator {
     private final List<ConsumerResourceDefinitionGenerator> consumerGenerators = new ArrayList<>();
     private final List<ProviderResourceDefinitionGenerator> providerGenerators = new ArrayList<>();
-    private PolicyEngine policyEngine;
+    private final PolicyEngine policyEngine;
     
     public ResourceManifestGeneratorImpl(PolicyEngine policyEngine) {
         this.policyEngine = policyEngine;
@@ -61,8 +62,17 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
                 .map(generator -> generator.generate(dataRequest, policy))
                 .filter(Objects::nonNull).collect(Collectors.toList());
 
-        var originalManifest = ResourceManifest.Builder.newInstance().definitions(definitions).build();
-        return policyEngine.evaluate(PROVISION_SCOPE, policy, originalManifest);
+        var manifest = ResourceManifest.Builder.newInstance().definitions(definitions).build();
+    
+        var contextInformation = new HashMap<Class, Object>();
+        contextInformation.put(ResourceManifest.class, manifest);
+        
+        var result = policyEngine.evaluate(MANIFEST_VERIFICATION_SCOPE, policy, null, contextInformation);
+        if (result.succeeded()) {
+            return Result.success((ResourceManifest) contextInformation.get(ResourceManifest.class));
+        } else {
+            return Result.failure(result.getFailureMessages());
+        }
     }
 
     @Override

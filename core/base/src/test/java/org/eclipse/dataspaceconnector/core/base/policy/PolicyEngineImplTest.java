@@ -9,7 +9,6 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Fraunhofer Institute for Software and Systems Engineering - resource manifest evaluation
  *
  */
 
@@ -216,81 +215,6 @@ class PolicyEngineImplTest {
         var result = policyEngine.evaluate(TEST_SCOPE, policy, agent);
 
         assertThat(result.succeeded()).isFalse();
-    }
-    
-    @Test
-    void verifyResourceDefinitionRuleFunction() {
-        var errorMessage = "error";
-        
-        bindingRegistry.bind("USE", ALL_SCOPES);
-        policyEngine.registerFunction(TEST_SCOPE, Permission.class, TestDefinition.class, (rule, def) -> Result.failure(errorMessage));
-    
-        var definition = TestDefinition.Builder.newInstance().id("id").build();
-        var manifest = ResourceManifest.Builder.newInstance().definitions(List.of(definition)).build();
-        
-        var action = Action.Builder.newInstance().type("USE").build();
-        var permission = Permission.Builder.newInstance().action(action).build();
-        var policy = Policy.Builder.newInstance().permission(permission).build();
-        
-        var result = policyEngine.evaluate(TEST_SCOPE, policy, manifest);
-    
-        assertThat(result.succeeded()).isFalse();
-        assertThat(result.getFailureMessages()).hasSize(1).containsExactly(errorMessage);
-    }
-    
-    @Test
-    void verifyResourceDefinitionRuleFunction_outOfScope() {
-        bindingRegistry.bind("USE", ALL_SCOPES);
-        policyEngine.registerFunction(TEST_SCOPE, Permission.class, TestDefinition.class, (rule, def) -> Result.failure("error"));
-    
-        var definition = TestDefinition.Builder.newInstance().id("id").build();
-        var manifest = ResourceManifest.Builder.newInstance().definitions(List.of(definition)).build();
-    
-        var action = Action.Builder.newInstance().type("USE").build();
-        var permission = Permission.Builder.newInstance().action(action).build();
-        var policy = Policy.Builder.newInstance().permission(permission).build();
-    
-        var result = policyEngine.evaluate("another-scope", policy, manifest);
-    
-        assertThat(result.succeeded()).isTrue();
-    }
-    
-    @Test
-    void verifyResourceDefinitionConstraintFunction() {
-        var key = "foo";
-        var errorMessage = "error";
-    
-        bindingRegistry.bind("USE", ALL_SCOPES);
-        bindingRegistry.bind(key, ALL_SCOPES);
-        policyEngine.registerFunction(TEST_SCOPE, Prohibition.class, TestDefinition.class, key, (op, rv, rule, def) -> Result.failure(errorMessage));
-    
-        var definition = TestDefinition.Builder.newInstance().id("id").build();
-        var manifest = ResourceManifest.Builder.newInstance().definitions(List.of(definition)).build();
-        
-        var policy = createTestPolicy();
-    
-        var result = policyEngine.evaluate(TEST_SCOPE, policy, manifest);
-    
-        assertThat(result.succeeded()).isFalse();
-        assertThat(result.getFailureMessages()).hasSize(1).containsExactly(errorMessage);
-    }
-    
-    @Test
-    void verifyResourceDefinitionConstraintFunction_outOfScope() {
-        var key = "foo";
-        
-        bindingRegistry.bind("USE", ALL_SCOPES);
-        bindingRegistry.bind(key, ALL_SCOPES);
-        policyEngine.registerFunction(TEST_SCOPE, Prohibition.class, TestDefinition.class, key, (op, rv, rule, def) -> Result.failure("error"));
-        
-        var definition = TestDefinition.Builder.newInstance().id("id").build();
-        var manifest = ResourceManifest.Builder.newInstance().definitions(List.of(definition)).build();
-        
-        var policy = createTestPolicy();
-        
-        var result = policyEngine.evaluate("another-scope", policy, manifest);
-        
-        assertThat(result.succeeded()).isTrue();
     }
 
     @BeforeEach

@@ -9,7 +9,6 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Fraunhofer Institute for Software and Systems Engineering - resource manifest evaluation
  *
  */
 
@@ -17,6 +16,7 @@ package org.eclipse.dataspaceconnector.policy.engine;
 
 import org.eclipse.dataspaceconnector.policy.model.AndConstraint;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
+import org.eclipse.dataspaceconnector.policy.model.AtomicConstraintFunction;
 import org.eclipse.dataspaceconnector.policy.model.Constraint;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Expression;
@@ -26,12 +26,8 @@ import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.policy.model.Rule;
+import org.eclipse.dataspaceconnector.policy.model.RuleFunction;
 import org.eclipse.dataspaceconnector.policy.model.XoneConstraint;
-import org.eclipse.dataspaceconnector.spi.policy.evaluation.ResourceDefinitionAtomicConstraintFunction;
-import org.eclipse.dataspaceconnector.spi.policy.evaluation.ResourceDefinitionRuleFunction;
-import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,14 +52,6 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
     private final List<RuleFunction<Permission>> permissionRuleFunctions = new ArrayList<>();
     private final List<RuleFunction<Duty>> dutyRuleFunctions = new ArrayList<>();
     private final List<RuleFunction<Prohibition>> prohibitionRuleFunctions = new ArrayList<>();
-
-    private final Map<Class<? extends ResourceDefinition>, List<ResourceDefinitionRuleFunction<Permission, ? extends ResourceDefinition>>> resourceDefinitionPermissionFunctions = new HashMap<>();
-    private final Map<Class<? extends ResourceDefinition>, List<ResourceDefinitionRuleFunction<Prohibition, ? extends ResourceDefinition>>> resourceDefinitionProhibitionFunctions = new HashMap<>();
-    private final Map<Class<? extends ResourceDefinition>, List<ResourceDefinitionRuleFunction<Duty, ? extends ResourceDefinition>>> resourceDefinitionDutyFunctions = new HashMap<>();
-    
-    private final Map<ResourceDefinitionConstraintFunctionKey, ResourceDefinitionAtomicConstraintFunction<Permission, ? extends ResourceDefinition>> resourceDefinitionConstraintPermissionFunctions = new HashMap<>();
-    private final Map<ResourceDefinitionConstraintFunctionKey, ResourceDefinitionAtomicConstraintFunction<Prohibition, ? extends ResourceDefinition>> resourceDefinitionConstraintProhibitionFunctions = new HashMap<>();
-    private final Map<ResourceDefinitionConstraintFunctionKey, ResourceDefinitionAtomicConstraintFunction<Duty, ? extends ResourceDefinition>> resourceDefinitionConstraintDutyFunctions = new HashMap<>();
 
     private Rule ruleContext; // the current rule being evaluated or null
 
@@ -207,118 +195,6 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
         return expression.getValue();
     }
     
-    /**
-     * Evaluates and, if required, modifies the given ResourceManifest so that the given policy
-     * is fulfilled. Internally evaluates each {@link ResourceDefinition} that's part of the
-     * manifest separately.
-     *
-     * @param resourceManifest the resource manifest to evaluate.
-     * @param policy the policy.
-     * @return a result containing either the verified/modified resource manifest or the problems
-     *         encountered during evaluation.
-     */
-    public Result<ResourceManifest> evaluateManifest(ResourceManifest resourceManifest, Policy policy) {
-        var modifiedResourceDefinitions = new ArrayList<ResourceDefinition>();
-        var failures = new ArrayList<String>();
-        
-        for (var resourceDefinition : resourceManifest.getDefinitions()) {
-            var result = evaluateResourceDefinition(resourceDefinition, policy);
-            if (result.succeeded()) {
-                modifiedResourceDefinitions.add(result.getContent());
-            } else {
-                failures.addAll(result.getFailureMessages());
-            }
-        }
-        
-        return failures.isEmpty() ? Result.success(ResourceManifest.Builder.newInstance().definitions(modifiedResourceDefinitions).build()) : Result.failure(failures);
-    }
-
-    private <D extends ResourceDefinition> Result<D> evaluateResourceDefinition(D resourceDefinition, Policy policy) {
-        var failures = new ArrayList<String>();
-        
-        for (var permission : policy.getPermissions()) {
-            var result = visitResourceDefinitionRule(permission, resourceDefinition, resourceDefinitionPermissionFunctions);
-            resourceDefinition = processResourceDefinitionResult(result, resourceDefinition, failures);
-            
-            result = visitResourceDefinitionConstraints(permission, resourceDefinition, resourceDefinitionConstraintPermissionFunctions);
-            resourceDefinition = processResourceDefinitionResult(result, resourceDefinition, failures);
-        }
-        
-        for (var prohibition : policy.getProhibitions()) {
-            var result = visitResourceDefinitionRule(prohibition, resourceDefinition, resourceDefinitionProhibitionFunctions);
-            resourceDefinition = processResourceDefinitionResult(result, resourceDefinition, failures);
-
-            result = visitResourceDefinitionConstraints(prohibition, resourceDefinition, resourceDefinitionConstraintProhibitionFunctions);
-            resourceDefinition = processResourceDefinitionResult(result, resourceDefinition, failures);
-        }
-
-        for (var duty : policy.getObligations()) {
-            var result = visitResourceDefinitionRule(duty, resourceDefinition, resourceDefinitionDutyFunctions);
-            resourceDefinition = processResourceDefinitionResult(result, resourceDefinition, failures);
-            
-            result = visitResourceDefinitionConstraints(duty, resourceDefinition, resourceDefinitionConstraintDutyFunctions);
-            resourceDefinition = processResourceDefinitionResult(result, resourceDefinition, failures);
-        }
-    
-        return failures.isEmpty() ? Result.success(resourceDefinition) : Result.failure(failures);
-    }
-
-    @SuppressWarnings({"unchecked"})
-    private <D extends ResourceDefinition, R extends Rule> Result<D> visitResourceDefinitionConstraints(
-            R rule, D resourceDefinition,
-            Map<ResourceDefinitionConstraintFunctionKey, ResourceDefinitionAtomicConstraintFunction<R, ? extends ResourceDefinition>> functions) {
-        var failures = new ArrayList<String>();
-        
-        for (var constraint : rule.getConstraints()) {
-            if (!(constraint instanceof AtomicConstraint)) {
-                continue;
-            }
-        
-            var atomicConstraint = (AtomicConstraint) constraint;
-            Object leftRawValue = atomicConstraint.getLeftExpression().accept(this);
-            if (!(leftRawValue instanceof String)) {
-                continue;
-            }
-        
-            var functionKey = new ResourceDefinitionConstraintFunctionKey((String) leftRawValue, resourceDefinition.getClass());
-            var function = functions.get(functionKey);
-            if (function == null) {
-                // No function available for evaluating the given constraint
-                continue;
-            }
-            
-            var result = ((ResourceDefinitionAtomicConstraintFunction<R, D>) function).evaluate(atomicConstraint.getOperator(), atomicConstraint.getRightExpression(), rule, resourceDefinition);
-            resourceDefinition = processResourceDefinitionResult(result, resourceDefinition, failures);
-        }
-        
-        return failures.isEmpty() ? Result.success(resourceDefinition) : Result.failure(failures);
-    }
-    
-    @SuppressWarnings({"unchecked"})
-    private <D extends ResourceDefinition, R extends Rule> Result<D> visitResourceDefinitionRule(
-            R rule, D resourceDefinition, Map<Class<? extends ResourceDefinition>, List<ResourceDefinitionRuleFunction<R, ? extends ResourceDefinition>>> functions) {
-        var failures = new ArrayList<String>();
-    
-        var functionsForType = functions.get(resourceDefinition.getClass());
-        if (functionsForType != null) {
-            for (var function : functionsForType) {
-                var result = ((ResourceDefinitionRuleFunction<R, D>) function).evaluate(rule, resourceDefinition);
-                resourceDefinition = processResourceDefinitionResult(result, resourceDefinition, failures);
-            }
-        }
-    
-        return failures.isEmpty() ? Result.success(resourceDefinition) : Result.failure(failures);
-    }
-    
-    private <D extends ResourceDefinition> D processResourceDefinitionResult(Result<D> result, D resourceDefinition, List<String> failures) {
-        if (result.succeeded()) {
-            return result.getContent();
-        } else {
-            failures.addAll(result.getFailureMessages());
-            return resourceDefinition;
-        }
-    }
-    
     private Boolean visitRule(Rule rule) {
         var valid = true;
         RuleProblem.Builder problemBuilder = null;
@@ -380,72 +256,9 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
             return this;
         }
         
-        public <D extends ResourceDefinition> Builder resourceDefinitionPermissionFunction(Class<D> resourceType, ResourceDefinitionRuleFunction<Permission, D> function) {
-            evaluator.resourceDefinitionPermissionFunctions.computeIfAbsent(resourceType, k -> new ArrayList<>()).add(function);
-            return this;
-        }
-    
-        public <D extends ResourceDefinition> Builder resourceDefinitionProhibitionFunction(Class<D> resourceType, ResourceDefinitionRuleFunction<Prohibition, D> function) {
-            evaluator.resourceDefinitionProhibitionFunctions.computeIfAbsent(resourceType, k -> new ArrayList<>()).add(function);
-            return this;
-        }
-    
-        public <D extends ResourceDefinition> Builder resourceDefinitionDutyFunction(Class<D> resourceType, ResourceDefinitionRuleFunction<Duty, D> function) {
-            evaluator.resourceDefinitionDutyFunctions.computeIfAbsent(resourceType, k -> new ArrayList<>()).add(function);
-            return this;
-        }
-    
-        public <D extends ResourceDefinition> Builder resourceDefinitionConstraintPermissionFunction(String key, Class<D> resourceType, ResourceDefinitionAtomicConstraintFunction<Permission, D> function) {
-            evaluator.resourceDefinitionConstraintPermissionFunctions.put(new ResourceDefinitionConstraintFunctionKey(key, resourceType), function);
-            return this;
-        }
-    
-        public <D extends ResourceDefinition> Builder resourceDefinitionConstraintProhibitionFunction(String key, Class<D> resourceType, ResourceDefinitionAtomicConstraintFunction<Prohibition, D> function) {
-            evaluator.resourceDefinitionConstraintProhibitionFunctions.put(new ResourceDefinitionConstraintFunctionKey(key, resourceType), function);
-            return this;
-        }
-    
-        public <D extends ResourceDefinition> Builder resourceDefinitionConstraintDutyFunction(String key, Class<D> resourceType, ResourceDefinitionAtomicConstraintFunction<Duty, D> function) {
-            evaluator.resourceDefinitionConstraintDutyFunctions.put(new ResourceDefinitionConstraintFunctionKey(key, resourceType), function);
-            return this;
-        }
-
         public PolicyEvaluator build() {
             return evaluator;
         }
-    }
-    
-    static class ResourceDefinitionConstraintFunctionKey {
-        private final String key;
-        private final Class<? extends ResourceDefinition> definitionType;
-        
-        ResourceDefinitionConstraintFunctionKey(String key, Class<? extends ResourceDefinition> definitionType) {
-            this.key = Objects.requireNonNull(key);
-            this.definitionType = Objects.requireNonNull(definitionType);
-        }
-        
-        @Override
-        public boolean equals(Object object) {
-            if (this == object) {
-                return true;
-            }
-            
-            if (!(object instanceof ResourceDefinitionConstraintFunctionKey)) {
-                return false;
-            }
-            
-            var other = (ResourceDefinitionConstraintFunctionKey) object;
-            return other.key.equals(this.key) && other.definitionType.equals(definitionType);
-        }
-    
-        @Override
-        public int hashCode() {
-            var result = 1;
-            result = 31 * result + key.hashCode();
-            result = 31 * result + definitionType.hashCode();
-            return result;
-        }
-        
     }
 
 }

@@ -22,7 +22,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.provision.ConsumerResourceDef
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProviderResourceDefinitionGenerator;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.transfer.core.TestResourceDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,10 +58,10 @@ class ResourceManifestGeneratorImplTest {
         var dataRequest = createDataRequest(true);
         var resourceDefinition = TestResourceDefinition.Builder.newInstance().id(UUID.randomUUID().toString()).build();
         when(consumerGenerator.generate(any(), any())).thenReturn(resourceDefinition);
-        when(policyEngine.evaluate(any(), any(), any(ResourceManifest.class))).thenAnswer(i -> Result.success(i.getArgument(2)));
+        when(policyEngine.evaluate(any(), any(), any(), any())).thenReturn(Result.success(policy));
 
         var result = generator.generateConsumerResourceManifest(dataRequest, policy);
-    
+
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent().getDefinitions()).hasSize(1).containsExactly(resourceDefinition);
         verifyNoInteractions(providerGenerator);
@@ -73,22 +72,22 @@ class ResourceManifestGeneratorImplTest {
         var dataRequest = createDataRequest(false);
 
         var result = generator.generateConsumerResourceManifest(dataRequest, policy);
-    
+
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent().getDefinitions()).isEmpty();
         verifyNoInteractions(consumerGenerator);
         verifyNoInteractions(providerGenerator);
     }
-    
+
     @Test
     void shouldReturnFailedResultForConsumerWhenPolicyEvaluationFailed() {
         var dataRequest = createDataRequest(true);
         var resourceDefinition = TestResourceDefinition.Builder.newInstance().id(UUID.randomUUID().toString()).build();
         when(consumerGenerator.generate(any(), any())).thenReturn(resourceDefinition);
-        when(policyEngine.evaluate(any(), any(), any(ResourceManifest.class))).thenReturn(Result.failure("error"));
-    
+        when(policyEngine.evaluate(any(), any(), any(), any())).thenReturn(Result.failure("error"));
+
         var result = generator.generateConsumerResourceManifest(dataRequest, policy);
-        
+
         assertThat(result.succeeded()).isFalse();
     }
 

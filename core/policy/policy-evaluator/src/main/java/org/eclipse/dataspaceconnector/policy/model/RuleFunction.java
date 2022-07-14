@@ -12,9 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.policy.engine;
-
-import org.eclipse.dataspaceconnector.policy.model.Rule;
+package org.eclipse.dataspaceconnector.policy.model;
 
 /**
  * An extension point that evaluates an {@link Rule} node.

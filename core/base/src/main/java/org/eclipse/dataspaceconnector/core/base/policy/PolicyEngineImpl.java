@@ -9,7 +9,6 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Fraunhofer Institute for Software and Systems Engineering - resource manifest evaluation
  *
  */
 
@@ -26,14 +25,11 @@ import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyContext;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.evaluation.AtomicConstraintFunction;
-import org.eclipse.dataspaceconnector.spi.policy.evaluation.ResourceDefinitionAtomicConstraintFunction;
-import org.eclipse.dataspaceconnector.spi.policy.evaluation.ResourceDefinitionRuleFunction;
 import org.eclipse.dataspaceconnector.spi.policy.evaluation.RuleFunction;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -51,8 +47,6 @@ public class PolicyEngineImpl implements PolicyEngine {
 
     private Map<String, List<ConstraintFunctionEntry<Rule>>> constraintFunctions = new TreeMap<>();
     private Map<String, List<RuleFunctionEntry<Rule>>> ruleFunctions = new TreeMap<>();
-    private Map<String, List<ResourceDefinitionRuleFunctionEntry<Rule, ResourceDefinition>>> resourceDefinitionRuleFunctions = new TreeMap<>();
-    private Map<String, List<ResourceDefinitionConstraintFunctionEntry<Rule, ResourceDefinition>>> resourceDefinitionConstraintFunctions = new TreeMap<>();
 
     private List<BiFunction<Policy, PolicyContext, Boolean>> preValidators = new ArrayList<>();
     private List<BiFunction<Policy, PolicyContext, Boolean>> postValidators = new ArrayList<>();
@@ -65,13 +59,27 @@ public class PolicyEngineImpl implements PolicyEngine {
     public Policy filter(Policy policy, String scope) {
         return scopeFilter.applyScope(policy, scope);
     }
-
+    
     @Override
     public Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent) {
+        return evaluate(scope, policy, agent, new HashMap<>());
+    }
+
+    @Override
+    public Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent, Map<Class, Object> contextInformation) {
         var context = new PolicyContextImpl(agent);
+        contextInformation.forEach((key, value) -> {
+            try {
+                context.putContextData(key, key.cast(value));
+            } catch (ClassCastException ignore) {
+                // invalid entry
+            }
+        });
+    
+        var filteredPolicy = scopeFilter.applyScope(policy, scope);
 
         for (BiFunction<Policy, PolicyContext, Boolean> validator : preValidators) {
-            if (!validator.apply(policy, context)) {
+            if (!validator.apply(filteredPolicy, context)) {
                 return Result.failure(context.hasProblems() ? context.getProblems() : List.of("Pre-validator failed: " + validator.getClass().getName()));
             }
         }
@@ -102,59 +110,31 @@ public class PolicyEngineImpl implements PolicyEngine {
 
         var evaluator = evalBuilder.build();
 
-        var filteredPolicy = scopeFilter.applyScope(policy, scope);
-
         var result = evaluator.evaluate(filteredPolicy);
 
         if (result.valid()) {
             for (BiFunction<Policy, PolicyContext, Boolean> validator : postValidators) {
-                if (!validator.apply(policy, context)) {
+                if (!validator.apply(filteredPolicy, context)) {
                     return Result.failure(context.hasProblems() ? context.getProblems() : List.of("Post-validator failed: " + validator.getClass().getName()));
                 }
             }
+    
+            updateContextInformation(context, contextInformation);
             return Result.success(policy);
         } else {
+            updateContextInformation(context, contextInformation);
             return Result.failure(result.getProblems().stream().map(RuleProblem::getDescription).collect(toList()));
         }
     }
     
-    @Override
-    public Result<ResourceManifest> evaluate(String scope, Policy policy, ResourceManifest resourceManifest) {
-        var evalBuilder = PolicyEvaluator.Builder.newInstance();
-        final var delimitedScope = scope + ".";
-        
-        resourceDefinitionRuleFunctions.entrySet().stream()
-                .filter(entry -> scopeFilter(entry.getKey(), delimitedScope))
-                .flatMap(entry -> entry.getValue().stream()).forEach(entry -> {
-                    if (Duty.class.isAssignableFrom(entry.ruleType)) {
-                        evalBuilder.resourceDefinitionDutyFunction(entry.resourceType, (duty, definition) -> entry.function.evaluate(duty, definition));
-                    } else if (Permission.class.isAssignableFrom(entry.ruleType)) {
-                        evalBuilder.resourceDefinitionPermissionFunction(entry.resourceType, (permission, definition) -> entry.function.evaluate(permission, definition));
-                    } else if (Prohibition.class.isAssignableFrom(entry.ruleType)) {
-                        evalBuilder.resourceDefinitionProhibitionFunction(entry.resourceType, (prohibition, definition) -> entry.function.evaluate(prohibition, definition));
-                    }
-                });
-        
-        resourceDefinitionConstraintFunctions.entrySet().stream()
-                .filter(entry -> scopeFilter(entry.getKey(), delimitedScope))
-                .flatMap(entry -> entry.getValue().stream()).forEach(entry -> {
-                    if (Duty.class.isAssignableFrom(entry.ruleType)) {
-                        evalBuilder.resourceDefinitionConstraintDutyFunction(entry.key, entry.resourceType,
-                                (operator, rightValue, duty, definition) -> entry.function.evaluate(operator, rightValue, duty, definition));
-                    } else if (Permission.class.isAssignableFrom(entry.ruleType)) {
-                        evalBuilder.resourceDefinitionConstraintPermissionFunction(entry.key, entry.resourceType,
-                                (operator, rightValue, permission, definition) -> entry.function.evaluate(operator, rightValue, permission, definition));
-                    } else if (Prohibition.class.isAssignableFrom(entry.ruleType)) {
-                        evalBuilder.resourceDefinitionConstraintProhibitionFunction(entry.key, entry.resourceType,
-                                (operator, rightValue, prohibition, definition) -> entry.function.evaluate(operator, rightValue, prohibition, definition));
-                    }
-                });
-    
-        var evaluator = evalBuilder.build();
-    
-        var filteredPolicy = scopeFilter.applyScope(policy, scope);
-        
-        return evaluator.evaluateManifest(resourceManifest, filteredPolicy);
+    /**
+     * Updates the initially supplied context data from the policy context.
+     *
+     * @param context the policy context.
+     * @param contextInformation the initial context data.
+     */
+    private void updateContextInformation(PolicyContext context, Map<Class, Object> contextInformation) {
+        contextInformation.keySet().forEach(key -> contextInformation.put(key, context.getContextData(key)));
     }
     
     @Override
@@ -167,22 +147,6 @@ public class PolicyEngineImpl implements PolicyEngine {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public <R extends Rule> void registerFunction(String scope, Class<R> type, RuleFunction<R> function) {
         ruleFunctions.computeIfAbsent(scope + ".", k -> new ArrayList<>()).add(new RuleFunctionEntry(type, function));
-    }
-    
-    @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public <R extends Rule, D extends ResourceDefinition> void registerFunction(String scope, Class<R> ruleType, Class<D> resourceDefinitionType,
-                                                                                String key, ResourceDefinitionAtomicConstraintFunction<R, D> function) {
-        resourceDefinitionConstraintFunctions.computeIfAbsent(scope + ".", k -> new ArrayList<>())
-                .add(new ResourceDefinitionConstraintFunctionEntry(ruleType, resourceDefinitionType, key, function));
-    }
-    
-    @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public <R extends Rule, D extends ResourceDefinition> void registerFunction(String scope, Class<R> ruleType, Class<D> resourceDefinitionType,
-                                                                                ResourceDefinitionRuleFunction<R, D> function) {
-        resourceDefinitionRuleFunctions.computeIfAbsent(scope + ".", k -> new ArrayList<>())
-                .add(new ResourceDefinitionRuleFunctionEntry(ruleType, resourceDefinitionType, function));
     }
     
     @Override
@@ -217,32 +181,6 @@ public class PolicyEngineImpl implements PolicyEngine {
 
         RuleFunctionEntry(Class<R> type, RuleFunction<R> function) {
             this.type = type;
-            this.function = function;
-        }
-    }
-    
-    private static class ResourceDefinitionRuleFunctionEntry<R extends Rule, D extends ResourceDefinition> {
-        Class<R> ruleType;
-        Class<D> resourceType;
-        ResourceDefinitionRuleFunction<R, D> function;
-        
-        ResourceDefinitionRuleFunctionEntry(Class<R> ruleType, Class<D> resourceType, ResourceDefinitionRuleFunction<R, D> function) {
-            this.ruleType = ruleType;
-            this.resourceType = resourceType;
-            this.function = function;
-        }
-    }
-    
-    private static class ResourceDefinitionConstraintFunctionEntry<R extends Rule, D extends ResourceDefinition> {
-        Class<R> ruleType;
-        Class<D> resourceType;
-        String key;
-        ResourceDefinitionAtomicConstraintFunction<R, D> function;
-        
-        ResourceDefinitionConstraintFunctionEntry(Class<R> ruleType, Class<D> resourceType, String key, ResourceDefinitionAtomicConstraintFunction<R, D> function) {
-            this.ruleType = ruleType;
-            this.resourceType = resourceType;
-            this.key = key;
             this.function = function;
         }
     }
