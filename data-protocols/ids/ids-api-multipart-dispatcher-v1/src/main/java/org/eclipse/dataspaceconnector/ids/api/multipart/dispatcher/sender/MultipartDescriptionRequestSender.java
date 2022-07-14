@@ -28,6 +28,7 @@ import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.ResponseMessage;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartDescriptionResponse;
+import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -68,7 +69,7 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
     protected Message buildMessageHeader(MetadataRequest request, DynamicAttributeToken token) {
         return new DescriptionRequestMessageBuilder()
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
-                //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+                ._issued_(CalendarUtil.gregorianNow())
                 ._securityToken_(token)
                 ._issuerConnector_(getConnectorId())
                 ._senderAgent_(getConnectorId())

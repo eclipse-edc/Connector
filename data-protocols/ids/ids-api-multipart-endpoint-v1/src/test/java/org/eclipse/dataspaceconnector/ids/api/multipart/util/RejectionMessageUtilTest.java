@@ -229,7 +229,7 @@ class RejectionMessageUtilTest {
 
         assertThat(rejectionMessage.getContentVersion()).isEqualTo(IdsProtocol.INFORMATION_MODEL_VERSION);
         assertThat(rejectionMessage.getModelVersion()).isEqualTo(IdsProtocol.INFORMATION_MODEL_VERSION);
-        //assertThat(rejectionMessage.getIssued()).isNotNull(); TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+        assertThat(rejectionMessage.getIssued()).isNotNull();
     }
 
     private void assertCorrelationMessagePropertiesMapped(RejectionMessage rejectionMessage) {

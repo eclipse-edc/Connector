@@ -26,6 +26,7 @@ import de.fraunhofer.iais.eis.RequestInProcessMessageBuilder;
 import de.fraunhofer.iais.eis.TokenFormat;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.exceptions.InvalidCorrelationMessageException;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.exceptions.MissingClientCredentialsException;
+import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
@@ -131,7 +132,7 @@ public class IdsResponseMessageFactory {
         RejectionMessageBuilder builder = new RejectionMessageBuilder(URI.create(randomMessageId));
 
         builder._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
-        // builder._issued_(CalendarUtil.gregorianNow()); // TODO enable with IDS-Serializer from issue 236
+        builder._issued_(CalendarUtil.gregorianNow());
         builder._issuerConnector_(connectorId);
         builder._senderAgent_(connectorId);
 
@@ -196,7 +197,7 @@ public class IdsResponseMessageFactory {
         RequestInProcessMessageBuilder builder = new RequestInProcessMessageBuilder(URI.create(randomMessageId));
 
         builder._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
-        // builder._issued_(CalendarUtil.gregorianNow()); // TODO enable with IDS-Serializer from issue 236
+        builder._issued_(CalendarUtil.gregorianNow());
         builder._issuerConnector_(connectorId);
         builder._senderAgent_(connectorId);
 
