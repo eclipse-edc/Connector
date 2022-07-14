@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.core;
 
-import org.eclipse.dataspaceconnector.core.event.EventExecutorServiceContainer;
 import org.eclipse.dataspaceconnector.core.security.DefaultPrivateKeyParseFunction;
 import org.eclipse.dataspaceconnector.policy.model.PolicyRegistrationTypes;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
@@ -56,8 +55,6 @@ class CoreServicesExtensionTest {
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
         privateKeyResolverMock = mock(PrivateKeyResolver.class);
         context.registerService(PrivateKeyResolver.class, privateKeyResolverMock);
-
-        context.registerService(EventExecutorServiceContainer.class, mock(EventExecutorServiceContainer.class));
 
         typeManager = context.getTypeManager(); //is already a spy!
         context.registerService(ExecutorInstrumentation.class, mock(ExecutorInstrumentation.class));

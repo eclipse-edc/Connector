@@ -111,7 +111,7 @@ public class CoreServicesExtension implements ServiceExtension {
     @Inject
     private PrivateKeyResolver privateKeyResolver;
 
-    @Inject
+    @Inject(required = false)
     private EventExecutorServiceContainer eventExecutorServiceContainer;
 
     private HealthCheckServiceImpl healthCheckService;
@@ -216,7 +216,15 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @Provider
     public EventRouter eventRouter(ServiceExtensionContext context) {
+        if (eventExecutorServiceContainer == null) {
+            eventExecutorServiceContainer = eventExecutorServiceContainer();
+        }
         return new EventRouterImpl(context.getMonitor(), eventExecutorServiceContainer.getExecutorService());
+    }
+
+    @Provider(isDefault = true)
+    public EventExecutorServiceContainer eventExecutorServiceContainer() {
+        return new EventExecutorServiceContainer(Executors.newFixedThreadPool(1)); // TODO: make configurable
     }
 
     @Provider(isDefault = true)
@@ -232,11 +240,6 @@ public class CoreServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public CertificateResolver certificateResolver() {
         return new NoopCertificateResolver();
-    }
-
-    @Provider(isDefault = true)
-    public EventExecutorServiceContainer eventExecutorServiceContainer() {
-        return new EventExecutorServiceContainer(Executors.newFixedThreadPool(1)); // TODO: make configurable
     }
 
     private HealthCheckServiceConfiguration getHealthCheckConfig(ServiceExtensionContext context) {
