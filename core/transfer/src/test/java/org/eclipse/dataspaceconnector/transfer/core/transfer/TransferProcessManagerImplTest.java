@@ -10,7 +10,6 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
- *       Fraunhofer Institute for Software and Systems Engineering - policy evaluation
  *
  */
 
@@ -23,14 +22,12 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.common.statemachine.retry.SendRetryManager;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
@@ -65,7 +62,6 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -124,7 +120,6 @@ class TransferProcessManagerImplTest {
     @SuppressWarnings("unchecked")
     private final SendRetryManager<StatefulEntity> sendRetryManager = mock(SendRetryManager.class);
     private final TransferProcessListener listener = mock(TransferProcessListener.class);
-    private final PolicyEngine policyEngine = mock(PolicyEngine.class);
 
     private TransferProcessManagerImpl manager;
 
@@ -152,7 +147,6 @@ class TransferProcessManagerImplTest {
                 .vault(vault)
                 .addressResolver(mock(DataAddressResolver.class))
                 .sendRetryManager(sendRetryManager)
-                .policyEngine(policyEngine)
                 .build();
     }
 
@@ -161,18 +155,12 @@ class TransferProcessManagerImplTest {
      */
     @Test
     void verifyIdempotency() {
-        var policy = Policy.Builder.newInstance().build();
-        var agent = new ParticipantAgent(new HashMap<>(), new HashMap<>());
-        
         when(transferProcessStore.processIdForTransferId("1")).thenReturn(null, "2");
-        when(policyArchive.findPolicyForContract(any())).thenReturn(policy);
-        when(policyEngine.evaluate(any(), any(), any(ParticipantAgent.class))).thenReturn(Result.success(policy));
-        
-        DataRequest dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").contractId("contractId").build();
+        DataRequest dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
 
         manager.start();
-        manager.initiateProviderRequest(dataRequest, agent);
-        manager.initiateProviderRequest(dataRequest, agent); // repeat request
+        manager.initiateProviderRequest(dataRequest);
+        manager.initiateProviderRequest(dataRequest); // repeat request
         manager.stop();
 
         verify(transferProcessStore, times(1)).create(isA(TransferProcess.class));
@@ -181,40 +169,15 @@ class TransferProcessManagerImplTest {
 
     @Test
     void verifyCreatedTimestamp() {
-        var policy = Policy.Builder.newInstance().build();
-        var agent = new ParticipantAgent(new HashMap<>(), new HashMap<>());
-        
         when(transferProcessStore.processIdForTransferId("1")).thenReturn(null, "2");
-        when(policyArchive.findPolicyForContract(any())).thenReturn(policy);
-        when(policyEngine.evaluate(any(), any(), any(ParticipantAgent.class))).thenReturn(Result.success(policy));
-        
         DataRequest dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
 
         manager.start();
-        manager.initiateProviderRequest(dataRequest, agent);
+        manager.initiateProviderRequest(dataRequest);
         manager.stop();
 
         verify(transferProcessStore, times(1)).create(argThat(p -> p.getCreatedTimestamp() == currentTime));
         verify(listener).initiated(any());
-    }
-    
-    @Test
-    void initiateProviderRequest_policyEvaluationFailed() {
-        var policy = Policy.Builder.newInstance().build();
-        var agent = new ParticipantAgent(new HashMap<>(), new HashMap<>());
-    
-        when(transferProcessStore.processIdForTransferId("1")).thenReturn(null);
-        when(policyArchive.findPolicyForContract(any())).thenReturn(policy);
-        when(policyEngine.evaluate(any(), any(), any(ParticipantAgent.class))).thenReturn(Result.failure("error"));
-    
-        DataRequest dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
-    
-        manager.start();
-        var result = manager.initiateProviderRequest(dataRequest, agent);
-        manager.stop();
-        
-        assertThat(result.fatalError()).isTrue();
-        verify(transferProcessStore, never()).create(any());
     }
 
     @Test

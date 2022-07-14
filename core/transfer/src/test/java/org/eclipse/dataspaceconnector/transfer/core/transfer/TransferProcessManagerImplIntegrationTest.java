@@ -24,7 +24,6 @@ import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
@@ -82,8 +81,6 @@ class TransferProcessManagerImplIntegrationTest {
 
         var policyArchive = mock(PolicyArchive.class);
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
-        
-        var policyEngine = mock(PolicyEngine.class);
 
         transferProcessManager = TransferProcessManagerImpl.Builder.newInstance()
                 .provisionManager(provisionManager)
@@ -102,7 +99,6 @@ class TransferProcessManagerImplIntegrationTest {
                 .transferProcessStore(store)
                 .policyArchive(policyArchive)
                 .addressResolver(mock(DataAddressResolver.class))
-                .policyEngine(policyEngine)
                 .build();
     }
 

@@ -25,8 +25,6 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
-import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -43,14 +41,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.net.URI;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -64,7 +59,6 @@ class ArtifactRequestHandlerTest {
     private String connectorId;
     private ContractValidationService contractValidationService;
     private ContractNegotiationStore contractNegotiationStore;
-    private ParticipantAgentService agentService;
 
     private static URI createUri(IdsType type, String value) {
         return URI.create("urn:" + type.getValue() + ":" + value);
@@ -89,8 +83,7 @@ class ArtifactRequestHandlerTest {
         contractValidationService = mock(ContractValidationService.class);
         contractNegotiationStore = mock(ContractNegotiationStore.class);
         Vault vault = mock(Vault.class);
-        agentService = mock(ParticipantAgentService.class);
-        handler = new ArtifactRequestHandler(monitor, connectorId, mapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault, agentService);
+        handler = new ArtifactRequestHandler(monitor, connectorId, mapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault);
     }
 
     @Test
@@ -103,17 +96,15 @@ class ArtifactRequestHandlerTest {
         var header = (ArtifactRequestMessage) multipartRequest.getHeader();
         var agreement = createContractAgreement(contractId, assetId);
         var claimToken = ClaimToken.Builder.newInstance().build();
-        var agent = new ParticipantAgent(new HashMap<>(), new HashMap<>());
 
         var drCapture = ArgumentCaptor.forClass(DataRequest.class);
-        when(agentService.createFor(any())).thenReturn(agent);
-        when(transferProcessManager.initiateProviderRequest(any(), any())).thenReturn(StatusResult.success("Transfer success"));
+        when(transferProcessManager.initiateProviderRequest(drCapture.capture())).thenReturn(StatusResult.success("Transfer success"));
         when(contractNegotiationStore.findContractAgreement(contractId)).thenReturn(agreement);
         when(contractValidationService.validate(claimToken, agreement)).thenReturn(true);
 
         handler.handleRequest(multipartRequest, claimToken);
 
-        verify(transferProcessManager).initiateProviderRequest(drCapture.capture(), eq(agent));
+        verify(transferProcessManager).initiateProviderRequest(drCapture.capture());
 
         assertThat(drCapture.getValue().getId()).hasToString(artifactRequestId);
         assertThat(drCapture.getValue().getDataDestination().getKeyName()).isEqualTo(destination.getKeyName());

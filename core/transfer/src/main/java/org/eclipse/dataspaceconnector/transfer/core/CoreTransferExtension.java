@@ -184,7 +184,6 @@ public class CoreTransferExtension implements ServiceExtension {
                 .batchSize(context.getSetting(TRANSFER_STATE_MACHINE_BATCH_SIZE, 5))
                 .sendRetryManager(sendRetryManager)
                 .addressResolver(addressResolver)
-                .policyEngine(policyEngine)
                 .build();
 
         context.registerService(TransferProcessManager.class, processManager);

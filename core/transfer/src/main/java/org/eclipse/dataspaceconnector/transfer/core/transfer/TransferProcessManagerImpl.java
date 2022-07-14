@@ -10,7 +10,6 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
- *       Fraunhofer Institute for Software and Systems Engineering - add policy engine
  *
  */
 
@@ -20,7 +19,6 @@ import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.common.statemachine.StateMachineManager;
 import org.eclipse.dataspaceconnector.common.statemachine.StateProcessorImpl;
 import org.eclipse.dataspaceconnector.common.statemachine.retry.SendRetryManager;
-import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
@@ -28,7 +26,6 @@ import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
@@ -68,7 +65,6 @@ import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.util.Collections.emptyList;
 import static java.util.UUID.randomUUID;
-import static org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService.NEGOTIATION_SCOPE;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
@@ -126,7 +122,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     private PolicyArchive policyArchive;
     private SendRetryManager<StatefulEntity> sendRetryManager;
     private Clock clock;
-    private PolicyEngine policyEngine;
 
     private TransferProcessManagerImpl() {
     }
@@ -158,7 +153,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
     @WithSpan
     @Override
     public StatusResult<String> initiateConsumerRequest(DataRequest dataRequest) {
-        return initiateRequest(CONSUMER, dataRequest, null);
+        return initiateRequest(CONSUMER, dataRequest);
 
     }
 
@@ -167,8 +162,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
      */
     @WithSpan
     @Override
-    public StatusResult<String> initiateProviderRequest(DataRequest dataRequest, ParticipantAgent consumerAgent) {
-        return initiateRequest(PROVIDER, dataRequest, consumerAgent);
+    public StatusResult<String> initiateProviderRequest(DataRequest dataRequest) {
+        return initiateRequest(PROVIDER, dataRequest);
     }
 
     @Override
@@ -208,7 +203,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         handleDeprovisionResult(transferProcess, responses);
     }
 
-    private StatusResult<String> initiateRequest(TransferProcess.Type type, DataRequest dataRequest, ParticipantAgent consumerAgent) {
+    private StatusResult<String> initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
         // make the request idempotent: if the process exists, return
         var processId = transferProcessStore.processIdForTransferId(dataRequest.getId());
         if (processId != null) {
@@ -225,18 +220,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         if (process.getState() == TransferProcessStates.UNSAVED.code()) {
             process.transitionInitial();
         }
-
-        // re-evaluate policy from agreement for negotiation scope
-        if (type == PROVIDER) {
-            var policy = policyArchive.findPolicyForContract(dataRequest.getContractId());
-            var policyResult = policyEngine.evaluate(NEGOTIATION_SCOPE, policy, consumerAgent);
-            if (policyResult.failed()) {
-                monitor.severe(format("Will not create transfer process for data request %s. Policy not fulfilled: %s",
-                        dataRequest.getId(), policyResult.getFailureMessages()));
-                return StatusResult.failure(ResponseStatus.FATAL_ERROR, format("Policy for data request %s is not fulfilled.", dataRequest.getId()));
-            }
-        }
-        
         observable.invokeForEach(l -> l.preCreated(process));
         transferProcessStore.create(process);
         observable.invokeForEach(l -> l.initiated(process));
@@ -792,11 +775,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             manager.addressResolver = addressResolver;
             return this;
         }
-        
-        public Builder policyEngine(PolicyEngine policyEngine) {
-            manager.policyEngine = policyEngine;
-            return this;
-        }
 
         public TransferProcessManagerImpl build() {
             Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator cannot be null");
@@ -813,7 +791,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             Objects.requireNonNull(manager.policyArchive, "policyArchive cannot be null");
             Objects.requireNonNull(manager.transferProcessStore, "transferProcessStore cannot be null");
             Objects.requireNonNull(manager.addressResolver, "addressResolver cannot be null");
-            Objects.requireNonNull(manager.policyEngine, "policyEngine cannot be null");
             manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
 
             return manager;

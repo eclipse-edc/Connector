@@ -46,7 +46,6 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.WebService;
-import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
@@ -111,8 +110,6 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     private ObjectMapperFactory objectMapperFactory;
     @Inject
     private Vault vault;
-    @Inject
-    private ParticipantAgentService agentService;
 
     @Override
     public String name() {
@@ -157,7 +154,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         var handlers = new LinkedList<Handler>();
         handlers.add(descriptionHandler);
 
-        var artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault, agentService);
+        var artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault);
         handlers.add(artifactRequestHandler);
 
         // create contract message handlers
