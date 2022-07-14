@@ -14,24 +14,22 @@
 
 package org.eclipse.dataspaceconnector.spi.security;
 
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
 
 /**
  * Implementation that returns private keys stored in a vault.
  */
-public class VaultPrivateKeyResolver implements PrivateKeyResolver {
+public class VaultPrivateKeyResolver extends AbstractPrivateKeyResolver {
 
     private final Vault vault;
     private final List<KeyParser<?>> parsers;
 
     public VaultPrivateKeyResolver(Vault vault, KeyParser<?>... parsers) {
+        super(parsers);
         this.vault = vault;
         this.parsers = Arrays.asList(parsers);
     }
@@ -53,34 +51,4 @@ public class VaultPrivateKeyResolver implements PrivateKeyResolver {
         return keyType.cast(getParser(keyType).parse(encodedKey));
     }
 
-    @Override
-    public <T> void addParser(KeyParser<T> parser) {
-        parsers.add(parser);
-    }
-
-    @Override
-    public <T> void addParser(Class<T> forType, Function<String, T> parseFunction) {
-        var p = new KeyParser<T>() {
-
-            @Override
-            public boolean canParse(Class<?> keyType) {
-                return Objects.equals(keyType, forType);
-            }
-
-            @Override
-            public T parse(String encoded) {
-                return parseFunction.apply(encoded);
-            }
-        };
-        addParser(p);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> KeyParser<T> getParser(Class<T> keytype) {
-        return (KeyParser<T>) parsers.stream().filter(p -> p.canParse(keytype))
-                .findFirst().orElseThrow(() -> {
-                            throw new EdcException("Cannot find KeyParser for type " + keytype);
-                        }
-                );
-    }
 }
