@@ -84,7 +84,6 @@ class TransferProcessManagerImplIntegrationTest {
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         
         var policyEngine = mock(PolicyEngine.class);
-        when(policyEngine.evaluate(any(), any(), any(ResourceManifest.class))).thenAnswer(i -> Result.success(i.getArgument(2, ResourceManifest.class)));
 
         transferProcessManager = TransferProcessManagerImpl.Builder.newInstance()
                 .provisionManager(provisionManager)

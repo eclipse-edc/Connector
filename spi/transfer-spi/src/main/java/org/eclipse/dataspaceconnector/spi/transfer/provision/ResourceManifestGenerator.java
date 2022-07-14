@@ -27,7 +27,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest
 public interface ResourceManifestGenerator {
     
     @PolicyScope
-    String PROVISION_SCOPE = "provision.manifest.verify";
+    String MANIFEST_VERIFICATION_SCOPE = "provision.manifest.verify";
 
     /**
      * Registers a generator for consumer-side generation.

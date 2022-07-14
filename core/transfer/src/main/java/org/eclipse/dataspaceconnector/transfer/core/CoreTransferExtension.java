@@ -40,6 +40,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.evaluation.ResourceManifestEvaluator;
 import org.eclipse.dataspaceconnector.spi.transfer.retry.TransferWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -56,11 +57,14 @@ import org.eclipse.dataspaceconnector.transfer.core.flow.DataFlowManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.listener.TransferProcessEventListener;
 import org.eclipse.dataspaceconnector.transfer.core.observe.TransferProcessObservableImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ProvisionManagerImpl;
+import org.eclipse.dataspaceconnector.transfer.core.provision.ResourceManifestEvaluatorImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ResourceManifestGeneratorImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.StatusCheckerRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessManagerImpl;
 
 import java.time.Clock;
+
+import static org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator.MANIFEST_VERIFICATION_SCOPE;
 
 /**
  * Provides core data transfer services to the system.
@@ -128,6 +132,10 @@ public class CoreTransferExtension implements ServiceExtension {
 
         var manifestGenerator = new ResourceManifestGeneratorImpl(policyEngine);
         context.registerService(ResourceManifestGenerator.class, manifestGenerator);
+        
+        var manifestEvaluator = new ResourceManifestEvaluatorImpl(monitor);
+        context.registerService(ResourceManifestEvaluator.class, manifestEvaluator);
+        policyEngine.registerPostValidator(MANIFEST_VERIFICATION_SCOPE, manifestEvaluator::evaluate);
 
         var statusCheckerRegistry = new StatusCheckerRegistryImpl();
         context.registerService(StatusCheckerRegistry.class, statusCheckerRegistry);
