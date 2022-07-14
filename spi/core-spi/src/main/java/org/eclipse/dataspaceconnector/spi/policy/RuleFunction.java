@@ -15,12 +15,10 @@
 package org.eclipse.dataspaceconnector.spi.policy;
 
 import org.eclipse.dataspaceconnector.policy.model.Rule;
-import org.eclipse.dataspaceconnector.spi.policy.PolicyContext;
 
 /**
  * Invoked during policy evaluation to examine a rule node.
  */
-@FunctionalInterface
 public interface RuleFunction<R extends Rule> {
 
     /**

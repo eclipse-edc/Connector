@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.spi.policy;
 
 import org.eclipse.dataspaceconnector.policy.model.Operator;
 import org.eclipse.dataspaceconnector.policy.model.Rule;
-import org.eclipse.dataspaceconnector.spi.policy.PolicyContext;
 
 /**
  * Invoked during policy evaluation when the left operand of an atomic constraint evaluates to a key associated with this function. The function is responsible for performing
