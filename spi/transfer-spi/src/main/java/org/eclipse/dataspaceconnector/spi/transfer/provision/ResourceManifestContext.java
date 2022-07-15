@@ -14,12 +14,12 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer.provision;
 
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 
 /**
  * Provides access to a resource manifest's resource definitions by definition type.
