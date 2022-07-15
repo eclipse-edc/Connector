@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - context data
  *
  */
 
@@ -19,7 +20,9 @@ import org.eclipse.dataspaceconnector.spi.policy.PolicyContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Default context implementation.
@@ -27,6 +30,7 @@ import java.util.List;
 public class PolicyContextImpl implements PolicyContext {
     private final ParticipantAgent agent;
     private final List<String> problems = new ArrayList<>();
+    private Map<Class<?>, Object> additional = new HashMap<>();
 
     public PolicyContextImpl(ParticipantAgent agent) {
         this.agent = agent;
@@ -50,5 +54,15 @@ public class PolicyContextImpl implements PolicyContext {
     @Override
     public ParticipantAgent getParticipantAgent() {
         return agent;
+    }
+    
+    @Override
+    public <T> T getContextData(Class<T> type) {
+        return (T) additional.get(type);
+    }
+    
+    @Override
+    public <T> void putContextData(Class<T> type, T data) {
+        additional.put(type, data);
     }
 }
