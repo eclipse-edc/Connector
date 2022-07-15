@@ -120,7 +120,7 @@ public class TransferProcessEventDispatchTest {
                 .assetId("assetId")
                 .destinationType("any")
                 .protocol("test")
-                .managedResources(true)
+                .managedResources(false)
                 .build();
 
         service.initiateTransfer(dataRequest);
