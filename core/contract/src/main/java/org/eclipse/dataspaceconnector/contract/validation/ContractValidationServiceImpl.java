@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Fraunhofer Institute for Software and Systems Engineering - improvements
+ *       Fraunhofer Institute for Software and Systems Engineering - improvements, add policy engine
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -48,13 +49,15 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     private final AssetIndex assetIndex;
     private final PolicyDefinitionStore policyStore;
     private final Clock clock;
+    private final PolicyEngine policyEngine;
 
-    public ContractValidationServiceImpl(ParticipantAgentService agentService, ContractDefinitionService contractDefinitionService, AssetIndex assetIndex, PolicyDefinitionStore policyStore, Clock clock) {
+    public ContractValidationServiceImpl(ParticipantAgentService agentService, ContractDefinitionService contractDefinitionService, AssetIndex assetIndex, PolicyDefinitionStore policyStore, Clock clock, PolicyEngine policyEngine) {
         this.agentService = agentService;
         this.contractDefinitionService = contractDefinitionService;
         this.assetIndex = assetIndex;
         this.policyStore = policyStore;
         this.clock = clock;
+        this.policyEngine = policyEngine;
     }
 
     @Override
@@ -87,6 +90,11 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         if (contractPolicyDef == null) {
             return Result.failure(format("Policy %s not found", contractDefinition.getContractPolicyId()));
         }
+    
+        var contractPolicyResult = policyEngine.evaluate(NEGOTIATION_SCOPE, contractPolicyDef.getPolicy(), agent);
+        if (contractPolicyResult.failed()) {
+            return Result.failure(format("Policy %s not fulfilled", contractPolicyDef.getUid()));
+        }
 
         var validatedOffer = ContractOffer.Builder.newInstance()
                 .id(offer.getId())
@@ -109,23 +117,34 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         }
 
         // TODO implement validation against latest offer within the negotiation
+    
+        var agent = agentService.createFor(token);
+        var policyResult = policyEngine.evaluate(NEGOTIATION_SCOPE, offer.getPolicy(), agent);
+        if (policyResult.failed()) {
+            return Result.failure(format("Policy not fulfilled for ContractOffer %s", offer.getId()));
+        }
 
         return Result.success(null);
     }
 
     @Override
     public boolean validate(ClaimToken token, ContractAgreement agreement) {
-        var agent = agentService.createFor(token);
-        var tokens = parseContractId(agreement.getId());
-        if (tokens.length != 2) {
+        var contractIdTokens = parseContractId(agreement.getId());
+        if (contractIdTokens.length != 2) {
             return false; // not a valid id
         }
 
         if (!isStarted(agreement) || isExpired(agreement)) {
             return false;
         }
-
-        return contractDefinitionService.definitionFor(agent, tokens[DEFINITION_PART]) != null;
+    
+        var agent = agentService.createFor(token);
+        var contractDefinition = contractDefinitionService.definitionFor(agent, contractIdTokens[DEFINITION_PART]);
+        if (contractDefinition == null) {
+            return false;
+        }
+    
+        return policyEngine.evaluate(NEGOTIATION_SCOPE, agreement.getPolicy(), agent).succeeded();
         // TODO validate counter-party
     }
 
@@ -133,7 +152,12 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     public boolean validate(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer) {
         // TODO implement validation against latest offer within the negotiation
         var contractIdTokens = parseContractId(agreement.getId());
-        return contractIdTokens.length == 2;
+        if (contractIdTokens.length != 2) {
+            return false; // not a valid id
+        }
+    
+        var agent = agentService.createFor(token);
+        return policyEngine.evaluate(NEGOTIATION_SCOPE, agreement.getPolicy(), agent).succeeded();
     }
 
     @NotNull

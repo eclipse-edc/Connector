@@ -158,7 +158,7 @@ public class ContractServiceExtension implements ServiceExtension {
         var contractOfferService = new ContractOfferServiceImpl(agentService, definitionService, assetIndex, policyStore);
         context.registerService(ContractOfferService.class, contractOfferService);
 
-        var validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, clock);
+        var validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, clock, policyEngine);
         context.registerService(ContractValidationService.class, validationService);
 
         var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);
