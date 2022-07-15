@@ -23,9 +23,9 @@ import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.policy.model.Rule;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyContext;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.evaluation.ResourceDefinitionAtomicConstraintFunction;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.evaluation.ResourceDefinitionRuleFunction;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.evaluation.ResourceManifestEvaluator;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
@@ -91,7 +91,7 @@ public class ResourceManifestEvaluatorImpl implements ResourceManifestEvaluator 
     private <D extends ResourceDefinition> Result<D> evaluateResourceDefinition(D resourceDefinition, Policy policy) {
         var failures = new ArrayList<String>();
         
-        for (var permission: policy.getPermissions()) {
+        for (var permission : policy.getPermissions()) {
             var result = visitResourceDefinitionRule(permission, resourceDefinition, resourceDefinitionPermissionFunctions);
             resourceDefinition = processResourceDefinitionResult(result, resourceDefinition, failures);
             
