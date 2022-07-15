@@ -200,7 +200,7 @@ class HttpRequestParamsSupplierTest {
         }
 
         @Override
-        protected boolean extractTransferInOneGo(HttpDataAddress address) {
+        protected boolean extractNonChunkedTransfer(HttpDataAddress address) {
             return isOneGo;
         }
 

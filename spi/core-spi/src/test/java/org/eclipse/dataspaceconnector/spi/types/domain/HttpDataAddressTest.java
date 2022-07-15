@@ -37,7 +37,7 @@ class HttpDataAddressTest {
                 .proxyMethod("proxyMethod1")
                 .proxyPath("proxyPath1")
                 .path("foo/bar")
-                .transferInOneGo(true)
+                .nonChunkedTransfer(true)
                 .method("GET")
                 .proxyQueryParams("proxyQueryParams1")
                 .build();
@@ -55,7 +55,7 @@ class HttpDataAddressTest {
         assertThat(dataAddress.getContentType()).isEqualTo("application/octet-stream");
         assertThat(dataAddress.getMethod()).isEqualTo("GET");
         assertThat(dataAddress.getPath()).isEqualTo("foo/bar");
-        assertThat(dataAddress.getTransferInOneGo()).isTrue();
+        assertThat(dataAddress.getNonChunkedTransfer()).isTrue();
         assertThat(dataAddress.getAdditionalHeaders()).hasSize(2);
         assertThat(dataAddress.getAdditionalHeaders())
                 .containsEntry("Keep-Alive", "timeout=5, max=1000")
@@ -68,7 +68,7 @@ class HttpDataAddressTest {
 
         assertThat(dataAddress.getType()).isEqualTo("HttpData");
         assertThat(dataAddress.getAdditionalHeaders()).isEmpty();
-        assertThat(dataAddress.getTransferInOneGo()).isFalse();
+        assertThat(dataAddress.getNonChunkedTransfer()).isFalse();
         assertThat(dataAddress.getContentType()).isEqualTo("application/octet-stream");
     }
 }

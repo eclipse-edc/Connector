@@ -51,7 +51,7 @@ public class HttpDataAddress extends DataAddress {
     public static final String ADDITIONAL_HEADER = "header:";
     public static final String CONTENT_TYPE = "contentType";
     public static final String OCTET_STREAM = "application/octet-stream";
-    public static final String TRANSFER_IN_ONE_GO = "transferInOneGo";
+    public static final String NON_CHUNKED_TRANSFER = "nonChunkedTransfer";
     public static final Set<String> ADDITIONAL_HEADERS_TO_IGNORE = Set.of("content-type");
 
     private HttpDataAddress() {
@@ -127,9 +127,9 @@ public class HttpDataAddress extends DataAddress {
     }
 
     @JsonIgnore
-    public boolean getTransferInOneGo() {
-        var transferInOneGo = getProperty(TRANSFER_IN_ONE_GO);
-        return !StringUtils.isNullOrBlank(transferInOneGo) && Boolean.parseBoolean(transferInOneGo);
+    public boolean getNonChunkedTransfer() {
+        var nonChunkedTransfer = getProperty(NON_CHUNKED_TRANSFER);
+        return !StringUtils.isNullOrBlank(nonChunkedTransfer) && Boolean.parseBoolean(nonChunkedTransfer);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -214,8 +214,8 @@ public class HttpDataAddress extends DataAddress {
             return this;
         }
 
-        public Builder transferInOneGo(boolean transferInOneGo) {
-            this.property(TRANSFER_IN_ONE_GO, String.valueOf(transferInOneGo));
+        public Builder nonChunkedTransfer(boolean nonChunkedTransfer) {
+            this.property(NON_CHUNKED_TRANSFER, String.valueOf(nonChunkedTransfer));
             return this;
         }
 

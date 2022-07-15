@@ -232,13 +232,13 @@ class HttpSourceRequestParamsSupplierTest {
     }
 
     @Test
-    void extractTransferInOneGo() {
+    void extractNonChunkedTransfer() {
         var chunked = new Random().nextBoolean();
         var address = HttpDataAddress.Builder.newInstance()
-                .transferInOneGo(chunked)
+                .nonChunkedTransfer(chunked)
                 .build();
 
-        var result = supplier.extractTransferInOneGo(address);
+        var result = supplier.extractNonChunkedTransfer(address);
 
         assertThat(result).isFalse();
     }

@@ -31,11 +31,11 @@ import java.util.function.Supplier;
  *
  * @see <a href="https://github.com/square/okhttp/blob/master/docs/features/calls.md">OkHttp Dcoumentation</a>
  */
-public class TransferInOneGoRequestBody extends RequestBody {
+public class NonChunkedTransferRequestBody extends RequestBody {
     private byte[] bytes;
     private final String contentType;
 
-    public TransferInOneGoRequestBody(Supplier<InputStream> contentSupplier, String contentType) {
+    public NonChunkedTransferRequestBody(Supplier<InputStream> contentSupplier, String contentType) {
         try {
             this.bytes = contentSupplier.get().readAllBytes();
         } catch (IOException e) {
