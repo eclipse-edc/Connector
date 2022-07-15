@@ -32,6 +32,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Allow `TypeManager` to support multiple serialization contexts (#1581)
 * Check response type of IDS multipart messages (#1695)
 * Define api error detail message schema (#1490)
+* Policy scopes: `contract.cataloging`, `provision.manifest.verify` (#1446)
 
 #### Changed
 
