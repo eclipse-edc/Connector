@@ -20,7 +20,8 @@ import de.fraunhofer.iais.eis.ContractAgreementMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
@@ -35,13 +36,14 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URI;
 import java.util.Collections;
 
+import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.util.ResponseUtil.parseMultipartStringResponse;
 import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 /**
  * IdsMultipartSender implementation for contract agreements. Sends IDS ContractAgreementMessages and
  * expects an IDS RequestInProcessMessage as the response.
  */
-public class MultipartContractAgreementSender extends IdsMultipartSender<ContractAgreementRequest, MultipartMessageProcessedResponse> {
+public class MultipartContractAgreementSender extends IdsMultipartSender<ContractAgreementRequest, MultipartResponse<String>> {
 
     private final String idsWebhookAddress;
 
@@ -67,6 +69,14 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
         return request.getConnectorAddress();
     }
 
+    /**
+     * Builds a {@link de.fraunhofer.iais.eis.ContractAgreementMessage} for the given {@link ContractAgreementRequest}.
+     *
+     * @param request the request.
+     * @param token   the dynamic attribute token.
+     * @return a ContractAgreementMessage.
+     * @throws Exception if the agreement ID cannot be parsed.
+     */
     @Override
     protected Message buildMessageHeader(ContractAgreementRequest request, DynamicAttributeToken token) throws Exception {
         var id = request.getContractAgreement().getId();
@@ -91,6 +101,13 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
         return message;
     }
 
+    /**
+     * Builds the payload for the agreement request. The payload contains the {@link ContractAgreement}.
+     *
+     * @param request the request.
+     * @return the contract agreement as JSON-LD.
+     * @throws Exception if parsing the agreement fails.
+     */
     @Override
     protected String buildMessagePayload(ContractAgreementRequest request) throws Exception {
         var transformationResult = getTransformerRegistry().transform(request, ContractAgreement.class);
@@ -102,18 +119,16 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
         return getObjectMapper().writeValueAsString(idsContractAgreement);
     }
 
+    /**
+     * Parses the response content.
+     *
+     * @param parts container object for response header and payload InputStreams.
+     * @return a MultipartResponse containing the message header and the response payload as string.
+     * @throws Exception if parsing header or payload fails.
+     */
     @Override
-    protected MultipartMessageProcessedResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        var header = getObjectMapper().readValue(parts.getHeader(), Message.class);
-        String payload = null;
-        if (parts.getPayload() != null) {
-            payload = new String(parts.getPayload().readAllBytes());
-        }
-
-        return MultipartMessageProcessedResponse.Builder.newInstance()
-                .header(header)
-                .payload(payload)
-                .build();
+    protected MultipartResponse<String> getResponseContent(IdsMultipartParts parts) throws Exception {
+        return parseMultipartStringResponse(parts, getObjectMapper());
     }
 
 

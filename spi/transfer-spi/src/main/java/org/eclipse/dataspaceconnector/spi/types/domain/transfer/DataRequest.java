@@ -32,25 +32,16 @@ import java.util.Map;
 @JsonDeserialize(builder = DataRequest.Builder.class)
 public class DataRequest implements RemoteMessage, Polymorphic {
     private String id;
-
     private String processId;
-
     private String connectorAddress;
-
     private String protocol;
-
     private String connectorId;
-
     private String assetId;
-
     private String contractId;
-
     private DataAddress dataDestination;
 
     private boolean managedResources = true;
-
     private Map<String, String> properties = new HashMap<>();
-
     private TransferType transferType;
 
     private DataRequest() {
@@ -81,6 +72,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     /**
      * The protocol-specific address of the other connector.
      */
+    @Override
     public String getConnectorAddress() {
         return connectorAddress;
     }

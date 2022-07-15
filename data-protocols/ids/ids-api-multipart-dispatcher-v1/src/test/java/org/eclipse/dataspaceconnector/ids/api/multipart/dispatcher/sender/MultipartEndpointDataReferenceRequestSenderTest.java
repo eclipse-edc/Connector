@@ -21,6 +21,7 @@ import de.fraunhofer.iais.eis.NotificationMessage;
 import de.fraunhofer.iais.eis.NotificationMessageBuilder;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessage;
 import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -92,7 +93,10 @@ class MultipartEndpointDataReferenceRequestSenderTest {
     void getResponseContent() throws Exception {
         var header = new NotificationMessageBuilder()._contentVersion_(UUID.randomUUID().toString()).build();
         var payload = UUID.randomUUID().toString();
-        var parts = new IdsMultipartParts(new ByteArrayInputStream(mapper.writeValueAsBytes(header)), new ByteArrayInputStream(payload.getBytes()));
+        var parts = IdsMultipartParts.Builder.newInstance()
+                .header(new ByteArrayInputStream(mapper.writeValueAsBytes(header)))
+                .payload(new ByteArrayInputStream(payload.getBytes()))
+                .build();
         var response = sender.getResponseContent(parts);
 
         assertThat(response).isNotNull();
