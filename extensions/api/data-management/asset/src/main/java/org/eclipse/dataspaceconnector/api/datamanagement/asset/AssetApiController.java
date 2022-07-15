@@ -30,10 +30,7 @@ import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
-import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
-import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -46,6 +43,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
 
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
@@ -80,7 +78,7 @@ public class AssetApiController implements AssetApi {
         if (result.succeeded()) {
             monitor.debug(format("Asset created %s", assetEntryDto.getAsset()));
         } else {
-            handleFailedResult(result, asset.getId());
+            throw mapToException(result, Asset.class, asset.getId());
         }
     }
 
@@ -126,19 +124,7 @@ public class AssetApiController implements AssetApi {
         if (result.succeeded()) {
             monitor.debug(format("Asset deleted %s", id));
         } else {
-            handleFailedResult(result, id);
+            throw mapToException(result, Asset.class, id);
         }
     }
-
-    private void handleFailedResult(ServiceResult<Asset> result, String id) {
-        switch (result.reason()) {
-            case NOT_FOUND:
-                throw new ObjectNotFoundException(Asset.class, id);
-            case CONFLICT:
-                throw new ObjectExistsException(Asset.class, id);
-            default:
-                throw new EdcException("unexpected error");
-        }
-    }
-
 }

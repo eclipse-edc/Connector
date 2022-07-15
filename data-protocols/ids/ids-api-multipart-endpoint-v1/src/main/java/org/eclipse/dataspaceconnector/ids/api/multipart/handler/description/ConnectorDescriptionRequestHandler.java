@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +31,7 @@ import java.net.URI;
 import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionResponseMessageUtil.createDescriptionResponseMessage;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartRequestUtil.getInt;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartResponseUtil.createBadParametersErrorMultipartResponse;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartResponseUtil.createErrorMultipartResponse;
 
@@ -61,9 +63,15 @@ public class ConnectorDescriptionRequestHandler implements DescriptionRequestHan
             return createErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
+        //TODO: IDS REFACTORING: this should be a named property of the message object
+        // extract paging information, default to 0 ... Integer.MAX_VALUE
+        var from = getInt(descriptionRequestMessage, Range.FROM, 0);
+        var to = getInt(descriptionRequestMessage, Range.TO, Integer.MAX_VALUE);
+        var range = new Range(from, to);
+
         var descriptionResponseMessage = createDescriptionResponseMessage(connectorId, descriptionRequestMessage);
 
-        var transformResult = transformerRegistry.transform(connectorService.getConnector(claimToken), Connector.class);
+        var transformResult = transformerRegistry.transform(connectorService.getConnector(claimToken, range), Connector.class);
         if (transformResult.failed()) {
             monitor.warning(
                     String.format(

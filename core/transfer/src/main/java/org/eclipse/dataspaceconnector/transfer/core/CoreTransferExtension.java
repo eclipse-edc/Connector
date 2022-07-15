@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.command.BoundedCommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
+import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
@@ -51,6 +52,7 @@ import org.eclipse.dataspaceconnector.transfer.core.command.handlers.Deprovision
 import org.eclipse.dataspaceconnector.transfer.core.edr.EndpointDataReferenceReceiverRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.edr.EndpointDataReferenceTransformerRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.flow.DataFlowManagerImpl;
+import org.eclipse.dataspaceconnector.transfer.core.listener.TransferProcessEventListener;
 import org.eclipse.dataspaceconnector.transfer.core.observe.TransferProcessObservableImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ProvisionManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ResourceManifestGeneratorImpl;
@@ -94,6 +96,12 @@ public class CoreTransferExtension implements ServiceExtension {
     @Inject
     private Vault vault;
 
+    @Inject
+    private EventRouter eventRouter;
+
+    @Inject
+    private Clock clock;
+
     private TransferProcessManagerImpl processManager;
 
     @Override
@@ -135,6 +143,8 @@ public class CoreTransferExtension implements ServiceExtension {
         var commandQueue = new BoundedCommandQueue<TransferProcessCommand>(10);
         var observable = new TransferProcessObservableImpl();
         context.registerService(TransferProcessObservable.class, observable);
+
+        observable.registerListener(new TransferProcessEventListener(eventRouter, clock));
 
         var retryLimit = context.getSetting(TRANSFER_SEND_RETRY_LIMIT, 7);
         var retryBaseDelay = context.getSetting(TRANSFER_SEND_RETRY_BASE_DELAY_MS, 100L);

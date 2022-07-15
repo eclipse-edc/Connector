@@ -144,4 +144,67 @@ public interface ContractNegotiationListener {
      */
     default void preError(ContractNegotiation negotiation) {
     }
+
+    /**
+     * Called after a {@link ContractNegotiation} was initiated.
+     *
+     * @param negotiation the contract negotiation that has been initiated.
+     */
+    default void initiated(ContractNegotiation negotiation) {
+
+    }
+
+    /**
+     * Called after a {@link ContractNegotiation} was requested.
+     *
+     * @param negotiation the contract negotiation that has been requested.
+     */
+    default void requested(ContractNegotiation negotiation) {
+
+    }
+
+    /**
+     * Called after a {@link ContractNegotiation} was offered.
+     *
+     * @param negotiation the contract negotiation that has been offered.
+     */
+    default void offered(ContractNegotiation negotiation) {
+
+    }
+
+    /**
+     * Called after a {@link ContractNegotiation} was approved.
+     *
+     * @param negotiation the contract negotiation that has been approved.
+     */
+    default void approved(ContractNegotiation negotiation) {
+
+    }
+
+    /**
+     * Called after a {@link ContractNegotiation} was declined.
+     *
+     * @param negotiation the contract negotiation that has been declined.
+     */
+    default void declined(ContractNegotiation negotiation) {
+
+    }
+
+    /**
+     * Called after a {@link ContractNegotiation} was confirmed.
+     *
+     * @param negotiation the contract negotiation that has been confirmed.
+     */
+    default void confirmed(ContractNegotiation negotiation) {
+
+    }
+
+    /**
+     * Called after a {@link ContractNegotiation} failed.
+     *
+     * @param negotiation the contract negotiation that failed.
+     */
+    default void failed(ContractNegotiation negotiation) {
+
+    }
 }

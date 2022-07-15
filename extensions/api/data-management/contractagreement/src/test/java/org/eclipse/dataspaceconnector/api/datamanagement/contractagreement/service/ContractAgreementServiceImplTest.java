@@ -62,7 +62,8 @@ class ContractAgreementServiceImplTest {
 
         var result = service.query(QuerySpec.none());
 
-        assertThat(result).hasSize(1).first().matches(it -> it.getId().equals("agreementId"));
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent()).hasSize(1).first().matches(it -> it.getId().equals("agreementId"));
     }
 
     private ContractAgreement createContractAgreement(String agreementId) {

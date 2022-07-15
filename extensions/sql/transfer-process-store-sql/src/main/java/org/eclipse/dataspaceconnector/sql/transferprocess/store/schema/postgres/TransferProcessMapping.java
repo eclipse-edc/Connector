@@ -49,6 +49,6 @@ public class TransferProcessMapping extends TranslationMapping {
         add(FIELD_RESOURCE_MANIFEST, new ResourceManifestMapping());
         add(FIELD_PROVISIONED_RESOURCE_SET, new ProvisionedResourceSetMapping());
         // using the alias instead of the actual column name to avoid name clashes.
-        add(FIELD_DEPROVISIONED_RESOURCES, new DeprovisionedResourcesMapping(PostgresDialectStatements.DEPROVISIONED_RESOURCES_ALIAS));
+        add(FIELD_DEPROVISIONED_RESOURCES, new JsonFieldMapping(PostgresDialectStatements.DEPROVISIONED_RESOURCES_ALIAS));
     }
 }

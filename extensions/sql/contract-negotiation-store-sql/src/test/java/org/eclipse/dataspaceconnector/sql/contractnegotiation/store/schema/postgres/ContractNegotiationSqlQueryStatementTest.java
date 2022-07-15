@@ -73,20 +73,20 @@ class ContractNegotiationSqlQueryStatementTest {
     }
 
     @Test
-    void multiNestedFieldAccess_inOperator() {
-        var criterion = new Criterion("contractAgreement.policy.id", "=", "testpolicyid");
+    void multiNestedFieldAccess_equalsOperator() {
+        var criterion = new Criterion("contractAgreement.policy.assignee", "=", "testassignee");
         var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new ContractNegotiationMapping(postresStatements));
 
-        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE policy ->> 'id' = ? LIMIT ? OFFSET ?;");
-        assertThat(t.getParameters()).containsOnly("testpolicyid", 50, 0);
+        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE policy ->> 'assignee' = ? LIMIT ? OFFSET ?;");
+        assertThat(t.getParameters()).containsOnly("testassignee", 50, 0);
     }
 
     @Test
     void multiNestedFieldAccess_withPath_inOperator() {
-        var criterion = new Criterion("contractAgreement.policy.agreements.assignee", "=", "yomama");
+        var criterion = new Criterion("contractAgreement.policy.prohibitions.constraints", "in", List.of("yomama"));
         var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new ContractNegotiationMapping(postresStatements));
 
-        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE policy -> 'agreements' ->> 'assignee' = ? LIMIT ? OFFSET ?;");
+        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE policy -> 'prohibitions' ->> 'constraints' in (?) LIMIT ? OFFSET ?;");
         assertThat(t.getParameters()).containsOnly("yomama", 50, 0);
     }
 

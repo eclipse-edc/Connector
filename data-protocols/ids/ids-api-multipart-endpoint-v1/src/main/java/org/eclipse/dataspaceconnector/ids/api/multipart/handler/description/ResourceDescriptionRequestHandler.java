@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -34,7 +35,7 @@ import java.util.Objects;
 
 import static java.util.stream.Collectors.toList;
 
-public class ResourceDescriptionRequestHandler extends AbstractDescriptionRequestHandler<OfferedAsset, Resource> {
+public class ResourceDescriptionRequestHandler extends PageableDescriptionRequestHandler<OfferedAsset, Resource> {
     private final AssetIndex assetIndex;
     private final ContractOfferService contractOfferService;
 
@@ -56,7 +57,7 @@ public class ResourceDescriptionRequestHandler extends AbstractDescriptionReques
     }
 
     @Override
-    protected OfferedAsset retrieveObject(@NotNull IdsId idsId, @NotNull ClaimToken claimToken) {
+    protected OfferedAsset retrieveObject(@NotNull IdsId idsId, @NotNull ClaimToken claimToken, Range range) {
         String assetId = idsId.getValue();
         Asset asset = assetIndex.findById(assetId);
         if (asset == null) {
@@ -67,8 +68,7 @@ public class ResourceDescriptionRequestHandler extends AbstractDescriptionReques
                 .claimToken(claimToken)
                 .criterion(new Criterion(Asset.PROPERTY_ID, "=", assetId))
                 .build();
-
-        List<ContractOffer> targetingContractOffers = contractOfferService.queryContractOffers(contractOfferQuery).collect(toList());
+        List<ContractOffer> targetingContractOffers = contractOfferService.queryContractOffers(contractOfferQuery, range).collect(toList());
 
         return new OfferedAsset(asset, targetingContractOffers);
     }

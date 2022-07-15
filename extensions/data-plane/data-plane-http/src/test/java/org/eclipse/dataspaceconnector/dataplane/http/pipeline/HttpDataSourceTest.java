@@ -82,7 +82,8 @@ class HttpDataSourceTest {
     @Test
     void verifyExceptionIsThrownIfCallFailed() {
         var message = FAKER.lorem().word();
-        var interceptor = new CustomInterceptor(400, ResponseBody.create(FAKER.lorem().word(), MediaType.parse("text/plain")), message);
+        var body = FAKER.lorem().word();
+        var interceptor = new CustomInterceptor(400, ResponseBody.create(body, MediaType.parse("text/plain")), message);
         var params = mock(HttpRequestParams.class);
         var request = new Request.Builder().url(url).get().build();
         var source = defaultBuilder(interceptor).params(params).build();
@@ -91,7 +92,7 @@ class HttpDataSourceTest {
 
         assertThatExceptionOfType(EdcException.class)
                 .isThrownBy(source::openPartStream)
-                .withMessageContaining("Received code transferring HTTP data for request %s: %d - %s", requestId, 400, message);
+                .withMessage("Received code transferring HTTP data for request %s: %d - %s. %s", requestId, 400, message, body);
 
         verify(params).toRequest();
     }

@@ -126,4 +126,75 @@ public interface TransferProcessListener {
     default void preError(TransferProcess process) {
     }
 
+    /**
+     * Called after a {@link TransferProcess} was initiated.
+     *
+     * @param process the transfer process that has been initiated.
+     */
+    default void initiated(TransferProcess process) {
+
+    }
+
+    /**
+     * Called after a {@link TransferProcess} was provisioned.
+     *
+     * @param process the transfer process that has been provisioned.
+     */
+    default void provisioned(TransferProcess process) {
+
+    }
+
+    /**
+     * Called after a {@link TransferProcess} was requested.
+     *
+     * @param process the transfer process that has been requested.
+     */
+    default void requested(TransferProcess process) {
+
+    }
+
+    /**
+     * Called after a {@link TransferProcess} was completed.
+     *
+     * @param process the transfer process that has been completed.
+     */
+    default void completed(TransferProcess process) {
+
+    }
+
+    /**
+     * Called after a {@link TransferProcess} was deprovisioned.
+     *
+     * @param process the transfer process that has been deprovisioned.
+     */
+    default void deprovisioned(TransferProcess process) {
+
+    }
+
+    /**
+     * Called after a {@link TransferProcess} was ended.
+     *
+     * @param process the transfer process that has been ended.
+     */
+    default void ended(TransferProcess process) {
+
+    }
+
+    /**
+     * Called after a {@link TransferProcess} was cancelled.
+     *
+     * @param process the transfer process that has been cancelled.
+     */
+    default void cancelled(TransferProcess process) {
+
+    }
+
+    /**
+     * Called after a {@link TransferProcess} was failed.
+     *
+     * @param process the transfer process that has been failed.
+     */
+    default void failed(TransferProcess process) {
+
+    }
 }

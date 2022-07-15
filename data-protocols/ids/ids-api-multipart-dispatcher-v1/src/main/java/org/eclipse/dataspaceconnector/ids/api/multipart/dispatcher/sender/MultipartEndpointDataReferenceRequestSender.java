@@ -19,7 +19,8 @@ import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessageBuilder;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -30,11 +31,13 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URI;
 import java.util.Collections;
 
+import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.util.ResponseUtil.parseMultipartStringResponse;
+
 /**
  * IdsMultipartSender implementation for transferring Endpoint Data Reference (EDR). Sends IDS NotificationMessage and
- * expects an IDS DescriptionResponseMessage as the response.
+ * expects an IDS MessageProcessedMessage as the response.
  */
-public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSender<EndpointDataReferenceMessage, MultipartMessageProcessedResponse> {
+public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSender<EndpointDataReferenceMessage, MultipartResponse<String>> {
 
     public MultipartEndpointDataReferenceRequestSender(@NotNull String connectorId,
                                                        @NotNull OkHttpClient httpClient,
@@ -55,6 +58,13 @@ public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSen
         return request.getConnectorAddress();
     }
 
+    /**
+     * Builds a {@link de.fraunhofer.iais.eis.ParticipantUpdateMessage} for the given {@link EndpointDataReferenceMessage}.
+     *
+     * @param request the request.
+     * @param token   the dynamic attribute token.
+     * @return a ParticipantUpdateMessage.
+     */
     @Override
     protected Message buildMessageHeader(EndpointDataReferenceMessage request, DynamicAttributeToken token) {
         return new ParticipantUpdateMessageBuilder()
@@ -66,22 +76,27 @@ public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSen
                 .build();
     }
 
+    /**
+     * Builds the payload for the endpoint data reference message. The payload contains the message as JSON.
+     *
+     * @param request the request.
+     * @return the request as JSON.
+     * @throws Exception if parsing the request fails.
+     */
     @Override
     protected String buildMessagePayload(EndpointDataReferenceMessage request) throws Exception {
         return getObjectMapper().writeValueAsString(request.getEndpointDataReference());
     }
 
+    /**
+     * Parses the response content.
+     *
+     * @param parts container object for response header and payload InputStreams.
+     * @return a MultipartResponse containing the message header and the response payload as string.
+     * @throws Exception if parsing header or payload fails.
+     */
     @Override
-    protected MultipartMessageProcessedResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        var header = getObjectMapper().readValue(parts.getHeader(), Message.class);
-        String payload = null;
-        if (parts.getPayload() != null) {
-            payload = new String(parts.getPayload().readAllBytes());
-        }
-
-        return MultipartMessageProcessedResponse.Builder.newInstance()
-                .header(header)
-                .payload(payload)
-                .build();
+    protected MultipartResponse<String> getResponseContent(IdsMultipartParts parts) throws Exception {
+        return parseMultipartStringResponse(parts, getObjectMapper());
     }
 }

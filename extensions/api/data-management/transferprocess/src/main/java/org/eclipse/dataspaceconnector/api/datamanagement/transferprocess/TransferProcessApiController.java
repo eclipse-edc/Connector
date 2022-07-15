@@ -30,10 +30,8 @@ import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.T
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferState;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.service.TransferProcessService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
-import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -47,6 +45,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
 
 @Produces({ MediaType.APPLICATION_JSON })
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -73,7 +72,11 @@ public class TransferProcessApiController implements TransferProcessApi {
 
         var spec = result.getContent();
 
-        return service.query(spec).stream()
+        var queryResult = service.query(spec);
+        if (queryResult.failed()) {
+            throw mapToException(queryResult, TransferProcess.class, null);
+        }
+        return queryResult.getContent().stream()
                 .map(tp -> transformerRegistry.transform(tp, TransferProcessDto.class))
                 .filter(Result::succeeded)
                 .map(Result::getContent)
@@ -111,7 +114,7 @@ public class TransferProcessApiController implements TransferProcessApi {
         if (result.succeeded()) {
             monitor.debug(format("Transfer process canceled %s", result.getContent().getId()));
         } else {
-            handleFailedResult(result, id);
+            throw mapToException(result, TransferProcess.class, id);
         }
     }
 
@@ -124,7 +127,7 @@ public class TransferProcessApiController implements TransferProcessApi {
         if (result.succeeded()) {
             monitor.debug(format("Transfer process deprovisioned %s", result.getContent().getId()));
         } else {
-            handleFailedResult(result, id);
+            throw mapToException(result, TransferProcess.class, id);
         }
     }
 
@@ -149,14 +152,5 @@ public class TransferProcessApiController implements TransferProcessApi {
         }
     }
 
-    private void handleFailedResult(ServiceResult<TransferProcess> result, String id) {
-        switch (result.reason()) {
-            case NOT_FOUND:
-                throw new ObjectNotFoundException(TransferProcess.class, id);
-            case CONFLICT:
-                throw new ObjectExistsException(TransferProcess.class, id);
-            default:
-                throw new EdcException("unexpected error");
-        }
-    }
+
 }

@@ -105,6 +105,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         }
         negotiation.transitionDeclined();
         update(negotiation, l -> l.preDeclined(negotiation));
+        observable.invokeForEach(l -> l.declined(negotiation));
         monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
@@ -138,8 +139,8 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .build();
 
         negotiation.transitionRequested();
-
         update(negotiation, l -> l.preRequested(negotiation));
+        observable.invokeForEach(l -> l.requested(negotiation));
 
         monitor.debug(String.format("[Provider] ContractNegotiation initiated. %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
@@ -228,7 +229,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         negotiation.addContractOffer(offer); // TODO persist unchecked offer of consumer?
 
         if (result.failed()) {
-            monitor.debug("[Provider] Contract offer received. Will be rejected.");
+            monitor.debug("[Provider] Contract offer received. Will be rejected: " + result.getFailureDetail());
             negotiation.setErrorDetail(result.getFailureMessages().get(0));
             negotiation.transitionDeclining();
             update(negotiation, l -> l.preDeclining(negotiation));
@@ -385,6 +386,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .onSuccess(negotiation -> {
                     negotiation.transitionOffered();
                     update(negotiation, l -> l.preProviderOffered(negotiation));
+                    observable.invokeForEach(l -> l.offered(negotiation));
                 })
                 .onFailure(negotiation -> {
                     negotiation.transitionOffering();
@@ -399,6 +401,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .onSuccess(negotiation -> {
                     negotiation.transitionDeclined();
                     update(negotiation, l -> l.preDeclined(negotiation));
+                    observable.invokeForEach(l -> l.declined(negotiation));
                 })
                 .onFailure(negotiation -> {
                     negotiation.transitionDeclining();
@@ -414,6 +417,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                     negotiation.setContractAgreement(agreement);
                     negotiation.transitionConfirmed();
                     update(negotiation, l -> l.preConfirmed(negotiation));
+                    observable.invokeForEach(l -> l.confirmed(negotiation));
                 })
                 .onFailure(negotiation -> {
                     negotiation.transitionConfirming();

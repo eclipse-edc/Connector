@@ -38,16 +38,16 @@ public class PostgresDialectStatements extends BaseSqlDialectStatements {
 
     @Override
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
-        if (querySpec.containsAnyLeftOperand("prohibitions")) {
+        if (querySpec.containsAnyLeftOperand("policy.prohibitions")) {
             var select = getSelectFromJsonArrayTemplate(getSelectTemplate(), getProhibitionsColumn(), PROHIBITIONS_ALIAS);
             return new SqlQueryStatement(select, querySpec, new PolicyDefinitionMapping(this));
-        } else if (querySpec.containsAnyLeftOperand("permissions")) {
+        } else if (querySpec.containsAnyLeftOperand("policy.permissions")) {
             var select = getSelectFromJsonArrayTemplate(getSelectTemplate(), getPermissionsColumn(), PERMISSIONS_ALIAS);
             return new SqlQueryStatement(select, querySpec, new PolicyDefinitionMapping(this));
-        } else if (querySpec.containsAnyLeftOperand("obligations")) {
+        } else if (querySpec.containsAnyLeftOperand("policy.obligations")) {
             var select = getSelectFromJsonArrayTemplate(getSelectTemplate(), getDutiesColumn(), OBLIGATIONS_ALIAS);
             return new SqlQueryStatement(select, querySpec, new PolicyDefinitionMapping(this));
-        } else if (querySpec.containsAnyLeftOperand("extensibleProperties")) {
+        } else if (querySpec.containsAnyLeftOperand("policy.extensibleProperties")) {
             var select = getSelectFromJsonArrayTemplate(getSelectTemplate(), getExtensiblePropertiesColumn(), EXT_PROPERTIES_ALIAS);
             return new SqlQueryStatement(select, querySpec, new PolicyDefinitionMapping(this));
         } else {

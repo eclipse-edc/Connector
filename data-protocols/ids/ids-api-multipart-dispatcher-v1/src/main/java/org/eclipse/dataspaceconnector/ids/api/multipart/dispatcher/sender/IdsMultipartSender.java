@@ -29,6 +29,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.core.message.FutureCallback;
 import org.eclipse.dataspaceconnector.ids.core.message.IdsMessageSender;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
@@ -57,8 +58,8 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
 /**
  * Abstract class for sending IDS multipart messages.
  *
- * @param <M> the RemoteMessage type sent by the sub class.
- * @param <R> the response type returned by the sub class.
+ * @param <M> the RemoteMessage type sent by the sub-class.
+ * @param <R> the response type returned by the sub-class.
  */
 abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMessageSender<M, R> {
     private static final String TOKEN_SCOPE = "idsc:IDS_CONNECTOR_ATTRIBUTES_ALL";
@@ -92,8 +93,8 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
     }
 
     /**
-     * Builds and sends the IDS multipart request. Reads header and payload as {@link InputStream}
-     * from the multipart response.
+     * Builds and sends an IDS multipart request. Parses the response to the output type defined
+     * for the sub-class.
      *
      * @param request the request.
      * @param context the message context.

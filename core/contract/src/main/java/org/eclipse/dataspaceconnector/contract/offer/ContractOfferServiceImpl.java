@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
@@ -52,10 +53,10 @@ public class ContractOfferServiceImpl implements ContractOfferService {
 
     @Override
     @NotNull
-    public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query) {
+    public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query, Range range) {
         var agent = agentService.createFor(query.getClaimToken());
 
-        return definitionService.definitionsFor(agent)
+        return definitionService.definitionsFor(agent, range)
                 .flatMap(definition -> {
                     var assets = assetIndex.queryAssets(definition.getSelectorExpression());
                     return Optional.of(definition.getContractPolicyId())

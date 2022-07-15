@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
@@ -53,6 +54,7 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
     }
 
     protected IdentityService identityService;
+    protected ContractNegotiationStore negotiationStore;
 
     @AfterEach
     void after() {
@@ -80,9 +82,11 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
         identityService = mock(IdentityService.class);
         when(identityService.obtainClientCredentials(any())).thenReturn(Result.success(tokenResult));
         when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
+        
+        negotiationStore = mock(ContractNegotiationStore.class);
 
         extension.registerSystemExtension(ServiceExtension.class,
-                new IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(ASSETS, identityService));
+                new IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(ASSETS, identityService, negotiationStore));
     }
 
     protected void addAsset(Asset asset) {

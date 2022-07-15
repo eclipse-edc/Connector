@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.dataplane.api;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataplane.api.controller.DataPlaneControlApiController;
 import org.eclipse.dataspaceconnector.dataplane.api.controller.DataPlanePublicApiController;
-import org.eclipse.dataspaceconnector.dataplane.api.validation.TokenValidationClient;
+import org.eclipse.dataspaceconnector.dataplane.api.validation.TokenValidationClientImpl;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.WebService;
@@ -61,7 +61,7 @@ public class DataPlaneApiExtension implements ServiceExtension {
 
         var validationEndpoint = context.getConfig().getString(CONTROL_PLANE_VALIDATION_ENDPOINT);
 
-        var tokenValidationClient = new TokenValidationClient(httpClient, validationEndpoint, typeManager.getMapper(), monitor);
+        var tokenValidationClient = new TokenValidationClientImpl(httpClient, validationEndpoint, typeManager.getMapper(), monitor);
 
         var executorService = context.getService(ExecutorInstrumentation.class)
                 .instrument(Executors.newSingleThreadExecutor(), DataPlanePublicApiController.class.getSimpleName());

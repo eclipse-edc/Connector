@@ -72,7 +72,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         var agent = agentService.createFor(token);
         var contractDefinition = contractDefinitionService.definitionFor(agent, contractIdTokens[DEFINITION_PART]);
         if (contractDefinition == null) {
-            return Result.failure("Invalid contract.");
+            return Result.failure("The ContractDefinition with id %s either does not exist or the access to it is not granted.");
         }
 
         // take asset from definition and index

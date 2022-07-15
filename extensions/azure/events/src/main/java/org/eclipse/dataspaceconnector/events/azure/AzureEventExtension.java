@@ -40,11 +40,6 @@ public class AzureEventExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor.info("AzureEventExtension: create event grid appender");
-        registerListeners(context);
-    }
-
-    private void registerListeners(ServiceExtensionContext context) {
         var config = new AzureEventGridConfig(context);
         var topicName = config.getTopic();
         var endpoint = config.getEndpoint(topicName);
@@ -56,13 +51,12 @@ public class AzureEventExtension implements ServiceExtension {
                 .buildEventGridEventPublisherAsyncClient();
 
 
-        AzureEventGridPublisher publisher = new AzureEventGridPublisher(context.getConnectorId(), monitor, publisherClient);
+        var publisher = new AzureEventGridPublisher(context.getConnectorId(), monitor, publisherClient);
 
         var processObservable = context.getService(TransferProcessObservable.class, true);
         if (processObservable != null) {
             processObservable.registerListener(publisher);
         }
     }
-
 
 }

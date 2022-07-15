@@ -66,7 +66,7 @@ public class FsConfigurationExtension implements ConfigurationExtension {
         var configPath = configFile != null ? configFile : Paths.get(configLocation);
 
         if (!Files.exists(configPath)) {
-            monitor.info(format("Configuration file does not exist: %s. Ignoring.", configLocation));
+            monitor.warning(format("Configuration file does not exist: %s. Ignoring.", configLocation));
             return;
         }
 

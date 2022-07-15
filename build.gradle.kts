@@ -11,6 +11,8 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+import org.hidetake.gradle.swagger.generator.GenerateSwaggerUI
+
 
 plugins {
     `java-library`
@@ -20,15 +22,20 @@ plugins {
     signing
     id("com.rameshkp.openapi-merger-gradle-plugin") version "1.0.4"
     id("org.eclipse.dataspaceconnector.module-names")
-    id("com.autonomousapps.dependency-analysis") version "1.9.0" apply (false)
+    id("com.autonomousapps.dependency-analysis") version "1.10.0" apply (false)
     id("org.gradle.crypto.checksum") version "1.4.0"
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
+    id("org.hidetake.swagger.generator") version "2.19.2"
 }
 
 repositories {
     mavenCentral()
 }
 
+dependencies {
+    "swaggerCodegen"("org.openapitools:openapi-generator-cli:6.0.1")
+    "swaggerUI"("org.webjars:swagger-ui:4.11.1")
+}
 
 val jetBrainsAnnotationsVersion: String by project
 val jacksonVersion: String by project
@@ -127,6 +134,7 @@ allprojects {
     checkstyle {
         toolVersion = "9.0"
         configFile = rootProject.file("resources/edc-checkstyle-config.xml")
+        configDirectory.set(rootProject.file("resources"))
         maxErrors = 0 // does not tolerate errors
     }
 
@@ -194,8 +202,6 @@ allprojects {
 
     }
 
-
-
     pluginManager.withPlugin("io.swagger.core.v3.swagger-gradle-plugin") {
 
         dependencies {
@@ -257,7 +263,7 @@ allprojects {
         reports {
             // lets not generate any reports because that is done from within the Github Actions workflow
             html.required.set(false)
-            xml.required.set(false)
+            xml.required.set(true)
         }
     }
 
@@ -365,3 +371,12 @@ nexusPublishing {
     }
 }
 
+swaggerSources {
+    create("edc").apply {
+        setInputFile(file("./resources/openapi/openapi.yaml"))
+        ui(closureOf<GenerateSwaggerUI> {
+            outputDir = file("docs/swaggerui")
+            wipeOutputDir = true
+        })
+    }
+}

@@ -379,7 +379,15 @@ class InMemoryContractNegotiationStoreTest {
 
         assertThat(result).hasSize(2)
                 .extracting(ContractNegotiation::getId).containsExactlyInAnyOrder("negotiation1", "negotiation2");
+    }
 
+    @Test
+    void findContractAgreement_returnsNullIfAgreementDoesNotExist() {
+        store.save(createNegotiationBuilder("negotiation1").build());
+
+        var agreement = store.findContractAgreement("negotiation1");
+
+        assertThat(agreement).isNull();
     }
 
     @NotNull

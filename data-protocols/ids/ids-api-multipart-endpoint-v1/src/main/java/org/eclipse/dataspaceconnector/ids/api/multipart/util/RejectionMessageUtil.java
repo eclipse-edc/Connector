@@ -18,6 +18,7 @@ import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RejectionMessageBuilder;
 import de.fraunhofer.iais.eis.RejectionReason;
+import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
@@ -104,7 +105,7 @@ public final class RejectionMessageUtil {
 
         builder._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
         builder._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
-        //builder._issued_(CalendarUtil.gregorianNow()); TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+        builder._issued_(CalendarUtil.gregorianNow());
 
         if (connectorId != null) {
             connectorId = String.join(

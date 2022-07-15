@@ -27,7 +27,9 @@ import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.ResponseMessage;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartDescriptionResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -43,7 +45,7 @@ import java.util.Collections;
  * IdsMultipartSender implementation for metadata requests. Sends IDS DescriptionRequestMessages and
  * expects an IDS DescriptionResponseMessage as the response.
  */
-public class MultipartDescriptionRequestSender extends IdsMultipartSender<MetadataRequest, MultipartDescriptionResponse> {
+public class MultipartDescriptionRequestSender extends IdsMultipartSender<MetadataRequest, MultipartResponse<ModelClass>> {
 
     public MultipartDescriptionRequestSender(@NotNull String connectorId,
                                              @NotNull OkHttpClient httpClient,
@@ -64,11 +66,18 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
         return request.getConnectorAddress();
     }
 
+    /**
+     * Builds a {@link de.fraunhofer.iais.eis.DescriptionRequestMessage} for the given {@link MetadataRequest}.
+     *
+     * @param request the request.
+     * @param token   the dynamic attribute token.
+     * @return a DescriptionRequestMessage.
+     */
     @Override
     protected Message buildMessageHeader(MetadataRequest request, DynamicAttributeToken token) {
         return new DescriptionRequestMessageBuilder()
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
-                //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+                ._issued_(CalendarUtil.gregorianNow())
                 ._securityToken_(token)
                 ._issuerConnector_(getConnectorId())
                 ._senderAgent_(getConnectorId())
@@ -77,8 +86,15 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
                 .build();
     }
 
+    /**
+     * Parses the response content. Tries to parse the payload to the correct IDS information model type.
+     *
+     * @param parts container object for response header and payload InputStreams.
+     * @return a MultipartResponse containing the message header and the information model object representing the payload.
+     * @throws Exception if parsing header or payload fails or the payload type cannot be determined.
+     */
     @Override
-    protected MultipartDescriptionResponse getResponseContent(IdsMultipartParts parts) throws Exception {
+    protected MultipartResponse<ModelClass> getResponseContent(IdsMultipartParts parts) throws Exception {
         ObjectMapper objectMapper = getObjectMapper();
 
         ResponseMessage header = objectMapper.readValue(parts.getHeader(), ResponseMessage.class);
@@ -109,9 +125,6 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
             }
         }
 
-        return MultipartDescriptionResponse.Builder.newInstance()
-                .header(header)
-                .payload(payload)
-                .build();
+        return new MultipartResponse<>(header, payload);
     }
 }

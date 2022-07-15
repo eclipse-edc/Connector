@@ -106,6 +106,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         negotiation.addContractOffer(contractOffer.getContractOffer());
         negotiation.transitionInitial();
         update(negotiation, l -> l.preRequesting(negotiation));
+        observable.invokeForEach(l -> l.initiated(negotiation));
 
         monitor.debug(String.format("[Consumer] ContractNegotiation initiated. %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
@@ -143,7 +144,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         Result<ContractOffer> result = validationService.validate(token, contractOffer, latestOffer);
         negotiation.addContractOffer(contractOffer); // TODO persist unchecked offer of provider?
         if (result.failed()) {
-            monitor.debug("[Consumer] Contract offer received. Will be rejected.");
+            monitor.debug("[Consumer] Contract offer received. Will be rejected: " + result.getFailureDetail());
             negotiation.setErrorDetail(result.getFailureMessages().get(0));
             negotiation.transitionDeclining();
             update(negotiation, l -> l.preDeclining(negotiation));
@@ -208,6 +209,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
             negotiation.transitionConfirmed();
         }
         update(negotiation, l -> l.preConfirmed(negotiation));
+        observable.invokeForEach(l -> l.confirmed(negotiation));
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
@@ -234,6 +236,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         monitor.debug("[Consumer] Contract rejection received. Abort negotiation process.");
         negotiation.transitionDeclined();
         update(negotiation, l -> l.preDeclined(negotiation));
+        observable.invokeForEach(l -> l.declined(negotiation));
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         return StatusResult.success(negotiation);
@@ -421,6 +424,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .onSuccess(negotiation -> {
                     negotiation.transitionRequested();
                     update(negotiation, l -> l.preRequested(negotiation));
+                    observable.invokeForEach(l -> l.requested(negotiation));
                 })
                 .onFailure(negotiation -> {
                     negotiation.transitionRequesting();
@@ -435,6 +439,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .onSuccess(negotiation -> {
                     negotiation.transitionOffered();
                     update(negotiation, l -> l.preConsumerOffered(negotiation));
+                    observable.invokeForEach(l -> l.offered(negotiation));
                 })
                 .onFailure(negotiation -> {
                     negotiation.transitionOffering();
@@ -449,6 +454,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .onSuccess(negotiation -> {
                     negotiation.transitionApproved();
                     update(negotiation, l -> l.preConsumerApproved(negotiation));
+                    observable.invokeForEach(l -> l.approved(negotiation));
                 })
                 .onFailure(negotiation -> {
                     negotiation.transitionApproving();
@@ -463,6 +469,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .onSuccess(negotiation -> {
                     negotiation.transitionDeclined();
                     update(negotiation, l -> l.preDeclined(negotiation));
+                    observable.invokeForEach(l -> l.declined(negotiation));
                 })
                 .onFailure(negotiation -> {
                     negotiation.transitionDeclining();

@@ -39,6 +39,7 @@ import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
@@ -189,7 +190,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
 
         @Override
         @NotNull
-        public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query) {
+        public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query, Range range) {
             return assets.stream().map(asset ->
                     ContractOffer.Builder.newInstance()
                             .id("1")
