@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -101,6 +102,9 @@ public class CoreTransferExtension implements ServiceExtension {
 
     @Inject
     private Clock clock;
+    
+    @Inject
+    private PolicyEngine policyEngine;
 
     private TransferProcessManagerImpl processManager;
 
@@ -122,7 +126,7 @@ public class CoreTransferExtension implements ServiceExtension {
         var dataFlowManager = new DataFlowManagerImpl();
         context.registerService(DataFlowManager.class, dataFlowManager);
 
-        var manifestGenerator = new ResourceManifestGeneratorImpl();
+        var manifestGenerator = new ResourceManifestGeneratorImpl(policyEngine);
         context.registerService(ResourceManifestGenerator.class, manifestGenerator);
 
         var statusCheckerRegistry = new StatusCheckerRegistryImpl();
