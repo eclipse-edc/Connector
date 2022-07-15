@@ -22,9 +22,9 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.policy.model.Rule;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.policy.AtomicConstraintFunction;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyContext;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
-import org.eclipse.dataspaceconnector.spi.policy.AtomicConstraintFunction;
 import org.eclipse.dataspaceconnector.spi.policy.RuleFunction;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 

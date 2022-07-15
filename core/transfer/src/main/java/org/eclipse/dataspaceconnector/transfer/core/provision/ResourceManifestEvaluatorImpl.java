@@ -54,6 +54,7 @@ public class ResourceManifestEvaluatorImpl implements ResourceManifestEvaluator 
         this.monitor = monitor;
     }
     
+    @Override
     public boolean evaluate(Policy policy, PolicyContext policyContext) {
         var manifest = policyContext.getContextData(ResourceManifest.class);
         if (manifest == null) {
