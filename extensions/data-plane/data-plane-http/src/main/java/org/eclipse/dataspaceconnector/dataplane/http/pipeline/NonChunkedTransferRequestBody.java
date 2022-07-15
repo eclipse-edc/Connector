@@ -24,7 +24,7 @@ import java.io.InputStream;
 import java.util.function.Supplier;
 
 /**
- * Writes content into an OK HTTP buffered sink
+ * Writes content into an OK HTTP buffered sink.
  *
  * The extra Transfer-Encoding is not created because the Content-Length is provided upfront.
  * Note that means that the all content is loaded into memory, so this method can be used for small files (up to 50MB) for e.g.
