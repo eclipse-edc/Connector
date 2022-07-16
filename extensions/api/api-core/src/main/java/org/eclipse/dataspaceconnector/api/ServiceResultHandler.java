@@ -27,8 +27,9 @@ public class ServiceResultHandler {
      * Interprets a {@link ServiceResult} based on its {@link ServiceResult#reason()} property and returns the
      * appropriate exception:
      * <table>
-     *   <th>reason</th>
-     *   <th>exception</th>
+     *   <tr>
+     *     <th>reason</th> <th>exception</th>
+     *   </tr>
      *   <tr>
      *     <td>NOT_FOUND </td> <td>ObjectNotFoundException</td>
      *   </tr>
@@ -41,12 +42,14 @@ public class ServiceResultHandler {
      *   <tr>
      *     <td>other</td> <td>EdcException</td>
      *   </tr>
+     *   <caption>Mapping from failure reason to exception</caption>
      * </table>
      *
      * @param result The {@link ServiceResult}
      * @param clazz The type in whose context the failure occurred. Must not be null.
      * @param id The id of the entity which was involved in the failure. Can be null for
      *         {@link org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason#BAD_REQUEST}.
+     * @return Exception mapped from failure reason.
      */
     public static RuntimeException mapToException(@NotNull ServiceResult<?> result, @NotNull Class<?> clazz, @Nullable String id) {
         switch (result.reason()) {
