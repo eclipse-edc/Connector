@@ -19,7 +19,7 @@ import org.eclipse.dataspaceconnector.ids.core.message.IdsRemoteMessageDispatche
 import static org.eclipse.dataspaceconnector.ids.spi.Protocols.IDS_MULTIPART;
 
 /**
- * IdsRemoteMessageDisptacher implementation for IDS multipart.
+ * IdsRemoteMessageDispatcher implementation for IDS multipart.
  */
 public class IdsMultipartRemoteMessageDispatcher extends IdsRemoteMessageDispatcher {
 

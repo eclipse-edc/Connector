@@ -54,6 +54,7 @@ in the detailed section referring to by linking pull requests or issues.
 
 #### Fixed
 
+* Fix failure of TransferProcessEventDispatchTest (#1616)
 * Fixed a dead link in contributor documentation (#1477)
 * Fix usage of `NAME` property in `HttpDataSourceFactory` (#1460)
 * Fix clearing Loaders in the FCC (#1495)
