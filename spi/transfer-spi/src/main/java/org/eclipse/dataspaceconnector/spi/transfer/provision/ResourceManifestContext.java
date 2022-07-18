@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.spi.transfer.provision;
 
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,6 +28,10 @@ import java.util.Map;
 public class ResourceManifestContext {
     
     private Map<Class, List<ResourceDefinition>> resourceDefinitions = new HashMap<>();
+    
+    public ResourceManifestContext(ResourceManifest resourceManifest) {
+        resourceManifest.getDefinitions().forEach(this::addDefinition);
+    }
     
     /**
      * Adds a resource definition.

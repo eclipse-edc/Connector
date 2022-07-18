@@ -67,8 +67,7 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
         var manifest = ResourceManifest.Builder.newInstance().definitions(definitions).build();
         
         // Make all definitions available through manifest context
-        var manifestContext = new ResourceManifestContext();
-        manifest.getDefinitions().forEach(manifestContext::addDefinition);
+        var manifestContext = new ResourceManifestContext(manifest);
         
         // Create additional context information for policy engine to make manifest context available
         var contextInformation = new HashMap<Class, Object>();
