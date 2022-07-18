@@ -64,6 +64,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Effectively removed default LIMIT in SQL Contract Def Store (#1515)
 * Add query validation (#1605)
 * Adapt logs to the logging guide (#1425)
+* Fix incompatibility `DecentralizedIdentityServiceExtension` and `FsPrivateKeyResolver` (#1696)
 
 ## [milestone-4] - 2022-06-07
 
