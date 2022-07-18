@@ -61,7 +61,7 @@ public class MultipartRequest {
             return new Builder();
         }
 
-        public Builder header(@Nullable Message header) {
+        public Builder header(@NotNull Message header) {
             this.header = header;
             return this;
         }
@@ -71,12 +71,14 @@ public class MultipartRequest {
             return this;
         }
 
-        public Builder claimToken(ClaimToken claimToken) {
+        public Builder claimToken(@NotNull ClaimToken claimToken) {
             this.claimToken = claimToken;
             return this;
         }
 
         public MultipartRequest build() {
+            Objects.requireNonNull(header, "Multipart request header is null.");
+            Objects.requireNonNull(claimToken, "Multipart request claim token is null.");
             return new MultipartRequest(header, payload, claimToken);
         }
     }

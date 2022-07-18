@@ -28,7 +28,6 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionReque
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.EndpointDataReferenceHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
@@ -109,29 +108,24 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
 
     @Override
-    public void initialize(ServiceExtensionContext serviceExtensionContext) {
-        monitor = serviceExtensionContext.getMonitor();
+    public void initialize(ServiceExtensionContext context) {
+        monitor = context.getMonitor();
 
-        registerControllers(serviceExtensionContext);
+        registerControllers(context);
     }
 
-    private void registerControllers(ServiceExtensionContext serviceExtensionContext) {
-
-        var connectorId = resolveConnectorId(serviceExtensionContext);
-
-        // create & register controller
+    private void registerControllers(ServiceExtensionContext context) {
+        var connectorId = resolveConnectorId(context);
+        
         // TODO ObjectMapper needs to be replaced by one capable to write proper IDS JSON-LD
         //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
         var objectMapper = objectMapperFactory.getObjectMapper();
 
         // create request handlers
         var handlers = new LinkedList<Handler>();
-        
         handlers.add(new DescriptionRequestHandler(monitor, connectorId, transformerRegistry, assetIndex, dataCatalogService, contractOfferService, connectorService));
         handlers.add(new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault));
-        handlers.add(new EndpointDataReferenceHandler(monitor, connectorId, endpointDataReferenceReceiverRegistry, endpointDataReferenceTransformerRegistry, serviceExtensionContext.getTypeManager()));
-
-        // contract message handlers
+        handlers.add(new EndpointDataReferenceHandler(monitor, connectorId, endpointDataReferenceReceiverRegistry, endpointDataReferenceTransformerRegistry, context.getTypeManager()));
         handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager, transformerRegistry, assetIndex));
         handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager, transformerRegistry));
         handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper, providerNegotiationManager, consumerNegotiationManager));
@@ -145,22 +139,15 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     private String resolveConnectorId(@NotNull ServiceExtensionContext context) {
         Objects.requireNonNull(context);
 
-        String value = context.getSetting(EDC_IDS_ID, null);
-
-        if (value == null) {
-            String message = "IDS Settings: No setting found for key '%s'. Using default value '%s'";
-            monitor.warning(String.format(message, EDC_IDS_ID, DEFAULT_EDC_IDS_ID));
-            value = DEFAULT_EDC_IDS_ID;
-        }
-
+        var value = context.getSetting(EDC_IDS_ID, DEFAULT_EDC_IDS_ID);
         try {
             // Hint: use stringified uri to keep uri path and query
-            IdsId idsId = IdsIdParser.parse(value);
+            var idsId = IdsIdParser.parse(value);
             if (idsId != null && idsId.getType() == IdsType.CONNECTOR) {
                 return idsId.getValue();
             }
         } catch (IllegalArgumentException e) {
-            String message = "IDS Settings: Expected valid URN for setting '%s', but was %s'. Expected format: 'urn:connector:[id]'";
+            var message = "IDS Settings: Expected valid URN for setting '%s', but was %s'. Expected format: 'urn:connector:[id]'";
             throw new EdcException(String.format(message, EDC_IDS_ID, DEFAULT_EDC_IDS_ID));
         }
 

@@ -22,7 +22,6 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.ContractAgreementTransfo
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
@@ -67,10 +66,10 @@ public class ContractAgreementHandler implements Handler {
     }
 
     @Override
-    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull ClaimToken claimToken) {
+    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
         Objects.requireNonNull(multipartRequest);
-        Objects.requireNonNull(claimToken);
-
+    
+        var claimToken = multipartRequest.getClaimToken();
         var message = (ContractAgreementMessage) multipartRequest.getHeader();
 
         de.fraunhofer.iais.eis.ContractAgreement contractAgreement;

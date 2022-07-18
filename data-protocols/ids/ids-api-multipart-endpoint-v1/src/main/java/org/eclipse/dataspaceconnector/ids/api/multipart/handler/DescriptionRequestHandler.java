@@ -87,13 +87,11 @@ public class DescriptionRequestHandler implements Handler {
     }
 
     @Override
-    public MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest,
-                                           @NotNull ClaimToken claimToken) {
+    public MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
         Objects.requireNonNull(multipartRequest);
-        Objects.requireNonNull(claimToken);
-
+        
         try {
-            return handleRequestInternal(multipartRequest, claimToken);
+            return handleRequestInternal(multipartRequest, multipartRequest.getClaimToken());
         } catch (EdcException exception) {
             monitor.severe(format("Could not handle multipart request: %s", exception.getMessage()), exception);
         }

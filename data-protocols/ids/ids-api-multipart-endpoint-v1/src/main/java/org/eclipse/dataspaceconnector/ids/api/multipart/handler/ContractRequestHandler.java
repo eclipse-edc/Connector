@@ -26,7 +26,6 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
@@ -77,10 +76,10 @@ public class ContractRequestHandler implements Handler {
     }
 
     @Override
-    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull ClaimToken claimToken) {
+    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
         Objects.requireNonNull(multipartRequest);
-        Objects.requireNonNull(claimToken);
-
+    
+        var claimToken = multipartRequest.getClaimToken();
         var message = (ContractRequestMessage) multipartRequest.getHeader();
 
         ContractRequest contractRequest;

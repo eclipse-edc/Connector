@@ -18,7 +18,6 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iais.eis.Connector;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.TokenFormat;
@@ -154,7 +153,7 @@ public class MultipartController {
             return Response.ok(createResponse(messageTypeNotSupported(header, connectorId))).build();
         }
 
-        var multipartResponse = handler.handleRequest(multipartRequest, claimToken);
+        var multipartResponse = handler.handleRequest(multipartRequest);
         if (multipartResponse != null) {
             return Response.ok(createResponse(multipartResponse)).build();
         }

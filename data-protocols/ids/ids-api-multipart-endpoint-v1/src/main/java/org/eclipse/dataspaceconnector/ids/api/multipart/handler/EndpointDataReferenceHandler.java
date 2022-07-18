@@ -20,7 +20,6 @@ import java.util.Objects;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceReceiver;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceReceiverRegistry;
@@ -74,7 +73,9 @@ public class EndpointDataReferenceHandler implements Handler {
      * - finally apply {@link EndpointDataReferenceReceiver} to the resulting EDR to dispatch it into the consumer environment.
      */
     @Override
-    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull ClaimToken claimToken) {
+    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
+        Objects.requireNonNull(multipartRequest);
+        
         var edr = typeManager.readValue(multipartRequest.getPayload(), EndpointDataReference.class);
         var transformationResult = transformerRegistry.transform(edr);
         if (transformationResult.failed()) {

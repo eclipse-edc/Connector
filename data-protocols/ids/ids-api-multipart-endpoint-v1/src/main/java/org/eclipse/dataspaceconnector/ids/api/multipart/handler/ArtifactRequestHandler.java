@@ -26,7 +26,6 @@ import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
-import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
@@ -80,20 +79,20 @@ public class ArtifactRequestHandler implements Handler {
     }
 
     @Override
-    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull ClaimToken claimToken) {
+    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
         Objects.requireNonNull(multipartRequest);
-        Objects.requireNonNull(claimToken);
+        
+        var claimToken = multipartRequest.getClaimToken();
+        var message = (ArtifactRequestMessage) multipartRequest.getHeader();
 
-        var artifactRequestMessage = (ArtifactRequestMessage) multipartRequest.getHeader();
-
-        var artifactUri = artifactRequestMessage.getRequestedArtifact();
+        var artifactUri = message.getRequestedArtifact();
         var artifactIdsId = IdsIdParser.parse(artifactUri.toString());
         if (artifactIdsId.getType() != IdsType.ARTIFACT) {
             monitor.debug("ArtifactRequestHandler: Requested artifact URI not of type artifact.");
             return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
         }
 
-        var contractUri = artifactRequestMessage.getTransferContract();
+        var contractUri = message.getTransferContract();
         var contractIdsId = IdsIdParser.parse(contractUri.toString());
         if (contractIdsId.getType() != IdsType.CONTRACT) {
             monitor.debug("ArtifactRequestHandler: Transfer contract URI not of type contract.");
@@ -128,8 +127,8 @@ public class ArtifactRequestHandler implements Handler {
         var dataAddress = artifactRequestMessagePayload.getDataDestination();
 
         Map<String, String> props = new HashMap<>();
-        if (artifactRequestMessage.getProperties() != null) {
-            artifactRequestMessage.getProperties().forEach((k, v) -> props.put(k, v.toString()));
+        if (message.getProperties() != null) {
+            message.getProperties().forEach((k, v) -> props.put(k, v.toString()));
         }
 
         var idsWebhookAddress = Optional.ofNullable(props.remove(IDS_WEBHOOK_ADDRESS_PROPERTY))
@@ -145,7 +144,7 @@ public class ArtifactRequestHandler implements Handler {
         //     is different from the one specified by the contract
 
         var dataRequest = DataRequest.Builder.newInstance()
-                .id(artifactRequestMessage.getId().toString())
+                .id(message.getId().toString())
                 .protocol(Protocols.IDS_MULTIPART)
                 .dataDestination(dataAddress)
                 .connectorId(connectorId)
