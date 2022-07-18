@@ -30,7 +30,6 @@ import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
@@ -89,49 +88,36 @@ public class DescriptionRequestHandler implements Handler {
     @Override
     public MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
         Objects.requireNonNull(multipartRequest);
-        
-        try {
-            return handleRequestInternal(multipartRequest, multipartRequest.getClaimToken());
-        } catch (EdcException exception) {
-            monitor.severe(format("Could not handle multipart request: %s", exception.getMessage()), exception);
-        }
+
+        var claimToken = multipartRequest.getClaimToken();
+        var message = (DescriptionRequestMessage) multipartRequest.getHeader();
     
-        return createMultipartResponse(messageTypeNotSupported(multipartRequest.getHeader(), connectorId));
-    }
-
-    public MultipartResponse handleRequestInternal(@NotNull MultipartRequest multipartRequest,
-                                                   @NotNull ClaimToken claimToken) {
-        Objects.requireNonNull(multipartRequest);
-        Objects.requireNonNull(claimToken);
-
-        var descriptionRequestMessage = (DescriptionRequestMessage) multipartRequest.getHeader();
-
-        var requestedElement = descriptionRequestMessage.getRequestedElement();
+        var requestedElement = message.getRequestedElement();
         IdsId idsId = null;
         if (requestedElement != null) {
             var idsIdResult = transformerRegistry.transform(requestedElement, IdsId.class);
             if (idsIdResult.failed()) {
                 monitor.warning(format("Could not transform URI to IdsId: [%s]",
                         String.join(", ", idsIdResult.getFailureMessages())));
-                return createMultipartResponse(badParameters(descriptionRequestMessage, connectorId));
+                return createMultipartResponse(badParameters(message, connectorId));
             }
-
+        
             idsId = idsIdResult.getContent();
         }
     
         //TODO: IDS REFACTORING: this should be a named property of the message object
         // extract paging information, default to 0 ... Integer.MAX_VALUE
-        var from = getInt(descriptionRequestMessage, Range.FROM, 0);
-        var to = getInt(descriptionRequestMessage, Range.TO, Integer.MAX_VALUE);
+        var from = getInt(message, Range.FROM, 0);
+        var to = getInt(message, Range.TO, Integer.MAX_VALUE);
         var range = new Range(from, to);
-        
+    
         Result<? extends ModelClass> result;
         if (idsId == null || (idsId.getType() == IdsType.CONNECTOR)) {
             result = getConnector(claimToken, range);
         } else {
             var retrievedObject = retrieveRequestedElement(idsId, claimToken, range);
             if (retrievedObject == null) {
-                return createMultipartResponse(notFound(descriptionRequestMessage, connectorId));
+                return createMultipartResponse(notFound(message, connectorId));
             }
             result = transformRequestedElement(retrievedObject, idsId.getType());
         }
@@ -144,13 +130,11 @@ public class DescriptionRequestHandler implements Handler {
                 monitor.warning(String.format("Could not retrieve requested element with ID %s:%s: [%s]",
                         idsId.getType(), idsId.getValue(), String.join(", ", result.getFailureMessages())));
             }
-    
-            return createMultipartResponse(badParameters(descriptionRequestMessage, connectorId));
-        }
         
-        var descriptionResponseMessage = descriptionResponse(descriptionRequestMessage, connectorId);
+            return createMultipartResponse(badParameters(message, connectorId));
+        }
     
-        return createMultipartResponse(descriptionResponseMessage, result.getContent());
+        return createMultipartResponse(descriptionResponse(message, connectorId), result.getContent());
     }
     
     private Result<Connector> getConnector(ClaimToken claimToken, Range range) {
