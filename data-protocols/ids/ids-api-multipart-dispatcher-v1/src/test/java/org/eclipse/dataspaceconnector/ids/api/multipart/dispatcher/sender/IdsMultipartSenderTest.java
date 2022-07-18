@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - replace object mapper
  *
  */
 
@@ -21,10 +22,13 @@ import net.datafaker.Faker;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.core.serialization.TypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
+import org.eclipse.dataspaceconnector.serializer.JsonLdService;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.junit.jupiter.api.Test;
 
@@ -44,7 +48,13 @@ class IdsMultipartSenderTest {
     @Test
     void should_fail_if_token_retrieval_fails() {
         when(identityService.obtainClientCredentials(any())).thenReturn(Result.failure("error"));
-        var sender = new TestIdsMultipartSender("any", mock(OkHttpClient.class), new ObjectMapper(), mock(Monitor.class), identityService, mock(IdsTransformerRegistry.class));
+
+        var typeManager = new TypeManager();
+        typeManager.registerContext("ids", JsonLdService.getObjectMapper());
+        TypeManagerUtil.registerIdsClasses(typeManager);
+        var objectMapper = typeManager.getMapper("ids");
+
+        var sender = new TestIdsMultipartSender("any", mock(OkHttpClient.class), objectMapper, mock(Monitor.class), identityService, mock(IdsTransformerRegistry.class));
 
         var result = sender.send(new TestRemoteMessage(), () -> "any");
 

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - replace object mapper
  *
  */
 
@@ -21,10 +22,12 @@ import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.RejectionMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
+import org.eclipse.dataspaceconnector.ids.core.serialization.TypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.serializer.JsonLdService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -32,6 +35,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -79,11 +83,11 @@ class ArtifactRequestHandlerTest {
         transferProcessManager = mock(TransferProcessManager.class);
         connectorId = UUID.randomUUID().toString();
         Monitor monitor = mock(Monitor.class);
-        var mapper = new ObjectMapper();
         contractValidationService = mock(ContractValidationService.class);
         contractNegotiationStore = mock(ContractNegotiationStore.class);
         Vault vault = mock(Vault.class);
-        handler = new ArtifactRequestHandler(monitor, connectorId, mapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault);
+
+        handler = new ArtifactRequestHandler(monitor, connectorId, getCustomizedObjectMapper(), contractNegotiationStore, contractValidationService, transferProcessManager, vault);
     }
 
     @Test
@@ -158,5 +162,14 @@ class ArtifactRequestHandlerTest {
                 .payload(new ObjectMapper().writeValueAsString(payload))
                 .claimToken(claimToken)
                 .build();
+    }
+
+    private ObjectMapper getCustomizedObjectMapper() {
+        var typeManager = new TypeManager();
+        typeManager.registerContext("ids", JsonLdService.getObjectMapper());
+
+        TypeManagerUtil.registerIdsClasses(typeManager);
+
+        return typeManager.getMapper("ids");
     }
 }

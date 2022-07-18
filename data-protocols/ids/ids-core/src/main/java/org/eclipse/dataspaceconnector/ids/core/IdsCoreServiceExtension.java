@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *
  */
 
@@ -16,18 +17,18 @@ package org.eclipse.dataspaceconnector.ids.core;
 
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.core.descriptor.IdsDescriptorServiceImpl;
-import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
+import org.eclipse.dataspaceconnector.ids.core.serialization.TypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.core.service.CatalogServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.ConnectorServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.ConnectorServiceSettings;
 import org.eclipse.dataspaceconnector.ids.core.transform.IdsTransformerRegistryImpl;
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.descriptor.IdsDescriptorService;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
+import org.eclipse.dataspaceconnector.serializer.JsonLdService;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
@@ -45,7 +46,7 @@ import java.util.List;
  * Implements the IDS Controller REST API.
  */
 @Provides({ CatalogService.class, ConnectorService.class, IdsDescriptorService.class,
-        CatalogService.class, ConnectorService.class, IdsTransformerRegistry.class, ObjectMapperFactory.class })
+        CatalogService.class, ConnectorService.class, IdsTransformerRegistry.class })
 public class IdsCoreServiceExtension implements ServiceExtension {
 
     @EdcSetting
@@ -57,10 +58,13 @@ public class IdsCoreServiceExtension implements ServiceExtension {
     private static final String ERROR_INVALID_SETTING = "IDS Settings: Invalid setting for '%s'. Was %s'.";
 
     private Monitor monitor;
+
     @Inject
     private ContractOfferService contractOfferService;
+
     @Inject
     private IdentityService identityService;
+
     @Inject
     private OkHttpClient okHttpClient;
 
@@ -70,21 +74,23 @@ public class IdsCoreServiceExtension implements ServiceExtension {
     }
 
     @Override
-    public void initialize(ServiceExtensionContext serviceExtensionContext) {
-        monitor = serviceExtensionContext.getMonitor();
+    public void initialize(ServiceExtensionContext context) {
+        monitor = context.getMonitor();
+
+        customizeTypeManager(context);
 
         List<String> settingErrors = new ArrayList<>();
         ConnectorServiceSettings connectorServiceSettings = null;
         String dataCatalogId = null;
 
         try {
-            connectorServiceSettings = new ConnectorServiceSettings(serviceExtensionContext, monitor);
+            connectorServiceSettings = new ConnectorServiceSettings(context, monitor);
         } catch (EdcException e) {
             settingErrors.add(e.getMessage());
         }
 
         try {
-            dataCatalogId = resolveCatalogId(serviceExtensionContext);
+            dataCatalogId = resolveCatalogId(context);
         } catch (EdcException e) {
             settingErrors.add(e.getMessage());
         }
@@ -93,60 +99,27 @@ public class IdsCoreServiceExtension implements ServiceExtension {
             throw new EdcException(String.join(", ", settingErrors));
         }
 
-        IdsTransformerRegistry transformerRegistry = createTransformerRegistry();
-        serviceExtensionContext.registerService(IdsTransformerRegistry.class, transformerRegistry);
+        context.registerService(IdsTransformerRegistry.class, new IdsTransformerRegistryImpl());
 
-        CatalogService dataCatalogService = createDataCatalogService(dataCatalogId, contractOfferService);
+        var dataCatalogService = new CatalogServiceImpl(monitor, dataCatalogId, contractOfferService);
+        context.registerService(CatalogService.class, dataCatalogService);
 
-        serviceExtensionContext.registerService(CatalogService.class, dataCatalogService);
+        var connectorService = new ConnectorServiceImpl(monitor, connectorServiceSettings, dataCatalogService);
+        context.registerService(ConnectorService.class, connectorService);
 
-        ConnectorService connectorService = createConnectorService(connectorServiceSettings,
-                dataCatalogService);
-        serviceExtensionContext.registerService(ConnectorService.class, connectorService);
-
-        //TODO remove once IDS serializer is integrated (#236)
-        var objectMapperFactory = new ObjectMapperFactory();
-        serviceExtensionContext.registerService(ObjectMapperFactory.class, objectMapperFactory);
-
-        registerOther(serviceExtensionContext);
+        context.registerService(IdsDescriptorService.class, new IdsDescriptorServiceImpl());
     }
 
-    private void registerOther(ServiceExtensionContext context) {
-        var descriptorService = new IdsDescriptorServiceImpl();
-        context.registerService(IdsDescriptorService.class, descriptorService);
-    }
-
-    private IdsTransformerRegistry createTransformerRegistry() {
-        return new IdsTransformerRegistryImpl();
-    }
-
-    private CatalogService createDataCatalogService(
-            String dataCatalogId,
-            ContractOfferService contractOfferService) {
-        return new CatalogServiceImpl(
-                monitor,
-                dataCatalogId,
-                contractOfferService
-        );
-    }
-
-    private ConnectorService createConnectorService(
-            ConnectorServiceSettings connectorServiceSettings,
-            CatalogService dataCatalogService) {
-        return new ConnectorServiceImpl(monitor, connectorServiceSettings, dataCatalogService);
-    }
-
-    private String resolveCatalogId(ServiceExtensionContext serviceExtensionContext) {
-        String value = serviceExtensionContext.getSetting(EDC_IDS_CATALOG_ID, null);
-
+    private String resolveCatalogId(ServiceExtensionContext context) {
+        var value = context.getSetting(EDC_IDS_CATALOG_ID, null);
         if (value == null) {
             monitor.warning(String.format(WARNING_USING_DEFAULT_SETTING, EDC_IDS_CATALOG_ID, DEFAULT_EDC_IDS_CATALOG_ID));
             value = DEFAULT_EDC_IDS_CATALOG_ID;
         }
 
         try {
-            // Hint: use stringified uri to keep uri path and query
-            IdsId idsId = IdsIdParser.parse(value);
+            // use stringified uri to keep uri path and query
+            var idsId = IdsIdParser.parse(value);
             if (idsId.getType() == IdsType.CATALOG) {
                 return idsId.getValue();
             } else {
@@ -155,5 +128,12 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         } catch (IllegalArgumentException e) {
             throw new EdcException(String.format(ERROR_INVALID_SETTING, EDC_IDS_CATALOG_ID, value));
         }
+    }
+
+    private void customizeTypeManager(ServiceExtensionContext context) {
+        var typeManager = context.getTypeManager();
+        typeManager.registerContext("ids", JsonLdService.getObjectMapper());
+
+        TypeManagerUtil.registerIdsClasses(typeManager);
     }
 }

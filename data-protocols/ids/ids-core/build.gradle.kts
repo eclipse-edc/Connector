@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - update dependencies
  *
  */
 
@@ -25,6 +26,7 @@ dependencies {
     api(project(":spi"))
     api(project(":common:util"))
     api(project(":data-protocols:ids:ids-spi"))
+    api(project(":extensions:jsonld-serdes"))
 
     api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
 

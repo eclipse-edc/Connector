@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Fraunhofer Institute for Software and Systems Engineering
+ *  Copyright (c) 2021 - 2022 Fraunhofer Institute for Software and Systems Engineering
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.fraunhofer.iais.eis.ContractAgreement;
 import de.fraunhofer.iais.eis.ContractAgreementMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
@@ -66,9 +67,9 @@ public class ContractAgreementHandler implements Handler {
         var claimToken = multipartRequest.getClaimToken();
         var message = (ContractAgreementMessage) multipartRequest.getHeader();
 
-        de.fraunhofer.iais.eis.ContractAgreement contractAgreement;
+        ContractAgreement contractAgreement;
         try {
-            contractAgreement = objectMapper.readValue(multipartRequest.getPayload(), de.fraunhofer.iais.eis.ContractAgreement.class);
+            contractAgreement = objectMapper.readValue(multipartRequest.getPayload(), ContractAgreement.class);
         } catch (IOException e) {
             monitor.severe("ContractAgreementHandler: Contract Agreement is invalid", e);
             return createMultipartResponse(badParameters(message, connectorId));

@@ -9,22 +9,25 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - replace object mapper
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.ids.core.serialization.TypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
+import org.eclipse.dataspaceconnector.serializer.JsonLdService;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,14 +54,19 @@ class MultipartArtifactRequestSenderTest {
     @BeforeEach
     public void setUp() {
         var httpClient = mock(OkHttpClient.class);
-        var mapper = new ObjectMapper();
         var monitor = mock(Monitor.class);
         var vault = mock(Vault.class);
         var identityService = mock(IdentityService.class);
         String connectorId = UUID.randomUUID().toString();
         transformerRegistry = mock(IdsTransformerRegistry.class);
         idsWebhookAddress = UUID.randomUUID() + "/api/v1/ids/data";
-        sender = new MultipartArtifactRequestSender(connectorId, httpClient, mapper, monitor, vault, identityService, transformerRegistry, idsWebhookAddress);
+
+        var typeManager = new TypeManager();
+        typeManager.registerContext("ids", JsonLdService.getObjectMapper());
+        TypeManagerUtil.registerIdsClasses(typeManager);
+        var objectMapper = typeManager.getMapper("ids");
+
+        sender = new MultipartArtifactRequestSender(connectorId, httpClient, objectMapper, monitor, vault, identityService, transformerRegistry, idsWebhookAddress);
     }
 
     @Test
@@ -88,6 +96,16 @@ class MultipartArtifactRequestSenderTest {
                             .containsAllEntriesOf(request.getProperties())
                             .containsEntry(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress);
                 });
+    }
+
+    @Test
+    void buildMessagePayload() throws Exception {
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+        var dataRequest = DataRequest.Builder.newInstance().dataDestination(dataAddress).build();
+
+        var result = sender.buildMessagePayload(dataRequest);
+
+        assertThat(result).isNotNull();
     }
 
     private static DataRequest createRequest() {

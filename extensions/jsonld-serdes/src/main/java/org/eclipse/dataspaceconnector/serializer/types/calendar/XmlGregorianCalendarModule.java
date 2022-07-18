@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.core.serialization;
+package org.eclipse.dataspaceconnector.serializer.types.calendar;
 
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
@@ -20,14 +20,13 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Custom Jackson module for the ObjectMapper, that contains custom (de)serializers for objects of
- * type XMLGregorianCalendar. Serves as a workaround for date (de)serialization until integration
- * of the IDS Information Model Serializer.
+ * type XMLGregorianCalendar.
  */
 public class XmlGregorianCalendarModule extends SimpleModule {
-    
+
     public XmlGregorianCalendarModule() {
         this.addSerializer(XMLGregorianCalendar.class, new XmlGregorianCalendarSerializer());
         this.addDeserializer(XMLGregorianCalendar.class, new XmlGregorianCalendarDeserializer());
     }
-    
+
 }

@@ -11,6 +11,7 @@
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Fraunhofer Institute for Software and Systems Engineering - add methods
  *       Daimler TSS GmbH - introduce factory to create RequestInProcessMessage
+ *       Fraunhofer Institute for Software and Systems Engineering - replace object mapper
  *
  */
 
@@ -39,11 +40,13 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
+import org.eclipse.dataspaceconnector.ids.core.serialization.TypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
+import org.eclipse.dataspaceconnector.serializer.JsonLdService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
 import org.junit.jupiter.api.AfterEach;
@@ -68,13 +71,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
     private static final AtomicReference<Integer> PORT = new AtomicReference<>();
     private static final AtomicReference<Integer> IDS_PORT = new AtomicReference<>();
     private static final List<Asset> ASSETS = new LinkedList<>();
-    // TODO needs to be replaced by an objectmapper capable to understand IDS JSON-LD
-    //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
-    private static final ObjectMapper OBJECT_MAPPER;
-
-    static {
-        OBJECT_MAPPER = new ObjectMapperFactory().getObjectMapper();
-    }
+    private ObjectMapper objectMapper;
 
     @AfterEach
     void after() {
@@ -96,6 +93,8 @@ abstract class AbstractMultipartControllerIntegrationTest {
         for (Map.Entry<String, String> entry : getSystemProperties().entrySet()) {
             System.setProperty(entry.getKey(), entry.getValue());
         }
+
+        objectMapper = getCustomizedObjectMapper();
 
         extension.registerSystemExtension(ServiceExtension.class, new IdsApiMultipartEndpointV1IntegrationTestServiceExtension(ASSETS));
     }
@@ -123,11 +122,11 @@ abstract class AbstractMultipartControllerIntegrationTest {
     }
 
     protected String toJson(Message message) throws Exception {
-        return OBJECT_MAPPER.writeValueAsString(message);
+        return objectMapper.writeValueAsString(message);
     }
 
     protected String toJson(Contract contract) throws Exception {
-        return OBJECT_MAPPER.writeValueAsString(contract);
+        return objectMapper.writeValueAsString(contract);
     }
 
     protected DescriptionRequestMessage getDescriptionRequestMessage() {
@@ -233,7 +232,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 }
 
                 if (multipartName.equalsIgnoreCase(HEADER)) {
-                    header = OBJECT_MAPPER.readValue(part.body().inputStream(), Message.class);
+                    header = objectMapper.readValue(part.body().readUtf8(), Message.class);
                 } else if (multipartName.equalsIgnoreCase(PAYLOAD)) {
                     payload = part.body().readByteArray();
                 }
@@ -278,8 +277,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 .add("Content-Disposition", "form-data; name=\"header\"")
                 .build();
 
-        RequestBody requestBody = RequestBody.create(
-                toJson(message),
+        RequestBody requestBody = RequestBody.create(toJson(message),
                 okhttp3.MediaType.get(MediaType.APPLICATION_JSON));
 
         return MultipartBody.Part.create(headers, requestBody);
@@ -291,8 +289,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 .add("Content-Disposition", "form-data; name=\"payload\"")
                 .build();
 
-        RequestBody requestBody = RequestBody.create(
-                toJson(contract),
+        RequestBody requestBody = RequestBody.create(toJson(contract),
                 okhttp3.MediaType.get(MediaType.APPLICATION_JSON));
 
         return MultipartBody.Part.create(headers, requestBody);
@@ -314,5 +311,14 @@ abstract class AbstractMultipartControllerIntegrationTest {
         public byte[] getContent() {
             return content;
         }
+    }
+
+    private ObjectMapper getCustomizedObjectMapper() {
+        var typeManager = new TypeManager();
+        typeManager.registerContext("ids", JsonLdService.getObjectMapper());
+
+        TypeManagerUtil.registerIdsClasses(typeManager);
+
+        return typeManager.getMapper("ids");
     }
 }

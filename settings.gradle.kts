@@ -127,6 +127,7 @@ include(":extensions:data-plane:data-plane-api")
 include(":extensions:data-plane:integration-tests")
 include(":extensions:http-receiver")
 include(":extensions:http-provisioner")
+include(":extensions:jsonld-serdes")
 
 include(":extensions:sql:asset-index-sql")
 include(":extensions:sql:common-sql")
@@ -212,4 +213,3 @@ include(":tooling:module-domain")
 include(":tooling:module-processor")
 include(":tooling:module-processor-extension-test")
 include(":tooling:module-processor-spi-test")
-
