@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *
  */
 
@@ -39,8 +40,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createBadParametersErrorMultipartResponse;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createMultipartResponseFromStatusResult;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.fromStatusResult;
 import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 public class ArtifactRequestHandler implements Handler {
@@ -88,31 +90,31 @@ public class ArtifactRequestHandler implements Handler {
         var artifactIdsId = IdsIdParser.parse(artifactUri.toString());
         if (artifactIdsId.getType() != IdsType.ARTIFACT) {
             monitor.debug("ArtifactRequestHandler: Requested artifact URI not of type artifact.");
-            return createBadParametersErrorMultipartResponse(connectorId, multipartRequest.getHeader());
+            return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
         }
 
         var contractUri = artifactRequestMessage.getTransferContract();
         var contractIdsId = IdsIdParser.parse(contractUri.toString());
         if (contractIdsId.getType() != IdsType.CONTRACT) {
             monitor.debug("ArtifactRequestHandler: Transfer contract URI not of type contract.");
-            return createBadParametersErrorMultipartResponse(connectorId, multipartRequest.getHeader());
+            return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
         }
 
         var contractAgreement = contractNegotiationStore.findContractAgreement(contractIdsId.getValue());
         if (contractAgreement == null) {
             monitor.debug(String.format("ArtifactRequestHandler: No contract agreement with id %s found.", contractIdsId.getValue()));
-            return createBadParametersErrorMultipartResponse(connectorId, multipartRequest.getHeader());
+            return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
         }
 
         var isContractValid = contractValidationService.validate(claimToken, contractAgreement);
         if (!isContractValid) {
             monitor.debug("ArtifactRequestHandler: Contract is invalid");
-            return createBadParametersErrorMultipartResponse(connectorId, multipartRequest.getHeader());
+            return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
         }
 
         if (!artifactIdsId.getValue().equals(contractAgreement.getAssetId())) {
             monitor.debug(String.format("ArtifactRequestHandler: invalid artifact id specified %s for contract: %s", artifactIdsId.getValue(), contractIdsId.getValue()));
-            return createBadParametersErrorMultipartResponse(connectorId, multipartRequest.getHeader());
+            return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
         }
 
         ArtifactRequestMessagePayload artifactRequestMessagePayload;
@@ -120,7 +122,7 @@ public class ArtifactRequestHandler implements Handler {
             artifactRequestMessagePayload =
                     objectMapper.readValue(multipartRequest.getPayload(), ArtifactRequestMessagePayload.class);
         } catch (IOException e) {
-            return createBadParametersErrorMultipartResponse(connectorId, artifactRequestMessage);
+            return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
         }
 
         var dataAddress = artifactRequestMessagePayload.getDataDestination();
@@ -136,7 +138,7 @@ public class ArtifactRequestHandler implements Handler {
         if (StringUtils.isNullOrBlank(idsWebhookAddress)) {
             var msg = "Ids webhook address is invalid";
             monitor.debug(String.format("%s: %s", getClass().getSimpleName(), msg));
-            return createBadParametersErrorMultipartResponse(connectorId, artifactRequestMessage, msg);
+            return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
         }
 
         // NB: DO NOT use the asset id provided by the client as that can open aan attack vector where a client references an artifact that
@@ -159,6 +161,6 @@ public class ArtifactRequestHandler implements Handler {
             vault.storeSecret(dataAddress.getKeyName(), artifactRequestMessagePayload.getSecret());
         }
 
-        return createMultipartResponseFromStatusResult(connectorId, artifactRequestMessage, transferInitiateResult);
+        return createMultipartResponse(fromStatusResult(transferInitiateResult, multipartRequest.getHeader(), connectorId));
     }
 }

@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation, refactoring
  *       Daimler TSS GmbH - introduce factory to create RequestInProcessMessage
  *
  */
@@ -30,8 +30,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.Objects;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createBadParametersErrorMultipartResponse;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createMessageTypeNotSupportedErrorMultipartResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.messageTypeNotSupported;
 
 /**
  * This class handles and processes incoming IDS {@link ContractOfferMessage}s.
@@ -76,10 +77,10 @@ public class ContractOfferHandler implements Handler {
             contractOffer = objectMapper.readValue(multipartRequest.getPayload(), ContractOffer.class);
         } catch (IOException e) {
             monitor.severe("ContractOfferHandler: Contract Offer is invalid", e);
-            return createBadParametersErrorMultipartResponse(connectorId, message);
+            return createMultipartResponse(badParameters(message, connectorId));
         }
     
         // TODO similar implementation to ContractRequestHandler (only required if counter offers supported, not needed for M1)
-        return createMessageTypeNotSupportedErrorMultipartResponse(connectorId, message);
+        return createMultipartResponse(messageTypeNotSupported(message, connectorId));
     }
 }

@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
- *       Fraunhofer Institute for Software and Systems Engineering - additional message building methods
+ *       Fraunhofer Institute for Software and Systems Engineering - additional message building methods, refactoring
  *       Daimler TSS GmbH - introduce factory to create RequestInProcessMessage
  *
  */
@@ -25,6 +25,7 @@ import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RejectionMessageBuilder;
 import de.fraunhofer.iais.eis.RejectionReason;
 import de.fraunhofer.iais.eis.RequestInProcessMessageBuilder;
+import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
@@ -40,9 +41,35 @@ import java.util.UUID;
 import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregorianNow;
 
 /**
- * Provides utility methods for building IDS {@link Message}s for responses.
+ * Provides utility methods for building IDS Multipart responses.
  */
-public class ResponseMessageUtil {
+public class ResponseUtil {
+    
+    /**
+     * Creates a multipart response with the given header.
+     *
+     * @param header the header.
+     * @return a multipart response.
+     */
+    public static MultipartResponse createMultipartResponse(@NotNull Message header) {
+        return MultipartResponse.Builder.newInstance()
+                .header(header)
+                .build();
+    }
+    
+    /**
+     * Creates a multipart response with the given header and payload.
+     *
+     * @param header the header.
+     * @param payload the payload.
+     * @return a multipart response.
+     */
+    public static MultipartResponse createMultipartResponse(@NotNull Message header, @NotNull Object payload) {
+        return MultipartResponse.Builder.newInstance()
+                .header(header)
+                .payload(payload)
+                .build();
+    }
     
     /**
      * Creates a MessageProcessedNotificationMessage.
@@ -51,8 +78,8 @@ public class ResponseMessageUtil {
      * @param connectorId the connector ID.
      * @return a MessageProcessedNotificationMessage.
      */
-    public static NotificationMessage createMessageProcessedNotificationMessage(@NotNull Message correlationMessage,
-                                                                                @NotNull String connectorId) {
+    public static NotificationMessage messageProcessedNotification(@NotNull Message correlationMessage,
+                                                                   @NotNull String connectorId) {
         var messageId = getMessageId();
         var connectorIdUri = getConnectorUrn(connectorId);
         
@@ -74,8 +101,8 @@ public class ResponseMessageUtil {
      * @param connectorId the connector ID.
      * @return a RequestInProcessMessage.
      */
-    public static NotificationMessage createRequestInProcessMessage(@NotNull Message correlationMessage,
-                                                                    @NotNull String connectorId) {
+    public static NotificationMessage requestInProcess(@NotNull Message correlationMessage,
+                                                       @NotNull String connectorId) {
         var messageId = getMessageId();
         var connectorIdUri = getConnectorUrn(connectorId);
         
@@ -97,8 +124,8 @@ public class ResponseMessageUtil {
      * @param connectorId the connector ID.
      * @return a DescriptionResponseMessage.
      */
-    public static DescriptionResponseMessage createDescriptionResponseMessage(@NotNull Message correlationMessage,
-                                                                              @NotNull String connectorId) {
+    public static DescriptionResponseMessage descriptionResponse(@NotNull Message correlationMessage,
+                                                                 @NotNull String connectorId) {
         var messageId = getMessageId();
         var connectorIdUri = getConnectorUrn(connectorId);
     
@@ -125,11 +152,11 @@ public class ResponseMessageUtil {
      * @param connectorId the connector ID.
      * @return the response message depending on the status result.
      */
-    public static Message createResponseMessageForStatusResult(@NotNull StatusResult<?> statusResult,
-                                                               @NotNull Message correlationMessage,
-                                                               @NotNull String connectorId) {
+    public static Message fromStatusResult(@NotNull StatusResult<?> statusResult,
+                                           @NotNull Message correlationMessage,
+                                           @NotNull String connectorId) {
         if (statusResult.succeeded()) {
-            return createRequestInProcessMessage(correlationMessage, connectorId);
+            return requestInProcess(correlationMessage, connectorId);
         } else {
             if (statusResult.fatalError()) {
                 return badParameters(correlationMessage, connectorId);

@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation, refactoring
  *
  */
 
@@ -31,8 +31,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.Objects;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createBadParametersErrorMultipartResponse;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createMultipartResponseFromStatusResult;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.fromStatusResult;
 
 /**
  * This class handles and processes incoming IDS {@link ContractAgreementMessage}s.
@@ -77,14 +78,14 @@ public class ContractAgreementHandler implements Handler {
             contractAgreement = objectMapper.readValue(multipartRequest.getPayload(), de.fraunhofer.iais.eis.ContractAgreement.class);
         } catch (IOException e) {
             monitor.severe("ContractAgreementHandler: Contract Agreement is invalid", e);
-            return createBadParametersErrorMultipartResponse(connectorId, message);
+            return createMultipartResponse(badParameters(message, connectorId));
         }
 
         // extract target from contract request
         var permission = contractAgreement.getPermission().get(0);
         if (permission == null) {
             monitor.debug("ContractAgreementHandler: Contract Agreement is invalid");
-            return createBadParametersErrorMultipartResponse(connectorId, message);
+            return createMultipartResponse(badParameters(message, connectorId));
         }
 
         // search for matching asset
@@ -101,7 +102,7 @@ public class ContractAgreementHandler implements Handler {
         if (result.failed()) {
             monitor.debug(String.format("Could not transform contract agreement: [%s]",
                     String.join(", ", result.getFailureMessages())));
-            return createBadParametersErrorMultipartResponse(connectorId, message);
+            return createMultipartResponse(badParameters(message, connectorId));
         }
 
         // TODO get hash from message
@@ -110,7 +111,7 @@ public class ContractAgreementHandler implements Handler {
         var negotiationConfirmResult = negotiationManager.confirmed(claimToken,
                 String.valueOf(processId), output.getContractAgreement(), output.getPolicy());
     
-        return createMultipartResponseFromStatusResult(connectorId, message, negotiationConfirmResult);
+        return createMultipartResponse(fromStatusResult(negotiationConfirmResult, message, connectorId));
     }
 
 }

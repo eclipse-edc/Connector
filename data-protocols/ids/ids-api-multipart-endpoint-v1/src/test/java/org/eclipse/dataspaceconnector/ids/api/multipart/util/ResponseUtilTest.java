@@ -30,7 +30,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class ResponseMessageUtilTest {
+class ResponseUtilTest {
     private final String connectorId = "38bfeade-3566-11ec-8d3d-0242ac130003";
     private final URI connectorIdUri = URI.create("urn:connector:" + connectorId);
     private final URI correlationMessageId = URI.create("urn:message:7c35205e-3566-11ec-8d3d-0242ac130003");
@@ -57,27 +57,27 @@ class ResponseMessageUtilTest {
 
     @Test
     public void testNotFound() {
-        var rejectionMessage = ResponseMessageUtil
+        var rejectionMessage = ResponseUtil
                 .notFound(null, null);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_FOUND);
 
         // just correlationMessage, no connectorId
-        rejectionMessage = ResponseMessageUtil
+        rejectionMessage = ResponseUtil
                 .notFound(correlationMessage, null);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_FOUND);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
 
         // no correlationMessage, just connectorId
-        rejectionMessage = ResponseMessageUtil
+        rejectionMessage = ResponseUtil
                 .notFound(null, connectorId);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_FOUND);
         assertConnectorIdPropertiesMapped(rejectionMessage);
 
         // both correlationMessage and connectorId
-        rejectionMessage = ResponseMessageUtil
+        rejectionMessage = ResponseUtil
                 .notFound(correlationMessage, connectorId);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_FOUND);
@@ -87,24 +87,24 @@ class ResponseMessageUtilTest {
 
     @Test
     public void testNotAuthenticated() {
-        var rejectionMessage = ResponseMessageUtil
+        var rejectionMessage = ResponseUtil
                 .notAuthenticated(null, null);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHENTICATED);
 
-        rejectionMessage = ResponseMessageUtil
+        rejectionMessage = ResponseUtil
                 .notAuthenticated(correlationMessage, null);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHENTICATED);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
 
-        rejectionMessage = ResponseMessageUtil
+        rejectionMessage = ResponseUtil
                 .notAuthenticated(null, connectorId);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHENTICATED);
         assertConnectorIdPropertiesMapped(rejectionMessage);
 
-        rejectionMessage = ResponseMessageUtil
+        rejectionMessage = ResponseUtil
                 .notAuthenticated(correlationMessage, connectorId);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHENTICATED);
@@ -114,24 +114,24 @@ class ResponseMessageUtilTest {
 
     @Test
     public void testNotAuthorized() {
-        var rejectionMessage = ResponseMessageUtil
+        var rejectionMessage = ResponseUtil
                 .notAuthorized(null, null);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHORIZED);
 
-        rejectionMessage = ResponseMessageUtil
+        rejectionMessage = ResponseUtil
                 .notAuthorized(correlationMessage, null);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHORIZED);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
 
-        rejectionMessage = ResponseMessageUtil
+        rejectionMessage = ResponseUtil
                 .notAuthorized(null, connectorId);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHORIZED);
         assertConnectorIdPropertiesMapped(rejectionMessage);
 
-        rejectionMessage = ResponseMessageUtil
+        rejectionMessage = ResponseUtil
                 .notAuthorized(correlationMessage, connectorId);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHORIZED);
@@ -141,25 +141,25 @@ class ResponseMessageUtilTest {
 
     @Test
     public void testMalformedMessage() {
-        var rejectionMessage = ResponseMessageUtil
+        var rejectionMessage = ResponseUtil
                 .malformedMessage(null, null);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.MALFORMED_MESSAGE);
 
-        rejectionMessage = ResponseMessageUtil
+        rejectionMessage = ResponseUtil
                 .malformedMessage(correlationMessage, null);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.MALFORMED_MESSAGE);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
 
-        rejectionMessage = ResponseMessageUtil
+        rejectionMessage = ResponseUtil
                 .malformedMessage(null, connectorId);
 
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.MALFORMED_MESSAGE);
         assertConnectorIdPropertiesMapped(rejectionMessage);
 
-        rejectionMessage = ResponseMessageUtil
+        rejectionMessage = ResponseUtil
                 .malformedMessage(correlationMessage, connectorId);
 
 
@@ -170,25 +170,25 @@ class ResponseMessageUtilTest {
 
     @Test
     public void testMessageTypeNotSupported() {
-        var rejectionMessage = ResponseMessageUtil
+        var rejectionMessage = ResponseUtil
                 .messageTypeNotSupported(null, null);
 
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
 
-        rejectionMessage = ResponseMessageUtil
+        rejectionMessage = ResponseUtil
                 .messageTypeNotSupported(correlationMessage, null);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
 
-        rejectionMessage = ResponseMessageUtil
+        rejectionMessage = ResponseUtil
                 .messageTypeNotSupported(null, connectorId);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
         assertConnectorIdPropertiesMapped(rejectionMessage);
 
-        rejectionMessage = ResponseMessageUtil
+        rejectionMessage = ResponseUtil
                 .messageTypeNotSupported(correlationMessage, connectorId);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
@@ -198,24 +198,24 @@ class ResponseMessageUtilTest {
 
     @Test
     public void testInternalRecipientError() {
-        var rejectionMessage = ResponseMessageUtil
+        var rejectionMessage = ResponseUtil
                 .internalRecipientError(null, null);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.INTERNAL_RECIPIENT_ERROR);
 
-        rejectionMessage = ResponseMessageUtil
+        rejectionMessage = ResponseUtil
                 .internalRecipientError(correlationMessage, null);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.INTERNAL_RECIPIENT_ERROR);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
 
-        rejectionMessage = ResponseMessageUtil
+        rejectionMessage = ResponseUtil
                 .internalRecipientError(null, connectorId);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.INTERNAL_RECIPIENT_ERROR);
         assertConnectorIdPropertiesMapped(rejectionMessage);
 
-        rejectionMessage = ResponseMessageUtil
+        rejectionMessage = ResponseUtil
                 .internalRecipientError(correlationMessage, connectorId);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.INTERNAL_RECIPIENT_ERROR);

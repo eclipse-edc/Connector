@@ -47,10 +47,11 @@ import java.util.Objects;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartRequestUtil.getInt;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createBadParametersErrorMultipartResponse;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createNotFoundErrorMultipartResponse;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.createDescriptionResponseMessage;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.messageTypeNotSupported;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.descriptionResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.messageTypeNotSupported;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.notFound;
 
 public class DescriptionRequestHandler implements Handler {
     private final Monitor monitor;
@@ -96,10 +97,8 @@ public class DescriptionRequestHandler implements Handler {
         } catch (EdcException exception) {
             monitor.severe(format("Could not handle multipart request: %s", exception.getMessage()), exception);
         }
-
-        return MultipartResponse.Builder.newInstance()
-                .header(messageTypeNotSupported(multipartRequest.getHeader(), connectorId))
-                .build();
+    
+        return createMultipartResponse(messageTypeNotSupported(multipartRequest.getHeader(), connectorId));
     }
 
     public MultipartResponse handleRequestInternal(@NotNull MultipartRequest multipartRequest,
@@ -116,7 +115,7 @@ public class DescriptionRequestHandler implements Handler {
             if (idsIdResult.failed()) {
                 monitor.warning(format("Could not transform URI to IdsId: [%s]",
                         String.join(", ", idsIdResult.getFailureMessages())));
-                return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
+                return createMultipartResponse(badParameters(descriptionRequestMessage, connectorId));
             }
 
             idsId = idsIdResult.getContent();
@@ -134,7 +133,7 @@ public class DescriptionRequestHandler implements Handler {
         } else {
             var retrievedObject = retrieveRequestedElement(idsId, claimToken, range);
             if (retrievedObject == null) {
-                return createNotFoundErrorMultipartResponse(connectorId, descriptionRequestMessage);
+                return createMultipartResponse(notFound(descriptionRequestMessage, connectorId));
             }
             result = transformRequestedElement(retrievedObject, idsId.getType());
         }
@@ -148,15 +147,12 @@ public class DescriptionRequestHandler implements Handler {
                         idsId.getType(), idsId.getValue(), String.join(", ", result.getFailureMessages())));
             }
     
-            return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
+            return createMultipartResponse(badParameters(descriptionRequestMessage, connectorId));
         }
         
-        var descriptionResponseMessage = createDescriptionResponseMessage(descriptionRequestMessage, connectorId);
+        var descriptionResponseMessage = descriptionResponse(descriptionRequestMessage, connectorId);
     
-        return MultipartResponse.Builder.newInstance()
-                .header(descriptionResponseMessage)
-                .payload(result.getContent())
-                .build();
+        return createMultipartResponse(descriptionResponseMessage, result.getContent());
     }
     
     private Result<Connector> getConnector(ClaimToken claimToken, Range range) {

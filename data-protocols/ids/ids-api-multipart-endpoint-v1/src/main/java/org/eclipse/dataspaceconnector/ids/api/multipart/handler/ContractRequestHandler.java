@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation, refactoring
  *       Daimler TSS GmbH - introduce factory to create RequestInProcessMessage
  *
  */
@@ -37,8 +37,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.Objects;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createBadParametersErrorMultipartResponse;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createMultipartResponseFromStatusResult;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.fromStatusResult;
 import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 /**
@@ -87,27 +88,27 @@ public class ContractRequestHandler implements Handler {
             contractRequest = objectMapper.readValue(multipartRequest.getPayload(), ContractRequest.class);
         } catch (IOException e) {
             monitor.severe("ContractRequestHandler: Contract Request is invalid", e);
-            return createBadParametersErrorMultipartResponse(connectorId, message);
+            return createMultipartResponse(badParameters(message, connectorId));
         }
 
         var idsWebhookAddress = message.getProperties().get(IDS_WEBHOOK_ADDRESS_PROPERTY);
         if (idsWebhookAddress == null || idsWebhookAddress.toString().isBlank()) {
             var msg = "Ids webhook address is invalid";
             monitor.debug(String.format("ContractRequestHandler: %s", msg));
-            return createBadParametersErrorMultipartResponse(connectorId, message, msg);
+            return createMultipartResponse(badParameters(message, connectorId), msg);
         }
 
         // extract target from contract request
         var permission = contractRequest.getPermission().stream().findFirst().orElse(null);
         if (permission == null) {
             monitor.debug("ContractRequestHandler: Contract Request is invalid");
-            return createBadParametersErrorMultipartResponse(connectorId, message);
+            return createMultipartResponse(badParameters(message, connectorId));
         }
 
         var target = permission.getTarget();
         if (target == null || String.valueOf(target).isBlank()) {
             monitor.debug("ContractRequestHandler: Contract Request is invalid");
-            return createBadParametersErrorMultipartResponse(connectorId, message);
+            return createMultipartResponse(badParameters(message, connectorId));
         }
 
         // search for matching asset
@@ -116,7 +117,7 @@ public class ContractRequestHandler implements Handler {
         if (asset == null) {
             var msg = "Target id is invalid";
             monitor.debug(String.format("ContractRequestHandler: %s", msg));
-            return createBadParametersErrorMultipartResponse(connectorId, message, msg);
+            return createMultipartResponse(badParameters(message, connectorId), msg);
         }
 
         // Create contract offer request
@@ -129,7 +130,7 @@ public class ContractRequestHandler implements Handler {
         if (result.failed()) {
             monitor.debug(String.format("Could not transform contract request: [%s]",
                     String.join(", ", result.getFailureMessages())));
-            return createBadParametersErrorMultipartResponse(connectorId, message);
+            return createMultipartResponse(badParameters(message, connectorId));
         }
 
         var contractOffer = result.getContent();
@@ -144,6 +145,6 @@ public class ContractRequestHandler implements Handler {
         
         var negotiationInitiateResult = negotiationManager.requested(claimToken, requestObj);
     
-        return createMultipartResponseFromStatusResult(connectorId, message, negotiationInitiateResult);
+        return createMultipartResponse(fromStatusResult(negotiationInitiateResult, message, connectorId));
     }
 }

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *
  */
 
@@ -29,8 +30,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createInternalRecipientErrorMultipartResponse;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.createMessageProcessedNotificationMessage;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.messageProcessedNotification;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.internalRecipientError;
 
 /**
  * Implementation of the {@link Handler} class for handling of {@link EndpointDataReferenceMessage}.
@@ -73,7 +75,7 @@ public class EndpointDataReferenceHandler implements Handler {
         var transformationResult = transformerRegistry.transform(edr);
         if (transformationResult.failed()) {
             monitor.severe("EDR transformation failed: " + String.join(", ", transformationResult.getFailureMessages()));
-            return createInternalRecipientErrorMultipartResponse(connectorId, multipartRequest.getHeader());
+            return createMultipartResponse(internalRecipientError(multipartRequest.getHeader(), connectorId));
         }
 
         var transformedEdr = transformationResult.getContent();
@@ -81,12 +83,10 @@ public class EndpointDataReferenceHandler implements Handler {
         var receiveResult = receiverRegistry.receiveAll(transformedEdr).join();
         if (receiveResult.failed()) {
             monitor.severe("EDR dispatch failed: " + String.join(", ", receiveResult.getFailureMessages()));
-            return createInternalRecipientErrorMultipartResponse(connectorId, multipartRequest.getHeader());
+            return createMultipartResponse(internalRecipientError(multipartRequest.getHeader(), connectorId));
         }
 
-        return MultipartResponse.Builder.newInstance()
-                .header(createMessageProcessedNotificationMessage(multipartRequest.getHeader(), connectorId))
-                .build();
+        return createMultipartResponse(messageProcessedNotification(multipartRequest.getHeader(), connectorId));
     }
 
 }

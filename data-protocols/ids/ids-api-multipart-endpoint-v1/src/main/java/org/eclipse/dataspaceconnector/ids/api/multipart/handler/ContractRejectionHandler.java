@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation, refactoring
  *
  */
 
@@ -26,8 +26,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createBadParametersErrorMultipartResponse;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.createMessageProcessedNotificationMessage;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.messageProcessedNotification;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
 
 /**
  * This class handles and processes incoming IDS {@link ContractRejectionMessage}s.
@@ -71,7 +72,7 @@ public class ContractRejectionHandler implements Handler {
                 correlationId, rejectionReason));
 
         if (correlationId == null) {
-            return createBadParametersErrorMultipartResponse(connectorId, message);
+            return createMultipartResponse(badParameters(message, connectorId));
         }
 
         // abort negotiation process (one of them can handle this process by id)
@@ -84,9 +85,7 @@ public class ContractRejectionHandler implements Handler {
             monitor.debug("ContractRejectionHandler: Could not process contract rejection");
         }
 
-        return MultipartResponse.Builder.newInstance()
-                .header(createMessageProcessedNotificationMessage(message, connectorId))
-                .build();
+        return createMultipartResponse(messageProcessedNotification(message, connectorId));
     }
 
 }

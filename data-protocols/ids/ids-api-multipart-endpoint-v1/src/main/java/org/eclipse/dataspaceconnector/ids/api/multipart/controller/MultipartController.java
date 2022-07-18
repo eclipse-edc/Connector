@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
- *       Fraunhofer Institute for Software and Systems Engineering - Improvements
+ *       Fraunhofer Institute for Software and Systems Engineering - Improvements, refactoring
  *       Microsoft Corporation - Use IDS Webhook address for JWT audience claim
  *
  */
@@ -48,10 +48,10 @@ import java.util.List;
 import java.util.Objects;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.malformedMessage;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.messageTypeNotSupported;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.notAuthenticated;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.notFound;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.malformedMessage;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.messageTypeNotSupported;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.notAuthenticated;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.notFound;
 
 @Consumes({MediaType.MULTIPART_FORM_DATA})
 @Produces({MediaType.MULTIPART_FORM_DATA})

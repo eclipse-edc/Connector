@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *
  */
 
@@ -21,7 +22,8 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createMessageTypeNotSupportedErrorMultipartResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.messageTypeNotSupported;
 
 /**
  * Implementation of the {@link Handler} class for handling of {@link NotificationMessage}
@@ -53,7 +55,7 @@ public class NotificationMessageHandler implements Handler {
         var notification = (NotificationMessage) multipartRequest.getHeader();
         var subhandler = subhandlers.getHandler(notification.getClass());
         if (subhandler == null) {
-            return createMessageTypeNotSupportedErrorMultipartResponse(connectorId, multipartRequest.getHeader());
+            return createMultipartResponse(messageTypeNotSupported(multipartRequest.getHeader(), connectorId));
         }
         return subhandler.handleRequest(multipartRequest, claimToken);
     }
