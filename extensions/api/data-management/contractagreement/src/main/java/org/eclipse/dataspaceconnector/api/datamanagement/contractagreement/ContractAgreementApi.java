@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractagreement.model.ContractAgreementDto;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
+import org.eclipse.dataspaceconnector.spi.ApiErrorDetail;
 
 import java.util.List;
 
@@ -33,17 +34,22 @@ public interface ContractAgreementApi {
 
     @Operation(description = "Gets all contract agreements according to a particular query",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractAgreementDto.class)))),
-                    @ApiResponse(responseCode = "400", description = "Request body was malformed")
+                    @ApiResponse(responseCode = "200",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractAgreementDto.class)))),
+                    @ApiResponse(responseCode = "400", description = "Request body was malformed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
     List<ContractAgreementDto> getAllAgreements(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets an contract agreement with the given ID",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "The contract agreement", content = @Content(schema = @Schema(implementation = ContractAgreementDto.class))),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null"),
-                    @ApiResponse(responseCode = "404", description = "An contract agreement with the given ID does not exist")
+                    @ApiResponse(responseCode = "200", description = "The contract agreement",
+                            content = @Content(schema = @Schema(implementation = ContractAgreementDto.class))),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "404", description = "An contract agreement with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
     ContractAgreementDto getContractAgreement(String id);

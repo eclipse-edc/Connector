@@ -39,6 +39,12 @@ paths:
                 items:
                   $ref: '#/components/schemas/AssetDto'
         "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: Request body was malformed
       tags:
       - Asset
@@ -54,8 +60,20 @@ paths:
         "200":
           description: Asset was created successfully
         "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: Request body was malformed
         "409":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: "Could not create asset, because an asset with that ID already\
             \ exists"
       tags:
@@ -78,10 +96,28 @@ paths:
         "200":
           description: Asset was deleted successfully
         "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: "Request was malformed, e.g. id was null"
         "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: An asset with the given ID does not exist
         "409":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: "The asset cannot be deleted, because it is referenced by a\
             \ contract agreement"
       tags:
@@ -103,13 +139,36 @@ paths:
                 $ref: '#/components/schemas/AssetDto'
           description: The asset
         "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: "Request was malformed, e.g. id was null"
         "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: An asset with the given ID does not exist
       tags:
       - Asset
 components:
   schemas:
+    ApiErrorDetail:
+      type: object
+      properties:
+        invalidValue:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        type:
+          type: string
     AssetDto:
       type: object
       properties:

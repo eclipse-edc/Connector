@@ -18,6 +18,7 @@ package org.eclipse.dataspaceconnector.extension.jersey.mapper;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
+import org.eclipse.dataspaceconnector.spi.ApiErrorDetail;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.exception.AuthenticationFailedException;
 import org.eclipse.dataspaceconnector.spi.exception.NotAuthorizedException;
@@ -66,8 +67,11 @@ public class EdcApiExceptionMapper implements ExceptionMapper<Throwable> {
 
         if (exception instanceof EdcException && verboseResponse) {
             var edcApiException = (EdcException) exception;
-            var responseBody = List.of(Map.of("message", edcApiException.getMessage()));
-            return Response.status(status).entity(responseBody).build();
+            var apiError = ApiErrorDetail.Builder.newInstance()
+                    .message(edcApiException.getMessage())
+                    .type(edcApiException.getClass().getSimpleName().replace("Exception", ""))
+                    .build();
+            return Response.status(status).entity(List.of(apiError)).build();
         }
 
         return Response.status(status).build();
