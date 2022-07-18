@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
@@ -34,7 +35,7 @@ class EventRouterImplTest {
 
     private final Clock clock = Clock.systemUTC();
     private final Monitor monitor = mock(Monitor.class);
-    private final EventRouterImpl eventRouter = new EventRouterImpl(monitor);
+    private final EventRouterImpl eventRouter = new EventRouterImpl(monitor, Executors.newSingleThreadExecutor());
 
     @Test
     void shouldPublishToAllSubscribers() {

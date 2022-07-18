@@ -182,6 +182,7 @@ include(":samples:04.1-file-transfer-listener:file-transfer-listener-integration
 include(":samples:04.2-modify-transferprocess:consumer")
 include(":samples:04.2-modify-transferprocess:watchdog")
 include(":samples:04.2-modify-transferprocess:simulator")
+include(":samples:04.2-modify-transferprocess:modify-transferprocess-sample-integration-tests")
 
 include(":samples:04.3-open-telemetry:micrometer")
 include(":samples:04.3-open-telemetry:consumer")

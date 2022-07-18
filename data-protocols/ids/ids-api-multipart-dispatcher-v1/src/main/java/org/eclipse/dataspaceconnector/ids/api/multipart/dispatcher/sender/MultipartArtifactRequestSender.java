@@ -18,9 +18,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
-import de.fraunhofer.iais.eis.RequestInProcessMessage;
+import de.fraunhofer.iais.eis.RequestInProcessMessageImpl;
+import de.fraunhofer.iais.eis.ResponseMessageImpl;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
@@ -36,16 +38,18 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.util.ResponseUtil.parseMultipartStringResponse;
 import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 /**
  * IdsMultipartSender implementation for data requests. Sends IDS ArtifactRequestMessages and
  * expects an IDS RequestInProcessMessage as the response.
  */
-public class MultipartArtifactRequestSender extends IdsMultipartSender<DataRequest, MultipartRequestInProcessResponse> {
+public class MultipartArtifactRequestSender extends IdsMultipartSender<DataRequest, String> {
 
     private final Vault vault;
     private final String idsWebhookAddress;
@@ -73,6 +77,13 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
         return request.getConnectorAddress();
     }
 
+    /**
+     * Builds an {@link de.fraunhofer.iais.eis.ArtifactRequestMessage} for the given {@link DataRequest}.
+     *
+     * @param request the request.
+     * @param token   the dynamic attribute token.
+     * @return an ArtifactRequestMessage
+     */
     @Override
     protected Message buildMessageHeader(DataRequest request, DynamicAttributeToken token) {
         var artifactIdsId = IdsId.Builder.newInstance()
@@ -114,10 +125,17 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
         return message;
     }
 
+    /**
+     * Builds the payload for the artifact request. The payload contains the data destination and a secret key.
+     *
+     * @param request the request.
+     * @return the message payload.
+     * @throws Exception if parsing the payload fails.
+     */
     @Override
     protected String buildMessagePayload(DataRequest request) throws Exception {
 
-        ArtifactRequestMessagePayload.Builder requestPayloadBuilder = ArtifactRequestMessagePayload.Builder.newInstance()
+        var requestPayloadBuilder = ArtifactRequestMessagePayload.Builder.newInstance()
                 .dataDestination(request.getDataDestination());
 
         if (request.getDataDestination().getKeyName() != null) {
@@ -125,27 +143,23 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
             requestPayloadBuilder = requestPayloadBuilder.secret(secret);
         }
 
-        ObjectMapper objectMapper = getObjectMapper();
-        return objectMapper.writeValueAsString(requestPayloadBuilder.build());
+        return getObjectMapper().writeValueAsString(requestPayloadBuilder.build());
+    }
+
+    /**
+     * Parses the response content.
+     *
+     * @param parts container object for response header and payload input streams.
+     * @return a MultipartResponse containing the message header and the response payload as string.
+     * @throws Exception if parsing header or payload fails.
+     */
+    @Override
+    protected MultipartResponse<String> getResponseContent(IdsMultipartParts parts) throws Exception {
+        return parseMultipartStringResponse(parts, getObjectMapper());
     }
 
     @Override
-    protected MultipartRequestInProcessResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        Message header = getObjectMapper().readValue(parts.getHeader(), Message.class);
-        String payload = null;
-        if (parts.getPayload() != null) {
-            payload = new String(parts.getPayload().readAllBytes());
-        }
-
-        if (header instanceof RequestInProcessMessage) {
-            // TODO Update TransferProcess State Machine
-        } else {
-            // TODO Update TransferProcess State Machine
-        }
-
-        return MultipartRequestInProcessResponse.Builder.newInstance()
-                .header(header)
-                .payload(payload)
-                .build();
+    protected List<Class<? extends Message>> getAllowedResponseTypes() {
+        return List.of(ResponseMessageImpl.class, RequestInProcessMessageImpl.class); // TODO remove ResponseMessage.class
     }
 }

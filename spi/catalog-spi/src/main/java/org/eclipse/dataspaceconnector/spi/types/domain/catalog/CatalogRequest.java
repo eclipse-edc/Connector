@@ -48,13 +48,14 @@ public class CatalogRequest implements RemoteMessage {
     }
 
     @NotNull
-    public String getConnectorId() {
-        return connectorId;
+    @Override
+    public String getConnectorAddress() {
+        return connectorAddress;
     }
 
     @NotNull
-    public String getConnectorAddress() {
-        return connectorAddress;
+    public String getConnectorId() {
+        return connectorId;
     }
 
     public Range getRange() {

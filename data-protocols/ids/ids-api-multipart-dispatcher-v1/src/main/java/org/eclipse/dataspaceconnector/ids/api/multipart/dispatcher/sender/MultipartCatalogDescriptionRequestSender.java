@@ -18,12 +18,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.BaseConnector;
 import de.fraunhofer.iais.eis.DescriptionRequestMessageBuilder;
+import de.fraunhofer.iais.eis.DescriptionResponseMessageImpl;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.ResourceCatalogBuilder;
 import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
@@ -70,6 +73,14 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
         return request.getConnectorAddress();
     }
 
+    /**
+     * Builds a {@link de.fraunhofer.iais.eis.DescriptionRequestMessage} for requesting another
+     * connector's self description. Includes paging information defined in the {@link CatalogRequest}.
+     *
+     * @param request the request.
+     * @param token   the dynamic attribute token.
+     * @return a DescriptionRequestMessage
+     */
     @Override
     protected Message buildMessageHeader(CatalogRequest request, DynamicAttributeToken token) {
         var message = new DescriptionRequestMessageBuilder()
@@ -86,8 +97,16 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
         return message;
     }
 
+    /**
+     * Parses the response content and extracts the catalog from the received self description.
+     *
+     * @param parts container object for response header and payload {@link InputStream}s.
+     * @return the other connector's catalog
+     */
     @Override
-    protected Catalog getResponseContent(IdsMultipartParts parts) {
+    protected MultipartResponse<Catalog> getResponseContent(IdsMultipartParts parts) throws Exception {
+        var header = getObjectMapper().readValue(parts.getHeader(), Message.class);
+
         if (parts.getPayload() == null) {
             throw new EdcException("Payload was null but connector self-description was expected");
         }
@@ -112,7 +131,12 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
             throw new EdcException(String.format("Could not transform ids data catalog: %s", String.join(", ", transformResult.getFailureMessages())));
         }
 
-        return transformResult.getContent();
+        return new MultipartResponse<>(header, transformResult.getContent());
+    }
+
+    @Override
+    protected List<Class<? extends Message>> getAllowedResponseTypes() {
+        return List.of(DescriptionResponseMessageImpl.class);
     }
 
     private BaseConnector getBaseConnector(ObjectMapper mapper, IdsMultipartParts parts) {

@@ -49,6 +49,7 @@ public class MetadataRequest implements RemoteMessage {
         return connectorId;
     }
 
+    @Override
     public String getConnectorAddress() {
         return connectorAddress;
     }

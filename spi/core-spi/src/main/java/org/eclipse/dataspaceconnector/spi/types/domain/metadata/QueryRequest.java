@@ -52,6 +52,7 @@ public class QueryRequest implements RemoteMessage {
         return connectorId;
     }
 
+    @Override
     public String getConnectorAddress() {
         return connectorAddress;
     }

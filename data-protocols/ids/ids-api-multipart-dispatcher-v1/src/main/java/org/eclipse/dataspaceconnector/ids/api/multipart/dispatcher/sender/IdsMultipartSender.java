@@ -29,6 +29,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.message.FutureCallback;
 import org.eclipse.dataspaceconnector.ids.core.message.IdsMessageSender;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
@@ -48,6 +50,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpHeaders;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -57,8 +60,8 @@ import static java.util.concurrent.CompletableFuture.failedFuture;
 /**
  * Abstract class for sending IDS multipart messages.
  *
- * @param <M> the RemoteMessage type sent by the sub class.
- * @param <R> the response type returned by the sub class.
+ * @param <M> the RemoteMessage type sent by the sub-class.
+ * @param <R> the response type returned by the sub-class.
  */
 abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMessageSender<M, R> {
     private static final String TOKEN_SCOPE = "idsc:IDS_CONNECTOR_ATTRIBUTES_ALL";
@@ -92,8 +95,8 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
     }
 
     /**
-     * Builds and sends the IDS multipart request. Reads header and payload as {@link InputStream}
-     * from the multipart response.
+     * Builds and sends an IDS multipart request. Parses the response to the output type defined
+     * for the sub-class.
      *
      * @param request the request.
      * @param context the message context.
@@ -201,8 +204,12 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
                         if (body == null) {
                             future.completeExceptionally(new EdcException("Received an empty body response from connector"));
                         } else {
-                            IdsMultipartParts parts = extractResponseParts(body);
-                            return getResponseContent(parts);
+                            var parts = extractResponseParts(body);
+                            var response = getResponseContent(parts);
+
+                            checkResponseType(response);
+
+                            return response.getPayload();
                         }
                     } catch (Exception e) {
                         future.completeExceptionally(e);
@@ -269,7 +276,14 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
      * @return an instance of the sub class's return type.
      * @throws Exception if parsing the response fails.
      */
-    protected abstract R getResponseContent(IdsMultipartParts parts) throws Exception;
+    protected abstract MultipartResponse<R> getResponseContent(IdsMultipartParts parts) throws Exception;
+
+    /**
+     * Return expected response type.
+     *
+     * @return the response type class.
+     */
+    protected abstract List<Class<? extends Message>> getAllowedResponseTypes();
 
     /**
      * Parses the multipart response. Extracts header and payload as input stream and wraps them
@@ -310,6 +324,13 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
                 .header(header)
                 .payload(payload)
                 .build();
+    }
+
+    private void checkResponseType(@NotNull MultipartResponse<?> response) {
+        var type = getAllowedResponseTypes();
+        if (!type.contains(response.getHeader().getClass())) {
+            throw new EdcException("Received unexpected response type.");
+        }
     }
 
 }
