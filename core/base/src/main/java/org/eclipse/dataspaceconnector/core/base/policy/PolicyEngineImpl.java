@@ -67,14 +67,7 @@ public class PolicyEngineImpl implements PolicyEngine {
 
     @Override
     public Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent, Map<Class, Object> contextInformation) {
-        var context = new PolicyContextImpl(agent);
-        contextInformation.forEach((key, value) -> {
-            try {
-                context.putContextData(key, key.cast(value));
-            } catch (ClassCastException ignore) {
-                // invalid entry
-            }
-        });
+        var context = new PolicyContextImpl(agent, contextInformation);
 
         for (BiFunction<Policy, PolicyContext, Boolean> validator : preValidators) {
             if (!validator.apply(policy, context)) {

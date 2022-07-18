@@ -31,9 +31,24 @@ public class PolicyContextImpl implements PolicyContext {
     private final ParticipantAgent agent;
     private final List<String> problems = new ArrayList<>();
     private Map<Class<?>, Object> additional = new HashMap<>();
-
-    public PolicyContextImpl(ParticipantAgent agent) {
+    
+    /**
+     * Creates a new PolicyContextImpl with the given participant agent and additional context
+     * data. Values in the additional map need to be of the same type defined by the key, otherwise
+     * they will be omitted.
+     *
+     * @param agent the requesting participant agent.
+     * @param additionalData additional context data.
+     */
+    public PolicyContextImpl(ParticipantAgent agent, Map<Class, Object> additionalData) {
         this.agent = agent;
+        additionalData.forEach((key, value) -> {
+            try {
+                this.putContextData(key, key.cast(value));
+            } catch (ClassCastException ignore) {
+                // invalid entry
+            }
+        });
     }
 
     @Override
