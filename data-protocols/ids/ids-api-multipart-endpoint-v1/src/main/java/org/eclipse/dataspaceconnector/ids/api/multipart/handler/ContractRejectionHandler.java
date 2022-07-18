@@ -63,7 +63,7 @@ public class ContractRejectionHandler implements Handler {
         Objects.requireNonNull(claimToken);
 
         var message = (ContractRejectionMessage) multipartRequest.getHeader();
-        var correlationMessageId = message.getCorrelationMessage(); // TODO correlation msg missing
+        var correlationMessageId = message.getCorrelationMessage();
         var correlationId = message.getTransferContract();
         var rejectionReason = message.getContractRejectionReason();
         monitor.debug(String.format("ContractRejectionHandler: Received contract rejection to " +

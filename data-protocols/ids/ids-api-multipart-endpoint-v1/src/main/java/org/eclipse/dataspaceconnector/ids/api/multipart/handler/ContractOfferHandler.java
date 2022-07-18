@@ -18,7 +18,6 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractOffer;
 import de.fraunhofer.iais.eis.ContractOfferMessage;
-import de.fraunhofer.iais.eis.Message;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
@@ -31,8 +30,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.Objects;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.badParameters;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.messageTypeNotSupported;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createBadParametersErrorMultipartResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createMessageTypeNotSupportedErrorMultipartResponse;
 
 /**
  * This class handles and processes incoming IDS {@link ContractOfferMessage}s.
@@ -77,21 +76,10 @@ public class ContractOfferHandler implements Handler {
             contractOffer = objectMapper.readValue(multipartRequest.getPayload(), ContractOffer.class);
         } catch (IOException e) {
             monitor.severe("ContractOfferHandler: Contract Offer is invalid", e);
-            return createBadParametersErrorMultipartResponse(message);
+            return createBadParametersErrorMultipartResponse(connectorId, message);
         }
     
         // TODO similar implementation to ContractRequestHandler (only required if counter offers supported, not needed for M1)
-
-        var response = messageTypeNotSupported(message, connectorId);
-
-        return MultipartResponse.Builder.newInstance()
-                .header(response)
-                .build();
-    }
-
-    private MultipartResponse createBadParametersErrorMultipartResponse(Message message) {
-        return MultipartResponse.Builder.newInstance()
-                .header(badParameters(message, connectorId))
-                .build();
+        return createMessageTypeNotSupportedErrorMultipartResponse(connectorId, message);
     }
 }

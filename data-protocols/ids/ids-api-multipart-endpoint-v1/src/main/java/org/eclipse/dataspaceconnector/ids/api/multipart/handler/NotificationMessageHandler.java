@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
-import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.NotificationMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
@@ -22,7 +21,7 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseMessageUtil.messageTypeNotSupported;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartResponseUtil.createMessageTypeNotSupportedErrorMultipartResponse;
 
 /**
  * Implementation of the {@link Handler} class for handling of {@link NotificationMessage}
@@ -54,14 +53,8 @@ public class NotificationMessageHandler implements Handler {
         var notification = (NotificationMessage) multipartRequest.getHeader();
         var subhandler = subhandlers.getHandler(notification.getClass());
         if (subhandler == null) {
-            return createErrorMultipartResponse(multipartRequest.getHeader());
+            return createMessageTypeNotSupportedErrorMultipartResponse(connectorId, multipartRequest.getHeader());
         }
         return subhandler.handleRequest(multipartRequest, claimToken);
-    }
-
-    private MultipartResponse createErrorMultipartResponse(Message message) {
-        return MultipartResponse.Builder.newInstance()
-                .header(messageTypeNotSupported(message, connectorId))
-                .build();
     }
 }

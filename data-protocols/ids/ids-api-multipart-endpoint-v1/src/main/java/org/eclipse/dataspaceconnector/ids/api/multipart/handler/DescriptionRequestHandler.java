@@ -18,7 +18,6 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 import de.fraunhofer.iais.eis.Artifact;
 import de.fraunhofer.iais.eis.Connector;
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
-import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.ModelClass;
 import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.Resource;
@@ -98,7 +97,9 @@ public class DescriptionRequestHandler implements Handler {
             monitor.severe(format("Could not handle multipart request: %s", exception.getMessage()), exception);
         }
 
-        return createErrorMultipartResponse(multipartRequest.getHeader());
+        return MultipartResponse.Builder.newInstance()
+                .header(messageTypeNotSupported(multipartRequest.getHeader(), connectorId))
+                .build();
     }
 
     public MultipartResponse handleRequestInternal(@NotNull MultipartRequest multipartRequest,
@@ -202,11 +203,5 @@ public class DescriptionRequestHandler implements Handler {
             default:
                 return Result.failure(format("Unknown requested element type: %s", type));
         }
-    }
-
-    private MultipartResponse createErrorMultipartResponse(Message message) {
-        return MultipartResponse.Builder.newInstance()
-                .header(messageTypeNotSupported(message, connectorId))
-                .build();
     }
 }
