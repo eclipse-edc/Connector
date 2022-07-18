@@ -17,7 +17,6 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart;
 
-import de.fraunhofer.iais.eis.ParticipantUpdateMessage;
 import org.eclipse.dataspaceconnector.ids.api.configuration.IdsApiConfiguration;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ArtifactRequestHandler;
@@ -28,8 +27,6 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractRequestH
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.EndpointDataReferenceHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.NotificationMessageHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.NotificationMessageHandlerRegistry;
 import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
@@ -127,28 +124,18 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
         var objectMapper = objectMapperFactory.getObjectMapper();
 
-        // create request handler
-        var descriptionHandler = new DescriptionRequestHandler(
-                monitor, connectorId, transformerRegistry,
-                assetIndex, dataCatalogService, contractOfferService, connectorService);
-
+        // create request handlers
         var handlers = new LinkedList<Handler>();
-        handlers.add(descriptionHandler);
+        
+        handlers.add(new DescriptionRequestHandler(monitor, connectorId, transformerRegistry, assetIndex, dataCatalogService, contractOfferService, connectorService));
+        handlers.add(new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault));
+        handlers.add(new EndpointDataReferenceHandler(monitor, connectorId, endpointDataReferenceReceiverRegistry, endpointDataReferenceTransformerRegistry, serviceExtensionContext.getTypeManager()));
 
-        var artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault);
-        handlers.add(artifactRequestHandler);
-
-        // create contract message handlers
+        // contract message handlers
         handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager, transformerRegistry, assetIndex));
         handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager, transformerRegistry));
         handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper, providerNegotiationManager, consumerNegotiationManager));
         handlers.add(new ContractRejectionHandler(monitor, connectorId, providerNegotiationManager, consumerNegotiationManager));
-
-        // add notification handler and sub-handlers
-        var notificationHandlersRegistry = new NotificationMessageHandlerRegistry();
-        var endpointDataReferenceHandler = new EndpointDataReferenceHandler(monitor, connectorId, endpointDataReferenceReceiverRegistry, endpointDataReferenceTransformerRegistry, serviceExtensionContext.getTypeManager());
-        notificationHandlersRegistry.addHandler(ParticipantUpdateMessage.class, endpointDataReferenceHandler);
-        handlers.add(new NotificationMessageHandler(connectorId, notificationHandlersRegistry));
 
         // create & register controller
         var multipartController = new MultipartController(monitor, connectorId, objectMapper, identityService, handlers, idsApiConfiguration.getIdsWebhookAddress());

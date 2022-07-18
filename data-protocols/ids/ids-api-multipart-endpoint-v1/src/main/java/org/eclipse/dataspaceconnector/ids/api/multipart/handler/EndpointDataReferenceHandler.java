@@ -15,6 +15,8 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
+import java.util.Objects;
+
 import de.fraunhofer.iais.eis.ParticipantUpdateMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
@@ -60,6 +62,8 @@ public class EndpointDataReferenceHandler implements Handler {
 
     @Override
     public boolean canHandle(@NotNull MultipartRequest multipartRequest) {
+        Objects.requireNonNull(multipartRequest);
+        
         return multipartRequest.getHeader() instanceof ParticipantUpdateMessage;
     }
 
