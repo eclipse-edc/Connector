@@ -42,6 +42,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Bump `failsafe` library to version 3.2.4 (#1559)
 * Harmonize logics of `HttpDataSource` and `HttpDataSink` (#1475)
 * Log correct type in contract-definition API (#1584)
+* Change CredentialsVerifier contract (#1702)
 
 #### Removed
 
