@@ -30,6 +30,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Full Query capabilities for SQL PolicyDefinition Store (#1484)
 * Documentation for `:extensions:data-plane:data-plane-api` (#1579)
 * Allow `TypeManager` to support multiple serialization contexts (#1581)
+* Check response type of IDS multipart messages (#1695)
 
 #### Changed
 

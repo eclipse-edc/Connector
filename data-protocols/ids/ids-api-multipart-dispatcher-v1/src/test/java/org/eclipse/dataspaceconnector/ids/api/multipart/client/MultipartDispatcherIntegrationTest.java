@@ -18,13 +18,7 @@ import de.fraunhofer.iais.eis.Action;
 import de.fraunhofer.iais.eis.BaseConnector;
 import de.fraunhofer.iais.eis.ContractAgreementBuilder;
 import de.fraunhofer.iais.eis.ContractOfferBuilder;
-import de.fraunhofer.iais.eis.DescriptionResponseMessage;
-import de.fraunhofer.iais.eis.MessageProcessedNotificationMessage;
-import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageImpl;
 import de.fraunhofer.iais.eis.PermissionBuilder;
-import de.fraunhofer.iais.eis.RejectionMessage;
-import de.fraunhofer.iais.eis.RequestInProcessMessageImpl;
-import de.fraunhofer.iais.eis.ResponseMessage;
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.IdsMultipartRemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartArtifactRequestSender;
@@ -33,7 +27,6 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.Multip
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractOfferSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractRejectionSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartDescriptionRequestSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
@@ -62,6 +55,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOkHttpClient;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -105,17 +99,14 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .protocol(Protocols.IDS_MULTIPART)
                 .build();
 
-        var result = multipartDispatcher.send(MultipartResponse.class, request, () -> null).get();
+        var result = multipartDispatcher.send(BaseConnector.class, request, () -> null).get();
 
         assertThat(result).isNotNull();
-        assertThat(result.getHeader()).isNotNull();
-        assertThat(result.getHeader()).isInstanceOf(DescriptionResponseMessage.class);
-        assertThat(result.getPayload()).isNotNull();
-        assertThat(result.getPayload()).isInstanceOf(BaseConnector.class);
+        assertThat(result).isInstanceOf(BaseConnector.class);
     }
 
     @Test
-    void testSendArtifactRequestMessage() throws Exception {
+    void testSendArtifactRequestMessage() {
         var asset = Asset.Builder.newInstance().id("1").build();
         addAsset(asset);
         when(transformerRegistry.transform(isA(IdsId.class), eq(URI.class)))
@@ -140,19 +131,13 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .dataDestination(DataAddress.Builder.newInstance().type("test-type").build())
                 .build();
 
-        var result = multipartDispatcher.send(MultipartResponse.class, request, () -> null).get();
+        assertThatCode(() -> multipartDispatcher.send(null, request, () -> null)).doesNotThrowAnyException();
 
-        assertThat(result).isNotNull();
-        assertThat(result.getHeader()).isNotNull();
-
-        //TODO revise when handler for ArtifactRequestMessage exists
-        assertThat(result.getHeader()).isInstanceOf(ResponseMessage.class);
-        assertThat(result.getPayload()).isNull();
         verify(transformerRegistry, times(2)).transform(any(), any());
     }
 
     @Test
-    void testSendContractOfferMessage() throws Exception {
+    void testSendContractOfferMessage() {
         var contractOffer = ContractOffer.Builder.newInstance().id("id").policy(Policy.Builder.newInstance().build()).build();
         when(transformerRegistry.transform(any(), any()))
                 .thenReturn(Result.success(getIdsContractOffer()));
@@ -166,21 +151,19 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .correlationId("1")
                 .build();
 
-        var result = multipartDispatcher.send(MultipartResponse.class, request, () -> null).get();
+        assertThatCode(() -> multipartDispatcher.send(null, request, () -> null)).doesNotThrowAnyException();
 
-        assertThat(result).isNotNull();
-        assertThat(result.getHeader()).isNotNull();
-
-        assertThat(result.getHeader()).isInstanceOf(RequestInProcessMessageImpl.class);
-        assertThat(result.getPayload()).isNull();
         verify(transformerRegistry).transform(any(), any());
     }
 
     @Test
-    void testSendContractRequestMessage() throws Exception {
-        var contractOffer = ContractOffer.Builder.newInstance().id("id").policy(Policy.Builder.newInstance().build()).build();
-        when(transformerRegistry.transform(any(), any()))
-                .thenReturn(Result.success(getIdsContractOffer()));
+    void testSendContractRequestMessage() {
+        var policy = Policy.Builder.newInstance().build();
+        var contractOffer = ContractOffer.Builder.newInstance().id("id").policy(policy).build();
+
+        addAsset(Asset.Builder.newInstance().id("1").build());
+
+        when(transformerRegistry.transform(any(), eq(de.fraunhofer.iais.eis.ContractOffer.class))).thenReturn(Result.success(getIdsContractOffer()));
 
         var request = ContractOfferRequest.Builder.newInstance()
                 .type(ContractOfferRequest.Type.INITIAL)
@@ -191,19 +174,13 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .correlationId("1")
                 .build();
 
-        var result = multipartDispatcher.send(MultipartResponse.class, request, () -> null).get();
+        assertThatCode(() -> multipartDispatcher.send(null, request, () -> null)).doesNotThrowAnyException();
 
-        assertThat(result).isNotNull();
-        assertThat(result.getHeader()).isNotNull();
-
-        // TODO Should be RequestInProcess
-        assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
-        assertThat(result.getPayload()).isNull();
         verify(transformerRegistry).transform(any(), any());
     }
 
     @Test
-    void testSendContractAgreementMessage() throws Exception {
+    void testSendContractAgreementMessage() {
         var contractAgreement = ContractAgreement.Builder.newInstance()
                 .id("1:23456").consumerAgentId("consumer").providerAgentId("provider")
                 .policy(Policy.Builder.newInstance().build())
@@ -224,18 +201,13 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .policy(Policy.Builder.newInstance().build())
                 .build();
 
-        var result = multipartDispatcher.send(MultipartResponse.class, request, () -> null).get();
+        assertThatCode(() -> multipartDispatcher.send(null, request, () -> null)).doesNotThrowAnyException();
 
-        assertThat(result).isNotNull();
-        assertThat(result.getHeader()).isNotNull();
-
-        assertThat(result.getHeader()).isInstanceOf(MessageProcessedNotificationMessageImpl.class);
-        assertThat(result.getPayload()).isNull();
         verify(transformerRegistry, times(2)).transform(any(), any());
     }
 
     @Test
-    void testSendContractRejectionMessage() throws Exception {
+    void testSendContractRejectionMessage() {
         var rejection = ContractRejection.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
@@ -244,13 +216,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .correlationId(UUID.randomUUID().toString())
                 .build();
 
-        var result = multipartDispatcher.send(MultipartResponse.class, rejection, () -> null).get();
-
-        assertThat(result).isNotNull();
-        assertThat(result.getHeader()).isNotNull();
-
-        assertThat(result.getHeader()).isInstanceOf(MessageProcessedNotificationMessage.class);
-        assertThat(result.getPayload()).isNull();
+        assertThatCode(() -> multipartDispatcher.send(null, rejection, () -> null)).doesNotThrowAnyException();
     }
 
     @Override
@@ -268,11 +234,12 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
     }
 
     private de.fraunhofer.iais.eis.ContractOffer getIdsContractOffer() {
-        return new ContractOfferBuilder()
+        return new ContractOfferBuilder(URI.create("urn:contractoffer:1"))
                 ._consumer_(URI.create("consumer"))
                 ._provider_(URI.create("provider"))
                 ._permission_(new PermissionBuilder()
                         ._action_(Action.USE)
+                        ._target_(URI.create("urn:artifact:1"))
                         .build())
                 .build();
     }
