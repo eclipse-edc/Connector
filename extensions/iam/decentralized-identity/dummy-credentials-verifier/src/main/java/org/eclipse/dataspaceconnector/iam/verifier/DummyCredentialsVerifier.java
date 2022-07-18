@@ -39,7 +39,7 @@ public class DummyCredentialsVerifier implements CredentialsVerifier {
     @Override
     public Result<Map<String, Object>> getVerifiedCredentials(DidDocument didDocument) {
 
-        monitor.debug("Starting (dummy) credential verification.");
+        monitor.debug("Starting (dummy) credential verification of participant with Did key:" + didDocument.getId());
 
         return Result.success(Map.of("region", "eu"));
     }
