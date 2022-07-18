@@ -116,28 +116,24 @@ public class MultipartController {
             return Response.ok(createResponse(malformedMessage(header, connectorId))).build();
         }
 
+        // Check if DAT present
         var dynamicAttributeToken = header.getSecurityToken();
         if (dynamicAttributeToken == null || dynamicAttributeToken.getTokenValue() == null) {
             monitor.warning("MultipartController: Token is missing in header");
             return Response.ok(createResponse(notAuthenticated(header, connectorId))).build();
         }
-
+    
+        // Prepare DAT validation: IDS token validation requires issuerConnector
         var additional = new HashMap<String, Object>();
-        //IDS token validation requires issuerConnector and securityProfile
         additional.put("issuerConnector", header.getIssuerConnector());
-        try {
-            additional.put("securityProfile", objectMapper.readValue(payload, Connector.class).getSecurityProfile());
-        } catch (Exception e) {
-            //payload no connector instance, nothing to do
-        }
 
         var tokenRepresentation = TokenRepresentation.Builder.newInstance()
                 .token(dynamicAttributeToken.getTokenValue())
                 .additional(additional)
                 .build();
-
+    
+        // Validate DAT
         var verificationResult = identityService.verifyJwtToken(tokenRepresentation, idsWebhookAddress);
-
         if (verificationResult.failed()) {
             monitor.warning(format("MultipartController: Token validation failed %s", verificationResult.getFailure().getMessages()));
             return Response.ok(createResponse(notAuthenticated(header, connectorId))).build();
