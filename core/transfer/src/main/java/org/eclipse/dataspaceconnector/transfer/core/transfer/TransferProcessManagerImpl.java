@@ -313,7 +313,18 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
      */
     @WithSpan
     private boolean processRequesting(TransferProcess process) {
+        // TODO: decide how to persist data request changes: https://gitlab.com/nexyo/nexus/-/issues/247
+        if (CONSUMER == process.getType()) {
+            try {
+                var dataAddressResource = (ProvisionedDataAddressResource) process.getProvisionedResourceSet().getResources().get(0);
+                handleProvisionDataAddressResource(dataAddressResource, process);
+            } catch (Exception e){
+                monitor.warning("Prepare data request with provisioned presigned url failed.");
+            };
+        }
+
         var dataRequest = process.getDataRequest();
+
         if (CONSUMER == process.getType()) {
             return processConsumerRequest(process, dataRequest);
         } else {
