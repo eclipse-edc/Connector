@@ -37,7 +37,7 @@ public class DummyCredentialsVerifier implements CredentialsVerifier {
     }
 
     @Override
-    public Result<Map<String, Object>> verifyCredentials(DidDocument didDocument) {
+    public Result<Map<String, Object>> getVerifiedCredentials(DidDocument didDocument) {
 
         monitor.debug("Starting (dummy) credential verification.");
 

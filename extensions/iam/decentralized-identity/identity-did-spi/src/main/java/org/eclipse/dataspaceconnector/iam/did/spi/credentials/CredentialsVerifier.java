@@ -31,5 +31,5 @@ public interface CredentialsVerifier {
      *
      * @param participantDid did document of the participant.
      */
-    Result<Map<String, Object>> verifyCredentials(DidDocument participantDid);
+    Result<Map<String, Object>> getVerifiedCredentials(DidDocument participantDid);
 }
