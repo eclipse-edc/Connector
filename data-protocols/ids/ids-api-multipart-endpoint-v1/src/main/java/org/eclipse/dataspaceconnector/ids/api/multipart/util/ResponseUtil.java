@@ -152,11 +152,36 @@ public class ResponseUtil {
      * @param connectorId the connector ID.
      * @return the response message depending on the status result.
      */
-    public static Message fromStatusResult(@NotNull StatusResult<?> statusResult,
-                                           @NotNull Message correlationMessage,
-                                           @NotNull String connectorId) {
+    public static Message inProcessFromStatusResult(@NotNull StatusResult<?> statusResult,
+                                                    @NotNull Message correlationMessage,
+                                                    @NotNull String connectorId) {
         if (statusResult.succeeded()) {
             return requestInProcess(correlationMessage, connectorId);
+        } else {
+            if (statusResult.fatalError()) {
+                return badParameters(correlationMessage, connectorId);
+            } else {
+                return internalRecipientError(correlationMessage, connectorId);
+            }
+        }
+    }
+    
+    /**
+     * Creates a response message depending on the status result of a previously executed action.
+     * Returns a MessageProcessedNotificationMessage, if the result is succeeded and a rejection message otherwise.
+     * The rejection reason is BAD_PARAMETERS if the action can be retried and INTERNAL_RECIPIENT_ERROR
+     * for a fatal error.
+     *
+     * @param statusResult the status result.
+     * @param correlationMessage the request.
+     * @param connectorId the connector ID.
+     * @return the response message depending on the status result.
+     */
+    public static Message processedFromStatusResult(@NotNull StatusResult<?> statusResult,
+                                                    @NotNull Message correlationMessage,
+                                                    @NotNull String connectorId) {
+        if (statusResult.succeeded()) {
+            return messageProcessedNotification(correlationMessage, connectorId);
         } else {
             if (statusResult.fatalError()) {
                 return badParameters(correlationMessage, connectorId);

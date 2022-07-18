@@ -33,7 +33,7 @@ import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.fromStatusResult;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.processedFromStatusResult;
 
 /**
  * This class handles and processes incoming IDS {@link ContractAgreementMessage}s.
@@ -110,8 +110,8 @@ public class ContractAgreementHandler implements Handler {
         var processId = message.getTransferContract();
         var negotiationConfirmResult = negotiationManager.confirmed(claimToken,
                 String.valueOf(processId), output.getContractAgreement(), output.getPolicy());
-    
-        return createMultipartResponse(fromStatusResult(negotiationConfirmResult, message, connectorId));
+        
+        return createMultipartResponse(processedFromStatusResult(negotiationConfirmResult, message, connectorId));
     }
 
 }

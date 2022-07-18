@@ -27,8 +27,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.messageProcessedNotification;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.processedFromStatusResult;
 
 /**
  * This class handles and processes incoming IDS {@link ContractRejectionMessage}s.
@@ -76,16 +76,12 @@ public class ContractRejectionHandler implements Handler {
         }
 
         // abort negotiation process (one of them can handle this process by id)
-        var result = providerNegotiationManager.declined(claimToken, String.valueOf(correlationId));
-        if (result.fatalError()) {
-            result = consumerNegotiationManager.declined(claimToken, String.valueOf(correlationId));
+        var negotiationDeclineResult = providerNegotiationManager.declined(claimToken, String.valueOf(correlationId));
+        if (negotiationDeclineResult.fatalError()) {
+            negotiationDeclineResult = consumerNegotiationManager.declined(claimToken, String.valueOf(correlationId));
         }
-
-        if (result.fatalError()) {
-            monitor.debug("ContractRejectionHandler: Could not process contract rejection");
-        }
-
-        return createMultipartResponse(messageProcessedNotification(message, connectorId));
+    
+        return createMultipartResponse(processedFromStatusResult(negotiationDeclineResult, message, connectorId));
     }
 
 }

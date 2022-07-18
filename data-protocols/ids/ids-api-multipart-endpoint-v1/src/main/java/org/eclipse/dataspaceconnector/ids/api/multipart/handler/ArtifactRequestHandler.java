@@ -42,7 +42,7 @@ import java.util.Optional;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.fromStatusResult;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.inProcessFromStatusResult;
 import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 public class ArtifactRequestHandler implements Handler {
@@ -161,6 +161,6 @@ public class ArtifactRequestHandler implements Handler {
             vault.storeSecret(dataAddress.getKeyName(), artifactRequestMessagePayload.getSecret());
         }
 
-        return createMultipartResponse(fromStatusResult(transferInitiateResult, multipartRequest.getHeader(), connectorId));
+        return createMultipartResponse(inProcessFromStatusResult(transferInitiateResult, multipartRequest.getHeader(), connectorId));
     }
 }

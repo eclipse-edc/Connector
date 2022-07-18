@@ -39,7 +39,7 @@ import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.fromStatusResult;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.inProcessFromStatusResult;
 import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 /**
@@ -145,6 +145,6 @@ public class ContractRequestHandler implements Handler {
         
         var negotiationInitiateResult = negotiationManager.requested(claimToken, requestObj);
     
-        return createMultipartResponse(fromStatusResult(negotiationInitiateResult, message, connectorId));
+        return createMultipartResponse(inProcessFromStatusResult(negotiationInitiateResult, message, connectorId));
     }
 }
