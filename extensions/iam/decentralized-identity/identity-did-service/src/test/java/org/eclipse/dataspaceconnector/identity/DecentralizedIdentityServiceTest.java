@@ -91,7 +91,7 @@ abstract class DecentralizedIdentityServiceTest {
         var privateKey = new EcPrivateKeyWrapper(keyPair.toECKey());
 
         var didResolver = new TestResolverRegistry(DID_DOCUMENT, keyPair);
-        CredentialsVerifier verifier = (document, url) -> Result.success(Map.of("region", "eu"));
+        CredentialsVerifier verifier = document -> Result.success(Map.of("region", "eu"));
         identityService = new DecentralizedIdentityService(didResolver, verifier, new ConsoleMonitor(), privateKey, didUrl, Clock.systemUTC());
     }
 
