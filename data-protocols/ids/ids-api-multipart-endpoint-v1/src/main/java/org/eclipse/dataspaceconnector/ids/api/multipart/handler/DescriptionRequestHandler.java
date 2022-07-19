@@ -139,7 +139,7 @@ public class DescriptionRequestHandler implements Handler {
     }
     
     private Result<Connector> getConnector(ClaimToken claimToken, Range range) {
-        return transformerRegistry.transform(connectorService.getConnector(claimToken, range), de.fraunhofer.iais.eis.Connector.class);
+        return transformerRegistry.transform(connectorService.getConnector(claimToken, range), Connector.class);
     }
     
     /**
