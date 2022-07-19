@@ -50,7 +50,6 @@ import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.malformedMessage;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.messageTypeNotSupported;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.notAuthenticated;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.notFound;
 
 @Consumes({MediaType.MULTIPART_FORM_DATA})
 @Produces({MediaType.MULTIPART_FORM_DATA})
@@ -96,30 +95,30 @@ public class MultipartController {
     public Response request(@FormDataParam(HEADER) InputStream headerInputStream,
                             @FormDataParam(PAYLOAD) String payload) {
         if (headerInputStream == null) {
-            return Response.ok(createResponse(malformedMessage(null, connectorId))).build();
+            return Response.ok(buildMultipart(malformedMessage(null, connectorId))).build();
         }
 
         Message header;
         try {
             header = objectMapper.readValue(headerInputStream, Message.class);
         } catch (IOException e) {
-            return Response.ok(createResponse(malformedMessage(null, connectorId))).build();
+            return Response.ok(buildMultipart(malformedMessage(null, connectorId))).build();
         }
 
         if (header == null) {
-            return Response.ok(createResponse(malformedMessage(null, connectorId))).build();
+            return Response.ok(buildMultipart(malformedMessage(null, connectorId))).build();
         }
         
         // Check if any required header field missing
         if (header.getId() == null || header.getIssuerConnector() == null || header.getSenderAgent() == null) {
-            return Response.ok(createResponse(malformedMessage(header, connectorId))).build();
+            return Response.ok(buildMultipart(malformedMessage(header, connectorId))).build();
         }
 
         // Check if DAT present
         var dynamicAttributeToken = header.getSecurityToken();
         if (dynamicAttributeToken == null || dynamicAttributeToken.getTokenValue() == null) {
             monitor.warning("MultipartController: Token is missing in header");
-            return Response.ok(createResponse(notAuthenticated(header, connectorId))).build();
+            return Response.ok(buildMultipart(notAuthenticated(header, connectorId))).build();
         }
     
         // Prepare DAT validation: IDS token validation requires issuerConnector
@@ -135,7 +134,7 @@ public class MultipartController {
         var verificationResult = identityService.verifyJwtToken(tokenRepresentation, idsWebhookAddress);
         if (verificationResult.failed()) {
             monitor.warning(format("MultipartController: Token validation failed %s", verificationResult.getFailure().getMessages()));
-            return Response.ok(createResponse(notAuthenticated(header, connectorId))).build();
+            return Response.ok(buildMultipart(notAuthenticated(header, connectorId))).build();
         }
 
         // Build the multipart request
@@ -152,15 +151,11 @@ public class MultipartController {
                 .findFirst()
                 .orElse(null);
         if (handler == null) {
-            return Response.ok(createResponse(messageTypeNotSupported(header, connectorId))).build();
+            return Response.ok(buildMultipart(messageTypeNotSupported(header, connectorId))).build();
         }
 
         var multipartResponse = handler.handleRequest(multipartRequest);
-        if (multipartResponse != null) {
-            return Response.ok(createResponse(multipartResponse)).build();
-        }
-
-        return Response.ok(createResponse(notFound(header, connectorId))).build();
+        return Response.ok(buildMultipart(multipartResponse)).build();
     }
     
     /**
@@ -170,7 +165,7 @@ public class MultipartController {
      * @param multipartResponse the multipart response.
      * @return a multipart body.
      */
-    private FormDataMultiPart createResponse(MultipartResponse multipartResponse) {
+    private FormDataMultiPart buildMultipart(MultipartResponse multipartResponse) {
         addTokenToResponseHeader(multipartResponse.getHeader());
         return createFormDataMultiPart(multipartResponse.getHeader(), multipartResponse.getPayload());
     }
@@ -182,7 +177,7 @@ public class MultipartController {
      * @param header the multipart response.
      * @return a multipart body.
      */
-    private FormDataMultiPart createResponse(Message header) {
+    private FormDataMultiPart buildMultipart(Message header) {
         addTokenToResponseHeader(header);
         return createFormDataMultiPart(header, null);
     }

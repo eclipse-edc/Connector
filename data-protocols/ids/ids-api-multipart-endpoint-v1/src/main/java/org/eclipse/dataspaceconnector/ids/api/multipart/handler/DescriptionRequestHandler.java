@@ -85,7 +85,7 @@ public class DescriptionRequestHandler implements Handler {
     }
 
     @Override
-    public MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
+    public @NotNull MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
         Objects.requireNonNull(multipartRequest);
 
         var claimToken = multipartRequest.getClaimToken();
