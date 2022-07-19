@@ -30,6 +30,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceMessage;
 import org.jetbrains.annotations.NotNull;
 
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.messageProcessedNotification;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.internalRecipientError;
@@ -80,7 +81,7 @@ public class EndpointDataReferenceHandler implements Handler {
         var transformationResult = transformerRegistry.transform(edr);
         if (transformationResult.failed()) {
             monitor.severe("EDR transformation failed: " + String.join(", ", transformationResult.getFailureMessages()));
-            return createMultipartResponse(internalRecipientError(multipartRequest.getHeader(), connectorId));
+            return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
         }
 
         var transformedEdr = transformationResult.getContent();
