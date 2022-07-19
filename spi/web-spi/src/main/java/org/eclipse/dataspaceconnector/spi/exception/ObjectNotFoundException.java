@@ -21,4 +21,9 @@ public class ObjectNotFoundException extends EdcApiException {
     public ObjectNotFoundException(Class<?> objectType, String objectId) {
         super(format("Object of type %s with ID=%s was not found", objectType.getSimpleName(), objectId));
     }
+
+    @Override
+    public String getType() {
+        return "ObjectNotFound";
+    }
 }
