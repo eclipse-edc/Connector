@@ -85,17 +85,25 @@ public class AssetApiController implements AssetApi {
     @GET
     @Override
     public List<AssetDto> getAllAssets(@Valid @BeanParam QuerySpecDto querySpecDto) {
-        var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
-        if (result.failed()) {
-            monitor.warning("Error transforming QuerySpec: " + String.join(", ", result.getFailureMessages()));
+        var transformationResult = transformerRegistry.transform(querySpecDto, QuerySpec.class);
+        if (transformationResult.failed()) {
+            monitor.warning("Error transforming QuerySpec: " + String.join(", ", transformationResult.getFailureMessages()));
             throw new IllegalArgumentException("Cannot transform QuerySpecDto object");
         }
 
-        var spec = result.getContent();
+        var spec = transformationResult.getContent();
 
         monitor.debug(format("get all Assets from %s", spec));
 
-        return service.query(spec).stream()
+        var queryResult = service.query(spec);
+
+        if (queryResult.failed()) {
+            throw mapToException(queryResult, QuerySpec.class, null);
+        }
+
+        var assets = queryResult.getContent();
+
+        return assets.stream()
                 .map(it -> transformerRegistry.transform(it, AssetDto.class))
                 .filter(Result::succeeded)
                 .map(Result::getContent)

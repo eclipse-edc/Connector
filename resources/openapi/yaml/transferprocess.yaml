@@ -39,6 +39,12 @@ paths:
                 items:
                   $ref: '#/components/schemas/TransferProcessDto'
         "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: Request was malformed
       tags:
       - Transfer Process
@@ -66,6 +72,12 @@ paths:
               parameters:
                 id: $response.body#/id
         "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: Request body was malformed
       tags:
       - Transfer Process
@@ -87,8 +99,20 @@ paths:
                 $ref: '#/components/schemas/TransferProcessDto'
           description: The transfer process
         "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: "Request was malformed, e.g. id was null"
         "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: A transfer process with the given ID does not exist
       tags:
       - Transfer Process
@@ -112,8 +136,20 @@ paths:
             poll-state:
               operationId: getTransferProcessState
         "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: "Request was malformed, e.g. id was null"
         "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: A contract negotiation with the given ID does not exist
       tags:
       - Transfer Process
@@ -139,8 +175,20 @@ paths:
             poll-state:
               operationId: getTransferProcessState
         "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: "Request was malformed, e.g. id was null"
         "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: A contract negotiation with the given ID does not exist
       tags:
       - Transfer Process
@@ -162,13 +210,36 @@ paths:
                 $ref: '#/components/schemas/TransferState'
           description: The  transfer process's state
         "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: "Request was malformed, e.g. id was null"
         "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: An  transfer process with the given ID does not exist
       tags:
       - Transfer Process
 components:
   schemas:
+    ApiErrorDetail:
+      type: object
+      properties:
+        invalidValue:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        type:
+          type: string
     DataAddress:
       type: object
       properties:

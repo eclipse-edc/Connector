@@ -14,17 +14,20 @@
 
 package org.eclipse.dataspaceconnector.spi.exception;
 
-import org.eclipse.dataspaceconnector.spi.EdcException;
-
 /**
  * Indicates that an authorization was not possible or failed, e.g. due to missing or unreadable auth headers
  */
-public class AuthenticationFailedException extends EdcException {
+public class AuthenticationFailedException extends EdcApiException {
     public AuthenticationFailedException() {
         super("Request could not be authenticated");
     }
 
     public AuthenticationFailedException(String message) {
         super(message);
+    }
+
+    @Override
+    public String getType() {
+        return "AuthenticationFailed";
     }
 }

@@ -105,7 +105,7 @@ public class AssetApiControllerTest {
 
     @Test
     void getAllAssets() {
-        when(service.query(any())).thenReturn(List.of(Asset.Builder.newInstance().build()));
+        when(service.query(any())).thenReturn(ServiceResult.success(List.of(Asset.Builder.newInstance().build())));
         when(transformerRegistry.transform(isA(Asset.class), eq(AssetDto.class)))
                 .thenReturn(Result.success(AssetDto.Builder.newInstance().build()));
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
@@ -122,7 +122,7 @@ public class AssetApiControllerTest {
 
     @Test
     void getAll_filtersOutFailedTransforms() {
-        when(service.query(any())).thenReturn(List.of(Asset.Builder.newInstance().build()));
+        when(service.query(any())).thenReturn(ServiceResult.success(List.of(Asset.Builder.newInstance().build())));
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
         when(transformerRegistry.transform(isA(Asset.class), eq(AssetDto.class))).thenReturn(Result.failure("failed to transform"));
@@ -136,6 +136,16 @@ public class AssetApiControllerTest {
     void getAll_throwsExceptionIfQuerySpecTransformFails() {
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.failure("Cannot transform"));
+
+        assertThatThrownBy(() -> controller.getAllAssets(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void getAll_throwsExceptionIfQueryFails() {
+        when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
+                .thenReturn(Result.success(QuerySpec.none()));
+
+        when(service.query(any())).thenReturn(ServiceResult.badRequest("error"));
 
         assertThatThrownBy(() -> controller.getAllAssets(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(IllegalArgumentException.class);
     }

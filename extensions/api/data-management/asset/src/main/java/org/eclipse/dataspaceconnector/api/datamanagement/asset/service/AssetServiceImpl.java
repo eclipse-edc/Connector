@@ -25,7 +25,6 @@ import org.eclipse.dataspaceconnector.spi.query.QueryValidator;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.sql.translation.EdcQueryException;
 
 import java.util.Collection;
 import java.util.List;
@@ -57,13 +56,14 @@ public class AssetServiceImpl implements AssetService {
     }
 
     @Override
-    public Collection<Asset> query(QuerySpec query) {
+    public ServiceResult<Collection<Asset>> query(QuerySpec query) {
         var result = queryValidator.validate(query);
 
         if (result.failed()) {
-            throw new EdcQueryException(format("Error validating schema: %s", result.getFailureDetail()));
+            return ServiceResult.badRequest(result.getFailureMessages().toArray(new String[0]));
         }
-        return transactionContext.execute(() -> index.queryAssets(query).collect(toList()));
+
+        return ServiceResult.success(transactionContext.execute(() -> index.queryAssets(query).collect(toList())));
     }
 
     @Override

@@ -19,7 +19,6 @@ import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.NotSupportedException;
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.exception.AuthenticationFailedException;
 import org.eclipse.dataspaceconnector.spi.exception.NotAuthorizedException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectExistsException;
@@ -38,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class EdcApiExceptionMapperTest {
 
     @ParameterizedTest
-    @ArgumentsSource(EdcExceptions.class)
+    @ArgumentsSource(EdcApiExceptions.class)
     @ArgumentsSource(JakartaApiExceptions.class)
     @ArgumentsSource(JavaExceptions.class)
     void toResponseNotVerbose(Throwable throwable, int expectedCode) {
@@ -52,7 +51,7 @@ class EdcApiExceptionMapperTest {
     }
 
     @ParameterizedTest
-    @ArgumentsSource(EdcExceptions.class)
+    @ArgumentsSource(EdcApiExceptions.class)
     void toResponseVerbose(Throwable throwable, int expectedCode) {
         var mapper = new EdcApiExceptionMapper(true);
 
@@ -63,7 +62,7 @@ class EdcApiExceptionMapperTest {
         assertThat(response.getEntity()).isNotNull();
     }
 
-    private static class EdcExceptions implements ArgumentsProvider {
+    private static class EdcApiExceptions implements ArgumentsProvider {
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
@@ -72,7 +71,6 @@ class EdcApiExceptionMapperTest {
                     Arguments.of(new AuthenticationFailedException(), 401),
                     Arguments.of(new ObjectExistsException(Object.class, "test-object-id"), 409),
                     Arguments.of(new ObjectNotFoundException(Object.class, "test-object-id"), 404),
-                    Arguments.of(new EdcException("foo"), 503),
                     Arguments.of(new NotAuthorizedException(), 403)
             );
         }
@@ -81,7 +79,7 @@ class EdcApiExceptionMapperTest {
     private static class JavaExceptions implements ArgumentsProvider {
 
         @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
                     Arguments.of(new IllegalArgumentException("foo"), 400),
                     Arguments.of(new NullPointerException("foo"), 400),
