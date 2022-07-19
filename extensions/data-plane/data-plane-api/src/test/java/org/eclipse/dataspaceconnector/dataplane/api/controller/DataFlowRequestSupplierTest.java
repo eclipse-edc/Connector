@@ -14,9 +14,9 @@
 
 package org.eclipse.dataspaceconnector.dataplane.api.controller;
 
-import com.github.javafaker.Faker;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.core.MediaType;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.OutputStreamDataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;

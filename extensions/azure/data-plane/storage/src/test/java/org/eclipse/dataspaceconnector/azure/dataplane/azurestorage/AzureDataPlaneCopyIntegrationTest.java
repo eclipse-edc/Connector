@@ -15,8 +15,8 @@
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage;
 
 import com.azure.core.util.BinaryData;
-import com.github.javafaker.Faker;
 import dev.failsafe.RetryPolicy;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureSasToken;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApiImpl;

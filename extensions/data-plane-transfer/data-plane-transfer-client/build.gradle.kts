@@ -20,7 +20,6 @@ val httpMockServer: String by project
 val failsafeVersion: String by project
 val okHttpVersion: String by project
 val openTelemetryVersion: String by project
-val faker: String by project
 
 dependencies {
     api(project(":spi:core-spi"))
@@ -36,7 +35,6 @@ dependencies {
 
     testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
     testImplementation("org.mock-server:mockserver-client-java:${httpMockServer}:shaded")
-    testImplementation("com.github.javafaker:javafaker:${faker}")
     testImplementation(project(":extensions:junit"))
 
 }

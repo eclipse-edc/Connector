@@ -14,9 +14,9 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy;
 
-import com.github.javafaker.Faker;
 import com.nimbusds.jwt.JWTClaimsSet;
 import jakarta.ws.rs.core.HttpHeaders;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.common.token.TokenGenerationService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.result.Result;

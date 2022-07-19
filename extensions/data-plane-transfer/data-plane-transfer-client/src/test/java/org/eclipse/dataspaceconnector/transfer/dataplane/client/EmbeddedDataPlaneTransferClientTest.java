@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.client;
 
-import com.github.javafaker.Faker;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.transfer.dataplane.spi.client.DataPlaneTransferClient;

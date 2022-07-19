@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.catalog;
 
-import com.github.javafaker.Faker;
 import io.restassured.specification.RequestSpecification;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;

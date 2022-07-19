@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
-import com.github.javafaker.Faker;
 import io.netty.handler.codec.http.HttpMethod;
+import net.datafaker.Faker;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
