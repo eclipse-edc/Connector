@@ -25,7 +25,6 @@ import org.eclipse.dataspaceconnector.spi.exception.NotAuthorizedException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotModifiableException;
-import org.eclipse.dataspaceconnector.sql.translation.EdcQueryException;
 
 import java.util.List;
 import java.util.Map;
@@ -47,7 +46,6 @@ public class EdcApiExceptionMapper implements ExceptionMapper<Throwable> {
         exceptionMap = Map.of(
                 IllegalArgumentException.class, BAD_REQUEST,
                 NullPointerException.class, BAD_REQUEST,
-                EdcQueryException.class, BAD_REQUEST,
                 AuthenticationFailedException.class, UNAUTHORIZED,
                 NotAuthorizedException.class, FORBIDDEN,
                 ObjectNotFoundException.class, NOT_FOUND,
