@@ -49,7 +49,8 @@ in the detailed section referring to by linking pull requests or issues.
 * Old RegistrationService (was used for a PoC) (#164)
 * Deprecate `InlineDataFlowController` (replaced by the Data Plane) (#1464)
 * Unused classes and interfaces at `ids.spi.policy` (#1471)
-* Remove modules `:extensions:transfer-functions:transfer-functions-spi` and `:extensions:transfer-functions:transfer-functions-core` (#1482)
+* Remove modules `:extensions:transfer-functions:transfer-functions-spi`
+  and `:extensions:transfer-functions:transfer-functions-core` (#1482)
 * Remove `ConnectorVersionProvider`, provide version as static string (#1470)
 * Remove `samples/other/run-from-junit` (#1456)
 
@@ -67,6 +68,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Adapt logs to the logging guide (#1425)
 * Fix incompatibility `DecentralizedIdentityServiceExtension` and `FsPrivateKeyResolver` (#1696)
 * Add support for domain port domain in Web Did resolver (#1652)
+* Fixed persistence update bug with `DataRequest` (#1707)
 
 ## [milestone-4] - 2022-06-07
 
@@ -106,7 +108,8 @@ in the detailed section referring to by linking pull requests or issues.
 
 * Restructure sql extension folder tree (#1154)
 * Extract single `PolicyArchive` implementation (#1158)
-* Replace `accessPolicy` and `contractPolicy` with `accessPolicyId` and `contractPolicyId` on `ContractDefinition` (#1144)
+* Replace `accessPolicy` and `contractPolicy` with `accessPolicyId` and `contractPolicyId` on `ContractDefinition` (
+  #1144)
 * Replace `policy` with `policyId` on `ContractAgreement` (#1220)
 * All DMgmt Api methods now produce and consume `APPLICATION_JSON` (#1175)
 * Make data-plane public api controller asynchronous (#1228)

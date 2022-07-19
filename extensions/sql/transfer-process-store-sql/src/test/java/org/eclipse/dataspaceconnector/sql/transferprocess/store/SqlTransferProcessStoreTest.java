@@ -276,6 +276,23 @@ public class SqlTransferProcessStoreTest {
     }
 
     @Test
+    void update_shouldPersistDataRequest() {
+        var t1 = createTransferProcess("id1", TransferProcessStates.IN_PROGRESS);
+        store.create(t1);
+
+        t1.getDataRequest().getProperties().put("newKey", "newValue");
+        store.update(t1);
+
+        var all = store.findAll(QuerySpec.none()).collect(Collectors.toList());
+        assertThat(all)
+                .hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsExactly(t1);
+
+        assertThat(all.get(0).getDataRequest().getProperties()).containsEntry("newKey", "newValue");
+    }
+
+    @Test
     void update_exists_shouldUpdate() {
         var t1 = createTransferProcess("id1", TransferProcessStates.IN_PROGRESS);
         store.create(t1);

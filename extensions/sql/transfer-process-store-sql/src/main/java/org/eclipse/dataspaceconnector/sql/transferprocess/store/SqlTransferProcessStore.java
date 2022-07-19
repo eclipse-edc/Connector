@@ -179,8 +179,8 @@ public class SqlTransferProcessStore implements TransferProcessStore {
     }
 
     private void update(Connection conn, String transferProcessId, TransferProcess process) {
-        var stmt = statements.getUpdateTransferProcessTemplate();
-        executeQuery(conn, stmt, process.getState(),
+        var updateStmt = statements.getUpdateTransferProcessTemplate();
+        executeQuery(conn, updateStmt, process.getState(),
                 process.getStateCount(),
                 process.getStateTimestamp(),
                 toJson(process.getTraceContext()),
@@ -190,6 +190,22 @@ public class SqlTransferProcessStore implements TransferProcessStore {
                 toJson(process.getContentDataAddress()),
                 toJson(process.getDeprovisionedResources()),
                 transferProcessId);
+
+        var dr = process.getDataRequest();
+        var updateDrStmt = statements.getUpdateDataRequestTemplate();
+
+        executeQuery(conn, updateDrStmt,
+                dr.getProcessId(),
+                dr.getConnectorAddress(),
+                dr.getProtocol(),
+                dr.getConnectorId(),
+                dr.getAssetId(),
+                dr.getContractId(),
+                toJson(dr.getDataDestination()),
+                dr.isManagedResources(),
+                toJson(dr.getProperties()),
+                toJson(dr.getTransferType()),
+                dr.getId());
     }
 
     /**
