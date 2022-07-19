@@ -110,7 +110,7 @@ public class MultipartController {
             return Response.ok(createResponse(malformedMessage(null, connectorId))).build();
         }
         
-        // Check if any required field missing
+        // Check if any required header field missing
         if (header.getId() == null || header.getIssuerConnector() == null || header.getSenderAgent() == null) {
             return Response.ok(createResponse(malformedMessage(header, connectorId))).build();
         }
@@ -138,6 +138,7 @@ public class MultipartController {
             return Response.ok(createResponse(notAuthenticated(header, connectorId))).build();
         }
 
+        // Build the multipart request
         var claimToken = verificationResult.getContent();
         var multipartRequest = MultipartRequest.Builder.newInstance()
                 .header(header)
@@ -145,6 +146,7 @@ public class MultipartController {
                 .claimToken(claimToken)
                 .build();
 
+        // Find handler for the multipart request
         var handler = multipartHandlers.stream()
                 .filter(h -> h.canHandle(multipartRequest))
                 .findFirst()

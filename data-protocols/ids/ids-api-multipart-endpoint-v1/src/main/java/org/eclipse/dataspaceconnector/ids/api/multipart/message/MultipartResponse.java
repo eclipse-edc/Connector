@@ -20,6 +20,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+/**
+ * Represents an IDS multipart response. Contains the IDS message header and an optional payload.
+ */
 public class MultipartResponse {
 
     private final Message header;

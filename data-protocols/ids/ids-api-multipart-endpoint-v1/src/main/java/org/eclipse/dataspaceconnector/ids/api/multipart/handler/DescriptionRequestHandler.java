@@ -49,7 +49,6 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.util.MultipartReq
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.descriptionResponse;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.messageTypeNotSupported;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.notFound;
 
 public class DescriptionRequestHandler implements Handler {
@@ -92,6 +91,7 @@ public class DescriptionRequestHandler implements Handler {
         var claimToken = multipartRequest.getClaimToken();
         var message = (DescriptionRequestMessage) multipartRequest.getHeader();
     
+        // Get ID of requested element
         var requestedElement = message.getRequestedElement();
         IdsId idsId = null;
         if (requestedElement != null) {
@@ -111,6 +111,7 @@ public class DescriptionRequestHandler implements Handler {
         var to = getInt(message, Range.TO, Integer.MAX_VALUE);
         var range = new Range(from, to);
     
+        // Retrieve and transform requested element
         Result<? extends ModelClass> result;
         if (idsId == null || (idsId.getType() == IdsType.CONNECTOR)) {
             result = getConnector(claimToken, range);
@@ -141,6 +142,15 @@ public class DescriptionRequestHandler implements Handler {
         return transformerRegistry.transform(connectorService.getConnector(claimToken, range), de.fraunhofer.iais.eis.Connector.class);
     }
     
+    /**
+     * Retrieves the requested element specified by the IdsId. If the requested element is a
+     * catalog or resource, the given range is used.
+     *
+     * @param idsId the ID.
+     * @param claimToken the claim token of the requesting connector.
+     * @param range the range.
+     * @return the requested element.
+     */
     private Object retrieveRequestedElement(IdsId idsId, ClaimToken claimToken, Range range) {
         var type = idsId.getType();
         switch (type) {
@@ -168,6 +178,13 @@ public class DescriptionRequestHandler implements Handler {
         }
     }
     
+    /**
+     * Transforms the requested element as defined by the IdsType.
+     *
+     * @param object the object to transform.
+     * @param type the IDS target type.
+     * @return the transformation result,
+     */
     private Result<? extends ModelClass> transformRequestedElement(Object object, IdsType type) {
         switch (type) {
             case ARTIFACT:

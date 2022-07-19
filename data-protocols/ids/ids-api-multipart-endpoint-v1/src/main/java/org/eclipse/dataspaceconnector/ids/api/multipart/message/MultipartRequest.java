@@ -21,6 +21,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+/**
+ * Represents an IDS multipart request. Contains the IDS message header, an optional payload and
+ * the claim token for the requesting connector.
+ */
 public class MultipartRequest {
 
     private final Message header;

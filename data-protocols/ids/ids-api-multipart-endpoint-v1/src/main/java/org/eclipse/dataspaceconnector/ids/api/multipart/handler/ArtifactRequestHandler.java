@@ -85,6 +85,7 @@ public class ArtifactRequestHandler implements Handler {
         var claimToken = multipartRequest.getClaimToken();
         var message = (ArtifactRequestMessage) multipartRequest.getHeader();
 
+        // Validate request artifact ID
         var artifactUri = message.getRequestedArtifact();
         var artifactIdsId = IdsIdParser.parse(artifactUri.toString());
         if (artifactIdsId.getType() != IdsType.ARTIFACT) {
@@ -92,6 +93,7 @@ public class ArtifactRequestHandler implements Handler {
             return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
         }
 
+        // Validate contract ID
         var contractUri = message.getTransferContract();
         var contractIdsId = IdsIdParser.parse(contractUri.toString());
         if (contractIdsId.getType() != IdsType.CONTRACT) {
@@ -99,38 +101,43 @@ public class ArtifactRequestHandler implements Handler {
             return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
         }
 
+        // Get contract agreement for received contract ID
         var contractAgreement = contractNegotiationStore.findContractAgreement(contractIdsId.getValue());
         if (contractAgreement == null) {
             monitor.debug(String.format("ArtifactRequestHandler: No contract agreement with id %s found.", contractIdsId.getValue()));
             return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
         }
 
+        // Validate contract agreement
         var isContractValid = contractValidationService.validate(claimToken, contractAgreement);
         if (!isContractValid) {
             monitor.debug("ArtifactRequestHandler: Contract is invalid");
             return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
         }
 
+        // Verify that contract agreement is valid for requested artifact
         if (!artifactIdsId.getValue().equals(contractAgreement.getAssetId())) {
             monitor.debug(String.format("ArtifactRequestHandler: invalid artifact id specified %s for contract: %s", artifactIdsId.getValue(), contractIdsId.getValue()));
             return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
         }
 
+        // Read request payload, which contains the data destination and an optional secret
         ArtifactRequestMessagePayload artifactRequestMessagePayload;
         try {
-            artifactRequestMessagePayload =
-                    objectMapper.readValue(multipartRequest.getPayload(), ArtifactRequestMessagePayload.class);
+            artifactRequestMessagePayload = objectMapper.readValue(multipartRequest.getPayload(), ArtifactRequestMessagePayload.class);
         } catch (IOException e) {
             return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
         }
 
-        var dataAddress = artifactRequestMessagePayload.getDataDestination();
+        var dataDestination = artifactRequestMessagePayload.getDataDestination();
 
+        // Read request message properties
         Map<String, String> props = new HashMap<>();
         if (message.getProperties() != null) {
             message.getProperties().forEach((k, v) -> props.put(k, v.toString()));
         }
 
+        // Get webhook address of requesting connector from message properties
         var idsWebhookAddress = Optional.ofNullable(props.remove(IDS_WEBHOOK_ADDRESS_PROPERTY))
                 .map(Object::toString)
                 .orElse(null);
@@ -146,7 +153,7 @@ public class ArtifactRequestHandler implements Handler {
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(message.getId().toString())
                 .protocol(Protocols.IDS_MULTIPART)
-                .dataDestination(dataAddress)
+                .dataDestination(dataDestination)
                 .connectorId(connectorId)
                 .assetId(contractAgreement.getAssetId())
                 .contractId(contractAgreement.getId())
@@ -154,10 +161,11 @@ public class ArtifactRequestHandler implements Handler {
                 .connectorAddress(idsWebhookAddress)
                 .build();
 
+        // Initiate a transfer process for the request
         var transferInitiateResult = transferProcessManager.initiateProviderRequest(dataRequest);
 
         if (artifactRequestMessagePayload.getSecret() != null) {
-            vault.storeSecret(dataAddress.getKeyName(), artifactRequestMessagePayload.getSecret());
+            vault.storeSecret(dataDestination.getKeyName(), artifactRequestMessagePayload.getSecret());
         }
 
         return createMultipartResponse(inProcessFromStatusResult(transferInitiateResult, multipartRequest.getHeader(), connectorId));

@@ -76,6 +76,7 @@ public class EndpointDataReferenceHandler implements Handler {
     public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
         Objects.requireNonNull(multipartRequest);
         
+        // Read and transform the endpoint data reference from the request payload
         var edr = typeManager.readValue(multipartRequest.getPayload(), EndpointDataReference.class);
         var transformationResult = transformerRegistry.transform(edr);
         if (transformationResult.failed()) {
@@ -85,6 +86,7 @@ public class EndpointDataReferenceHandler implements Handler {
 
         var transformedEdr = transformationResult.getContent();
 
+        // Apply all endpoint data reference receivers to the endpoint data reference
         var receiveResult = receiverRegistry.receiveAll(transformedEdr).join();
         if (receiveResult.failed()) {
             monitor.severe("EDR dispatch failed: " + String.join(", ", receiveResult.getFailureMessages()));

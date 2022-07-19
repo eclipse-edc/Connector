@@ -89,7 +89,8 @@ public class ContractRequestHandler implements Handler {
             monitor.severe("ContractRequestHandler: Contract Request is invalid", e);
             return createMultipartResponse(badParameters(message, connectorId));
         }
-
+    
+        // Get webhook address of requesting connector from message properties
         var idsWebhookAddress = message.getProperties().get(IDS_WEBHOOK_ADDRESS_PROPERTY);
         if (idsWebhookAddress == null || idsWebhookAddress.toString().isBlank()) {
             var msg = "Ids webhook address is invalid";
