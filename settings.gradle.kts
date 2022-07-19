@@ -208,3 +208,8 @@ include(":system-tests:runtimes:azure-storage-transfer-consumer")
 include(":system-tests:azure-tests")
 include(":system-tests:azure-data-factory-tests")
 
+include(":tooling:module-domain")
+include(":tooling:module-processor")
+include(":tooling:module-processor-extension-test")
+include(":tooling:module-processor-spi-test")
+

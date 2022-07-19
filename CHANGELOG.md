@@ -23,6 +23,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Event Framework for PolicyDefinition entity (#1437)
 * Event Framework for TransferProcess entity (#1439)
 * SQL Translation layer (#1357, #1459)
+* Tooling infrastructure and module processing (#1494)
 * Permit API verbose error response (#1479)
 * Fix TODO and document `:extensions:data-plane-transfer` (#1519)
 * CloudEvents Http extension (#1160)
