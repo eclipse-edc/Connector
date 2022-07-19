@@ -30,7 +30,7 @@ import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.messageTypeNotSupported;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.requestInProcess;
 
 /**
  * This class handles and processes incoming IDS {@link ContractOfferMessage}s.
@@ -78,6 +78,6 @@ public class ContractOfferHandler implements Handler {
         }
     
         // TODO similar implementation to ContractRequestHandler (only required if counter offers supported, not needed for M1)
-        return createMultipartResponse(messageTypeNotSupported(message, connectorId));
+        return createMultipartResponse(requestInProcess(message, connectorId));
     }
 }

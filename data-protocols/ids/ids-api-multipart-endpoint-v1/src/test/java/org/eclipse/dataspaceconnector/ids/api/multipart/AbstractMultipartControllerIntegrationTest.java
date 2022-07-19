@@ -139,7 +139,8 @@ abstract class AbstractMultipartControllerIntegrationTest {
     protected DescriptionRequestMessage getDescriptionRequestMessage(IdsId idsId) {
         DescriptionRequestMessageBuilder builder = new DescriptionRequestMessageBuilder()
                 ._securityToken_(getDynamicAttributeToken())
-                ._issuerConnector_(URI.create("issuerConnector"));
+                ._issuerConnector_(URI.create("issuerConnector"))
+                ._senderAgent_(URI.create("senderAgent"));
 
         if (idsId != null) {
             builder._requestedElement_(
@@ -152,7 +153,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
         var message = new ContractRequestMessageBuilder()
                 ._correlationMessage_(URI.create("correlationId"))
                 ._securityToken_(getDynamicAttributeToken())
-                ._senderAgent_(URI.create("sender"))
+                ._senderAgent_(URI.create("senderAgent"))
                 ._issuerConnector_(URI.create("issuerConnector"))
                 .build();
         message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, "http://someUrl");
@@ -164,6 +165,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 ._correlationMessage_(URI.create("correlationId"))
                 ._securityToken_(getDynamicAttributeToken())
                 ._issuerConnector_(URI.create("issuerConnector"))
+                ._senderAgent_(URI.create("senderAgent"))
                 .build();
     }
 
@@ -173,13 +175,14 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 ._transferContract_(URI.create("contractId"))
                 ._securityToken_(getDynamicAttributeToken())
                 ._issuerConnector_(URI.create("issuerConnector"))
+                ._senderAgent_(URI.create("senderAgent"))
                 .build();
     }
 
     protected ContractOfferMessage getContractOfferMessage() {
         return new ContractOfferMessageBuilder()
                 ._correlationMessage_(URI.create("correlationId"))
-                ._senderAgent_(URI.create("sender"))
+                ._senderAgent_(URI.create("senderAgent"))
                 ._securityToken_(getDynamicAttributeToken())
                 ._issuerConnector_(URI.create("issuerConnector"))
                 .build();
