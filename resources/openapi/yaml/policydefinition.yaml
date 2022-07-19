@@ -39,6 +39,12 @@ paths:
                 items:
                   $ref: '#/components/schemas/PolicyDefinition'
         "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: Request was malformed
       tags:
       - Policy
@@ -54,8 +60,20 @@ paths:
         "200":
           description: policy definition was created successfully
         "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: Request body was malformed
         "409":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: "Could not create policy definition, because a contract definition\
             \ with that ID already exists"
       tags:
@@ -78,10 +96,28 @@ paths:
         "200":
           description: Policy definition was deleted successfully
         "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: "Request was malformed, e.g. id was null"
         "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: An policy definition with the given ID does not exist
         "409":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: "The policy definition cannot be deleted, because it is referenced\
             \ by a contract definition"
       tags:
@@ -103,8 +139,20 @@ paths:
                 $ref: '#/components/schemas/PolicyDefinition'
           description: The  policy definition
         "400":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: "Request was malformed, e.g. id was null"
         "404":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiErrorDetail'
           description: An  policy definition with the given ID does not exist
       tags:
       - Policy
@@ -116,6 +164,17 @@ components:
         constraint:
           $ref: '#/components/schemas/Constraint'
         includedIn:
+          type: string
+        type:
+          type: string
+    ApiErrorDetail:
+      type: object
+      properties:
+        invalidValue:
+          type: string
+        message:
+          type: string
+        path:
           type: string
         type:
           type: string

@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
+import org.eclipse.dataspaceconnector.spi.ApiErrorDetail;
 
 import java.util.List;
 
@@ -34,15 +35,19 @@ public interface PolicyDefinitionApi {
     @Operation(description = "Returns all policy definitions according to a query",
             responses = {
                     @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PolicyDefinition.class)))),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed") }
+                    @ApiResponse(responseCode = "400", description = "Request was malformed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
     List<PolicyDefinition> getAllPolicies(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets a policy definition with the given ID",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "The  policy definition", content = @Content(schema = @Schema(implementation = PolicyDefinition.class))),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null"),
-                    @ApiResponse(responseCode = "404", description = "An  policy definition with the given ID does not exist")
+                    @ApiResponse(responseCode = "200", description = "The  policy definition",
+                            content = @Content(schema = @Schema(implementation = PolicyDefinition.class))),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "404", description = "An  policy definition with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
     PolicyDefinition getPolicy(String id);
@@ -50,8 +55,10 @@ public interface PolicyDefinitionApi {
     @Operation(description = "Creates a new policy definition",
             responses = {
                     @ApiResponse(responseCode = "200", description = "policy definition was created successfully"),
-                    @ApiResponse(responseCode = "400", description = "Request body was malformed"),
-                    @ApiResponse(responseCode = "409", description = "Could not create policy definition, because a contract definition with that ID already exists") }
+                    @ApiResponse(responseCode = "400", description = "Request body was malformed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "409", description = "Could not create policy definition, because a contract definition with that ID already exists",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
     void createPolicy(PolicyDefinition policy);
 
@@ -60,9 +67,12 @@ public interface PolicyDefinitionApi {
             "DANGER ZONE: Note that deleting policy definitions can have unexpected results, do this at your own risk!",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Policy definition was deleted successfully"),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null"),
-                    @ApiResponse(responseCode = "404", description = "An policy definition with the given ID does not exist"),
-                    @ApiResponse(responseCode = "409", description = "The policy definition cannot be deleted, because it is referenced by a contract definition")
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "404", description = "An policy definition with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "409", description = "The policy definition cannot be deleted, because it is referenced by a contract definition",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
     void deletePolicy(String id);

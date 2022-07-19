@@ -30,6 +30,7 @@ import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.mod
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationInitiateRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationState;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
+import org.eclipse.dataspaceconnector.spi.ApiErrorDetail;
 
 import java.util.List;
 
@@ -39,16 +40,21 @@ public interface ContractNegotiationApi {
 
     @Operation(description = "Returns all contract negotiations according to a query",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractNegotiationDto.class)))),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed") }
+                    @ApiResponse(responseCode = "200",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ContractNegotiationDto.class)))),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
     List<ContractNegotiationDto> getNegotiations(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets an contract negotiation with the given ID",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "The contract negotiation", content = @Content(schema = @Schema(implementation = ContractNegotiationDto.class))),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null"),
-                    @ApiResponse(responseCode = "404", description = "An contract negotiation with the given ID does not exist")
+                    @ApiResponse(responseCode = "200", description = "The contract negotiation",
+                            content = @Content(schema = @Schema(implementation = ContractNegotiationDto.class))),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "404", description = "An contract negotiation with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
     ContractNegotiationDto getNegotiation(String id);
@@ -56,18 +62,24 @@ public interface ContractNegotiationApi {
     @Operation(description = "Gets the state of a contract negotiation with the given ID",
             operationId = "getNegotiationState",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "The contract negotiation's state", content = @Content(schema = @Schema(implementation = NegotiationState.class))),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null"),
-                    @ApiResponse(responseCode = "404", description = "An contract negotiation with the given ID does not exist")
+                    @ApiResponse(responseCode = "200", description = "The contract negotiation's state",
+                            content = @Content(schema = @Schema(implementation = NegotiationState.class))),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "404", description = "An contract negotiation with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
     NegotiationState getNegotiationState(String id);
 
     @Operation(description = "Gets a contract agreement for a contract negotiation with the given ID",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "The contract agreement that is attached to the negotiation, or null", content = @Content(schema = @Schema(implementation = ContractNegotiationDto.class))),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null"),
-                    @ApiResponse(responseCode = "404", description = "An contract negotiation with the given ID does not exist")
+                    @ApiResponse(responseCode = "200", description = "The contract agreement that is attached to the negotiation, or null",
+                            content = @Content(schema = @Schema(implementation = ContractNegotiationDto.class))),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "404", description = "An contract negotiation with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
     ContractAgreementDto getAgreementForNegotiation(String negotiationId);
@@ -75,12 +87,14 @@ public interface ContractNegotiationApi {
     @Operation(description = "Initiates a contract negotiation for a given offer and with the given counter part. Please note that successfully invoking this endpoint " +
             "only means that the negotiation was initiated. Clients must poll the /{id}/state endpoint to track the state",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "The negotiation was successfully initiated. Returns the contract negotiation ID", content = @Content(schema = @Schema(implementation = NegotiationId.class)),
+                    @ApiResponse(responseCode = "200", description = "The negotiation was successfully initiated. Returns the contract negotiation ID",
+                            content = @Content(schema = @Schema(implementation = NegotiationId.class)),
                             links = @Link(name = "poll-state", operationId = "getNegotiationState", parameters = {
                                     @LinkParameter(name = "id", expression = "$response.body#/id")
                             })
                     ),
-                    @ApiResponse(responseCode = "400", description = "Request body was malformed"),
+                    @ApiResponse(responseCode = "400", description = "Request body was malformed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
             })
     NegotiationId initiateContractNegotiation(@Valid NegotiationInitiateRequestDto initiateDto);
 
@@ -90,8 +104,10 @@ public interface ContractNegotiationApi {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Request to cancel the Contract negotiation was successfully received",
                             links = @Link(name = "poll-state", operationId = "getNegotiationState")),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null"),
-                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist")
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             })
     void cancelNegotiation(String id);
 
@@ -100,8 +116,10 @@ public interface ContractNegotiationApi {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Request to decline the Contract negotiation was successfully received",
                             links = @Link(name = "poll-state", operationId = "getNegotiationState")),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null"),
-                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist")
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
     void declineNegotiation(String id);
