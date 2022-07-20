@@ -20,8 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.Contract;
 import de.fraunhofer.iais.eis.ContractAgreementMessage;
 import de.fraunhofer.iais.eis.ContractAgreementMessageBuilder;
-import de.fraunhofer.iais.eis.ContractOfferMessage;
-import de.fraunhofer.iais.eis.ContractOfferMessageBuilder;
 import de.fraunhofer.iais.eis.ContractRejectionMessage;
 import de.fraunhofer.iais.eis.ContractRejectionMessageBuilder;
 import de.fraunhofer.iais.eis.ContractRequestMessage;
@@ -176,15 +174,6 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 ._securityToken_(getDynamicAttributeToken())
                 ._issuerConnector_(URI.create("issuerConnector"))
                 ._senderAgent_(URI.create("senderAgent"))
-                .build();
-    }
-
-    protected ContractOfferMessage getContractOfferMessage() {
-        return new ContractOfferMessageBuilder()
-                ._correlationMessage_(URI.create("correlationId"))
-                ._senderAgent_(URI.create("senderAgent"))
-                ._securityToken_(getDynamicAttributeToken())
-                ._issuerConnector_(URI.create("issuerConnector"))
                 .build();
     }
 

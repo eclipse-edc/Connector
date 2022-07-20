@@ -21,7 +21,6 @@ import org.eclipse.dataspaceconnector.ids.api.configuration.IdsApiConfiguration;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ArtifactRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractAgreementHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractOfferHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractRejectionHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionRequestHandler;
@@ -128,7 +127,6 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         handlers.add(new EndpointDataReferenceHandler(monitor, connectorId, endpointDataReferenceReceiverRegistry, endpointDataReferenceTransformerRegistry, context.getTypeManager()));
         handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager, transformerRegistry, assetIndex));
         handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager, transformerRegistry));
-        handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper, providerNegotiationManager, consumerNegotiationManager));
         handlers.add(new ContractRejectionHandler(monitor, connectorId, providerNegotiationManager, consumerNegotiationManager));
 
         // create & register controller
