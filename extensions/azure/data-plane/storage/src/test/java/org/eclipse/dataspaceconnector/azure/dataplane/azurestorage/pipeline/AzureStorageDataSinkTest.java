@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline;
 
-import com.github.javafaker.Faker;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.azure.blob.core.adapter.BlobAdapter;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;

@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.catalog.service;
 
-import com.github.javafaker.Faker;
+import net.datafaker.Faker;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;

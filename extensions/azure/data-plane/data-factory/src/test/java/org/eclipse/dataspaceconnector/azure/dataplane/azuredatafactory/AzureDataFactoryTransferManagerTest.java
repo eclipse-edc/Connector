@@ -19,7 +19,7 @@ import com.azure.resourcemanager.datafactory.models.CreateRunResponse;
 import com.azure.resourcemanager.datafactory.models.PipelineResource;
 import com.azure.resourcemanager.datafactory.models.PipelineRun;
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
-import com.github.javafaker.Faker;
+import net.datafaker.Faker;
 import org.assertj.core.api.ObjectAssert;
 import org.bouncycastle.util.test.UncloseableOutputStream;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureSasToken;

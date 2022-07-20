@@ -14,11 +14,11 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.validation;
 
-import com.github.javafaker.Faker;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;

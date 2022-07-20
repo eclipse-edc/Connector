@@ -240,7 +240,15 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
 
         ResourceManifest manifest;
         if (process.getType() == CONSUMER) {
-            manifest = manifestGenerator.generateConsumerResourceManifest(dataRequest, policy);
+            var manifestResult = manifestGenerator.generateConsumerResourceManifest(dataRequest, policy);
+            if (manifestResult.failed()) {
+                monitor.severe(format("Transitioning transfer process %s to ERROR state. Resource manifest cannot be modified to fulfil policy: %s",
+                        process.getId(), manifestResult.getFailureMessages()));
+                process.transitionError(format("Resource manifest for process %s cannot be modified to fulfil policy.", process.getId()));
+                updateTransferProcess(process, l -> l.preError(process));
+                return true;
+            }
+            manifest = manifestResult.getContent();
         } else {
             var assetId = process.getDataRequest().getAssetId();
             var dataAddress = addressResolver.resolveForAsset(assetId);

@@ -16,12 +16,12 @@ plugins {
     java
 }
 
-val jupiterVersion: String by project
-val restAssured: String by project
 val assertj: String by project
 val awaitility: String by project
-val faker: String by project
+val datafaker: String by project
+val jupiterVersion: String by project
 val httpMockServer: String by project
+val restAssured: String by project
 
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
@@ -29,10 +29,9 @@ dependencies {
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
     testImplementation("org.assertj:assertj-core:${assertj}")
     testImplementation("org.awaitility:awaitility:${awaitility}")
-    testImplementation("com.github.javafaker:javafaker:${faker}")
     testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
     testImplementation("org.mock-server:mockserver-client-java:${httpMockServer}:shaded")
-
+    testImplementation("net.datafaker:datafaker:${datafaker}")
 
     testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))

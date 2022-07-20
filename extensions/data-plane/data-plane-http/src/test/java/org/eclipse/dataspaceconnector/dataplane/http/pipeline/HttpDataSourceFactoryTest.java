@@ -17,8 +17,8 @@
 
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
-import com.github.javafaker.Faker;
 import dev.failsafe.RetryPolicy;
+import net.datafaker.Faker;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures;
 import org.eclipse.dataspaceconnector.spi.EdcException;

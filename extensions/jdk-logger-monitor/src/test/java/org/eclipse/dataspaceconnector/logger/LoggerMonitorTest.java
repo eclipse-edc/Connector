@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.logger;
 
-import com.github.javafaker.Faker;
+import net.datafaker.Faker;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
-import com.github.javafaker.Faker;
 import io.netty.handler.codec.http.HttpMethod;
+import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
