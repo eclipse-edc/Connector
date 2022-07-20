@@ -9,25 +9,28 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.util;
 
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.MessageProcessedNotificationMessage;
 import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RejectionReason;
+import de.fraunhofer.iais.eis.RequestInProcessMessage;
+import de.fraunhofer.iais.eis.ResponseMessageBuilder;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
-import org.junit.jupiter.api.AfterEach;
+import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ResponseUtilTest {
@@ -48,64 +51,139 @@ class ResponseUtilTest {
         when(correlationMessage.getIssuerConnector()).thenReturn(issuerConnector);
     }
 
-    @AfterEach
-    void tearDown() {
-        verify(correlationMessage, atLeastOnce()).getId();
-        verify(correlationMessage, atLeastOnce()).getSenderAgent();
-        verify(correlationMessage, atLeastOnce()).getIssuerConnector();
+    @Test
+    void createMultipartResponse_onlyHeader() {
+        var header = new ResponseMessageBuilder().build();
+        
+        var multipartResponse = ResponseUtil.createMultipartResponse(header);
+        
+        assertThat(multipartResponse).isNotNull();
+        assertThat(multipartResponse.getHeader()).isNotNull().isEqualTo(header);
+        assertThat(multipartResponse.getPayload()).isNull();
+    }
+    
+    @Test
+    void createMultipartResponse_headerAndPayload() {
+        var header = new ResponseMessageBuilder().build();
+        var payload = "payload";
+    
+        var multipartResponse = ResponseUtil.createMultipartResponse(header, payload);
+    
+        assertThat(multipartResponse).isNotNull();
+        assertThat(multipartResponse.getHeader()).isNotNull().isEqualTo(header);
+        assertThat(multipartResponse.getPayload()).isNotNull().isEqualTo(payload);
+    }
+    
+    @Test
+    void testMessageProcessedNotification() {
+        var message = ResponseUtil.messageProcessedNotification(correlationMessage, connectorId);
+    
+        assertBasePropertiesMapped(message, null);
+        assertCorrelationMessagePropertiesMapped(message);
+        assertConnectorIdPropertiesMapped(message);
+    }
+    
+    @Test
+    void testRequestInProcess() {
+        var message = ResponseUtil.requestInProcess(correlationMessage, connectorId);
+        
+        assertBasePropertiesMapped(message, null);
+        assertCorrelationMessagePropertiesMapped(message);
+        assertConnectorIdPropertiesMapped(message);
+    }
+    
+    @Test
+    void testDescriptionResponse() {
+        var message = ResponseUtil.descriptionResponse(correlationMessage, connectorId);
+        
+        assertBasePropertiesMapped(message, null);
+        assertCorrelationMessagePropertiesMapped(message);
+        assertConnectorIdPropertiesMapped(message);
+    }
+    
+    @Test
+    void testInProcessFromStatusResult_succeeded() {
+        var result = StatusResult.success();
+        
+        var message = ResponseUtil.inProcessFromStatusResult(result, correlationMessage, connectorId);
+        
+        assertThat(message).isInstanceOf(RequestInProcessMessage.class);
+        assertBasePropertiesMapped(message, null);
+        assertCorrelationMessagePropertiesMapped(message);
+        assertConnectorIdPropertiesMapped(message);
+    }
+    
+    @Test
+    void testInProcessFromStatusResult_fatalError() {
+        var result = StatusResult.failure(ResponseStatus.FATAL_ERROR);
+    
+        var message = ResponseUtil.inProcessFromStatusResult(result, correlationMessage, connectorId);
+    
+        assertThat(message).isInstanceOf(RejectionMessage.class);
+        assertBasePropertiesMapped(message, RejectionReason.BAD_PARAMETERS);
+        assertCorrelationMessagePropertiesMapped(message);
+        assertConnectorIdPropertiesMapped(message);
+    }
+    
+    @Test
+    void testInProcessFromStatusResult_errorRetry() {
+        var result = StatusResult.failure(ResponseStatus.ERROR_RETRY);
+    
+        var message = ResponseUtil.inProcessFromStatusResult(result, correlationMessage, connectorId);
+    
+        assertThat(message).isInstanceOf(RejectionMessage.class);
+        assertBasePropertiesMapped(message, RejectionReason.INTERNAL_RECIPIENT_ERROR);
+        assertCorrelationMessagePropertiesMapped(message);
+    }
+    
+    @Test
+    void testProcessedFromStatusResult_succeeded() {
+        var result = StatusResult.success();
+    
+        var message = ResponseUtil.processedFromStatusResult(result, correlationMessage, connectorId);
+    
+        assertThat(message).isInstanceOf(MessageProcessedNotificationMessage.class);
+        assertBasePropertiesMapped(message, null);
+        assertCorrelationMessagePropertiesMapped(message);
+        assertConnectorIdPropertiesMapped(message);
+    }
+    
+    @Test
+    void testProcessedFromStatusResult_fatalError() {
+        var result = StatusResult.failure(ResponseStatus.FATAL_ERROR);
+        
+        var message = ResponseUtil.processedFromStatusResult(result, correlationMessage, connectorId);
+        
+        assertThat(message).isInstanceOf(RejectionMessage.class);
+        assertBasePropertiesMapped(message, RejectionReason.BAD_PARAMETERS);
+        assertCorrelationMessagePropertiesMapped(message);
+        assertConnectorIdPropertiesMapped(message);
+    }
+    
+    @Test
+    void testProcessedFromStatusResult_errorRetry() {
+        var result = StatusResult.failure(ResponseStatus.ERROR_RETRY);
+    
+        var message = ResponseUtil.processedFromStatusResult(result, correlationMessage, connectorId);
+    
+        assertThat(message).isInstanceOf(RejectionMessage.class);
+        assertBasePropertiesMapped(message, RejectionReason.INTERNAL_RECIPIENT_ERROR);
+        assertCorrelationMessagePropertiesMapped(message);
+        assertConnectorIdPropertiesMapped(message);
     }
 
     @Test
-    public void testNotFound() {
-        var rejectionMessage = ResponseUtil
-                .notFound(null, null);
+    void testNotFound() {
+        var rejectionMessage = ResponseUtil.notFound(correlationMessage, connectorId);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_FOUND);
-
-        // just correlationMessage, no connectorId
-        rejectionMessage = ResponseUtil
-                .notFound(correlationMessage, null);
-
-        assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_FOUND);
-        assertCorrelationMessagePropertiesMapped(rejectionMessage);
-
-        // no correlationMessage, just connectorId
-        rejectionMessage = ResponseUtil
-                .notFound(null, connectorId);
-
-        assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_FOUND);
-        assertConnectorIdPropertiesMapped(rejectionMessage);
-
-        // both correlationMessage and connectorId
-        rejectionMessage = ResponseUtil
-                .notFound(correlationMessage, connectorId);
-
-        assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_FOUND);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
         assertConnectorIdPropertiesMapped(rejectionMessage);
     }
 
     @Test
-    public void testNotAuthenticated() {
-        var rejectionMessage = ResponseUtil
-                .notAuthenticated(null, null);
-
-        assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHENTICATED);
-
-        rejectionMessage = ResponseUtil
-                .notAuthenticated(correlationMessage, null);
-
-        assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHENTICATED);
-        assertCorrelationMessagePropertiesMapped(rejectionMessage);
-
-        rejectionMessage = ResponseUtil
-                .notAuthenticated(null, connectorId);
-
-        assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHENTICATED);
-        assertConnectorIdPropertiesMapped(rejectionMessage);
-
-        rejectionMessage = ResponseUtil
-                .notAuthenticated(correlationMessage, connectorId);
+    void testNotAuthenticated() {
+        var rejectionMessage = ResponseUtil.notAuthenticated(correlationMessage, connectorId);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHENTICATED);
         assertConnectorIdPropertiesMapped(rejectionMessage);
@@ -113,26 +191,8 @@ class ResponseUtilTest {
     }
 
     @Test
-    public void testNotAuthorized() {
-        var rejectionMessage = ResponseUtil
-                .notAuthorized(null, null);
-
-        assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHORIZED);
-
-        rejectionMessage = ResponseUtil
-                .notAuthorized(correlationMessage, null);
-
-        assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHORIZED);
-        assertCorrelationMessagePropertiesMapped(rejectionMessage);
-
-        rejectionMessage = ResponseUtil
-                .notAuthorized(null, connectorId);
-
-        assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHORIZED);
-        assertConnectorIdPropertiesMapped(rejectionMessage);
-
-        rejectionMessage = ResponseUtil
-                .notAuthorized(correlationMessage, connectorId);
+    void testNotAuthorized() {
+        var rejectionMessage = ResponseUtil.notAuthorized(correlationMessage, connectorId);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.NOT_AUTHORIZED);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
@@ -140,28 +200,13 @@ class ResponseUtilTest {
     }
 
     @Test
-    public void testMalformedMessage() {
-        var rejectionMessage = ResponseUtil
-                .malformedMessage(null, null);
-
-        assertBasePropertiesMapped(rejectionMessage, RejectionReason.MALFORMED_MESSAGE);
-
-        rejectionMessage = ResponseUtil
-                .malformedMessage(correlationMessage, null);
-
-        assertBasePropertiesMapped(rejectionMessage, RejectionReason.MALFORMED_MESSAGE);
-        assertCorrelationMessagePropertiesMapped(rejectionMessage);
-
-        rejectionMessage = ResponseUtil
-                .malformedMessage(null, connectorId);
-
-
+    void testMalformedMessage() {
+        var rejectionMessage = ResponseUtil.malformedMessage(null, connectorId);
+        
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.MALFORMED_MESSAGE);
         assertConnectorIdPropertiesMapped(rejectionMessage);
 
-        rejectionMessage = ResponseUtil
-                .malformedMessage(correlationMessage, connectorId);
-
+        rejectionMessage = ResponseUtil.malformedMessage(correlationMessage, connectorId);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.MALFORMED_MESSAGE);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
@@ -169,87 +214,63 @@ class ResponseUtilTest {
     }
 
     @Test
-    public void testMessageTypeNotSupported() {
-        var rejectionMessage = ResponseUtil
-                .messageTypeNotSupported(null, null);
-
-
-        assertBasePropertiesMapped(rejectionMessage, RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
-
-        rejectionMessage = ResponseUtil
-                .messageTypeNotSupported(correlationMessage, null);
+    void testMessageTypeNotSupported() {
+        var rejectionMessage = ResponseUtil.messageTypeNotSupported(correlationMessage, connectorId);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
-
-        rejectionMessage = ResponseUtil
-                .messageTypeNotSupported(null, connectorId);
-
-        assertBasePropertiesMapped(rejectionMessage, RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
         assertConnectorIdPropertiesMapped(rejectionMessage);
-
-        rejectionMessage = ResponseUtil
-                .messageTypeNotSupported(correlationMessage, connectorId);
-
-        assertBasePropertiesMapped(rejectionMessage, RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
+    }
+    
+    @Test
+    void testBadParameters() {
+        var rejectionMessage = ResponseUtil.badParameters(correlationMessage, connectorId);
+    
+        assertBasePropertiesMapped(rejectionMessage, RejectionReason.BAD_PARAMETERS);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
         assertConnectorIdPropertiesMapped(rejectionMessage);
     }
 
     @Test
-    public void testInternalRecipientError() {
-        var rejectionMessage = ResponseUtil
-                .internalRecipientError(null, null);
-
-        assertBasePropertiesMapped(rejectionMessage, RejectionReason.INTERNAL_RECIPIENT_ERROR);
-
-        rejectionMessage = ResponseUtil
-                .internalRecipientError(correlationMessage, null);
-
-        assertBasePropertiesMapped(rejectionMessage, RejectionReason.INTERNAL_RECIPIENT_ERROR);
-        assertCorrelationMessagePropertiesMapped(rejectionMessage);
-
-        rejectionMessage = ResponseUtil
-                .internalRecipientError(null, connectorId);
-
-        assertBasePropertiesMapped(rejectionMessage, RejectionReason.INTERNAL_RECIPIENT_ERROR);
-        assertConnectorIdPropertiesMapped(rejectionMessage);
-
-        rejectionMessage = ResponseUtil
-                .internalRecipientError(correlationMessage, connectorId);
+    void testInternalRecipientError() {
+        var rejectionMessage = ResponseUtil.internalRecipientError(correlationMessage, connectorId);
 
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.INTERNAL_RECIPIENT_ERROR);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
         assertConnectorIdPropertiesMapped(rejectionMessage);
     }
 
-    private void assertBasePropertiesMapped(RejectionMessage rejectionMessage, RejectionReason rejectionReason) {
-        assertThat(rejectionMessage).isNotNull()
-                .extracting(RejectionMessage::getRejectionReason).isEqualTo(rejectionReason);
+    private void assertBasePropertiesMapped(Message message, RejectionReason rejectionReason) {
+        if (message instanceof RejectionMessage) {
+            assertThat((RejectionMessage) message)
+                    .isNotNull()
+                    .extracting(RejectionMessage::getRejectionReason)
+                    .isEqualTo(rejectionReason);
+        }
 
-        assertThat(rejectionMessage.getContentVersion()).isEqualTo(IdsProtocol.INFORMATION_MODEL_VERSION);
-        assertThat(rejectionMessage.getModelVersion()).isEqualTo(IdsProtocol.INFORMATION_MODEL_VERSION);
-        assertThat(rejectionMessage.getIssued()).isNotNull();
+        assertThat(message.getContentVersion()).isEqualTo(IdsProtocol.INFORMATION_MODEL_VERSION);
+        assertThat(message.getModelVersion()).isEqualTo(IdsProtocol.INFORMATION_MODEL_VERSION);
+        assertThat(message.getIssued()).isNotNull();
     }
 
-    private void assertCorrelationMessagePropertiesMapped(RejectionMessage rejectionMessage) {
-        assertThat(rejectionMessage).isNotNull();
+    private void assertCorrelationMessagePropertiesMapped(Message message) {
+        assertThat(message).isNotNull();
 
-        assertThat(rejectionMessage.getCorrelationMessage()).isEqualTo(correlationMessageId);
+        assertThat(message.getCorrelationMessage()).isEqualTo(correlationMessageId);
 
-        assertThat(rejectionMessage.getRecipientAgent()).isNotNull();
-        assertThat(rejectionMessage.getRecipientAgent()).hasSize(1);
-        assertThat(rejectionMessage.getRecipientAgent().contains(senderAgent)).isTrue();
+        assertThat(message.getRecipientAgent()).isNotNull();
+        assertThat(message.getRecipientAgent()).hasSize(1);
+        assertThat(message.getRecipientAgent().contains(senderAgent)).isTrue();
 
-        assertThat(rejectionMessage.getRecipientConnector()).isNotNull();
-        assertThat(rejectionMessage.getRecipientConnector()).hasSize(1);
-        assertThat(rejectionMessage.getRecipientConnector().contains(issuerConnector)).isTrue();
+        assertThat(message.getRecipientConnector()).isNotNull();
+        assertThat(message.getRecipientConnector()).hasSize(1);
+        assertThat(message.getRecipientConnector().contains(issuerConnector)).isTrue();
     }
 
-    private void assertConnectorIdPropertiesMapped(RejectionMessage rejectionMessage) {
-        assertThat(rejectionMessage).isNotNull();
+    private void assertConnectorIdPropertiesMapped(Message message) {
+        assertThat(message).isNotNull();
 
-        assertThat(rejectionMessage.getIssuerConnector()).isEqualTo(connectorIdUri);
-        assertThat(rejectionMessage.getSenderAgent()).isEqualTo(connectorIdUri);
+        assertThat(message.getIssuerConnector()).isEqualTo(connectorIdUri);
+        assertThat(message.getSenderAgent()).isEqualTo(connectorIdUri);
     }
 }

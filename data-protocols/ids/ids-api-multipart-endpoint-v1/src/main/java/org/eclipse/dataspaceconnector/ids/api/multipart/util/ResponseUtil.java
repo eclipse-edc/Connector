@@ -19,11 +19,12 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.util;
 import de.fraunhofer.iais.eis.DescriptionResponseMessage;
 import de.fraunhofer.iais.eis.DescriptionResponseMessageBuilder;
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.MessageProcessedNotificationMessage;
 import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageBuilder;
-import de.fraunhofer.iais.eis.NotificationMessage;
 import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RejectionMessageBuilder;
 import de.fraunhofer.iais.eis.RejectionReason;
+import de.fraunhofer.iais.eis.RequestInProcessMessage;
 import de.fraunhofer.iais.eis.RequestInProcessMessageBuilder;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
@@ -78,8 +79,8 @@ public class ResponseUtil {
      * @param connectorId the connector ID.
      * @return a MessageProcessedNotificationMessage.
      */
-    public static NotificationMessage messageProcessedNotification(@NotNull Message correlationMessage,
-                                                                   @NotNull String connectorId) {
+    public static MessageProcessedNotificationMessage messageProcessedNotification(@NotNull Message correlationMessage,
+                                                                                   @NotNull String connectorId) {
         var messageId = getMessageId();
         var connectorIdUri = getConnectorUrn(connectorId);
         
@@ -91,6 +92,7 @@ public class ResponseUtil {
                 ._senderAgent_(connectorIdUri)
                 ._correlationMessage_(correlationMessage.getId())
                 ._recipientConnector_(new ArrayList<>(Collections.singletonList(correlationMessage.getIssuerConnector())))
+                ._recipientAgent_(new ArrayList<>(Collections.singletonList(correlationMessage.getSenderAgent())))
                 .build();
     }
     
@@ -101,8 +103,8 @@ public class ResponseUtil {
      * @param connectorId the connector ID.
      * @return a RequestInProcessMessage.
      */
-    public static NotificationMessage requestInProcess(@NotNull Message correlationMessage,
-                                                       @NotNull String connectorId) {
+    public static RequestInProcessMessage requestInProcess(@NotNull Message correlationMessage,
+                                                           @NotNull String connectorId) {
         var messageId = getMessageId();
         var connectorIdUri = getConnectorUrn(connectorId);
         
@@ -114,6 +116,7 @@ public class ResponseUtil {
                 ._senderAgent_(connectorIdUri)
                 ._correlationMessage_(correlationMessage.getId())
                 ._recipientConnector_(new ArrayList<>(Collections.singletonList(correlationMessage.getIssuerConnector())))
+                ._recipientAgent_(new ArrayList<>(Collections.singletonList(correlationMessage.getSenderAgent())))
                 .build();
     }
     
@@ -136,8 +139,8 @@ public class ResponseUtil {
                 ._issuerConnector_(connectorIdUri)
                 ._senderAgent_(connectorIdUri)
                 ._correlationMessage_(correlationMessage.getId())
-                ._recipientAgent_(new ArrayList<>(Collections.singletonList(correlationMessage.getSenderAgent())))
                 ._recipientConnector_(new ArrayList<>(Collections.singletonList(correlationMessage.getIssuerConnector())))
+                ._recipientAgent_(new ArrayList<>(Collections.singletonList(correlationMessage.getSenderAgent())))
                 .build();
     }
     
