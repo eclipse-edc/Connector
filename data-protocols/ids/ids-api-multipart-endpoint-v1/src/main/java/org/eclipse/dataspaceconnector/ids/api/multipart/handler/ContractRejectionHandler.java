@@ -22,8 +22,6 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractN
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
-
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.processedFromStatusResult;
@@ -43,23 +41,19 @@ public class ContractRejectionHandler implements Handler {
             @NotNull String connectorId,
             @NotNull ProviderContractNegotiationManager providerNegotiationManager,
             @NotNull ConsumerContractNegotiationManager consumerNegotiationManager) {
-        this.monitor = Objects.requireNonNull(monitor);
-        this.connectorId = Objects.requireNonNull(connectorId);
-        this.providerNegotiationManager = Objects.requireNonNull(providerNegotiationManager);
-        this.consumerNegotiationManager = Objects.requireNonNull(consumerNegotiationManager);
+        this.monitor = monitor;
+        this.connectorId = connectorId;
+        this.providerNegotiationManager = providerNegotiationManager;
+        this.consumerNegotiationManager = consumerNegotiationManager;
     }
 
     @Override
     public boolean canHandle(@NotNull MultipartRequest multipartRequest) {
-        Objects.requireNonNull(multipartRequest);
-
         return multipartRequest.getHeader() instanceof ContractRejectionMessage;
     }
 
     @Override
     public @NotNull MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
-        Objects.requireNonNull(multipartRequest);
-    
         var claimToken = multipartRequest.getClaimToken();
         var message = (ContractRejectionMessage) multipartRequest.getHeader();
         var correlationMessageId = message.getCorrelationMessage();

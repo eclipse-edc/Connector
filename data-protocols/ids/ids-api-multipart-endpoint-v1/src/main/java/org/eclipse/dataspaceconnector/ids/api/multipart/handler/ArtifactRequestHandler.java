@@ -35,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
@@ -61,26 +60,22 @@ public class ArtifactRequestHandler implements Handler {
             @NotNull ContractValidationService contractValidationService,
             @NotNull TransferProcessManager transferProcessManager,
             @NotNull Vault vault) {
-        this.monitor = Objects.requireNonNull(monitor);
-        this.connectorId = Objects.requireNonNull(connectorId);
-        this.objectMapper = Objects.requireNonNull(objectMapper);
-        this.contractNegotiationStore = Objects.requireNonNull(contractNegotiationStore);
-        this.contractValidationService = Objects.requireNonNull(contractValidationService);
-        this.transferProcessManager = Objects.requireNonNull(transferProcessManager);
-        this.vault = Objects.requireNonNull(vault);
+        this.monitor = monitor;
+        this.connectorId = connectorId;
+        this.objectMapper = objectMapper;
+        this.contractNegotiationStore = contractNegotiationStore;
+        this.contractValidationService = contractValidationService;
+        this.transferProcessManager = transferProcessManager;
+        this.vault = vault;
     }
 
     @Override
     public boolean canHandle(@NotNull MultipartRequest multipartRequest) {
-        Objects.requireNonNull(multipartRequest);
-
         return multipartRequest.getHeader() instanceof ArtifactRequestMessage;
     }
 
     @Override
     public @NotNull MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
-        Objects.requireNonNull(multipartRequest);
-        
         var claimToken = multipartRequest.getClaimToken();
         var message = (ArtifactRequestMessage) multipartRequest.getHeader();
 

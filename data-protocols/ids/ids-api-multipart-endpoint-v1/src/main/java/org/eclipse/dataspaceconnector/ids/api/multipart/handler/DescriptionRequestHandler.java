@@ -41,8 +41,6 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
-
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RequestUtil.getInt;
@@ -68,26 +66,22 @@ public class DescriptionRequestHandler implements Handler {
             @NotNull CatalogService catalogService,
             @NotNull ContractOfferService contractOfferService,
             @NotNull ConnectorService connectorService) {
-        this.monitor = Objects.requireNonNull(monitor);
-        this.connectorId = Objects.requireNonNull(connectorId);
-        this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
-        this.assetIndex = Objects.requireNonNull(assetIndex);
-        this.catalogService = Objects.requireNonNull(catalogService);
-        this.contractOfferService = Objects.requireNonNull(contractOfferService);
-        this.connectorService = Objects.requireNonNull(connectorService);
+        this.monitor = monitor;
+        this.connectorId = connectorId;
+        this.transformerRegistry = transformerRegistry;
+        this.assetIndex = assetIndex;
+        this.catalogService = catalogService;
+        this.contractOfferService = contractOfferService;
+        this.connectorService = connectorService;
     }
 
     @Override
     public boolean canHandle(@NotNull MultipartRequest multipartRequest) {
-        Objects.requireNonNull(multipartRequest);
-
         return multipartRequest.getHeader() instanceof DescriptionRequestMessage;
     }
 
     @Override
     public @NotNull MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
-        Objects.requireNonNull(multipartRequest);
-
         var claimToken = multipartRequest.getClaimToken();
         var message = (DescriptionRequestMessage) multipartRequest.getHeader();
     

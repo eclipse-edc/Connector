@@ -28,8 +28,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceMessage;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
-
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.internalRecipientError;
@@ -61,8 +59,6 @@ public class EndpointDataReferenceHandler implements Handler {
 
     @Override
     public boolean canHandle(@NotNull MultipartRequest multipartRequest) {
-        Objects.requireNonNull(multipartRequest);
-        
         return multipartRequest.getHeader() instanceof ParticipantUpdateMessage;
     }
 
@@ -74,8 +70,6 @@ public class EndpointDataReferenceHandler implements Handler {
      */
     @Override
     public @NotNull MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
-        Objects.requireNonNull(multipartRequest);
-        
         // Read and transform the endpoint data reference from the request payload
         var edr = typeManager.readValue(multipartRequest.getPayload(), EndpointDataReference.class);
         var transformationResult = transformerRegistry.transform(edr);

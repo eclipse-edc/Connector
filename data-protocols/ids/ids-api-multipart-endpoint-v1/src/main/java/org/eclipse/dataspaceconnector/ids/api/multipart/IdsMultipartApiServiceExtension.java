@@ -53,7 +53,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTran
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedList;
-import java.util.Objects;
 
 /**
  * ServiceExtension providing IDS multipart related API controllers
@@ -135,8 +134,6 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     }
 
     private String resolveConnectorId(@NotNull ServiceExtensionContext context) {
-        Objects.requireNonNull(context);
-
         var value = context.getSetting(EDC_IDS_ID, DEFAULT_EDC_IDS_ID);
         try {
             // Hint: use stringified uri to keep uri path and query

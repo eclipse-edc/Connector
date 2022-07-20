@@ -44,7 +44,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.malformedMessage;
@@ -74,12 +73,12 @@ public class MultipartController {
                                @NotNull IdentityService identityService,
                                @NotNull List<Handler> multipartHandlers,
                                @NotNull String idsWebhookAddress) {
-        this.monitor = Objects.requireNonNull(monitor);
-        this.connectorId = Objects.requireNonNull(connectorId);
-        this.objectMapper = Objects.requireNonNull(objectMapper);
-        this.multipartHandlers = Objects.requireNonNull(multipartHandlers);
-        this.identityService = Objects.requireNonNull(identityService);
-        this.idsWebhookAddress = Objects.requireNonNull(idsWebhookAddress);
+        this.monitor = monitor;
+        this.connectorId = connectorId;
+        this.objectMapper = objectMapper;
+        this.multipartHandlers = multipartHandlers;
+        this.identityService = identityService;
+        this.idsWebhookAddress = idsWebhookAddress;
     }
     
     /**
