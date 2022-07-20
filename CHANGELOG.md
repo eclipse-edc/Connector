@@ -48,6 +48,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Log correct type in contract-definition API (#1584)
 * Replace unmaintained test dependency `java-faker` with `datafaker` (#1709)
 * Change CredentialsVerifier contract (#1702)
+* Return `RequestInProcessMessage` for IDS artifact requests (#1610)
 
 #### Removed
 
