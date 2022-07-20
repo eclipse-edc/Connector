@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.azure.blob.core.validator;
 
-import com.github.javafaker.Faker;
+import net.datafaker.Faker;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;

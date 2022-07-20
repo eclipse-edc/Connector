@@ -16,7 +16,7 @@
 
 package org.eclipse.dataspaceconnector.contract.validation;
 
-import com.github.javafaker.Faker;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
@@ -35,10 +35,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
+import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -141,7 +141,7 @@ class ContractValidationServiceImplTest {
 
     @Test
     void verifyContractAgreementExpired() {
-        var past = FAKER.date().between(Date.from(EPOCH), Date.from(now)).toInstant().getEpochSecond();
+        var past = FAKER.date().between(Timestamp.from(EPOCH), Timestamp.from(now)).toInstant().getEpochSecond();
         var isValid =
                 validateAgreementDate(MIN.getEpochSecond(), MIN.getEpochSecond(), past);
 

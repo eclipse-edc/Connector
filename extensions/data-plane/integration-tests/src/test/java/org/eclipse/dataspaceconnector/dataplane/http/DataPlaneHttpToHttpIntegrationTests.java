@@ -16,11 +16,11 @@ package org.eclipse.dataspaceconnector.dataplane.http;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.github.javafaker.Faker;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
+import net.datafaker.Faker;
 import org.apache.http.HttpStatus;
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowRequestSchema;

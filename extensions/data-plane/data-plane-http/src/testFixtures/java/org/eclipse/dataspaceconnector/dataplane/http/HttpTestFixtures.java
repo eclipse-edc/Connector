@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.dataplane.http;
 
-import com.github.javafaker.Faker;
+import net.datafaker.Faker;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;

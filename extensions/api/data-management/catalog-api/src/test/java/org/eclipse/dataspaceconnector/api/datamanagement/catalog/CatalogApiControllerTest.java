@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.catalog;
 
-import com.github.javafaker.Faker;
 import jakarta.ws.rs.container.AsyncResponse;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.api.datamanagement.catalog.service.CatalogService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;

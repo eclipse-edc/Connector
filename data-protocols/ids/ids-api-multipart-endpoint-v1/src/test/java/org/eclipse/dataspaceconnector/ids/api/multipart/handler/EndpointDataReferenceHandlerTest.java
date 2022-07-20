@@ -16,11 +16,11 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.javafaker.Faker;
 import de.fraunhofer.iais.eis.MessageProcessedNotificationMessage;
 import de.fraunhofer.iais.eis.ParticipantCertificateRevokedMessageBuilder;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessageBuilder;
 import de.fraunhofer.iais.eis.RejectionMessage;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
