@@ -47,8 +47,8 @@ import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RequestUtil.getInt;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.descriptionResponse;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.descriptionResponse;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.notFound;
 
 public class DescriptionRequestHandler implements Handler {
