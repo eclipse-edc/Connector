@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static java.util.Optional.ofNullable;
 
-public class MultipartRequestUtil {
+public class RequestUtil {
 
     /**
      * Extracts an arbitrary property from a {@link DescriptionRequestMessage}
