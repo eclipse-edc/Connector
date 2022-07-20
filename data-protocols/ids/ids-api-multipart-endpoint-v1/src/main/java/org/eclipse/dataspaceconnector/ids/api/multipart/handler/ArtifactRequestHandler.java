@@ -163,7 +163,8 @@ public class ArtifactRequestHandler implements Handler {
         // Initiate a transfer process for the request
         var transferInitiateResult = transferProcessManager.initiateProviderRequest(dataRequest);
 
-        if (artifactRequestMessagePayload.getSecret() != null) {
+        // Store secret if process initiated successfully
+        if (transferInitiateResult.succeeded() && artifactRequestMessagePayload.getSecret() != null) {
             vault.storeSecret(dataDestination.getKeyName(), artifactRequestMessagePayload.getSecret());
         }
 
