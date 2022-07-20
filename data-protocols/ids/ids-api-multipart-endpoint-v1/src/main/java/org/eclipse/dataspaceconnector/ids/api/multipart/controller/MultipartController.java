@@ -18,6 +18,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.TokenFormat;
@@ -165,7 +166,7 @@ public class MultipartController {
      * @return a multipart body.
      */
     private FormDataMultiPart buildMultipart(MultipartResponse multipartResponse) {
-        addTokenToResponseHeader(multipartResponse.getHeader());
+        multipartResponse.getHeader().setSecurityToken(getToken(multipartResponse.getHeader()));
         return createFormDataMultiPart(multipartResponse.getHeader(), multipartResponse.getPayload());
     }
     
@@ -177,7 +178,7 @@ public class MultipartController {
      * @return a multipart body.
      */
     private FormDataMultiPart buildMultipart(Message header) {
-        addTokenToResponseHeader(header);
+        header.setSecurityToken(getToken(header));
         return createFormDataMultiPart(header, null);
     }
     
@@ -202,11 +203,11 @@ public class MultipartController {
     }
     
     /**
-     * Retrieves an identity token and adds it to the given message.
+     * Retrieves an identity token for the given message.
      *
      * @param header the message.
      */
-    private void addTokenToResponseHeader(Message header) {
+    private DynamicAttributeToken getToken(Message header) {
         var tokenBuilder = new DynamicAttributeTokenBuilder()
                 ._tokenFormat_(TokenFormat.JWT);
         
@@ -222,7 +223,7 @@ public class MultipartController {
             tokenBuilder._tokenValue_("invalid");
         }
         
-        header.setSecurityToken(tokenBuilder.build());
+        return tokenBuilder.build();
     }
 
     private byte[] toJson(Object object) {
