@@ -14,10 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.stream.Stream;
-
 import de.fraunhofer.iais.eis.Artifact;
 import de.fraunhofer.iais.eis.ArtifactBuilder;
 import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
@@ -53,6 +49,10 @@ import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
