@@ -38,6 +38,7 @@ public interface TransferProcessStoreStatements extends LeaseStatements {
 
     String getSelectTemplate();
 
+    String getUpdateDataRequestTemplate();
 
     default String getIdColumn() {
         return "transferprocess_id";
