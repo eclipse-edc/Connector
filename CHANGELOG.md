@@ -46,6 +46,7 @@ in the detailed section referring to by linking pull requests or issues.
 * Harmonize logics of `HttpDataSource` and `HttpDataSink` (#1475)
 * Log correct type in contract-definition API (#1584)
 * Replace unmaintained test dependency `java-faker` with `datafaker` (#1709)
+* Change CredentialsVerifier contract (#1702)
 
 #### Removed
 
