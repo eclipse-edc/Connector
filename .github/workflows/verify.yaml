@@ -72,7 +72,6 @@ jobs:
           diff openapi-git-sorted.yaml openapi-ci-sorted.yaml
 
 
-
   Unit-Tests:
     runs-on: ubuntu-latest
     env:
