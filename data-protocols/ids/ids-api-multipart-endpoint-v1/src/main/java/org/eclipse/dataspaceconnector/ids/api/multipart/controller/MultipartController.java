@@ -26,7 +26,6 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
@@ -92,33 +91,33 @@ public class MultipartController {
      *         rejection message.
      */
     @POST
-    public Response request(@FormDataParam(HEADER) InputStream headerInputStream,
-                            @FormDataParam(PAYLOAD) String payload) {
+    public FormDataMultiPart request(@FormDataParam(HEADER) InputStream headerInputStream,
+                                     @FormDataParam(PAYLOAD) String payload) {
         if (headerInputStream == null) {
-            return Response.ok(buildMultipart(malformedMessage(null, connectorId))).build();
+            return buildMultipart(malformedMessage(null, connectorId));
         }
 
         Message header;
         try {
             header = objectMapper.readValue(headerInputStream, Message.class);
         } catch (IOException e) {
-            return Response.ok(buildMultipart(malformedMessage(null, connectorId))).build();
+            return buildMultipart(malformedMessage(null, connectorId));
         }
 
         if (header == null) {
-            return Response.ok(buildMultipart(malformedMessage(null, connectorId))).build();
+            return buildMultipart(malformedMessage(null, connectorId));
         }
         
         // Check if any required header field missing
         if (header.getId() == null || header.getIssuerConnector() == null || header.getSenderAgent() == null) {
-            return Response.ok(buildMultipart(malformedMessage(header, connectorId))).build();
+            return buildMultipart(malformedMessage(header, connectorId));
         }
 
         // Check if DAT present
         var dynamicAttributeToken = header.getSecurityToken();
         if (dynamicAttributeToken == null || dynamicAttributeToken.getTokenValue() == null) {
             monitor.warning("MultipartController: Token is missing in header");
-            return Response.ok(buildMultipart(notAuthenticated(header, connectorId))).build();
+            return buildMultipart(notAuthenticated(header, connectorId));
         }
     
         // Prepare DAT validation: IDS token validation requires issuerConnector
@@ -134,7 +133,7 @@ public class MultipartController {
         var verificationResult = identityService.verifyJwtToken(tokenRepresentation, idsWebhookAddress);
         if (verificationResult.failed()) {
             monitor.warning(format("MultipartController: Token validation failed %s", verificationResult.getFailure().getMessages()));
-            return Response.ok(buildMultipart(notAuthenticated(header, connectorId))).build();
+            return buildMultipart(notAuthenticated(header, connectorId));
         }
 
         // Build the multipart request
@@ -151,11 +150,11 @@ public class MultipartController {
                 .findFirst()
                 .orElse(null);
         if (handler == null) {
-            return Response.ok(buildMultipart(messageTypeNotSupported(header, connectorId))).build();
+            return buildMultipart(messageTypeNotSupported(header, connectorId));
         }
 
         var multipartResponse = handler.handleRequest(multipartRequest);
-        return Response.ok(buildMultipart(multipartResponse)).build();
+        return buildMultipart(multipartResponse);
     }
     
     /**
