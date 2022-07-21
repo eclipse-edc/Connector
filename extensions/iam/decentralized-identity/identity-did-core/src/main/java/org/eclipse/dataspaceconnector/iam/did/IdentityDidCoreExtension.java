@@ -47,7 +47,7 @@ import java.time.Clock;
 import java.util.function.Supplier;
 
 
-@Provides({ IdentityHub.class, IdentityHubClient.class, DidResolverRegistry.class, DidPublicKeyResolver.class })
+@Provides({ IdentityHub.class, IdentityHubClient.class })
 public class IdentityDidCoreExtension implements ServiceExtension {
 
     @Inject
