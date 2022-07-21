@@ -62,6 +62,11 @@ public class IdentityDidCoreExtension implements ServiceExtension {
     @Inject
     private Clock clock;
 
+    private DidResolverRegistry didResolverRegistry;
+
+    @Inject
+    private DidPublicKeyResolver publicKeyResolver;
+
     @Override
     public String name() {
         return "Identity Did Core";
@@ -70,12 +75,6 @@ public class IdentityDidCoreExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var objectMapper = context.getTypeManager().getMapper();
-
-        var resolverRegistry = new DidResolverRegistryImpl();
-        context.registerService(DidResolverRegistry.class, resolverRegistry);
-
-        var publicKeyResolver = new DidPublicKeyResolverImpl(resolverRegistry);
-        context.registerService(DidPublicKeyResolver.class, publicKeyResolver);
 
         registerParsers(privateKeyResolver);
 
@@ -107,6 +106,16 @@ public class IdentityDidCoreExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public DidStore defaultDidDocumentStore() {
         return new InMemoryDidDocumentStore(clock);
+    }
+
+    @Provider(isDefault = true)
+    public DidResolverRegistry defaultDidResolverRegistry() {
+        return new DidResolverRegistryImpl();
+    }
+
+    @Provider(isDefault = true)
+    public DidPublicKeyResolver defaultDidPublicKeyResolver() {
+        return new DidPublicKeyResolverImpl(didResolverRegistry);
     }
 
     private void registerParsers(PrivateKeyResolver resolver) {
