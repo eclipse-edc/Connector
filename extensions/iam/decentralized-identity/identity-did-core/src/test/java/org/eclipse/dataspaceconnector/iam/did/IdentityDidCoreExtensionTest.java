@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial implementation
+ *       Microsoft Corporation - adapted to extension changes
  *
  */
 
@@ -18,7 +19,6 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubApiController;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubClientImpl;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubImpl;
-import org.eclipse.dataspaceconnector.iam.did.resolution.DidPublicKeyResolverImpl;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
