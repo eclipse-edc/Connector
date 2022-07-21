@@ -62,6 +62,7 @@ public class IdentityDidCoreExtension implements ServiceExtension {
     @Inject
     private Clock clock;
 
+    @Inject
     private DidResolverRegistry didResolverRegistry;
 
     @Inject
