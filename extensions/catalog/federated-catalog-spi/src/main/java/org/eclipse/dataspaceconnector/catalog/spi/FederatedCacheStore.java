@@ -41,6 +41,10 @@ public interface FederatedCacheStore {
     /**
      * Deletes all entries from the cache
      */
-    void deleteAll();
+    void removedMarked();
 
+    /**
+     * Marks all entries for deletion
+     */
+    void markAll();
 }

@@ -41,6 +41,7 @@ public class LoaderImpl implements Loader {
 
     @Override
     public void clear() {
-        store.deleteAll(); // delete all entries before re-populating
+        store.removedMarked(); // delete all still marked entries before re-populating
+        store.markAll(); // marks all entries for deletion, unless they get updated by the crawlers
     }
 }

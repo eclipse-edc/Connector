@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.catalog.defaults.store;
 
 
-import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
 import org.eclipse.dataspaceconnector.catalog.store.InMemoryFederatedCacheStore;
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -36,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class InMemoryFederatedCacheStoreTest {
 
-    private FederatedCacheStore store;
+    private InMemoryFederatedCacheStore store;
 
     private static Asset createAsset(String id) {
         return Asset.Builder.newInstance()
@@ -115,7 +114,7 @@ class InMemoryFederatedCacheStoreTest {
     }
 
     @Test
-    void deleteAll() {
+    void removedMarked_noneMarked() {
         String contractOfferId1 = UUID.randomUUID().toString();
         String contractOfferId2 = UUID.randomUUID().toString();
         String assetId1 = UUID.randomUUID().toString();
@@ -128,8 +127,30 @@ class InMemoryFederatedCacheStoreTest {
 
         assertThat(store.query(List.of())).hasSize(2);
 
-        store.deleteAll();
-        assertThat(store.query(List.of())).isEmpty();
+        store.removedMarked(); // none of them is marked, d
+        assertThat(store.query(List.of())).containsExactlyInAnyOrder(contractOffer1, contractOffer2);
+
+    }
+
+    @Test
+    void removedMarked_shouldDeleteMarked() {
+        String contractOfferId1 = UUID.randomUUID().toString();
+        String contractOfferId2 = UUID.randomUUID().toString();
+        String assetId1 = UUID.randomUUID().toString();
+        String assetId2 = UUID.randomUUID().toString();
+        ContractOffer contractOffer1 = createContractOffer(contractOfferId1, createAsset(assetId1));
+        ContractOffer contractOffer2 = createContractOffer(contractOfferId2, createAsset(assetId2));
+
+        store.save(contractOffer1);
+        store.save(contractOffer2);
+
+        assertThat(store.query(List.of())).hasSize(2);
+
+        store.markAll(); // two items marked
+        store.save(createContractOffer(UUID.randomUUID().toString(), createAsset(UUID.randomUUID().toString())));
+        store.removedMarked(); // should delete only marked items
+        assertThat(store.query(List.of())).hasSize(1)
+                .doesNotContain(contractOffer1, contractOffer2);
 
     }
 }

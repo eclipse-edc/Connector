@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  */
 public class InMemoryFederatedCacheStore implements FederatedCacheStore {
 
-    private final Map<String, ContractOffer> cache = new ConcurrentHashMap<>();
+    private final Map<String, MarkableEntry<ContractOffer>> cache = new ConcurrentHashMap<>();
     private final CriterionConverter<Predicate<ContractOffer>> converter;
     private final LockManager lockManager;
 
@@ -43,21 +43,66 @@ public class InMemoryFederatedCacheStore implements FederatedCacheStore {
 
     @Override
     public void save(ContractOffer contractOffer) {
-        lockManager.writeLock(() -> cache.put(contractOffer.getAsset().getId(), contractOffer));
+        lockManager.writeLock(() -> {
+            var key = contractOffer.getAsset().getId();
+            if (cache.containsKey(key)) {
+                cache.get(key).updateEntry(contractOffer);
+            }
+            return cache.put(contractOffer.getAsset().getId(), new MarkableEntry<>(contractOffer));
+        });
     }
 
     @Override
     public Collection<ContractOffer> query(List<Criterion> query) {
         //AND all predicates
         var rootPredicate = query.stream().map(converter::convert).reduce(x -> true, Predicate::and);
-        return lockManager.readLock(() -> cache.values().stream().filter(rootPredicate).collect(Collectors.toList()));
+        return lockManager.readLock(() -> cache.values().stream().map(MarkableEntry::getEntry).filter(rootPredicate).collect(Collectors.toList()));
     }
 
     @Override
-    public void deleteAll() {
+    public void removedMarked() {
         lockManager.writeLock(() -> {
-            cache.clear();
+            var unmarkedItems = cache.entrySet().stream().filter(entry -> !entry.getValue().isMarked())
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toList());
+
+            cache.keySet().retainAll(unmarkedItems);
             return null;
         });
+    }
+
+    @Override
+    public void markAll() {
+        cache.values().forEach(MarkableEntry::mark);
+    }
+
+    private static class MarkableEntry<T> {
+        private T entry;
+        private boolean mark;
+
+        MarkableEntry(T t) {
+            entry = t;
+        }
+
+        public void mark() {
+            mark = true;
+        }
+
+        public boolean isMarked() {
+            return mark;
+        }
+
+        public void unmark() {
+            mark = false;
+        }
+
+        public T getEntry() {
+            return entry;
+        }
+
+        public void updateEntry(T t) {
+            entry = t;
+            unmark();
+        }
     }
 }
