@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  */
 public class InMemoryFederatedCacheStore implements FederatedCacheStore {
 
-    private final Map<String, MarkableEntry<ContractOffer>> cache = new ConcurrentHashMap<>();
+    private final Map<String, MarkableEntry> cache = new ConcurrentHashMap<>();
     private final CriterionConverter<Predicate<ContractOffer>> converter;
     private final LockManager lockManager;
 
@@ -43,13 +43,7 @@ public class InMemoryFederatedCacheStore implements FederatedCacheStore {
 
     @Override
     public void save(ContractOffer contractOffer) {
-        lockManager.writeLock(() -> {
-            var key = contractOffer.getAsset().getId();
-            if (cache.containsKey(key)) {
-                cache.get(key).updateEntry(contractOffer);
-            }
-            return cache.put(contractOffer.getAsset().getId(), new MarkableEntry<>(contractOffer));
-        });
+        lockManager.writeLock(() -> cache.put(contractOffer.getAsset().getId(), new MarkableEntry(false, contractOffer)));
     }
 
     @Override
@@ -60,7 +54,7 @@ public class InMemoryFederatedCacheStore implements FederatedCacheStore {
     }
 
     @Override
-    public void removedMarked() {
+    public void deleteExpired() {
         lockManager.writeLock(() -> {
             var unmarkedItems = cache.entrySet().stream().filter(entry -> !entry.getValue().isMarked())
                     .map(Map.Entry::getKey)
@@ -72,37 +66,27 @@ public class InMemoryFederatedCacheStore implements FederatedCacheStore {
     }
 
     @Override
-    public void markAll() {
-        cache.values().forEach(MarkableEntry::mark);
+    public void expireAll() {
+        cache.replaceAll((k, v) -> v = new MarkableEntry(true, v.getEntry()));
     }
 
-    private static class MarkableEntry<T> {
-        private T entry;
-        private boolean mark;
+    private static class MarkableEntry {
+        private final ContractOffer entry;
+        private final boolean mark;
 
-        MarkableEntry(T t) {
-            entry = t;
+        MarkableEntry(boolean isMarked, ContractOffer offer) {
+            entry = offer;
+            mark = isMarked;
         }
 
-        public void mark() {
-            mark = true;
-        }
 
         public boolean isMarked() {
             return mark;
         }
 
-        public void unmark() {
-            mark = false;
-        }
-
-        public T getEntry() {
+        public ContractOffer getEntry() {
             return entry;
         }
 
-        public void updateEntry(T t) {
-            entry = t;
-            unmark();
-        }
     }
 }

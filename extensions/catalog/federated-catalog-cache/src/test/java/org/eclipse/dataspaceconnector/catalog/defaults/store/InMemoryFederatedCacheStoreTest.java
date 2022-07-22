@@ -127,7 +127,7 @@ class InMemoryFederatedCacheStoreTest {
 
         assertThat(store.query(List.of())).hasSize(2);
 
-        store.removedMarked(); // none of them is marked, d
+        store.deleteExpired(); // none of them is marked, d
         assertThat(store.query(List.of())).containsExactlyInAnyOrder(contractOffer1, contractOffer2);
 
     }
@@ -146,9 +146,9 @@ class InMemoryFederatedCacheStoreTest {
 
         assertThat(store.query(List.of())).hasSize(2);
 
-        store.markAll(); // two items marked
+        store.expireAll(); // two items marked
         store.save(createContractOffer(UUID.randomUUID().toString(), createAsset(UUID.randomUUID().toString())));
-        store.removedMarked(); // should delete only marked items
+        store.deleteExpired(); // should delete only marked items
         assertThat(store.query(List.of())).hasSize(1)
                 .doesNotContain(contractOffer1, contractOffer2);
 
