@@ -39,8 +39,12 @@ public interface FederatedCacheStore {
     Collection<ContractOffer> query(List<Criterion> query);
 
     /**
-     * Deletes all entries from the cache
+     * Deletes all entries from the cache that are marked as "expired"
      */
-    void deleteAll();
+    void deleteExpired();
 
+    /**
+     * Marks all entries as "expired", i.e. marks them for deletion
+     */
+    void expireAll();
 }

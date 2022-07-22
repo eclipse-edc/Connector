@@ -41,6 +41,7 @@ public class LoaderImpl implements Loader {
 
     @Override
     public void clear() {
-        store.deleteAll(); // delete all entries before re-populating
+        store.deleteExpired(); // delete all expired entries before re-populating
+        store.expireAll(); // mark all entries as expired, unless they get updated by the crawlers
     }
 }
