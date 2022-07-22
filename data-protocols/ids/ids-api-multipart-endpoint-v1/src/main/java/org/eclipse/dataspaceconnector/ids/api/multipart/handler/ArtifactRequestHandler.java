@@ -155,6 +155,8 @@ public class ArtifactRequestHandler implements Handler {
                 .connectorAddress(idsWebhookAddress)
                 .build();
 
+        //TODO use TransferProcessService for initiation after project structure review
+        
         // Initiate a transfer process for the request
         var transferInitiateResult = transferProcessManager.initiateProviderRequest(dataRequest);
 

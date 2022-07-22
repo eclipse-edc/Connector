@@ -136,6 +136,8 @@ public class ContractRequestHandler implements Handler {
                 .correlationId(String.valueOf(message.getTransferContract()))
                 .contractOffer(contractOffer)
                 .build();
+    
+        //TODO use ContractNegotiationService for initiation after project structure review
         
         var negotiationInitiateResult = negotiationManager.requested(claimToken, requestObj);
     
