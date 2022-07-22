@@ -22,11 +22,8 @@ import org.eclipse.dataspaceconnector.iam.did.crypto.key.KeyConverter;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidConstants;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
-import org.eclipse.dataspaceconnector.iam.did.spi.document.JwkPublicKey;
-import org.eclipse.dataspaceconnector.iam.did.spi.document.Service;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.VerificationMethod;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
-import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -78,17 +75,17 @@ public class DecentralizedIdentityService implements IdentityService {
             monitor.debug("Extracting public key");
 
             // this will return the _first_ public key entry
-            Optional<VerificationMethod> publicKey = getPublicKey(didResult.getContent());
+            var publicKey = getPublicKey(didResult.getContent());
             if (publicKey.isEmpty()) {
                 return Result.failure("Public Key not found in DID Document!");
             }
 
             //convert the POJO into a usable PK-wrapper:
-            JwkPublicKey publicKeyJwk = publicKey.get().getPublicKeyJwk();
-            PublicKeyWrapper publicKeyWrapper = KeyConverter.toPublicKeyWrapper(publicKeyJwk, publicKey.get().getId());
+            var publicKeyJwk = publicKey.get().getPublicKeyJwk();
+            var publicKeyWrapper = KeyConverter.toPublicKeyWrapper(publicKeyJwk, publicKey.get().getId());
 
             monitor.debug("Verifying JWT with public key...");
-            Result<Void> verified = VerifiableCredentialFactory.verify(jwt, publicKeyWrapper, audience);
+            var verified = VerifiableCredentialFactory.verify(jwt, publicKeyWrapper, audience);
             if (verified.failed()) {
                 verified.getFailureMessages().forEach(m -> monitor.debug(() -> "Failure in token verification: " + m));
                 return Result.failure("Token could not be verified!");
@@ -106,10 +103,6 @@ public class DecentralizedIdentityService implements IdentityService {
             monitor.severe("Error parsing JWT", e);
             return Result.failure("Error parsing JWT");
         }
-    }
-
-    String getHubUrl(DidDocument did) {
-        return did.getService().stream().filter(service -> service.getType().equals(DidConstants.HUB_URL)).map(Service::getServiceEndpoint).findFirst().orElseThrow();
     }
 
     @NotNull

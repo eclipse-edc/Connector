@@ -14,20 +14,22 @@
 
 package org.eclipse.dataspaceconnector.test.e2e;
 
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 
 import java.util.Map;
 
 @Path("/provider")
 public class ProviderBackendApiController {
-    
+
     @Path("/data")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, String> getData() {
-        return Map.of("message", "some information");
+    public Map<String, String> getData(@DefaultValue("some information") @QueryParam("message") String message) {
+        return Map.of("message", message);
     }
 }

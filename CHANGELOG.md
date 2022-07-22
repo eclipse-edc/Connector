@@ -19,7 +19,7 @@ in the detailed section referring to by linking pull requests or issues.
 
 #### Added
 
-*
+* System test for client data pull with query parameters (#1180)
 
 #### Changed
 
