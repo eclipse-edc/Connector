@@ -122,12 +122,6 @@ we would appreciate if your pull request applies to the following points:
 
 * Add documentation files to new modules. See [here](#add-documentation) for more details.
 
-* Add relevant changes (e.g., no typo fixes, updated readme files, fixes of stuck test) to the 
-  [changelog](CHANGELOG.md). If these refer to a new feature, add this to the `Overview` section 
-  and add your changes to the `Detailed Changes` section according to the rules documented on 
-  <http://keepachangelog.com>. Include more information via linking to existing pull requests,
-  issues, or discussions.
-
 * If a new module has been added or a significant part of the code has been changed and you should 
   or want to be seen as the contact person for any further changes, please add appropriate 
   information to the [CODEOWNERS](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/CODEOWNERS) 
