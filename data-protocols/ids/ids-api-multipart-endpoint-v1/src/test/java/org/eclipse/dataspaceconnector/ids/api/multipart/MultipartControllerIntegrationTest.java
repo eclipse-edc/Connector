@@ -17,7 +17,6 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart;
 
 import de.fraunhofer.iais.eis.ContractAgreementBuilder;
-import de.fraunhofer.iais.eis.ContractOfferBuilder;
 import de.fraunhofer.iais.eis.ContractRequestBuilder;
 import de.fraunhofer.iais.eis.PermissionBuilder;
 import net.javacrumbs.jsonunit.assertj.JsonAssertions;
@@ -535,43 +534,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         jsonHeader.inPath("$.ids:issuerConnector").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
         jsonHeader.inPath("$.ids:senderAgent").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
     }
-
-    @Test
-    void testHandleContractOffer() throws Exception {
-        // prepare
-        var request = createRequestWithPayload(getContractOfferMessage(),
-                new ContractOfferBuilder().build());
-
-        // invoke
-        var response = httpClient.newCall(request).execute();
-
-        // verify
-        assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
-
-        List<NamedMultipartContent> content = extractNamedMultipartContent(response);
-
-        assertThat(content)
-                .hasSize(1)
-                .extracting(NamedMultipartContent::getName)
-                .containsExactly("header");
-
-        var header = content.stream().filter(n -> "header".equalsIgnoreCase(n.getName()))
-                .map(NamedMultipartContent::getContent)
-                .findFirst()
-                .orElseThrow();
-
-        var jsonHeader = JsonAssertions.assertThatJson(new String(header, StandardCharsets.UTF_8));
-
-        jsonHeader.inPath("$.@type").isString().isEqualTo("ids:RequestInProcessMessage");
-        jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
-        jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
-        jsonHeader.inPath("$.ids:issued").isString().satisfies(date -> {
-            assertThat(DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(date)).isNotNull();
-        });
-        jsonHeader.inPath("$.ids:issuerConnector").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
-        jsonHeader.inPath("$.ids:senderAgent").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
-    }
-
+    
     @Test
     void testHandleContractAgreement() throws Exception {
         // prepare
