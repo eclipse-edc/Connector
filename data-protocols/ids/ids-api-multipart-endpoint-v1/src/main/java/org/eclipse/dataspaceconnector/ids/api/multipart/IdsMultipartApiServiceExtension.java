@@ -63,6 +63,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     public static final String EDC_IDS_ID = "edc.ids.id";
     public static final String DEFAULT_EDC_IDS_ID = "urn:connector:edc";
 
+    @Inject
     private Monitor monitor;
     @Inject
     private WebService webService;
@@ -107,8 +108,6 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
-
         registerControllers(context);
     }
 
