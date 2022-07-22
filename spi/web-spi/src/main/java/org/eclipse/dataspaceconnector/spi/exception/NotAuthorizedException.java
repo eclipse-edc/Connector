@@ -14,14 +14,17 @@
 
 package org.eclipse.dataspaceconnector.spi.exception;
 
-import org.eclipse.dataspaceconnector.spi.EdcException;
-
-public class NotAuthorizedException extends EdcException {
+public class NotAuthorizedException extends EdcApiException {
     public NotAuthorizedException() {
         super("This request could not be authorized");
     }
 
     public NotAuthorizedException(String message) {
         super(message);
+    }
+
+    @Override
+    public String getType() {
+        return "NotAuthorized";
     }
 }

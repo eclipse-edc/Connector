@@ -27,6 +27,17 @@ import java.lang.annotation.Target;
 public @interface EdcSetting {
 
     /**
+     * The setting description.
+     */
+    String value() default "";
+
+    String type() default "string";
+
+    long min() default Long.MIN_VALUE;
+
+    long max() default Long.MAX_VALUE;
+
+    /**
      * Returns true if the setting is required.
      */
     boolean required() default false;

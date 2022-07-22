@@ -16,11 +16,16 @@ package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.servic
 
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.QueryValidator;
 import org.eclipse.dataspaceconnector.spi.result.AbstractResult;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedContentResource;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataAddressResource;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.CancelTransferCommand;
@@ -29,6 +34,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -39,11 +46,13 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     private final TransferProcessStore transferProcessStore;
     private final TransferProcessManager manager;
     private final TransactionContext transactionContext;
+    private final QueryValidator queryValidator;
 
     public TransferProcessServiceImpl(TransferProcessStore transferProcessStore, TransferProcessManager manager, TransactionContext transactionContext) {
         this.transferProcessStore = transferProcessStore;
         this.manager = manager;
         this.transactionContext = transactionContext;
+        queryValidator = new QueryValidator(TransferProcess.class, getSubtypes());
     }
 
     @Override
@@ -52,8 +61,13 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     }
 
     @Override
-    public @NotNull Collection<TransferProcess> query(QuerySpec query) {
-        return transactionContext.execute(() -> transferProcessStore.findAll(query).collect(toList()));
+    public ServiceResult<Collection<TransferProcess>> query(QuerySpec query) {
+        var result = queryValidator.validate(query);
+
+        if (result.failed()) {
+            return ServiceResult.badRequest(format("Error validating schema: %s", result.getFailureDetail()));
+        }
+        return ServiceResult.success(transactionContext.execute(() -> transferProcessStore.findAll(query).collect(toList())));
     }
 
     @Override
@@ -84,6 +98,13 @@ public class TransferProcessServiceImpl implements TransferProcessService {
                     .map(ServiceResult::success)
                     .orElse(ServiceResult.conflict("Request couldn't be initialised."));
         });
+    }
+
+    private Map<Class<?>, List<Class<?>>> getSubtypes() {
+        return Map.of(
+                ProvisionedResource.class, List.of(ProvisionedDataAddressResource.class),
+                ProvisionedDataAddressResource.class, List.of(ProvisionedDataDestinationResource.class, ProvisionedContentResource.class)
+        );
     }
 
     private ServiceResult<TransferProcess> apply(String transferProcessId, Function<TransferProcess, ServiceResult<TransferProcess>> function) {

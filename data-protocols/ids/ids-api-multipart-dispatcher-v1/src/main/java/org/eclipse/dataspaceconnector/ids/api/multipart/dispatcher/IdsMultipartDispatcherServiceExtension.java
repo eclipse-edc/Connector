@@ -25,7 +25,6 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.Multip
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartEndpointDataReferenceRequestSender;
 import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
@@ -50,16 +49,25 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
 
     @Inject
     private Monitor monitor;
+
     @Inject
     private OkHttpClient httpClient;
+
     @Inject
     private IdentityService identityService;
+
     @Inject
     private IdsTransformerRegistry transformerRegistry;
+
     @Inject
     private IdsApiConfiguration idsApiConfiguration;
+
     @Inject
     private ObjectMapperFactory objectMapperFactory;
+
+    @Inject
+    private RemoteMessageDispatcherRegistry dispatcherRegistry;
+
     @Inject
     private Vault vault;
 
@@ -76,7 +84,7 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
         var objectMapper = objectMapperFactory.getObjectMapper();
 
-        String idsWebhookAddress = idsApiConfiguration.getIdsWebhookAddress();
+        var idsWebhookAddress = idsApiConfiguration.getIdsWebhookAddress();
 
         var multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
         multipartDispatcher.register(new MultipartArtifactRequestSender(connectorId, httpClient, objectMapper, monitor, vault, identityService, transformerRegistry, idsWebhookAddress));
@@ -87,40 +95,25 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         multipartDispatcher.register(new MultipartCatalogDescriptionRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartEndpointDataReferenceRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
 
-        var registry = context.getService(RemoteMessageDispatcherRegistry.class);
-        registry.register(multipartDispatcher);
+        dispatcherRegistry.register(multipartDispatcher);
     }
 
     private String resolveConnectorId(@NotNull ServiceExtensionContext context) {
         Objects.requireNonNull(context);
 
-        String value = getSetting(context, EDC_IDS_ID, DEFAULT_EDC_IDS_ID);
-
+        var value = context.getSetting(EDC_IDS_ID, DEFAULT_EDC_IDS_ID);
         try {
             // Hint: use stringified uri to keep uri path and query
-            IdsId idsId = IdsIdParser.parse(value);
+            var idsId = IdsIdParser.parse(value);
             if (idsId != null && idsId.getType() == IdsType.CONNECTOR) {
                 return idsId.getValue();
             }
         } catch (IllegalArgumentException e) {
-            String message = "IDS Settings: Expected valid URN for setting '%s', but was %s'. Expected format: 'urn:connector:[id]'";
+            var message = "IDS Settings: Expected valid URN for setting '%s', but was %s'. Expected format: 'urn:connector:[id]'";
             throw new EdcException(String.format(message, EDC_IDS_ID, DEFAULT_EDC_IDS_ID));
         }
 
         return value;
-    }
-
-    @NotNull
-    private String getSetting(@NotNull ServiceExtensionContext context, String key, String defaultValue) {
-        String value = context.getSetting(key, null);
-
-        if (value == null) {
-            String message = "IDS Settings: No setting found for key '%s'. Using default value '%s'";
-            monitor.warning(String.format(message, key, defaultValue));
-            return defaultValue;
-        } else {
-            return value;
-        }
     }
 
 }

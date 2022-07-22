@@ -11,12 +11,13 @@
  *       Microsoft Corporation - initial API and implementation
  *       Daimler TSS GmbH - fixed contract dates to epoch seconds
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       Fraunhofer Institute for Software and Systems Engineering - add policy engine
  *
  */
 
 package org.eclipse.dataspaceconnector.contract.validation;
 
-import com.github.javafaker.Faker;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
@@ -25,8 +26,10 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
@@ -35,10 +38,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
+import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -48,6 +51,7 @@ import static java.time.Instant.MIN;
 import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService.NEGOTIATION_SCOPE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -65,11 +69,12 @@ class ContractValidationServiceImplTest {
     private final AssetIndex assetIndex = mock(AssetIndex.class);
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final Clock clock = Clock.fixed(now, UTC);
+    private final PolicyEngine policyEngine = mock(PolicyEngine.class);
     private ContractValidationServiceImpl validationService;
 
     @BeforeEach
     void setUp() {
-        validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, clock);
+        validationService = new ContractValidationServiceImpl(agentService, definitionService, assetIndex, policyStore, clock, policyEngine);
     }
 
     @Test
@@ -89,6 +94,7 @@ class ContractValidationServiceImplTest {
         when(policyStore.findById("access")).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
         when(policyStore.findById("contract")).thenReturn(PolicyDefinition.Builder.newInstance().policy(newPolicy).build());
         when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(Stream.of(asset));
+        when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), eq(newPolicy), isA(ParticipantAgent.class))).thenReturn(Result.success(newPolicy));
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var offer = ContractOffer.Builder.newInstance().id("1:2")
@@ -105,23 +111,19 @@ class ContractValidationServiceImplTest {
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(definitionService).definitionFor(isA(ParticipantAgent.class), eq("1"));
         verify(assetIndex).queryAssets(isA(QuerySpec.class));
+        verify(policyEngine).evaluate(eq(NEGOTIATION_SCOPE), eq(newPolicy), isA(ParticipantAgent.class));
     }
 
     @Test
     void verifyContractAgreementValidation() {
         var newPolicy = Policy.Builder.newInstance().build();
-
-        var contractDefinition = ContractDefinition.Builder.newInstance()
-                .id("1")
-                .accessPolicyId("access")
-                .contractPolicyId("contract")
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
-                .build();
+        var contractDefinition = getContractDefinition();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
         when(policyStore.findById("access")).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
         when(policyStore.findById("contract")).thenReturn(PolicyDefinition.Builder.newInstance().policy(newPolicy).build());
+        when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), eq(newPolicy), isA(ParticipantAgent.class))).thenReturn(Result.success(newPolicy));
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = ContractAgreement.Builder.newInstance().id("1")
@@ -137,11 +139,12 @@ class ContractValidationServiceImplTest {
         assertThat(validationService.validate(claimToken, agreement)).isTrue();
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(definitionService).definitionFor(isA(ParticipantAgent.class), eq("1"));
+        verify(policyEngine).evaluate(eq(NEGOTIATION_SCOPE), eq(newPolicy), isA(ParticipantAgent.class));
     }
 
     @Test
     void verifyContractAgreementExpired() {
-        var past = FAKER.date().between(Date.from(EPOCH), Date.from(now)).toInstant().getEpochSecond();
+        var past = FAKER.date().between(Timestamp.from(EPOCH), Timestamp.from(now)).toInstant().getEpochSecond();
         var isValid =
                 validateAgreementDate(MIN.getEpochSecond(), MIN.getEpochSecond(), past);
 
@@ -159,12 +162,7 @@ class ContractValidationServiceImplTest {
     void verifyPolicyNotFound() {
         var originalPolicy = Policy.Builder.newInstance().build();
         var asset = Asset.Builder.newInstance().id("1").build();
-        var contractDefinition = ContractDefinition.Builder.newInstance()
-                .id("1")
-                .accessPolicyId("access")
-                .contractPolicyId("contract")
-                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
-                .build();
+        var contractDefinition = getContractDefinition();
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
@@ -186,6 +184,8 @@ class ContractValidationServiceImplTest {
 
     private boolean validateAgreementDate(long signingDate, long startDate, long endDate) {
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
+        when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(getContractDefinition());
+        when(policyEngine.evaluate(eq(NEGOTIATION_SCOPE), isA(Policy.class), isA(ParticipantAgent.class))).thenReturn(Result.success(Policy.Builder.newInstance().build()));
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = ContractAgreement.Builder.newInstance().id("1")
@@ -199,5 +199,14 @@ class ContractValidationServiceImplTest {
                 .id("1:2").build();
 
         return validationService.validate(claimToken, agreement);
+    }
+    
+    private ContractDefinition getContractDefinition() {
+        return ContractDefinition.Builder.newInstance()
+                .id("1")
+                .accessPolicyId("access")
+                .contractPolicyId("contract")
+                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
+                .build();
     }
 }

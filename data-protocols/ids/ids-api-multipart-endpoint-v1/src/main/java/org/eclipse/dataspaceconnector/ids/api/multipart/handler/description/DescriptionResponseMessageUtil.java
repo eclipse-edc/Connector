@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 import de.fraunhofer.iais.eis.DescriptionResponseMessage;
 import de.fraunhofer.iais.eis.DescriptionResponseMessageBuilder;
 import de.fraunhofer.iais.eis.Message;
+import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
@@ -50,7 +51,7 @@ class DescriptionResponseMessageUtil {
         builder._issuerConnector_(connectorIdUri);
         builder._senderAgent_(connectorIdUri);
 
-        //builder._issued_(CalendarUtil.gregorianNow()); TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+        builder._issued_(CalendarUtil.gregorianNow());
 
         if (correlationMessage != null) {
             URI id = correlationMessage.getId();

@@ -27,6 +27,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDe
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -85,7 +87,34 @@ class ContractDefinitionServiceImplTest {
         var result = service.query(QuerySpec.none());
 
         String id = definition.getId();
-        assertThat(result).hasSize(1).first().matches(hasId(id));
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent()).hasSize(1).first().matches(hasId(id));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "selectorExpression.criteria.leftHand=foo", //invalid path
+            "accessPolicyId'LIKE/**/?/**/LIMIT/**/?/**/OFFSET/**/?;DROP/**/TABLE/**/test/**/--%20=%20ABC--", //some SQL injection
+    })
+    void query_invalidFilter(String invalidFilter) {
+        var query = QuerySpec.Builder.newInstance()
+                .filter(invalidFilter)
+                .build();
+        assertThat(service.query(query).failed()).isTrue();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "selectorExpression.criteria.operandLeft=foo", //invalid path
+            "selectorExpression.criteria.operator=LIKE", //invalid path
+            "selectorExpression.criteria.operandRight=bar" //invalid path
+    })
+    void query_validFilter(String validFilter) {
+        var query = QuerySpec.Builder.newInstance()
+                .filter(validFilter)
+                .build();
+        service.query(query);
+        verify(store).findAll(query);
     }
 
     @Test

@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
@@ -48,10 +49,10 @@ public class CatalogServiceImpl implements CatalogService {
      */
     @Override
     @NotNull
-    public Catalog getDataCatalog(ClaimToken claimToken) {
+    public Catalog getDataCatalog(ClaimToken claimToken, Range range) {
         var query = ContractOfferQuery.Builder.newInstance().claimToken(claimToken).build();
 
-        var offers = contractOfferService.queryContractOffers(query).collect(toList());
+        var offers = contractOfferService.queryContractOffers(query, range).collect(toList());
 
         return Catalog.Builder.newInstance().id(dataCatalogId).contractOffers(offers).build();
     }

@@ -16,9 +16,9 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetEventListener;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetService;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetServiceImpl;
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.EventAssetListener;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.transform.AssetDtoToAssetTransformer;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.transform.AssetToAssetDtoTransformer;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.transform.DataAddressDtoToDataAddressTransformer;
@@ -78,7 +78,7 @@ public class AssetApiExtension implements ServiceExtension {
         var monitor = context.getMonitor();
 
         var assetObservable = new AssetObservableImpl();
-        assetObservable.registerListener(new EventAssetListener(clock, eventRouter));
+        assetObservable.registerListener(new AssetEventListener(clock, eventRouter));
 
         var assetService = new AssetServiceImpl(assetIndex, assetLoader, contractNegotiationStore, transactionContext, assetObservable);
         context.registerService(AssetService.class, assetService);

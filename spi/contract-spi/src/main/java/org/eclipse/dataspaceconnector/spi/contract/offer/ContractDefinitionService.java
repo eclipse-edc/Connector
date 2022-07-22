@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.spi.contract.offer;
 
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyScope;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
@@ -24,23 +25,23 @@ import java.util.stream.Stream;
 
 /**
  * Returns {@link ContractDefinition} for a given participant agent.
- *
+ * <p>
  * A runtime extension may implement custom logic to determine which contract definitions are returned.
  */
 public interface ContractDefinitionService {
 
     @PolicyScope
-    String NEGOTIATION_SCOPE = "contract.negotiation";
+    String CATALOGING_SCOPE = "contract.cataloging";
 
     /**
      * Returns the definitions for the given participant agent.
      */
     @NotNull
-    Stream<ContractDefinition> definitionsFor(ParticipantAgent agent);
+    Stream<ContractDefinition> definitionsFor(ParticipantAgent agent, Range range);
 
     /**
-     * Returns a contract definition for the agent associated with the given contract definition id.
-     * If the definition does not exist or the agent is not authorized, the result will indicate the request is invalid.
+     * Returns a contract definition for the agent associated with the given contract definition id. If the definition
+     * does not exist or the agent is not authorized, the result will indicate the request is invalid.
      */
     @Nullable
     ContractDefinition definitionFor(ParticipantAgent agent, String definitionId);

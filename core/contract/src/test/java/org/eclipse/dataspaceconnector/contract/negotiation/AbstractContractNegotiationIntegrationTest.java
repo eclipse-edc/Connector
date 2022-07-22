@@ -24,7 +24,6 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
@@ -51,7 +50,6 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -74,8 +72,6 @@ public abstract class AbstractContractNegotiationIntegrationTest {
     protected String consumerNegotiationId;
 
     protected ClaimToken token;
-
-    protected CountDownLatch countDownLatch;
 
     /**
      * Prepares the test setup
@@ -124,7 +120,6 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .sendRetryManager(sendRetryManager)
                 .build();
 
-        countDownLatch = new CountDownLatch(2);
     }
 
     /**
@@ -201,42 +196,6 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                                 .build())
                         .build())
                 .build();
-    }
-
-    /**
-     * Implementation of the ContractNegotiationListener that signals a CountDownLatch when the confirmed state has been
-     * reached.
-     */
-    protected static class ConfirmedContractNegotiationListener implements ContractNegotiationListener {
-
-        private final CountDownLatch countDownLatch;
-
-        public ConfirmedContractNegotiationListener(CountDownLatch countDownLatch) {
-            this.countDownLatch = countDownLatch;
-        }
-
-        @Override
-        public void preConfirmed(ContractNegotiation negotiation) {
-            countDownLatch.countDown();
-        }
-    }
-
-    /**
-     * Implementation of the ContractNegotiationListener that signals a CountDownLatch when the declined state has been
-     * reached.
-     */
-    protected static class DeclinedContractNegotiationListener implements ContractNegotiationListener {
-
-        private final CountDownLatch countDownLatch;
-
-        public DeclinedContractNegotiationListener(CountDownLatch countDownLatch) {
-            this.countDownLatch = countDownLatch;
-        }
-
-        @Override
-        public void preDeclined(ContractNegotiation negotiation) {
-            countDownLatch.countDown();
-        }
     }
 
     /**

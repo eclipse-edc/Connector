@@ -24,7 +24,6 @@ import org.eclipse.dataspaceconnector.catalog.cache.query.QueryNotAcceptedExcept
 import org.eclipse.dataspaceconnector.catalog.spi.QueryEngine;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryResponse;
 import org.eclipse.dataspaceconnector.catalog.spi.model.FederatedCatalogCacheQuery;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 
 import java.util.Collection;
@@ -34,17 +33,14 @@ import java.util.Collection;
 @Path("/federatedcatalog")
 public class FederatedCatalogApiController {
 
-    private final Monitor monitor;
     private final QueryEngine queryEngine;
 
-    public FederatedCatalogApiController(Monitor monitor, QueryEngine queryEngine) {
-        this.monitor = monitor;
+    public FederatedCatalogApiController(QueryEngine queryEngine) {
         this.queryEngine = queryEngine;
     }
 
     @POST
     public Collection<ContractOffer> getCachedCatalog(FederatedCatalogCacheQuery federatedCatalogCacheQuery) {
-        monitor.info("Received a catalog request");
         var queryResponse = queryEngine.getCatalog(federatedCatalogCacheQuery);
         // query not possible
         if (queryResponse.getStatus() == QueryResponse.Status.NO_ADAPTER_FOUND) {

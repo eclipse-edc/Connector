@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.contract.definition.observe.ContractDefinitionObservable;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.QueryValidator;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 
@@ -32,12 +33,14 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
     private final ContractDefinitionLoader loader;
     private final TransactionContext transactionContext;
     private final ContractDefinitionObservable observable;
+    private final QueryValidator queryValidator;
 
     public ContractDefinitionServiceImpl(ContractDefinitionStore store, ContractDefinitionLoader loader, TransactionContext transactionContext, ContractDefinitionObservable observable) {
         this.store = store;
         this.loader = loader;
         this.transactionContext = transactionContext;
         this.observable = observable;
+        queryValidator = new QueryValidator(ContractDefinition.class);
     }
 
     @Override
@@ -46,8 +49,13 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
     }
 
     @Override
-    public Collection<ContractDefinition> query(QuerySpec query) {
-        return transactionContext.execute(() -> store.findAll(query).collect(toList()));
+    public ServiceResult<Collection<ContractDefinition>> query(QuerySpec query) {
+        var result = queryValidator.validate(query);
+
+        if (result.failed()) {
+            return ServiceResult.badRequest(format("Error validating schema: %s", result.getFailureDetail()));
+        }
+        return ServiceResult.success(transactionContext.execute(() -> store.findAll(query).collect(toList())));
     }
 
     @Override

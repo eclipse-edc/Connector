@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy;
 
-import com.github.javafaker.Faker;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.dataplane.selector.client.DataPlaneSelectorClient;
 import org.eclipse.dataspaceconnector.dataplane.selector.instance.DataPlaneInstanceImpl;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;

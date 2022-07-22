@@ -137,7 +137,7 @@ public class AzureVault implements Vault {
     @NotNull
     private String sanitizeKey(String key) {
         if (key.contains(".")) {
-            monitor.info("AzureVault: key contained '.' which is not allowed. replaced with '-'");
+            monitor.debug("AzureVault: key contained '.' which is not allowed. replaced with '-'");
             key = key.replace(".", "-");
         }
         return key;

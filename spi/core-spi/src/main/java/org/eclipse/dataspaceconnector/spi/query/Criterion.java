@@ -14,17 +14,14 @@
 
 package org.eclipse.dataspaceconnector.spi.query;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Objects;
 import java.util.function.Function;
 
 import static java.lang.String.format;
 
 /**
- * This class can be used to form select expressions e.g. in SQL statements. It is a way to express
- * those statements in a generic way.
- * For example:
+ * This class can be used to form select expressions e.g. in SQL statements. It is a way to express those statements in
+ * a generic way. For example:
  * <pre>
  * "operandLeft" = "name",
  * "operator" = "=",
@@ -34,11 +31,8 @@ import static java.lang.String.format;
  * can be translated to {@code [select * where name = someone]}
  */
 public class Criterion {
-    @JsonProperty("left")
     private Object operandLeft;
-    @JsonProperty("op")
     private String operator;
-    @JsonProperty("right")
     private Object operandRight;
 
     private Criterion() {
@@ -64,7 +58,7 @@ public class Criterion {
     }
 
     public Criterion withLeftOperand(Function<Object, Object> function) {
-        return new Criterion(function.apply(this.operandLeft), this.operator, this.getOperandRight());
+        return new Criterion(function.apply(operandLeft), operator, getOperandRight());
     }
 
     @Override

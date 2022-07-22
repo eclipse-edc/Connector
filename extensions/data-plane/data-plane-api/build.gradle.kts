@@ -13,7 +13,6 @@
  *
  */
 
-val faker: String by project
 val httpMockServer: String by project
 val jerseyVersion: String by project
 val okHttpVersion: String by project
@@ -23,6 +22,7 @@ val servletApi: String by project
 
 plugins {
     `java-library`
+    id("io.swagger.core.v3.swagger-gradle-plugin")
 }
 
 dependencies {
@@ -33,11 +33,12 @@ dependencies {
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
     testImplementation(project(":extensions:http"))
+    testImplementation(project(":extensions:junit"))
+    
     testImplementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
-    testImplementation("com.github.javafaker:javafaker:${faker}")
-
-    testImplementation(project(":extensions:junit"))
+    testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
+    testImplementation("org.mock-server:mockserver-client-java:${httpMockServer}:shaded")
 }
 
 publishing {

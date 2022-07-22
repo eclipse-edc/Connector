@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy;
 
-import com.github.javafaker.Faker;
 import com.nimbusds.jwt.JWTClaimsSet;
+import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

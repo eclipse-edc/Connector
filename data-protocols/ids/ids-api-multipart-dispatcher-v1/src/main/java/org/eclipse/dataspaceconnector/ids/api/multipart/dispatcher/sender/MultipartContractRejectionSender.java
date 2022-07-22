@@ -18,9 +18,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractRejectionMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageImpl;
 import de.fraunhofer.iais.eis.util.TypedLiteral;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -30,12 +33,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.List;
+
+import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.util.ResponseUtil.parseMultipartStringResponse;
 
 /**
  * IdsMultipartSender implementation for contract rejections. Sends IDS ContractRequestMessages and
  * expects an IDS RequestInProcessMessage as the response.
  */
-public class MultipartContractRejectionSender extends IdsMultipartSender<ContractRejection, MultipartMessageProcessedResponse> {
+public class MultipartContractRejectionSender extends IdsMultipartSender<ContractRejection, String> {
 
     public MultipartContractRejectionSender(@NotNull String connectorId,
                                             @NotNull OkHttpClient httpClient,
@@ -56,11 +62,18 @@ public class MultipartContractRejectionSender extends IdsMultipartSender<Contrac
         return rejection.getConnectorAddress();
     }
 
+    /**
+     * Builds a {@link de.fraunhofer.iais.eis.ContractRejectionMessage} for the given {@link ContractRejection}.
+     *
+     * @param rejection the rejection request.
+     * @param token   the dynamic attribute token.
+     * @return a ContractRejectionMessage
+     */
     @Override
     protected Message buildMessageHeader(ContractRejection rejection, DynamicAttributeToken token) throws Exception {
         return new ContractRejectionMessageBuilder()
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
-                //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+                ._issued_(CalendarUtil.gregorianNow())
                 ._securityToken_(token)
                 ._issuerConnector_(getConnectorId())
                 ._senderAgent_(getConnectorId())
@@ -70,22 +83,31 @@ public class MultipartContractRejectionSender extends IdsMultipartSender<Contrac
                 .build();
     }
 
+    /**
+     * Builds the payload for the rejection. The payload contains the rejection reason.
+     *
+     * @param rejection the rejection request.
+     * @return the rejection reason.
+     */
     @Override
     protected String buildMessagePayload(ContractRejection rejection) throws Exception {
         return rejection.getRejectionReason();
     }
 
+    /**
+     * Parses the response content.
+     *
+     * @param parts container object for response header and payload InputStreams.
+     * @return a MultipartResponse containing the message header and the response payload as string.
+     * @throws Exception if parsing header or payload fails.
+     */
     @Override
-    protected MultipartMessageProcessedResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        Message header = getObjectMapper().readValue(parts.getHeader(), Message.class);
-        String payload = null;
-        if (parts.getPayload() != null) {
-            payload = new String(parts.getPayload().readAllBytes());
-        }
+    protected MultipartResponse<String> getResponseContent(IdsMultipartParts parts) throws Exception {
+        return parseMultipartStringResponse(parts, getObjectMapper());
+    }
 
-        return MultipartMessageProcessedResponse.Builder.newInstance()
-                .header(header)
-                .payload(payload)
-                .build();
+    @Override
+    protected List<Class<? extends Message>> getAllowedResponseTypes() {
+        return List.of(MessageProcessedNotificationMessageImpl.class);
     }
 }

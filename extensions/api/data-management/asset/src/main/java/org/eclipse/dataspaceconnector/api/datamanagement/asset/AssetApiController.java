@@ -30,10 +30,7 @@ import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
-import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
-import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -46,6 +43,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
 
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
@@ -80,24 +78,32 @@ public class AssetApiController implements AssetApi {
         if (result.succeeded()) {
             monitor.debug(format("Asset created %s", assetEntryDto.getAsset()));
         } else {
-            handleFailedResult(result, asset.getId());
+            throw mapToException(result, Asset.class, asset.getId());
         }
     }
 
     @GET
     @Override
     public List<AssetDto> getAllAssets(@Valid @BeanParam QuerySpecDto querySpecDto) {
-        var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
-        if (result.failed()) {
-            monitor.warning("Error transforming QuerySpec: " + String.join(", ", result.getFailureMessages()));
+        var transformationResult = transformerRegistry.transform(querySpecDto, QuerySpec.class);
+        if (transformationResult.failed()) {
+            monitor.warning("Error transforming QuerySpec: " + String.join(", ", transformationResult.getFailureMessages()));
             throw new IllegalArgumentException("Cannot transform QuerySpecDto object");
         }
 
-        var spec = result.getContent();
+        var spec = transformationResult.getContent();
 
         monitor.debug(format("get all Assets from %s", spec));
 
-        return service.query(spec).stream()
+        var queryResult = service.query(spec);
+
+        if (queryResult.failed()) {
+            throw mapToException(queryResult, QuerySpec.class, null);
+        }
+
+        var assets = queryResult.getContent();
+
+        return assets.stream()
                 .map(it -> transformerRegistry.transform(it, AssetDto.class))
                 .filter(Result::succeeded)
                 .map(Result::getContent)
@@ -126,19 +132,7 @@ public class AssetApiController implements AssetApi {
         if (result.succeeded()) {
             monitor.debug(format("Asset deleted %s", id));
         } else {
-            handleFailedResult(result, id);
+            throw mapToException(result, Asset.class, id);
         }
     }
-
-    private void handleFailedResult(ServiceResult<Asset> result, String id) {
-        switch (result.reason()) {
-            case NOT_FOUND:
-                throw new ObjectNotFoundException(Asset.class, id);
-            case CONFLICT:
-                throw new ObjectExistsException(Asset.class, id);
-            default:
-                throw new EdcException("unexpected error");
-        }
-    }
-
 }

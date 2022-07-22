@@ -45,7 +45,7 @@ as communication endpoints (e.g., based on HTTP). To support a fast-paced develo
 impacting the connector's core release cycle, modules contributing this type of public-facing API can be managed within
 a separate repository.
 
-The following modules are also distributed as individual artifact to support a convenient customisation of connectors
+The following modules are also distributed as individual artifacts to support a convenient customisation of connectors
 and are, however, not considered public APIs:
 
 - core/*
@@ -141,3 +141,38 @@ org.eclipse.dataspaceconnector:common-util
 ```
 
 A comprehensive list can be found [here](modules.md)
+
+#### Release guide
+
+_Note: the intended audience for this section are individuals who are eligible to author the release process. At the
+time of this writing these are the committers of the project._
+
+To trigger a new release please follow these simple steps:
+
+- update `CHANGELOG.md`: put the current "Unreleased" section under a new headline containing the new version string,
+  add a new "Unreleased" section.
+- update `gradle.properties`: set the `defaultVersion` entry to the new version.
+- trigger the actual release in GitHub:
+    - on the `Actions` tab pick the `Create EDC Release` workflow
+    - Select the `main` branch
+    - clicking on `Run workflow` should bring up a prompt for the version string. Please enter the version string in
+      SemVer format without any prefixes: `0.0.4-something-SNAPSHOT` would be OK, whereas `v0.0.4-rc1` would not.
+    - start the workflow
+
+The GitHub workflow then performs these steps
+
+1. creates a tag on the current branch, e.g. `v0.0.4-something-SNAPSHOT` (note the `v` prefix). This is done using the
+   GitHub API.
+2. creates a merge commit from source branch to `releases`. The version information is encoded into the commit message.
+3. triggers the Eclipse Foundation Jenkins instance ("JIPP"). This is where the actual publishing to MavenCentral
+   happens. Note that this process may take quite a bit of time, as every module is signed and uploaded. **Important: if
+   the version string contains the `-SNAPSHOT` suffix, the version is uploaded to OSSRH Snapshots instead of
+   MavenCentral!**
+4. Creates a GitHub release including an automatically generated changelog, if the release is not a `-SNAPSHOT`. This is
+   only for informational purposes, no additionsl artifacts are uploaded. The GitHub Release has the following
+   properties:
+    - only created on non-snapshots
+    - always created off of `main` branch
+    - the release notes are auto-generated based on the last available tag and the `.github/releases.yaml` file
+    - no pre-releases are supported
+    - no discussions are created

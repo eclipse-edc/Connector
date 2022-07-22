@@ -30,6 +30,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.comm
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentMatcher;
 
 import java.util.UUID;
@@ -83,7 +85,37 @@ class ContractNegotiationServiceImplTest {
 
         var result = service.query(QuerySpec.none());
 
-        assertThat(result).hasSize(1).first().matches(it -> it.getId().equals("negotiationId"));
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent()).hasSize(1).first().matches(it -> it.getId().equals("negotiationId"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "contractAgreement.contractStartDate.begin=123455", //invalid path
+            "contractOffers.policy.uid=some-id", //invalid path
+            "contractOffers.policy.assetid=some-id", //wrong case
+            "contractOffers.policy.=some-id", //incomplete path
+    })
+    void query_invalidFilter(String invalidFilter) {
+        var query = QuerySpec.Builder.newInstance()
+                .filter(invalidFilter)
+                .build();
+
+        assertThat(service.query(query).failed()).isTrue();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "contractAgreement.contractStartDate=123455",
+            "contractAgreement.assetId=test-asset",
+            "contractAgreement.policy.assignee=123455",
+    })
+    void query_validFilter(String validFilter) {
+        var query = QuerySpec.Builder.newInstance()
+                .filter(validFilter)
+                .build();
+        service.query(query);
+        verify(store).queryNegotiations(query);
     }
 
     @Test

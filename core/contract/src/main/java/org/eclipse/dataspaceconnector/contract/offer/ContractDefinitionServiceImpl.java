@@ -16,11 +16,11 @@
 
 package org.eclipse.dataspaceconnector.contract.offer;
 
-import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
@@ -55,10 +55,11 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
 
     @NotNull
     @Override
-    public Stream<ContractDefinition> definitionsFor(ParticipantAgent agent) {
-        //todo: once IDS supports pagination, replace this with the actual paging parameters
-        return definitionStore.findAll(QuerySpec.max())
-                .filter(definition -> evaluatePolicies(definition, agent));
+    public Stream<ContractDefinition> definitionsFor(ParticipantAgent agent, Range range) {
+        return definitionStore.findAll(QuerySpec.Builder.newInstance()
+                        .range(range)
+                        .build())
+                .filter(definition -> evaluateAccessPolicy(definition, agent));
     }
 
     @Nullable
@@ -66,38 +67,25 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
     public ContractDefinition definitionFor(ParticipantAgent agent, String definitionId) {
         return Optional.of(definitionId)
                 .map(definitionStore::findById)
-                .filter(definition -> evaluatePolicies(definition, agent))
+                .filter(definition -> evaluateAccessPolicy(definition, agent))
                 .orElse(null);
     }
-
+    
     /**
-     * Determines the applicability of a definition to an agent by evaluating the union of its access control and usage
-     * policies.
+     * Determines the applicability of a definition to an agent by evaluating its access policy.
      */
-    private boolean evaluatePolicies(ContractDefinition definition, ParticipantAgent agent) {
-        var accessResult = evaluate(definition.getAccessPolicyId(), agent);
-
-        if (accessResult.failed()) {
-            monitor.info(format("Problem evaluating access control policy for %s: \n%s", definition.getId(), String.join("\n", accessResult.getFailureMessages())));
-            return false;
-        }
-
-        var controlResult = evaluate(definition.getContractPolicyId(), agent);
-
-        if (controlResult.failed()) {
-            monitor.info(format("Problem evaluating usage control policy for %s: \n%s", definition.getId(), String.join("\n", controlResult.getFailureMessages())));
-            return false;
-        }
-
-        return true;
-    }
-
-    @NotNull
-    private Result<Policy> evaluate(String policyId, ParticipantAgent agent) {
-        return Optional.of(policyId)
+    private boolean evaluateAccessPolicy(ContractDefinition definition, ParticipantAgent agent) {
+        var accessResult = Optional.of(definition.getAccessPolicyId())
                 .map(policyStore::findById)
                 .map(PolicyDefinition::getPolicy)
-                .map(policy -> policyEngine.evaluate(NEGOTIATION_SCOPE, policy, agent))
-                .orElse(Result.failure(format("Policy %s not found", policyId)));
+                .map(policy -> policyEngine.evaluate(CATALOGING_SCOPE, policy, agent))
+                .orElse(Result.failure(format("Policy %s not found", definition.getAccessPolicyId())));
+        
+        if (accessResult.failed()) {
+            monitor.debug(format("Access not granted for %s: \n%s", definition.getId(), String.join("\n", accessResult.getFailureMessages())));
+            return false;
+        }
+        
+        return true;
     }
 }

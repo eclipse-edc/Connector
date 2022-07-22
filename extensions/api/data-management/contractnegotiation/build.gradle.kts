@@ -11,9 +11,10 @@
  *   ZF Friedrichshafen AG - Initial API and Implementation
  */
 
+val awaitility: String by project
+val jerseyVersion: String by project
 val restAssured: String by project
 val rsApi: String by project
-val jerseyVersion: String by project
 
 plugins {
     `java-library`
@@ -32,10 +33,12 @@ dependencies {
 
     testImplementation(project(":common:util"))
     testImplementation(project(":core:defaults"))
+    testImplementation(project(":extensions:dataloading"))
     testImplementation(project(":extensions:http"))
     testImplementation(project(":extensions:junit"))
 
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
+    testImplementation("org.awaitility:awaitility:${awaitility}")
 }
 
 publishing {

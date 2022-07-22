@@ -7,7 +7,7 @@ This file will not cover changes about documentation, code clean-up, samples, or
 (respectively milestone), the core features are highlighted. Relevant changes to existing implementations can be found
 in the detailed section referring to by linking pull requests or issues.
 
-## [Unreleased]
+## [unreleased]
 
 ### Overview
 
@@ -15,17 +15,53 @@ in the detailed section referring to by linking pull requests or issues.
 
 ### Detailed Changes
 
+*
+
+#### Added
+
+*
+
+#### Changed
+
+*
+
+#### Removed
+
+*
+
+#### Fixed
+
+*
+
+## [milestone-5] - 2022-07-21
+
+### Overview
+
+* Introduction of an event framework + cloud events
+* Full query capabilities for SQL persistence
+* Bugfixing and cleanup
+
+### Detailed Changes
+
 #### Added
 
 * Event Framework for Asset entity (#1453)
 * Event Framework for ContractDefinition entity (#1436)
+* Event Framework for ContractNegotiation entity (#1434)
 * Event Framework for PolicyDefinition entity (#1437)
+* Event Framework for TransferProcess entity (#1439)
 * SQL Translation layer (#1357, #1459)
+* Tooling infrastructure and module processing (#1494)
 * Permit API verbose error response (#1479)
 * Fix TODO and document `:extensions:data-plane-transfer` (#1519)
 * CloudEvents Http extension (#1160)
 * Full Query capabilities for SQL TransferProcess Store (#1483)
 * Full Query capabilities for SQL PolicyDefinition Store (#1484)
+* Documentation for `:extensions:data-plane:data-plane-api` (#1579)
+* Allow `TypeManager` to support multiple serialization contexts (#1581)
+* Check response type of IDS multipart messages (#1695)
+* Define api error detail message schema (#1490)
+* Policy scopes: `contract.cataloging`, `provision.manifest.verify` (#1446)
 
 #### Changed
 
@@ -37,18 +73,23 @@ in the detailed section referring to by linking pull requests or issues.
 * JWT audience claim check with DID (#1520)
 * Bump `failsafe` library to version 3.2.4 (#1559)
 * Harmonize logics of `HttpDataSource` and `HttpDataSink` (#1475)
+* Log correct type in contract-definition API (#1584)
+* Replace unmaintained test dependency `java-faker` with `datafaker` (#1709)
+* Change CredentialsVerifier contract (#1702)
 
 #### Removed
 
 * Old RegistrationService (was used for a PoC) (#164)
 * Deprecate `InlineDataFlowController` (replaced by the Data Plane) (#1464)
 * Unused classes and interfaces at `ids.spi.policy` (#1471)
-* Remove modules `:extensions:transfer-functions:transfer-functions-spi` and `:extensions:transfer-functions:transfer-functions-core` (#1482)
+* Remove modules `:extensions:transfer-functions:transfer-functions-spi`
+  and `:extensions:transfer-functions:transfer-functions-core` (#1482)
 * Remove `ConnectorVersionProvider`, provide version as static string (#1470)
 * Remove `samples/other/run-from-junit` (#1456)
 
 #### Fixed
 
+* Fix failure of TransferProcessEventDispatchTest (#1616)
 * Fixed a dead link in contributor documentation (#1477)
 * Fix usage of `NAME` property in `HttpDataSourceFactory` (#1460)
 * Fix clearing Loaders in the FCC (#1495)
@@ -56,6 +97,11 @@ in the detailed section referring to by linking pull requests or issues.
 * Fix race condition in `ContractNegotiationIntegrationTest` (#1505)
 * Fix for change in Cosmos DB behavior on missing sort fields (#1514)
 * Effectively removed default LIMIT in SQL Contract Def Store (#1515)
+* Add query validation (#1605)
+* Adapt logs to the logging guide (#1425)
+* Fix incompatibility `DecentralizedIdentityServiceExtension` and `FsPrivateKeyResolver` (#1696)
+* Add support for domain port domain in Web Did resolver (#1652)
+* Fixed persistence update bug with `DataRequest` (#1707)
 
 ## [milestone-4] - 2022-06-07
 
@@ -95,7 +141,8 @@ in the detailed section referring to by linking pull requests or issues.
 
 * Restructure sql extension folder tree (#1154)
 * Extract single `PolicyArchive` implementation (#1158)
-* Replace `accessPolicy` and `contractPolicy` with `accessPolicyId` and `contractPolicyId` on `ContractDefinition` (#1144)
+* Replace `accessPolicy` and `contractPolicy` with `accessPolicyId` and `contractPolicyId` on `ContractDefinition` (
+  #1144)
 * Replace `policy` with `policyId` on `ContractAgreement` (#1220)
 * All DMgmt Api methods now produce and consume `APPLICATION_JSON` (#1175)
 * Make data-plane public api controller asynchronous (#1228)

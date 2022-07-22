@@ -37,7 +37,7 @@ public interface AssetService {
      * @param query request
      * @return the collection of assets that matches the query
      */
-    Collection<Asset> query(QuerySpec query);
+    ServiceResult<Collection<Asset>> query(QuerySpec query);
 
     /**
      * Create an asset with its related data address

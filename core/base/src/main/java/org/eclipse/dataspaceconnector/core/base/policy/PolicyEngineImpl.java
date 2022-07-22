@@ -29,6 +29,7 @@ import org.eclipse.dataspaceconnector.spi.policy.RuleFunction;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -58,10 +59,15 @@ public class PolicyEngineImpl implements PolicyEngine {
     public Policy filter(Policy policy, String scope) {
         return scopeFilter.applyScope(policy, scope);
     }
-
+    
     @Override
     public Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent) {
-        var context = new PolicyContextImpl(agent);
+        return evaluate(scope, policy, agent, new HashMap<>());
+    }
+
+    @Override
+    public Result<Policy> evaluate(String scope, Policy policy, ParticipantAgent agent, Map<Class, Object> contextInformation) {
+        var context = new PolicyContextImpl(agent, contextInformation);
 
         for (BiFunction<Policy, PolicyContext, Boolean> validator : preValidators) {
             if (!validator.apply(policy, context)) {
@@ -105,10 +111,23 @@ public class PolicyEngineImpl implements PolicyEngine {
                     return Result.failure(context.hasProblems() ? context.getProblems() : List.of("Post-validator failed: " + validator.getClass().getName()));
                 }
             }
+    
+            updateContextInformation(context, contextInformation);
             return Result.success(policy);
         } else {
+            updateContextInformation(context, contextInformation);
             return Result.failure(result.getProblems().stream().map(RuleProblem::getDescription).collect(toList()));
         }
+    }
+    
+    /**
+     * Updates the initially supplied context data from the policy context.
+     *
+     * @param context the policy context.
+     * @param contextInformation the initial context data.
+     */
+    private void updateContextInformation(PolicyContext context, Map<Class, Object> contextInformation) {
+        contextInformation.keySet().forEach(key -> contextInformation.put(key, context.getContextData(key)));
     }
 
     @Override

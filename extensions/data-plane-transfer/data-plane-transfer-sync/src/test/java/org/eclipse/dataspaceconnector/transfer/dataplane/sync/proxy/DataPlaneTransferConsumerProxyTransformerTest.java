@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.dataplane.sync.proxy;
 
-import com.github.javafaker.Faker;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;

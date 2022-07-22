@@ -26,6 +26,8 @@ import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -63,7 +65,22 @@ public class PolicyDefinitionServiceImplTest {
         when(policyStore.findAll(any(QuerySpec.class))).thenReturn(Stream.of(policy));
         var policies = policyServiceImpl.query(QuerySpec.none());
 
-        assertThat(policies).containsExactly(policy);
+        assertThat(policies.succeeded()).isTrue();
+        assertThat(policies.getContent()).containsExactly(policy);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "policy.permissions.action.constraint.noexist=someval", //wrong property
+            "permissions.action.constraint.leftExpression=someval", //missing root
+            "policy.permissions.action.leftExpression=null" //skips path element
+    })
+    void query_invalidExpression_raiseException(String invalidFilter) {
+        var query = QuerySpec.Builder.newInstance()
+                .filter(invalidFilter)
+                .build();
+
+        assertThat(policyServiceImpl.query(query).failed()).isTrue();
     }
 
     @Test

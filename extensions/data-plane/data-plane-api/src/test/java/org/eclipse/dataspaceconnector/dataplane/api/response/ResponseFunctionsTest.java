@@ -15,7 +15,7 @@
 
 package org.eclipse.dataspaceconnector.dataplane.api.response;
 
-import com.github.javafaker.Faker;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.dataplane.spi.response.TransferErrorResponse;
 import org.junit.jupiter.api.Test;
 

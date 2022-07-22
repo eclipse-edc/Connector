@@ -24,6 +24,7 @@ public class JsonFieldMapping extends TranslationMapping {
     @Override
     public String getStatement(String canonicalPropertyName) {
         var tokens = canonicalPropertyName.split("\\.");
+
         var statementBuilder = new StringBuilder(columnName);
         int length = tokens.length;
         for (int i = 0; i < length - 1; i++) {
@@ -35,4 +36,6 @@ public class JsonFieldMapping extends TranslationMapping {
         statementBuilder.append("'").append(tokens[length - 1]).append("'");
         return statementBuilder.toString();
     }
+
+
 }

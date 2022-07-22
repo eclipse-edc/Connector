@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.iam.verifier;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
-import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 
@@ -28,7 +28,7 @@ public class DummyCredentialsVerifier implements CredentialsVerifier {
     private final Monitor monitor;
 
     /**
-     * Create a new credentials verifier that uses an Identity Hub
+     * Create a new dummy Credentials verifier.
      *
      * @param monitor a {@link Monitor}
      */
@@ -37,8 +37,9 @@ public class DummyCredentialsVerifier implements CredentialsVerifier {
     }
 
     @Override
-    public Result<Map<String, Object>> verifyCredentials(String hubBaseUrl, PublicKeyWrapper othersPublicKey) {
-        monitor.debug("Starting (dummy) credential verification against hub URL " + hubBaseUrl);
+    public Result<Map<String, Object>> getVerifiedCredentials(DidDocument didDocument) {
+
+        monitor.debug("Starting (dummy) credential verification of participant with Did key:" + didDocument.getId());
 
         return Result.success(Map.of("region", "eu"));
     }

@@ -29,6 +29,7 @@ import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.T
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferRequestDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.TransferState;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
+import org.eclipse.dataspaceconnector.spi.ApiErrorDetail;
 
 import java.util.List;
 
@@ -37,16 +38,21 @@ import java.util.List;
 public interface TransferProcessApi {
     @Operation(description = "Returns all transfer process according to a query",
             responses = {
-                    @ApiResponse(responseCode = "200", content = @Content(array = @ArraySchema(schema = @Schema(implementation = TransferProcessDto.class)))),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed") }
+                    @ApiResponse(responseCode = "200",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = TransferProcessDto.class)))),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))) }
     )
     List<TransferProcessDto> getAllTransferProcesses(@Valid QuerySpecDto querySpecDto);
 
     @Operation(description = "Gets an transfer process with the given ID",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "The transfer process", content = @Content(schema = @Schema(implementation = TransferProcessDto.class))),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null"),
-                    @ApiResponse(responseCode = "404", description = "A transfer process with the given ID does not exist")
+                    @ApiResponse(responseCode = "200", description = "The transfer process",
+                            content = @Content(schema = @Schema(implementation = TransferProcessDto.class))),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "404", description = "A transfer process with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
     TransferProcessDto getTransferProcess(String id);
@@ -54,9 +60,12 @@ public interface TransferProcessApi {
     @Operation(description = "Gets the state of a transfer process with the given ID",
             operationId = "getTransferProcessState",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "The  transfer process's state", content = @Content(schema = @Schema(implementation = TransferState.class))),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null"),
-                    @ApiResponse(responseCode = "404", description = "An  transfer process with the given ID does not exist")
+                    @ApiResponse(responseCode = "200", description = "The  transfer process's state",
+                            content = @Content(schema = @Schema(implementation = TransferState.class))),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "404", description = "An  transfer process with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             }
     )
     TransferState getTransferProcessState(String id);
@@ -66,8 +75,10 @@ public interface TransferProcessApi {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Request to cancel the transfer process was successfully received",
                             links = @Link(name = "poll-state", operationId = "getTransferProcessState")),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null"),
-                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist")
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             })
     void cancelTransferProcess(String id);
 
@@ -76,8 +87,10 @@ public interface TransferProcessApi {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Request to deprovision the transfer process was successfully received",
                             links = @Link(name = "poll-state", operationId = "getTransferProcessState")),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null"),
-                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist")
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
+                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             })
     void deprovisionTransferProcess(String id);
 
@@ -89,7 +102,8 @@ public interface TransferProcessApi {
                                     @LinkParameter(name = "id", expression = "$response.body#/id")
                             })
                     ),
-                    @ApiResponse(responseCode = "400", description = "Request body was malformed"),
+                    @ApiResponse(responseCode = "400", description = "Request body was malformed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class)))),
             })
     TransferId initiateTransfer(@Valid TransferRequestDto transferRequest);
 }

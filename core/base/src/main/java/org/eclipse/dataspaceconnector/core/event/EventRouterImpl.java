@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Masatake Iwasaki (NTT DATA) - refactored to use dedicated thread pool
  *
  */
 
@@ -21,6 +22,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.runAsync;
@@ -29,9 +31,11 @@ public class EventRouterImpl implements EventRouter {
 
     private final List<EventSubscriber> subscribers = new ArrayList<>();
     private final Monitor monitor;
+    private final ExecutorService executor;
 
-    public EventRouterImpl(Monitor monitor) {
+    public EventRouterImpl(Monitor monitor, ExecutorService executor) {
         this.monitor = monitor;
+        this.executor = executor;
     }
 
     @Override
@@ -42,7 +46,7 @@ public class EventRouterImpl implements EventRouter {
     @Override
     public void publish(Event event) {
         subscribers.stream()
-                .map(subscriber -> runAsync(() -> subscriber.on(event)).thenApply(v -> subscriber))
+                .map(subscriber -> runAsync(() -> subscriber.on(event), executor).thenApply(v -> subscriber))
                 .forEach(future -> future.whenComplete((subscriber, throwable) -> {
                     if (throwable != null) {
                         var subscriberName = subscriber.getClass().getSimpleName();

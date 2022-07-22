@@ -17,11 +17,12 @@ package org.eclipse.dataspaceconnector.ids.spi.service;
 
 import org.eclipse.dataspaceconnector.ids.spi.types.Connector;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The IDS service is able to create IDS compliant descriptions of resources.
- * These descriptions may be used to create a self-description or answer a Description Request Message.
+ * The IDS service is able to create IDS compliant descriptions of resources. These descriptions may be used to create a
+ * self-description or answer a Description Request Message.
  */
 public interface ConnectorService {
 
@@ -31,5 +32,5 @@ public interface ConnectorService {
      * @return connector description
      */
     @NotNull
-    Connector getConnector(@NotNull ClaimToken claimToken);
+    Connector getConnector(@NotNull ClaimToken claimToken, Range range);
 }

@@ -20,4 +20,9 @@ public class ObjectNotModifiableException extends EdcApiException {
     public ObjectNotModifiableException(String objectId, String objectType) {
         super(format("Object of type %s with ID=%s is not modifiable", objectType, objectId));
     }
+
+    @Override
+    public String getType() {
+        return "ObjectNotModifiable";
+    }
 }

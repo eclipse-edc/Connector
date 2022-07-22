@@ -21,6 +21,7 @@ import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageBuilder;
 import de.fraunhofer.iais.eis.NotificationMessage;
 import de.fraunhofer.iais.eis.ResponseMessage;
 import de.fraunhofer.iais.eis.ResponseMessageBuilder;
+import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
@@ -42,6 +43,7 @@ class ResponseMessageUtil {
 
         builder._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
         builder._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
+        builder._issued_(CalendarUtil.gregorianNow());
 
         String connectorIdUrn = String.join(
                 IdsIdParser.DELIMITER,
@@ -94,6 +96,7 @@ class ResponseMessageUtil {
 
         builder._issuerConnector_(connectorIdUri);
         builder._senderAgent_(connectorIdUri);
+        builder._issued_(CalendarUtil.gregorianNow());
 
         if (correlationMessage != null) {
             var id = correlationMessage.getId();

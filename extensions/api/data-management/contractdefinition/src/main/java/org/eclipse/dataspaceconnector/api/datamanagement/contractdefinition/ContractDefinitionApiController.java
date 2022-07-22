@@ -27,9 +27,7 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
-import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -42,6 +40,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
 
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/contractdefinitions")
@@ -69,7 +68,13 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
         monitor.debug(format("get all contract definitions %s", spec));
 
-        return service.query(spec).stream()
+        var queryResult = service.query(spec);
+        if (queryResult.failed()) {
+            throw mapToException(queryResult, ContractDefinition.class, null);
+        }
+
+        return queryResult.getContent()
+                .stream()
                 .map(it -> transformerRegistry.transform(it, ContractDefinitionDto.class))
                 .filter(Result::succeeded)
                 .map(Result::getContent)
@@ -93,7 +98,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
     @POST
     @Override
     public void createContractDefinition(@Valid ContractDefinitionDto dto) {
-        monitor.debug("create new contract definition");
+        monitor.debug("Create new contract definition");
         var transformResult = transformerRegistry.transform(dto, ContractDefinition.class);
         if (transformResult.failed()) {
             throw new IllegalArgumentException("Request is not well formatted");
@@ -103,7 +108,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
 
         var result = service.create(contractDefinition);
         if (result.succeeded()) {
-            monitor.debug(format("Contract negotiation created %s", result.getContent().getId()));
+            monitor.debug(format("Contract definition created %s", result.getContent().getId()));
         } else {
             throw new ObjectExistsException(ContractDefinition.class, dto.getId());
         }
@@ -116,20 +121,9 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
         monitor.debug(format("Attempting to delete contract definition with id %s", id));
         var result = service.delete(id);
         if (result.succeeded()) {
-            monitor.debug(format("Contract negotiation deleted %s", result.getContent().getId()));
+            monitor.debug(format("Contract definition deleted %s", result.getContent().getId()));
         } else {
-            handleFailedResult(result, id);
-        }
-    }
-
-    private void handleFailedResult(ServiceResult<ContractDefinition> result, String id) {
-        switch (result.reason()) {
-            case NOT_FOUND:
-                throw new ObjectNotFoundException(ContractDefinition.class, id);
-            case CONFLICT:
-                throw new ObjectExistsException(ContractDefinition.class, id);
-            default:
-                throw new EdcException("unexpected error");
+            throw mapToException(result, ContractDefinition.class, id);
         }
     }
 

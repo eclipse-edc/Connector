@@ -21,11 +21,12 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
 
-public class DataCatalogDescriptionRequestHandler extends AbstractDescriptionRequestHandler<Catalog, ResourceCatalog> {
+public class DataCatalogDescriptionRequestHandler extends PageableDescriptionRequestHandler<Catalog, ResourceCatalog> {
     private final CatalogService dataCatalogService;
 
     public DataCatalogDescriptionRequestHandler(
@@ -44,7 +45,7 @@ public class DataCatalogDescriptionRequestHandler extends AbstractDescriptionReq
     }
 
     @Override
-    protected Catalog retrieveObject(@NotNull IdsId idsId, @NotNull ClaimToken claimToken) {
-        return dataCatalogService.getDataCatalog(claimToken);
+    protected Catalog retrieveObject(@NotNull IdsId idsId, @NotNull ClaimToken claimToken, Range range) {
+        return dataCatalogService.getDataCatalog(claimToken, range);
     }
 }

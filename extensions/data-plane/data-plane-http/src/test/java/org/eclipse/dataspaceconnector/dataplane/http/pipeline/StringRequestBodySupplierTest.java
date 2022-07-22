@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
-import com.github.javafaker.Faker;
+import net.datafaker.Faker;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;

@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.azure.dataplane.azurestorage.pipeline;
 
-import com.github.javafaker.Faker;
 import dev.failsafe.RetryPolicy;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureStorageTestFixtures;
 import org.eclipse.dataspaceconnector.azure.blob.core.adapter.BlobAdapter;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;

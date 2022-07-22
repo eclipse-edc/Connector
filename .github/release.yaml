@@ -1,0 +1,18 @@
+# This file determines how the auto-generated Release Notes in GitHub releases are structured.
+
+changelog:
+  exclude:
+    labels:
+      - no-changelog
+    authors:
+      - dependabot[bot]
+  categories:
+    - title: Bugfixes
+      labels:
+        - bug
+    - title: New Features & Improvements
+      labels:
+        - "*"
+    - title: Documentation
+      labels:
+        - documentation

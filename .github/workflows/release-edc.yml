@@ -1,0 +1,77 @@
+name: Create EDC Release
+on:
+  workflow_dispatch:
+    inputs:
+      edc_version:
+        description: 'Version string that is used for publishing (e.g. "1.0.0", NOT "v1.0.0"). Appending -SNAPSHOT will create a snapshot release.'
+        required: true
+        type: string
+
+
+env:
+  EDC_VERSION: ${{ github.event.inputs.edc_version || inputs.edc_version }}
+
+jobs:
+  Prepare-Release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # create tag on the current branch using GitHub's own API
+      - name: Create tag on current branch (main)
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/v${{ env.EDC_VERSION }}',
+              sha: context.sha
+            })
+
+      # create merge commit main -> releases encoding the version in the commit message
+      - name: Merge main -> releases
+        uses: everlytic/branch-merge@1.1.2
+        with:
+          github_token: ${{ github.token }}
+          source_ref: ${{ github.ref }}
+          target_branch: 'releases'
+          commit_message_template: 'Merge commit for release of version v${{ env.EDC_VERSION }}'
+
+      # Trigger EF Jenkins. This job waits for Jenkins to complete the publishing, which may take a long time, because every
+      # module is signed individually, and parallelism is not available. Hence, the increased timeout of 3600 seconds.
+      # There is no way to cancel the process on Jenkins from withing GitHub.
+      - name: Trigger Release on EF Jenkins
+        uses: toptal/jenkins-job-trigger-action@master
+        with:
+          jenkins_url: "https://ci.eclipse.org/dataspaceconnector/"
+          jenkins_user: ${{ secrets.EF_JENKINS_USER }}
+          jenkins_token: ${{ secrets.EF_JENKINS_TOKEN }}
+          job_name: "EDC-Autobuild-Release"
+          job_params: |
+            {
+              "VERSION": "${{ env.EDC_VERSION }}"
+            }
+          job_timeout: "3600" # Default 30 sec. (optional)
+    outputs:
+      edc-version: ${{ env.EDC_VERSION }}
+
+  Github-Release:
+    # cannot use the workflow-level env yet as it does not yet exist, must take output from previous job
+    if:  ${{ !endsWith( needs.Prepare-Release.outputs.edc-version, '-SNAPSHOT') }}
+    needs:
+      - Prepare-Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: main
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          generateReleaseNotes: true
+          tag: "v${{ env.EDC_VERSION }}"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          removeArtifacts: true

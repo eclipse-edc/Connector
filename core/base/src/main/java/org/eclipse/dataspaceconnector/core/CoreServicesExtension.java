@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.core.base.agent.ParticipantAgentServiceImp
 import org.eclipse.dataspaceconnector.core.base.policy.PolicyEngineImpl;
 import org.eclipse.dataspaceconnector.core.base.policy.RuleBindingRegistryImpl;
 import org.eclipse.dataspaceconnector.core.base.policy.ScopeFilter;
+import org.eclipse.dataspaceconnector.core.event.EventExecutorServiceContainer;
 import org.eclipse.dataspaceconnector.core.event.EventRouterImpl;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceConfiguration;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceImpl;
@@ -59,6 +60,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Optional.ofNullable;
@@ -108,6 +110,9 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @Inject
     private PrivateKeyResolver privateKeyResolver;
+
+    @Inject(required = false)
+    private EventExecutorServiceContainer eventExecutorServiceContainer;
 
     private HealthCheckServiceImpl healthCheckService;
     private RuleBindingRegistryImpl ruleBindingRegistry;
@@ -211,7 +216,15 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @Provider
     public EventRouter eventRouter(ServiceExtensionContext context) {
-        return new EventRouterImpl(context.getMonitor());
+        if (eventExecutorServiceContainer == null) {
+            eventExecutorServiceContainer = eventExecutorServiceContainer();
+        }
+        return new EventRouterImpl(context.getMonitor(), eventExecutorServiceContainer.getExecutorService());
+    }
+
+    @Provider(isDefault = true)
+    public EventExecutorServiceContainer eventExecutorServiceContainer() {
+        return new EventExecutorServiceContainer(Executors.newFixedThreadPool(1)); // TODO: make configurable
     }
 
     @Provider(isDefault = true)

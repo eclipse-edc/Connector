@@ -17,12 +17,13 @@ package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.common.statemachine.retry.SendRetryManager;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
+import org.eclipse.dataspaceconnector.contract.observe.ContractNegotiationObservableImpl;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.entity.StatefulEntity;
@@ -48,13 +49,12 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
 
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.DECLINED;
@@ -68,10 +68,10 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class ProviderContractNegotiationManagerImplTest {
@@ -82,6 +82,7 @@ class ProviderContractNegotiationManagerImplTest {
     private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
     private final String correlationId = "correlationId";
     private final SendRetryManager<StatefulEntity> sendRetryManager = mock(SendRetryManager.class);
+    private final ContractNegotiationListener listener = mock(ContractNegotiationListener.class);
     private ProviderContractNegotiationManagerImpl negotiationManager;
 
     @BeforeEach
@@ -91,13 +92,15 @@ class ProviderContractNegotiationManagerImplTest {
 
         CommandRunner<ContractNegotiationCommand> commandRunner = mock(CommandRunner.class);
 
+        var observable = new ContractNegotiationObservableImpl();
+        observable.registerListener(listener);
         negotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .validationService(validationService)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(mock(Monitor.class))
                 .commandQueue(queue)
                 .commandRunner(commandRunner)
-                .observable(mock(ContractNegotiationObservable.class))
+                .observable(observable)
                 .store(store)
                 .policyStore(policyStore)
                 .sendRetryManager(sendRetryManager)
@@ -200,7 +203,9 @@ class ProviderContractNegotiationManagerImplTest {
         var contractOffer = contractOffer();
 
         var result = negotiationManager.offerReceived(token, "not a valid id", contractOffer, "hash");
+
         assertThat(result.fatalError()).isTrue();
+        verifyNoInteractions(listener);
     }
 
     @Test
@@ -277,6 +282,7 @@ class ProviderContractNegotiationManagerImplTest {
         var result = negotiationManager.consumerApproved(token, "not a valid id", contractAgreement, "hash");
 
         assertThat(result.fatalError()).isTrue();
+        verifyNoInteractions(listener);
     }
 
     @Test
@@ -309,107 +315,112 @@ class ProviderContractNegotiationManagerImplTest {
         verify(store, atLeastOnce()).save(argThat(n ->
                 n.getState() == ContractNegotiationStates.DECLINED.code()
         ));
+        verify(listener).declined(any());
     }
 
     @Test
-    void providerOffering_shouldSendOfferAndTransitionOffered() throws InterruptedException {
+    void providerOffering_shouldSendOfferAndTransitionOffered() {
         var negotiation = contractNegotiationBuilder().state(PROVIDER_OFFERING.code()).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(PROVIDER_OFFERING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any(), any())).thenReturn(completedFuture(null));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        var latch = countDownOnUpdateLatch();
 
         negotiationManager.start();
 
-        assertThat(latch.await(5, SECONDS)).isTrue();
-        verify(store).save(argThat(p -> p.getState() == PROVIDER_OFFERED.code()));
-        verify(dispatcherRegistry, only()).send(any(), any(), any());
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == PROVIDER_OFFERED.code()));
+            verify(dispatcherRegistry, only()).send(any(), any(), any());
+            verify(listener).offered(any());
+        });
     }
 
     @Test
-    void providerOffering_shouldTransitionOfferingIfSendFails_andRetriesNotExhausted() throws InterruptedException {
+    void providerOffering_shouldTransitionOfferingIfSendFails_andRetriesNotExhausted() {
         var negotiation = contractNegotiationBuilder().state(PROVIDER_OFFERING.code()).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(PROVIDER_OFFERING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
         when(sendRetryManager.retriesExhausted(any())).thenReturn(false);
-        var latch = countDownOnUpdateLatch();
 
         negotiationManager.start();
 
-        assertThat(latch.await(5, SECONDS)).isTrue();
-        verify(store).save(argThat(p -> p.getState() == PROVIDER_OFFERING.code()));
-        verify(dispatcherRegistry, only()).send(any(), any(), any());
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == PROVIDER_OFFERING.code()));
+            verify(dispatcherRegistry, only()).send(any(), any(), any());
+        });
     }
 
     @Test
-    void providerOffering_shouldTransitionErrorIfSendFails_andRetriesExhausted() throws InterruptedException {
+    void providerOffering_shouldTransitionErrorIfSendFails_andRetriesExhausted() {
         var negotiation = contractNegotiationBuilder().state(PROVIDER_OFFERING.code()).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(PROVIDER_OFFERING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
         when(sendRetryManager.retriesExhausted(any())).thenReturn(true);
-        var latch = countDownOnUpdateLatch();
 
         negotiationManager.start();
 
-        assertThat(latch.await(5, SECONDS)).isTrue();
-        verify(store).save(argThat(p -> p.getState() == ERROR.code()));
-        verify(dispatcherRegistry, only()).send(any(), any(), any());
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == ERROR.code()));
+            verify(dispatcherRegistry, only()).send(any(), any(), any());
+            verify(listener).failed(any());
+        });
     }
 
     @Test
-    void declining_shouldSendRejectionAndTransitionDeclined() throws InterruptedException {
+    void declining_shouldSendRejectionAndTransitionDeclined() {
         var negotiation = contractNegotiationBuilder().state(DECLINING.code()).contractOffer(contractOffer()).build();
         negotiation.setErrorDetail("an error");
         when(store.nextForState(eq(DECLINING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any(), any())).thenReturn(completedFuture(null));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        var latch = countDownOnUpdateLatch();
 
         negotiationManager.start();
 
-        assertThat(latch.await(5, SECONDS)).isTrue();
-        verify(store).save(argThat(p -> p.getState() == DECLINED.code()));
-        verify(dispatcherRegistry, only()).send(any(), any(), any());
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == DECLINED.code()));
+            verify(dispatcherRegistry, only()).send(any(), any(), any());
+            verify(listener).declined(any());
+        });
     }
 
     @Test
-    void declining_shouldTransitionDecliningIfSendFails_andRetriesNotExhausted() throws InterruptedException {
+    void declining_shouldTransitionDecliningIfSendFails_andRetriesNotExhausted() {
         var negotiation = contractNegotiationBuilder().state(DECLINING.code()).contractOffer(contractOffer()).build();
         negotiation.setErrorDetail("an error");
         when(store.nextForState(eq(DECLINING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
         when(sendRetryManager.retriesExhausted(any())).thenReturn(false);
-        var latch = countDownOnUpdateLatch();
 
         negotiationManager.start();
 
-        assertThat(latch.await(5, SECONDS)).isTrue();
-        verify(store).save(argThat(p -> p.getState() == DECLINING.code()));
-        verify(dispatcherRegistry, only()).send(any(), any(), any());
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == DECLINING.code()));
+            verify(dispatcherRegistry, only()).send(any(), any(), any());
+        });
     }
 
     @Test
-    void declining_shouldTransitionErrorIfSendFails_andRetriesExhausted() throws InterruptedException {
+    void declining_shouldTransitionErrorIfSendFails_andRetriesExhausted() {
         var negotiation = contractNegotiationBuilder().state(DECLINING.code()).contractOffer(contractOffer()).build();
         negotiation.setErrorDetail("an error");
         when(store.nextForState(eq(DECLINING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
         when(sendRetryManager.retriesExhausted(any())).thenReturn(true);
-        var latch = countDownOnUpdateLatch();
 
         negotiationManager.start();
 
-        assertThat(latch.await(5, SECONDS)).isTrue();
-        verify(store).save(argThat(p -> p.getState() == ERROR.code()));
-        verify(dispatcherRegistry, only()).send(any(), any(), any());
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == ERROR.code()));
+            verify(dispatcherRegistry, only()).send(any(), any(), any());
+            verify(listener).failed(any());
+        });
     }
 
     @Test
-    void confirming_shouldSendAgreementAndTransitionConfirmed() throws InterruptedException {
+    void confirming_shouldSendAgreementAndTransitionConfirmed() {
         var negotiation = contractNegotiationBuilder()
                 .state(CONFIRMING.code())
                 .contractOffer(contractOffer())
@@ -419,17 +430,18 @@ class ProviderContractNegotiationManagerImplTest {
         when(dispatcherRegistry.send(any(), any(), any())).thenReturn(completedFuture(null));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).uid("policyId").build());
-        var latch = countDownOnUpdateLatch();
 
         negotiationManager.start();
 
-        assertThat(latch.await(5, SECONDS)).isTrue();
-        verify(store).save(argThat(p -> p.getState() == CONFIRMED.code()));
-        verify(dispatcherRegistry, only()).send(any(), isA(ContractAgreementRequest.class), any());
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == CONFIRMED.code()));
+            verify(dispatcherRegistry, only()).send(any(), isA(ContractAgreementRequest.class), any());
+            verify(listener).confirmed(any());
+        });
     }
 
     @Test
-    void confirming_shouldSendNewAgreementAndTransitionConfirmed() throws InterruptedException {
+    void confirming_shouldSendNewAgreementAndTransitionConfirmed() {
         var negotiation = contractNegotiationBuilder()
                 .state(CONFIRMING.code())
                 .contractOffer(contractOffer())
@@ -437,56 +449,47 @@ class ProviderContractNegotiationManagerImplTest {
         when(store.nextForState(eq(CONFIRMING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any(), any())).thenReturn(completedFuture(null));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
-        var latch = countDownOnUpdateLatch();
 
         negotiationManager.start();
 
-        assertThat(latch.await(5, SECONDS)).isTrue();
-        verify(store).save(argThat(p -> p.getState() == CONFIRMED.code()));
-        verify(dispatcherRegistry, only()).send(any(), isA(ContractAgreementRequest.class), any());
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == CONFIRMED.code()));
+            verify(dispatcherRegistry, only()).send(any(), isA(ContractAgreementRequest.class), any());
+            verify(listener).confirmed(any());
+        });
     }
 
     @Test
-    void confirming_shouldTransitionConfirmingIfSendFails_andRetriesNotExhausted() throws InterruptedException {
+    void confirming_shouldTransitionConfirmingIfSendFails_andRetriesNotExhausted() {
         var negotiation = contractNegotiationBuilder().state(CONFIRMING.code()).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(CONFIRMING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
         when(sendRetryManager.retriesExhausted(any())).thenReturn(false);
-        var latch = countDownOnUpdateLatch();
 
         negotiationManager.start();
 
-        assertThat(latch.await(5, SECONDS)).isTrue();
-        verify(store).save(argThat(p -> p.getState() == CONFIRMING.code()));
-        verify(dispatcherRegistry, only()).send(any(), any(), any());
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == CONFIRMING.code()));
+            verify(dispatcherRegistry, only()).send(any(), any(), any());
+        });
     }
 
     @Test
-    void confirming_shouldTransitionErrorIfSendFails_andRetriesExhausted() throws InterruptedException {
+    void confirming_shouldTransitionErrorIfSendFails_andRetriesExhausted() {
         var negotiation = contractNegotiationBuilder().state(CONFIRMING.code()).contractOffer(contractOffer()).build();
         when(store.nextForState(eq(CONFIRMING.code()), anyInt())).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.send(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
         when(store.find(negotiation.getId())).thenReturn(negotiation);
         when(sendRetryManager.retriesExhausted(any())).thenReturn(true);
-        var latch = countDownOnUpdateLatch();
 
         negotiationManager.start();
 
-        assertThat(latch.await(5, SECONDS)).isTrue();
-        verify(store).save(argThat(p -> p.getState() == ERROR.code()));
-        verify(dispatcherRegistry, only()).send(any(), any(), any());
-    }
-
-    private CountDownLatch countDownOnUpdateLatch() {
-        var latch = new CountDownLatch(1);
-
-        doAnswer(i -> {
-            latch.countDown();
-            return null;
-        }).when(store).save(any());
-
-        return latch;
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == ERROR.code()));
+            verify(dispatcherRegistry, only()).send(any(), any(), any());
+            verify(listener).failed(any());
+        });
     }
 
     @NotNull

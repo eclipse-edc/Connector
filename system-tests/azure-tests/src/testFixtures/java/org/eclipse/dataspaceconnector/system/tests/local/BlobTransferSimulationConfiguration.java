@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.system.tests.local;
 
 import com.azure.storage.blob.BlobServiceClient;
-import com.github.javafaker.Faker;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.azure.testfixtures.TestFunctions;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;

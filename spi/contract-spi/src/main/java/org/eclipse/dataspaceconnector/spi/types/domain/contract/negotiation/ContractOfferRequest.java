@@ -37,12 +37,13 @@ public class ContractOfferRequest implements RemoteMessage {
         return protocol;
     }
 
-    public String getConnectorId() {
-        return connectorId;
-    }
-
+    @Override
     public String getConnectorAddress() {
         return connectorAddress;
+    }
+
+    public String getConnectorId() {
+        return connectorId;
     }
 
     public String getCorrelationId() {

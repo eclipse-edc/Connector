@@ -29,6 +29,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -72,7 +74,42 @@ class AssetServiceImplTest {
 
         var assets = service.query(QuerySpec.none());
 
-        assertThat(assets).hasSize(1).first().matches(hasId("assetId"));
+        assertThat(assets.succeeded()).isTrue();
+        assertThat(assets.getContent()).hasSize(1).first().matches(hasId("assetId"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            Asset.PROPERTY_ID,
+            Asset.PROPERTY_NAME,
+            Asset.PROPERTY_DESCRIPTION,
+            Asset.PROPERTY_VERSION,
+            Asset.PROPERTY_CONTENT_TYPE
+    })
+    void query_validFilter(String filter) {
+        var query = QuerySpec.Builder.newInstance()
+                .filter(filter + "=somevalue")
+                .build();
+
+        service.query(query);
+
+        verify(index).queryAssets(query);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "asset_prop_id in (foo, bar)", // invalid key
+            "customProp=whatever", // no custom properties supported
+    })
+    void query_invalidFilter(String filter) {
+        var query = QuerySpec.Builder.newInstance()
+                .filter(filter)
+                .build();
+
+        var result = service.query(query);
+
+        assertThat(result.failed()).isTrue();
+        assertThat(result.getFailureMessages()).hasSize(1);
     }
 
     @Test

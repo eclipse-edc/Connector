@@ -15,25 +15,26 @@
 
 package org.eclipse.dataspaceconnector.core.security.fs;
 
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.AbstractPrivateKeyResolver;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.KeyStore;
-import java.security.PrivateKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.RSAPrivateKey;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Resolves an RSA or EC private key from a JKS keystore.
  */
-public class FsPrivateKeyResolver implements PrivateKeyResolver {
-    private final Map<String, PrivateKey> privateKeyCache = new HashMap<>();
+public class FsPrivateKeyResolver extends AbstractPrivateKeyResolver {
+    private final Map<String, String> privateKeyCache = new HashMap<>();
 
     /**
      * Constructor.
@@ -43,17 +44,17 @@ public class FsPrivateKeyResolver implements PrivateKeyResolver {
      * @param keyStore the keystore
      */
     public FsPrivateKeyResolver(String password, KeyStore keyStore) {
-        char[] encodedPassword = password.toCharArray();
+        var encodedPassword = password.toCharArray();
         try {
-            Enumeration<String> iter = keyStore.aliases();
+            var iter = keyStore.aliases();
             while (iter.hasMoreElements()) {
-                String alias = iter.nextElement();
+                var alias = iter.nextElement();
                 if (!keyStore.isKeyEntry(alias)) {
                     continue;
                 }
-                Key key = keyStore.getKey(alias, encodedPassword);
+                var key = keyStore.getKey(alias, encodedPassword);
                 if ((key instanceof RSAPrivateKey || key instanceof ECPrivateKey)) {
-                    privateKeyCache.put(alias, (PrivateKey) key);
+                    privateKeyCache.put(alias, toPemEncoded(key));
                 }
             }
 
@@ -64,6 +65,23 @@ public class FsPrivateKeyResolver implements PrivateKeyResolver {
 
     @Override
     public <T> @Nullable T resolvePrivateKey(String id, Class<T> keyType) {
-        return keyType.cast(privateKeyCache.get(id));
+        var encodedKey = privateKeyCache.get(id);
+
+        if (encodedKey == null) {
+            return null;
+        }
+
+        return keyType.cast(getParser(keyType).parse(encodedKey));
+    }
+
+    private String toPemEncoded(Key key) {
+        var writer = new StringWriter();
+        try (var jcaPEMWriter = new JcaPEMWriter(writer)) {
+            jcaPEMWriter.writeObject(key);
+        } catch (IOException e) {
+            throw new EdcException("Unable to convert private in PEM format ", e);
+        }
+
+        return writer.toString();
     }
 }
