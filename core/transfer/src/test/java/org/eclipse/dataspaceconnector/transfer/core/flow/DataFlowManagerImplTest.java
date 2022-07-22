@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.flow;
 
-import com.github.javafaker.Faker;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;

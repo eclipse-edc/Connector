@@ -16,7 +16,7 @@
 package org.eclipse.dataspaceconnector.iam.oauth2.core.identity;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.javafaker.Faker;
+import net.datafaker.Faker;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;

@@ -12,12 +12,17 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.translation;
+package org.eclipse.dataspaceconnector.tooling.module.processor.compiler;
 
-import org.eclipse.dataspaceconnector.spi.EdcException;
+import javax.lang.model.util.SimpleAnnotationValueVisitor9;
 
-public class EdcQueryException extends EdcException {
-    public EdcQueryException(String message) {
-        super(message);
+/**
+ * Returns the value of an annotation attribute as a string.
+ */
+class AnnotationStringValueResolver extends SimpleAnnotationValueVisitor9<String, Void> {
+
+    @Override
+    public String visitString(String s, Void unused) {
+        return s;
     }
 }

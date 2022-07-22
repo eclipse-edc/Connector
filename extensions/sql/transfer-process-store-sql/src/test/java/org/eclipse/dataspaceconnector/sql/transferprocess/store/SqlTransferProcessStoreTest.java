@@ -42,11 +42,14 @@ import java.util.stream.IntStream;
 import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 import static org.eclipse.dataspaceconnector.sql.transferprocess.store.TestFunctions.createDataRequest;
+import static org.eclipse.dataspaceconnector.sql.transferprocess.store.TestFunctions.createDataRequestBuilder;
 import static org.eclipse.dataspaceconnector.sql.transferprocess.store.TestFunctions.createTransferProcess;
+import static org.eclipse.dataspaceconnector.sql.transferprocess.store.TestFunctions.createTransferProcessBuilder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
@@ -276,6 +279,24 @@ public class SqlTransferProcessStoreTest {
     }
 
     @Test
+    void update_shouldPersistDataRequest() {
+        var t1 = createTransferProcess("id1", TransferProcessStates.IN_PROGRESS);
+        store.create(t1);
+
+        t1.getDataRequest().getProperties().put("newKey", "newValue");
+        store.update(t1);
+
+        var all = store.findAll(QuerySpec.none()).collect(Collectors.toList());
+        assertThat(all)
+                .hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsExactly(t1);
+
+        assertThat(all.get(0).getDataRequest().getProperties()).containsEntry("newKey", "newValue");
+    }
+
+
+    @Test
     void update_exists_shouldUpdate() {
         var t1 = createTransferProcess("id1", TransferProcessStates.IN_PROGRESS);
         store.create(t1);
@@ -339,7 +360,7 @@ public class SqlTransferProcessStoreTest {
         store.create(t1);
 
         store.delete("id1");
-        assertThat(count()).isEqualTo(0);
+        assertThat(countTransferProcesses()).isEqualTo(0);
         assertThat(store.findAll(QuerySpec.none())).isEmpty();
     }
 
@@ -419,6 +440,43 @@ public class SqlTransferProcessStoreTest {
 
     }
 
+    @Test
+    void create_withoutDataRequest_throwsException() {
+        var t1 = createTransferProcessBuilder("id1")
+                .dataRequest(null)
+                .build();
+        assertThatIllegalArgumentException().isThrownBy(() -> store.create(t1));
+    }
+
+    @Test
+    void update_dataRequestWithNewId_replacesOld() {
+        var t1 = createTransferProcess("id1", TransferProcessStates.IN_PROGRESS);
+        store.create(t1);
+
+        var t2 = createTransferProcessBuilder("id1")
+                .dataRequest(createDataRequestBuilder()
+                        .id("new-dr-id")
+                        .assetId("new-asset")
+                        .contractId("new-contract")
+                        .protocol("test-protocol")
+                        .connectorId("new-connector")
+                        .build())
+                .build();
+        store.update(t2);
+
+        var all = store.findAll(QuerySpec.none()).collect(Collectors.toList());
+        assertThat(all)
+                .hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsExactly(t2);
+
+
+        var drs = all.stream().map(TransferProcess::getDataRequest).collect(Collectors.toList());
+        assertThat(drs).hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsOnly(t2.getDataRequest());
+    }
+
     private Connection getConnection() {
         try {
             return dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection();
@@ -427,13 +485,14 @@ public class SqlTransferProcessStoreTest {
         }
     }
 
-    private int count() {
+    private int countTransferProcesses() {
         try (var conn = dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection()) {
             return executeQuery(conn, "SELECT COUNT(*) FROM edc_transfer_process");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
+
 
     private static class H2DialectStatements extends BaseSqlDialectStatements {
     }

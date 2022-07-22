@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
-import com.github.javafaker.Faker;
 import io.netty.handler.codec.http.HttpMethod;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;

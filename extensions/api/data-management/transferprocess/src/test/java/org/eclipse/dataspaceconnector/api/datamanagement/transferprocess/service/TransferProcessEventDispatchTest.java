@@ -9,11 +9,13 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Masatake Iwasaki (NTT DATA) - fixed failure due to assertion timeout
  *
  */
 
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.service;
 
+import org.eclipse.dataspaceconnector.core.event.EventExecutorServiceContainer;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.event.EventSubscriber;
@@ -35,6 +37,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,8 +53,11 @@ public class TransferProcessEventDispatchTest {
 
     @BeforeEach
     void setUp(EdcExtension extension) {
-        extension.setConfiguration(Map.of("edc.transfer.send.retry.limit", "0"));
+        extension.setConfiguration(Map.of("edc.transfer.send.retry.limit", "0",
+                                          "edc.transfer.send.retry.base-delay.ms", "0"));
         extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
+        extension.registerServiceMock(EventExecutorServiceContainer.class,
+                                      new EventExecutorServiceContainer(Executors.newSingleThreadExecutor()));
     }
 
     @Test
@@ -120,7 +126,7 @@ public class TransferProcessEventDispatchTest {
                 .assetId("assetId")
                 .destinationType("any")
                 .protocol("test")
-                .managedResources(true)
+                .managedResources(false)
                 .build();
 
         service.initiateTransfer(dataRequest);

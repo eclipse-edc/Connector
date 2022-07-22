@@ -182,6 +182,7 @@ include(":samples:04.1-file-transfer-listener:file-transfer-listener-integration
 include(":samples:04.2-modify-transferprocess:consumer")
 include(":samples:04.2-modify-transferprocess:watchdog")
 include(":samples:04.2-modify-transferprocess:simulator")
+include(":samples:04.2-modify-transferprocess:modify-transferprocess-sample-integration-tests")
 
 include(":samples:04.3-open-telemetry:micrometer")
 include(":samples:04.3-open-telemetry:consumer")
@@ -206,4 +207,9 @@ include(":system-tests:runtimes:azure-data-factory-transfer-consumer")
 include(":system-tests:runtimes:azure-storage-transfer-consumer")
 include(":system-tests:azure-tests")
 include(":system-tests:azure-data-factory-tests")
+
+include(":tooling:module-domain")
+include(":tooling:module-processor")
+include(":tooling:module-processor-extension-test")
+include(":tooling:module-processor-spi-test")
 

@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.service;
 
-import com.github.javafaker.Faker;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;

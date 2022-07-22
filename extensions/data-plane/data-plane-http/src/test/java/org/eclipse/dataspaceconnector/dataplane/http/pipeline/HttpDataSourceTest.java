@@ -15,8 +15,8 @@
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.javafaker.Faker;
 import dev.failsafe.RetryPolicy;
+import net.datafaker.Faker;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.Request;

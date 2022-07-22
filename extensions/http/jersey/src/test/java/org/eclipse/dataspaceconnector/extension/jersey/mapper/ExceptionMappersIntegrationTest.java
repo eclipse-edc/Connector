@@ -14,8 +14,10 @@
 
 package org.eclipse.dataspaceconnector.extension.jersey.mapper;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -27,7 +29,6 @@ import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,9 +37,12 @@ import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
-import static java.util.Collections.emptyMap;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.endsWith;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
@@ -71,7 +75,8 @@ public class ExceptionMappersIntegrationTest {
                 .statusCode(404)
                 .contentType(JSON)
                 .body("[0].message", containsString("not found"))
-                .body("[0].message", containsString("anId"));
+                .body("[0].message", containsString("anId"))
+                .body("[0].type", is("ObjectNotFound"));
     }
 
     @Test
@@ -80,11 +85,23 @@ public class ExceptionMappersIntegrationTest {
                 .port(port)
                 .accept(JSON)
                 .contentType(JSON)
-                .body(emptyMap())
+                .body(Map.of("data", "", "number", "-1"))
                 .post("/test")
                 .then()
                 .statusCode(400)
-                .body("[0].message", CoreMatchers.is("must not be null"));
+                .body("size()", is(2))
+                .body("", hasItems(
+                        hasEntry("message", "must be greater than 0"),
+                        hasEntry("type", "{jakarta.validation.constraints.Positive.message}"),
+                        hasEntry(is("path"), endsWith(".number")),
+                        hasEntry("invalidValue", "-1")
+                ))
+                .body("", hasItems(
+                        hasEntry("message", "must not be blank"),
+                        hasEntry("type", "{jakarta.validation.constraints.NotBlank.message}"),
+                        hasEntry(is("path"), endsWith(".data")),
+                        hasEntry("invalidValue", "")
+                ));
     }
 
     @Path("/test")
@@ -105,8 +122,13 @@ public class ExceptionMappersIntegrationTest {
     }
 
     private static class RequestPayload {
-        @NotNull
+        @NotBlank
+        @JsonProperty
         private String data;
+
+        @Positive
+        @JsonProperty
+        private long number;
     }
 
     private class MyServiceExtension implements ServiceExtension {

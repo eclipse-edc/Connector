@@ -26,7 +26,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
-import org.eclipse.dataspaceconnector.sql.translation.EdcQueryException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,7 +37,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
@@ -76,7 +74,8 @@ class AssetServiceImplTest {
 
         var assets = service.query(QuerySpec.none());
 
-        assertThat(assets).hasSize(1).first().matches(hasId("assetId"));
+        assertThat(assets.succeeded()).isTrue();
+        assertThat(assets.getContent()).hasSize(1).first().matches(hasId("assetId"));
     }
 
     @ParameterizedTest
@@ -91,7 +90,9 @@ class AssetServiceImplTest {
         var query = QuerySpec.Builder.newInstance()
                 .filter(filter + "=somevalue")
                 .build();
+
         service.query(query);
+
         verify(index).queryAssets(query);
     }
 
@@ -104,9 +105,11 @@ class AssetServiceImplTest {
         var query = QuerySpec.Builder.newInstance()
                 .filter(filter)
                 .build();
-        assertThatThrownBy(() -> service.query(query))
-                .isInstanceOf(EdcQueryException.class)
-                .hasMessageStartingWith("Error validating schema: Currently only named properties of Asset are supported");
+
+        var result = service.query(query);
+
+        assertThat(result.failed()).isTrue();
+        assertThat(result.getFailureMessages()).hasSize(1);
     }
 
     @Test

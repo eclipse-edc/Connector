@@ -12,12 +12,12 @@
  *
  */
 
-val okHttpVersion: String by project
+val datafaker: String by project
 val failsafeVersion: String by project
-val rsApi: String by project
-val faker: String by project
-val restAssured: String by project
 val httpMockServer: String by project
+val okHttpVersion: String by project
+val restAssured: String by project
+val rsApi: String by project
 
 plugins {
     `java-library`
@@ -32,10 +32,10 @@ dependencies {
 
     testImplementation(project(":extensions:junit"))
     testImplementation(testFixtures(project(":common:util")))
-    testFixturesImplementation("com.github.javafaker:javafaker:${faker}")
-    testFixturesImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
     testImplementation("org.mock-server:mockserver-netty:${httpMockServer}:shaded")
+    testFixturesImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    testFixturesImplementation("net.datafaker:datafaker:${datafaker}")
 }
 
 publishing {

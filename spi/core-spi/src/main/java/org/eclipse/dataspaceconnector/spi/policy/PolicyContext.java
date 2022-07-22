@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - context data
  *
  */
 
@@ -44,5 +45,23 @@ public interface PolicyContext {
      * Returns the participant agent to evaluate the policy against.
      */
     ParticipantAgent getParticipantAgent();
-
+    
+    /**
+     * Gets additional data from the context by type.
+     *
+     * @param type the type class.
+     * @param <T> the type of data.
+     * @return the object associated with the type, or null.
+     */
+    <T> T getContextData(Class<T> type);
+    
+    /**
+     * Adds additional data to the context.
+     *
+     * @param type the type class.
+     * @param data the data.
+     * @param <T> the type of data.
+     */
+    <T> void putContextData(Class<T> type, T data);
+    
 }

@@ -17,10 +17,10 @@ package org.eclipse.dataspaceconnector.dataplane.http;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.javafaker.Faker;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.restassured.specification.RequestSpecification;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;

@@ -111,6 +111,15 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
     }
 
     @Override
+    public String getUpdateDataRequestTemplate() {
+        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?%s, %s=?, %s=?%s, %s=?%s WHERE %s=?",
+                getDataRequestTable(),
+                getDataRequestIdColumn(), getProcessIdColumn(), getConnectorAddressColumn(), getProtocolColumn(), getConnectorIdColumn(), getAssetIdColumn(), getContractIdColumn(),
+                getDataDestinationColumn(), getFormatAsJsonOperator(), getManagedResourcesColumn(), getPropertiesColumn(), getFormatAsJsonOperator(), getTransferTypeColumn(), getFormatAsJsonOperator(),
+                getDataRequestIdColumn());
+    }
+
+    @Override
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
         return new SqlQueryStatement(getSelectTemplate(), querySpec, new TransferProcessMapping(this));
     }

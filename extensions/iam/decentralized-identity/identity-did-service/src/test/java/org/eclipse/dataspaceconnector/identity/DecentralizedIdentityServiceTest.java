@@ -16,9 +16,9 @@ package org.eclipse.dataspaceconnector.identity;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.javafaker.Faker;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.EcPrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.KeyPairFactory;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
@@ -91,7 +91,7 @@ abstract class DecentralizedIdentityServiceTest {
         var privateKey = new EcPrivateKeyWrapper(keyPair.toECKey());
 
         var didResolver = new TestResolverRegistry(DID_DOCUMENT, keyPair);
-        CredentialsVerifier verifier = (document, url) -> Result.success(Map.of("region", "eu"));
+        CredentialsVerifier verifier = document -> Result.success(Map.of("region", "eu"));
         identityService = new DecentralizedIdentityService(didResolver, verifier, new ConsoleMonitor(), privateKey, didUrl, Clock.systemUTC());
     }
 

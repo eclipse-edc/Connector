@@ -16,8 +16,8 @@ package org.eclipse.dataspaceconnector.transfer.dataplane.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.javafaker.Faker;
 import dev.failsafe.RetryPolicy;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.dataplane.selector.client.DataPlaneSelectorClient;
 import org.eclipse.dataspaceconnector.dataplane.selector.instance.DataPlaneInstance;
 import org.eclipse.dataspaceconnector.dataplane.spi.response.TransferErrorResponse;

@@ -189,7 +189,7 @@ class TransferProcessManagerImplTest {
         when(transferProcessStore.nextForState(eq(INITIAL.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
 
         var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
-        when(manifestGenerator.generateConsumerResourceManifest(any(DataRequest.class), any(Policy.class))).thenReturn(resourceManifest);
+        when(manifestGenerator.generateConsumerResourceManifest(any(DataRequest.class), any(Policy.class))).thenReturn(Result.success(resourceManifest));
 
         manager.start();
 
@@ -197,6 +197,24 @@ class TransferProcessManagerImplTest {
             verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
             verifyNoInteractions(provisionManager);
             verify(transferProcessStore).update(argThat(p -> p.getState() == PROVISIONING.code()));
+        });
+    }
+    
+    @Test
+    void initial_manifestEvaluationFailed_shouldTransitionToError() throws InterruptedException {
+        var process = createTransferProcess(INITIAL);
+        
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(transferProcessStore.nextForState(eq(INITIAL.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        
+        when(manifestGenerator.generateConsumerResourceManifest(any(DataRequest.class), any(Policy.class))).thenReturn(Result.failure("error"));
+        
+        manager.start();
+        
+        await().untilAsserted(() -> {
+            verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+            verifyNoInteractions(provisionManager);
+            verify(transferProcessStore).update(argThat(p -> p.getState() == ERROR.code()));
         });
     }
 

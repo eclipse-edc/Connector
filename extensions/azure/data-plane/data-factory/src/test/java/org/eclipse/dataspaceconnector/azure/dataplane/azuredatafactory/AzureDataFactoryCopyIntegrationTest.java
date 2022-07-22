@@ -22,7 +22,7 @@ import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.blob.sas.BlobContainerSasPermission;
 import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
 import com.azure.storage.common.StorageSharedKeyCredential;
-import com.github.javafaker.Faker;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureSasToken;
 import org.eclipse.dataspaceconnector.azure.testfixtures.annotations.AzureDataFactoryIntegrationTest;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;

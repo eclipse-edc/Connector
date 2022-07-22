@@ -15,8 +15,8 @@
 
 package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
-import com.github.javafaker.Faker;
 import io.netty.handler.codec.http.HttpMethod;
+import net.datafaker.Faker;
 import okhttp3.MediaType;
 import org.eclipse.dataspaceconnector.dataplane.http.HttpTestFixtures;
 import org.eclipse.dataspaceconnector.spi.EdcException;

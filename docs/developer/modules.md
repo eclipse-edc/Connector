@@ -33,6 +33,8 @@ org.eclipse.dataspaceconnector:transaction-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transfer-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:transport-spi:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:web-spi:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:module-domain:0.0.1-SNAPSHOT
+org.eclipse.dataspaceconnector:module-processor:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:policy-engine:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:policy-evaluator:0.0.1-SNAPSHOT
 org.eclipse.dataspaceconnector:ids-api-configuration:0.0.1-SNAPSHOT

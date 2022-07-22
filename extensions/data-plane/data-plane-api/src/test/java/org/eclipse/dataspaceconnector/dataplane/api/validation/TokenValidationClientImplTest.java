@@ -16,8 +16,8 @@ package org.eclipse.dataspaceconnector.dataplane.api.validation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.javafaker.Faker;
 import jakarta.ws.rs.core.HttpHeaders;
+import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.AfterAll;
