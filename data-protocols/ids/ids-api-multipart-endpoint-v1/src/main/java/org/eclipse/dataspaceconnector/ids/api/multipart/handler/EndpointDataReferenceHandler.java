@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *
  */
 
@@ -17,7 +18,6 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceReceiver;
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceReceiverRegistry;
@@ -27,9 +27,11 @@ import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceMessage;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.internalRecipientError;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.internalRecipientError;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.messageProcessedNotification;
 
 /**
  * Implementation of the {@link Handler} class for handling of {@link EndpointDataReferenceMessage}.
@@ -67,30 +69,25 @@ public class EndpointDataReferenceHandler implements Handler {
      * - finally apply {@link EndpointDataReferenceReceiver} to the resulting EDR to dispatch it into the consumer environment.
      */
     @Override
-    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull ClaimToken claimToken) {
+    public @NotNull MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
+        // Read and transform the endpoint data reference from the request payload
         var edr = typeManager.readValue(multipartRequest.getPayload(), EndpointDataReference.class);
         var transformationResult = transformerRegistry.transform(edr);
         if (transformationResult.failed()) {
             monitor.severe("EDR transformation failed: " + String.join(", ", transformationResult.getFailureMessages()));
-            return createErrorMultipartResponse(multipartRequest);
+            return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
         }
 
         var transformedEdr = transformationResult.getContent();
 
+        // Apply all endpoint data reference receivers to the endpoint data reference
         var receiveResult = receiverRegistry.receiveAll(transformedEdr).join();
         if (receiveResult.failed()) {
             monitor.severe("EDR dispatch failed: " + String.join(", ", receiveResult.getFailureMessages()));
-            return createErrorMultipartResponse(multipartRequest);
+            return createMultipartResponse(internalRecipientError(multipartRequest.getHeader(), connectorId));
         }
 
-        return MultipartResponse.Builder.newInstance()
-                .header(ResponseMessageUtil.createMessageProcessedNotificationMessage(connectorId, multipartRequest.getHeader()))
-                .build();
+        return createMultipartResponse(messageProcessedNotification(multipartRequest.getHeader(), connectorId));
     }
 
-    private MultipartResponse createErrorMultipartResponse(MultipartRequest request) {
-        return MultipartResponse.Builder.newInstance()
-                .header(internalRecipientError(request.getHeader(), connectorId))
-                .build();
-    }
 }

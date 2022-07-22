@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
- *       Fraunhofer Institute for Software and Systems Engineering - Improvements
+ *       Fraunhofer Institute for Software and Systems Engineering - Improvements, refactoring
  *       Microsoft Corporation - Use IDS Webhook address for JWT audience claim
  *
  */
@@ -18,24 +18,23 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iais.eis.Connector;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
+import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.TokenFormat;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
+import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -45,22 +44,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.malformedMessage;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.messageTypeNotSupported;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.notAuthenticated;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.notFound;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.malformedMessage;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.messageTypeNotSupported;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.notAuthenticated;
 
 @Consumes({MediaType.MULTIPART_FORM_DATA})
 @Produces({MediaType.MULTIPART_FORM_DATA})
 @Path(MultipartController.PATH)
 public class MultipartController {
+    
     public static final String PATH = "/data";
     private static final String HEADER = "header";
     private static final String PAYLOAD = "payload";
+    private static final String TOKEN_SCOPE = "idsc:IDS_CONNECTOR_ATTRIBUTES_ALL";
 
     private final Monitor monitor;
     private final String connectorId;
@@ -75,59 +73,70 @@ public class MultipartController {
                                @NotNull IdentityService identityService,
                                @NotNull List<Handler> multipartHandlers,
                                @NotNull String idsWebhookAddress) {
-        this.monitor = Objects.requireNonNull(monitor);
-        this.connectorId = Objects.requireNonNull(connectorId);
-        this.objectMapper = Objects.requireNonNull(objectMapper);
-        this.multipartHandlers = Objects.requireNonNull(multipartHandlers);
-        this.identityService = Objects.requireNonNull(identityService);
-        this.idsWebhookAddress = Objects.requireNonNull(idsWebhookAddress);
+        this.monitor = monitor;
+        this.connectorId = connectorId;
+        this.objectMapper = objectMapper;
+        this.multipartHandlers = multipartHandlers;
+        this.identityService = identityService;
+        this.idsWebhookAddress = idsWebhookAddress;
     }
-
+    
+    /**
+     * Processes an incoming IDS multipart request. Validates the message header before passing the
+     * request to a handler depending on the message type.
+     *
+     * @param headerInputStream the multipart header part.
+     * @param payload the multipart payload part.
+     * @return a multipart response with code 200. In case of error, the multipart header is a
+     *         rejection message.
+     */
     @POST
-    public Response request(@FormDataParam(HEADER) InputStream headerInputStream,
-                            @FormDataParam(PAYLOAD) String payload) {
+    public FormDataMultiPart request(@FormDataParam(HEADER) InputStream headerInputStream,
+                                     @FormDataParam(PAYLOAD) String payload) {
         if (headerInputStream == null) {
-            return Response.ok(createFormDataMultiPart(malformedMessage(null, connectorId))).build();
+            return buildMultipart(malformedMessage(null, connectorId));
         }
 
         Message header;
         try {
             header = objectMapper.readValue(headerInputStream, Message.class);
         } catch (IOException e) {
-            return Response.ok(createFormDataMultiPart(malformedMessage(null, connectorId))).build();
+            return buildMultipart(malformedMessage(null, connectorId));
         }
 
         if (header == null) {
-            return Response.ok(createFormDataMultiPart(malformedMessage(null, connectorId))).build();
+            return buildMultipart(malformedMessage(null, connectorId));
+        }
+        
+        // Check if any required header field missing
+        if (header.getId() == null || header.getIssuerConnector() == null || header.getSenderAgent() == null) {
+            return buildMultipart(malformedMessage(header, connectorId));
         }
 
-        DynamicAttributeToken dynamicAttributeToken = header.getSecurityToken();
+        // Check if DAT present
+        var dynamicAttributeToken = header.getSecurityToken();
         if (dynamicAttributeToken == null || dynamicAttributeToken.getTokenValue() == null) {
             monitor.warning("MultipartController: Token is missing in header");
-            return Response.ok(createFormDataMultiPart(notAuthenticated(header, connectorId))).build();
+            return buildMultipart(notAuthenticated(header, connectorId));
         }
-
-        Map<String, Object> additional = new HashMap<>();
-        //IDS token validation requires issuerConnector and securityProfile
+    
+        // Prepare DAT validation: IDS token validation requires issuerConnector
+        var additional = new HashMap<String, Object>();
         additional.put("issuerConnector", header.getIssuerConnector());
-        try {
-            additional.put("securityProfile", objectMapper.readValue(payload, Connector.class).getSecurityProfile());
-        } catch (Exception e) {
-            //payload no connector instance, nothing to do
-        }
 
         var tokenRepresentation = TokenRepresentation.Builder.newInstance()
                 .token(dynamicAttributeToken.getTokenValue())
                 .additional(additional)
                 .build();
-
-        Result<ClaimToken> verificationResult = identityService.verifyJwtToken(tokenRepresentation, idsWebhookAddress);
-
+    
+        // Validate DAT
+        var verificationResult = identityService.verifyJwtToken(tokenRepresentation, idsWebhookAddress);
         if (verificationResult.failed()) {
             monitor.warning(format("MultipartController: Token validation failed %s", verificationResult.getFailure().getMessages()));
-            return Response.ok(createFormDataMultiPart(notAuthenticated(header, connectorId))).build();
+            return buildMultipart(notAuthenticated(header, connectorId));
         }
 
+        // Build the multipart request
         var claimToken = verificationResult.getContent();
         var multipartRequest = MultipartRequest.Builder.newInstance()
                 .header(header)
@@ -135,32 +144,52 @@ public class MultipartController {
                 .claimToken(claimToken)
                 .build();
 
+        // Find handler for the multipart request
         var handler = multipartHandlers.stream()
                 .filter(h -> h.canHandle(multipartRequest))
                 .findFirst()
                 .orElse(null);
         if (handler == null) {
-            return Response.ok(createFormDataMultiPart(messageTypeNotSupported(header, connectorId))).build();
+            return buildMultipart(messageTypeNotSupported(header, connectorId));
         }
 
-        MultipartResponse multipartResponse = handler.handleRequest(multipartRequest, claimToken);
-        if (multipartResponse != null) {
-            return Response.ok(createFormDataMultiPart(multipartResponse)).build();
-        }
-
-        return Response.ok(createFormDataMultiPart(notFound(header, connectorId))).build();
+        var multipartResponse = handler.handleRequest(multipartRequest);
+        return buildMultipart(multipartResponse);
     }
-
-    private FormDataMultiPart createFormDataMultiPart(MultipartResponse multipartResponse) {
+    
+    /**
+     * Creates a multipart body for the given response. Adds the security token to the response
+     * header.
+     *
+     * @param multipartResponse the multipart response.
+     * @return a multipart body.
+     */
+    private FormDataMultiPart buildMultipart(MultipartResponse multipartResponse) {
+        multipartResponse.getHeader().setSecurityToken(getToken(multipartResponse.getHeader()));
         return createFormDataMultiPart(multipartResponse.getHeader(), multipartResponse.getPayload());
     }
-
-    private FormDataMultiPart createFormDataMultiPart(Object header) {
+    
+    /**
+     * Creates a multipart body with the given message header and no payload. Adds the security
+     * token to the response header.
+     *
+     * @param header the multipart response.
+     * @return a multipart body.
+     */
+    private FormDataMultiPart buildMultipart(Message header) {
+        header.setSecurityToken(getToken(header));
         return createFormDataMultiPart(header, null);
     }
-
-    private FormDataMultiPart createFormDataMultiPart(Object header, Object payload) {
-        FormDataMultiPart multiPart = new FormDataMultiPart();
+    
+    /**
+     * Builds a form-data multipart body with the given header and payload.
+     *
+     * @param header the header.
+     * @param payload the payload.
+     * @return a multipart body.
+     */
+    private FormDataMultiPart createFormDataMultiPart(Message header, Object payload) {
+        var multiPart = new FormDataMultiPart();
         if (header != null) {
             multiPart.bodyPart(new FormDataBodyPart(HEADER, toJson(header), MediaType.APPLICATION_JSON_TYPE));
         }
@@ -170,6 +199,30 @@ public class MultipartController {
         }
 
         return multiPart;
+    }
+    
+    /**
+     * Retrieves an identity token for the given message.
+     *
+     * @param header the message.
+     */
+    private DynamicAttributeToken getToken(Message header) {
+        var tokenBuilder = new DynamicAttributeTokenBuilder()
+                ._tokenFormat_(TokenFormat.JWT);
+        
+        var tokenParameters = TokenParameters.Builder.newInstance()
+                .scope(TOKEN_SCOPE)
+                .audience(header.getIssuerConnector().toString())
+                .build();
+        var tokenResult = identityService.obtainClientCredentials(tokenParameters);
+        
+        if (tokenResult.succeeded()) {
+            tokenBuilder._tokenValue_(tokenResult.getContent().getToken());
+        } else {
+            tokenBuilder._tokenValue_("invalid");
+        }
+        
+        return tokenBuilder.build();
     }
 
     private byte[] toJson(Object object) {
