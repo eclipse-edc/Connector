@@ -59,9 +59,9 @@ class InMemoryFederatedCacheStoreTest {
 
     @Test
     void queryCacheContainingOneElementWithNoCriterion_shouldReturnUniqueElement() {
-        String contractOfferId = UUID.randomUUID().toString();
-        String assetId = UUID.randomUUID().toString();
-        ContractOffer contractOffer = createContractOffer(contractOfferId, createAsset(assetId));
+        var contractOfferId = UUID.randomUUID().toString();
+        var assetId = UUID.randomUUID().toString();
+        var contractOffer = createContractOffer(contractOfferId, createAsset(assetId));
 
         store.save(contractOffer);
 
@@ -74,11 +74,11 @@ class InMemoryFederatedCacheStoreTest {
 
     @Test
     void queryCacheAfterInsertingSameAssetTwice_shouldReturnLastInsertedContractOfferOnly() {
-        String contractOfferId1 = UUID.randomUUID().toString();
-        String contractOfferId2 = UUID.randomUUID().toString();
-        String assetId = UUID.randomUUID().toString();
-        ContractOffer contractOffer1 = createContractOffer(contractOfferId1, createAsset(assetId));
-        ContractOffer contractOffer2 = createContractOffer(contractOfferId2, createAsset(assetId));
+        var contractOfferId1 = UUID.randomUUID().toString();
+        var contractOfferId2 = UUID.randomUUID().toString();
+        var assetId = UUID.randomUUID().toString();
+        var contractOffer1 = createContractOffer(contractOfferId1, createAsset(assetId));
+        var contractOffer2 = createContractOffer(contractOfferId2, createAsset(assetId));
 
         store.save(contractOffer1);
         store.save(contractOffer2);
@@ -95,12 +95,12 @@ class InMemoryFederatedCacheStoreTest {
 
     @Test
     void queryCacheContainingTwoDistinctAssets_shouldReturnBothContractOffers() {
-        String contractOfferId1 = UUID.randomUUID().toString();
-        String contractOfferId2 = UUID.randomUUID().toString();
-        String assetId1 = UUID.randomUUID().toString();
-        String assetId2 = UUID.randomUUID().toString();
-        ContractOffer contractOffer1 = createContractOffer(contractOfferId1, createAsset(assetId1));
-        ContractOffer contractOffer2 = createContractOffer(contractOfferId2, createAsset(assetId2));
+        var contractOfferId1 = UUID.randomUUID().toString();
+        var contractOfferId2 = UUID.randomUUID().toString();
+        var assetId1 = UUID.randomUUID().toString();
+        var assetId2 = UUID.randomUUID().toString();
+        var contractOffer1 = createContractOffer(contractOfferId1, createAsset(assetId1));
+        var contractOffer2 = createContractOffer(contractOfferId2, createAsset(assetId2));
 
         store.save(contractOffer1);
         store.save(contractOffer2);
@@ -115,12 +115,12 @@ class InMemoryFederatedCacheStoreTest {
 
     @Test
     void removedMarked_noneMarked() {
-        String contractOfferId1 = UUID.randomUUID().toString();
-        String contractOfferId2 = UUID.randomUUID().toString();
-        String assetId1 = UUID.randomUUID().toString();
-        String assetId2 = UUID.randomUUID().toString();
-        ContractOffer contractOffer1 = createContractOffer(contractOfferId1, createAsset(assetId1));
-        ContractOffer contractOffer2 = createContractOffer(contractOfferId2, createAsset(assetId2));
+        var contractOfferId1 = UUID.randomUUID().toString();
+        var contractOfferId2 = UUID.randomUUID().toString();
+        var assetId1 = UUID.randomUUID().toString();
+        var assetId2 = UUID.randomUUID().toString();
+        var contractOffer1 = createContractOffer(contractOfferId1, createAsset(assetId1));
+        var contractOffer2 = createContractOffer(contractOfferId2, createAsset(assetId2));
 
         store.save(contractOffer1);
         store.save(contractOffer2);
@@ -134,12 +134,12 @@ class InMemoryFederatedCacheStoreTest {
 
     @Test
     void removedMarked_shouldDeleteMarked() {
-        String contractOfferId1 = UUID.randomUUID().toString();
-        String contractOfferId2 = UUID.randomUUID().toString();
-        String assetId1 = UUID.randomUUID().toString();
-        String assetId2 = UUID.randomUUID().toString();
-        ContractOffer contractOffer1 = createContractOffer(contractOfferId1, createAsset(assetId1));
-        ContractOffer contractOffer2 = createContractOffer(contractOfferId2, createAsset(assetId2));
+        var contractOfferId1 = UUID.randomUUID().toString();
+        var contractOfferId2 = UUID.randomUUID().toString();
+        var assetId1 = UUID.randomUUID().toString();
+        var assetId2 = UUID.randomUUID().toString();
+        var contractOffer1 = createContractOffer(contractOfferId1, createAsset(assetId1));
+        var contractOffer2 = createContractOffer(contractOfferId2, createAsset(assetId2));
 
         store.save(contractOffer1);
         store.save(contractOffer2);

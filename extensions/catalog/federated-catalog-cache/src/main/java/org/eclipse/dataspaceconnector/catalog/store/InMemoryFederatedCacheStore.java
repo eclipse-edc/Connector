@@ -56,11 +56,7 @@ public class InMemoryFederatedCacheStore implements FederatedCacheStore {
     @Override
     public void deleteExpired() {
         lockManager.writeLock(() -> {
-            var unmarkedItems = cache.entrySet().stream().filter(entry -> !entry.getValue().isMarked())
-                    .map(Map.Entry::getKey)
-                    .collect(Collectors.toList());
-
-            cache.keySet().retainAll(unmarkedItems);
+            cache.values().removeIf(MarkableEntry::isMarked);
             return null;
         });
     }
