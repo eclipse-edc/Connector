@@ -18,7 +18,6 @@ import org.eclipse.dataspaceconnector.common.statemachine.retry.SendRetryManager
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
@@ -165,11 +164,6 @@ public abstract class AbstractContractNegotiationManager {
         }
     }
 
-    protected void update(ContractNegotiation negotiation, Consumer<ContractNegotiationListener> observe) {
-        observable.invokeForEach(observe);
-        negotiationStore.save(negotiation);
-    }
-
     protected void breakLease(ContractNegotiation negotiation) {
         negotiationStore.save(negotiation);
     }
@@ -209,7 +203,7 @@ public abstract class AbstractContractNegotiationManager {
                             negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
                 } else if (sendRetryManager.retriesExhausted(negotiation)) {
                     negotiation.transitionError("Retry limited exceeded: " + throwable.getMessage());
-                    update(negotiation, l -> l.preError(negotiation));
+                    negotiationStore.save(negotiation);
                     observable.invokeForEach(l -> l.failed(negotiation));
                     monitor.severe(format("[%s] attempt #%d failed to %s. Retry limit exceeded, ContractNegotiation %s moves to ERROR state",
                             getName(), negotiation.getStateCount(), operationDescription, negotiation.getId()), throwable);
