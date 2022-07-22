@@ -31,7 +31,7 @@ in the detailed section referring to by linking pull requests or issues.
 
 #### Fixed
 
-*
+* Fixed failure in uploading files to a presigned AWS S3 upload url (#1643)
 
 ## [milestone-5] - 2022-07-21
 
@@ -99,7 +99,6 @@ in the detailed section referring to by linking pull requests or issues.
 * Effectively removed default LIMIT in SQL Contract Def Store (#1515)
 * Add query validation (#1605)
 * Adapt logs to the logging guide (#1425)
-* Fixed failure in uploading files to a presigned AWS S3 upload url (#1643)
 * Fix incompatibility `DecentralizedIdentityServiceExtension` and `FsPrivateKeyResolver` (#1696)
 * Add support for domain port domain in Web Did resolver (#1652)
 * Fixed persistence update bug with `DataRequest` (#1707)
