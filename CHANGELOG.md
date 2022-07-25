@@ -23,7 +23,7 @@ in the detailed section referring to by linking pull requests or issues.
 
 #### Changed
 
-*
+* Return api validation error detail by default (#1492)
 
 #### Removed
 

@@ -22,8 +22,6 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
  */
 public class JerseyConfiguration {
     @EdcSetting
-    public static final String ERROR_RESPONSE_VERBOSE_SETTING = "edc.web.rest.error.response.verbose";
-    @EdcSetting
     public static final String CORS_CONFIG_ORIGINS_SETTING = "edc.web.rest.cors.origins";
     @EdcSetting
     public static final String CORS_CONFIG_ENABLED_SETTING = "edc.web.rest.cors.enabled";
@@ -35,7 +33,6 @@ public class JerseyConfiguration {
     private String allowedHeaders;
     private String allowedMethods;
     private boolean corsEnabled;
-    private boolean errorResponseVerbose;
 
     private JerseyConfiguration() {
     }
@@ -50,7 +47,6 @@ public class JerseyConfiguration {
         config.allowedOrigins = origins;
         config.allowedMethods = allowedMethods;
         config.corsEnabled = enabled;
-        config.errorResponseVerbose = context.getSetting(ERROR_RESPONSE_VERBOSE_SETTING, false);
 
         return config;
     }
@@ -75,7 +71,4 @@ public class JerseyConfiguration {
         return corsEnabled;
     }
 
-    public boolean isErrorResponseVerbose() {
-        return errorResponseVerbose;
-    }
 }
