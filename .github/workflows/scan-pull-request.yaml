@@ -44,3 +44,13 @@ jobs:
           regex: '^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\(\w+((,|\/|\\)?\s?\w+)+\))?!?: [\S ]{1,49}[^\.]$'
           allowed_prefixes: 'build,chore,ci,docs,feat,fix,perf,refactor,revert,style,test'
           prefix_case_sensitive: true
+
+  check-for-assigned-labels:
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    steps:
+      - uses: actions/checkout@v3
+      - uses: agilepathway/label-checker@v1.0.113
+        with:
+          any_of: api,bug,build,dependencies,documentation,enhancement,no-changelog,refactoring
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
