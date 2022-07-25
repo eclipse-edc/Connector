@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
-import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,20 +36,15 @@ import static org.eclipse.dataspaceconnector.core.security.hashicorpvault.Hashic
 class HashicorpVaultIntegrationTest {
     private static final String VAULT_TEST_URL = "http://127.0.0.1:8200";
     private static final String VAULT_TEST_TOKEN = "test-token";
-    private Vault vault;
-    private CertificateResolver certificateResolver;
 
     @BeforeEach
-    final void beforeEach(EdcExtension extension) {
-        vault = extension.getContext().getService(Vault.class);
-        certificateResolver = extension.getContext().getService(CertificateResolver.class);
-
+    final void setup(EdcExtension extension) {
         extension.setConfiguration(Map.of(VAULT_URL, VAULT_TEST_URL, VAULT_TOKEN, VAULT_TEST_TOKEN));
     }
 
     @Test
     @DisplayName("Resolve a secret that exists")
-    void testResolveSecret_exists() {
+    void testResolveSecret_exists(Vault vault) {
         var key = UUID.randomUUID().toString();
         var valueExpected = UUID.randomUUID().toString();
 
@@ -61,13 +55,13 @@ class HashicorpVaultIntegrationTest {
 
     @Test
     @DisplayName("Resolve a secret that does not exist")
-    void testResolveSecret_doesNotExist() {
+    void testResolveSecret_doesNotExist(Vault vault) {
         Assertions.assertNull(vault.resolveSecret("wrong_key"));
     }
 
     @Test
     @DisplayName("Update a secret that exists")
-    void testSetSecret_exists() {
+    void testSetSecret_exists(Vault vault) {
         var key = UUID.randomUUID().toString();
         var value1 = UUID.randomUUID().toString();
         var value2 = UUID.randomUUID().toString();
@@ -80,7 +74,7 @@ class HashicorpVaultIntegrationTest {
 
     @Test
     @DisplayName("Create a secret that does not exist")
-    void testSetSecret_doesNotExist() {
+    void testSetSecret_doesNotExist(Vault vault) {
         var key = UUID.randomUUID().toString();
         var value = UUID.randomUUID().toString();
 
@@ -91,7 +85,7 @@ class HashicorpVaultIntegrationTest {
 
     @Test
     @DisplayName("Delete a secret that exists")
-    void testDeleteSecret_exists() {
+    void testDeleteSecret_exists(Vault vault) {
         var key = UUID.randomUUID().toString();
         var value = UUID.randomUUID().toString();
 
@@ -103,7 +97,7 @@ class HashicorpVaultIntegrationTest {
 
     @Test
     @DisplayName("Delete a secret that does not exist")
-    void testDeleteSecret_doesNotExist() {
+    void testDeleteSecret_doesNotExist(Vault vault) {
         var key = UUID.randomUUID().toString();
 
         vault.deleteSecret(key);

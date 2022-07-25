@@ -25,6 +25,8 @@ import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
+import java.time.temporal.ChronoUnit;
+
 @Provides({ Vault.class, PrivateKeyResolver.class })
 public class HashicorpVaultExtension implements ServiceExtension {
 
@@ -33,6 +35,15 @@ public class HashicorpVaultExtension implements ServiceExtension {
 
     @EdcSetting(required = true)
     public static final String VAULT_TOKEN = "edc.vault.hashicorp.token";
+
+    @EdcSetting
+    public static final String MAX_RETRIES = "edc.core.retry.retries.max";
+
+    @EdcSetting
+    public static final String BACKOFF_MIN_MILLIS = "edc.core.retry.backoff.min";
+
+    @EdcSetting
+    public static final String BACKOFF_MAX_MILLIS = "edc.core.retry.backoff.max";
 
     @Override
     public String name() {
@@ -43,7 +54,15 @@ public class HashicorpVaultExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var config = loadHashicorpVaultClientConfig(context);
 
-        var retryPolicy = context.getService(RetryPolicy.class);
+        var maxRetries = context.getSetting(MAX_RETRIES, 5);
+        var minBackoff = context.getSetting(BACKOFF_MIN_MILLIS, 500);
+        var maxBackoff = context.getSetting(BACKOFF_MAX_MILLIS, 10_000);
+
+        var retryPolicy = RetryPolicy.builder()
+                .withMaxRetries(maxRetries)
+                .withBackoff(minBackoff, maxBackoff, ChronoUnit.MILLIS)
+                .build();
+
         var okHttpClient = new OkHttpClient.Builder().build();
         var client = new HashicorpVaultClient(config, okHttpClient, context.getTypeManager(), retryPolicy);
 
