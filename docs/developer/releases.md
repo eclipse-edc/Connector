@@ -149,8 +149,6 @@ time of this writing these are the committers of the project._
 
 To trigger a new release please follow these simple steps:
 
-- update `CHANGELOG.md`: put the current "Unreleased" section under a new headline containing the new version string,
-  add a new "Unreleased" section.
 - update `gradle.properties`: set the `defaultVersion` entry to the new version.
 - trigger the actual release in GitHub:
     - on the `Actions` tab pick the `Create EDC Release` workflow
