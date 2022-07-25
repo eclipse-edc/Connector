@@ -39,10 +39,8 @@ import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 public class EdcApiExceptionMapper implements ExceptionMapper<Throwable> {
     private final Map<Class<? extends Throwable>, Response.Status> exceptionMap;
-    private final boolean verboseResponse;
 
-    public EdcApiExceptionMapper(boolean verboseResponse) {
-        this.verboseResponse = verboseResponse;
+    public EdcApiExceptionMapper() {
         exceptionMap = Map.of(
                 IllegalArgumentException.class, BAD_REQUEST,
                 NullPointerException.class, BAD_REQUEST,
@@ -63,13 +61,17 @@ public class EdcApiExceptionMapper implements ExceptionMapper<Throwable> {
 
         var status = exceptionMap.getOrDefault(exception.getClass(), SERVICE_UNAVAILABLE);
 
-        if (exception instanceof EdcApiException && verboseResponse) {
+        if (exception instanceof EdcApiException) {
             var edcApiException = (EdcApiException) exception;
-            var apiError = ApiErrorDetail.Builder.newInstance()
+
+            var errorDetail = ApiErrorDetail.Builder.newInstance()
                     .message(edcApiException.getMessage())
                     .type(edcApiException.getType())
                     .build();
-            return Response.status(status).entity(List.of(apiError)).build();
+
+            return Response.status(status)
+                    .entity(List.of(errorDetail))
+                    .build();
         }
 
         return Response.status(status).build();

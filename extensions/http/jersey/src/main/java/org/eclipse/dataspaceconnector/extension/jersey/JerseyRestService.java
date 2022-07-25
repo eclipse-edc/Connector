@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.toSet;
-import static org.glassfish.jersey.server.ServerProperties.BV_SEND_ERROR_IN_RESPONSE;
 import static org.glassfish.jersey.server.ServerProperties.WADL_FEATURE_DISABLE;
 
 public class JerseyRestService implements WebService {
@@ -79,17 +78,12 @@ public class JerseyRestService implements WebService {
         // Disable WADL as it is not used and emits a warning message about JAXB (which is also not used)
         resourceConfig.property(WADL_FEATURE_DISABLE, Boolean.TRUE);
 
-        if (configuration.isErrorResponseVerbose()) {
-            // enable returning jersey bean validation failure detail in body
-            resourceConfig.property(BV_SEND_ERROR_IN_RESPONSE, Boolean.TRUE);
-        }
-
         // Register controller (JAX-RS resources) with Jersey. Instances instead of classes are used so extensions may inject them with dependencies and manage their lifecycle.
         // In order to use instances with Jersey, the controller types must be registered along with an {@link AbstractBinder} that maps those types to the instances.
         resourceConfig.registerClasses(controllers.stream().map(Object::getClass).collect(toSet()));
         resourceConfig.registerInstances(new Binder());
         resourceConfig.registerInstances(new TypeManagerContextResolver(typeManager));
-        resourceConfig.registerInstances(new EdcApiExceptionMapper(configuration.isErrorResponseVerbose()));
+        resourceConfig.registerInstances(new EdcApiExceptionMapper());
         resourceConfig.registerInstances(new ValidationExceptionMapper());
 
         if (configuration.isCorsEnabled()) {
