@@ -24,11 +24,8 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 import static java.lang.String.format;
 
@@ -36,44 +33,24 @@ public class CatalogCrawler {
     private final Monitor monitor;
     private final CrawlerErrorHandler errorHandler;
     private final String crawlerId;
-    private final Consumer<UpdateResponse> successHandler;
 
-    public CatalogCrawler(Monitor monitor, @NotNull CrawlerErrorHandler errorHandler, @Nullable Consumer<UpdateResponse> successHandler) {
+    public CatalogCrawler(Monitor monitor, @NotNull CrawlerErrorHandler errorHandler) {
         this.monitor = monitor;
         this.errorHandler = errorHandler;
-        this.successHandler = successHandler;
         crawlerId = format("Crawler-%s", UUID.randomUUID());
     }
 
-    public CompletableFuture<Void> run(WorkItem target, Collection<NodeQueryAdapter> adapters) {
+    public CompletableFuture<UpdateResponse> run(WorkItem target, @NotNull NodeQueryAdapter adapter) {
         try {
             monitor.debug(format("%s: WorkItem acquired", crawlerId));
-
-            // search for an adapter
-
-            if (adapters.isEmpty()) {
-                // otherwise error out the workitem
-                handleError(target, format("%s: No Adapter found for protocol [%s :: %s]", crawlerId, target.getProtocol(), target.getUrl()));
-                return CompletableFuture.completedFuture(null);
-            } else {
-                var allFutures = new ArrayList<CompletableFuture<UpdateResponse>>();
-                // if the adapters are found, use them to send the update request
-                for (NodeQueryAdapter a : adapters) {
-                    var updateFuture = a.sendRequest(new UpdateRequest(target.getUrl()));
-                    allFutures.add(updateFuture);
-                    updateFuture.whenComplete((updateResponse, throwable) -> {
-                        if (throwable != null) {
-                            handleError(target, throwable.getMessage());
-                        } else {
-                            handleResponse(updateResponse);
-                        }
-                    });
+            var updateFuture = adapter.sendRequest(new UpdateRequest(target.getUrl()));
+            return updateFuture.whenComplete((updateResponse, throwable) -> {
+                if (throwable != null) {
+                    handleError(target, throwable.getMessage());
                 }
-                return CompletableFuture.allOf(allFutures.toArray(CompletableFuture[]::new));
-
-            }
+            });
         } catch (Throwable thr) {
-            //runnables that run on an executor may swallow the exception
+            handleError(target, thr.getMessage());
             return CompletableFuture.failedFuture(new EdcException(thr));
         }
     }
@@ -81,7 +58,6 @@ public class CatalogCrawler {
     public String getId() {
         return crawlerId;
     }
-
 
     private void handleError(@Nullable WorkItem errorWorkItem, String message) {
         monitor.severe(message);
@@ -91,9 +67,4 @@ public class CatalogCrawler {
         }
     }
 
-    private void handleResponse(UpdateResponse updateResponse) {
-        if (successHandler != null) {
-            successHandler.accept(updateResponse);
-        }
-    }
 }

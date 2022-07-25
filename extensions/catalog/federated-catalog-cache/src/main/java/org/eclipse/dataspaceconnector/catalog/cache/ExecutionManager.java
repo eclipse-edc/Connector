@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.catalog.spi.model.ExecutionPlan;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -75,13 +76,8 @@ public class ExecutionManager {
             var availableCrawlers = createCrawlers(errorHandler, numCrawlers);
 
             while (!allItems.isEmpty()) {
-                CatalogCrawler crawler = null;
-                try {
-                    monitor.debug(message("Getting next available crawler"));
-                    crawler = availableCrawlers.poll(1, TimeUnit.SECONDS);
-                } catch (InterruptedException e) {
-                    monitor.debug("interrupted while waiting for crawler to become available");
-                }
+                // try get next available crawler
+                var crawler = nextAvailableCrawler(availableCrawlers);
                 if (crawler == null) {
                     monitor.debug(message("No crawler available, will retry later"));
                     continue;
@@ -93,22 +89,43 @@ public class ExecutionManager {
                     break;
                 }
 
-                var activeCrawler = crawler;
-                var adapters = nodeQueryAdapterRegistry.findForProtocol(item.getProtocol());
-                crawler.run(item, adapters).whenComplete((unused, throwable) -> {
-                    if (throwable != null) {
-                        monitor.severe(message(format("Unexpected exception happened during in crawler %s", activeCrawler.getId())), throwable);
-                    } else {
-                        monitor.info(message(format("Crawler [%s] is done", activeCrawler.getId())));
-                    }
-                    availableCrawlers.add(activeCrawler);
-                });
+                // for now use the first adapter that can handle the protocol
+                var adapter = nodeQueryAdapterRegistry.findForProtocol(item.getProtocol()).stream().findFirst();
+                if (adapter.isEmpty()) {
+                    monitor.warning(message(format("No protocol adapter found for protocol '%s'", item.getProtocol())));
+                } else {
+                    crawler.run(item, adapter.get()).whenComplete((updateResponse, throwable) -> {
+                        if (throwable != null) {
+                            monitor.severe(message(format("Unexpected exception happened during in crawler %s", crawler.getId())), throwable);
+                        } else {
+                            handleSuccess(crawler, updateResponse);
+                        }
+                        availableCrawlers.add(crawler);
+                    });
+                }
             }
 
             monitor.debug(message("Run post-execution task"));
             runPostExecution();
         });
 
+    }
+
+    @Nullable
+    private CatalogCrawler nextAvailableCrawler(ArrayBlockingQueue<CatalogCrawler> availableCrawlers) {
+        CatalogCrawler crawler = null;
+        try {
+            monitor.debug(message("Getting next available crawler"));
+            crawler = availableCrawlers.poll(1, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            monitor.debug("interrupted while waiting for crawler to become available");
+        }
+        return crawler;
+    }
+
+    private void handleSuccess(CatalogCrawler activeCrawler, UpdateResponse updateResponse) {
+        monitor.info(message(format("Crawler [%s] is done", activeCrawler.getId())));
+        successHandler.accept(updateResponse);
     }
 
     private void runPostExecution() {
@@ -136,7 +153,7 @@ public class ExecutionManager {
     @NotNull
     private ArrayBlockingQueue<CatalogCrawler> createCrawlers(CrawlerErrorHandler errorHandler, int numCrawlers) {
         return new ArrayBlockingQueue<>(numCrawlers, true, IntStream.range(0, numCrawlers)
-                .mapToObj(i -> new CatalogCrawler(monitor, errorHandler, successHandler))
+                .mapToObj(i -> new CatalogCrawler(monitor, errorHandler))
                 .collect(Collectors.toList()));
     }
 
