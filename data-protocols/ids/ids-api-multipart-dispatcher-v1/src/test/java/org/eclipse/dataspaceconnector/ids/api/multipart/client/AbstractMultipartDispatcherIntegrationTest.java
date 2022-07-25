@@ -17,9 +17,8 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
-import org.eclipse.dataspaceconnector.ids.core.serialization.TypeManagerUtil;
+import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
-import org.eclipse.dataspaceconnector.serializer.JsonLdService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -109,11 +108,6 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
     protected abstract Map<String, String> getSystemProperties();
 
     private static ObjectMapper getCustomizedObjectMapper() {
-        var typeManager = new TypeManager();
-        typeManager.registerContext("ids", JsonLdService.getObjectMapper());
-
-        TypeManagerUtil.registerIdsClasses(typeManager);
-
-        return typeManager.getMapper("ids");
+        return IdsTypeManagerUtil.getIdsObjectMapper(new TypeManager());
     }
 }

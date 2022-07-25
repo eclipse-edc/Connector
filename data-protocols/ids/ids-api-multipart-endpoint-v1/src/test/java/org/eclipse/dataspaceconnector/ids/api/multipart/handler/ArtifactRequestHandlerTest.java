@@ -22,12 +22,11 @@ import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.RejectionMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
-import org.eclipse.dataspaceconnector.ids.core.serialization.TypeManagerUtil;
+import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.serializer.JsonLdService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -165,11 +164,6 @@ class ArtifactRequestHandlerTest {
     }
 
     private ObjectMapper getCustomizedObjectMapper() {
-        var typeManager = new TypeManager();
-        typeManager.registerContext("ids", JsonLdService.getObjectMapper());
-
-        TypeManagerUtil.registerIdsClasses(typeManager);
-
-        return typeManager.getMapper("ids");
+        return IdsTypeManagerUtil.getIdsObjectMapper(new TypeManager());
     }
 }

@@ -40,11 +40,10 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.eclipse.dataspaceconnector.ids.core.serialization.TypeManagerUtil;
+import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
-import org.eclipse.dataspaceconnector.serializer.JsonLdService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -314,11 +313,6 @@ abstract class AbstractMultipartControllerIntegrationTest {
     }
 
     private ObjectMapper getCustomizedObjectMapper() {
-        var typeManager = new TypeManager();
-        typeManager.registerContext("ids", JsonLdService.getObjectMapper());
-
-        TypeManagerUtil.registerIdsClasses(typeManager);
-
-        return typeManager.getMapper("ids");
+        return IdsTypeManagerUtil.getIdsObjectMapper(new TypeManager());
     }
 }

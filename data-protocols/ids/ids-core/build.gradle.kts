@@ -26,12 +26,12 @@ dependencies {
     api(project(":spi"))
     api(project(":common:util"))
     api(project(":data-protocols:ids:ids-spi"))
-    api(project(":extensions:jsonld-serdes"))
 
     api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    implementation(project(":data-protocols:ids:ids-jsonld-serdes-lib"))
 
     implementation(project(":core:policy:policy-engine"))
 }

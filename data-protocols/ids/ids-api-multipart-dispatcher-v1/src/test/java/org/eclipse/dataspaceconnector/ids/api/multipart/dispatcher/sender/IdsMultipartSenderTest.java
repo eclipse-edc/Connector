@@ -22,9 +22,8 @@ import net.datafaker.Faker;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
-import org.eclipse.dataspaceconnector.ids.core.serialization.TypeManagerUtil;
+import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.serializer.JsonLdService;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -49,10 +48,7 @@ class IdsMultipartSenderTest {
     void should_fail_if_token_retrieval_fails() {
         when(identityService.obtainClientCredentials(any())).thenReturn(Result.failure("error"));
 
-        var typeManager = new TypeManager();
-        typeManager.registerContext("ids", JsonLdService.getObjectMapper());
-        TypeManagerUtil.registerIdsClasses(typeManager);
-        var objectMapper = typeManager.getMapper("ids");
+        var objectMapper = IdsTypeManagerUtil.getIdsObjectMapper(new TypeManager());
 
         var sender = new TestIdsMultipartSender("any", mock(OkHttpClient.class), objectMapper, mock(Monitor.class), identityService, mock(IdsTransformerRegistry.class));
 

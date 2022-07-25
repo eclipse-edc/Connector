@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.ids.core;
 
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.core.descriptor.IdsDescriptorServiceImpl;
-import org.eclipse.dataspaceconnector.ids.core.serialization.TypeManagerUtil;
+import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.core.service.CatalogServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.ConnectorServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.ConnectorServiceSettings;
@@ -28,7 +28,6 @@ import org.eclipse.dataspaceconnector.ids.spi.descriptor.IdsDescriptorService;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.serializer.JsonLdService;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
@@ -77,7 +76,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
 
-        customizeTypeManager(context);
+        IdsTypeManagerUtil.customizeTypeManager(context.getTypeManager());
 
         List<String> settingErrors = new ArrayList<>();
         ConnectorServiceSettings connectorServiceSettings = null;
@@ -128,12 +127,5 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         } catch (IllegalArgumentException e) {
             throw new EdcException(String.format(ERROR_INVALID_SETTING, EDC_IDS_CATALOG_ID, value));
         }
-    }
-
-    private void customizeTypeManager(ServiceExtensionContext context) {
-        var typeManager = context.getTypeManager();
-        typeManager.registerContext("ids", JsonLdService.getObjectMapper());
-
-        TypeManagerUtil.registerIdsClasses(typeManager);
     }
 }

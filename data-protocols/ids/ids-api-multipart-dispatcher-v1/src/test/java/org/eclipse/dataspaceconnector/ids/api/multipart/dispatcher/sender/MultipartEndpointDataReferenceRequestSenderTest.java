@@ -23,10 +23,9 @@ import de.fraunhofer.iais.eis.NotificationMessageBuilder;
 import de.fraunhofer.iais.eis.ParticipantUpdateMessage;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
-import org.eclipse.dataspaceconnector.ids.core.serialization.TypeManagerUtil;
+import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
-import org.eclipse.dataspaceconnector.serializer.JsonLdService;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -55,10 +54,7 @@ class MultipartEndpointDataReferenceRequestSenderTest {
         var transformerRegistry = mock(IdsTransformerRegistry.class);
         var identityService = mock(IdentityService.class);
 
-        var typeManager = new TypeManager();
-        typeManager.registerContext("ids", JsonLdService.getObjectMapper());
-        TypeManagerUtil.registerIdsClasses(typeManager);
-        mapper = typeManager.getMapper("ids");
+        mapper = IdsTypeManagerUtil.getIdsObjectMapper(new TypeManager());
 
         sender = new MultipartEndpointDataReferenceRequestSender(connectorId, httpClient, mapper, monitor, identityService, transformerRegistry);
     }

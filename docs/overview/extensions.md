@@ -19,7 +19,6 @@
 | :extensions:http-receiver       |  |
 | :extensions:iam                 | Provides multiple implementations of identity management. |
 | :extensions:jdk-logger-monitor  | Provides a `Logger` which is an implementation of edc `Monitor` interface. |
-| :extensions:jsonld-serdes       | Provides a serializer and deserializer from/to JSON-LD strings. |
 | :extensions:junit                 |  |
 | :extensions:sql                 |  |
 | :extensions:transaction         |  |
