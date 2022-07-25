@@ -1,0 +1,226 @@
+/*
+ *  Copyright (c) 2022 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
+package org.eclipse.dataspaceconnector.catalog.cache;
+
+import org.eclipse.dataspaceconnector.catalog.cache.crawler.CatalogCrawler;
+import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
+import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
+import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapterRegistry;
+import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
+import org.eclipse.dataspaceconnector.catalog.spi.model.ExecutionPlan;
+import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.Random;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static java.lang.String.format;
+
+public class ExecutionManager {
+
+    private Monitor monitor;
+    private Runnable preExecutionTask;
+    private Runnable postExecutionTask;
+    private FederatedCacheNodeDirectory directory;
+    private String connectorId;
+    private int numCrawlers = 1;
+    private NodeQueryAdapterRegistry nodeQueryAdapterRegistry;
+    private Consumer<UpdateResponse> successHandler;
+
+    private ExecutionManager() {
+    }
+
+    public void executePlan(ExecutionPlan plan) {
+        runPreExecution();
+
+        plan.run(() -> {
+            // load work items from directory
+            List<WorkItem> workItems = workItemSupplier();
+            var allItems = new ArrayBlockingQueue<>(workItems.size(), true, workItems);
+
+            if (allItems.isEmpty()) {
+                monitor.warning("No WorkItems found, aborting execution");
+                return;
+            }
+
+            //instantiate fixed pool of crawlers
+            var errorHandler = createErrorHandlers(monitor, allItems);
+
+            numCrawlers = Math.min(allItems.size(), numCrawlers);
+            monitor.debug(format("Crawler parallelism is %s, according to config", numCrawlers));
+            var availableCrawlers = prepareCrawlers(errorHandler);
+
+
+            while (!allItems.isEmpty()) {
+                CatalogCrawler crawler = null;
+                try {
+                    monitor.debug("Waiting for crawler to become available");
+                    crawler = availableCrawlers.poll(1, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    monitor.debug("interrupted while waiting for crawler to become available");
+                }
+                if (crawler == null) {
+                    monitor.debug("No crawler available, will retry");
+                    continue;
+                }
+
+                var item = allItems.poll();
+                if (item == null) {
+                    monitor.warning("WorkItem queue empty, abort execution");
+                    break;
+                }
+
+                var activeCrawler = crawler;
+                var adapters = nodeQueryAdapterRegistry.findForProtocol(item.getProtocol());
+                crawler.run(item, adapters).whenComplete((unused, throwable) -> {
+                    if (throwable != null) {
+                        monitor.severe(format("Unexpected exception happened during in crawler %s", activeCrawler.getId()), throwable);
+                    } else {
+                        monitor.info(format("Crawler [%s] is done", activeCrawler.getId()));
+                    }
+                    availableCrawlers.add(activeCrawler);
+                });
+            }
+        });
+
+        runPostExecution();
+    }
+
+    private void runPostExecution() {
+        if (postExecutionTask != null) {
+            try {
+                postExecutionTask.run();
+            } catch (Throwable thr) {
+                monitor.severe("Error running post execution task", thr);
+            }
+        }
+    }
+
+    private void runPreExecution() {
+
+        if (preExecutionTask != null) {
+            try {
+                preExecutionTask.run();
+            } catch (Throwable thr) {
+                monitor.severe("Error running pre execution task", thr);
+            }
+        }
+
+    }
+
+    @NotNull
+    private ArrayBlockingQueue<CatalogCrawler> prepareCrawlers(CrawlerErrorHandler errorHandler) {
+        return new ArrayBlockingQueue<>(numCrawlers, true, IntStream.range(0, numCrawlers)
+                .mapToObj(i -> new CatalogCrawler(monitor, errorHandler, successHandler))
+                .collect(Collectors.toList()));
+    }
+
+    private List<WorkItem> workItemSupplier() {
+        // use all nodes EXCEPT self
+        return directory.getAll().stream()
+                .filter(node -> !node.getName().equals(connectorId))
+                .map(n -> new WorkItem(n.getTargetUrl(), selectProtocol(n.getSupportedProtocols()))).collect(Collectors.toList());
+    }
+
+    private String selectProtocol(List<String> supportedProtocols) {
+        //just take the first matching one.
+        return supportedProtocols.isEmpty() ? null : supportedProtocols.get(0);
+    }
+
+    @NotNull
+    private CrawlerErrorHandler createErrorHandlers(Monitor monitor, Queue<WorkItem> workItems) {
+        return workItem -> {
+            if (workItem.getErrors().size() > 7) {
+                monitor.severe(format("The following workitem has errored out more than 5 times. We'll discard it now: [%s]", workItem));
+            } else {
+                var random = new Random();
+                var to = 5 + random.nextInt(20);
+                monitor.debug(format("The following work item has errored out. Will re-queue after a small delay: [%s]", workItem));
+                Executors.newSingleThreadScheduledExecutor().schedule(() -> workItems.offer(workItem), to, TimeUnit.SECONDS);
+            }
+        };
+    }
+
+
+    public static final class Builder {
+
+        private final ExecutionManager instance;
+
+        private Builder() {
+            instance = new ExecutionManager();
+        }
+
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+        public Builder monitor(Monitor monitor) {
+            instance.monitor = monitor;
+            return this;
+        }
+
+        public Builder preExecutionTask(Runnable preExecutionTask) {
+            instance.preExecutionTask = preExecutionTask;
+            return this;
+        }
+
+        public Builder connectorId(String connectorId) {
+            instance.connectorId = connectorId;
+            return this;
+        }
+
+        public Builder numCrawlers(int numCrawlers) {
+            instance.numCrawlers = numCrawlers;
+            return this;
+        }
+
+        public Builder postExecutionTask(Runnable postExecutionTask) {
+            instance.postExecutionTask = postExecutionTask;
+            return this;
+        }
+
+        public Builder nodeQueryAdapterRegistry(NodeQueryAdapterRegistry registry) {
+            instance.nodeQueryAdapterRegistry = registry;
+            return this;
+        }
+
+        public Builder nodeDirectory(FederatedCacheNodeDirectory directory) {
+            instance.directory = directory;
+            return this;
+        }
+
+        public Builder onSuccess(Consumer<UpdateResponse> successConsumer) {
+            instance.successHandler = successConsumer;
+            return this;
+        }
+
+        public ExecutionManager build() {
+            Objects.requireNonNull(instance.monitor, "ExecutionManager.Builder: Monitor cannot be null");
+            Objects.requireNonNull(instance.connectorId, "ExecutionManager.Builder: connectorId cannot be null");
+            Objects.requireNonNull(instance.nodeQueryAdapterRegistry, "ExecutionManager.Builder: nodeQueryAdapterRegistry cannot be null");
+            Objects.requireNonNull(instance.directory, "ExecutionManager.Builder: nodeDirectory cannot be null");
+            return instance;
+        }
+    }
+}
