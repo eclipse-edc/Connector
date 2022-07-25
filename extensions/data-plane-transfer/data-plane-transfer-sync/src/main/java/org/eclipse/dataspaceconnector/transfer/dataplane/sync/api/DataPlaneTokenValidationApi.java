@@ -32,5 +32,5 @@ public interface DataPlaneTokenValidationApi {
                     @ApiResponse(responseCode = "400", description = "Request was malformed"),
                     @ApiResponse(responseCode = "403", description = "Token is invalid") }
     )
-    DataAddress validate(@NotNull String token);
+    DataAddress validate(@NotNull(message = "token cannot be null") String token);
 }

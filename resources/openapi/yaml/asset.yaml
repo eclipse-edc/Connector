@@ -195,3 +195,5 @@ components:
           type: object
           additionalProperties:
             type: string
+      required:
+      - properties
