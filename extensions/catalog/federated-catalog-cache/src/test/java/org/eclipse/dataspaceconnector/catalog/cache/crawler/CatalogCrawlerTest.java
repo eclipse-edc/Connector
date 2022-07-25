@@ -21,15 +21,14 @@ import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateRequest;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createCatalog;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -88,12 +87,6 @@ class CatalogCrawlerTest {
         assertThat(crawler.getId()).isNotNull();
     }
 
-    private Catalog createCatalog() {
-        return Catalog.Builder.newInstance()
-                .id("test-catalog")
-                .contractOffers(List.of())
-                .build();
-    }
 
     @NotNull
     private WorkItem createWorkItem() {

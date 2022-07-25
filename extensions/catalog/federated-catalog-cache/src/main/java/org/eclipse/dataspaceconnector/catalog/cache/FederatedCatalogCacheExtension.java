@@ -89,7 +89,6 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         }
 
         // CRAWLER SUBSYSTEM
-
         var cacheConfiguration = new CacheConfiguration(context);
         int numCrawlers = cacheConfiguration.getNumCrawlers(DEFAULT_NUM_CRAWLERS);
         // and a loader manager

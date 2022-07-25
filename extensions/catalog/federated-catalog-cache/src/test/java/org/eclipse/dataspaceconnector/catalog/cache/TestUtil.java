@@ -17,8 +17,11 @@ package org.eclipse.dataspaceconnector.catalog.cache;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class TestUtil {
 
@@ -35,4 +38,10 @@ public class TestUtil {
                 .build();
     }
 
+    public static Catalog createCatalog() {
+        return Catalog.Builder.newInstance()
+                .id("test-catalog")
+                .contractOffers(List.of())
+                .build();
+    }
 }

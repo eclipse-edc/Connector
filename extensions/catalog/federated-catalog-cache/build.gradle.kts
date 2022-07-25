@@ -38,6 +38,7 @@ dependencies {
 
     testImplementation(project(":extensions:http"))
     testImplementation(project(":data-protocols:ids:ids-spi"))
+    testImplementation("org.mockito:mockito-junit-jupiter:2.23.0")
 }
 
 publishing {

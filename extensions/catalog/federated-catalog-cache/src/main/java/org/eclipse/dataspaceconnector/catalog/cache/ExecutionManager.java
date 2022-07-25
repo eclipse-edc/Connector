@@ -60,12 +60,12 @@ public class ExecutionManager {
 
             // load work items from directory
             List<WorkItem> workItems = fetchWorkItems();
-            monitor.debug(message("Loaded " + workItems.size() + " work items from storage"));
-            var allItems = new ArrayBlockingQueue<>(workItems.size(), true, workItems);
-            if (allItems.isEmpty()) {
+            if (workItems.isEmpty()) {
                 monitor.warning("No WorkItems found, aborting execution");
                 return;
             }
+            monitor.debug(message("Loaded " + workItems.size() + " work items from storage"));
+            var allItems = new ArrayBlockingQueue<>(workItems.size(), true, workItems);
 
             monitor.debug(message("Instantiate crawlers..."));
             //instantiate fixed pool of crawlers
@@ -139,7 +139,6 @@ public class ExecutionManager {
     }
 
     private void runPreExecution() {
-
         if (preExecutionTask != null) {
             try {
                 preExecutionTask.run();
@@ -147,21 +146,16 @@ public class ExecutionManager {
                 monitor.severe("Error running pre execution task", thr);
             }
         }
-
     }
 
     @NotNull
     private ArrayBlockingQueue<CatalogCrawler> createCrawlers(CrawlerErrorHandler errorHandler, int numCrawlers) {
-        return new ArrayBlockingQueue<>(numCrawlers, true, IntStream.range(0, numCrawlers)
-                .mapToObj(i -> new CatalogCrawler(monitor, errorHandler))
-                .collect(Collectors.toList()));
+        return new ArrayBlockingQueue<>(numCrawlers, true, IntStream.range(0, numCrawlers).mapToObj(i -> new CatalogCrawler(monitor, errorHandler)).collect(Collectors.toList()));
     }
 
     private List<WorkItem> fetchWorkItems() {
         // use all nodes EXCEPT self
-        return directory.getAll().stream()
-                .filter(node -> !node.getName().equals(connectorId))
-                .map(n -> new WorkItem(n.getTargetUrl(), selectProtocol(n.getSupportedProtocols()))).collect(Collectors.toList());
+        return directory.getAll().stream().filter(node -> !node.getName().equals(connectorId)).map(n -> new WorkItem(n.getTargetUrl(), selectProtocol(n.getSupportedProtocols()))).collect(Collectors.toList());
     }
 
     private String selectProtocol(List<String> supportedProtocols) {
