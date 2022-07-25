@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       ZF Friedrichshafen AG - Add tags with context informations
  *
  */
 
@@ -33,6 +34,18 @@ public class JettyMicrometerConfiguration implements Consumer<ServerConnector> {
 
     @Override
     public void accept(ServerConnector connector) {
-        connector.addBean(new JettyConnectionMetrics(registry, connector, Tags.empty()));
+        var tags = Tags.empty();
+
+        if (connector.getPort() != 0) {
+            tags = tags.and("jetty_port", String.valueOf(connector.getPort()));
+        } else {
+            tags = tags.and("jetty_port", String.valueOf(connector.getLocalPort()));
+        }
+
+        if (connector.getName() != null) {
+            tags = tags.and("jetty_context", connector.getName());
+        }
+
+        connector.addBean(new JettyConnectionMetrics(registry, connector, tags));
     }
 }

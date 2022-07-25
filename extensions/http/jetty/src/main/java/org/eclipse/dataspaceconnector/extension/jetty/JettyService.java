@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - added method
+ *       ZF Friedrichshafen AG - Set connector name
  *
  */
 
@@ -82,10 +83,10 @@ public class JettyService implements WebServer {
                     throw new IllegalArgumentException("A binding for port " + mapping.getPort() + " already exists");
                 }
                 if (keyStore != null) {
-                    connector = httpsServerConnector(mapping.getPort());
+                    connector = httpsServerConnector(mapping.getName(), mapping.getPort());
                     monitor.info("HTTPS context '" + mapping.getName() + "' listening on port " + mapping.getPort());
                 } else {
-                    connector = httpServerConnector(mapping.getPort());
+                    connector = httpServerConnector(mapping.getName(), mapping.getPort());
                     monitor.info("HTTP context '" + mapping.getName() + "' listening on port " + mapping.getPort());
                 }
                 connector.setName(mapping.getName());
@@ -159,7 +160,7 @@ public class JettyService implements WebServer {
     }
 
     @NotNull
-    private ServerConnector httpsServerConnector(int port) {
+    private ServerConnector httpsServerConnector(String name, int port) {
         var storePassword = configuration.getKeystorePassword();
         var managerPassword = configuration.getKeymanagerPassword();
 
@@ -178,14 +179,16 @@ public class JettyService implements WebServer {
         var httpConnectionFactory = new HttpConnectionFactory(httpsConfiguration);
         var sslConnectionFactory = new SslConnectionFactory(contextFactory, HttpVersion.HTTP_1_1.asString());
         var sslConnector = new ServerConnector(server, sslConnectionFactory, httpConnectionFactory);
+        sslConnector.setName(name);
         sslConnector.setPort(port);
         configure(sslConnector);
         return sslConnector;
     }
 
     @NotNull
-    private ServerConnector httpServerConnector(int port) {
+    private ServerConnector httpServerConnector(String name, int port) {
         ServerConnector connector = new ServerConnector(server, httpConnectionFactory());
+        connector.setName(name);
         connector.setPort(port);
         configure(connector);
         return connector;
