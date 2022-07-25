@@ -28,7 +28,6 @@ import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
 import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryEngine;
-import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.model.ExecutionPlan;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
 import org.eclipse.dataspaceconnector.catalog.store.InMemoryFederatedCacheStore;
@@ -44,9 +43,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
-import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Supplier;
 
 @Provides({ QueryEngine.class, NodeQueryAdapterRegistry.class, CacheQueryAdapterRegistry.class })
 public class FederatedCatalogCacheExtension implements ServiceExtension {
@@ -65,9 +62,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     @Inject
     private FederatedCacheNodeDirectory directory;
     private ExecutionPlan executionPlan;
-    private Supplier<List<WorkItem>> workItemSupplier;
     private NodeQueryAdapterRegistryImpl nodeQueryAdapterRegistry;
-    private int numCrawlers;
     private ExecutionManager executionManager;
 
     @Override
@@ -95,9 +90,8 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
 
         // CRAWLER SUBSYSTEM
 
-        //todo: maybe get this from a database or somewhere else?
         var cacheConfiguration = new CacheConfiguration(context);
-        numCrawlers = cacheConfiguration.getNumCrawlers(DEFAULT_NUM_CRAWLERS);
+        int numCrawlers = cacheConfiguration.getNumCrawlers(DEFAULT_NUM_CRAWLERS);
         // and a loader manager
 
         executionPlan = cacheConfiguration.getExecutionPlan();

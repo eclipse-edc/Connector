@@ -52,42 +52,44 @@ public class ExecutionManager {
     }
 
     public void executePlan(ExecutionPlan plan) {
-        runPreExecution();
-
         plan.run(() -> {
-            // load work items from directory
-            List<WorkItem> workItems = workItemSupplier();
-            var allItems = new ArrayBlockingQueue<>(workItems.size(), true, workItems);
 
+            monitor.debug(message("Run pre-execution task"));
+            runPreExecution();
+
+            // load work items from directory
+            List<WorkItem> workItems = fetchWorkItems();
+            monitor.debug(message("Loaded " + workItems.size() + " work items from storage"));
+            var allItems = new ArrayBlockingQueue<>(workItems.size(), true, workItems);
             if (allItems.isEmpty()) {
                 monitor.warning("No WorkItems found, aborting execution");
                 return;
             }
 
+            monitor.debug(message("Instantiate crawlers..."));
             //instantiate fixed pool of crawlers
             var errorHandler = createErrorHandlers(monitor, allItems);
 
             numCrawlers = Math.min(allItems.size(), numCrawlers);
-            monitor.debug(format("Crawler parallelism is %s, according to config", numCrawlers));
-            var availableCrawlers = prepareCrawlers(errorHandler);
-
+            monitor.debug(format(message("Crawler parallelism is %s, based on config and number of work items"), numCrawlers));
+            var availableCrawlers = createCrawlers(errorHandler, numCrawlers);
 
             while (!allItems.isEmpty()) {
                 CatalogCrawler crawler = null;
                 try {
-                    monitor.debug("Waiting for crawler to become available");
+                    monitor.debug(message("Getting next available crawler"));
                     crawler = availableCrawlers.poll(1, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
                     monitor.debug("interrupted while waiting for crawler to become available");
                 }
                 if (crawler == null) {
-                    monitor.debug("No crawler available, will retry");
+                    monitor.debug(message("No crawler available, will retry later"));
                     continue;
                 }
 
                 var item = allItems.poll();
                 if (item == null) {
-                    monitor.warning("WorkItem queue empty, abort execution");
+                    monitor.warning(message("WorkItem queue empty, abort execution"));
                     break;
                 }
 
@@ -95,16 +97,18 @@ public class ExecutionManager {
                 var adapters = nodeQueryAdapterRegistry.findForProtocol(item.getProtocol());
                 crawler.run(item, adapters).whenComplete((unused, throwable) -> {
                     if (throwable != null) {
-                        monitor.severe(format("Unexpected exception happened during in crawler %s", activeCrawler.getId()), throwable);
+                        monitor.severe(message(format("Unexpected exception happened during in crawler %s", activeCrawler.getId())), throwable);
                     } else {
-                        monitor.info(format("Crawler [%s] is done", activeCrawler.getId()));
+                        monitor.info(message(format("Crawler [%s] is done", activeCrawler.getId())));
                     }
                     availableCrawlers.add(activeCrawler);
                 });
             }
+
+            monitor.debug(message("Run post-execution task"));
+            runPostExecution();
         });
 
-        runPostExecution();
     }
 
     private void runPostExecution() {
@@ -130,13 +134,13 @@ public class ExecutionManager {
     }
 
     @NotNull
-    private ArrayBlockingQueue<CatalogCrawler> prepareCrawlers(CrawlerErrorHandler errorHandler) {
+    private ArrayBlockingQueue<CatalogCrawler> createCrawlers(CrawlerErrorHandler errorHandler, int numCrawlers) {
         return new ArrayBlockingQueue<>(numCrawlers, true, IntStream.range(0, numCrawlers)
                 .mapToObj(i -> new CatalogCrawler(monitor, errorHandler, successHandler))
                 .collect(Collectors.toList()));
     }
 
-    private List<WorkItem> workItemSupplier() {
+    private List<WorkItem> fetchWorkItems() {
         // use all nodes EXCEPT self
         return directory.getAll().stream()
                 .filter(node -> !node.getName().equals(connectorId))
@@ -152,14 +156,18 @@ public class ExecutionManager {
     private CrawlerErrorHandler createErrorHandlers(Monitor monitor, Queue<WorkItem> workItems) {
         return workItem -> {
             if (workItem.getErrors().size() > 7) {
-                monitor.severe(format("The following workitem has errored out more than 5 times. We'll discard it now: [%s]", workItem));
+                monitor.severe(message(format("The following workitem has errored out more than 5 times. We'll discard it now: [%s]", workItem)));
             } else {
                 var random = new Random();
                 var to = 5 + random.nextInt(20);
-                monitor.debug(format("The following work item has errored out. Will re-queue after a small delay: [%s]", workItem));
+                monitor.debug(message(format("The following work item has errored out. Will re-queue after a small delay: [%s]", workItem)));
                 Executors.newSingleThreadScheduledExecutor().schedule(() -> workItems.offer(workItem), to, TimeUnit.SECONDS);
             }
         };
+    }
+
+    private String message(String input) {
+        return "ExecutionManager: " + input;
     }
 
 
