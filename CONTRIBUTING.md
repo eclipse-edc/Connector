@@ -103,13 +103,13 @@ we would appreciate if your pull request applies to the following points:
 
 * The git commit messages should comply to the following format:
     ```
-    <component>: <description>
+    <prefix>(<scope>): <description>
     ```
 
   Use the [imperative mood](https://github.com/git/git/blob/master/Documentation/SubmittingPatches)
   as in "Fix bug" or "Add feature" rather than "Fixed bug" or "Added feature" and
   [mention the GitHub issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue)
-  e.g. `transfer process: improve logging, closes #3`.
+  e.g. `chore(transfer process): improve logging`.
 
   All committers, and all commits, are bound to
   the [Developer Certificate of Origin.](https://www.eclipse.org/legal/DCO.php)

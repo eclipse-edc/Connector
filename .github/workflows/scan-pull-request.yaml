@@ -34,11 +34,23 @@ jobs:
           #
           # Valid examples would be
           # - fix: resolve minor issue
-          # - assetindex: update some dependency
-          # - docs(sample5): update docs for configuration
+          # - docs(Sample5): update docs for configuration
           # - feat(management-api)!: change path to access contract agreements
           #
           # Invalid examples would be
           # - Add cool feature
           # - Feature/some cool improvement
-          regex: '(?<type>\w+)(?<scope>(?:\([^()\r\n]*\)|\()?(?<breaking>!)?):(?<subject>.*)?'
+          # - fix: resolve minor issue.
+          regex: '^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\(\w+((,|\/|\\)?\s?\w+)+\))?!?: [\S ]{1,49}[^\.]$'
+          allowed_prefixes: 'build,chore,ci,docs,feat,fix,perf,refactor,revert,style,test'
+          prefix_case_sensitive: true
+
+  check-for-assigned-labels:
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    steps:
+      - uses: actions/checkout@v3
+      - uses: agilepathway/label-checker@v1.0.113
+        with:
+          any_of: api,bug,build,dependencies,documentation,enhancement,no-changelog,refactoring
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
