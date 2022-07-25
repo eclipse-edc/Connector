@@ -10,6 +10,7 @@
  *  Contributors:
  *       Amadeus - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - replace object mapper
+ *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *
  */
 
@@ -19,12 +20,12 @@ import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -37,18 +38,13 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class MultipartArtifactRequestSenderTest {
 
     private MultipartArtifactRequestSender sender;
     private String idsWebhookAddress;
-    private String idsApiPath;
-    private IdsTransformerRegistry transformerRegistry;
 
     @BeforeEach
     public void setUp() {
@@ -57,7 +53,7 @@ class MultipartArtifactRequestSenderTest {
         var vault = mock(Vault.class);
         var identityService = mock(IdentityService.class);
         String connectorId = UUID.randomUUID().toString();
-        transformerRegistry = mock(IdsTransformerRegistry.class);
+        var transformerRegistry = mock(IdsTransformerRegistry.class);
         idsWebhookAddress = UUID.randomUUID() + "/api/v1/ids/data";
 
         var objectMapper = IdsTypeManagerUtil.getIdsObjectMapper(new TypeManager());
@@ -69,29 +65,24 @@ class MultipartArtifactRequestSenderTest {
     void buildMessageHeaderOkTest() {
         var token = new DynamicAttributeTokenBuilder()._tokenValue_(UUID.randomUUID().toString()).build();
         var request = createRequest();
-        when(transformerRegistry.transform(any(IdsId.class), eq(URI.class))).thenAnswer(invocation -> {
-            IdsId id = invocation.getArgument(0);
-            return Result.success(URI.create(id.getValue()));
-        });
+        var artifactId = IdsId.Builder.newInstance().value(request.getAssetId()).type(IdsType.ARTIFACT).build().toUri();
+        var contractId = IdsId.Builder.newInstance().value(request.getContractId()).type(IdsType.CONTRACT_AGREEMENT).build().toUri();
 
         var message = sender.buildMessageHeader(request, token);
 
         assertThat(message).isInstanceOf(ArtifactRequestMessage.class);
-        assertThat((ArtifactRequestMessage) message)
-                .satisfies(msg -> {
-                    assertThat(msg.getId()).hasToString(request.getId());
-                    assertThat(msg.getModelVersion()).isEqualTo(IdsProtocol.INFORMATION_MODEL_VERSION);
-                    assertThat(msg.getSecurityToken()).isEqualTo(token);
-                    assertThat(msg.getIssuerConnector()).isEqualTo(sender.getConnectorId());
-                    assertThat(msg.getSenderAgent()).isEqualTo(sender.getConnectorId());
-                    assertThat(msg.getRecipientConnector()).containsExactly(URI.create(request.getConnectorId()));
-                    assertThat(msg.getRequestedArtifact().compareTo(URI.create(request.getAssetId()))).isZero();
-                    assertThat(msg.getTransferContract().compareTo(URI.create(request.getContractId()))).isZero();
-                    assertThat(msg.getProperties())
-                            .hasSize(request.getProperties().size() + 1)
-                            .containsAllEntriesOf(request.getProperties())
-                            .containsEntry(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress);
-                });
+        assertThat(message.getId()).hasToString(request.getId());
+        assertThat(message.getModelVersion()).isEqualTo(IdsConstants.INFORMATION_MODEL_VERSION);
+        assertThat(message.getSecurityToken()).isEqualTo(token);
+        assertThat(message.getIssuerConnector()).isEqualTo(sender.getConnectorId());
+        assertThat(message.getSenderAgent()).isEqualTo(sender.getConnectorId());
+        assertThat(message.getRecipientConnector()).containsExactly(URI.create(request.getConnectorId()));
+        assertThat(((ArtifactRequestMessage) message).getRequestedArtifact().compareTo(artifactId)).isZero();
+        assertThat(message.getTransferContract().compareTo(contractId)).isZero();
+        assertThat(message.getProperties())
+                .hasSize(request.getProperties().size() + 1)
+                .containsAllEntriesOf(request.getProperties())
+                .containsEntry(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress);
     }
 
     @Test

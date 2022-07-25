@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.BinaryOperator;
+import org.eclipse.dataspaceconnector.ids.transform.type.policy.OperatorToIdsBinaryOperatorTransformer;
 import org.eclipse.dataspaceconnector.policy.model.Operator;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;

@@ -9,12 +9,13 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
+import org.eclipse.dataspaceconnector.ids.transform.type.policy.ProhibitionToIdsProhibitionTransformer;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Constraint;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
@@ -23,10 +24,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.net.URI;
-
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -80,7 +78,6 @@ public class ProhibitionToIdsProhibitionTransformerTest {
                 .build();
         when(context.transform(eq(edcAction), eq(de.fraunhofer.iais.eis.Action.class))).thenReturn(idsAction);
         when(context.transform(eq(edcConstraint), eq(de.fraunhofer.iais.eis.Constraint.class))).thenReturn(idsConstraint);
-        when(context.transform(isA(IdsId.class), eq(URI.class))).thenReturn(URI.create("https://example.com/"));
 
         var result = transformer.transform(prohibition, context);
 
@@ -93,6 +90,5 @@ public class ProhibitionToIdsProhibitionTransformerTest {
         Assertions.assertEquals(idsConstraint, result.getConstraint().get(0));
         verify(context).transform(eq(edcAction), eq(de.fraunhofer.iais.eis.Action.class));
         verify(context).transform(eq(edcConstraint), eq(de.fraunhofer.iais.eis.Constraint.class));
-        verify(context).transform(isA(IdsId.class), eq(URI.class));
     }
 }

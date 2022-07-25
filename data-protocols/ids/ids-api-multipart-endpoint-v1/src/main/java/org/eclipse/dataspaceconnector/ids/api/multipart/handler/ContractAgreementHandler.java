@@ -104,7 +104,7 @@ public class ContractAgreementHandler implements Handler {
         var processId = message.getTransferContract();
         var negotiationConfirmResult = negotiationManager.confirmed(claimToken,
                 String.valueOf(processId), output.getContractAgreement(), output.getPolicy());
-        
+
         return createMultipartResponse(processedFromStatusResult(negotiationConfirmResult, message, connectorId));
     }
 

@@ -11,6 +11,7 @@
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Fraunhofer Institute for Software and Systems Engineering - additional message building methods, refactoring
  *       Daimler TSS GmbH - introduce factory to create RequestInProcessMessage
+ *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *
  */
 
@@ -27,9 +28,9 @@ import de.fraunhofer.iais.eis.RejectionReason;
 import de.fraunhofer.iais.eis.RequestInProcessMessage;
 import de.fraunhofer.iais.eis.RequestInProcessMessageBuilder;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
-import org.eclipse.dataspaceconnector.ids.spi.IdsType;
-import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
+import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,7 +46,7 @@ import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregoria
  * Provides utility methods for building IDS Multipart responses.
  */
 public class ResponseUtil {
-    
+
     /**
      * Creates a multipart response with the given header.
      *
@@ -57,7 +58,7 @@ public class ResponseUtil {
                 .header(header)
                 .build();
     }
-    
+
     /**
      * Creates a multipart response with the given header and payload.
      *
@@ -71,7 +72,7 @@ public class ResponseUtil {
                 .payload(payload)
                 .build();
     }
-    
+
     /**
      * Creates a MessageProcessedNotificationMessage.
      *
@@ -83,10 +84,10 @@ public class ResponseUtil {
                                                                                    @NotNull String connectorId) {
         var messageId = getMessageId();
         var connectorIdUri = getConnectorUrn(connectorId);
-        
+
         return new MessageProcessedNotificationMessageBuilder(messageId)
-                ._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
-                ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                ._contentVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
+                ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._issued_(gregorianNow())
                 ._issuerConnector_(connectorIdUri)
                 ._senderAgent_(connectorIdUri)
@@ -95,7 +96,7 @@ public class ResponseUtil {
                 ._recipientAgent_(new ArrayList<>(Collections.singletonList(correlationMessage.getSenderAgent())))
                 .build();
     }
-    
+
     /**
      * Creates a RequestInProcessMessage.
      *
@@ -107,10 +108,10 @@ public class ResponseUtil {
                                                            @NotNull String connectorId) {
         var messageId = getMessageId();
         var connectorIdUri = getConnectorUrn(connectorId);
-        
+
         return new RequestInProcessMessageBuilder(messageId)
-                ._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
-                ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                ._contentVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
+                ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._issued_(gregorianNow())
                 ._issuerConnector_(connectorIdUri)
                 ._senderAgent_(connectorIdUri)
@@ -119,7 +120,7 @@ public class ResponseUtil {
                 ._recipientAgent_(new ArrayList<>(Collections.singletonList(correlationMessage.getSenderAgent())))
                 .build();
     }
-    
+
     /**
      * Creates a DescriptionResponseMessage.
      *
@@ -131,10 +132,10 @@ public class ResponseUtil {
                                                                  @NotNull String connectorId) {
         var messageId = getMessageId();
         var connectorIdUri = getConnectorUrn(connectorId);
-    
+
         return new DescriptionResponseMessageBuilder(messageId)
-                ._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
-                ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                ._contentVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
+                ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._issued_(gregorianNow())
                 ._issuerConnector_(connectorIdUri)
                 ._senderAgent_(connectorIdUri)
@@ -143,7 +144,7 @@ public class ResponseUtil {
                 ._recipientAgent_(new ArrayList<>(Collections.singletonList(correlationMessage.getSenderAgent())))
                 .build();
     }
-    
+
     /**
      * Creates a response message depending on the status result of a previously executed action.
      * Returns a RequestInProcessMessage, if the result is succeeded and a rejection message otherwise.
@@ -168,7 +169,7 @@ public class ResponseUtil {
             }
         }
     }
-    
+
     /**
      * Creates a response message depending on the status result of a previously executed action.
      * Returns a MessageProcessedNotificationMessage, if the result is succeeded and a rejection message otherwise.
@@ -193,7 +194,7 @@ public class ResponseUtil {
             }
         }
     }
-    
+
     /**
      * Creates a rejection message with reason NOT_FOUND.
      *
@@ -208,7 +209,7 @@ public class ResponseUtil {
                 ._rejectionReason_(RejectionReason.NOT_FOUND)
                 .build();
     }
-    
+
     /**
      * Creates a rejection message with reason NOT_AUTHENTICATED.
      *
@@ -223,7 +224,7 @@ public class ResponseUtil {
                 ._rejectionReason_(RejectionReason.NOT_AUTHENTICATED)
                 .build();
     }
-    
+
     /**
      * Creates a rejection message with reason NOT_AUTHORIZED.
      *
@@ -238,7 +239,7 @@ public class ResponseUtil {
                 ._rejectionReason_(RejectionReason.NOT_AUTHORIZED)
                 .build();
     }
-    
+
     /**
      * Creates a rejection message with reason MALFORMED_MESSAGE.
      *
@@ -253,7 +254,7 @@ public class ResponseUtil {
                 ._rejectionReason_(RejectionReason.MALFORMED_MESSAGE)
                 .build();
     }
-    
+
     /**
      * Creates a rejection message with reason MESSAGE_TYPE_NOT_SUPPORTED.
      *
@@ -268,7 +269,7 @@ public class ResponseUtil {
                 ._rejectionReason_(RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED)
                 .build();
     }
-    
+
     /**
      * Creates a rejection message with reason BAD_PARAMETERS.
      *
@@ -283,7 +284,7 @@ public class ResponseUtil {
                 ._rejectionReason_(RejectionReason.BAD_PARAMETERS)
                 .build();
     }
-    
+
     /**
      * Creates a rejection message with reason INTERNAL_RECIPIENT_ERROR.
      *
@@ -298,7 +299,7 @@ public class ResponseUtil {
                 ._rejectionReason_(RejectionReason.INTERNAL_RECIPIENT_ERROR)
                 .build();
     }
-    
+
     /**
      * Creates a generic rejection message builder without rejection reason.
      *
@@ -309,39 +310,35 @@ public class ResponseUtil {
     @NotNull
     private static RejectionMessageBuilder createRejectionMessageBuilder(@Nullable Message correlationMessage,
                                                                          @NotNull String connectorId) {
-        
+
         var messageId = getMessageId();
         var connectorIdUri = getConnectorUrn(connectorId);
-        
+
         var builder = new RejectionMessageBuilder(messageId)
-                ._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
-                ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                ._contentVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
+                ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._issued_(gregorianNow())
                 ._issuerConnector_(connectorIdUri)
                 ._senderAgent_(connectorIdUri);
-        
+
         if (correlationMessage != null) {
             builder._correlationMessage_(correlationMessage.getId());
             builder._recipientAgent_(new ArrayList<>(Collections.singletonList(correlationMessage.getSenderAgent())));
             builder._recipientConnector_(new ArrayList<>(Collections.singletonList(correlationMessage.getIssuerConnector())));
         }
-        
+
         return builder;
     }
-    
+
     /**
      * Creates an ID for IDS messages.
      *
      * @return the ID.
      */
     private static URI getMessageId() {
-        return URI.create(String.join(
-                IdsIdParser.DELIMITER,
-                IdsIdParser.SCHEME,
-                IdsType.MESSAGE.getValue(),
-                UUID.randomUUID().toString()));
+        return IdsId.Builder.newInstance().value(UUID.randomUUID().toString()).type(IdsType.MESSAGE).build().toUri();
     }
-    
+
     /**
      * Creates the connector URN from the connector ID.
      *
@@ -349,10 +346,6 @@ public class ResponseUtil {
      * @return the connector URN.
      */
     private static URI getConnectorUrn(String connectorId) {
-        return URI.create(String.join(
-                IdsIdParser.DELIMITER,
-                IdsIdParser.SCHEME,
-                IdsType.CONNECTOR.getValue(),
-                connectorId));
+        return IdsId.Builder.newInstance().value(connectorId).type(IdsType.CONNECTOR).build().toUri();
     }
 }

@@ -19,10 +19,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 
 import java.util.Objects;
-
-import static org.eclipse.dataspaceconnector.ids.spi.domain.DefaultValues.CONTEXT;
 
 /**
  * Token format as specified by IDS.
@@ -34,7 +33,7 @@ public class DynamicAttributeToken {
     private static final String ID_BASE = "https://w3id.org/idsa/autogen/dynamicAttributeToken/";
 
     @JsonProperty("@context")
-    private String context = CONTEXT;
+    private String context = IdsConstants.CONTEXT;
 
     @JsonProperty("@type")
     private String type = "ids:DynamicAttributeToken";

@@ -14,10 +14,9 @@
 
 package org.eclipse.dataspaceconnector.ids.core.service;
 
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
-import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
-import org.eclipse.dataspaceconnector.ids.spi.IdsType;
-import org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile;
+import org.eclipse.dataspaceconnector.ids.spi.domain.connector.SecurityProfile;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -152,19 +151,17 @@ public class ConnectorServiceSettings {
             value = DEFAULT_EDC_IDS_ID;
         }
 
-        try {
-            // Hint: use stringified uri to keep uri path and query
-            IdsId idsId = IdsIdParser.parse(value);
+        // Hint: use stringified uri to keep uri path and query
+        var result = IdsId.from(value);
+        if (result.succeeded()) {
+            var idsId = result.getContent();
             if (idsId.getType() == IdsType.CONNECTOR) {
                 id = idsId.getValue();
                 return null;
-            } else {
-                return String.format(ERROR_INVALID_SETTING, EDC_IDS_ID, value);
             }
-
-        } catch (IllegalArgumentException e) {
-            return String.format(ERROR_INVALID_SETTING, EDC_IDS_ID, value);
         }
+
+        return String.format(ERROR_INVALID_SETTING, EDC_IDS_ID, value);
     }
 
     private void initTitle() {

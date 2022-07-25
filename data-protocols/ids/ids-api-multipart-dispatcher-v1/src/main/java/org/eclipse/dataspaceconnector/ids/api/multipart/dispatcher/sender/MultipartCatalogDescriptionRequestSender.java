@@ -28,8 +28,8 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
+import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.Range;
@@ -84,7 +84,7 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
     @Override
     protected Message buildMessageHeader(CatalogRequest request, DynamicAttributeToken token) {
         var message = new DescriptionRequestMessageBuilder()
-                ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._issued_(CalendarUtil.gregorianNow())
                 ._securityToken_(token)
                 ._issuerConnector_(getConnectorId())
@@ -126,7 +126,6 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
         }
 
         var transformResult = getTransformerRegistry().transform(resourceCatalog, Catalog.class);
-
         if (transformResult.failed()) {
             throw new EdcException(String.format("Could not transform ids data catalog: %s", String.join(", ", transformResult.getFailureMessages())));
         }

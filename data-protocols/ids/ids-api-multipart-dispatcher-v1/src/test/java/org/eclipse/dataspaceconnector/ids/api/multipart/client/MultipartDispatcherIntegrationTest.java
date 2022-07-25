@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Fraunhofer Institute for Software and Systems Engineering
+ *  Copyright (c) 2021 - 2022 Fraunhofer Institute for Software and Systems Engineering
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -28,9 +28,8 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.Multip
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractRejectionSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
-import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.types.MessageProtocol;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -59,7 +58,6 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOkHttpClient;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -96,7 +94,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         var request = MetadataRequest.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
-                .protocol(Protocols.IDS_MULTIPART)
+                .protocol(MessageProtocol.IDS_MULTIPART)
                 .build();
 
         var result = multipartDispatcher.send(BaseConnector.class, request, () -> null).get();
@@ -109,9 +107,6 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
     void testSendArtifactRequestMessage() {
         var asset = Asset.Builder.newInstance().id("1").build();
         addAsset(asset);
-        when(transformerRegistry.transform(isA(IdsId.class), eq(URI.class)))
-                .thenReturn(Result.success(URI.create("urn:artifact:1")))
-                .thenReturn(Result.success(URI.create("urn:contract:1")));
         when(negotiationStore.findContractAgreement(any())).thenReturn(ContractAgreement.Builder.newInstance()
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
@@ -125,15 +120,13 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         var request = DataRequest.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
-                .protocol(Protocols.IDS_MULTIPART)
+                .protocol(MessageProtocol.IDS_MULTIPART)
                 .contractId("1")
                 .assetId(asset.getId())
                 .dataDestination(DataAddress.Builder.newInstance().type("test-type").build())
                 .build();
 
         assertThatCode(() -> multipartDispatcher.send(null, request, () -> null)).doesNotThrowAnyException();
-
-        verify(transformerRegistry, times(2)).transform(any(), any());
     }
 
     @Test
@@ -146,7 +139,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .type(ContractOfferRequest.Type.COUNTER_OFFER)
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
-                .protocol(Protocols.IDS_MULTIPART)
+                .protocol(MessageProtocol.IDS_MULTIPART)
                 .contractOffer(contractOffer)
                 .correlationId("1")
                 .build();
@@ -169,7 +162,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .type(ContractOfferRequest.Type.INITIAL)
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
-                .protocol(Protocols.IDS_MULTIPART)
+                .protocol(MessageProtocol.IDS_MULTIPART)
                 .contractOffer(contractOffer)
                 .correlationId("1")
                 .build();
@@ -189,13 +182,11 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
         when(transformerRegistry.transform(any(), eq(de.fraunhofer.iais.eis.ContractAgreement.class)))
                 .thenReturn(Result.success(getIdsContractAgreement()));
-        when(transformerRegistry.transform(any(), eq(URI.class)))
-                .thenReturn(Result.success(URI.create("https://example.com")));
 
         var request = ContractAgreementRequest.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
-                .protocol(Protocols.IDS_MULTIPART)
+                .protocol(MessageProtocol.IDS_MULTIPART)
                 .contractAgreement(contractAgreement)
                 .correlationId("1")
                 .policy(Policy.Builder.newInstance().build())
@@ -203,7 +194,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
         assertThatCode(() -> multipartDispatcher.send(null, request, () -> null)).doesNotThrowAnyException();
 
-        verify(transformerRegistry, times(2)).transform(any(), any());
+        verify(transformerRegistry, times(1)).transform(any(), any());
     }
 
     @Test
@@ -211,7 +202,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         var rejection = ContractRejection.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
-                .protocol(Protocols.IDS_MULTIPART)
+                .protocol(MessageProtocol.IDS_MULTIPART)
                 .rejectionReason("Modified policy in contract offer.")
                 .correlationId(UUID.randomUUID().toString())
                 .build();

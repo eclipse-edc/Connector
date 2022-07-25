@@ -9,12 +9,13 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
+import org.eclipse.dataspaceconnector.ids.transform.type.contract.ContractOfferToIdsContractOfferTransformer;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -32,14 +33,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ContractOfferToIdsContractOfferTransformerTest {
     private static final String CONTRACT_OFFER_ID = "456uz984390236s";
-    private static final URI OFFER_ID = URI.create("urn:offer:" + CONTRACT_OFFER_ID);
+    private static final URI OFFER_ID = URI.create("urn:contractoffer:" + CONTRACT_OFFER_ID);
     private static final URI PROVIDER_URI = URI.create("https://provider.com/");
 
     private ContractOfferToIdsContractOfferTransformer transformer;
@@ -92,7 +92,6 @@ public class ContractOfferToIdsContractOfferTransformerTest {
         when(context.transform(any(Permission.class), eq(de.fraunhofer.iais.eis.Permission.class))).thenReturn(idsPermission);
         when(context.transform(any(Prohibition.class), eq(de.fraunhofer.iais.eis.Prohibition.class))).thenReturn(idsProhibition);
         when(context.transform(any(Duty.class), eq(de.fraunhofer.iais.eis.Duty.class))).thenReturn(idsObligation);
-        when(context.transform(isA(IdsId.class), eq(URI.class))).thenReturn(OFFER_ID);
 
         var result = transformer.transform(contractOffer, context);
 
@@ -109,7 +108,6 @@ public class ContractOfferToIdsContractOfferTransformerTest {
         verify(context).transform(any(Permission.class), eq(de.fraunhofer.iais.eis.Permission.class));
         verify(context).transform(any(Prohibition.class), eq(de.fraunhofer.iais.eis.Prohibition.class));
         verify(context).transform(any(Duty.class), eq(de.fraunhofer.iais.eis.Duty.class));
-        verify(context).transform(isA(IdsId.class), eq(URI.class));
     }
 
     @NotNull

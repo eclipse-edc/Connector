@@ -25,7 +25,7 @@ import de.fraunhofer.iais.eis.PermissionBuilder;
 import de.fraunhofer.iais.eis.util.RdfResource;
 import org.eclipse.dataspaceconnector.ids.jsonld.JsonLd;
 import org.eclipse.dataspaceconnector.ids.jsonld.JsonLdSerializer;
-import org.eclipse.dataspaceconnector.ids.spi.domain.DefaultValues;
+import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,7 +63,7 @@ class IdsConstraintTest {
     }
 
     void addConstraintConfig() {
-        typeManager.registerSerializer("ids", IdsConstraintImpl.class, new JsonLdSerializer<>(IdsConstraintImpl.class, DefaultValues.CONTEXT));
+        typeManager.registerSerializer("ids", IdsConstraintImpl.class, new JsonLdSerializer<>(IdsConstraintImpl.class, IdsConstants.CONTEXT));
         objectMapper.registerSubtypes(IdsConstraintImpl.class);
         objectMapper = typeManager.getMapper("ids");
     }

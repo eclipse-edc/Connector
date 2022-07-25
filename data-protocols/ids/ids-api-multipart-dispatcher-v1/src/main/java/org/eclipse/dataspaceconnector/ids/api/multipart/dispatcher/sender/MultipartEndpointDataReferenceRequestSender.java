@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Amadeus - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *
  */
 
@@ -22,8 +23,8 @@ import de.fraunhofer.iais.eis.ParticipantUpdateMessageBuilder;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceMessage;
@@ -70,7 +71,7 @@ public class MultipartEndpointDataReferenceRequestSender extends IdsMultipartSen
     @Override
     protected Message buildMessageHeader(EndpointDataReferenceMessage request, DynamicAttributeToken token) {
         return new ParticipantUpdateMessageBuilder()
-                ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._securityToken_(token)
                 ._issuerConnector_(getConnectorId())
                 ._senderAgent_(getConnectorId())

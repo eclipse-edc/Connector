@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *
  */
 
@@ -17,9 +18,10 @@ package org.eclipse.dataspaceconnector.ids.transform;
 import de.fraunhofer.iais.eis.ContractOfferBuilder;
 import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.RepresentationBuilder;
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
-import org.eclipse.dataspaceconnector.ids.spi.IdsType;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
+import org.eclipse.dataspaceconnector.ids.transform.type.asset.OfferedAssetToIdsResourceTransformer;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -40,7 +42,7 @@ import static org.mockito.Mockito.when;
 
 class OfferedAssetToIdsResourceTransformerTest {
 
-    private static final String RESOURCE_ID = "test_id";
+    private static final String RESOURCE_ID = "1";
     private static final URI RESOURCE_ID_URI = URI.create("urn:resource:1");
 
     private OfferedAssetToIdsResourceTransformer transformer;
@@ -80,7 +82,6 @@ class OfferedAssetToIdsResourceTransformerTest {
         var id = IdsId.Builder.newInstance().value(RESOURCE_ID).type(IdsType.RESOURCE).build();
         when(context.transform(any(Asset.class), eq(Representation.class))).thenReturn(representation);
         when(context.transform(any(ContractOffer.class), eq(de.fraunhofer.iais.eis.ContractOffer.class))).thenReturn(new ContractOfferBuilder().build());
-        when(context.transform(eq(id), eq(URI.class))).thenReturn(RESOURCE_ID_URI);
 
         var result = transformer.transform(assetAndPolicy(), context);
 
@@ -90,7 +91,6 @@ class OfferedAssetToIdsResourceTransformerTest {
         Assertions.assertEquals(representation, result.getRepresentation().get(0));
         verify(context).transform(any(Asset.class), eq(Representation.class));
         verify(context).transform(any(ContractOffer.class), eq(de.fraunhofer.iais.eis.ContractOffer.class));
-        verify(context).transform(eq(id), eq(URI.class));
     }
 
     @NotNull

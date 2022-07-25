@@ -26,8 +26,8 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
-import org.eclipse.dataspaceconnector.ids.spi.IdsType;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -183,9 +183,9 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         String assetId = UUID.randomUUID().toString();
         Asset asset = Asset.Builder.newInstance()
                 .id(assetId)
-                .property("ids:fileName", "test.txt")
-                .property("ids:byteSize", BigInteger.valueOf(10))
-                .property("ids:fileExtension", "txt")
+                .property("asset:prop:fileName", "test.txt")
+                .property("asset:prop:byteSize", BigInteger.valueOf(10))
+                .property("asset:prop:fileExtension", "txt")
                 .build();
         addAsset(asset);
 
@@ -261,8 +261,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         Response response = httpClient.newCall(request).execute();
 
         // verify
-        assertThat(response).isNotNull()
-                .extracting(Response::code).isEqualTo(200);
+        assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
         List<NamedMultipartContent> content = extractNamedMultipartContent(response);
 
@@ -307,9 +306,9 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         String assetId = UUID.randomUUID().toString();
         Asset asset = Asset.Builder.newInstance()
                 .id(assetId)
-                .property("ids:fileName", "test.txt")
-                .property("ids:byteSize", BigInteger.valueOf(10))
-                .property("ids:fileExtension", "txt")
+                .property("asset:prop:fileName", "test.txt")
+                .property("asset:prop:byteSize", BigInteger.valueOf(10))
+                .property("asset:prop:fileExtension", "txt")
                 .build();
         addAsset(asset);
 
@@ -321,8 +320,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         Response response = httpClient.newCall(request).execute();
 
         // verify
-        assertThat(response).isNotNull()
-                .extracting(Response::code).isEqualTo(200);
+        assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
         List<NamedMultipartContent> content = extractNamedMultipartContent(response);
 
@@ -369,9 +367,9 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         String assetId = UUID.randomUUID().toString();
         Asset asset = Asset.Builder.newInstance()
                 .id(assetId)
-                .property("ids:fileName", "test.txt")
-                .property("ids:byteSize", BigInteger.valueOf(10))
-                .property("ids:fileExtension", "txt")
+                .property("asset:prop:fileName", "test.txt")
+                .property("asset:prop:byteSize", BigInteger.valueOf(10))
+                .property("asset:prop:fileExtension", "txt")
                 .build();
         addAsset(asset);
 
@@ -383,8 +381,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         Response response = httpClient.newCall(request).execute();
 
         // verify
-        assertThat(response).isNotNull()
-                .extracting(Response::code).isEqualTo(200);
+        assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
         List<NamedMultipartContent> content = extractNamedMultipartContent(response);
 
@@ -435,9 +432,9 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         String assetId = UUID.randomUUID().toString();
         Asset asset = Asset.Builder.newInstance()
                 .id(assetId)
-                .property("ids:fileName", "test.txt")
-                .property("ids:byteSize", BigInteger.valueOf(10))
-                .property("ids:fileExtension", "txt")
+                .property("asset:prop:fileName", "test.txt")
+                .property("asset:prop:byteSize", BigInteger.valueOf(10))
+                .property("asset:prop:fileExtension", "txt")
                 .build();
         addAsset(asset);
 
@@ -449,8 +446,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         Response response = httpClient.newCall(request).execute();
 
         // verify
-        assertThat(response).isNotNull()
-                .extracting(Response::code).isEqualTo(200);
+        assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
 
         List<NamedMultipartContent> content = extractNamedMultipartContent(response);
 
@@ -513,7 +509,6 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
                                 .build())
                         .build());
         addAsset(Asset.Builder.newInstance().id(assetId).build());
-
 
         // invoke
         var response = httpClient.newCall(request).execute();

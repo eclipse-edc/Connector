@@ -26,8 +26,8 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
+import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.util.ResponseUtil.parseMultipartStringResponse;
-import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
+import static org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 /**
  * IdsMultipartSender implementation for contract requests. Sends IDS ContractRequestMessages and
@@ -84,7 +84,7 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
     protected Message buildMessageHeader(ContractOfferRequest request, DynamicAttributeToken token) {
         if (request.getType() == ContractOfferRequest.Type.INITIAL) {
             var message = new ContractRequestMessageBuilder()
-                    ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                    ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                     ._issued_(CalendarUtil.gregorianNow())
                     ._securityToken_(token)
                     ._issuerConnector_(getConnectorId())
@@ -97,7 +97,7 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
             return message;
         } else {
             var message = new ContractOfferMessageBuilder()
-                    ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                    ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                     ._issued_(CalendarUtil.gregorianNow())
                     ._securityToken_(token)
                     ._issuerConnector_(getConnectorId())

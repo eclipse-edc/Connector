@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.ids.transform;
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceBuilder;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
+import org.eclipse.dataspaceconnector.ids.transform.type.connector.CatalogToIdsResourceCatalogTransformer;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
