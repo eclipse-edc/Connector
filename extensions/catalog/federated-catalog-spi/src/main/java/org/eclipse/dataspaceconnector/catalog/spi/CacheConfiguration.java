@@ -25,11 +25,11 @@ import java.util.Random;
 import static java.lang.String.format;
 
 /**
- * Object that provides configuration for the {@link PartitionManager}.
+ * Object that provides configuration for the federated catalog.
  * All configuration values that do not allow for default values are resolved instantly, all others are resolved
  * lazily from the context.
  */
-public class PartitionConfiguration {
+public class CacheConfiguration {
 
     @EdcSetting
     static final String PART_EXECUTION_PLAN_PERIOD_SECONDS = "edc.catalog.cache.execution.period.seconds";
@@ -48,7 +48,7 @@ public class PartitionConfiguration {
     private static final int DEFAULT_WORK_ITEM_QUEUE_SIZE = 10;
     private final ServiceExtensionContext context;
 
-    public PartitionConfiguration(ServiceExtensionContext context) {
+    public CacheConfiguration(ServiceExtensionContext context) {
         this.context = context;
     }
 

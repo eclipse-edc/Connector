@@ -26,9 +26,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class PartitionConfigurationTest {
+class CacheConfigurationTest {
 
-    private PartitionConfiguration configuration;
+    private CacheConfiguration configuration;
     private ServiceExtensionContext context;
     private Monitor monitorMock;
 
@@ -37,12 +37,12 @@ class PartitionConfigurationTest {
         monitorMock = mock(Monitor.class);
         context = mock(ServiceExtensionContext.class);
         when(context.getMonitor()).thenReturn(monitorMock);
-        configuration = new PartitionConfiguration(context);
+        configuration = new CacheConfiguration(context);
     }
 
     @Test
     void getExecutionPlan_whenLowPeriod() {
-        when(context.getSetting(eq(PartitionConfiguration.PART_EXECUTION_PLAN_PERIOD_SECONDS), anyInt())).thenReturn(9);
+        when(context.getSetting(eq(CacheConfiguration.PART_EXECUTION_PLAN_PERIOD_SECONDS), anyInt())).thenReturn(9);
 
         configuration.getExecutionPlan();
         verify(monitorMock).warning(startsWith("An execution period of 9 seconds is very low "));

@@ -14,30 +14,23 @@
 
 package org.eclipse.dataspaceconnector.catalog.cache;
 
-import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.catalog.cache.controller.FederatedCatalogApiController;
-import org.eclipse.dataspaceconnector.catalog.cache.crawler.CrawlerImpl;
+import org.eclipse.dataspaceconnector.catalog.cache.crawler.CatalogCrawler;
 import org.eclipse.dataspaceconnector.catalog.cache.crawler.NodeQueryAdapterRegistryImpl;
-import org.eclipse.dataspaceconnector.catalog.cache.loader.LoaderManagerImpl;
-import org.eclipse.dataspaceconnector.catalog.cache.management.PartitionManagerImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.query.CacheQueryAdapterImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.query.CacheQueryAdapterRegistryImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.query.IdsMultipartNodeQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.cache.query.QueryEngineImpl;
 import org.eclipse.dataspaceconnector.catalog.directory.InMemoryNodeDirectory;
+import org.eclipse.dataspaceconnector.catalog.spi.CacheConfiguration;
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapterRegistry;
-import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
 import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
-import org.eclipse.dataspaceconnector.catalog.spi.LoaderManager;
 import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapterRegistry;
-import org.eclipse.dataspaceconnector.catalog.spi.PartitionConfiguration;
-import org.eclipse.dataspaceconnector.catalog.spi.PartitionManager;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryEngine;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
-import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
-import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
+import org.eclipse.dataspaceconnector.catalog.spi.model.ExecutionPlan;
 import org.eclipse.dataspaceconnector.catalog.store.InMemoryFederatedCacheStore;
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
 import org.eclipse.dataspaceconnector.spi.WebService;
@@ -52,30 +45,24 @@ import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Duration;
 import java.util.List;
+import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.lang.String.format;
 
-@Provides({ Crawler.class, LoaderManager.class, QueryEngine.class, NodeQueryAdapterRegistry.class, CacheQueryAdapterRegistry.class })
+@Provides({ QueryEngine.class, NodeQueryAdapterRegistry.class, CacheQueryAdapterRegistry.class })
 public class FederatedCatalogCacheExtension implements ServiceExtension {
     public static final int DEFAULT_NUM_CRAWLERS = 1;
     private static final int DEFAULT_QUEUE_LENGTH = 50;
-    private static final int DEFAULT_BATCH_SIZE = 1;
-    private static final int DEFAULT_RETRY_TIMEOUT_MILLIS = 2000;
-    private LoaderManager loaderManager;
-    private PartitionManager partitionManager;
-    private PartitionConfiguration partitionManagerConfig;
     private Monitor monitor;
-    private ArrayBlockingQueue<UpdateResponse> updateResponseQueue;
     @Inject
     private FederatedCacheStore store;
     @Inject
@@ -87,8 +74,10 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     // get all known nodes from node directory - must be supplied by another extension
     @Inject
     private FederatedCacheNodeDirectory directory;
-    @Inject
-    private RetryPolicy<Object> retryPolicy;
+    private ExecutionPlan executionPlan;
+    private Supplier<List<WorkItem>> workItemSupplier;
+    private NodeQueryAdapterRegistryImpl nodeQueryAdapterRegistry;
+    private int numCrawlers;
 
     @Override
     public String name() {
@@ -114,32 +103,91 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         }
 
         // CRAWLER SUBSYSTEM
-        var nodeQueryAdapterRegistry = new NodeQueryAdapterRegistryImpl();
 
-        // catalog queries via IDS multipart are supported by default
-        nodeQueryAdapterRegistry.register("ids-multipart", new IdsMultipartNodeQueryAdapter(context.getConnectorId(), dispatcherRegistry));
-        context.registerService(NodeQueryAdapterRegistry.class, nodeQueryAdapterRegistry);
+        workItemSupplier = workItemSupplier(context);
 
-        updateResponseQueue = new ArrayBlockingQueue<>(DEFAULT_QUEUE_LENGTH);
         //todo: maybe get this from a database or somewhere else?
-        partitionManagerConfig = new PartitionConfiguration(context);
+        var cacheConfiguration = new CacheConfiguration(context);
+        numCrawlers = cacheConfiguration.getNumCrawlers(DEFAULT_NUM_CRAWLERS);
         // and a loader manager
-        loaderManager = createLoaderManager(store);
 
-        // lets create a simple partition manager
-        partitionManager = createPartitionManager(context, updateResponseQueue, nodeQueryAdapterRegistry);
+        executionPlan = cacheConfiguration.getExecutionPlan();
     }
 
     @Override
     public void start() {
-        partitionManager.schedule(partitionManagerConfig.getExecutionPlan());
-        loaderManager.start(updateResponseQueue);
+
+        executionPlan.run(() -> {
+            store.deleteExpired(); // delete all expired entries before re-populating
+            store.expireAll(); // mark all entries as expired, unless they get updated by the crawlers
+
+            // load work items from directory
+            List<WorkItem> workItems = workItemSupplier.get();
+            var allItems = new ArrayBlockingQueue<>(workItems.size(), true, workItems);
+
+            if (allItems.isEmpty()) {
+                monitor.warning("No WorkItems found, aborting execution");
+                return;
+            }
+
+            //instantiate fixed pool of crawlers
+            var errorHandler = createErrorHandlers(monitor, allItems);
+            monitor.debug(format("Crawler parallelism is %s, according to config", numCrawlers));
+
+            var availableCrawlers = new ArrayBlockingQueue<>(numCrawlers, true, IntStream.range(0, numCrawlers)
+                    .mapToObj(i -> new CatalogCrawler(monitor, store, errorHandler))
+                    .collect(Collectors.toList()));
+
+            while (!allItems.isEmpty()) {
+                CatalogCrawler crawler = null;
+                try {
+                    monitor.debug("Waiting for crawler to become available");
+                    crawler = availableCrawlers.poll(1, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    monitor.debug("interrupted while waiting for crawler to become available");
+                }
+                if (crawler == null) {
+                    monitor.debug("No crawler available, will retry");
+                    continue;
+                }
+
+                var item = allItems.poll();
+                if (item == null) {
+                    monitor.warning("WorkItem queue empty, abort execution");
+                    break;
+                }
+
+                var adapters = createNodeQueryAdapterRegistry(null).findForProtocol(item.getProtocol());
+                CatalogCrawler activeCrawler = crawler;
+                crawler.run(item, adapters).whenComplete((unused, throwable) -> {
+                    if (throwable != null) {
+                        monitor.severe(format("Unexpected exception happened during in crawler %s", activeCrawler.getId()), throwable);
+                    } else {
+                        monitor.info(format("Crawler [%s] is done", activeCrawler.getId()));
+                    }
+                    availableCrawlers.add(activeCrawler);
+                });
+            }
+
+        });
     }
 
     @Override
     public void shutdown() {
-        partitionManager.stop();
-        loaderManager.stop();
+        //todo: interrupt execution
+    }
+
+    @Provider
+    public NodeQueryAdapterRegistry createNodeQueryAdapterRegistry(ServiceExtensionContext context) {
+
+        if (nodeQueryAdapterRegistry == null) {
+            nodeQueryAdapterRegistry = new NodeQueryAdapterRegistryImpl();
+
+            // catalog queries via IDS multipart are supported by default
+            nodeQueryAdapterRegistry.register("ids-multipart", new IdsMultipartNodeQueryAdapter(context.getConnectorId(), dispatcherRegistry, monitor));
+            context.registerService(NodeQueryAdapterRegistry.class, nodeQueryAdapterRegistry);
+        }
+        return nodeQueryAdapterRegistry;
     }
 
     @Provider(isDefault = true)
@@ -153,31 +201,12 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         return new InMemoryNodeDirectory();
     }
 
-    @NotNull
-    private LoaderManager createLoaderManager(FederatedCacheStore store) {
-        return LoaderManagerImpl.Builder.newInstance()
-                .loaders(List.of(new LoaderImpl(store))) // one loader per store
-                .batchSize(partitionManagerConfig.getLoaderBatchSize(DEFAULT_BATCH_SIZE))
-                .waitStrategy(() -> partitionManagerConfig.getLoaderRetryTimeout(DEFAULT_RETRY_TIMEOUT_MILLIS))
-                .monitor(monitor)
-                .build();
-    }
 
-    @NotNull
-    private PartitionManager createPartitionManager(ServiceExtensionContext context, ArrayBlockingQueue<UpdateResponse> updateResponseQueue, NodeQueryAdapterRegistry protocolAdapterRegistry) {
-
+    private Supplier<List<WorkItem>> workItemSupplier(ServiceExtensionContext context) {
         // use all nodes EXCEPT self
-        Supplier<List<WorkItem>> nodes = () -> directory.getAll().stream()
+        return () -> directory.getAll().stream()
                 .filter(node -> !node.getName().equals(context.getConnectorId()))
                 .map(n -> new WorkItem(n.getTargetUrl(), selectProtocol(n.getSupportedProtocols()))).collect(Collectors.toList());
-
-        var pm = new PartitionManagerImpl(monitor,
-                new DefaultWorkItemQueue(partitionManagerConfig.getWorkItemQueueSize()),
-                workItems -> createCrawler(workItems, context, protocolAdapterRegistry, updateResponseQueue),
-                partitionManagerConfig.getNumCrawlers(DEFAULT_NUM_CRAWLERS),
-                nodes);
-        pm.setPreExecutionHook(() -> loaderManager.clear());
-        return pm;
     }
 
 
@@ -186,27 +215,15 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         return supportedProtocols.isEmpty() ? null : supportedProtocols.get(0);
     }
 
-    private Crawler createCrawler(WorkItemQueue workItems, ServiceExtensionContext context, NodeQueryAdapterRegistry protocolAdapters, ArrayBlockingQueue<UpdateResponse> updateQueue) {
-        return CrawlerImpl.Builder.newInstance()
-                .monitor(context.getMonitor())
-                .retryPolicy(retryPolicy)
-                .workItems(workItems)
-                .queue(updateQueue)
-                .errorReceiver(getErrorWorkItemConsumer(context, workItems))
-                .protocolAdapters(protocolAdapters)
-                .workQueuePollTimeout(() -> Duration.ofMillis(2000 + ThreadLocalRandom.current().nextInt(3000)))
-                .build();
-    }
-
     @NotNull
-    private CrawlerErrorHandler getErrorWorkItemConsumer(ServiceExtensionContext context, WorkItemQueue workItems) {
+    private CrawlerErrorHandler createErrorHandlers(Monitor monitor, Queue<WorkItem> workItems) {
         return workItem -> {
             if (workItem.getErrors().size() > 7) {
-                context.getMonitor().severe(format("The following workitem has errored out more than 5 times. We'll discard it now: [%s]", workItem));
+                monitor.severe(format("The following workitem has errored out more than 5 times. We'll discard it now: [%s]", workItem));
             } else {
                 var random = new Random();
                 var to = 5 + random.nextInt(20);
-                context.getMonitor().debug(format("The following work item has errored out. Will re-queue after a small delay: [%s]", workItem));
+                monitor.debug(format("The following work item has errored out. Will re-queue after a small delay: [%s]", workItem));
                 Executors.newSingleThreadScheduledExecutor().schedule(() -> workItems.offer(workItem), to, TimeUnit.SECONDS);
             }
         };
