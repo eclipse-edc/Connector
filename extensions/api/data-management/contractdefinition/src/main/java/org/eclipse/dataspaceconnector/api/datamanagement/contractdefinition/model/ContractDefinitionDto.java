@@ -28,16 +28,16 @@ import java.util.List;
 
 @JsonDeserialize(builder = ContractDefinitionDto.Builder.class)
 public class ContractDefinitionDto {
-    @NotNull
-    private String accessPolicyId;
-    @NotNull
-    private String contractPolicyId;
-    @NotNull
-    private List<Criterion> criteria = new ArrayList<>();
-    @NotNull
+    @NotNull(message = "id cannot be null")
     private String id;
+    @NotNull(message = "accessPolicyId cannot be null")
+    private String accessPolicyId;
+    @NotNull(message = "accessPolicyId cannot be null")
+    private String contractPolicyId;
+    @NotNull(message = "criteria cannot be null")
+    private List<Criterion> criteria = new ArrayList<>();
 
-    @AssertTrue
+    @AssertTrue(message = "id cannot contain the ':' character")
     @JsonIgnore
     public boolean isIdValid() {
         return id != null && !id.contains(":");

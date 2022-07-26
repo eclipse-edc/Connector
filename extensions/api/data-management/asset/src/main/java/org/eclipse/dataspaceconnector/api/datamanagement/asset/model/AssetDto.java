@@ -23,6 +23,7 @@ import java.util.Map;
 
 @JsonDeserialize(builder = AssetDto.Builder.class)
 public class AssetDto {
+
     @NotNull(message = "properties cannot be null")
     private Map<String, Object> properties;
 
