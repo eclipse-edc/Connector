@@ -39,8 +39,10 @@ class DtoValidationTest {
                 .asset(null) //should break validation
                 .dataAddress(DataAddressDto.Builder.newInstance().build())
                 .build();
+
         var result = validator.validate(entry);
-        assertThat(result).hasSize(1).allSatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("Asset cannot be null"));
+
+        assertThat(result).hasSize(1).allSatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("asset cannot be null"));
     }
 
     @Test
@@ -49,8 +51,10 @@ class DtoValidationTest {
                 .asset(AssetDto.Builder.newInstance().build())
                 .dataAddress(null) // should break validation
                 .build();
+
         var result = validator.validate(entry);
-        assertThat(result).hasSize(1).allSatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("DataAddress cannot be null"));
+
+        assertThat(result).hasSize(1).allSatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("dataAddress cannot be null"));
     }
 
     @Test
@@ -59,6 +63,8 @@ class DtoValidationTest {
                 .properties(null)
                 .build();
 
-        assertThat(validator.validate(asset)).allSatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("properties cannot be null"));
+        var result = validator.validate(asset);
+
+        assertThat(result).allSatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("properties cannot be null"));
     }
 }

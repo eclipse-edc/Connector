@@ -21,11 +21,11 @@ import jakarta.validation.constraints.NotNull;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 
 public class ContractOfferDescription {
-    @NotNull
+    @NotNull(message = "offerId cannot be null")
     private final String offerId;
-    @NotNull
+    @NotNull(message = "assetId cannot be null")
     private final String assetId;
-    @NotNull
+    @NotNull(message = "policy cannot be null")
     private final Policy policy;
 
     @JsonCreator

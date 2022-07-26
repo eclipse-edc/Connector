@@ -21,9 +21,9 @@ import jakarta.validation.constraints.NotNull;
 
 @JsonDeserialize(builder = AssetEntryDto.Builder.class)
 public class AssetEntryDto {
-    @NotNull(message = "Asset cannot be null")
+    @NotNull(message = "asset cannot be null")
     private AssetDto asset;
-    @NotNull(message = "DataAddress cannot be null")
+    @NotNull(message = "dataAddress cannot be null")
     private DataAddressDto dataAddress;
 
     private AssetEntryDto() {

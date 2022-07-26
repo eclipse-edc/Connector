@@ -23,11 +23,11 @@ import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 public class QuerySpecDto {
 
     @QueryParam("offset")
-    @PositiveOrZero
+    @PositiveOrZero(message = "offset must be greater or equal to zero")
     private Integer offset = 0;
 
     @QueryParam("limit")
-    @Positive
+    @Positive(message = "limit must be greater than 0")
     private Integer limit = 50;
 
     @QueryParam("filter")

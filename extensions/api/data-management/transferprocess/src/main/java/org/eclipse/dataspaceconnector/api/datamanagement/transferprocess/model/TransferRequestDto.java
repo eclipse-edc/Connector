@@ -27,22 +27,22 @@ import java.util.Map;
 @JsonDeserialize(builder = TransferRequestDto.Builder.class)
 public class TransferRequestDto {
 
-    @NotNull
-    private String connectorAddress;
     private String id;
-    @NotNull
+    @NotNull(message = "connectorAddress cannot be null")
+    private String connectorAddress;
+    @NotNull(message = "contractId cannot be null")
     private String contractId;
-    @NotNull
+    @NotNull(message = "dataDestination cannot be null")
     private DataAddress dataDestination;
     private boolean managedResources = true;
     private Map<String, String> properties = new HashMap<>();
-    @NotNull
+    @NotNull(message = "transferType cannot be null")
     private TransferType transferType = new TransferType();
-    @NotNull
+    @NotNull(message = "protocol cannot be null")
     private String protocol = "ids-multipart";
-    @NotNull
+    @NotNull(message = "connectorId cannot be null")
     private String connectorId;
-    @NotNull
+    @NotNull(message = "assetId cannot be null")
     private String assetId;
 
     public String getConnectorAddress() {
