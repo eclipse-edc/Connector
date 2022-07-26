@@ -41,6 +41,13 @@ public class CatalogCrawler {
     private final Consumer<UpdateResponse> successHandler;
     private final String crawlerId;
 
+    /**
+     * Constructs a new {@link CatalogCrawler}.
+     *
+     * @param monitor        A monitor
+     * @param errorHandler   A {@link CrawlerErrorHandler} that is invoked if any errors occur during querying.
+     * @param successHandler A {@link CrawlerSuccessHandler} that is invoked when the query is completed successfully.
+     */
     public CatalogCrawler(Monitor monitor, @NotNull CrawlerErrorHandler errorHandler, CrawlerSuccessHandler successHandler) {
         this.monitor = monitor;
         this.errorHandler = errorHandler;
@@ -48,6 +55,13 @@ public class CatalogCrawler {
         crawlerId = format("Crawler-%s", UUID.randomUUID());
     }
 
+    /**
+     * Executes a query by sending a request to {@code target} asking for that target's catalo.
+     *
+     * @param target  The query target
+     * @param adapter The protocol handler which is used to send the query
+     * @return A completable future containing the response, or an exception if an error occurred.
+     */
     public CompletableFuture<UpdateResponse> run(WorkItem target, @NotNull NodeQueryAdapter adapter) {
         try {
             monitor.debug(format("%s: WorkItem acquired", crawlerId));

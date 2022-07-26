@@ -45,7 +45,6 @@ import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class FederatedCatalogCacheExtension implements ServiceExtension {
-    public static final int DEFAULT_NUM_CRAWLERS = 1;
     private Monitor monitor;
     @Inject
     private FederatedCacheStore store;

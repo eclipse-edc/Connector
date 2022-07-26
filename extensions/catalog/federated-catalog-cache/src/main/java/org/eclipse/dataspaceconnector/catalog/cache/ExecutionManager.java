@@ -37,6 +37,16 @@ import java.util.stream.IntStream;
 
 import static java.lang.String.format;
 
+/**
+ * The execution manager is responsible for instantiating crawlers and delegating the incoming work items among them.
+ * Work items are fetched directly from the {@link FederatedCacheNodeDirectory}, crawlers are instantiated before starting the run and will be reused.
+ * For example, a list of 10 work items and 2 {@link CatalogCrawler} objects would mean that every crawler gets invoked 5 times.
+ * All this is done
+ * <p>
+ * Pre- and Post-Tasks can be registered to perform preparatory or cleanup operations.
+ * <p>
+ * The ExecutionManager delegates the actual task to the {@link ExecutionPlan}, which determines, when and how often it needs to be run.
+ */
 public class ExecutionManager {
 
     private Monitor monitor;
@@ -54,61 +64,66 @@ public class ExecutionManager {
     public void executePlan(ExecutionPlan plan) {
         plan.run(() -> {
 
-            monitor.debug(message("Run pre-execution task"));
+            monitor.info(message("Run pre-execution task"));
             runPreExecution();
 
-            // load work items from directory
-            List<WorkItem> workItems = fetchWorkItems();
-            if (workItems.isEmpty()) {
-                monitor.warning("No WorkItems found, aborting execution");
-                return;
-            }
-            monitor.debug(message("Loaded " + workItems.size() + " work items from storage"));
-            var allItems = new ArrayBlockingQueue<>(workItems.size(), true, workItems);
+            monitor.info(message("Run execution"));
+            doWork();
 
-            monitor.debug(message("Instantiate crawlers..."));
-            //instantiate fixed pool of crawlers
-            var errorHandler = createErrorHandlers(monitor, allItems);
-
-            var actualNumCrawlers = Math.min(allItems.size(), numCrawlers);
-            monitor.debug(format(message("Crawler parallelism is %s, based on config and number of work items"), actualNumCrawlers));
-            var availableCrawlers = createCrawlers(errorHandler, actualNumCrawlers);
-
-            while (!allItems.isEmpty()) {
-                // try get next available crawler
-                var crawler = nextAvailableCrawler(availableCrawlers);
-                if (crawler == null) {
-                    monitor.debug(message("No crawler available, will retry later"));
-                    continue;
-                }
-
-                var item = allItems.poll();
-                if (item == null) {
-                    monitor.warning(message("WorkItem queue empty, abort execution"));
-                    break;
-                }
-
-                // for now use the first adapter that can handle the protocol
-                var adapter = nodeQueryAdapterRegistry.findForProtocol(item.getProtocol()).stream().findFirst();
-                if (adapter.isEmpty()) {
-                    monitor.warning(message(format("No protocol adapter found for protocol '%s'", item.getProtocol())));
-                } else {
-                    crawler.run(item, adapter.get())
-                            .whenComplete((updateResponse, throwable) -> {
-                                if (throwable != null) {
-                                    monitor.severe(message(format("Unexpected exception happened during in crawler %s", crawler.getId())), throwable);
-                                } else {
-                                    monitor.info(message(format("Crawler [%s] is done", crawler.getId())));
-                                }
-                                availableCrawlers.add(crawler);
-                            });
-                }
-            }
-
-            monitor.debug(message("Run post-execution task"));
+            monitor.info(message("Run post-execution task"));
             runPostExecution();
         });
 
+    }
+
+    private void doWork() {
+        // load work items from directory
+        List<WorkItem> workItems = fetchWorkItems();
+        if (workItems.isEmpty()) {
+            monitor.warning("No WorkItems found, aborting execution");
+            return;
+        }
+        monitor.debug(message("Loaded " + workItems.size() + " work items from storage"));
+        var allItems = new ArrayBlockingQueue<>(workItems.size(), true, workItems);
+
+        monitor.debug(message("Instantiate crawlers..."));
+        //instantiate fixed pool of crawlers
+        var errorHandler = createErrorHandlers(monitor, allItems);
+
+        var actualNumCrawlers = Math.min(allItems.size(), numCrawlers);
+        monitor.debug(format(message("Crawler parallelism is %s, based on config and number of work items"), actualNumCrawlers));
+        var availableCrawlers = createCrawlers(errorHandler, actualNumCrawlers);
+
+        while (!allItems.isEmpty()) {
+            // try get next available crawler
+            var crawler = nextAvailableCrawler(availableCrawlers);
+            if (crawler == null) {
+                monitor.debug(message("No crawler available, will retry later"));
+                continue;
+            }
+
+            var item = allItems.poll();
+            if (item == null) {
+                monitor.warning(message("WorkItem queue empty, abort execution"));
+                break;
+            }
+
+            // for now use the first adapter that can handle the protocol
+            var adapter = nodeQueryAdapterRegistry.findForProtocol(item.getProtocol()).stream().findFirst();
+            if (adapter.isEmpty()) {
+                monitor.warning(message(format("No protocol adapter found for protocol '%s'", item.getProtocol())));
+            } else {
+                crawler.run(item, adapter.get())
+                        .whenComplete((updateResponse, throwable) -> {
+                            if (throwable != null) {
+                                monitor.severe(message(format("Unexpected exception happened during in crawler %s", crawler.getId())), throwable);
+                            } else {
+                                monitor.info(message(format("Crawler [%s] is done", crawler.getId())));
+                            }
+                            availableCrawlers.add(crawler);
+                        });
+            }
+        }
     }
 
     @Nullable

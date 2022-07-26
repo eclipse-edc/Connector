@@ -156,9 +156,11 @@ class ExecutionManagerTest {
         manager.executePlan(simplePlan());
         var inorder = inOrder(preExecutionTaskMock, monitorMock);
 
-        inorder.verify(monitorMock).debug(anyString());
+        inorder.verify(monitorMock).info(anyString());
         inorder.verify(preExecutionTaskMock).run();
+        inorder.verify(monitorMock).info(anyString());
         inorder.verify(monitorMock).warning(startsWith("No WorkItems found"));
+        inorder.verify(monitorMock).info(anyString());
         verifyNoMoreInteractions(monitorMock);
         verifyNoInteractions(nodeQueryAdapterRegistry);
     }
