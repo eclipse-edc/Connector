@@ -49,6 +49,8 @@ class HttpProvisionerWebhookApiControllerIntegrationTest {
     @BeforeEach
     void setUp(EdcExtension extension) {
         extension.setConfiguration(Map.of(
+                "web.http.port", String.valueOf(getFreePort()),
+                "web.http.path", "/api",
                 "web.http.provisioner.port", String.valueOf(port),
                 "web.http.provisioner.path", PROVISIONER_BASE_PATH,
                 "edc.api.auth.key", authKey

@@ -22,13 +22,16 @@ import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.event.EventSubscriber;
 import org.eclipse.dataspaceconnector.spi.event.policydefinition.PolicyDefinitionCreated;
 import org.eclipse.dataspaceconnector.spi.event.policydefinition.PolicyDefinitionDeleted;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -38,6 +41,14 @@ import static org.mockito.Mockito.verify;
 public class PolicyDefinitionEventDispatchTest {
 
     private final EventSubscriber eventSubscriber = mock(EventSubscriber.class);
+
+    @BeforeEach
+    void setUp(EdcExtension extension) {
+        extension.setConfiguration(Map.of(
+                "web.http.port", String.valueOf(getFreePort()),
+                "web.http.path", "/api"
+        ));
+    }
 
     @Test
     void shouldDispatchEventOnPolicyDefinitionCreationAndDeletion(PolicyDefinitionService service, EventRouter eventRouter) throws InterruptedException {

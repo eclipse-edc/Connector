@@ -40,6 +40,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -54,10 +55,12 @@ public class TransferProcessEventDispatchTest {
     @BeforeEach
     void setUp(EdcExtension extension) {
         extension.setConfiguration(Map.of("edc.transfer.send.retry.limit", "0",
-                                          "edc.transfer.send.retry.base-delay.ms", "0"));
+                "edc.transfer.send.retry.base-delay.ms", "0",
+                "web.http.port", String.valueOf(getFreePort()),
+                "web.http.path", "/api"));
         extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
         extension.registerServiceMock(EventExecutorServiceContainer.class,
-                                      new EventExecutorServiceContainer(Executors.newSingleThreadExecutor()));
+                new EventExecutorServiceContainer(Executors.newSingleThreadExecutor()));
     }
 
     @Test

@@ -53,6 +53,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -68,6 +69,8 @@ public class ContractNegotiationEventDispatchTest {
     @BeforeEach
     void setUp(EdcExtension extension) {
         extension.setConfiguration(Map.of(
+                "web.http.port", String.valueOf(getFreePort()),
+                "web.http.path", "/api",
                 "edc.negotiation.consumer.send.retry.limit", "0",
                 "edc.negotiation.provider.send.retry.limit", "0"
         ));

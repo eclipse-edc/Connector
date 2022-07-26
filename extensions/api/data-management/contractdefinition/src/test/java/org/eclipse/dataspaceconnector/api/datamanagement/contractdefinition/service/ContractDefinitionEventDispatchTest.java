@@ -21,12 +21,15 @@ import org.eclipse.dataspaceconnector.spi.event.EventSubscriber;
 import org.eclipse.dataspaceconnector.spi.event.contractdefinition.ContractDefinitionCreated;
 import org.eclipse.dataspaceconnector.spi.event.contractdefinition.ContractDefinitionDeleted;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Map;
 import java.util.UUID;
 
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -35,6 +38,14 @@ import static org.mockito.Mockito.verify;
 public class ContractDefinitionEventDispatchTest {
 
     private final EventSubscriber eventSubscriber = mock(EventSubscriber.class);
+
+    @BeforeEach
+    void setUp(EdcExtension extension) {
+        extension.setConfiguration(Map.of(
+                "web.http.port", String.valueOf(getFreePort()),
+                "web.http.path", "/api"
+        ));
+    }
 
     @Test
     void shouldDispatchEventOnContractDefinitionCreationAndDeletion(ContractDefinitionService service, EventRouter eventRouter) {
