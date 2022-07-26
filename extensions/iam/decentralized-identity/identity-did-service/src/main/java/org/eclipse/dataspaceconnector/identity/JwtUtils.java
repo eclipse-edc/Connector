@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.iam.did.crypto.credentials;
+package org.eclipse.dataspaceconnector.identity;
 
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
@@ -36,31 +36,30 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Convenience/helper class to generate, verify and deserialize verifiable credentials, which are, in fact, Signed JSON Web Tokens (JWTs).
+ * Convenience/helper class to generate and verify Signed JSON Web Tokens (JWTs) for communicating between connector instances.
  */
-public class VerifiableCredentialFactory {
-
+class JwtUtils {
     // RFC 7519 Registered (standard) claims
     private static final String ISSUER_CLAIM = "iss";
+    private static final String SUBJECT_CLAIM = "sub";
     private static final String EXPIRATION_TIME_CLAIM = "exp";
 
-    // Subject claim value
-    public static final String VERIFIABLE_CREDENTIAL = "verifiable-credential";
-
     /**
-     * Creates a signed JWT {@link SignedJWT} that contains a set of claims and an issuer. Although all private key types are possible, in the context of Distributed Identity and ION
+     * Creates a signed JWT {@link SignedJWT} that contains a set of claims and an issuer. Although all private key types are possible, in the context of Distributed Identity
      * using an Elliptic Curve key ({@code P-256}) is advisable.
      *
      * @param privateKey A Private Key represented as {@link PrivateKeyWrapper}.
-     * @param issuer     the "owner" of the VC, in most cases this will be the DID ID. The VC will store this in the "iss" claim
-     * @param audience   the audience of the token, e.g. the IDS Webhook address. The VC will store this in the "aud" claim
-     * @param clock      clock used to get current time
-     * @return a {@code SignedJWT} that is signed with the private key and contains all claims listed
+     * @param issuer     the value of the token issuer claim.
+     * @param subject    the value of the token subject claim. For Distributed Identity, this value is identical to the issuer claim.
+     * @param audience   the value of the token audience claim, e.g. the IDS Webhook address.
+     * @param clock      clock used to get current time.
+     * @return a {@code SignedJWT} that is signed with the private key and contains all claims listed.
      */
-    public static SignedJWT create(PrivateKeyWrapper privateKey, String issuer, String audience, Clock clock) {
-        var claimsSet = new JWTClaimsSet.Builder().issuer(issuer)
+
+    static SignedJWT create(PrivateKeyWrapper privateKey, String issuer, String subject, String audience, Clock clock) {
+        var claimsSet = new JWTClaimsSet.Builder()
                 .issuer(issuer)
-                .subject(VERIFIABLE_CREDENTIAL)
+                .subject(subject)
                 .audience(audience)
                 .expirationTime(Date.from(clock.instant().plus(10, ChronoUnit.MINUTES)))
                 .jwtID(UUID.randomUUID().toString())
@@ -91,7 +90,7 @@ public class VerifiableCredentialFactory {
      * @param audience  The intended audience
      * @return true if verified, false otherwise
      */
-    public static Result<Void> verify(SignedJWT jwt, PublicKeyWrapper publicKey, String audience) {
+    static Result<Void> verify(SignedJWT jwt, PublicKeyWrapper publicKey, String audience) {
         // verify JWT signature
         try {
             var verified = jwt.verify(publicKey.verifier());
@@ -112,10 +111,10 @@ public class VerifiableCredentialFactory {
         // verify claims
         var exactMatchClaims = new JWTClaimsSet.Builder()
                 .audience(audience)
-                .subject(VERIFIABLE_CREDENTIAL)
                 .build();
         var requiredClaims = Set.of(
                 ISSUER_CLAIM,
+                SUBJECT_CLAIM,
                 EXPIRATION_TIME_CLAIM);
 
         var claimsVerifier = new DefaultJWTClaimsVerifier<>(exactMatchClaims, requiredClaims);
