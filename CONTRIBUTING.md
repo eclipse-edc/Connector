@@ -103,13 +103,13 @@ we would appreciate if your pull request applies to the following points:
 
 * The git commit messages should comply to the following format:
     ```
-    <component>: <description>
+    <prefix>(<scope>): <description>
     ```
 
   Use the [imperative mood](https://github.com/git/git/blob/master/Documentation/SubmittingPatches)
   as in "Fix bug" or "Add feature" rather than "Fixed bug" or "Added feature" and
   [mention the GitHub issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue)
-  e.g. `transfer process: improve logging, closes #3`.
+  e.g. `chore(transfer process): improve logging`.
 
   All committers, and all commits, are bound to
   the [Developer Certificate of Origin.](https://www.eclipse.org/legal/DCO.php)
@@ -121,12 +121,6 @@ we would appreciate if your pull request applies to the following points:
 * Where code is not self-explanatory, add documentation providing extra clarification.
 
 * Add documentation files to new modules. See [here](#add-documentation) for more details.
-
-* Add relevant changes (e.g., no typo fixes, updated readme files, fixes of stuck test) to the 
-  [changelog](CHANGELOG.md). If these refer to a new feature, add this to the `Overview` section 
-  and add your changes to the `Detailed Changes` section according to the rules documented on 
-  <http://keepachangelog.com>. Include more information via linking to existing pull requests,
-  issues, or discussions.
 
 * If a new module has been added or a significant part of the code has been changed and you should 
   or want to be seen as the contact person for any further changes, please add appropriate 

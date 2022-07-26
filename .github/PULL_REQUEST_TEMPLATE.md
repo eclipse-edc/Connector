@@ -22,5 +22,5 @@ Closes # <-- _insert Issue number if one exists_
 - [ ] added/updated copyright headers?
 - [ ] documented public classes/methods?
 - [ ] added/updated relevant documentation?
-- [ ] added relevant details to the changelog? (_skip with label `no-changelog`_)
+- [ ] assigned appropriate label? (exclude from changelog with label `no-changelog`)
 - [ ] formatted title correctly? (_take a look at the [CONTRIBUTING](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/CONTRIBUTING.md#submit-a-pull-request) and [styleguide](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/blob/main/styleguide.md) for details_)

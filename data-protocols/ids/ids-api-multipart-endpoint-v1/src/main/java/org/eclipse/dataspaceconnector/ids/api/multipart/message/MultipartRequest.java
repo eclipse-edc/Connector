@@ -21,6 +21,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+/**
+ * Represents an IDS multipart request. Contains the IDS message header, an optional payload and
+ * the claim token for the requesting connector.
+ */
 public class MultipartRequest {
 
     private final Message header;
@@ -28,7 +32,7 @@ public class MultipartRequest {
     private final ClaimToken claimToken;
 
     private MultipartRequest(@NotNull Message header, @Nullable String payload, ClaimToken claimToken) {
-        this.header = Objects.requireNonNull(header);
+        this.header = header;
         this.payload = payload;
         this.claimToken = claimToken;
     }
@@ -61,7 +65,7 @@ public class MultipartRequest {
             return new Builder();
         }
 
-        public Builder header(@Nullable Message header) {
+        public Builder header(@NotNull Message header) {
             this.header = header;
             return this;
         }
@@ -71,12 +75,14 @@ public class MultipartRequest {
             return this;
         }
 
-        public Builder claimToken(ClaimToken claimToken) {
+        public Builder claimToken(@NotNull ClaimToken claimToken) {
             this.claimToken = claimToken;
             return this;
         }
 
         public MultipartRequest build() {
+            Objects.requireNonNull(header, "Multipart request header is null.");
+            Objects.requireNonNull(claimToken, "Multipart request claim token is null.");
             return new MultipartRequest(header, payload, claimToken);
         }
     }

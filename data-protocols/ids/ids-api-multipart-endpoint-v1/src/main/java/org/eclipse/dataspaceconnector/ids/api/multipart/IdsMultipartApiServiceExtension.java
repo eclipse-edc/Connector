@@ -17,27 +17,16 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart;
 
-import de.fraunhofer.iais.eis.ParticipantUpdateMessage;
 import org.eclipse.dataspaceconnector.ids.api.configuration.IdsApiConfiguration;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ArtifactRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractAgreementHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractOfferHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractRejectionHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.EndpointDataReferenceHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.NotificationMessageHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.NotificationMessageHandlerRegistry;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ArtifactDescriptionRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ConnectorDescriptionRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DataCatalogDescriptionRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.RepresentationDescriptionRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ResourceDescriptionRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.message.ids.IdsResponseMessageFactory;
 import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
@@ -64,7 +53,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTran
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedList;
-import java.util.Objects;
 
 /**
  * ServiceExtension providing IDS multipart related API controllers
@@ -75,6 +63,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     public static final String EDC_IDS_ID = "edc.ids.id";
     public static final String DEFAULT_EDC_IDS_ID = "urn:connector:edc";
 
+    @Inject
     private Monitor monitor;
     @Inject
     private WebService webService;
@@ -118,57 +107,25 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
 
     @Override
-    public void initialize(ServiceExtensionContext serviceExtensionContext) {
-        monitor = serviceExtensionContext.getMonitor();
-
-        registerControllers(serviceExtensionContext);
+    public void initialize(ServiceExtensionContext context) {
+        registerControllers(context);
     }
 
-    private void registerControllers(ServiceExtensionContext serviceExtensionContext) {
-
-        var connectorId = resolveConnectorId(serviceExtensionContext);
-
-        // create description request handlers
-        var artifactDescriptionRequestHandler = new ArtifactDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry);
-        var dataCatalogDescriptionRequestHandler = new DataCatalogDescriptionRequestHandler(monitor, connectorId, dataCatalogService, transformerRegistry);
-        var representationDescriptionRequestHandler = new RepresentationDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry);
-        var resourceDescriptionRequestHandler = new ResourceDescriptionRequestHandler(monitor, connectorId, assetIndex, contractOfferService, transformerRegistry);
-        var connectorDescriptionRequestHandler = new ConnectorDescriptionRequestHandler(monitor, connectorId, connectorService, transformerRegistry);
-
-        // create & register controller
+    private void registerControllers(ServiceExtensionContext context) {
+        var connectorId = resolveConnectorId(context);
+        
         // TODO ObjectMapper needs to be replaced by one capable to write proper IDS JSON-LD
         //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
         var objectMapper = objectMapperFactory.getObjectMapper();
 
-        // create request handler
-        var descriptionHandler = new DescriptionHandler(
-                monitor,
-                connectorId,
-                transformerRegistry,
-                artifactDescriptionRequestHandler,
-                dataCatalogDescriptionRequestHandler,
-                representationDescriptionRequestHandler,
-                resourceDescriptionRequestHandler,
-                connectorDescriptionRequestHandler);
-
+        // create request handlers
         var handlers = new LinkedList<Handler>();
-        handlers.add(descriptionHandler);
-
-        var artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault);
-        handlers.add(artifactRequestHandler);
-
-        // create contract message handlers
-        var responseMessageFactory = new IdsResponseMessageFactory(connectorId, identityService);
-        handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager, responseMessageFactory, transformerRegistry, assetIndex));
+        handlers.add(new DescriptionRequestHandler(monitor, connectorId, transformerRegistry, assetIndex, dataCatalogService, contractOfferService, connectorService));
+        handlers.add(new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault));
+        handlers.add(new EndpointDataReferenceHandler(monitor, connectorId, endpointDataReferenceReceiverRegistry, endpointDataReferenceTransformerRegistry, context.getTypeManager()));
+        handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager, transformerRegistry, assetIndex));
         handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager, transformerRegistry));
-        handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper, providerNegotiationManager, consumerNegotiationManager, responseMessageFactory));
         handlers.add(new ContractRejectionHandler(monitor, connectorId, providerNegotiationManager, consumerNegotiationManager));
-
-        // add notification handler and sub-handlers
-        var notificationHandlersRegistry = new NotificationMessageHandlerRegistry();
-        var endpointDataReferenceHandler = new EndpointDataReferenceHandler(monitor, connectorId, endpointDataReferenceReceiverRegistry, endpointDataReferenceTransformerRegistry, serviceExtensionContext.getTypeManager());
-        notificationHandlersRegistry.addHandler(ParticipantUpdateMessage.class, endpointDataReferenceHandler);
-        handlers.add(new NotificationMessageHandler(connectorId, notificationHandlersRegistry));
 
         // create & register controller
         var multipartController = new MultipartController(monitor, connectorId, objectMapper, identityService, handlers, idsApiConfiguration.getIdsWebhookAddress());
@@ -176,24 +133,15 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     }
 
     private String resolveConnectorId(@NotNull ServiceExtensionContext context) {
-        Objects.requireNonNull(context);
-
-        String value = context.getSetting(EDC_IDS_ID, null);
-
-        if (value == null) {
-            String message = "IDS Settings: No setting found for key '%s'. Using default value '%s'";
-            monitor.warning(String.format(message, EDC_IDS_ID, DEFAULT_EDC_IDS_ID));
-            value = DEFAULT_EDC_IDS_ID;
-        }
-
+        var value = context.getSetting(EDC_IDS_ID, DEFAULT_EDC_IDS_ID);
         try {
             // Hint: use stringified uri to keep uri path and query
-            IdsId idsId = IdsIdParser.parse(value);
+            var idsId = IdsIdParser.parse(value);
             if (idsId != null && idsId.getType() == IdsType.CONNECTOR) {
                 return idsId.getValue();
             }
         } catch (IllegalArgumentException e) {
-            String message = "IDS Settings: Expected valid URN for setting '%s', but was %s'. Expected format: 'urn:connector:[id]'";
+            var message = "IDS Settings: Expected valid URN for setting '%s', but was %s'. Expected format: 'urn:connector:[id]'";
             throw new EdcException(String.format(message, EDC_IDS_ID, DEFAULT_EDC_IDS_ID));
         }
 

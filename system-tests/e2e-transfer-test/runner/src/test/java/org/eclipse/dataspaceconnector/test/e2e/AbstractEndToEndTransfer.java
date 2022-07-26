@@ -19,6 +19,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.HttpDataAddress;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.util.Map;
+import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,7 +39,7 @@ public abstract class AbstractEndToEndTransfer {
     void httpPullDataTransfer() {
         PROVIDER.registerDataPlane();
         CONSUMER.registerDataPlane();
-        String definitionId = "1";
+        var definitionId = "1";
         createAssetAndContractDefinitionOnProvider("asset-id", definitionId, "HttpData");
 
         var catalog = CONSUMER.getCatalog(PROVIDER.idsEndpoint());
@@ -50,29 +52,30 @@ public abstract class AbstractEndToEndTransfer {
 
         assertThat(contractAgreementId).isNotEmpty();
 
-        var transferProcessId = CONSUMER.dataRequest(contractAgreementId, assetId, PROVIDER, sync());
+        var dataRequestId = UUID.randomUUID().toString();
+        var transferProcessId = CONSUMER.dataRequest(dataRequestId, contractAgreementId, assetId, PROVIDER, sync());
 
         await().atMost(timeout).untilAsserted(() -> {
             var state = CONSUMER.getTransferProcessState(transferProcessId);
             assertThat(state).isEqualTo(COMPLETED.name());
         });
 
-        await().atMost(timeout).untilAsserted(() -> {
-            given()
-                    .baseUri(CONSUMER.backendService().toString())
-                    .when()
-                    .get("/api/consumer/data")
-                    .then()
-                    .statusCode(200)
-                    .body("message", equalTo("some information"));
-        });
+        // retrieve the data reference
+        var edr = CONSUMER.getDataReference(dataRequestId);
+
+        // pull the data without query parameter
+        await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of(), equalTo("some information")));
+
+        // pull the data with additional query parameter
+        var msg = UUID.randomUUID().toString();
+        await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of("message", msg), equalTo(msg)));
     }
 
     @Test
     void httpPullDataTransferProvisioner() {
         PROVIDER.registerDataPlane();
         CONSUMER.registerDataPlane();
-        String definitionId = "1";
+        var definitionId = "1";
         createAssetAndContractDefinitionOnProvider("asset-id", definitionId, "HttpProvision");
 
         await().atMost(timeout).untilAsserted(() -> {
@@ -88,22 +91,16 @@ public abstract class AbstractEndToEndTransfer {
 
         assertThat(contractAgreementId).isNotEmpty();
 
-        var transferProcessId = CONSUMER.dataRequest(contractAgreementId, assetId, PROVIDER, sync());
+        var dataRequestId = UUID.randomUUID().toString();
+        var transferProcessId = CONSUMER.dataRequest(dataRequestId, contractAgreementId, assetId, PROVIDER, sync());
 
         await().atMost(timeout).untilAsserted(() -> {
             var state = CONSUMER.getTransferProcessState(transferProcessId);
             assertThat(state).isEqualTo(COMPLETED.name());
         });
 
-        await().atMost(timeout).untilAsserted(() -> {
-            given()
-                    .baseUri(CONSUMER.backendService().toString())
-                    .when()
-                    .get("/api/consumer/data")
-                    .then()
-                    .statusCode(200)
-                    .body("message", equalTo("some information"));
-        });
+        var edr = CONSUMER.getDataReference(dataRequestId);
+        await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of(), equalTo("some information")));
     }
 
     @Test
@@ -125,7 +122,7 @@ public abstract class AbstractEndToEndTransfer {
         var destination = HttpDataAddress.Builder.newInstance()
                 .baseUrl(CONSUMER.backendService() + "/api/consumer/store")
                 .build();
-        var transferProcessId = CONSUMER.dataRequest(contractAgreementId, assetId, PROVIDER, destination);
+        var transferProcessId = CONSUMER.dataRequest(UUID.randomUUID().toString(), contractAgreementId, assetId, PROVIDER, destination);
 
         await().atMost(timeout).untilAsserted(() -> {
             var state = CONSUMER.getTransferProcessState(transferProcessId);

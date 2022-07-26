@@ -19,6 +19,7 @@ import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.NotSupportedException;
+import org.eclipse.dataspaceconnector.spi.ApiErrorDetail;
 import org.eclipse.dataspaceconnector.spi.exception.AuthenticationFailedException;
 import org.eclipse.dataspaceconnector.spi.exception.NotAuthorizedException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectExistsException;
@@ -33,33 +34,38 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
+import static org.assertj.core.api.InstanceOfAssertFactories.type;
 
 class EdcApiExceptionMapperTest {
 
     @ParameterizedTest
     @ArgumentsSource(EdcApiExceptions.class)
-    @ArgumentsSource(JakartaApiExceptions.class)
-    @ArgumentsSource(JavaExceptions.class)
-    void toResponseNotVerbose(Throwable throwable, int expectedCode) {
-        var mapper = new EdcApiExceptionMapper(false);
+    void toResponse_edcApiExceptions(Throwable throwable, int expectedCode) {
+        var mapper = new EdcApiExceptionMapper();
 
-        var response = mapper.toResponse(throwable);
-
-        assertThat(response.getStatus()).isEqualTo(expectedCode);
-        assertThat(response.getStatusInfo().getReasonPhrase()).isNotBlank();
-        assertThat(response.getEntity()).isNull();
+        try (var response = mapper.toResponse(throwable)) {
+            assertThat(response.getStatus()).isEqualTo(expectedCode);
+            assertThat(response.getStatusInfo().getReasonPhrase()).isNotBlank();
+            assertThat(response.getEntity()).asInstanceOf(LIST).first().asInstanceOf(type(ApiErrorDetail.class))
+                    .satisfies(detail -> {
+                        assertThat(detail.getMessage()).isNotBlank();
+                        assertThat(detail.getType()).isNotBlank();
+                    });
+        }
     }
 
     @ParameterizedTest
-    @ArgumentsSource(EdcApiExceptions.class)
-    void toResponseVerbose(Throwable throwable, int expectedCode) {
-        var mapper = new EdcApiExceptionMapper(true);
+    @ArgumentsSource(JakartaApiExceptions.class)
+    @ArgumentsSource(JavaExceptions.class)
+    void toResponse_externalExceptions(Throwable throwable, int expectedCode) {
+        var mapper = new EdcApiExceptionMapper();
 
-        var response = mapper.toResponse(throwable);
-
-        assertThat(response.getStatus()).isEqualTo(expectedCode);
-        assertThat(response.getStatusInfo().getReasonPhrase()).isNotBlank();
-        assertThat(response.getEntity()).isNotNull();
+        try (var response = mapper.toResponse(throwable)) {
+            assertThat(response.getStatus()).isEqualTo(expectedCode);
+            assertThat(response.getStatusInfo().getReasonPhrase()).isNotBlank();
+            assertThat(response.getEntity()).isNull();
+        }
     }
 
     private static class EdcApiExceptions implements ArgumentsProvider {

@@ -57,8 +57,7 @@ public class ExceptionMappersIntegrationTest {
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.test.port", String.valueOf(port),
-                "web.http.test.path", "/",
-                "edc.web.rest.error.response.verbose", Boolean.TRUE.toString()
+                "web.http.test.path", "/"
         ));
         extension.registerSystemExtension(ServiceExtension.class, new MyServiceExtension());
     }

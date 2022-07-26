@@ -35,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.time.Clock;
 import java.util.Map;
 
@@ -52,14 +51,8 @@ abstract class DecentralizedIdentityServiceTest {
     private static final Faker FAKER = new Faker();
     private static final String DID_DOCUMENT = getResourceFileContentAsString("dids.json");
 
-    String didUrl = FAKER.internet().url();
+    private final String didUrl = FAKER.internet().url();
     private DecentralizedIdentityService identityService;
-
-    @Test
-    void verifyResolveHubUrl() throws IOException {
-        var url = identityService.getHubUrl(new ObjectMapper().readValue(DID_DOCUMENT, DidDocument.class));
-        assertEquals("https://myhub.com", url);
-    }
 
     @Test
     void generateAndVerifyJwtToken_valid() {
