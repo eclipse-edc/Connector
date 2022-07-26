@@ -29,8 +29,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
  * TODO: This must be updated to contain a list of {@link org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset}s after https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/pull/159 has been merged!
  */
 public class UpdateResponse {
-    private String source;
-    private Catalog catalog;
+    private final String source;
+    private final Catalog catalog;
 
     @JsonCreator
     public UpdateResponse(@JsonProperty("source") String source, @JsonProperty("catalog") Catalog assetNames) {
@@ -38,14 +38,13 @@ public class UpdateResponse {
         catalog = assetNames;
     }
 
-    public UpdateResponse() {
-
-    }
-
     public Catalog getCatalog() {
         return catalog;
     }
 
+    /**
+     * The URL from which the catalog update originates, i.e. the catalog's sender
+     */
     public String getSource() {
         return source;
     }

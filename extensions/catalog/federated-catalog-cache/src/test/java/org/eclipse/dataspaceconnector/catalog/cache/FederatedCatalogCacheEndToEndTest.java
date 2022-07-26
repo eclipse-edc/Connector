@@ -35,11 +35,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createOffer;
+import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOkHttpClient;
 
 
@@ -47,7 +47,7 @@ import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.testOk
 class FederatedCatalogCacheEndToEndTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final String PORT = String.valueOf(2000 + new Random().nextInt(8000));
+    private static final String PORT = String.valueOf(getFreePort());
 
     @BeforeAll
     static void setProps() {
