@@ -31,6 +31,7 @@ import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryD
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
+import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -67,7 +68,7 @@ public class AssetApiController implements AssetApi {
         var dataAddressResult = transformerRegistry.transform(assetEntryDto.getDataAddress(), DataAddress.class);
 
         if (assetResult.failed() || dataAddressResult.failed()) {
-            throw new IllegalArgumentException("Request is not well formatted");
+            throw new InvalidRequestException("Request is not well formatted");
         }
 
         var dataAddress = dataAddressResult.getContent();
@@ -87,8 +88,7 @@ public class AssetApiController implements AssetApi {
     public List<AssetDto> getAllAssets(@Valid @BeanParam QuerySpecDto querySpecDto) {
         var transformationResult = transformerRegistry.transform(querySpecDto, QuerySpec.class);
         if (transformationResult.failed()) {
-            monitor.warning("Error transforming QuerySpec: " + String.join(", ", transformationResult.getFailureMessages()));
-            throw new IllegalArgumentException("Cannot transform QuerySpecDto object");
+            throw new InvalidRequestException("Cannot transform QuerySpecDto object: " + transformationResult.getFailureDetail());
         }
 
         var spec = transformationResult.getContent();

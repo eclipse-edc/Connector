@@ -103,6 +103,18 @@ public class ExceptionMappersIntegrationTest {
                 ));
     }
 
+    @Test
+    void shouldReturn500ErrorOnJavaLangExceptions() {
+        doThrow(new NullPointerException()).when(runnable).run();
+
+        given()
+                .port(port)
+                .accept(JSON)
+                .get("/test")
+                .then()
+                .statusCode(500);
+    }
+
     @Path("/test")
     public class TestController {
 

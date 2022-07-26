@@ -15,12 +15,12 @@
 
 package org.eclipse.dataspaceconnector.extension.jersey.mapper;
 
-import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import org.eclipse.dataspaceconnector.spi.ApiErrorDetail;
 import org.eclipse.dataspaceconnector.spi.exception.AuthenticationFailedException;
 import org.eclipse.dataspaceconnector.spi.exception.EdcApiException;
+import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
 import org.eclipse.dataspaceconnector.spi.exception.NotAuthorizedException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
@@ -32,48 +32,38 @@ import java.util.Map;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 import static jakarta.ws.rs.core.Response.Status.CONFLICT;
 import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
-import static jakarta.ws.rs.core.Response.Status.NOT_IMPLEMENTED;
-import static jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
 
-public class EdcApiExceptionMapper implements ExceptionMapper<Throwable> {
-    private final Map<Class<? extends Throwable>, Response.Status> exceptionMap;
+/**
+ * Exception mapper that catches all the `EdcApiException` exceptions, map them to a 4xx response code with a detailed response body
+ */
+public class EdcApiExceptionMapper implements ExceptionMapper<EdcApiException> {
+    private final Map<Class<? extends EdcApiException>, Response.Status> exceptionMap;
 
     public EdcApiExceptionMapper() {
         exceptionMap = Map.of(
-                IllegalArgumentException.class, BAD_REQUEST,
-                NullPointerException.class, BAD_REQUEST,
                 AuthenticationFailedException.class, UNAUTHORIZED,
                 NotAuthorizedException.class, FORBIDDEN,
+                InvalidRequestException.class, BAD_REQUEST,
                 ObjectNotFoundException.class, NOT_FOUND,
                 ObjectExistsException.class, CONFLICT,
-                ObjectNotModifiableException.class, CONFLICT,
-                UnsupportedOperationException.class, NOT_IMPLEMENTED
+                ObjectNotModifiableException.class, CONFLICT
         );
     }
 
     @Override
-    public Response toResponse(Throwable exception) {
-        if (exception instanceof WebApplicationException) {
-            return ((WebApplicationException) exception).getResponse();
-        }
+    public Response toResponse(EdcApiException exception) {
+        var status = exceptionMap.getOrDefault(exception.getClass(), INTERNAL_SERVER_ERROR);
 
-        var status = exceptionMap.getOrDefault(exception.getClass(), SERVICE_UNAVAILABLE);
+        var errorDetail = ApiErrorDetail.Builder.newInstance()
+                .message(exception.getMessage())
+                .type(exception.getType())
+                .build();
 
-        if (exception instanceof EdcApiException) {
-            var edcApiException = (EdcApiException) exception;
-
-            var errorDetail = ApiErrorDetail.Builder.newInstance()
-                    .message(edcApiException.getMessage())
-                    .type(edcApiException.getType())
-                    .build();
-
-            return Response.status(status)
-                    .entity(List.of(errorDetail))
-                    .build();
-        }
-
-        return Response.status(status).build();
+        return Response.status(status)
+                .entity(List.of(errorDetail))
+                .build();
     }
 }
