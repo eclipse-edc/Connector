@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.startsWith;
@@ -42,9 +43,17 @@ class CacheConfigurationTest {
 
     @Test
     void getExecutionPlan_whenLowPeriod() {
-        when(context.getSetting(eq(CacheConfiguration.PART_EXECUTION_PLAN_PERIOD_SECONDS), anyInt())).thenReturn(9);
+        when(context.getSetting(eq(CacheConfiguration.EXECUTION_PLAN_PERIOD_SECONDS), anyInt())).thenReturn(9);
 
         configuration.getExecutionPlan();
         verify(monitorMock).warning(startsWith("An execution period of 9 seconds is very low "));
+    }
+
+    @Test
+    void getNumCrawlers() {
+        configuration.getNumCrawlers();
+        verify(context).getSetting(CacheConfiguration.NUM_CRAWLER_SETTING, 2);
+        when(context.getSetting(eq(CacheConfiguration.NUM_CRAWLER_SETTING), eq(2))).thenReturn(9);
+        assertThat(configuration.getNumCrawlers()).isEqualTo(9);
     }
 }

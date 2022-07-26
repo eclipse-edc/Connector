@@ -31,46 +31,29 @@ import static java.lang.String.format;
  */
 public class CacheConfiguration {
 
-    @EdcSetting
-    static final String PART_EXECUTION_PLAN_PERIOD_SECONDS = "edc.catalog.cache.execution.period.seconds";
-    @EdcSetting
-    private static final String PART_WORK_ITEM_QUEUE_SIZE_SETTING = "edc.catalog.cache.partition.queue.size";
-    @EdcSetting
-    private static final String PART_NUM_CRAWLER_SETTING = "edc.catalog.cache.partition.num.crawlers";
-    @EdcSetting
-    private static final String PART_LOADER_BATCH_SIZE_SETTING = "edc.catalog.cache.loader.batch.size";
-    @EdcSetting
-    private static final String PART_LOADER_RETRY_TIMEOUT = "edc.catalog.cache.loader.timeout.millis";
-    @EdcSetting
-    private static final String PART_EXECUTION_PLAN_DELAY_SECONDS = "edc.catalog.cache.execution.delay.seconds";
+    @EdcSetting("The time to elapse between two crawl runs")
+    static final String EXECUTION_PLAN_PERIOD_SECONDS = "edc.catalog.cache.execution.period.seconds";
+    @EdcSetting("The number of crawlers (execution threads) that should be used. The engine will re-use crawlers when necessary.")
+    static final String NUM_CRAWLER_SETTING = "edc.catalog.cache.partition.num.crawlers";
+    @EdcSetting("The initial delay for the cache crawler engine")
+    static final String EXECUTION_PLAN_DELAY_SECONDS = "edc.catalog.cache.execution.delay.seconds";
     private static final int DEFAULT_EXECUTION_PERIOD_SECONDS = 60;
     private static final int LOW_EXECUTION_PERIOD_SECONDS_THRESHOLD = 10;
-    private static final int DEFAULT_WORK_ITEM_QUEUE_SIZE = 10;
+    private static final int DEFAULT_NUMBER_OF_CRAWLERS = 2;
+
     private final ServiceExtensionContext context;
 
     public CacheConfiguration(ServiceExtensionContext context) {
         this.context = context;
     }
 
-    public int getWorkItemQueueSize() {
-        return context.getSetting(PART_WORK_ITEM_QUEUE_SIZE_SETTING, DEFAULT_WORK_ITEM_QUEUE_SIZE);
-    }
-
-    public int getNumCrawlers(int defaultValue) {
-        return context.getSetting(PART_NUM_CRAWLER_SETTING, defaultValue);
-    }
-
-    public int getLoaderBatchSize(int defaultValue) {
-        return context.getSetting(PART_LOADER_BATCH_SIZE_SETTING, defaultValue);
-    }
-
-    public long getLoaderRetryTimeout(int defaultValue) {
-        return context.getSetting(PART_LOADER_RETRY_TIMEOUT, defaultValue);
+    public int getNumCrawlers() {
+        return context.getSetting(NUM_CRAWLER_SETTING, DEFAULT_NUMBER_OF_CRAWLERS);
     }
 
     public ExecutionPlan getExecutionPlan() {
-        var periodSeconds = context.getSetting(PART_EXECUTION_PLAN_PERIOD_SECONDS, DEFAULT_EXECUTION_PERIOD_SECONDS);
-        var setting = context.getSetting(PART_EXECUTION_PLAN_DELAY_SECONDS, null);
+        var periodSeconds = context.getSetting(EXECUTION_PLAN_PERIOD_SECONDS, DEFAULT_EXECUTION_PERIOD_SECONDS);
+        var setting = context.getSetting(EXECUTION_PLAN_DELAY_SECONDS, null);
         int initialDelaySeconds;
         if ("random".equals(setting) || setting == null) {
             initialDelaySeconds = randomSeconds();
@@ -83,8 +66,8 @@ public class CacheConfiguration {
         }
         var monitor = context.getMonitor();
         if (periodSeconds < LOW_EXECUTION_PERIOD_SECONDS_THRESHOLD) {
-            monitor.warning(format("An execution period of %d seconds is very low (threshold = %d). This might result in the work queue to fill up, especially on small queues (current capacity: %d)." +
-                    " A longer execution period should be considered.", periodSeconds, LOW_EXECUTION_PERIOD_SECONDS_THRESHOLD, getWorkItemQueueSize()));
+            monitor.warning(format("An execution period of %d seconds is very low (threshold = %d). This might result in the work queue to be ever growing." +
+                    " A longer execution period or more crawler threads (currently using %d) should be considered.", periodSeconds, LOW_EXECUTION_PERIOD_SECONDS_THRESHOLD, getNumCrawlers()));
         }
         return new RecurringExecutionPlan(Duration.ofSeconds(periodSeconds), Duration.ofSeconds(initialDelaySeconds), monitor);
     }

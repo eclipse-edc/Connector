@@ -16,11 +16,11 @@ package org.eclipse.dataspaceconnector.catalog.cache;
 
 import org.eclipse.dataspaceconnector.catalog.cache.crawler.CatalogCrawler;
 import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
+import org.eclipse.dataspaceconnector.catalog.spi.CrawlerSuccessHandler;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
 import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.model.ExecutionPlan;
-import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +32,6 @@ import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -47,7 +46,7 @@ public class ExecutionManager {
     private String connectorId;
     private int numCrawlers = 1;
     private NodeQueryAdapterRegistry nodeQueryAdapterRegistry;
-    private Consumer<UpdateResponse> successHandler;
+    private CrawlerSuccessHandler successHandler;
 
     private ExecutionManager() {
     }
@@ -94,14 +93,15 @@ public class ExecutionManager {
                 if (adapter.isEmpty()) {
                     monitor.warning(message(format("No protocol adapter found for protocol '%s'", item.getProtocol())));
                 } else {
-                    crawler.run(item, adapter.get()).whenComplete((updateResponse, throwable) -> {
-                        if (throwable != null) {
-                            monitor.severe(message(format("Unexpected exception happened during in crawler %s", crawler.getId())), throwable);
-                        } else {
-                            handleSuccess(crawler, updateResponse);
-                        }
-                        availableCrawlers.add(crawler);
-                    });
+                    crawler.run(item, adapter.get())
+                            .whenComplete((updateResponse, throwable) -> {
+                                if (throwable != null) {
+                                    monitor.severe(message(format("Unexpected exception happened during in crawler %s", crawler.getId())), throwable);
+                                } else {
+                                    monitor.info(message(format("Crawler [%s] is done", crawler.getId())));
+                                }
+                                availableCrawlers.add(crawler);
+                            });
                 }
             }
 
@@ -121,11 +121,6 @@ public class ExecutionManager {
             monitor.debug("interrupted while waiting for crawler to become available");
         }
         return crawler;
-    }
-
-    private void handleSuccess(CatalogCrawler activeCrawler, UpdateResponse updateResponse) {
-        monitor.info(message(format("Crawler [%s] is done", activeCrawler.getId())));
-        successHandler.accept(updateResponse);
     }
 
     private void runPostExecution() {
@@ -150,7 +145,7 @@ public class ExecutionManager {
 
     @NotNull
     private ArrayBlockingQueue<CatalogCrawler> createCrawlers(CrawlerErrorHandler errorHandler, int numCrawlers) {
-        return new ArrayBlockingQueue<>(numCrawlers, true, IntStream.range(0, numCrawlers).mapToObj(i -> new CatalogCrawler(monitor, errorHandler)).collect(Collectors.toList()));
+        return new ArrayBlockingQueue<>(numCrawlers, true, IntStream.range(0, numCrawlers).mapToObj(i -> new CatalogCrawler(monitor, errorHandler, successHandler)).collect(Collectors.toList()));
     }
 
     private List<WorkItem> fetchWorkItems() {
@@ -229,7 +224,7 @@ public class ExecutionManager {
             return this;
         }
 
-        public Builder onSuccess(Consumer<UpdateResponse> successConsumer) {
+        public Builder onSuccess(CrawlerSuccessHandler successConsumer) {
             instance.successHandler = successConsumer;
             return this;
         }

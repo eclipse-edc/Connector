@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.catalog.cache.crawler;
 
 import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
+import org.eclipse.dataspaceconnector.catalog.spi.CrawlerSuccessHandler;
 import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateRequest;
@@ -30,6 +31,7 @@ import java.util.concurrent.CompletableFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createCatalog;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -40,11 +42,13 @@ class CatalogCrawlerTest {
 
     private CatalogCrawler crawler;
     private CrawlerErrorHandler errorHandlerMock;
+    private CrawlerSuccessHandler successHandler;
 
     @BeforeEach
     void setUp() {
         errorHandlerMock = mock(CrawlerErrorHandler.class);
-        crawler = new CatalogCrawler(mock(Monitor.class), errorHandlerMock);
+        successHandler = mock(CrawlerSuccessHandler.class);
+        crawler = new CatalogCrawler(mock(Monitor.class), errorHandlerMock, successHandler);
     }
 
     @Test
@@ -57,6 +61,7 @@ class CatalogCrawlerTest {
             }
         };
         assertThat(crawler.run(target, adapter)).isCompleted();
+        verify(successHandler).accept(argThat(argument -> argument.getSource().equals(target.getUrl())));
         verifyNoInteractions(errorHandlerMock);
     }
 
@@ -71,6 +76,7 @@ class CatalogCrawlerTest {
         };
         assertThat(crawler.run(target, adapter)).isCompletedExceptionally();
         verify(errorHandlerMock).accept(eq(target));
+        verifyNoInteractions(successHandler);
     }
 
     @Test
@@ -80,6 +86,7 @@ class CatalogCrawlerTest {
         when(adapter.sendRequest(any())).thenThrow(new RuntimeException("test exception"));
         assertThat(crawler.run(target, adapter)).isCompletedExceptionally();
         verify(errorHandlerMock).accept(eq(target));
+        verifyNoInteractions(successHandler);
     }
 
     @Test

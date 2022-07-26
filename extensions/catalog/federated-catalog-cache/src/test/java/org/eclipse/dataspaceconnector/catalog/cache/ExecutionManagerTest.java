@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.catalog.cache;
 
+import org.eclipse.dataspaceconnector.catalog.spi.CrawlerSuccessHandler;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNode;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
 import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapter;
@@ -31,7 +32,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.delayedExecutor;
@@ -58,7 +58,7 @@ class ExecutionManagerTest {
     private final NodeQueryAdapterRegistry nodeQueryAdapterRegistry = mock(NodeQueryAdapterRegistry.class);
     private final Runnable preExecutionTaskMock = mock(Runnable.class);
     private final NodeQueryAdapter queryAdapterMock = mock(NodeQueryAdapter.class);
-    private final Consumer<UpdateResponse> successConsumerMock = mock(Consumer.class);
+    private final CrawlerSuccessHandler successConsumerMock = mock(CrawlerSuccessHandler.class);
     private final Runnable postExecutionTask = mock(Runnable.class);
     private ExecutionManager manager;
 

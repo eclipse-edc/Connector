@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.catalog.cache.crawler;
 
 import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
+import org.eclipse.dataspaceconnector.catalog.spi.CrawlerSuccessHandler;
 import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateRequest;
@@ -26,17 +27,24 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 import static java.lang.String.format;
 
+/**
+ * Receives a target (i.e. a {@link WorkItem}) that it queries for its {@link org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog}.
+ * The resulting {@link UpdateResponse} is returned if successful.
+ */
 public class CatalogCrawler {
     private final Monitor monitor;
     private final CrawlerErrorHandler errorHandler;
+    private final Consumer<UpdateResponse> successHandler;
     private final String crawlerId;
 
-    public CatalogCrawler(Monitor monitor, @NotNull CrawlerErrorHandler errorHandler) {
+    public CatalogCrawler(Monitor monitor, @NotNull CrawlerErrorHandler errorHandler, CrawlerSuccessHandler successHandler) {
         this.monitor = monitor;
         this.errorHandler = errorHandler;
+        this.successHandler = successHandler;
         crawlerId = format("Crawler-%s", UUID.randomUUID());
     }
 
@@ -47,6 +55,8 @@ public class CatalogCrawler {
             return updateFuture.whenComplete((updateResponse, throwable) -> {
                 if (throwable != null) {
                     handleError(target, throwable.getMessage());
+                } else {
+                    successHandler.accept(updateResponse);
                 }
             });
         } catch (Throwable thr) {

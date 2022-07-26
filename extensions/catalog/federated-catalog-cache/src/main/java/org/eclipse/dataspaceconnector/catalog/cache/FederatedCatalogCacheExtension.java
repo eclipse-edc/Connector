@@ -48,7 +48,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 @Provides({ QueryEngine.class, NodeQueryAdapterRegistry.class, CacheQueryAdapterRegistry.class })
 public class FederatedCatalogCacheExtension implements ServiceExtension {
     public static final int DEFAULT_NUM_CRAWLERS = 1;
-    private static final int DEFAULT_QUEUE_LENGTH = 50;
     private Monitor monitor;
     @Inject
     private FederatedCacheStore store;
@@ -90,7 +89,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
 
         // CRAWLER SUBSYSTEM
         var cacheConfiguration = new CacheConfiguration(context);
-        int numCrawlers = cacheConfiguration.getNumCrawlers(DEFAULT_NUM_CRAWLERS);
+        int numCrawlers = cacheConfiguration.getNumCrawlers();
         // and a loader manager
 
         executionPlan = cacheConfiguration.getExecutionPlan();
