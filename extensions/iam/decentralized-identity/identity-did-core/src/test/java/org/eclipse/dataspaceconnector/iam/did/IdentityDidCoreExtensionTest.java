@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial implementation
+ *       Microsoft Corporation - adapted to extension changes
  *
  */
 
@@ -18,7 +19,6 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubApiController;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubClientImpl;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubImpl;
-import org.eclipse.dataspaceconnector.iam.did.resolution.DidPublicKeyResolverImpl;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
@@ -53,6 +53,8 @@ class IdentityDidCoreExtensionTest {
         webserviceMock = mock(WebService.class);
         context.registerService(WebService.class, webserviceMock);
         context.registerService(PrivateKeyResolver.class, mock(PrivateKeyResolver.class));
+        context.registerService(DidPublicKeyResolver.class, mock(DidPublicKeyResolver.class));
+        context.registerService(DidResolverRegistry.class, mock(DidResolverRegistry.class));
         extension = factory.constructInstance(IdentityDidCoreExtension.class);
     }
 
@@ -64,8 +66,6 @@ class IdentityDidCoreExtensionTest {
 
         extension.initialize(context);
 
-        assertThat(context.getService(DidResolverRegistry.class)).isInstanceOf(DidResolverRegistry.class);
-        assertThat(context.getService(DidPublicKeyResolver.class)).isInstanceOf(DidPublicKeyResolverImpl.class);
         assertThat(context.getService(IdentityHub.class)).isInstanceOf(IdentityHubImpl.class);
         assertThat(context.getService(IdentityHubClient.class)).isInstanceOf(IdentityHubClientImpl.class);
         verify(webserviceMock).registerResource(isA(IdentityHubApiController.class));

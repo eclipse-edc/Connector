@@ -16,9 +16,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public interface Handler {
 
@@ -33,8 +31,8 @@ public interface Handler {
     /**
      * Handles the given {@link MultipartRequest}.
      *
-     * @param multipartRequest from another connector
-     * @return {@link MultipartResponse} or null, if the request cannot be handled (e.g. when content missing)
+     * @param multipartRequest request received from another connector
+     * @return {@link MultipartResponse}
      */
-    @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull ClaimToken claimToken);
+    @NotNull MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest);
 }
