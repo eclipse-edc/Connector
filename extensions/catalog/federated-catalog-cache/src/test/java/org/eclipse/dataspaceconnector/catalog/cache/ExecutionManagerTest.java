@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.catalog.cache;
 
 import org.eclipse.dataspaceconnector.catalog.spi.CrawlerSuccessHandler;
-import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNode;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
 import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapterRegistry;
@@ -23,12 +22,10 @@ import org.eclipse.dataspaceconnector.catalog.spi.model.ExecutionPlan;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
@@ -36,7 +33,9 @@ import java.util.concurrent.TimeUnit;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.delayedExecutor;
 import static java.util.concurrent.CompletableFuture.failedFuture;
+import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.TEST_PROTOCOL;
 import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createCatalog;
+import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createNode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isA;
@@ -52,7 +51,6 @@ import static org.mockito.Mockito.when;
 
 class ExecutionManagerTest {
 
-    public static final String TEST_PROTOCOL = "test-protocol";
     private final FederatedCacheNodeDirectory nodeDirectoryMock = mock(FederatedCacheNodeDirectory.class);
     private final Monitor monitorMock = mock(Monitor.class);
     private final NodeQueryAdapterRegistry nodeQueryAdapterRegistry = mock(NodeQueryAdapterRegistry.class);
@@ -165,10 +163,6 @@ class ExecutionManagerTest {
         verifyNoInteractions(nodeQueryAdapterRegistry);
     }
 
-    @NotNull
-    private FederatedCacheNode createNode() {
-        return new FederatedCacheNode("testnode" + UUID.randomUUID(), "http://test.com", List.of(TEST_PROTOCOL));
-    }
 
     private ExecutionPlan simplePlan() {
         return Runnable::run;

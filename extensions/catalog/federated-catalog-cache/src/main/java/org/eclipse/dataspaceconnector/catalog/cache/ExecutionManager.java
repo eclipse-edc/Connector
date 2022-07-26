@@ -70,9 +70,9 @@ public class ExecutionManager {
             //instantiate fixed pool of crawlers
             var errorHandler = createErrorHandlers(monitor, allItems);
 
-            numCrawlers = Math.min(allItems.size(), numCrawlers);
-            monitor.debug(format(message("Crawler parallelism is %s, based on config and number of work items"), numCrawlers));
-            var availableCrawlers = createCrawlers(errorHandler, numCrawlers);
+            var actualNumCrawlers = Math.min(allItems.size(), numCrawlers);
+            monitor.debug(format(message("Crawler parallelism is %s, based on config and number of work items"), actualNumCrawlers));
+            var availableCrawlers = createCrawlers(errorHandler, actualNumCrawlers);
 
             while (!allItems.isEmpty()) {
                 // try get next available crawler

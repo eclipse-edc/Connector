@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.catalog.cache;
 
+import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNode;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -22,8 +23,11 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.UUID;
 
 public class TestUtil {
+
+    public static final String TEST_PROTOCOL = "test-protocol";
 
     public static WorkItem createWorkItem() {
         return new WorkItem("test-url", "test-protocol");
@@ -41,7 +45,12 @@ public class TestUtil {
     public static Catalog createCatalog() {
         return Catalog.Builder.newInstance()
                 .id("test-catalog")
-                .contractOffers(List.of())
+                .contractOffers(List.of(createOffer("test-offer")))
                 .build();
+    }
+
+    @NotNull
+    public static FederatedCacheNode createNode() {
+        return new FederatedCacheNode("testnode" + UUID.randomUUID(), "http://test.com", List.of(TEST_PROTOCOL));
     }
 }

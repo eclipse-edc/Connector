@@ -37,7 +37,6 @@ import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistr
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provider;
-import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
@@ -45,7 +44,6 @@ import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-@Provides({ QueryEngine.class, NodeQueryAdapterRegistry.class, CacheQueryAdapterRegistry.class })
 public class FederatedCatalogCacheExtension implements ServiceExtension {
     public static final int DEFAULT_NUM_CRAWLERS = 1;
     private Monitor monitor;
@@ -63,23 +61,37 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     private ExecutionPlan executionPlan;
     private NodeQueryAdapterRegistryImpl nodeQueryAdapterRegistry;
     private ExecutionManager executionManager;
+    private CacheQueryAdapterRegistryImpl registry;
+    private QueryEngineImpl queryEngine;
 
     @Override
     public String name() {
         return "Federated Catalog Cache";
     }
 
+    @Provider
+    public CacheQueryAdapterRegistry getCacheQueryAdapterRegistry() {
+        if (registry == null) {
+            registry = new CacheQueryAdapterRegistryImpl();
+            registry.register(new CacheQueryAdapterImpl(store));
+        }
+        return registry;
+    }
+
+    @Provider
+    public QueryEngine getQueryEngine() {
+        if (queryEngine == null) {
+            queryEngine = new QueryEngineImpl(getCacheQueryAdapterRegistry());
+        }
+        return queryEngine;
+    }
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         // QUERY SUBSYSTEM
-        var queryAdapterRegistry = new CacheQueryAdapterRegistryImpl();
-        context.registerService(CacheQueryAdapterRegistry.class, queryAdapterRegistry);
 
-        queryAdapterRegistry.register(new CacheQueryAdapterImpl(store));
-        var queryEngine = new QueryEngineImpl(queryAdapterRegistry);
-        context.registerService(QueryEngine.class, queryEngine);
         monitor = context.getMonitor();
-        var catalogController = new FederatedCatalogApiController(queryEngine);
+        var catalogController = new FederatedCatalogApiController(getQueryEngine());
         webService.registerResource(catalogController);
 
         // contribute to the liveness probe
@@ -113,20 +125,13 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         executionManager.executePlan(executionPlan);
     }
 
-    @Override
-    public void shutdown() {
-        //todo: interrupt execution
-    }
-
     @Provider
     public NodeQueryAdapterRegistry createNodeQueryAdapterRegistry(ServiceExtensionContext context) {
 
         if (nodeQueryAdapterRegistry == null) {
             nodeQueryAdapterRegistry = new NodeQueryAdapterRegistryImpl();
-
             // catalog queries via IDS multipart are supported by default
             nodeQueryAdapterRegistry.register("ids-multipart", new IdsMultipartNodeQueryAdapter(context.getConnectorId(), dispatcherRegistry, monitor));
-            context.registerService(NodeQueryAdapterRegistry.class, nodeQueryAdapterRegistry);
         }
         return nodeQueryAdapterRegistry;
     }
