@@ -18,52 +18,42 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
 
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static java.lang.String.format;
 
 @Path("/consumer")
 public class ConsumerBackendServiceController {
 
     private final Monitor monitor;
-    private final OkHttpClient httpClient;
     private final AtomicReference<String> data = new AtomicReference<>();
+    private final Map<String, EndpointDataReference> dataReference = new ConcurrentHashMap<>();
 
-    public ConsumerBackendServiceController(Monitor monitor, OkHttpClient httpClient) {
+    public ConsumerBackendServiceController(Monitor monitor) {
         this.monitor = monitor;
-        this.httpClient = httpClient;
     }
 
-    @Path("/pull")
+    @Path("/dataReference")
     @POST
     @Consumes({ MediaType.APPLICATION_JSON })
-    public void pullData(EndpointDataReference dataReference) {
-        String url = dataReference.getEndpoint();
-        monitor.debug("Endpoint Data Reference received, will call data plane at " + url);
-        var request = new Request.Builder()
-                .url(url)
-                .addHeader(dataReference.getAuthKey(), dataReference.getAuthCode())
-                .build();
+    public void pushDataReference(EndpointDataReference edr) {
+        monitor.debug("Received new endpoint data reference with url " + edr.getEndpoint());
+        dataReference.put(edr.getId(), edr);
+    }
 
-        try (var response = httpClient.newCall(request).execute()) {
-            var body = response.body();
-            var string = body.string();
-            if (response.isSuccessful()) {
-                monitor.info("Data plane responded correctly: " + string);
-                data.set(string);
-            } else {
-                monitor.warning(format("Data plane responded with error: %s %s", response.code(), string));
-            }
-        } catch (Exception e) {
-            monitor.severe(format("Error in calling the data plane at %s", url), e);
-        }
+    @Path("/dataReference/{id}")
+    @GET
+    @Produces({ MediaType.APPLICATION_JSON })
+    public EndpointDataReference getDataReference(@PathParam("id") String id) {
+        return Optional.ofNullable(dataReference.get(id)).orElseThrow(NoSuchElementException::new);
     }
 
     @Path("/store")

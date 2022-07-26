@@ -72,6 +72,7 @@ class EndpointDataReferenceHandlerTest {
     void canHandle_messageNotSupported_shouldReturnFalse() {
         var request = MultipartRequest.Builder.newInstance()
                 .header(new ParticipantCertificateRevokedMessageBuilder().build())
+                .claimToken(createClaimToken())
                 .build();
         assertThat(handler.canHandle(request)).isFalse();
     }
@@ -87,7 +88,7 @@ class EndpointDataReferenceHandlerTest {
         when(transformerRegistry.transform(any())).thenReturn(Result.success(edrAfterTransformation));
         when(receiverRegistry.receiveAll(edrAfterTransformation)).thenReturn(CompletableFuture.completedFuture(Result.success()));
 
-        var response = handler.handleRequest(request, createClaimToken());
+        var response = handler.handleRequest(request);
 
         verify(transformerRegistry, times(1)).transform(edrCapture.capture());
 
@@ -111,7 +112,7 @@ class EndpointDataReferenceHandlerTest {
 
         when(transformerRegistry.transform(any())).thenReturn(Result.failure(FAKER.lorem().sentence()));
 
-        var response = handler.handleRequest(request, createClaimToken());
+        var response = handler.handleRequest(request);
 
         assertThat(response)
                 .isNotNull()
@@ -126,7 +127,7 @@ class EndpointDataReferenceHandlerTest {
         when(transformerRegistry.transform(any())).thenReturn(Result.success(edr));
         when(receiverRegistry.receiveAll(edr)).thenReturn(CompletableFuture.completedFuture(Result.failure(FAKER.lorem().sentence())));
 
-        var response = handler.handleRequest(request, createClaimToken());
+        var response = handler.handleRequest(request);
 
         assertThat(response)
                 .isNotNull()
@@ -147,6 +148,7 @@ class EndpointDataReferenceHandlerTest {
         return MultipartRequest.Builder.newInstance()
                 .header(new ParticipantUpdateMessageBuilder().build())
                 .payload(MAPPER.writeValueAsString(payload))
+                .claimToken(createClaimToken())
                 .build();
     }
 

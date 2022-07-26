@@ -21,24 +21,24 @@ import jakarta.validation.constraints.Positive;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 
 public class ContractAgreementDto {
-    @NotNull
+    @NotNull(message = "id cannot be null")
     private String id;
-    @NotNull
+    @NotNull(message = "providerAgentId cannot be null")
     private String providerAgentId;
-    @NotNull
+    @NotNull(message = "consumerAgentId cannot be null")
     private String consumerAgentId;
-    @Positive
+    @Positive(message = "contractSigningDate must be greater than 0")
     private long contractSigningDate;
-    @Positive
+    @Positive(message = "contractStartDate must be greater than 0")
     private long contractStartDate;
-    @Positive
+    @Positive(message = "contractEndDate must be greater than 0")
     private long contractEndDate;
-    @NotNull
+    @NotNull(message = "assetId Id cannot be null")
     private String assetId;
-    @NotNull
+    @NotNull(message = "policy cannot be null")
     private Policy policy;
 
-    @AssertTrue
+    @AssertTrue(message = "contractStartDate and contractSigningDate must be lower than contractEndDate")
     @JsonIgnore
     public boolean isDatesValid() {
 
@@ -124,7 +124,7 @@ public class ContractAgreementDto {
             return this;
         }
 
-        public Builder policy(@NotNull Policy policy) {
+        public Builder policy(Policy policy) {
             agreement.policy = policy;
             return this;
         }

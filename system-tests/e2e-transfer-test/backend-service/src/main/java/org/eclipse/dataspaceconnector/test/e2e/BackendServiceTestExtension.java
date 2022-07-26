@@ -41,7 +41,7 @@ public class BackendServiceTestExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var exposedHttpPort = context.getConfig().getInteger("web.http.port");
         webService.registerResource(new ProviderBackendApiController());
-        webService.registerResource(new ConsumerBackendServiceController(context.getMonitor(), okHttpClient));
+        webService.registerResource(new ConsumerBackendServiceController(context.getMonitor()));
         webService.registerResource(new BackendServiceHttpProvisionerController(context.getMonitor(), okHttpClient, typeManager, exposedHttpPort));
     }
 }

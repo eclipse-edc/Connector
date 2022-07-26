@@ -12,14 +12,14 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
+package org.eclipse.dataspaceconnector.ids.api.multipart.util;
 
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import org.jetbrains.annotations.NotNull;
 
 import static java.util.Optional.ofNullable;
 
-public class MultipartRequestUtil {
+public class RequestUtil {
 
     /**
      * Extracts an arbitrary property from a {@link DescriptionRequestMessage}

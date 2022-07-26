@@ -24,7 +24,9 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
+import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
+import org.hamcrest.Matcher;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
@@ -74,7 +76,8 @@ public class Participant {
                         "properties", Map.of(
                                 "name", "transfer-test",
                                 "baseUrl", backendService + "/api/provider/data",
-                                "type", addressType
+                                "type", addressType,
+                                "proxyQueryParams", "true"
                         )
                 )
         );
@@ -170,8 +173,9 @@ public class Participant {
         return contractAgreementId.get();
     }
 
-    public String dataRequest(String contractAgreementId, String assetId, Participant provider, DataAddress dataAddress) {
+    public String dataRequest(String id, String contractAgreementId, String assetId, Participant provider, DataAddress dataAddress) {
         var request = Map.of(
+                "id", id,
                 "contractId", contractAgreementId,
                 "assetId", assetId,
                 "connectorId", "provider",
@@ -205,6 +209,37 @@ public class Participant {
                 .then()
                 .statusCode(200)
                 .extract().body().jsonPath().getString("state");
+    }
+
+    public EndpointDataReference getDataReference(String id) {
+        var dataReference = new AtomicReference<EndpointDataReference>();
+
+        await().atMost(timeout).untilAsserted(() -> {
+            var result = given()
+                    .baseUri(backendService.toString())
+                    .when()
+                    .get("/api/consumer/dataReference/{id}", id)
+                    .then()
+                    .statusCode(200)
+                    .extract()
+                    .body()
+                    .as(EndpointDataReference.class);
+            dataReference.set(result);
+        });
+
+        return dataReference.get();
+    }
+
+    public void pullData(EndpointDataReference edr, Map<String, String> queryParams, Matcher<String> bodyMatcher) {
+        given()
+                .baseUri(edr.getEndpoint())
+                .header(edr.getAuthKey(), edr.getAuthCode())
+                .queryParams(queryParams)
+                .when()
+                .get()
+                .then()
+                .statusCode(200)
+                .body("message", bodyMatcher);
     }
 
     public URI backendService() {
@@ -264,7 +299,7 @@ public class Participant {
                 put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
                 put("edc.keystore.password", "123456");
                 put("ids.webhook.address", idsEndpoint.toString());
-                put("edc.receiver.http.endpoint", backendService + "/api/consumer/pull");
+                put("edc.receiver.http.endpoint", backendService + "/api/consumer/dataReference");
                 put("edc.transfer.proxy.token.signer.privatekey.alias", "1");
                 put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
                 put("edc.transfer.proxy.endpoint", dataPlanePublic.toString());

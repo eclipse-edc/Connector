@@ -92,17 +92,17 @@ class ArtifactRequestHandlerTest {
         var artifactRequestId = UUID.randomUUID().toString();
         var contractId = UUID.randomUUID().toString();
         var destination = DataAddress.Builder.newInstance().keyName(UUID.randomUUID().toString()).type("test").build();
-        var multipartRequest = createMultipartRequest(destination, artifactRequestId, assetId, contractId);
-        var header = (ArtifactRequestMessage) multipartRequest.getHeader();
         var agreement = createContractAgreement(contractId, assetId);
         var claimToken = ClaimToken.Builder.newInstance().build();
+        var multipartRequest = createMultipartRequest(destination, artifactRequestId, assetId, contractId, claimToken);
+        var header = (ArtifactRequestMessage) multipartRequest.getHeader();
 
         var drCapture = ArgumentCaptor.forClass(DataRequest.class);
         when(transferProcessManager.initiateProviderRequest(drCapture.capture())).thenReturn(StatusResult.success("Transfer success"));
         when(contractNegotiationStore.findContractAgreement(contractId)).thenReturn(agreement);
         when(contractValidationService.validate(claimToken, agreement)).thenReturn(true);
 
-        handler.handleRequest(multipartRequest, claimToken);
+        handler.handleRequest(multipartRequest);
 
         verify(transferProcessManager).initiateProviderRequest(drCapture.capture());
 
@@ -122,16 +122,16 @@ class ArtifactRequestHandlerTest {
         var artifactRequestId = UUID.randomUUID().toString();
         var contractId = UUID.randomUUID().toString();
         var destination = DataAddress.Builder.newInstance().keyName(UUID.randomUUID().toString()).type("test").build();
-        var multipartRequest = createMultipartRequest(destination, artifactRequestId, artifactId, contractId);
+        var claimToken = ClaimToken.Builder.newInstance().build();
+        var multipartRequest = createMultipartRequest(destination, artifactRequestId, artifactId, contractId, claimToken);
 
         // Create the contract using a different asset id
         var agreement = createContractAgreement(contractId, UUID.randomUUID().toString());
-        var claimToken = ClaimToken.Builder.newInstance().build();
 
         when(contractNegotiationStore.findContractAgreement(contractId)).thenReturn(agreement);
         when(contractValidationService.validate(claimToken, agreement)).thenReturn(true);
 
-        var response = handler.handleRequest(multipartRequest, claimToken);
+        var response = handler.handleRequest(multipartRequest);
 
         // Verify the request is rejected as the client sent a contract id with a different asset id
         verifyNoInteractions(transferProcessManager);
@@ -140,7 +140,7 @@ class ArtifactRequestHandlerTest {
 
     }
 
-    private MultipartRequest createMultipartRequest(DataAddress dataDestination, String artifactRequestId, String artifactId, String contractId) throws JsonProcessingException {
+    private MultipartRequest createMultipartRequest(DataAddress dataDestination, String artifactRequestId, String artifactId, String contractId, ClaimToken claimToken) throws JsonProcessingException {
         var message = new ArtifactRequestMessageBuilder(URI.create(artifactRequestId))
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                 ._securityToken_(new DynamicAttributeTokenBuilder()._tokenValue_(UUID.randomUUID().toString()).build())
@@ -153,6 +153,10 @@ class ArtifactRequestHandlerTest {
         var payload = ArtifactRequestMessagePayload.Builder.newInstance()
                 .dataDestination(dataDestination)
                 .build();
-        return MultipartRequest.Builder.newInstance().header(message).payload(new ObjectMapper().writeValueAsString(payload)).build();
+        return MultipartRequest.Builder.newInstance()
+                .header(message)
+                .payload(new ObjectMapper().writeValueAsString(payload))
+                .claimToken(claimToken)
+                .build();
     }
 }

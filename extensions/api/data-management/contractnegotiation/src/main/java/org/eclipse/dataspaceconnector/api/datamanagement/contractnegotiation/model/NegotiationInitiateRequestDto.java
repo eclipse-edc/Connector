@@ -17,13 +17,13 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.mo
 import jakarta.validation.constraints.NotNull;
 
 public class NegotiationInitiateRequestDto {
-    @NotNull
+    @NotNull(message = "connectorAddress cannot be null")
     private String connectorAddress;
-    @NotNull
+    @NotNull(message = "protocol cannot be null")
     private String protocol = "ids-multipart";
-    @NotNull
+    @NotNull(message = "connectorId cannot be null")
     private String connectorId;
-    @NotNull
+    @NotNull(message = "offer cannot be null")
     private ContractOfferDescription offer;
 
     private NegotiationInitiateRequestDto() {
