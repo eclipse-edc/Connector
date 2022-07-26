@@ -16,6 +16,7 @@
 package org.eclipse.dataspaceconnector.extension.jetty;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.binder.jetty.JettyConnectionMetrics;
 import org.eclipse.jetty.server.ServerConnector;
@@ -34,17 +35,10 @@ public class JettyMicrometerConfiguration implements Consumer<ServerConnector> {
 
     @Override
     public void accept(ServerConnector connector) {
-        var tags = Tags.empty();
-
-        if (connector.getPort() != 0) {
-            tags = tags.and("jetty_port", String.valueOf(connector.getPort()));
-        } else {
-            tags = tags.and("jetty_port", String.valueOf(connector.getLocalPort()));
-        }
-
-        if (connector.getName() != null) {
-            tags = tags.and("jetty_context", connector.getName());
-        }
+        var tags = Tags.of(
+                Tag.of("jetty_port", String.valueOf(connector.getPort())),
+                Tag.of("jetty_context", connector.getName())
+        );
 
         connector.addBean(new JettyConnectionMetrics(registry, connector, tags));
     }
