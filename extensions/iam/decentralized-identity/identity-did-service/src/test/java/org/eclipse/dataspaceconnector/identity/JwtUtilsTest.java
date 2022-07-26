@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.iam.did.crypto.credentials;
+package org.eclipse.dataspaceconnector.identity;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.ECKey;
@@ -46,12 +46,14 @@ import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.iam.did.crypto.key.KeyPairFactory.generateKeyPairP256;
+import static org.eclipse.dataspaceconnector.identity.JwtUtils.create;
+import static org.eclipse.dataspaceconnector.identity.JwtUtils.verify;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getResourceFileContentAsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class VerifiableCredentialFactoryTest {
+class JwtUtilsTest {
     private static final Faker FAKER = new Faker();
 
     private final Instant now = Instant.now();
@@ -68,11 +70,11 @@ class VerifiableCredentialFactoryTest {
     @Test
     @SuppressWarnings("ResultOfMethodCallIgnored")
     void createVerifiableCredential() throws Exception {
-        var vc = VerifiableCredentialFactory.create(privateKey, "test-connector", "test-audience", clock);
+        var vc = create(privateKey, "test-issuer", "test-subject", "test-audience", clock);
 
         assertThat(vc).isNotNull();
-        assertThat(vc.getJWTClaimsSet().getIssuer()).isEqualTo("test-connector");
-        assertThat(vc.getJWTClaimsSet().getSubject()).isEqualTo("verifiable-credential");
+        assertThat(vc.getJWTClaimsSet().getIssuer()).isEqualTo("test-issuer");
+        assertThat(vc.getJWTClaimsSet().getSubject()).isEqualTo("test-subject");
         assertThat(vc.getJWTClaimsSet().getAudience()).containsExactly("test-audience");
         assertThat(vc.getJWTClaimsSet().getJWTID()).satisfies(UUID::fromString);
         assertThat(vc.getJWTClaimsSet().getExpirationTime()).isEqualTo(now.plus(10, MINUTES).truncatedTo(SECONDS));
@@ -80,7 +82,7 @@ class VerifiableCredentialFactoryTest {
 
     @Test
     void ensureSerialization() throws Exception {
-        var vc = VerifiableCredentialFactory.create(privateKey, "test-connector", "test-audience", clock);
+        var vc = create(privateKey, "test-issuer", "test-subject", "test-audience", clock);
 
         assertThat(vc).isNotNull();
         String jwtString = vc.serialize();
@@ -95,9 +97,9 @@ class VerifiableCredentialFactoryTest {
 
     @Test
     void verifyJwt_OnInvalidSignature_fails() {
-        var jwt = VerifiableCredentialFactory.create(privateKey, "test-connector", "test-audience", clock);
+        var jwt = create(privateKey, "test-issuer", "test-subject", "test-audience", clock);
         var unrelatedPublicKey = new EcPublicKeyWrapper(generateKeyPairP256());
-        assertThat(VerifiableCredentialFactory.verify(jwt, unrelatedPublicKey, "test-audience").getFailureMessages()).containsExactly("Invalid signature");
+        assertThat(verify(jwt, unrelatedPublicKey, "test-audience").getFailureMessages()).containsExactly("Invalid signature");
     }
 
     @Test
@@ -105,7 +107,7 @@ class VerifiableCredentialFactoryTest {
         var jwt = mock(SignedJWT.class);
         var message = FAKER.lorem().sentence();
         when(jwt.verify(any())).thenThrow(new JOSEException(message));
-        assertThat(VerifiableCredentialFactory.verify(jwt, publicKey, "test-audience").getFailureMessages())
+        assertThat(verify(jwt, publicKey, "test-audience").getFailureMessages())
                 .containsExactly("Unable to verify JWT token. " + message);
 
     }
@@ -116,14 +118,14 @@ class VerifiableCredentialFactoryTest {
         var message = FAKER.lorem().sentence();
         when(jwt.verify(any())).thenReturn(true);
         when(jwt.getJWTClaimsSet()).thenThrow(new ParseException(message, 0));
-        assertThat(VerifiableCredentialFactory.verify(jwt, publicKey, "test-audience").getFailureMessages())
+        assertThat(verify(jwt, publicKey, "test-audience").getFailureMessages())
                 .containsExactly("Error verifying JWT token. The payload must represent a valid JSON object and a JWT claims set. " + message);
     }
 
     @ParameterizedTest(name = "{2}")
     @ArgumentsSource(ClaimsArgs.class)
     void verifyJwt_OnClaims(UnaryOperator<JWTClaimsSet.Builder> builderOperator, boolean expectSuccess, String ignoredName) throws Exception {
-        var vc = VerifiableCredentialFactory.create(privateKey, "test-connector", "test-audience", clock);
+        var vc = create(privateKey, "test-issuer", "test-subject", "test-audience", clock);
 
         var claimsSetBuilder = new JWTClaimsSet.Builder(vc.getJWTClaimsSet());
         var claimsSet = builderOperator.apply(claimsSetBuilder).build();
@@ -131,7 +133,7 @@ class VerifiableCredentialFactoryTest {
         var jwt = new SignedJWT(vc.getHeader(), claimsSet);
         jwt.sign(privateKey.signer());
 
-        var result = VerifiableCredentialFactory.verify(jwt, publicKey, "test-audience");
+        var result = verify(jwt, publicKey, "test-audience");
         assertThat(result.succeeded()).isEqualTo(expectSuccess);
         if (!expectSuccess) {
             assertThat(result.getFailureMessages())
@@ -149,8 +151,7 @@ class VerifiableCredentialFactoryTest {
                     jwtCase(b -> b.audience(List.of("https://otherserver.com")), false, "wrong audience"),
                     jwtCase(b -> b.audience(List.of("test-audience")), true, "expected audience"), // sanity check
                     jwtCase(b -> b.subject(null), false, "empty subject"),
-                    jwtCase(b -> b.subject("other-subject"), false, "wrong subject"),
-                    jwtCase(b -> b.subject("verifiable-credential"), true, "expected subject"), // sanity check
+                    jwtCase(b -> b.subject("a-subject"), true, "expected subject"), // sanity check
                     jwtCase(b -> b.issuer(null), false, "empty issuer"),
                     jwtCase(b -> b.issuer("other-issuer"), true, "other issuer"),
                     jwtCase(b -> b.expirationTime(null), false, "empty expiration"),
