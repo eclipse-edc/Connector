@@ -25,9 +25,6 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.UUID;
@@ -47,30 +44,23 @@ import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class ExecutionManagerTest {
 
     public static final String TEST_PROTOCOL = "test-protocol";
+    private final FederatedCacheNodeDirectory nodeDirectoryMock = mock(FederatedCacheNodeDirectory.class);
+    private final Monitor monitorMock = mock(Monitor.class);
+    private final NodeQueryAdapterRegistry nodeQueryAdapterRegistry = mock(NodeQueryAdapterRegistry.class);
+    private final Runnable preExecutionTaskMock = mock(Runnable.class);
+    private final NodeQueryAdapter queryAdapterMock = mock(NodeQueryAdapter.class);
+    private final Consumer<UpdateResponse> successConsumerMock = mock(Consumer.class);
+    private final Runnable postExecutionTask = mock(Runnable.class);
     private ExecutionManager manager;
-    @Mock
-    private FederatedCacheNodeDirectory nodeDirectoryMock;
-    @Mock
-    private Monitor monitorMock;
-    @Mock
-    private NodeQueryAdapterRegistry nodeQueryAdapterRegistry;
-    @Mock
-    private Runnable preExecutionTaskMock;
-    @Mock
-    private NodeQueryAdapter queryAdapterMock;
-    @Mock
-    private Consumer<UpdateResponse> successConsumerMock;
-    @Mock
-    private Runnable postExecutionTask;
 
     @BeforeEach
     void setUp() {
