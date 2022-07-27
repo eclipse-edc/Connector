@@ -65,7 +65,7 @@ public class TransferProcessApiController implements TransferProcessApi {
     public List<TransferProcessDto> getAllTransferProcesses(@Valid @BeanParam QuerySpecDto querySpecDto) {
         var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
         if (result.failed()) {
-            throw new InvalidRequestException("Cannot transform QuerySpecDto object: " + result.getFailureDetail());
+            throw new InvalidRequestException(result.getFailureMessages());
         }
 
         var spec = result.getContent();
@@ -133,9 +133,8 @@ public class TransferProcessApiController implements TransferProcessApi {
     @Override
     public TransferId initiateTransfer(@Valid TransferRequestDto transferRequest) {
         var transformResult = transformerRegistry.transform(transferRequest, DataRequest.class);
-
         if (transformResult.failed()) {
-            throw new InvalidRequestException("Request is not well formatted: " + transformResult.getFailureDetail());
+            throw new InvalidRequestException(transformResult.getFailureMessages());
         }
         monitor.debug("Starting transfer for asset " + transferRequest.getAssetId());
 
@@ -145,7 +144,7 @@ public class TransferProcessApiController implements TransferProcessApi {
             monitor.debug(format("Transfer process initialised %s", result.getContent()));
             return new TransferId(result.getContent());
         } else {
-            throw new InvalidRequestException(format("Error during initiating the transfer with assetId %s: %s", transferRequest.getAssetId(), result.getFailureDetail()));
+            throw new InvalidRequestException(result.getFailureMessages());
         }
     }
 

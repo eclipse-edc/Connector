@@ -26,7 +26,6 @@ import org.eclipse.dataspaceconnector.spi.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotModifiableException;
 
-import java.util.List;
 import java.util.Map;
 
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -35,6 +34,7 @@ import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
 import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Exception mapper that catches all the `EdcApiException` exceptions, map them to a 4xx response code with a detailed response body
@@ -57,13 +57,16 @@ public class EdcApiExceptionMapper implements ExceptionMapper<EdcApiException> {
     public Response toResponse(EdcApiException exception) {
         var status = exceptionMap.getOrDefault(exception.getClass(), INTERNAL_SERVER_ERROR);
 
-        var errorDetail = ApiErrorDetail.Builder.newInstance()
-                .message(exception.getMessage())
-                .type(exception.getType())
-                .build();
+        var errorDetails = exception.getMessages().stream()
+                .map(message -> ApiErrorDetail.Builder.newInstance()
+                        .message(message)
+                        .type(exception.getType())
+                        .build()
+                )
+                .collect(toList());
 
         return Response.status(status)
-                .entity(List.of(errorDetail))
+                .entity(errorDetails)
                 .build();
     }
 }

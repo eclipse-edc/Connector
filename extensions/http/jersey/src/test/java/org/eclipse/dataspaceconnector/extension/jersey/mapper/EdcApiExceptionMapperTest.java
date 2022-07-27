@@ -29,6 +29,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,7 +64,7 @@ class EdcApiExceptionMapperTest {
                     Arguments.of(new ObjectExistsException(Object.class, "test-object-id"), 409),
                     Arguments.of(new ObjectNotFoundException(Object.class, "test-object-id"), 404),
                     Arguments.of(new NotAuthorizedException(), 403),
-                    Arguments.of(new InvalidRequestException("detail"), 400)
+                    Arguments.of(new InvalidRequestException(List.of("detail")), 400)
             );
         }
     }

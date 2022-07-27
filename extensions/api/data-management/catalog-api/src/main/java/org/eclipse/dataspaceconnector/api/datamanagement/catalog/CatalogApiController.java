@@ -53,7 +53,7 @@ public class CatalogApiController implements CatalogApi {
         if (querySpecDto != null) {
             var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
             if (result.failed()) {
-                throw new InvalidRequestException("Cannot transform QuerySpecDto object: " + result.getFailureDetail());
+                throw new InvalidRequestException(result.getFailureMessages());
             }
             spec = result.getContent();
         } else {

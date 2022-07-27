@@ -61,7 +61,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
     public List<ContractDefinitionDto> getAllContractDefinitions(@Valid @BeanParam QuerySpecDto querySpecDto) {
         var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
         if (result.failed()) {
-            throw new InvalidRequestException("Cannot transform QuerySpecDto object: " + result.getFailureDetail());
+            throw new InvalidRequestException(result.getFailureMessages());
         }
 
         var spec = result.getContent();
@@ -101,7 +101,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
         monitor.debug("Create new contract definition");
         var transformResult = transformerRegistry.transform(dto, ContractDefinition.class);
         if (transformResult.failed()) {
-            throw new InvalidRequestException("Request is not well formatted: " + transformResult.getFailureDetail());
+            throw new InvalidRequestException(transformResult.getFailureMessages());
         }
 
         ContractDefinition contractDefinition = transformResult.getContent();

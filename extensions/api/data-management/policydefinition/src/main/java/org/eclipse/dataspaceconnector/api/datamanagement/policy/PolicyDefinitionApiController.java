@@ -62,7 +62,7 @@ public class PolicyDefinitionApiController implements PolicyDefinitionApi {
     public List<PolicyDefinition> getAllPolicies(@Valid @BeanParam QuerySpecDto querySpecDto) {
         var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
         if (result.failed()) {
-            throw new InvalidRequestException("Cannot transform QuerySpecDto object: " + result.getFailureDetail());
+            throw new InvalidRequestException(result.getFailureMessages());
         }
 
         var spec = result.getContent();

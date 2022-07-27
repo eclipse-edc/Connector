@@ -14,10 +14,16 @@
 
 package org.eclipse.dataspaceconnector.spi.exception;
 
+import java.util.List;
+
 public class InvalidRequestException extends EdcApiException {
 
-    public InvalidRequestException(String detail) {
-        super(detail);
+    public InvalidRequestException(String message) {
+        this(List.of(message));
+    }
+
+    public InvalidRequestException(List<String> messages) {
+        super(messages);
     }
 
     @Override

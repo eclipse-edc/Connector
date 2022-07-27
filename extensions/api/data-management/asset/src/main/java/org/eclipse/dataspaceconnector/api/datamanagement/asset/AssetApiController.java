@@ -41,9 +41,10 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
 
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -68,7 +69,8 @@ public class AssetApiController implements AssetApi {
         var dataAddressResult = transformerRegistry.transform(assetEntryDto.getDataAddress(), DataAddress.class);
 
         if (assetResult.failed() || dataAddressResult.failed()) {
-            throw new InvalidRequestException("Request is not well formatted");
+            var errorMessages = Stream.concat(assetResult.getFailureMessages().stream(), dataAddressResult.getFailureMessages().stream());
+            throw new InvalidRequestException(errorMessages.collect(toList()));
         }
 
         var dataAddress = dataAddressResult.getContent();
@@ -88,7 +90,7 @@ public class AssetApiController implements AssetApi {
     public List<AssetDto> getAllAssets(@Valid @BeanParam QuerySpecDto querySpecDto) {
         var transformationResult = transformerRegistry.transform(querySpecDto, QuerySpec.class);
         if (transformationResult.failed()) {
-            throw new InvalidRequestException("Cannot transform QuerySpecDto object: " + transformationResult.getFailureDetail());
+            throw new InvalidRequestException(transformationResult.getFailureMessages());
         }
 
         var spec = transformationResult.getContent();
@@ -107,7 +109,7 @@ public class AssetApiController implements AssetApi {
                 .map(it -> transformerRegistry.transform(it, AssetDto.class))
                 .filter(Result::succeeded)
                 .map(Result::getContent)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     @GET

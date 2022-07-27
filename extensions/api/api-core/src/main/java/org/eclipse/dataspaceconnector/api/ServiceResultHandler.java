@@ -59,7 +59,7 @@ public class ServiceResultHandler {
             case CONFLICT:
                 return new ObjectExistsException(clazz, id);
             case BAD_REQUEST:
-                return new InvalidRequestException(result.getFailureDetail());
+                return new InvalidRequestException(result.getFailureMessages());
             default:
                 return new EdcException("unexpected error: " + result.getFailureDetail());
         }

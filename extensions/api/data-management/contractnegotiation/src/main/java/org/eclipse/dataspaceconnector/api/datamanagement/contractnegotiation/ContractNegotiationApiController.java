@@ -69,7 +69,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     public List<ContractNegotiationDto> getNegotiations(@Valid @BeanParam QuerySpecDto querySpecDto) {
         var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
         if (result.failed()) {
-            throw new InvalidRequestException("Cannot transform QuerySpecDto object: " + result.getFailureDetail());
+            throw new InvalidRequestException(result.getFailureMessages());
         }
 
         var spec = result.getContent();
@@ -131,7 +131,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     public NegotiationId initiateContractNegotiation(@Valid NegotiationInitiateRequestDto initiateDto) {
         var transformResult = transformerRegistry.transform(initiateDto, ContractOfferRequest.class);
         if (transformResult.failed()) {
-            throw new InvalidRequestException("Negotiation request is invalid: " + transformResult.getFailureDetail());
+            throw new InvalidRequestException(transformResult.getFailureMessages());
         }
 
         var request = transformResult.getContent();
