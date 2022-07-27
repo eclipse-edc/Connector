@@ -17,7 +17,6 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Null;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;

@@ -14,17 +14,15 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import org.apache.commons.lang3.StringUtils;
 
 public class NegotiationInitiateRequestDto {
-    @NotNull(message = "connectorAddress cannot be null")
+    @NotBlank(message = "connectorAddress is mandatory")
     private String connectorAddress;
-    @NotNull(message = "protocol cannot be null")
+    @NotBlank(message = "protocol is mandatory")
     private String protocol = "ids-multipart";
-    @NotNull(message = "connectorId cannot be null")
+    @NotBlank(message = "connectorId is mandatory")
     private String connectorId;
     @NotNull(message = "offer cannot be null")
     private ContractOfferDescription offer;
@@ -47,15 +45,6 @@ public class NegotiationInitiateRequestDto {
 
     public ContractOfferDescription getOffer() {
         return offer;
-    }
-
-    @AssertTrue(message = "connectorId, connectorAddress, protocol, offerId and assetId cannot be blank")
-    @JsonIgnore
-    public boolean isValid() {
-        return this.getOffer() != null && StringUtils.isNoneBlank(
-                this.getConnectorId(), this.getConnectorAddress(), this.getProtocol(),
-                this.getOffer().getOfferId(), this.getOffer().getAssetId()
-        );
     }
 
     public static final class Builder {
