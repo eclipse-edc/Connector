@@ -25,8 +25,8 @@ import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static jakarta.ws.rs.core.Response.Status.NOT_IMPLEMENTED;
 
 /**
- * Exception mapper that catches all the exceptions that are not handled by the other mappers, mainly:
- * - java.lang.*Exception
+ * Exception mapper that catches all the exceptions that are not handled by the other mappers, for example:
+ * - all the java.lang exceptions
  * - jakarta.ws.rs.WebApplicationException and subclasses
  */
 public class UnexpectedExceptionMapper implements ExceptionMapper<Throwable> {
