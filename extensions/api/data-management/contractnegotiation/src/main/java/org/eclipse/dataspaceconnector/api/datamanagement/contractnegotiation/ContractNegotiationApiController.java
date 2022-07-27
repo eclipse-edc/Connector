@@ -17,6 +17,7 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Null;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -136,7 +137,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
 
         var request = transformResult.getContent();
 
-        ContractNegotiation contractNegotiation = service.initiateNegotiation(request);
+        var contractNegotiation = service.initiateNegotiation(request);
         return new NegotiationId(contractNegotiation.getId());
     }
 

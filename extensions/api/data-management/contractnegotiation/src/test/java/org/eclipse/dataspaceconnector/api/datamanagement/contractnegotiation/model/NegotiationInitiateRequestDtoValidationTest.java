@@ -68,7 +68,7 @@ class NegotiationInitiateRequestDtoValidationTest {
                 .offer(description)
                 .build();
 
-        assertThat(validator.validate(dto)).hasSize(1);
+        assertThat(validator.validate(dto)).hasSizeGreaterThanOrEqualTo(1);
     }
 
     private static class InvalidArgumentsProvider implements ArgumentsProvider {

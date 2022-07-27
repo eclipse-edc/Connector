@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -100,7 +101,7 @@ class TransferProcessApiControllerTest {
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.failure("Cannot transform"));
 
-        assertThatThrownBy(() -> controller.getAllTransferProcesses(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> controller.getAllTransferProcesses(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(InvalidRequestException.class);
     }
 
     @Test
@@ -226,7 +227,7 @@ class TransferProcessApiControllerTest {
     void initiateTransfer_failureTransformingRequest() {
         when(transformerRegistry.transform(isA(TransferRequestDto.class), eq(DataRequest.class))).thenReturn(Result.failure("failure"));
 
-        assertThatThrownBy(() -> controller.initiateTransfer(transferRequestDto())).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> controller.initiateTransfer(transferRequestDto())).isInstanceOf(InvalidRequestException.class);
     }
 
     @Test
@@ -241,6 +242,7 @@ class TransferProcessApiControllerTest {
     @ParameterizedTest
     @ArgumentsSource(InvalidRequestParams.class)
     void initiateTransfer_invalidRequest(String connectorAddress, String contractId, String assetId, String protocol, DataAddress destination) {
+        when(transformerRegistry.transform(isA(TransferRequestDto.class), eq(DataRequest.class))).thenReturn(Result.failure("failure"));
         var rq = TransferRequestDto.Builder.newInstance()
                 .connectorAddress(connectorAddress)
                 .contractId(contractId)
@@ -248,7 +250,7 @@ class TransferProcessApiControllerTest {
                 .dataDestination(destination)
                 .assetId(assetId)
                 .build();
-        assertThatThrownBy(() -> controller.initiateTransfer(rq)).isInstanceOfAny(IllegalArgumentException.class);
+        assertThatThrownBy(() -> controller.initiateTransfer(rq)).isInstanceOfAny(InvalidRequestException.class);
     }
 
     private TransferRequestDto transferRequestDto() {

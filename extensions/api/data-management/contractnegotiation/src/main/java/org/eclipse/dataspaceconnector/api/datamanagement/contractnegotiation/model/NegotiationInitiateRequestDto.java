@@ -52,7 +52,7 @@ public class NegotiationInitiateRequestDto {
     @AssertTrue(message = "connectorId, connectorAddress, protocol, offerId and assetId cannot be blank")
     @JsonIgnore
     public boolean isValid() {
-        return StringUtils.isNoneBlank(
+        return this.getOffer() != null && StringUtils.isNoneBlank(
                 this.getConnectorId(), this.getConnectorAddress(), this.getProtocol(),
                 this.getOffer().getOfferId(), this.getOffer().getAssetId()
         );

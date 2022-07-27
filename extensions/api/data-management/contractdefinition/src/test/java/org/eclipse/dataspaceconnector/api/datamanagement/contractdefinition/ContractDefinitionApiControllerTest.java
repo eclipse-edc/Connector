@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -93,7 +94,7 @@ class ContractDefinitionApiControllerTest {
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.failure("Cannot transform"));
 
-        assertThatThrownBy(() -> controller.getAllContractDefinitions(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> controller.getAllContractDefinitions(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(InvalidRequestException.class);
     }
 
     @Test
@@ -152,7 +153,7 @@ class ContractDefinitionApiControllerTest {
         var dto = ContractDefinitionDto.Builder.newInstance().build();
         when(transformerRegistry.transform(isA(ContractDefinitionDto.class), eq(ContractDefinition.class))).thenReturn(Result.failure("failure"));
 
-        assertThatThrownBy(() -> controller.createContractDefinition(dto)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> controller.createContractDefinition(dto)).isInstanceOf(InvalidRequestException.class);
     }
 
     @Test

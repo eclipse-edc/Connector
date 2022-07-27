@@ -18,6 +18,7 @@ import jakarta.ws.rs.NotAcceptableException;
 import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.NotSupportedException;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -27,6 +28,7 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 class UnexpectedExceptionMapperTest {
 
@@ -34,7 +36,7 @@ class UnexpectedExceptionMapperTest {
     @ArgumentsSource(JakartaApiExceptions.class)
     @ArgumentsSource(JavaExceptions.class)
     void toResponse_unexpectedExceptions(Throwable throwable, int expectedCode) {
-        var mapper = new UnexpectedExceptionMapper();
+        var mapper = new UnexpectedExceptionMapper(mock(Monitor.class));
 
         try (var response = mapper.toResponse(throwable)) {
             assertThat(response.getStatus()).isEqualTo(expectedCode);

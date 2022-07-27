@@ -15,8 +15,10 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.Map;
@@ -28,6 +30,12 @@ public class AssetDto {
     private Map<String, Object> properties;
 
     private AssetDto() {
+    }
+
+    @JsonIgnore
+    @AssertTrue(message = "no empty property keys")
+    public boolean isValid() {
+        return properties != null && properties.keySet().stream().noneMatch(it -> it == null || it.isBlank());
     }
 
     public Map<String, Object> getProperties() {

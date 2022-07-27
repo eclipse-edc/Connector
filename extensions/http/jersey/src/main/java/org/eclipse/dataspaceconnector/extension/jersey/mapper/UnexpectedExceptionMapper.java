@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.extension.jersey.mapper;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
 import java.util.Map;
 
@@ -30,12 +31,18 @@ import static jakarta.ws.rs.core.Response.Status.NOT_IMPLEMENTED;
  */
 public class UnexpectedExceptionMapper implements ExceptionMapper<Throwable> {
 
+    private final Monitor monitor;
     private final Map<Class<? extends Throwable>, Response.Status> exceptionMap = Map.of(
             UnsupportedOperationException.class, NOT_IMPLEMENTED
     );
 
+    public UnexpectedExceptionMapper(Monitor monitor) {
+        this.monitor = monitor;
+    }
+
     @Override
     public Response toResponse(Throwable exception) {
+        monitor.severe("JerseyExtension: Unexpected exception caught", exception);
         if (exception instanceof WebApplicationException) {
             return ((WebApplicationException) exception).getResponse();
         }

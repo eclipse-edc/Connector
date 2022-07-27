@@ -87,7 +87,7 @@ public class JerseyRestService implements WebService {
 
         resourceConfig.registerInstances(new EdcApiExceptionMapper());
         resourceConfig.registerInstances(new ValidationExceptionMapper());
-        resourceConfig.registerInstances(new UnexpectedExceptionMapper());
+        resourceConfig.registerInstances(new UnexpectedExceptionMapper(monitor));
 
         if (configuration.isCorsEnabled()) {
             resourceConfig.register(new CorsFilter(configuration));
