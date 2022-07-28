@@ -101,6 +101,8 @@ public class HttpProvisionerExtensionEndToEndTest {
     @BeforeEach
     void setup(EdcExtension extension) {
         extension.setConfiguration(Map.of(
+                "web.http.port", String.valueOf(getFreePort()),
+                "web.http.path", "/api",
                 "web.http.data.port", String.valueOf(dataPort),
                 "web.http.data.path", "/api/v1/data"
         ));
