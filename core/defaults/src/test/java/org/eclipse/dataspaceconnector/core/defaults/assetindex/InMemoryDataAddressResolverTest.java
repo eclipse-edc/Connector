@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.core.defaults.assetindex;
 
-import org.assertj.core.api.Assertions;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,11 +21,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class InMemoryDataAddressResolverTest {
     private InMemoryAssetIndex resolver;
-
 
     @BeforeEach
     void setUp() {
@@ -35,19 +34,19 @@ class InMemoryDataAddressResolverTest {
 
     @Test
     void resolveForAsset() {
-        String id = UUID.randomUUID().toString();
+        var id = UUID.randomUUID().toString();
         var testAsset = createAsset("foobar", id);
-        DataAddress address = createDataAddress(testAsset);
+        var address = createDataAddress(testAsset);
         resolver.accept(testAsset, address);
 
-        Assertions.assertThat(resolver.resolveForAsset(testAsset.getId())).isEqualTo(address);
+        assertThat(resolver.resolveForAsset(testAsset.getId())).isEqualTo(address);
     }
 
     @Test
     void resolveForAsset_assetNull_raisesException() {
-        String id = UUID.randomUUID().toString();
+        var id = UUID.randomUUID().toString();
         var testAsset = createAsset("foobar", id);
-        DataAddress address = createDataAddress(testAsset);
+        var address = createDataAddress(testAsset);
         resolver.accept(testAsset, address);
 
         assertThatThrownBy(() -> resolver.resolveForAsset(null)).isInstanceOf(NullPointerException.class);
@@ -58,11 +57,9 @@ class InMemoryDataAddressResolverTest {
         var testAsset = createAsset("foobar", UUID.randomUUID().toString());
         var address = createDataAddress(testAsset);
         resolver.accept(testAsset, address);
-
         resolver.deleteById(testAsset.getId());
-        assertThatThrownBy(() -> resolver.resolveForAsset(testAsset.getId()))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage(String.format("No DataAddress found for Asset ID=%s", testAsset.getId()));
+
+        assertThat(resolver.resolveForAsset(testAsset.getId())).isNull();
     }
 
     private Asset createAsset(String name, String id) {

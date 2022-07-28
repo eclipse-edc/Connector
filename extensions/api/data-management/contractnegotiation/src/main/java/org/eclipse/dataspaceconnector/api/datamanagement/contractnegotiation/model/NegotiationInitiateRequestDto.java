@@ -14,14 +14,15 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public class NegotiationInitiateRequestDto {
-    @NotNull(message = "connectorAddress cannot be null")
+    @NotBlank(message = "connectorAddress is mandatory")
     private String connectorAddress;
-    @NotNull(message = "protocol cannot be null")
+    @NotBlank(message = "protocol is mandatory")
     private String protocol = "ids-multipart";
-    @NotNull(message = "connectorId cannot be null")
+    @NotBlank(message = "connectorId is mandatory")
     private String connectorId;
     @NotNull(message = "offer cannot be null")
     private ContractOfferDescription offer;
@@ -45,7 +46,6 @@ public class NegotiationInitiateRequestDto {
     public ContractOfferDescription getOffer() {
         return offer;
     }
-
 
     public static final class Builder {
         private final NegotiationInitiateRequestDto dto;

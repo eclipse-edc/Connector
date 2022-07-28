@@ -63,8 +63,8 @@ class ContractOfferDescriptionValidationTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    Arguments.of(null, "asset", policy()),
-                    Arguments.of("offer", null, policy()),
+                    Arguments.of("", "asset", policy()),
+                    Arguments.of("offer", "", policy()),
                     Arguments.of("offer", "asset", null)
             );
         }

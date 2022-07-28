@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.api;
 
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +38,7 @@ public class ServiceResultHandler {
      *     <td>CONFLICT</td> <td>ObjectExistsException</td>
      *   </tr>
      *   <tr>
-     *     <td>BAD_REQUEST</td> <td>IllegalArgumentException</td>
+     *     <td>BAD_REQUEST</td> <td>InvalidRequestException</td>
      *   </tr>
      *   <tr>
      *     <td>other</td> <td>EdcException</td>
@@ -51,16 +52,16 @@ public class ServiceResultHandler {
      *         {@link org.eclipse.dataspaceconnector.api.result.ServiceFailure.Reason#BAD_REQUEST}.
      * @return Exception mapped from failure reason.
      */
-    public static RuntimeException mapToException(@NotNull ServiceResult<?> result, @NotNull Class<?> clazz, @Nullable String id) {
+    public static EdcException mapToException(@NotNull ServiceResult<?> result, @NotNull Class<?> clazz, @Nullable String id) {
         switch (result.reason()) {
             case NOT_FOUND:
                 return new ObjectNotFoundException(clazz, id);
             case CONFLICT:
                 return new ObjectExistsException(clazz, id);
             case BAD_REQUEST:
-                return new IllegalArgumentException(result.getFailureDetail());
+                return new InvalidRequestException(result.getFailureMessages());
             default:
-                return new EdcException("unexpected error");
+                return new EdcException("unexpected error: " + result.getFailureDetail());
         }
     }
 }

@@ -45,7 +45,7 @@ public abstract class AbstractResult<T, F extends Failure> {
         return failure;
     }
 
-    //will cause problems during JSON serialization if failure is null
+    //will cause problems during JSON serialization if failure is null TODO: is this comment still valid?
     @JsonIgnore
     public List<String> getFailureMessages() {
         return failure == null ? List.of() : failure.getMessages();
@@ -64,7 +64,7 @@ public abstract class AbstractResult<T, F extends Failure> {
      *
      * @return a string that contains all the failure messages.
      */
-    @JsonIgnore // will cause problems during JSON serialization if failure is null
+    @JsonIgnore // will cause problems during JSON serialization if failure is null TODO: is this comment still valid?
     public String getFailureDetail() {
         return failure == null ? null : String.join(", ", getFailureMessages());
     }

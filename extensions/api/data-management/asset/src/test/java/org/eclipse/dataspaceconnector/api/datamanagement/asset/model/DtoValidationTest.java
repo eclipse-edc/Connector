@@ -42,7 +42,7 @@ class DtoValidationTest {
 
         var result = validator.validate(entry);
 
-        assertThat(result).hasSize(1).allSatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("asset cannot be null"));
+        assertThat(result).hasSize(3).anySatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("asset cannot be null"));
     }
 
     @Test
@@ -54,7 +54,7 @@ class DtoValidationTest {
 
         var result = validator.validate(entry);
 
-        assertThat(result).hasSize(1).allSatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("dataAddress cannot be null"));
+        assertThat(result).hasSize(3).anySatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("dataAddress cannot be null"));
     }
 
     @Test
@@ -65,6 +65,6 @@ class DtoValidationTest {
 
         var result = validator.validate(asset);
 
-        assertThat(result).allSatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("properties cannot be null"));
+        assertThat(result).anySatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("properties cannot be null"));
     }
 }

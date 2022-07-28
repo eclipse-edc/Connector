@@ -185,6 +185,7 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .statusCode(400)
                 .extract().body().asString();
 
+        System.out.println(result);
         assertThat(result).isNotBlank();
     }
 

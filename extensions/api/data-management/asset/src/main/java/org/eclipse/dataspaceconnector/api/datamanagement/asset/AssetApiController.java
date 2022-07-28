@@ -31,6 +31,7 @@ import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryD
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
+import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -40,9 +41,10 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 import static org.eclipse.dataspaceconnector.api.ServiceResultHandler.mapToException;
 
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -67,7 +69,8 @@ public class AssetApiController implements AssetApi {
         var dataAddressResult = transformerRegistry.transform(assetEntryDto.getDataAddress(), DataAddress.class);
 
         if (assetResult.failed() || dataAddressResult.failed()) {
-            throw new IllegalArgumentException("Request is not well formatted");
+            var errorMessages = Stream.concat(assetResult.getFailureMessages().stream(), dataAddressResult.getFailureMessages().stream());
+            throw new InvalidRequestException(errorMessages.collect(toList()));
         }
 
         var dataAddress = dataAddressResult.getContent();
@@ -87,8 +90,7 @@ public class AssetApiController implements AssetApi {
     public List<AssetDto> getAllAssets(@Valid @BeanParam QuerySpecDto querySpecDto) {
         var transformationResult = transformerRegistry.transform(querySpecDto, QuerySpec.class);
         if (transformationResult.failed()) {
-            monitor.warning("Error transforming QuerySpec: " + String.join(", ", transformationResult.getFailureMessages()));
-            throw new IllegalArgumentException("Cannot transform QuerySpecDto object");
+            throw new InvalidRequestException(transformationResult.getFailureMessages());
         }
 
         var spec = transformationResult.getContent();
@@ -107,7 +109,7 @@ public class AssetApiController implements AssetApi {
                 .map(it -> transformerRegistry.transform(it, AssetDto.class))
                 .filter(Result::succeeded)
                 .map(Result::getContent)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     @GET

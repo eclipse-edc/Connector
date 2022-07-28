@@ -24,6 +24,10 @@ import java.util.stream.Collectors;
 
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 
+/**
+ * Exception mapper that catches all the `ConstraintViolationException` exceptions thrown by the `jersey-bean-validation` module,
+ * it maps them to a 400 response code with a detailed response body
+ */
 public class ValidationExceptionMapper implements ExceptionMapper<ConstraintViolationException> {
 
     @Override
