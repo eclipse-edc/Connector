@@ -250,15 +250,253 @@ the same procedure as the previous class applies to this tests
         }
 ```
 
-extensions\junit\src\main\java\org\eclipse\dataspaceconnector\junit\extensions\EdcRuntimeExtension.java
+Class `CrawlerImplTest`
+(
+extensions\catalog\federated-catalog-cache\src\test\java\org\eclipse\dataspaceconnector\catalog\cache\crawler\CrawlerImplTest.java)
+
+Instead of testing that the runned time was 5 seconds, it is possible to set the awaiting time in 5 seconds and check
+the assert and verify methods
+
+```java
+
+@Test
+@DisplayName("Should insert one item into queue when request succeeds")
+    void shouldInsertInQueue_whenSucceeds()throws InterruptedException{
+            when(protocolAdapterMock.sendRequest(isA(UpdateRequest.class)))
+        .thenAnswer(i->{
+        return CompletableFuture.completedFuture(new UpdateResponse());
+        });
+
+        workQueue.put(createWorkItem());
+        executorService.submit(crawler);
+        await().timeout(JOIN_WAIT_TIME,TimeUnit.MILLISECONDS);
+        assertThat(crawler.join()).isTrue();
+        assertThat(queue).hasSize(1);
+        verify(protocolAdapterMock).sendRequest(isA(UpdateRequest.class));
+        }
+
+@Test
+@DisplayName("Should not insert into queue when the request fails")
+    void shouldNotInsertInQueue_whenRequestFails()throws InterruptedException{
+            when(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).thenAnswer(i->{
+        return CompletableFuture.failedFuture(new EdcException("not reachable"));
+        });
+        workQueue.put(createWorkItem());
+        executorService.submit(crawler);
+
+        await().timeout(JOIN_WAIT_TIME,TimeUnit.MILLISECONDS);
+        assertThat(crawler.join()).isTrue();
+        assertThat(queue).isEmpty();
+        verify(protocolAdapterMock).sendRequest(isA(UpdateRequest.class));
+        }
+
+@Test
+@DisplayName("Should insert only those items into queue that have succeeded")
+    void shouldInsertInQueue_onlySuccessfulProtocolRequests()throws InterruptedException{
+
+            NodeQueryAdapter secondAdapter=mock(NodeQueryAdapter.class);
+        when(registry.findForProtocol(anyString())).thenReturn(Arrays.asList(protocolAdapterMock,secondAdapter));
+
+        when(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).thenAnswer(i->{
+        return CompletableFuture.completedFuture(new UpdateResponse());
+        });
+
+        when(secondAdapter.sendRequest(isA(UpdateRequest.class))).thenAnswer(i->{
+        return CompletableFuture.failedFuture(new RuntimeException());
+        });
+        workQueue.put(createWorkItem());
+        executorService.submit(crawler);
+
+        await().timeout(JOIN_WAIT_TIME,TimeUnit.MILLISECONDS);
+        assertThat(crawler.join()).isTrue();
+        assertThat(queue).hasSize(1);
+        verify(protocolAdapterMock).sendRequest(isA(UpdateRequest.class));
+        verify(registry).findForProtocol(anyString());
+        verify(secondAdapter).sendRequest(isA(UpdateRequest.class));
+        }
+
+@Test
+@DisplayName("Should not insert when Queue is at capacity")
+    void shouldLogError_whenQueueFull()throws InterruptedException{
+            range(0,QUEUE_CAPACITY).forEach(i->queue.add(new UpdateResponse())); //queue is full now
+
+            when(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).thenAnswer(i->{
+        return CompletableFuture.completedFuture(new UpdateResponse());
+        });
+
+        workQueue.put(createWorkItem());
+
+        executorService.submit(crawler);
+
+        await().timeout(JOIN_WAIT_TIME,TimeUnit.MILLISECONDS);
+        assertThat(crawler.join()).isTrue();
+        assertThat(queue).hasSize(3);
+        verify(protocolAdapterMock).sendRequest(isA(UpdateRequest.class));
+        }
+
+        ...
+@Test
+    void shouldErrorOut_whenNoProtocolAdapterFound()throws InterruptedException{
+
+            crawler=new CrawlerImpl(workQueue,monitorMock,queue,createRetryPolicy(),new NodeQueryAdapterRegistryImpl(),()->Duration.ofMillis(500),errorHandlerMock);
+            workQueue.put(createWorkItem());
+            doAnswer(i->{
+            return null;
+            }).when(errorHandlerMock).accept(isA(WorkItem.class));
+        executorService.submit(crawler);
+        await().timeout(5,SECONDS);
+        assertThat(workQueue).hasSize(0); //1).allSatisfy(wi -> assertThat(wi.getErrors()).isNotNull().hasSize(1));
+        verify(errorHandlerMock).accept(isA(WorkItem.class));
+        }
+
+```
+
+class `LoaderManagerImplTest`
+(
+extensions\catalog\federated-catalog-cache\src\test\java\org\eclipse\dataspaceconnector\catalog\cache\loader\LoaderManagerImplTest.java)
+
+Same as with the test class above, the time assertion is directly replaced with the method wait and the other assertions
+and vertifications are kept the same
+
+```java
+...
+@Test
+@DisplayName("Verify that the loader manager waits one pass when the queue does not yet contain sufficient elements")
+    void batchSizeNotReachedWithinTimeframe(){
+            range(0,batchSize-1).forEach(i->queue.offer(new UpdateResponse()));
+            when(waitStrategyMock.retryInMillis()).thenAnswer(i->{
+            return 2L;
+            });
+
+            loaderManager.start(queue);
+
+            await().timeout(Duration.ofMillis(300L));
+            verify(waitStrategyMock,atLeastOnce()).retryInMillis();
+            }
+
+@Test
+@DisplayName("Verify that the LoaderManager does not sleep when a complete batch was processed")
+    void batchSizeReachedWithinTimeframe()throws InterruptedException{
+            range(0,batchSize).forEach(i->queue.offer(new UpdateResponse()));
+
+            doAnswer(i->{
+            return null;
+            }).when(waitStrategyMock).success();
+
+            loaderManager.start(queue);
+
+            await().timeout(Duration.ofSeconds(5L));
+
+            verify(loaderMock,times(1)).load(any());
+            verify(waitStrategyMock).success();
+            }
+            ...            
+```
+
+class `PartitionManagerImplIntegrationTest`
+(
+extensions\catalog\federated-catalog-cache\src\test\java\org\eclipse\dataspaceconnector\catalog\cache\management\PartitionManagerImplIntegrationTest.java)
+
+```java
+...
+@ParameterizedTest
+@ValueSource(ints = { 10, 50, 500 })
+@DisplayName("Verify that " + WORK_ITEM_COUNT + " work items are correctly processed by a number of crawlers")
+    void runManyCrawlers_verifyCompletion(int crawlerCount)throws InterruptedException{
+            doAnswer(i->{
+            return null;
+            }).when(queueListener).unlocked();
+            var partitionManager=new PartitionManagerImpl(monitorMock,signallingWorkItemQueue,generatorFunction,crawlerCount,()->staticWorkLoad);
+
+            partitionManager.schedule(new RunOnceExecutionPlan());
+
+            await().timeout(1,MINUTES);
+            verify(queueListener,atLeastOnce()).unlocked();
+            }
+
+            ...
+```
+
+class `PartitionManagerImplTest`
+(
+extensions\catalog\federated-catalog-cache\src\test\java\org\eclipse\dataspaceconnector\catalog\cache\management\PartitionManagerImplTest.java)
+
+```java
+...
+@Test
+    void stop_allCrawlersJoinSuccessfully()throws InterruptedException{
+            partitionManager=new PartitionManagerImpl(monitorMock,workItemQueueMock,workItems->{
+            Crawler crawler=mock(Crawler.class);
+        doAnswer(i->{
+        return null;
+        }).when(crawler).run();
+        when(crawler.join()).thenReturn(true);
+        return crawler;
+        },5,()->staticWorkload);
+
+        await().timeout(10,SECONDS);
+        partitionManager.stop();
+        }
+
+        ...
+@Test
+    void schedule_planThrowsIllegalStateException_shouldLogException()throws InterruptedException{
+            var plan=mock(ExecutionPlan.class);
+        when(workItemQueueMock.addAll(any()))
+        .thenReturn(true) // first time works
+        .thenThrow(new IllegalStateException("Queue full")); //second time fails
+
+        doAnswer(invocation->{
+        var runnable=(Runnable)invocation.getArgument(0);
+        runnable.run();
+        Thread.sleep(100);
+        runnable.run();
+        return null;
+        }).when(plan).run(any());
+        partitionManager.schedule(plan);
+
+        // assert exception was thrown and logged
+        verify(workItemQueueMock,times(2)).addAll(any());
+        await().timeout(1000,MILLISECONDS);
+        verify(workItemQueueMock,times(2)).lock();
+        verify(workItemQueueMock,times(2)).unlock();
+        verify(monitorMock).warning(startsWith("Cannot add 1 elements to the queue"),isA(IllegalStateException.class));
+        }
+
+@Test
+    void schedule_planThrowsAnyException_shouldLogException()throws InterruptedException{
+            var plan=mock(ExecutionPlan.class);
+        when(workItemQueueMock.addAll(any()))
+        .thenReturn(true) // first time works
+        .thenThrow(new RuntimeException("Any random error")); //second time fails
+
+        doAnswer(invocation->{
+        var runnable=(Runnable)invocation.getArgument(0);
+        runnable.run();
+        Thread.sleep(100);
+        runnable.run();
+        return null;
+        }).when(plan).run(any());
+        partitionManager.schedule(plan);
+
+        // assert exception was thrown and logged
+        verify(workItemQueueMock,times(2)).addAll(any());
+        await().timeout(1000,MILLISECONDS);
+        verify(workItemQueueMock,times(2)).lock();
+        verify(workItemQueueMock,times(2)).unlock();
+        verify(monitorMock).severe(startsWith("Error populating the queue"),isA(RuntimeException.class));
+        }    
+```
+
+class `DataPlaneManagerImplTest`
+extensions\data-plane\data-plane-framework\src\test\java\org\eclipse\dataspaceconnector\dataplane\framework\manager\DataPlaneManagerImplTest.java
 
 common\state-machine-lib\src\test\java\org\eclipse\dataspaceconnector\common\statemachine\StateMachineManagerTest.java
-extensions\catalog\federated-catalog-cache\src\test\java\org\eclipse\dataspaceconnector\catalog\cache\crawler\CrawlerImplTest.java
-extensions\catalog\federated-catalog-cache\src\test\java\org\eclipse\dataspaceconnector\catalog\cache\loader\LoaderManagerImplTest.java
---> 1 test good, 1 test bad
-extensions\catalog\federated-catalog-cache\src\test\java\org\eclipse\dataspaceconnector\catalog\cache\management\PartitionManagerImplIntegrationTest.java
-extensions\catalog\federated-catalog-cache\src\test\java\org\eclipse\dataspaceconnector\catalog\cache\management\PartitionManagerImplTest.java
-extensions\data-plane\data-plane-framework\src\test\java\org\eclipse\dataspaceconnector\dataplane\framework\manager\DataPlaneManagerImplTest.java
+"Wanted but not invoked:
+stateProcessor.process(); -> at
+org.eclipse.dataspaceconnector.common.statemachine.StateMachineManagerTest.shouldExecuteProcessorsAsyncAndCanBeStopped(
+StateMachineManagerTest.java:73)
+Actually, there were zero interactions with this mock."
 
 --> Not test but main folder
 
