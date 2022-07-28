@@ -25,7 +25,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractAgreementDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractNegotiationDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.NegotiationId;
@@ -34,6 +33,7 @@ import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.mod
 import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.service.ContractNegotiationService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
+import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -69,8 +69,7 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     public List<ContractNegotiationDto> getNegotiations(@Valid @BeanParam QuerySpecDto querySpecDto) {
         var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
         if (result.failed()) {
-            monitor.warning("Error transforming QuerySpec: " + String.join(", ", result.getFailureMessages()));
-            throw new IllegalArgumentException("Cannot transform QuerySpecDto object");
+            throw new InvalidRequestException(result.getFailureMessages());
         }
 
         var spec = result.getContent();
@@ -130,18 +129,14 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
     @POST
     @Override
     public NegotiationId initiateContractNegotiation(@Valid NegotiationInitiateRequestDto initiateDto) {
-        if (!isValid(initiateDto)) {
-            throw new IllegalArgumentException("Negotiation request is invalid");
-        }
-
         var transformResult = transformerRegistry.transform(initiateDto, ContractOfferRequest.class);
         if (transformResult.failed()) {
-            throw new IllegalArgumentException("Negotiation request is invalid");
+            throw new InvalidRequestException(transformResult.getFailureMessages());
         }
 
         var request = transformResult.getContent();
 
-        ContractNegotiation contractNegotiation = service.initiateNegotiation(request);
+        var contractNegotiation = service.initiateNegotiation(request);
         return new NegotiationId(contractNegotiation.getId());
     }
 
@@ -171,8 +166,4 @@ public class ContractNegotiationApiController implements ContractNegotiationApi 
         }
     }
 
-    private boolean isValid(NegotiationInitiateRequestDto initiateDto) {
-        return StringUtils.isNoneBlank(initiateDto.getConnectorId(), initiateDto.getConnectorAddress(), initiateDto.getProtocol(),
-                initiateDto.getOffer().getOfferId(), initiateDto.getOffer().getAssetId());
-    }
 }

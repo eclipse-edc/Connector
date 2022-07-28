@@ -16,6 +16,7 @@
 package org.eclipse.dataspaceconnector.extension.jersey;
 
 import org.eclipse.dataspaceconnector.extension.jersey.mapper.EdcApiExceptionMapper;
+import org.eclipse.dataspaceconnector.extension.jersey.mapper.UnexpectedExceptionMapper;
 import org.eclipse.dataspaceconnector.extension.jersey.mapper.ValidationExceptionMapper;
 import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -83,8 +84,10 @@ public class JerseyRestService implements WebService {
         resourceConfig.registerClasses(controllers.stream().map(Object::getClass).collect(toSet()));
         resourceConfig.registerInstances(new Binder());
         resourceConfig.registerInstances(new TypeManagerContextResolver(typeManager));
+
         resourceConfig.registerInstances(new EdcApiExceptionMapper());
         resourceConfig.registerInstances(new ValidationExceptionMapper());
+        resourceConfig.registerInstances(new UnexpectedExceptionMapper(monitor));
 
         if (configuration.isCorsEnabled()) {
             resourceConfig.register(new CorsFilter(configuration));

@@ -28,6 +28,7 @@ dependencies {
     api(project(":spi:transfer-spi"))
     api(project(":spi:web-spi"))
     implementation(project(":extensions:api:auth-spi"))
+    implementation(project(":extensions:api:api-core"))
     implementation(project(":core:transfer")) // needs the AddProvisionedResourceCommand
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
@@ -40,7 +41,6 @@ dependencies {
     testImplementation(project(":extensions:http"))
     testImplementation(project(":extensions:junit"))
     testImplementation("io.rest-assured:rest-assured:${restAssured}")
-    testRuntimeOnly("org.glassfish.jersey.ext:jersey-bean-validation:${jerseyVersion}") //for validation
 }
 
 
