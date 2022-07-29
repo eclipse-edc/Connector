@@ -306,6 +306,27 @@ class SqlContractNegotiationStoreTest {
     }
 
     @Test
+    void create_and_cancel_contractAgreement() {
+        var negotiationId = "test-cn1";
+        var negotiation = createNegotiation(negotiationId);
+        store.save(negotiation);
+
+        // now add the agreement
+        var agreement = createContract("test-ca1");
+        var updatedNegotiation = createNegotiation(negotiationId, agreement);
+
+        store.save(updatedNegotiation);
+        assertThat(store.queryAgreements(QuerySpec.none()))
+                .hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsExactly(agreement);
+
+        // cancel the agreement
+        updatedNegotiation.transitionError("Cancelled");
+        store.save(updatedNegotiation);
+    }
+
+    @Test
     @DisplayName("Should update the agreement when a negotiation is updated")
     void update_whenAgreementExists_shouldUpdate() {
         var negotiationId = "test-cn1";

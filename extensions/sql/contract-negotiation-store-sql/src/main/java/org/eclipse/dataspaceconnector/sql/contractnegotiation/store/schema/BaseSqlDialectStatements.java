@@ -92,9 +92,9 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
 
     @Override
     public String getUpdateAgreementTemplate() {
-        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=? WHERE %s =?",
+        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?, %s=?, %s=?%s WHERE %s =?",
                 getContractAgreementTable(), getProviderAgentColumn(), getConsumerAgentColumn(), getSigningDateColumn(),
-                getStartDateColumn(), getEndDateColumn(), getAssetIdColumn(), getPolicyColumn(), getContractAgreementIdColumn());
+                getStartDateColumn(), getEndDateColumn(), getAssetIdColumn(), getPolicyColumn(), getFormatJsonOperator(), getContractAgreementIdColumn());
     }
 
     @Override
