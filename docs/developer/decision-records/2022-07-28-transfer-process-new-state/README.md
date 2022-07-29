@@ -21,11 +21,11 @@ The same rationale goes for the `deprovisioning` phase.
 ## Approach
 
 As we already did for the execution of "asynchronous operations" like contract negotiation, the solution would be to add
-a new state that is not processed by the `StateMachineManager`, in this case the choice would be to add:
-- `PROVISIONING_REQUESTED(250)` (between `PROVISIONING(200)` and `PROVISIONED(300)`)
-- `DEPROVISIONING_REQUESTED(950)` (between `DEPROVISIONING(900)` and `DEPROVISIONED(1000)`)
+a new state that is not processed by the `StateMachineManager`, in this case the state sequence would go:
+- `PROVISIONING(200)` (request sent to provisioner) -> `PROVISIONING_REQUESTED(250)` (while the provisioner is working) -> `PROVISIONED(300)`
+- `DEPROVISIONING(900)` (request sent to deprovisioner) -> `DEPROVISIONING_REQUESTED(950)` (while the deprovisioner is working) -> `DEPROVISIONED(1000)`
 
 When the `provisionManager.provision` result completes and in the resource manifest there's at least one `ProvisionResponse`
-that's `inProcess` then the `TransferProcess` will be put in that `REQUESTED` status.
+that's `inProcess` then the `TransferProcess` will be put in that `*_REQUESTED` state.
 
 The same approach goes for the `deprovisioning phase`
