@@ -8,11 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - Initial implementation
  *
  */
 
-package org.eclipse.dataspaceconnector.core;
+package org.eclipse.dataspaceconnector.core.base;
 
 import okhttp3.EventListener;
 import okhttp3.Interceptor;
@@ -20,9 +20,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.system.Inject;
-import org.eclipse.dataspaceconnector.spi.system.Provider;
-import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,25 +29,20 @@ import java.util.concurrent.TimeUnit;
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 
-public class HttpClientExtension implements ServiceExtension {
+public class OkHttpClientFactory {
 
     @EdcSetting(value = "If true, enable HTTPS call enforcement. Default value is 'false'", type = "boolean")
     public static final String EDC_HTTP_ENFORCE_HTTPS = "edc.http.enforce-https";
 
     /**
-     * An optional OkHttp {@link EventListener} that can be used to instrument OkHttp client for collecting metrics.
-     * Used by the optional {@code micrometer} module.
+     * Create an OkHttpClient instance
+     *
+     * @param context the service extension context
+     * @param okHttpEventListener used to instrument OkHttp client for collecting metrics, can be null
+     * @return the OkHttpClient
      */
-    @Inject(required = false)
-    private EventListener okHttpEventListener;
-
-    @Override
-    public String name() {
-        return "HTTP client";
-    }
-
-    @Provider
-    public OkHttpClient addHttpClient(ServiceExtensionContext context) {
+    @NotNull
+    public static OkHttpClient create(ServiceExtensionContext context, EventListener okHttpEventListener) {
         var builder = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS);
@@ -61,7 +53,7 @@ public class HttpClientExtension implements ServiceExtension {
         if (enforceHttps) {
             builder.addInterceptor(new EnforceHttps());
         } else {
-            context.getMonitor().info("HTTPS enforcement it's not enabled, it should be in a production environment");
+            context.getMonitor().info("HTTPS enforcement it not enabled, please enable it in a production environment");
         }
 
         return builder.build();

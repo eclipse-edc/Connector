@@ -8,12 +8,13 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - Initial implementation
  *
  */
 
-package org.eclipse.dataspaceconnector.core;
+package org.eclipse.dataspaceconnector.core.base;
 
+import okhttp3.EventListener;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -43,19 +44,18 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-class HttpClientExtensionTest {
+class OkHttpClientFactoryTest {
 
     private static final String HTTP_URL = "http://localhost:11111";
     private static final String HTTPS_URL = "https://localhost:11111";
     private final Monitor monitor = mock(Monitor.class);
-
-    private final HttpClientExtension extension = new HttpClientExtension();
+    private final EventListener eventListener = mock(EventListener.class);
 
     @Test
     void shouldPrintLogIfHttpsNotEnforced() {
         var context = createContextWithConfig(emptyMap());
 
-        var okHttpClient = extension.addHttpClient(context)
+        var okHttpClient = OkHttpClientFactory.create(context, eventListener)
                 .newBuilder().addInterceptor(dummySuccessfulResponse())
                 .build();
 
@@ -65,11 +65,11 @@ class HttpClientExtensionTest {
     }
 
     @Test
-    void shouldEnforceHttpsCallsIfSet() {
+    void shouldEnforceHttpsCalls() {
         var config = Map.of("edc.http.enforce-https", "true");
         var context = createContextWithConfig(config);
 
-        var okHttpClient = extension.addHttpClient(context)
+        var okHttpClient = OkHttpClientFactory.create(context, eventListener)
                 .newBuilder().addInterceptor(dummySuccessfulResponse())
                 .build();
 
@@ -104,4 +104,5 @@ class HttpClientExtensionTest {
     private ArgumentMatcher<String> messageContains(String string) {
         return message -> message.contains(string);
     }
+
 }

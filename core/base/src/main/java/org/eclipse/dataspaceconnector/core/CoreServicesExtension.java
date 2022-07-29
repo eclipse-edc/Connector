@@ -15,7 +15,10 @@
 package org.eclipse.dataspaceconnector.core;
 
 import dev.failsafe.RetryPolicy;
+import okhttp3.EventListener;
+import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.core.base.CommandHandlerRegistryImpl;
+import org.eclipse.dataspaceconnector.core.base.OkHttpClientFactory;
 import org.eclipse.dataspaceconnector.core.base.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.dataspaceconnector.core.base.agent.ParticipantAgentServiceImpl;
 import org.eclipse.dataspaceconnector.core.base.policy.PolicyEngineImpl;
@@ -90,6 +93,13 @@ public class CoreServicesExtension implements ServiceExtension {
     private static final long DEFAULT_DURATION = 60;
     private static final int DEFAULT_TP_SIZE = 3;
     private static final String DEFAULT_HOSTNAME = "localhost";
+
+    /**
+     * An optional OkHttp {@link EventListener} that can be used to instrument OkHttp client for collecting metrics.
+     * Used by the optional {@code micrometer} module.
+     */
+    @Inject(required = false)
+    private EventListener okHttpEventListener;
 
     /**
      * An optional instrumentor for {@link ExecutorService}. Used by the optional {@code micrometer} module.
@@ -190,6 +200,11 @@ public class CoreServicesExtension implements ServiceExtension {
     @Provider
     public PolicyEngine policyEngine() {
         return new PolicyEngineImpl(scopeFilter);
+    }
+
+    @Provider
+    public OkHttpClient okHttpClient(ServiceExtensionContext context) {
+        return OkHttpClientFactory.create(context, okHttpEventListener);
     }
 
     @Provider

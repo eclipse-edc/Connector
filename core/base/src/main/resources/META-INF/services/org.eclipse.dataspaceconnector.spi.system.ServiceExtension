@@ -13,5 +13,4 @@
 #
 
 org.eclipse.dataspaceconnector.core.CoreServicesExtension
-org.eclipse.dataspaceconnector.core.HttpClientExtension
 org.eclipse.dataspaceconnector.core.defaults.DefaultServicesExtension
