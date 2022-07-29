@@ -275,6 +275,27 @@ class PostgresContractNegotiationStoreTest {
         assertThat(store.queryAgreements(query)).isEmpty();
     }
 
+    @Test
+    void create_and_cancel_contractAgreement() {
+        var negotiationId = "test-cn1";
+        var negotiation = createNegotiation(negotiationId);
+        store.save(negotiation);
+
+        // now add the agreement
+        var agreement = createContract("test-ca1");
+        var updatedNegotiation = createNegotiation(negotiationId, agreement);
+
+        store.save(updatedNegotiation);
+        assertThat(store.queryAgreements(QuerySpec.none()))
+                .hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsExactly(agreement);
+
+        // cancel the agreement
+        updatedNegotiation.transitionError("Cancelled");
+        store.save(updatedNegotiation);
+    }
+
     protected Connection getConnection() {
         try {
             return dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection();
