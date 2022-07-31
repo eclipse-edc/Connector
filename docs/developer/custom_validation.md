@@ -1,13 +1,15 @@
 # Custom validation framework
 
-The validation framework hooks into the normal Jetty/Jersey request dispatch mechanism and allows users to intercept the
-request chain to perform additional validation tasks.
+The validation framework hooks into the normal Jetty/Jersey request dispatch mechanism and is designed to allow users to
+intercept the request chain to perform additional validation tasks. In its current form it is intended for intercepting
+REST requests. Users can elect any validation framework they desire, such as `jakarta.validation` or
+the [Apache Commons Validator](https://commons.apache.org/proper/commons-validator/), or they can implement one
+themselves.
 
 ## When to use it
 
-This feature is intended for use cases where the out-of-the-box DTO validation, that ships with EDC's APIs is not
-sufficient. Please check out the [OpenAPI spec](../../resources/openapi/openapi.yaml) to find out more about the object
-schema.
+This feature is intended for use cases where the standard DTO validation, that ships with EDC's APIs is not sufficient.
+Please check out the [OpenAPI spec](../../resources/openapi/openapi.yaml) to find out more about the object schema.
 
 EDC features various data types that do not have a strict schema but are *extensible*, for example `Asset`/`AssetDto`,
 or a `DataRequest`/`DataRequestDto`. This was done by design, to allow for maximum flexibility and openness. However,
@@ -54,6 +56,11 @@ following ways:
 3. globally, for all resource methods: this is intended for interceptor functions that should get invoked on *all*
    resource methods. *This is generally not recommended and should only be used in very specific situations such as
    logging*
+
+Please check
+out [this test](../../extensions/http/jersey/src/test/java/org/eclipse/dataspaceconnector/extension/jersey/validation/integrationtest/ValidationIntegrationTest.java)
+for a comprehensive example how validation can be enabled. All functions are registered during the extension's
+initialization phase.
 
 ## Limitations and caveats
 
