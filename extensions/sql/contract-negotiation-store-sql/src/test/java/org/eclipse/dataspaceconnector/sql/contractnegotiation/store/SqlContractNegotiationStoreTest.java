@@ -54,6 +54,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createContract;
 import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createContractBuilder;
 import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createNegotiation;
+import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createNegotiationBuilder;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -179,7 +180,9 @@ class SqlContractNegotiationStoreTest {
     @Test
     @DisplayName("Verify that entity is stored")
     void save() {
-        var negotiation = createNegotiation("test-id1");
+        var negotiation = createNegotiationBuilder("test-id1")
+                .type(ContractNegotiation.Type.PROVIDER)
+                .build();
         store.save(negotiation);
 
         assertThat(store.find(negotiation.getId()))
