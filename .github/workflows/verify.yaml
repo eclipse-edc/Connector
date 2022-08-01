@@ -445,7 +445,7 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
-          files: "**/test-results/**/*.xml"
+          junit_files: "**/test-results/**/*.xml"
 
   Upload-Coverage-Report-To-Codecov:
     needs:
