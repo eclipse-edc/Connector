@@ -104,6 +104,4 @@ class ResourceInterceptorTest {
         functionOrder.verify(fct2).apply(any());
 
     }
-
-
 }

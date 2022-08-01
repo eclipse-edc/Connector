@@ -19,7 +19,7 @@ scheme has no way of enforcing that, so this is where _custom validation_ enters
 
 ## Building blocks
 
-There is two important components necessary for custom validation:
+There are two important components necessary for custom validation:
 
 - the `InterceptorFunction`: a function that accepts the intercepted method's parameters as argument (as `Object[]`),
   and returns a `Result<Void>` to indicate the validation success. It **must not** throw an exception, or dispatch to
@@ -41,7 +41,7 @@ following ways:
    Note that there is currently no way to bind an `InterceptorFunction` directly to an HTTP endpoint.
 
 2. bound to an argument type: the interceptor function gets bound to all resource methods that have a particular type in
-   their signature.
+   their signature:
    ```java
    var yourFunction = objects -> Result.success(); // your validation logic goes here
    registry.addFunction(YourObjectDto.class, yourFunction);
@@ -51,7 +51,6 @@ following ways:
    (YourObjectDto dto)` would both get intercepted, even if they are defined in different controller classes.
    *This is the recommended way in the situation described above - adding additional schema restrictions on extensible
    types*
-
 
 3. globally, for all resource methods: this is intended for interceptor functions that should get invoked on *all*
    resource methods. *This is generally not recommended and should only be used in very specific situations such as
@@ -71,5 +70,5 @@ initialization phase.
 - for method-based interception compile-time access to the resource is required. This might not be suitable for a lot of
   situations.
 - returning a `Result.failure(...)` will result in an `HTTP 400 BAD REQUEST` status code. This is the only supported
-  status code at this time.
+  status code at this time. Note that the failure message will be part of the HTTP response body.
 - binding methods directly to paths ("endpoints") is not supported.
