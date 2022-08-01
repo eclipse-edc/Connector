@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Fraunhofer Institute for Software and Systems Engineering
+ *  Copyright (c) 2020 - 2022 Fraunhofer Institute for Software and Systems Engineering
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -111,7 +111,7 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
             throw new EdcException("Payload was null but connector self-description was expected");
         }
 
-        var baseConnector = getBaseConnector(getObjectMapper(), parts);
+        var baseConnector = getBaseConnector(parts);
         if (baseConnector.getResourceCatalog() == null || baseConnector.getResourceCatalog().isEmpty()) {
             throw new EdcException("Resource catalog is null in connector self-description, should not happen");
         }
@@ -122,7 +122,7 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
                 .orElse(new ResourceCatalogBuilder().build());
 
         if (catalogDoesNotContainAnyOfferResource(resourceCatalog)) {
-            createOfferResourcesFromProperties(resourceCatalog, getObjectMapper());
+            createOfferResourcesFromProperties(resourceCatalog);
         }
 
         var transformResult = getTransformerRegistry().transform(resourceCatalog, Catalog.class);
@@ -139,26 +139,27 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
         return List.of(DescriptionResponseMessageImpl.class);
     }
 
-    private BaseConnector getBaseConnector(ObjectMapper mapper, IdsMultipartParts parts) {
+    private BaseConnector getBaseConnector(IdsMultipartParts parts) {
         try {
-            InputStream payload = Objects.requireNonNull(parts.getPayload());
-            return mapper.readValue(payload.readAllBytes(), BaseConnector.class);
+            var payload = Objects.requireNonNull(parts.getPayload());
+            return getObjectMapper().readValue(payload.readAllBytes(), BaseConnector.class);
         } catch (IOException exception) {
             throw new EdcException(String.format("Could not deserialize connector self-description: %s", exception.getMessage()));
         }
     }
 
-    private void createOfferResourcesFromProperties(ResourceCatalog catalog, ObjectMapper mapper) {
+    private void createOfferResourcesFromProperties(ResourceCatalog catalog) {
+        var objectMapper = getObjectMapper();
         if (catalog.getProperties() != null) {
             for (Map.Entry<String, Object> entry : catalog.getProperties().entrySet()) {
                 if ("ids:offeredResource".equals(entry.getKey())) {
-                    JsonNode node = mapper.convertValue(entry.getValue(), JsonNode.class);
+                    JsonNode node = objectMapper.convertValue(entry.getValue(), JsonNode.class);
                     List<Resource> offeredResources = new LinkedList<>();
                     for (JsonNode objNode : node.get("objectList")) {
                         Map<String, Object> resource = new HashMap<>();
                         resource.put("@type", "ids:Resource");
-                        resource.putAll(mapper.convertValue(objNode, Map.class));
-                        offeredResources.add(mapper.convertValue(resource, Resource.class));
+                        resource.putAll(objectMapper.convertValue(objNode, Map.class));
+                        offeredResources.add(objectMapper.convertValue(resource, Resource.class));
                     }
                     catalog.setOfferedResource(offeredResources);
                 }

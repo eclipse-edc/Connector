@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Fraunhofer Institute for Software and Systems Engineering
+ *  Copyright (c) 2021 - 2022 Fraunhofer Institute for Software and Systems Engineering
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -46,7 +46,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
 
     @Test
     void testNegotiation_initialOfferAccepted() {
-        consumerNegotiationId = null;
+        consumerNegotiationId = "consumerNegotiationId";
         ContractOffer offer = getContractOffer();
         when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
         when(validationService.validate(eq(token), any(ContractAgreement.class),

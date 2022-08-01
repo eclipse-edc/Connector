@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.DutyBuilder;
-import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintBuilder;
+import org.eclipse.dataspaceconnector.ids.core.serialization.IdsConstraintBuilder;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Constraint;
 import org.eclipse.dataspaceconnector.policy.model.Duty;

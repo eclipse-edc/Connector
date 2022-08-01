@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintBuilder;
+import org.eclipse.dataspaceconnector.ids.core.serialization.IdsConstraintBuilder;
 import org.eclipse.dataspaceconnector.policy.model.Constraint;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.junit.jupiter.api.Assertions;

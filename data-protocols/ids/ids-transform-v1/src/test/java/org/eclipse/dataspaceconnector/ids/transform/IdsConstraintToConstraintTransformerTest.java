@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.BinaryOperator;
 import de.fraunhofer.iais.eis.util.RdfResource;
-import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintBuilder;
+import org.eclipse.dataspaceconnector.ids.core.serialization.IdsConstraintBuilder;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Expression;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;

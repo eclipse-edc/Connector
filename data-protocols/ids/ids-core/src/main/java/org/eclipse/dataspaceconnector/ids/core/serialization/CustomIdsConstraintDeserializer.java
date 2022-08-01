@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.core.policy;
+package org.eclipse.dataspaceconnector.ids.core.serialization;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -58,16 +58,16 @@ public class CustomIdsConstraintDeserializer extends StdDeserializer<Constraint>
         if (isValidNode(rightOperand)) {
             builder.rightOperand(new RdfResource(getOrThrow(rightOperand, "@value").asText(), URI.create(getOrThrow(rightOperand, "@type").asText())));
         } else if (isValidNode(rightOperandReference)) {
-            builder.rightOperandReference(URI.create(rightOperandReference.asText()));
+            builder.rightOperandReference(URI.create(getOrThrow(rightOperandReference, "@id").asText()));
         } else {
             throw new EdcException("Either RightOperand or RightOperandReference must be provided");
         }
 
         if (isValidNode(unit)) {
-            builder.unit(URI.create(unit.asText()));
+            builder.unit(URI.create(getOrThrow(unit, "@id").asText()));
         }
         if (isValidNode(endpoint)) {
-            builder.pipEndpoint(URI.create(endpoint.asText()));
+            builder.pipEndpoint(URI.create(getOrThrow(endpoint, "@id").asText()));
         }
 
         return builder.build();

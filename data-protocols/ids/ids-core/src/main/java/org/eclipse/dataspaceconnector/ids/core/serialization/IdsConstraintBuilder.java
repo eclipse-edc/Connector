@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.core.policy;
+package org.eclipse.dataspaceconnector.ids.core.serialization;
 
 import de.fraunhofer.iais.eis.BinaryOperator;
 import de.fraunhofer.iais.eis.Builder;
