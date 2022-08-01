@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.LogicalConstraint;
-import org.eclipse.dataspaceconnector.ids.core.policy.IdsConstraintBuilder;
+import org.eclipse.dataspaceconnector.ids.core.serialization.IdsConstraintBuilder;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.policy.model.AndConstraint;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;

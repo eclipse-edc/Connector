@@ -27,17 +27,18 @@ styleguide.md @paullatzelsperger
 /common/token-generation-lib/ @bscholtes1A
 /common/token-validation-lib/ @bscholtes1A
 
-/core/base/src/main/java/org/eclipse/dataspaceconnector/core/base/agent/ @jimmarino
-/core/base/src/main/java/org/eclipse/dataspaceconnector/core/base/policy/ @jimmarino
-/core/base/src/main/java/org/eclipse/dataspaceconnector/core/base/health/ @paullatzelsperger
-/core/base/src/main/java/org/eclipse/dataspaceconnector/core/boot/ @jimmarino @paullatzelsperger
-/core/base/src/main/java/org/eclipse/dataspaceconnector/core/contract/ @jimmarino @juliapampus @ronjaquensel
-/core/base/src/main/java/org/eclipse/dataspaceconnector/core/defaults/ @paullatzelsperger
-/core/base/src/main/java/org/eclipse/dataspaceconnector/core/micrometer/ @algattik
-/core/base/src/main/java/org/eclipse/dataspaceconnector/core/policy/ @jimmarino
-/core/base/src/main/java/org/eclipse/dataspaceconnector/core/transfer/ @jimmarino @bscholtes1A @paullatzelsperger @ndr-brt
+/core/base/agent/ @jimmarino
+/core/base/policy/ @jimmarino
+/core/base/health/ @paullatzelsperger
+/core/boot/ @jimmarino @paullatzelsperger
+/core/contract/ @jimmarino @juliapampus @ronjaquensel
+/core/defaults/ @paullatzelsperger
+/core/micrometer/ @algattik
+/core/policy/ @jimmarino
+/core/transfer/ @jimmarino @bscholtes1A @paullatzelsperger @ndr-brt
 
 /data-protocols/ids/ @ronjaquensel @juliapampus @DominikPinsel @denisneuling
+/data-protocols/ids/ids-jsonld-serdes-lib/ @juliapampus
 
 /docs/ @juliapampus
 

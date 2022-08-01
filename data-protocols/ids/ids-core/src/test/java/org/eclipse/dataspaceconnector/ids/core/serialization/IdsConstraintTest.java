@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.core.policy;
+package org.eclipse.dataspaceconnector.ids.core.serialization;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,7 +23,12 @@ import de.fraunhofer.iais.eis.ConstraintImpl;
 import de.fraunhofer.iais.eis.Permission;
 import de.fraunhofer.iais.eis.PermissionBuilder;
 import de.fraunhofer.iais.eis.util.RdfResource;
+import org.eclipse.dataspaceconnector.ids.jsonld.JsonLd;
+import org.eclipse.dataspaceconnector.ids.jsonld.JsonLdSerializer;
+import org.eclipse.dataspaceconnector.ids.spi.domain.DefaultValues;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -36,6 +41,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class IdsConstraintTest {
+    private ObjectMapper objectMapper;
+    private TypeManager typeManager;
 
     private static final URI ID = URI.create("id");
     private static final String LEFT_OPERAND = "leftOperand";
@@ -44,6 +51,22 @@ class IdsConstraintTest {
     private static final URI REFERENCE = URI.create("reference");
     private static final URI UNIT = URI.create("unit");
     private static final URI ENDPOINT = URI.create("endpoint");
+
+    @BeforeEach
+    void setUp() {
+        typeManager = new TypeManager();
+        typeManager.registerContext("ids", JsonLd.getObjectMapper());
+
+        IdsTypeManagerUtil.registerIdsClasses(typeManager);
+
+        objectMapper = typeManager.getMapper("ids");
+    }
+
+    void addConstraintConfig() {
+        typeManager.registerSerializer("ids", IdsConstraintImpl.class, new JsonLdSerializer<>(IdsConstraintImpl.class, DefaultValues.CONTEXT));
+        objectMapper.registerSubtypes(IdsConstraintImpl.class);
+        objectMapper = typeManager.getMapper("ids");
+    }
 
     @Test
     void setId() {
@@ -153,16 +176,16 @@ class IdsConstraintTest {
                 .build();
 
         /* ACT */
-        var result = new ObjectMapper().writeValueAsString(constraint);
+        var result = objectMapper.writeValueAsString(constraint);
 
         /* ASSERT */
         assertThat(result).isNotBlank();
     }
 
     @Test
-    void failedConstraintDeserialization() throws JsonProcessingException {
+    void failedConstraintDeserialization_leftOperand_isNull() throws JsonProcessingException {
         /* ARRANGE */
-        var constraint = (IdsConstraintImpl) new IdsConstraintBuilder(ID)
+        var constraint = new IdsConstraintBuilder(ID)
                 .leftOperand(LEFT_OPERAND)
                 .operator(OPERATOR)
                 .rightOperand(RIGHT_OPERAND)
@@ -170,16 +193,14 @@ class IdsConstraintTest {
                 .unit(UNIT)
                 .pipEndpoint(ENDPOINT)
                 .build();
-        var objectMapper = new ObjectMapper();
+
         var constraintAsString = objectMapper.writeValueAsString(constraint);
 
         /* ACT */
         var result = objectMapper.readValue(constraintAsString, Constraint.class);
 
         /* ASSERT */
-        assertThat(result)
-                .isNotNull()
-                .isInstanceOf(ConstraintImpl.class);
+        assertThat(result).isNotNull().isInstanceOf(ConstraintImpl.class);
         assertThat(result.getLeftOperand()).isNull();
     }
 
@@ -194,8 +215,8 @@ class IdsConstraintTest {
                 .pipEndpoint(ENDPOINT)
                 .build();
 
-        var objectMapper = new ObjectMapper();
-        objectMapper.registerSubtypes(IdsConstraintImpl.class);
+        addConstraintConfig();
+
         var constraintAsString = objectMapper.writeValueAsString(constraint);
 
         /* ACT */
@@ -225,8 +246,8 @@ class IdsConstraintTest {
                 .pipEndpoint(ENDPOINT)
                 .build();
 
-        var objectMapper = new ObjectMapper();
-        objectMapper.registerSubtypes(IdsConstraintImpl.class);
+        addConstraintConfig();
+
         var constraintAsString = objectMapper.writeValueAsString(constraint);
 
         /* ACT */
@@ -256,8 +277,8 @@ class IdsConstraintTest {
                 .rightOperand(RIGHT_OPERAND)
                 .build();
 
-        var objectMapper = new ObjectMapper();
-        objectMapper.registerSubtypes(IdsConstraintImpl.class);
+        addConstraintConfig();
+
         var constraintAsString = objectMapper.writeValueAsString(constraint);
 
         /* ACT */
@@ -295,8 +316,8 @@ class IdsConstraintTest {
                 ._target_(URI.create("target"))
                 .build();
 
-        var objectMapper = new ObjectMapper();
-        objectMapper.registerSubtypes(IdsConstraintImpl.class);
+        addConstraintConfig();
+
         var permissionAsString = objectMapper.writeValueAsString(permission);
 
         /* ACT */
@@ -325,8 +346,8 @@ class IdsConstraintTest {
         /* ARRANGE */
         var idsConstraint = (IdsConstraintImpl) constraint;
 
-        var objectMapper = new ObjectMapper();
-        objectMapper.registerSubtypes(IdsConstraintImpl.class);
+        addConstraintConfig();
+
         var constraintAsString = objectMapper.writeValueAsString(idsConstraint);
 
         /* ASSERT */

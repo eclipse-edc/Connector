@@ -2593,13 +2593,13 @@ StAX
 The International Data Spaces (IDS) Information Model
 * Project: https://github.com/International-Data-Spaces-Association/InformationModel
 * Source: scm:git:https://github.com/International-Data-Spaces-Association/InformationModel.git
-* Maven Artifact: de.fraunhofer.iais.eis.ids.infomodel/java/4.2.7
+* Maven Artifact: de.fraunhofer.iais.eis.ids.infomodel/java/4.1.3
 * License: Apache-2.0
 
 The International Data Spaces (IDS) Information Model Util
 * Project: https://github.com/International-Data-Spaces-Association/InformationModel
 * Source: scm:git:https://github.com/International-Data-Spaces-Association/InformationModel.git
-* Maven Artifact: de.fraunhofer.iais.eis.infomodel/util/4.2.7
+* Maven Artifact: de.fraunhofer.iais.eis.infomodel/util/4.1.3
 * License: Apache-2.0
 
 ## Cryptography
