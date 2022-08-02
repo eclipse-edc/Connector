@@ -23,7 +23,7 @@ import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.validation.ValidationFunctionRegistry;
+import org.eclipse.dataspaceconnector.spi.validation.InterceptorFunctionRegistry;
 
 @Provides(WebService.class)
 public class JerseyExtension implements ServiceExtension {
@@ -59,7 +59,7 @@ public class JerseyExtension implements ServiceExtension {
     }
 
     @Provider
-    public ValidationFunctionRegistry createValidationRegistry() {
+    public InterceptorFunctionRegistry createInterceptorFunctionRegistry() {
         return provider;
     }
 }

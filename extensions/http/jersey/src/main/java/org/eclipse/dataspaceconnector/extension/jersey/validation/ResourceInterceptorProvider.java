@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.extension.jersey.validation;
 
 import org.eclipse.dataspaceconnector.spi.validation.InterceptorFunction;
-import org.eclipse.dataspaceconnector.spi.validation.ValidationFunctionRegistry;
+import org.eclipse.dataspaceconnector.spi.validation.InterceptorFunctionRegistry;
 import org.glassfish.jersey.server.model.Invocable;
 import org.glassfish.jersey.server.spi.internal.ResourceMethodInvocationHandlerProvider;
 
@@ -35,7 +35,7 @@ import static java.util.Optional.ofNullable;
  * Provides {@link InvocationHandler} objects for methods. That means, it offers a way to register an interceptor function
  * that gets called whenever a resource method is invoked. In most cases that is going to be method on a REST controller.
  */
-public class ResourceInterceptorProvider implements ResourceMethodInvocationHandlerProvider, ValidationFunctionRegistry {
+public class ResourceInterceptorProvider implements ResourceMethodInvocationHandlerProvider, InterceptorFunctionRegistry {
 
     private final Map<Method, InterceptorFunction> methodBoundFunctions;
     private final Map<Class<?>, InterceptorFunction> typeBoundFunctions;

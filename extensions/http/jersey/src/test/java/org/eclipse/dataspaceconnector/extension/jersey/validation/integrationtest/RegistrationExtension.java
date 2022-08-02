@@ -19,7 +19,7 @@ import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.validation.InterceptorFunction;
-import org.eclipse.dataspaceconnector.spi.validation.ValidationFunctionRegistry;
+import org.eclipse.dataspaceconnector.spi.validation.InterceptorFunctionRegistry;
 
 import java.lang.reflect.Method;
 
@@ -34,7 +34,7 @@ class RegistrationExtension implements ServiceExtension {
     private final InterceptorFunction globalFunction;
 
     @Inject
-    private ValidationFunctionRegistry registry;
+    private InterceptorFunctionRegistry registry;
 
     @Inject
     private WebService webService;

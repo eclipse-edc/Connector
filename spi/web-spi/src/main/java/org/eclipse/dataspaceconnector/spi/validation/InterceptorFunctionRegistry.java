@@ -17,29 +17,29 @@ package org.eclipse.dataspaceconnector.spi.validation;
 import java.lang.reflect.Method;
 
 /**
- * Provides an interface where customers can register their own validation logic for Jersey resource methods.
+ * Provides an interface where customers can register functions to intercept Jersey resource methods, for example for performing their own validation logic.
  */
-public interface ValidationFunctionRegistry {
+public interface InterceptorFunctionRegistry {
 
     /**
-     * Registers a validation function for a particular type (e.g. a DTO). The validation function gets applied to
+     * Registers an interceptor function for a particular type (e.g. a DTO). The interceptor function gets applied to
      * all resource methods that have a T object in their signature
      *
      * @param type               The class of the object for which to register the function
-     * @param validationFunction A function that evaluates the object and returns a Result
+     * @param validationFunction A function that processes the object and returns a Result
      */
     <T> void addFunction(Class<T> type, InterceptorFunction validationFunction);
 
     /**
-     * Registers a validation function for all resource methods. Conditional evaluation must be done in the
-     * evaluation function itself
+     * Registers an interceptor function for all resource methods. Conditional evaluation must be done in the
+     * interceptor function itself
      *
      * @param validationFunction Receives the list of arguments of the resource method, returns a Result
      */
     void addFunction(InterceptorFunction validationFunction);
 
     /**
-     * Registers a validation function for a particular resource method (= Controller method). The validation
+     * Registers an interceptor function for a particular resource method (= Controller method). The interceptor
      * function only gets applied to that particular method.
      *
      * @param method             The {@link java.lang.reflect.Method} (of a controller) for which to register the function
