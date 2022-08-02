@@ -45,7 +45,7 @@ both it and the `ContractAgreement` become _immutable_.
 ### Data model
 
 I propose extracting the `createdTimestamp` (plus the Builder infrastructure) into a new abstract classes `Entity`
-(and renaming it to `createdAt`) that is extended by _all_ entities, mutable and immutable. By default, the `createAt`
+(and renaming it to `createdAt`) that is extended by _all_ entities, mutable and immutable. By default, the `createdAt`
 field is initialized with the current UTC epoch in milliseconds.
 
 In addition, the `StatefulEntity` can be extended with a `lastUpdateTimestamp` field:
