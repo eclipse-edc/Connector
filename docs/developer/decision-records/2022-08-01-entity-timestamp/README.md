@@ -2,7 +2,7 @@
 
 ## Decision
 
-All objects in EDC, which can be persisted in a database, should have a `createdTimestamp` timestamp, all objects that
+All objects in EDC, which can be persisted in a database, should have a `createdAt` timestamp, all objects that
 are
 _mutable_ should also have a `lastUpdateTimestamp` timestamp. In this document they will be referred to as "business
 objects"
