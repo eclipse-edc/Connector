@@ -13,7 +13,7 @@ objects"
 It should be possible to track the creation time and last-updated time for the aforementioned (mutable)
 entities, e.g. for auditing or for displaying purposes in a web frontend.
 
-The `createdTimestamp` timestamp must be immutable. It cannot be changed after the initial object construction. The
+The `createdAt` timestamp must be immutable. It cannot be changed after the initial object construction. The
 `updatedAt` timestamp must be updated everytime the entity is put back into storage. This includes `save`
 operations that do not entail an actual change to the object.
 
