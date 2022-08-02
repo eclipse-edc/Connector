@@ -45,20 +45,20 @@ both it and the `ContractAgreement` become _immutable_.
 ### Data model
 
 I propose extracting the `createdTimestamp` (plus the Builder infrastructure) into a new abstract classes `Entity`
-that is extended by _all_ entities, mutable and immutable. By default, the `createdTimestamp` is initialized with the
-current UTC epoch in milliseconds.
+(and renaming it to `createdAt`) that is extended by _all_ entities, mutable and immutable. By default, the `createAt`
+field is initialized with the current UTC epoch in milliseconds.
 
 In addition, the `StatefulEntity` can be extended with a `lastUpdateTimestamp` field:
 
 ```java
 public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Entity implements TraceCarrier {
-    private long lastUpdateTimestamp;
+    private long lastUpdatedAt;
 
-    public long getLastUpdateTimestamp() {
+    public long getLastUpdatedAt() {
         return lastUpdateTimestamp;
     }
 
-    public void setLastUpdateTimestamp(long epochMillis) {
+    public void setLastUpdatedAt(long epochMillis) {
         lastUpdateTimestamp = epochMillis;
     }
     // ...
@@ -66,16 +66,16 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Entity
 ```
 
 And similar to the `Entity`, the `StatefulEntity`'s Builder would also have a new method that sets the last update. By
-default, `lastUpdateTimestamp` would be initialized with `createdTimestamp`.
+default, `lastUpdateTimestamp` would be initialized with `createAt`.
 
 _Note: the `StatefulEntity` class already has a `Clock` that can be moved up to the `Entity` and be re-used for this
 purpose._
 
 ### Mutating objects
 
-The `createdTimestamp` field would always be initialized during object creation. The `lastUpdateTimestamp` timestamp
-would be updated by the _manipulating class_. That means, whichever class manipulates the `StatefulEntity` is also
-responsible for updating the `lastUpdateTimestamp` field. These are:
+The `createAt` field would always be initialized during object creation. The `lastUpdateTimestamp` timestamp would be
+updated by the _manipulating class_. That means, whichever class manipulates the `StatefulEntity` is also responsible
+for updating the `lastUpdateTimestamp` field. These are:
 
 - `TransferProcessManagerImpl`: right before `transferProcessStore.update()` is called
 - `SingleTransferProcessCommandHandler`: could be done in the `else` path of the `handle` method
@@ -86,8 +86,8 @@ responsible for updating the `lastUpdateTimestamp` field. These are:
 ### Persisting entities
 
 No action needs to be taken for the CosmosDB store as it is already document-based and persisting another field should
-be seamless. For the Postgres implementations the `createdTimestamp` and `lastUpdateTimestamp` fields should be of
-type `BIGINT`, for example (`TransferProcess`):
+be seamless. For the Postgres implementations the `createAt` and `lastUpdateTimestamp` fields should be of type `BIGINT`
+, for example (`TransferProcess`):
 
 ```postgresql
 
