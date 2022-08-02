@@ -74,6 +74,7 @@ class TransferProcessToTransferProcessDtoTransformerTest {
                 .id(data.id)
                 .type(data.type)
                 .stateTimestamp(data.stateTimestamp)
+                .createdAt(data.createdTimestamp)
                 .dataRequest(data.dataRequest);
         data.dto
                 .dataDestination(
@@ -81,7 +82,6 @@ class TransferProcessToTransferProcessDtoTransformerTest {
                                 .properties(Map.of("type", data.dataDestinationType))
                                 .build())
                 .stateTimestamp(data.stateTimestamp)
-                .createdTimestamp(0L)
                 .errorDetail(null);
 
         assertThatEntityTransformsToDto();

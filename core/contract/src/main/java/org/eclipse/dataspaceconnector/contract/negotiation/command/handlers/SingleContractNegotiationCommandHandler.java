@@ -29,13 +29,13 @@ import static java.lang.String.format;
  * @param <T> the sub type of SingleContractNegotiationCommand this handler can handle.
  */
 public abstract class SingleContractNegotiationCommandHandler<T extends SingleContractNegotiationCommand> implements CommandHandler<T> {
-    
+
     protected final ContractNegotiationStore store;
-    
+
     public SingleContractNegotiationCommandHandler(ContractNegotiationStore store) {
         this.store = store;
     }
-    
+
     /**
      * Fetches the {@link ContractNegotiation} specified by the ID in the command from the store.
      * Then calls the {@link #modify(ContractNegotiation)} method defined in the respective
@@ -51,11 +51,12 @@ public abstract class SingleContractNegotiationCommandHandler<T extends SingleCo
             throw new EdcException(format("Could not find ContractNegotiation with ID [%s]", negotiationId));
         } else {
             if (modify(negotiation)) {
+                negotiation.setModified();
                 store.save(negotiation);
             }
         }
     }
-    
+
     /**
      * Should contain the logic to modify the ContractNegotiation. To be implemented by sub-classes.
      * Will not be called if the ContractNegotiation specified by the command could not be fetched
@@ -66,5 +67,5 @@ public abstract class SingleContractNegotiationCommandHandler<T extends SingleCo
      * @return true, if the ContractNegotiation was modified; false otherwise.
      */
     protected abstract boolean modify(ContractNegotiation negotiation);
-    
+
 }

@@ -38,6 +38,7 @@ class ContractDefinitionTest {
         var serialized = mapper.writeValueAsString(definition);
         var deserialized = mapper.readValue(serialized, ContractDefinition.class);
 
-        assertThat(deserialized).isNotNull();
+        assertThat(deserialized).isNotNull().usingRecursiveComparison().isEqualTo(definition);
+        assertThat(deserialized.getCreatedAt()).isNotNull();
     }
 }

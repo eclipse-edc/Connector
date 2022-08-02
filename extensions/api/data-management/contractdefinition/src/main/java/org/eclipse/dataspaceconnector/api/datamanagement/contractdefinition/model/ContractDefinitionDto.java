@@ -21,13 +21,14 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
+import org.eclipse.dataspaceconnector.api.model.BaseDto;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @JsonDeserialize(builder = ContractDefinitionDto.Builder.class)
-public class ContractDefinitionDto {
+public class ContractDefinitionDto extends BaseDto {
     @NotNull(message = "id cannot be null")
     private String id;
     @NotNull(message = "accessPolicyId cannot be null")
@@ -37,13 +38,13 @@ public class ContractDefinitionDto {
     @NotNull(message = "criteria cannot be null")
     private List<Criterion> criteria = new ArrayList<>();
 
+    private ContractDefinitionDto() {
+    }
+
     @AssertTrue(message = "id cannot contain the ':' character")
     @JsonIgnore
     public boolean isIdValid() {
         return id != null && !id.contains(":");
-    }
-
-    private ContractDefinitionDto() {
     }
 
     public String getAccessPolicyId() {
@@ -54,23 +55,18 @@ public class ContractDefinitionDto {
         return contractPolicyId;
     }
 
-
     public List<Criterion> getCriteria() {
         return criteria;
     }
-
 
     public String getId() {
         return id;
     }
 
-
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder {
-        private final ContractDefinitionDto dto;
-
+    public static final class Builder extends BaseDto.Builder<ContractDefinitionDto, Builder> {
         private Builder() {
-            dto = new ContractDefinitionDto();
+            super(new ContractDefinitionDto());
         }
 
         @JsonCreator
@@ -93,13 +89,14 @@ public class ContractDefinitionDto {
             return this;
         }
 
-        public Builder id(String id) {
-            dto.id = id;
+        @Override
+        public Builder self() {
             return this;
         }
 
-        public ContractDefinitionDto build() {
-            return dto;
+        public Builder id(String id) {
+            dto.id = id;
+            return this;
         }
     }
 }

@@ -102,7 +102,10 @@ public class SqlTransferProcessStoreTest {
         var t = createTransferProcess("test-id");
         store.create(t);
 
-        assertThat(store.findAll(QuerySpec.none())).containsExactly(t);
+        var all = store.findAll(QuerySpec.none()).collect(Collectors.toList());
+        assertThat(all).containsExactly(t);
+        assertThat(all.get(0)).usingRecursiveComparison().isEqualTo(t);
+        assertThat(all).allSatisfy(tr -> assertThat(tr.getCreatedAt()).isNotEqualTo(0L));
     }
 
     @Test
@@ -336,7 +339,7 @@ public class SqlTransferProcessStoreTest {
         store.update(t1);
 
         // lease should be broken
-        assertThat(store.nextForState(TransferProcessStates.INITIAL.code(), 10)).containsExactly(t1);
+        assertThat(store.nextForState(TransferProcessStates.INITIAL.code(), 10)).usingRecursiveFieldByFieldElementComparator().containsExactly(t1);
     }
 
     @Test
@@ -450,10 +453,11 @@ public class SqlTransferProcessStoreTest {
 
     @Test
     void update_dataRequestWithNewId_replacesOld() {
-        var t1 = createTransferProcess("id1", TransferProcessStates.IN_PROGRESS);
+        var bldr = createTransferProcessBuilder("id1").state(TransferProcessStates.IN_PROGRESS.code());
+        var t1 = bldr.build();
         store.create(t1);
 
-        var t2 = createTransferProcessBuilder("id1")
+        var t2 = bldr
                 .dataRequest(createDataRequestBuilder()
                         .id("new-dr-id")
                         .assetId("new-asset")

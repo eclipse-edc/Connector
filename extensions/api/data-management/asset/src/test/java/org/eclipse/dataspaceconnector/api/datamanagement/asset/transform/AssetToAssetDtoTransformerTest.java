@@ -41,5 +41,7 @@ class AssetToAssetDtoTransformerTest {
         var assetDto = transformer.transform(asset, context);
 
         assertThat(assetDto.getProperties()).containsExactlyEntriesOf(asset.getProperties());
+        assertThat(assetDto.getCreatedAt()).isEqualTo(asset.getCreatedAt());
+        assertThat(assetDto.getId()).isEqualTo(asset.getId());
     }
 }

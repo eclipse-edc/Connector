@@ -62,23 +62,23 @@ public class CachedAsset extends Asset {
         }
 
         public Builder originator(String originator) {
-            asset.getProperties().put(PROPERTY_ORIGINATOR, originator);
+            entity.getProperties().put(PROPERTY_ORIGINATOR, originator);
             return this;
         }
 
         public Builder policy(Policy policy) {
-            asset.getProperties().put(PROPERTY_POLICY, policy);
+            entity.getProperties().put(PROPERTY_POLICY, policy);
             return this;
         }
 
         public Builder copyFrom(Asset otherAsset) {
-            otherAsset.getProperties().forEach((k, v) -> asset.getProperties().put(k, v));
+            otherAsset.getProperties().forEach((k, v) -> entity.getProperties().put(k, v));
             return this;
         }
 
         @Override
         public CachedAsset build() {
-            return (CachedAsset) asset;
+            return (CachedAsset) entity;
         }
     }
 }

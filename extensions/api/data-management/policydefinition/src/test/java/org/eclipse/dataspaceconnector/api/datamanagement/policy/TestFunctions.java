@@ -15,8 +15,8 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.policy;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 
 import java.util.List;
 import java.util.Map;

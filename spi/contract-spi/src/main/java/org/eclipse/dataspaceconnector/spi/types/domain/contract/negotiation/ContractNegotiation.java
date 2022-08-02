@@ -141,6 +141,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      */
     public void setContractAgreement(ContractAgreement agreement) {
         contractAgreement = agreement;
+        setModified();
     }
 
     /**
@@ -290,6 +291,11 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(id, correlationId, counterPartyId, clock, protocol, traceContext, type, state, stateCount, stateTimestamp, contractAgreement, contractOffers);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -303,11 +309,6 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
                 Objects.equals(clock, that.clock) &&
                 Objects.equals(protocol, that.protocol) && Objects.equals(traceContext, that.traceContext) &&
                 type == that.type && Objects.equals(contractAgreement, that.contractAgreement) && Objects.equals(contractOffers, that.contractOffers);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, correlationId, counterPartyId, clock, protocol, traceContext, type, state, stateCount, stateTimestamp, contractAgreement, contractOffers);
     }
 
     /**

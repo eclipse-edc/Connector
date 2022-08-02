@@ -32,7 +32,7 @@ public class BaseSqlDialectStatements implements AssetStatements {
 
     @Override
     public String getInsertAssetTemplate() {
-        return format("INSERT INTO %s (%s) VALUES (?)", getAssetTable(), getAssetIdColumn());
+        return format("INSERT INTO %s (%s, %s) VALUES (?,?)", getAssetTable(), getAssetIdColumn(), getCreatedAtColumn());
     }
 
     @Override
@@ -123,6 +123,10 @@ public class BaseSqlDialectStatements implements AssetStatements {
         return stmt;
     }
 
+    @Override
+    public String getSelectAssetByIdTemplate() {
+        return format("SELECT * FROM %s WHERE %s=?", getAssetTable(), getAssetIdColumn());
+    }
 
     /**
      * Concatenates all SELECT statements on all properties into one big statement, or returns "" if list is empty.

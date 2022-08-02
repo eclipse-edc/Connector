@@ -29,23 +29,16 @@ import java.util.Objects;
  *
  * @param <T> implementation type ({@link StatefulEntity} sub-class). Used to define {@link #copy()} method.
  */
-public abstract class StatefulEntity<T extends StatefulEntity<T>> implements TraceCarrier {
-
-    protected String id;
-    protected long createdTimestamp;
+public abstract class StatefulEntity<T extends StatefulEntity<T>> extends MutableEntity implements TraceCarrier {
     protected int state;
     protected int stateCount;
     protected long stateTimestamp;
     protected Map<String, String> traceContext = new HashMap<>();
     protected String errorDetail;
-    protected Clock clock;
 
     protected StatefulEntity() {
     }
 
-    public long getCreatedTimestamp() {
-        return createdTimestamp;
-    }
 
     public int getState() {
         return state;
@@ -81,17 +74,28 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> implements Tra
         stateTimestamp = clock.millis();
     }
 
+    public abstract T copy();
+
     protected void transitionTo(int targetState) {
         stateCount = state == targetState ? stateCount + 1 : 1;
         state = targetState;
         updateStateTimestamp();
+        setModified();
     }
 
-    public String getId() {
-        return id;
+    protected <B extends Builder<T, B>> T copy(Builder<T, B> builder) {
+        return builder
+                .id(id)
+                .createdAt(createdAt)
+                .state(state)
+                .stateCount(stateCount)
+                .stateTimestamp(stateTimestamp)
+                .updatedAt(updatedAt)
+                .traceContext(traceContext)
+                .errorDetail(errorDetail)
+                .clock(clock)
+                .build();
     }
-
-    public abstract T copy();
 
     /**
      * Base Builder class for derived classes.
@@ -100,31 +104,12 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> implements Tra
      * @param <B> derived Builder ({@link Builder} sub-class)
      * @see <a href="http://egalluzzo.blogspot.com/2010/06/using-inheritance-with-fluent.html">Using inheritance with fluent interfaces (blog post)</a> for a background on the use of generic types.
      */
-    protected abstract static class Builder<T extends StatefulEntity<T>, B extends Builder<T, B>> {
-
-        public abstract B self();
-
-        protected final T entity;
+    protected abstract static class Builder<T extends StatefulEntity<T>, B extends Builder<T, B>> extends MutableEntity.Builder<T, B> {
 
         protected Builder(T entity) {
-            this.entity = entity;
+            super(entity);
         }
 
-        public B id(String id) {
-            entity.id = id;
-            return self();
-        }
-
-
-        public B clock(Clock clock) {
-            entity.clock = clock;
-            return self();
-        }
-
-        public B createdTimestamp(long value) {
-            entity.createdTimestamp = value;
-            return self();
-        }
 
         public B state(int value) {
             entity.state = value;
@@ -151,26 +136,16 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> implements Tra
             return self();
         }
 
+
         protected T build() {
+            super.build();
             Objects.requireNonNull(entity.id, "id");
-            entity.clock = Objects.requireNonNullElse(entity.clock, Clock.systemUTC());
+
             if (entity.stateTimestamp == 0) {
                 entity.stateTimestamp = entity.clock.millis();
             }
+
             return entity;
         }
-    }
-
-    protected <B extends Builder<T, B>> T copy(Builder<T, B> builder) {
-        return builder
-                .id(id)
-                .createdTimestamp(createdTimestamp)
-                .state(state)
-                .stateCount(stateCount)
-                .stateTimestamp(stateTimestamp)
-                .traceContext(traceContext)
-                .errorDetail(errorDetail)
-                .clock(clock)
-                .build();
     }
 }

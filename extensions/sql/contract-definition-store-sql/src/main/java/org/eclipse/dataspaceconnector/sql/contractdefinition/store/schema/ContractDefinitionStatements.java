@@ -42,6 +42,10 @@ public interface ContractDefinitionStatements {
         return "contract_definition_id";
     }
 
+    default String getCreatedAtColumn() {
+        return "created_at";
+    }
+
     String getDeleteByIdTemplate();
 
     String getFindByTemplate();
@@ -57,4 +61,5 @@ public interface ContractDefinitionStatements {
     default String getFormatAsJsonOperator() {
         return BaseSqlDialect.getJsonCastOperator();
     }
+
 }

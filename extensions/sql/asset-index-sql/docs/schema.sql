@@ -16,7 +16,8 @@
 -- table: edc_asset
 CREATE TABLE IF NOT EXISTS edc_asset
 (
-    asset_id VARCHAR NOT NULL,
+    asset_id   VARCHAR NOT NULL,
+    created_at BIGINT  NOT NULL,
     PRIMARY KEY (asset_id)
 );
 

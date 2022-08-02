@@ -18,9 +18,9 @@ import org.eclipse.dataspaceconnector.common.util.postgres.PostgresqlLocalInstan
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -67,6 +67,7 @@ public class Participant {
     public void createAsset(String assetId, String addressType) {
         var asset = Map.of(
                 "asset", Map.of(
+                        "id", assetId,
                         "properties", Map.of(
                                 "asset:prop:id", assetId,
                                 "asset:prop:description", "description"

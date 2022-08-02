@@ -17,6 +17,7 @@
 CREATE TABLE IF NOT EXISTS edc_policydefinitions
 (
     policy_id             VARCHAR NOT NULL,
+    created_at            BIGINT  NOT NULL,
     permissions           JSON,
     prohibitions          JSON,
     duties                JSON,

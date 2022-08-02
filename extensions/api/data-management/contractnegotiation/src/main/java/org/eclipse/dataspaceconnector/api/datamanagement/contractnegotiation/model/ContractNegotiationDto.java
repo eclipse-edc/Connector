@@ -17,10 +17,11 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.mo
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.api.model.MutableDto;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation.Type;
 
 @JsonDeserialize(builder = ContractNegotiationDto.Builder.class)
-public class ContractNegotiationDto {
+public class ContractNegotiationDto extends MutableDto {
     private String contractAgreementId; // is null until state == CONFIRMED
     private String counterPartyAddress;
     private String errorDetail;
@@ -61,11 +62,10 @@ public class ContractNegotiationDto {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder {
-        private final ContractNegotiationDto dto;
+    public static final class Builder extends MutableDto.Builder<ContractNegotiationDto, Builder> {
 
         private Builder() {
-            dto = new ContractNegotiationDto();
+            super(new ContractNegotiationDto());
         }
 
         @JsonCreator
@@ -108,8 +108,9 @@ public class ContractNegotiationDto {
             return this;
         }
 
-        public ContractNegotiationDto build() {
-            return dto;
+        @Override
+        public Builder self() {
+            return this;
         }
     }
 }

@@ -28,7 +28,7 @@ public class BaseSqlDialectStatements implements SqlPolicyStoreStatements {
 
     @Override
     public String getInsertTemplate() {
-        return String.format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?%s, ?%s, ?%s, ?%s, ?, ?, ?, ?, ?)",
+        return String.format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?%s, ?%s, ?%s, ?%s, ?, ?, ?, ?, ?, ?)",
                 getPolicyTable(),
                 // keys
                 getPolicyIdColumn(),
@@ -41,6 +41,7 @@ public class BaseSqlDialectStatements implements SqlPolicyStoreStatements {
                 getAssigneeColumn(),
                 getTargetColumn(),
                 getTypeColumn(),
+                getCreatedAtColumn(),
                 getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator(), getFormatAsJsonOperator()
         );
     }

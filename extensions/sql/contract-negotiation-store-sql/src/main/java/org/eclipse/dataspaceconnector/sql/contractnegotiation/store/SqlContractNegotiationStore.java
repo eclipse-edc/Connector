@@ -225,6 +225,7 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                 toJson(updatedValues.getContractOffers()),
                 toJson(updatedValues.getTraceContext()),
                 ofNullable(updatedValues.getContractAgreement()).map(ContractAgreement::getId).orElse(null),
+                updatedValues.getUpdatedAt(),
                 negotiationId);
     }
 
@@ -250,7 +251,9 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                 negotiation.getErrorDetail(),
                 agrId,
                 toJson(negotiation.getContractOffers()),
-                toJson(negotiation.getTraceContext()));
+                toJson(negotiation.getTraceContext()),
+                negotiation.getCreatedAt(),
+                negotiation.getUpdatedAt());
 
 
     }
@@ -338,6 +341,8 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                 }))
                 // will throw an exception if the value is outside the Type.values() range
                 .type(ContractNegotiation.Type.values()[resultSet.getInt(statements.getTypeColumn())])
+                .createdAt(resultSet.getLong(statements.getCreatedAtColumn()))
+                .updatedAt(resultSet.getLong(statements.getUpdatedAtColumn()))
                 .build();
     }
 

@@ -16,12 +16,12 @@
 
 package org.eclipse.dataspaceconnector.contract.offer;
 
-import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -70,7 +70,7 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
                 .filter(definition -> evaluateAccessPolicy(definition, agent))
                 .orElse(null);
     }
-    
+
     /**
      * Determines the applicability of a definition to an agent by evaluating its access policy.
      */
@@ -80,12 +80,12 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
                 .map(PolicyDefinition::getPolicy)
                 .map(policy -> policyEngine.evaluate(CATALOGING_SCOPE, policy, agent))
                 .orElse(Result.failure(format("Policy %s not found", definition.getAccessPolicyId())));
-        
+
         if (accessResult.failed()) {
             monitor.debug(format("Access not granted for %s: \n%s", definition.getId(), String.join("\n", accessResult.getFailureMessages())));
             return false;
         }
-        
+
         return true;
     }
 }

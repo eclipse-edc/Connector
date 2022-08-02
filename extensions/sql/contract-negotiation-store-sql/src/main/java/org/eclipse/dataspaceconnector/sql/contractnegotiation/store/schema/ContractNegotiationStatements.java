@@ -158,8 +158,12 @@ public interface ContractNegotiationStatements extends LeaseStatements {
         return "type";
     }
 
-    default String getViewName() {
-        return "edc_contract_negotiation_view";
+    default String getCreatedAtColumn() {
+        return "created_at";
+    }
+
+    default String getUpdatedAtColumn() {
+        return "updated_at";
     }
 
     SqlQueryStatement createNegotiationsQuery(QuerySpec querySpec);

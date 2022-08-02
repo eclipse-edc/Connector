@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,11 +12,13 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.policy.model;
+package org.eclipse.dataspaceconnector.spi.policy;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.entity.Entity;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -32,8 +34,7 @@ import java.util.UUID;
  * <em>Many external Policy formats like ODRL also require policies to have an ID.</em>
  */
 @JsonDeserialize(builder = PolicyDefinition.Builder.class)
-public class PolicyDefinition {
-    private String uid;
+public class PolicyDefinition extends Entity {
     private Policy policy;
 
     private PolicyDefinition() {
@@ -45,7 +46,7 @@ public class PolicyDefinition {
 
     @Override
     public int hashCode() {
-        return Objects.hash(Objects.hash(uid), policy.hashCode());
+        return Objects.hash(Objects.hash(id), policy.hashCode());
     }
 
     @Override
@@ -57,19 +58,18 @@ public class PolicyDefinition {
             return false;
         }
         PolicyDefinition that = (PolicyDefinition) o;
-        return Objects.equals(uid, that.uid) && policy.equals(that.policy);
+        return Objects.equals(id, that.id) && policy.equals(that.policy);
     }
 
     public String getUid() {
-        return uid;
+        return id;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder {
-        private final PolicyDefinition policyDefinition;
+    public static final class Builder extends Entity.Builder<PolicyDefinition, Builder> {
 
         private Builder() {
-            policyDefinition = new PolicyDefinition();
+            super(new PolicyDefinition());
         }
 
         @JsonCreator
@@ -78,21 +78,25 @@ public class PolicyDefinition {
         }
 
         public Builder uid(String uid) {
-            policyDefinition.uid = uid;
-            return this;
+            return super.id(uid);
         }
 
         public Builder policy(Policy policy) {
-            policyDefinition.policy = policy;
+            entity.policy = policy;
+            return this;
+        }
+
+        @Override
+        public Builder self() {
             return this;
         }
 
         public PolicyDefinition build() {
-            if (policyDefinition.uid == null) {
-                policyDefinition.uid = UUID.randomUUID().toString();
+            if (entity.id == null) {
+                entity.id = UUID.randomUUID().toString();
             }
-            Objects.requireNonNull(policyDefinition.policy, "Policy cannot be null!");
-            return policyDefinition;
+            Objects.requireNonNull(entity.policy, "Policy cannot be null!");
+            return super.build();
         }
     }
 }

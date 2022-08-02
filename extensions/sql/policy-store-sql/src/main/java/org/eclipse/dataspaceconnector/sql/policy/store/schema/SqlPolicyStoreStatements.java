@@ -88,6 +88,10 @@ public interface SqlPolicyStoreStatements {
         return "policy_type";
     }
 
+    default String getCreatedAtColumn() {
+        return "created_at";
+    }
+
     default String getFormatAsJsonOperator() {
         return BaseSqlDialect.getJsonCastOperator();
     }

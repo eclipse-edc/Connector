@@ -38,6 +38,7 @@ public class ContractDefinitionToContractDefinitionDtoTransformer implements Dto
         return ContractDefinitionDto.Builder.newInstance()
                 .id(object.getId())
                 .accessPolicyId(object.getAccessPolicyId())
+                .createdAt(object.getCreatedAt())
                 .contractPolicyId(object.getContractPolicyId())
                 .criteria(object.getSelectorExpression().getCriteria())
                 .build();

@@ -40,6 +40,8 @@ CREATE TABLE IF NOT EXISTS edc_contract_negotiation
     id                   VARCHAR                                            NOT NULL
         CONSTRAINT contract_negotiation_pk
             PRIMARY KEY,
+    created_at           BIGINT                                             NOT NULL,
+    updated_at           BIGINT                                             NOT NULL,
     correlation_id       VARCHAR,
     counterparty_id      VARCHAR                                            NOT NULL,
     counterparty_address VARCHAR                                            NOT NULL,

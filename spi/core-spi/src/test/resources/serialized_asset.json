@@ -5,5 +5,7 @@
     "asset:prop:id": "abcd123",
     "anotherProperty": "some value",
     "numberVal": 42069
-  }
+  },
+  "id": "abcd123",
+  "createdAt": 134798
 }

@@ -20,14 +20,18 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
+import org.eclipse.dataspaceconnector.api.model.BaseDto;
 
 import java.util.Map;
 
 @JsonDeserialize(builder = AssetDto.Builder.class)
-public class AssetDto {
+public class AssetDto extends BaseDto {
 
     @NotNull(message = "properties cannot be null")
     private Map<String, Object> properties;
+
+    @NotNull(message = "id cannot be null! (asset:prop:id is deprecated)")
+    private String id;
 
     private AssetDto() {
     }
@@ -42,12 +46,15 @@ public class AssetDto {
         return properties;
     }
 
+    public String getId() {
+        return id;
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder {
-        private final AssetDto assetDto;
+    public static final class Builder extends BaseDto.Builder<AssetDto, Builder> {
 
         private Builder() {
-            assetDto = new AssetDto();
+            super(new AssetDto());
         }
 
         @JsonCreator
@@ -56,12 +63,18 @@ public class AssetDto {
         }
 
         public Builder properties(Map<String, Object> properties) {
-            assetDto.properties = properties;
+            dto.properties = properties;
             return this;
         }
 
-        public AssetDto build() {
-            return assetDto;
+        @Override
+        public Builder self() {
+            return this;
+        }
+
+        public Builder id(String id) {
+            dto.id = id;
+            return this;
         }
     }
 }

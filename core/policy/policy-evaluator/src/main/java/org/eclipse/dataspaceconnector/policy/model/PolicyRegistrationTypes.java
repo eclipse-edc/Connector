@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.policy.model;
 
+import java.security.Policy;
 import java.util.List;
 
 /**

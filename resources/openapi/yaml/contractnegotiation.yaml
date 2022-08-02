@@ -331,6 +331,9 @@ components:
           type: string
         counterPartyAddress:
           type: string
+        createdAt:
+          type: integer
+          format: int64
         errorDetail:
           type: string
         id:
@@ -344,6 +347,9 @@ components:
           enum:
           - CONSUMER
           - PROVIDER
+        updatedAt:
+          type: integer
+          format: int64
     ContractOfferDescription:
       type: object
       properties:

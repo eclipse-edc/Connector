@@ -43,6 +43,7 @@ public abstract class SingleTransferProcessCommandHandler<T extends SingleTransf
             throw new EdcException(format("Could not find TransferProcess with ID [%s]", transferProcessId));
         } else {
             if (modify(transferProcess)) {
+                transferProcess.setModified();
                 store.update(transferProcess);
                 postAction(transferProcess);
             }

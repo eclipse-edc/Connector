@@ -82,7 +82,6 @@ class PostgresContractNegotiationStoreTest {
 
     @BeforeAll
     static void prepare() {
-        // todo: reuse org.eclipse.dataspaceconnector.test.e2e.postgresql.PostgresqlLocalInstance??
         try (var connection = DriverManager.getConnection(JDBC_URL_PREFIX + POSTGRES_USER, POSTGRES_USER, POSTGRES_PASSWORD)) {
             connection.createStatement().execute(format("CREATE DATABASE %s;", POSTGRES_DATABASE));
         } catch (SQLException e) {

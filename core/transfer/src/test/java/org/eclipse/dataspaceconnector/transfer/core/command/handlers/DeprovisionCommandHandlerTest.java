@@ -43,13 +43,17 @@ class DeprovisionCommandHandlerTest {
     void handle() {
         var cmd = new DeprovisionRequest("test-id");
         var tp = TransferProcess.Builder.newInstance().id("test-id").state(TransferProcessStates.COMPLETED.code())
-                .type(TransferProcess.Type.CONSUMER).build();
+                .updatedAt(124123) //some invalid time
+                .type(TransferProcess.Type.CONSUMER)
+                .build();
+        var originalDate = tp.getUpdatedAt();
 
         when(storeMock.find(anyString())).thenReturn(tp);
         handler.handle(cmd);
 
         assertThat(tp.getState()).isEqualTo(TransferProcessStates.DEPROVISIONING.code());
         assertThat(tp.getErrorDetail()).isNull();
+        assertThat(tp.getUpdatedAt()).isNotEqualTo(originalDate);
     }
 
     @Test
@@ -65,9 +69,12 @@ class DeprovisionCommandHandlerTest {
         var cmd = new DeprovisionRequest("test-id");
         var tp = TransferProcess.Builder.newInstance().id("test-id").state(TransferProcessStates.IN_PROGRESS.code())
                 .type(TransferProcess.Type.CONSUMER).build();
+        var originalDate = tp.getUpdatedAt();
+
 
         when(storeMock.find(anyString())).thenReturn(tp);
         assertThatThrownBy(() -> handler.handle(cmd)).isInstanceOf(IllegalStateException.class).hasMessage("Cannot transition from state IN_PROGRESS to DEPROVISIONING");
+        assertThat(tp.getUpdatedAt()).isEqualTo(originalDate);
     }
 
     @Test

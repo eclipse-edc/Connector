@@ -185,7 +185,7 @@ public class SqlContractDefinitionStoreTest {
 
         sqlContractDefinitionStore.update(definition);
         var existing = sqlContractDefinitionStore.findAll(QuerySpec.max());
-        assertThat(existing).hasSize(1).containsExactly(definition);
+        assertThat(existing).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(definition);
     }
 
     @Test
@@ -201,10 +201,7 @@ public class SqlContractDefinitionStoreTest {
                 statements.getContractDefinitionTable(),
                 statements.getIdColumn());
 
-        var definitions = executeQuery(dataSourceRegistry.resolve(DATASOURCE_NAME).getConnection(),
-                ((SqlContractDefinitionStore) sqlContractDefinitionStore)::mapResultSet,
-                query,
-                definition1.getId());
+        var definitions = sqlContractDefinitionStore.findAll(QuerySpec.none()).collect(Collectors.toList());
 
         assertThat(definitions).isNotNull();
         assertThat(definitions.size()).isEqualTo(1);

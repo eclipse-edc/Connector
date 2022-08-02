@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.cosmos.policy.store;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 
 import java.util.UUID;
 

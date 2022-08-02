@@ -61,6 +61,8 @@ class ContractNegotiationToContractNegotiationDtoTransformerTest {
         assertThat(dto.getProtocol()).isEqualTo("protocol");
         assertThat(dto.getCounterPartyAddress()).isEqualTo("counterPartyAddress");
         assertThat(dto.getErrorDetail()).isEqualTo("errorDetail");
+        assertThat(dto.getUpdatedAt()).isEqualTo(contractNegotiation.getUpdatedAt());
+        assertThat(dto.getCreatedAt()).isEqualTo(contractNegotiation.getCreatedAt());
     }
 
     private ContractAgreement createContractAgreement(String id) {

@@ -35,6 +35,8 @@ public class ModifyTransferProcessSampleTest {
     static final String EXPECTED_ID_PROPERTY_VALUE = "tp-sample-04.2";
     static final String EXPECTED_STATE_PROPERTY_VALUE = "ERROR";
     static final String EXPECTED_ERROR_DETAIL_PROPERTY_VALUE = "timeout by watchdog";
+    static final Duration DURATION = Duration.ofSeconds(15);
+    static final Duration POLL_INTERVAL = Duration.ofMillis(500);
     @RegisterExtension
     static EdcRuntimeExtension consumer = new EdcRuntimeExtension(
             ":samples:04.2-modify-transferprocess:consumer",
@@ -43,9 +45,6 @@ public class ModifyTransferProcessSampleTest {
                     "edc.fs.config", getFileFromRelativePath(CONSUMER_CONFIG_PROPERTIES_FILE_PATH).getAbsolutePath()
             )
     );
-    static final Duration DURATION = Duration.ofSeconds(15);
-    static final Duration POLL_INTERVAL = Duration.ofMillis(500);
-
     final FileTransferSampleTestCommon testCommon = new FileTransferSampleTestCommon("", ""); // no sample asset transfer in this sample
 
     /**
@@ -57,6 +56,7 @@ public class ModifyTransferProcessSampleTest {
                 .untilAsserted(() ->
                         assertThat(testCommon.getTransferProcess())
                                 .usingRecursiveComparison()
+                                .ignoringFields("updatedAt", "createdAt")
                                 .ignoringExpectedNullFields()
                                 .isEqualTo(TransferProcessDto.Builder.newInstance()
                                         .id(EXPECTED_ID_PROPERTY_VALUE)

@@ -265,6 +265,11 @@ components:
     PolicyDefinition:
       type: object
       properties:
+        createdAt:
+          type: integer
+          format: int64
+        id:
+          type: string
         policy:
           $ref: '#/components/schemas/Policy'
         uid:

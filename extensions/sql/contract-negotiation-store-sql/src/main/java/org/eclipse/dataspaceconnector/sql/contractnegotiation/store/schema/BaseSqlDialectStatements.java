@@ -43,24 +43,17 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
 
     @Override
     public String getUpdateNegotiationTemplate() {
-        return format("UPDATE %s\n" +
-                        "SET %s=?,\n" +
-                        "    %s=?,\n" +
-                        "    %s=?,\n" +
-                        "    %s=?,\n" +
-                        "    %s=?%s,\n" +
-                        "    %s=?%s,\n" +
-                        "    %s=?\n" +
-                        "WHERE id = ?;", getContractNegotiationTable(), getStateColumn(), getStateCountColumn(), getStateTimestampColumn(),
-                getErrorDetailColumn(), getContractOffersColumn(), getFormatJsonOperator(), getTraceContextColumn(), getFormatJsonOperator(), getContractAgreementIdFkColumn());
+        return format("UPDATE %s SET %s=?, %s=?, %s=?, %s=?, %s=?%s, %s=?%s, %s=?, %s=? WHERE id = ?;",
+                getContractNegotiationTable(), getStateColumn(), getStateCountColumn(), getStateTimestampColumn(),
+                getErrorDetailColumn(), getContractOffersColumn(), getFormatJsonOperator(), getTraceContextColumn(), getFormatJsonOperator(), getContractAgreementIdFkColumn(), getUpdatedAtColumn());
     }
 
     @Override
     public String getInsertNegotiationTemplate() {
-        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)\n" +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? %s, ?%s); ",
+        return format("INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)\n" +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?%s, ?%s, ?, ?); ",
                 getContractNegotiationTable(), getIdColumn(), getCorrelationIdColumn(), getCounterPartyIdColumn(), getCounterPartyAddressColumn(), getTypeColumn(), getProtocolColumn(), getStateColumn(), getStateCountColumn(),
-                getStateTimestampColumn(), getErrorDetailColumn(), getContractAgreementIdFkColumn(), getContractOffersColumn(), getTraceContextColumn(), getFormatJsonOperator(), getFormatJsonOperator()
+                getStateTimestampColumn(), getErrorDetailColumn(), getContractAgreementIdFkColumn(), getContractOffersColumn(), getTraceContextColumn(), getCreatedAtColumn(), getUpdatedAtColumn(), getFormatJsonOperator(), getFormatJsonOperator()
         );
     }
 

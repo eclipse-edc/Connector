@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.spi.policy.store;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 
 /**
- * Resolves {@linkplain org.eclipse.dataspaceconnector.policy.model.Policy} objects that are part of a contract agreement.
+ * Resolves {@linkplain Policy} objects that are part of a contract agreement.
  */
 @FunctionalInterface
 public interface PolicyArchive {

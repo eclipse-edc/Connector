@@ -16,8 +16,8 @@ package org.eclipse.dataspaceconnector.core.defaults.policystore;
 
 import org.eclipse.dataspaceconnector.common.concurrency.LockManager;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
@@ -79,7 +79,7 @@ class InMemoryPolicyDefinitionStoreTest {
         store.save(policy2);
         store.save(policy3);
 
-        assertThat(store.findAll(QuerySpec.Builder.newInstance().filter("uid=" + policy1.getUid()).build())).containsExactly(policy1);
+        assertThat(store.findAll(QuerySpec.Builder.newInstance().filter("id=" + policy1.getUid()).build())).containsExactly(policy1);
     }
 
     @Test
@@ -92,7 +92,7 @@ class InMemoryPolicyDefinitionStoreTest {
         store.save(policy2);
         store.save(policy3);
 
-        assertThat(store.findAll(QuerySpec.Builder.newInstance().sortField("uid").sortOrder(SortOrder.ASC).build())).containsExactly(policy2, policy3, policy1);
+        assertThat(store.findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build())).containsExactly(policy2, policy3, policy1);
     }
 
     @Test
@@ -110,7 +110,7 @@ class InMemoryPolicyDefinitionStoreTest {
 
         QuerySpec uid = QuerySpec.Builder.newInstance()
                 .filter("policy.target=target1")
-                .sortField("uid")
+                .sortField("id")
                 .sortOrder(SortOrder.DESC)
                 .offset(1)
                 .limit(1)

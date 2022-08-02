@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.spi.entity.Entity;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,8 +30,9 @@ import java.util.UUID;
  * The {@link Asset} contains the metadata and describes the data itself or a collection of data.
  */
 @JsonDeserialize(builder = Asset.Builder.class)
-public class Asset {
+public class Asset extends Entity {
 
+    @Deprecated(since = "Do not use anymore. The ID should be accessed through the getter")
     public static final String PROPERTY_ID = "asset:prop:id";
     public static final String PROPERTY_NAME = "asset:prop:name";
     public static final String PROPERTY_DESCRIPTION = "asset:prop:description";
@@ -43,9 +45,8 @@ public class Asset {
         properties = new HashMap<>();
     }
 
-    @JsonIgnore
     public String getId() {
-        return getPropertyAsString(PROPERTY_ID);
+        return id == null ? getPropertyAsString(PROPERTY_ID) : id;
     }
 
     @JsonIgnore
@@ -83,11 +84,11 @@ public class Asset {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder<B extends Builder<B>> {
-        protected final Asset asset;
+    public static class Builder<B extends Builder<B>> extends Entity.Builder<Asset, Builder<B>> {
+
 
         protected Builder(Asset asset) {
-            this.asset = asset;
+            super(asset);
             asset.properties.put(PROPERTY_ID, UUID.randomUUID().toString()); //must always have an ID
         }
 
@@ -96,44 +97,60 @@ public class Asset {
             return new Builder(new Asset());
         }
 
+        @Override
         public B id(String id) {
-            asset.properties.put(PROPERTY_ID, id);
+            // todo: remove storing the ID in the properties map in future versions
+            entity.properties.put(PROPERTY_ID, id);
+            entity.id = id;
+            return self();
+        }
+
+        @Override
+        public Builder<B> createdAt(long value) {
+            entity.createdAt = value;
+            return self();
+        }
+
+        @Override
+        public B self() {
             return (B) this;
+        }
+
+        @Override
+        public Asset build() {
+            return super.build();
         }
 
         public B name(String title) {
-            asset.properties.put(PROPERTY_NAME, title);
-            return (B) this;
+            entity.properties.put(PROPERTY_NAME, title);
+            return self();
         }
 
         public B description(String description) {
-            asset.properties.put(PROPERTY_DESCRIPTION, description);
-            return (B) this;
+            entity.properties.put(PROPERTY_DESCRIPTION, description);
+            return self();
         }
 
         public B version(String version) {
-            asset.properties.put(PROPERTY_VERSION, version);
-            return (B) this;
+            entity.properties.put(PROPERTY_VERSION, version);
+            return self();
         }
 
         public B contentType(String contentType) {
-            asset.properties.put(PROPERTY_CONTENT_TYPE, contentType);
-            return (B) this;
+            entity.properties.put(PROPERTY_CONTENT_TYPE, contentType);
+            return self();
         }
 
         public B properties(Map<String, Object> properties) {
-            asset.properties = Objects.requireNonNull(properties);
-            return (B) this;
+            entity.properties = Objects.requireNonNull(properties);
+            return self();
         }
 
         public B property(String key, Object value) {
-            asset.properties.put(key, value);
-            return (B) this;
+            entity.properties.put(key, value);
+            return self();
         }
 
-        public Asset build() {
-            return asset;
-        }
     }
 
 }

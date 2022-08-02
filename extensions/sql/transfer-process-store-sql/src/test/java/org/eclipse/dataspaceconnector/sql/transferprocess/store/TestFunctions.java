@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 
+import java.time.Clock;
 import java.util.UUID;
 
 public class TestFunctions {
@@ -67,14 +68,16 @@ public class TestFunctions {
     }
 
     public static TransferProcess createTransferProcess(String processId) {
-        return createTransferProcessBuilder(processId).state(TransferProcessStates.UNSAVED.code()).build();
+        return createTransferProcessBuilder(processId)
+                .state(TransferProcessStates.UNSAVED.code())
+                .build();
     }
 
     public static TransferProcess.Builder createTransferProcessBuilder(String processId) {
         return TransferProcess.Builder.newInstance()
                 .id(processId)
+                .createdAt(Clock.systemUTC().millis())
                 .state(TransferProcessStates.UNSAVED.code())
-                .createdTimestamp(12314)
                 .type(TransferProcess.Type.CONSUMER)
                 .dataRequest(createDataRequest())
                 .contentDataAddress(createDataAddressBuilder("any").build())

@@ -51,6 +51,27 @@ class ContractDefinitionDtoToContractDefinitionTransformerTest {
         assertThat(contractDefinition.getAccessPolicyId()).isEqualTo(contractDefinitionDto.getAccessPolicyId());
         assertThat(contractDefinition.getContractPolicyId()).isEqualTo(contractDefinitionDto.getContractPolicyId());
         assertThat(contractDefinition.getSelectorExpression().getCriteria()).containsExactlyElementsOf(contractDefinitionDto.getCriteria());
+        assertThat(contractDefinition.getCreatedAt()).isNotEqualTo(0L); //should be set automatically
+    }
+
+    @Test
+    void transform_withTimestamp() {
+        var context = mock(TransformerContext.class);
+        var contractDefinitionDto = ContractDefinitionDto.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .accessPolicyId(UUID.randomUUID().toString())
+                .createdAt(12345L)
+                .contractPolicyId(UUID.randomUUID().toString())
+                .criteria(List.of(new Criterion("left", "=", "right")))
+                .build();
+
+        var contractDefinition = transformer.transform(contractDefinitionDto, context);
+
+        assertThat(contractDefinition.getId()).isEqualTo(contractDefinitionDto.getId());
+        assertThat(contractDefinition.getAccessPolicyId()).isEqualTo(contractDefinitionDto.getAccessPolicyId());
+        assertThat(contractDefinition.getContractPolicyId()).isEqualTo(contractDefinitionDto.getContractPolicyId());
+        assertThat(contractDefinition.getSelectorExpression().getCriteria()).containsExactlyElementsOf(contractDefinitionDto.getCriteria());
+        assertThat(contractDefinition.getCreatedAt()).isNotEqualTo(12345L); // timestamps cannot be set through DTOs
     }
 
 }

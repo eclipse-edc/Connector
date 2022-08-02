@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.spi.types.domain.contract.offer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -33,17 +34,12 @@ import java.util.Objects;
  * Note that the id must be a UUID.
  */
 @JsonDeserialize(builder = ContractDefinition.Builder.class)
-public class ContractDefinition {
-    private String id;
+public class ContractDefinition extends Entity {
     private String accessPolicyId;
     private String contractPolicyId;
     private AssetSelectorExpression selectorExpression;
 
     private ContractDefinition() {
-    }
-
-    public String getId() {
-        return id;
     }
 
     @NotNull
@@ -62,24 +58,27 @@ public class ContractDefinition {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ContractDefinition that = (ContractDefinition) o;
-        return Objects.equals(id, that.id) && Objects.equals(accessPolicyId, that.accessPolicyId) && Objects.equals(contractPolicyId, that.contractPolicyId) && Objects.equals(selectorExpression, that.selectorExpression);
-    }
-
-    @Override
     public int hashCode() {
         return Objects.hash(id, accessPolicyId, contractPolicyId, selectorExpression);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ContractDefinition that = (ContractDefinition) o;
+        return Objects.equals(id, that.id) && Objects.equals(accessPolicyId, that.accessPolicyId) && Objects.equals(contractPolicyId, that.contractPolicyId) && Objects.equals(selectorExpression, that.selectorExpression);
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder {
-        private final ContractDefinition definition;
+    public static class Builder extends Entity.Builder<ContractDefinition, Builder> {
 
         private Builder() {
-            definition = new ContractDefinition();
+            super(new ContractDefinition());
         }
 
         public static Builder newInstance() {
@@ -87,31 +86,37 @@ public class ContractDefinition {
         }
 
         public Builder id(String id) {
-            definition.id = id;
+            entity.id = id;
             return this;
         }
 
+        @Override
+        public Builder self() {
+            return this;
+        }
+
+        @Override
+        public ContractDefinition build() {
+            Objects.requireNonNull(entity.id);
+            Objects.requireNonNull(entity.accessPolicyId);
+            Objects.requireNonNull(entity.contractPolicyId);
+            Objects.requireNonNull(entity.selectorExpression);
+            return super.build();
+        }
+
         public Builder accessPolicyId(String policyId) {
-            definition.accessPolicyId = policyId;
+            entity.accessPolicyId = policyId;
             return this;
         }
 
         public Builder contractPolicyId(String policyId) {
-            definition.contractPolicyId = policyId;
+            entity.contractPolicyId = policyId;
             return this;
         }
 
         public Builder selectorExpression(AssetSelectorExpression expression) {
-            definition.selectorExpression = expression;
+            entity.selectorExpression = expression;
             return this;
-        }
-
-        public ContractDefinition build() {
-            Objects.requireNonNull(definition.id);
-            Objects.requireNonNull(definition.accessPolicyId);
-            Objects.requireNonNull(definition.contractPolicyId);
-            Objects.requireNonNull(definition.selectorExpression);
-            return definition;
         }
     }
 }

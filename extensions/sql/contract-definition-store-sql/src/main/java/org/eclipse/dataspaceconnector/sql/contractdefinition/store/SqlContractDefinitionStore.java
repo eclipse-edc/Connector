@@ -58,15 +58,6 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
         this.typeManager = Objects.requireNonNull(typeManager);
     }
 
-    ContractDefinition mapResultSet(ResultSet resultSet) throws Exception {
-        return ContractDefinition.Builder.newInstance()
-                .id(resultSet.getString(statements.getIdColumn()))
-                .accessPolicyId(resultSet.getString(statements.getAccessPolicyIdColumn()))
-                .contractPolicyId(resultSet.getString(statements.getContractPolicyIdColumn()))
-                .selectorExpression(typeManager.readValue(resultSet.getString(statements.getSelectorExpressionColumn()), AssetSelectorExpression.class))
-                .build();
-    }
-
     @Override
     public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
         return transactionContext.execute(() -> {
@@ -93,7 +84,6 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
             }
         });
     }
-
 
     @Override
     public void save(Collection<ContractDefinition> definitions) {
@@ -141,13 +131,24 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
 
     }
 
+    private ContractDefinition mapResultSet(ResultSet resultSet) throws Exception {
+        return ContractDefinition.Builder.newInstance()
+                .id(resultSet.getString(statements.getIdColumn()))
+                .createdAt(resultSet.getLong(statements.getCreatedAtColumn()))
+                .accessPolicyId(resultSet.getString(statements.getAccessPolicyIdColumn()))
+                .contractPolicyId(resultSet.getString(statements.getContractPolicyIdColumn()))
+                .selectorExpression(typeManager.readValue(resultSet.getString(statements.getSelectorExpressionColumn()), AssetSelectorExpression.class))
+                .build();
+    }
+
     private void insertInternal(Connection connection, ContractDefinition definition) {
         transactionContext.execute(() -> {
             executeQuery(connection, statements.getInsertTemplate(),
                     definition.getId(),
                     definition.getAccessPolicyId(),
                     definition.getContractPolicyId(),
-                    toJson(definition.getSelectorExpression()));
+                    toJson(definition.getSelectorExpression()),
+                    definition.getCreatedAt());
         });
     }
 
@@ -163,6 +164,7 @@ public class SqlContractDefinitionStore implements ContractDefinitionStore {
                     definition.getAccessPolicyId(),
                     definition.getContractPolicyId(),
                     toJson(definition.getSelectorExpression()),
+                    definition.getCreatedAt(),
                     definition.getId());
 
         });
