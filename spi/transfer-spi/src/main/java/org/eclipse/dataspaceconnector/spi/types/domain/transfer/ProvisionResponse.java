@@ -30,22 +30,14 @@ public class ProvisionResponse {
     /**
      * Instantiates a response with a provisioned resource and optional secret token.
      *
-     * @param resource the provisioned result
+     * @param resource    the provisioned result
      * @param secretToken the optional secret
+     * @param inProcess   indicates if the provisioning operation is in-process and will be completed at a later point.
      */
-    private ProvisionResponse(ProvisionedResource resource, @Nullable SecretToken secretToken) {
+    private ProvisionResponse(ProvisionedResource resource, @Nullable SecretToken secretToken, boolean inProcess) {
         this.resource = resource;
         this.secretToken = secretToken;
-        this.inProcess = false;
-    }
-
-    /**
-     * Instantiates a response indicating the provisioning operation is in-process and will be completed at a later point.
-     */
-    public ProvisionResponse() {
-        this.resource = null;
-        this.secretToken = null;
-        this.inProcess = true;
+        this.inProcess = inProcess;
     }
 
     /**
@@ -67,6 +59,7 @@ public class ProvisionResponse {
     public static class Builder {
         private ProvisionedResource resource;
         private SecretToken secretToken;
+        private boolean inProcess;
 
         private Builder() {
 
@@ -86,9 +79,17 @@ public class ProvisionResponse {
             return this;
         }
 
+        public Builder inProcess(boolean inProcess) {
+            this.inProcess = inProcess;
+            return this;
+        }
+
         public ProvisionResponse build() {
-            Objects.requireNonNull(resource, "resource");
-            return new ProvisionResponse(resource, secretToken);
+            if (!inProcess) {
+                Objects.requireNonNull(resource, "resource");
+            }
+
+            return new ProvisionResponse(resource, secretToken, inProcess);
         }
     }
 }

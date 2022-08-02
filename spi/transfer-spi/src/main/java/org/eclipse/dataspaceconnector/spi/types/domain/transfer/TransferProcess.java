@@ -41,12 +41,14 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING_REQUESTED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.ENDED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.ERROR;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.IN_PROGRESS;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONING_REQUESTED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.STREAMING;
@@ -147,7 +149,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         provisionedResourceSet.addResource(resource);
     }
 
-    public void addContentDataAddress(DataAddress dataAddress) {
+    public void setContentDataAddress(DataAddress dataAddress) {
         contentDataAddress = dataAddress;
     }
 
@@ -205,9 +207,13 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         return getResourcesToDeprovision().isEmpty();
     }
 
+    public void transitionProvisioningRequested() {
+        transition(PROVISIONING_REQUESTED, PROVISIONING);
+    }
+
     public void transitionProvisioned() {
         // requested is allowed to support retries
-        transition(PROVISIONED, PROVISIONING, PROVISIONED, REQUESTED);
+        transition(PROVISIONED, PROVISIONING, PROVISIONING_REQUESTED, PROVISIONED, REQUESTED);
     }
 
     public void transitionRequesting() {
@@ -263,21 +269,21 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         transition(DEPROVISIONING, COMPLETED, DEPROVISIONING);
     }
 
+    public void transitionDeprovisioningRequested() {
+        transition(DEPROVISIONING_REQUESTED, DEPROVISIONING);
+    }
+
     public void transitionDeprovisioned() {
-        transition(DEPROVISIONED, DEPROVISIONING, DEPROVISIONED);
+        transition(DEPROVISIONED, DEPROVISIONING, DEPROVISIONING_REQUESTED, DEPROVISIONED);
     }
 
     public void transitionCancelled() {
-        // alternatively we could take the ".values()" array, and remove disallowed once, but this
-        // seems more explicit
-        var allowedStates = new TransferProcessStates[]{
-                UNSAVED, INITIAL,
-                PROVISIONING, PROVISIONED,
-                REQUESTED, REQUESTING,
-                IN_PROGRESS, STREAMING,
-                DEPROVISIONED, DEPROVISIONING,
-                CANCELLED
-        };
+        var notAllowedStates = List.of(ENDED, COMPLETED, ERROR);
+
+        var allowedStates = Arrays.stream(TransferProcessStates.values())
+                .filter(it -> !notAllowedStates.contains(it))
+                .toArray(TransferProcessStates[]::new);
+
         transition(CANCELLED, allowedStates);
     }
 

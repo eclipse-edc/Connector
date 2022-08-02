@@ -27,7 +27,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessS
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.CancelTransferCommand;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.DeprovisionRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.SingleTransferProcessCommand;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -61,12 +60,6 @@ class TransferProcessServiceImplTest {
     TransactionContext transactionContext = spy(new NoopTransactionContext());
 
     TransferProcessService service = new TransferProcessServiceImpl(store, manager, transactionContext);
-
-    @AfterEach
-    void after() {
-
-
-    }
 
     @Test
     void findById_whenFound() {
@@ -194,7 +187,7 @@ class TransferProcessServiceImplTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "DEPROVISIONING", "DEPROVISIONED", "ENDED", "CANCELLED" })
+    @EnumSource(value = TransferProcessStates.class, mode = EXCLUDE, names = { "COMPLETED", "DEPROVISIONING", "DEPROVISIONED", "DEPROVISIONING_REQUESTED", "ENDED", "CANCELLED" })
     void deprovision_whenNonDeprovisionable(TransferProcessStates state) {
         var process = transferProcess(state, id);
         when(store.find(id)).thenReturn(process);
