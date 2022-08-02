@@ -55,7 +55,7 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Entity
     private long lastUpdatedAt;
 
     public long getLastUpdatedAt() {
-        return lastUpdateTimestamp;
+        return lastUpdatedAt;
     }
 
     public void setLastUpdatedAt(long epochMillis) {
