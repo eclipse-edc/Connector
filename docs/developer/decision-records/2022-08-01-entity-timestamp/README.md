@@ -54,11 +54,11 @@ In addition, the `StatefulEntity` can be extended with a `updatedAt` field:
 public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Entity implements TraceCarrier {
     private long updatedAt;
 
-    public long getLastUpdatedAt() {
+    public long getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setLastUpdatedAt(long epochMillis) {
+    public void setUpdatedAt(long epochMillis) {
         updatedAt = epochMillis;
     }
     // ...
@@ -94,7 +94,7 @@ be seamless. For the Postgres implementations the `createAt` and `updatedAt` fie
 CREATE TABLE IF NOT EXISTS edc_transfer_process
 (
     created_time_stamp    BIGINT, -- already exists
-    last_update_timestamp BIGINT  -- this is new
+    updated_at            BIGINT  -- this is new
 
     -- other columns omitted
 );
