@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static java.util.stream.Collectors.toSet;
 import static org.glassfish.jersey.server.ServerProperties.WADL_FEATURE_DISABLE;
@@ -45,6 +46,7 @@ public class JerseyRestService implements WebService {
 
     private final Map<String, List<Object>> controllers = new HashMap<>();
     private final JerseyConfiguration configuration;
+    private final List<Supplier<Object>> additionalInstances = new ArrayList<>();
 
     public JerseyRestService(JettyService jettyService, TypeManager typeManager, JerseyConfiguration configuration, Monitor monitor) {
         this.jettyService = jettyService;
@@ -63,6 +65,10 @@ public class JerseyRestService implements WebService {
     public void registerResource(String contextAlias, Object resource) {
         controllers.computeIfAbsent(contextAlias, s -> new ArrayList<>())
                 .add(resource);
+    }
+
+    void registerInstance(Supplier<Object> instance) {
+        additionalInstances.add(instance);
     }
 
     public void start() {
@@ -88,6 +94,9 @@ public class JerseyRestService implements WebService {
         resourceConfig.registerInstances(new EdcApiExceptionMapper());
         resourceConfig.registerInstances(new ValidationExceptionMapper());
         resourceConfig.registerInstances(new UnexpectedExceptionMapper(monitor));
+
+        additionalInstances.forEach(supplier -> resourceConfig.registerInstances(supplier.get()));
+
 
         if (configuration.isCorsEnabled()) {
             resourceConfig.register(new CorsFilter(configuration));
