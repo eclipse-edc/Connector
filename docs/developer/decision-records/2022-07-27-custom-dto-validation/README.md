@@ -53,28 +53,28 @@ public interface CustomValidationRegistry {
      * Registers a validation function for a particular type (e.g. a DTO). The validation function gets applied to 
      * all resource methods that have a T object in their signature 
      * @param type The class of the object for which to register the function
-     * @param validationFunction A function that evaluates the object and returns a Result
+     * @param interceptorFunction A function that evaluates the object and returns a Result
      */
-    <T> void registerForType(Class<T> type, Function<T, Result> validationFunction);
+    <T> void registerForType(Class<T> type, Function<T, Result> interceptorFunction);
 
     /**
      * Registers a validation function for all resource methods. Conditional evaluation must be done in the 
      * evaluation function itself
-     * @param validationFunction Receives the list of arguments of the resource method, returns a Result
+     * @param interceptorFunction Receives the list of arguments of the resource method, returns a Result
      */
-    void register(Function<Object[], Result> validationFunction);
+    void register(Function<Object[], Result> interceptorFunction);
 
     /**
      * Registers a validation function for a particular resource method (= Controller method). The validation 
      * function only gets applied to that particular method.
      * @param method The {@link java.lang.reflect.Method} (of a controller) for which to register the function
-     * @param validationFunction Receives the list of arguments of the resource method, returns a Result
+     * @param interceptorFunction Receives the list of arguments of the resource method, returns a Result
      */
-    void registerForMethod(Method method, Function<Object[], Result> validationFunction);
+    void registerForMethod(Method method, Function<Object[], Result> interceptorFunction);
 }
 ```
 
-If the `validationFunction` returns a failed `Result`, the `InvocationHandler` will throw an
+If the `interceptorFunction` returns a failed `Result`, the `InvocationHandler` will throw an
 `InvalidRequestException`, resulting in an HTTP 400 error code. As a side note is important to wrap that exception in
 an `InvocationTargetException`, so that it gets picked up by the method dispatcher.
 
