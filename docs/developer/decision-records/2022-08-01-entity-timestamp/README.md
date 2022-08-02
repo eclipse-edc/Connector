@@ -4,7 +4,7 @@
 
 All objects in EDC, which can be persisted in a database, should have a `createdAt` timestamp, all objects that
 are
-_mutable_ should also have a `lastUpdateTimestamp` timestamp. In this document they will be referred to as "business
+_mutable_ should also have a `updatedAt` timestamp. In this document they will be referred to as "business
 objects"
 /"entities" and "mutable business objects"/"mutable entities" respectively
 
@@ -14,7 +14,7 @@ It should be possible to track the creation time and last-updated time for the a
 entities, e.g. for auditing or for displaying purposes in a web frontend.
 
 The `createdTimestamp` timestamp must be immutable. It cannot be changed after the initial object construction. The
-`lastUpdateTimestamp` timestamp must be updated everytime the entity is put back into storage. This includes `save`
+`updatedAt` timestamp must be updated everytime the entity is put back into storage. This includes `save`
 operations that do not entail an actual change to the object.
 
 ## Approach
@@ -48,34 +48,34 @@ I propose extracting the `createdTimestamp` (plus the Builder infrastructure) in
 (and renaming it to `createdAt`) that is extended by _all_ entities, mutable and immutable. By default, the `createdAt`
 field is initialized with the current UTC epoch in milliseconds.
 
-In addition, the `StatefulEntity` can be extended with a `lastUpdateTimestamp` field:
+In addition, the `StatefulEntity` can be extended with a `updatedAt` field:
 
 ```java
 public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Entity implements TraceCarrier {
-    private long lastUpdatedAt;
+    private long updatedAt;
 
     public long getLastUpdatedAt() {
-        return lastUpdatedAt;
+        return updatedAt;
     }
 
     public void setLastUpdatedAt(long epochMillis) {
-        lastUpdateTimestamp = epochMillis;
+        updatedAt = epochMillis;
     }
     // ...
 }
 ```
 
 And similar to the `Entity`, the `StatefulEntity`'s Builder would also have a new method that sets the last update. By
-default, `lastUpdateTimestamp` would be initialized with `createAt`.
+default, `updatedAt` would be initialized with `createAt`.
 
 _Note: the `StatefulEntity` class already has a `Clock` that can be moved up to the `Entity` and be re-used for this
 purpose._
 
 ### Mutating objects
 
-The `createAt` field would always be initialized during object creation. The `lastUpdateTimestamp` timestamp would be
+The `createAt` field would always be initialized during object creation. The `updatedAt` timestamp would be
 updated by the _manipulating class_. That means, whichever class manipulates the `StatefulEntity` is also responsible
-for updating the `lastUpdateTimestamp` field. These are:
+for updating the `updatedAt` field. These are:
 
 - `TransferProcessManagerImpl`: right before `transferProcessStore.update()` is called
 - `SingleTransferProcessCommandHandler`: could be done in the `else` path of the `handle` method
@@ -86,7 +86,7 @@ for updating the `lastUpdateTimestamp` field. These are:
 ### Persisting entities
 
 No action needs to be taken for the CosmosDB store as it is already document-based and persisting another field should
-be seamless. For the Postgres implementations the `createAt` and `lastUpdateTimestamp` fields should be of type `BIGINT`
+be seamless. For the Postgres implementations the `createAt` and `updatedAt` fields should be of type `BIGINT`
 , for example (`TransferProcess`):
 
 ```postgresql
