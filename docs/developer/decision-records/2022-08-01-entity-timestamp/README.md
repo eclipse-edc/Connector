@@ -66,14 +66,14 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Entity
 ```
 
 And similar to the `Entity`, the `StatefulEntity`'s Builder would also have a new method that sets the last update. By
-default, `updatedAt` would be initialized with `createAt`.
+default, `updatedAt` would be initialized with `createdAt`.
 
 _Note: the `StatefulEntity` class already has a `Clock` that can be moved up to the `Entity` and be re-used for this
 purpose._
 
 ### Mutating objects
 
-The `createAt` field would always be initialized during object creation. The `updatedAt` timestamp would be
+The `createdAt` field would always be initialized during object creation. The `updatedAt` timestamp would be
 updated by the _manipulating class_. That means, whichever class manipulates the `StatefulEntity` is also responsible
 for updating the `updatedAt` field. These are:
 
@@ -86,15 +86,15 @@ for updating the `updatedAt` field. These are:
 ### Persisting entities
 
 No action needs to be taken for the CosmosDB store as it is already document-based and persisting another field should
-be seamless. For the Postgres implementations the `createAt` and `updatedAt` fields should be of type `BIGINT`
+be seamless. For the Postgres implementations the `createdAt` and `updatedAt` fields should be of type `BIGINT`
 , for example (`TransferProcess`):
 
 ```postgresql
 
 CREATE TABLE IF NOT EXISTS edc_transfer_process
 (
-    created_time_stamp    BIGINT, -- already exists
-    updated_at            BIGINT  -- this is new
+    created_at    BIGINT, -- already exists (albeit with a different name)
+    updated_at    BIGINT  -- this is new
 
     -- other columns omitted
 );
