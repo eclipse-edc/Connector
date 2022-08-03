@@ -15,8 +15,8 @@
 
 package org.eclipse.dataspaceconnector.ids.core.service;
 
+import org.eclipse.dataspaceconnector.ids.spi.domain.connector.SecurityProfile;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
-import org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;

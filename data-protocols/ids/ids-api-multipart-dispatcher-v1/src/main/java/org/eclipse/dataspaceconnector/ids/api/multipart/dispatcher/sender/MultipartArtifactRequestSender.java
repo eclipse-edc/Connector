@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Fraunhofer Institute for Software and Systems Engineering
+ *  Copyright (c) 2020 - 2022 Fraunhofer Institute for Software and Systems Engineering
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -24,12 +24,11 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
-import org.eclipse.dataspaceconnector.ids.spi.IdsType;
-import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
+import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
-import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
+import org.eclipse.dataspaceconnector.ids.spi.types.container.ArtifactRequestMessagePayload;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -43,7 +42,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.util.ResponseUtil.parseMultipartStringResponse;
-import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
+import static org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 /**
  * IdsMultipartSender implementation for data requests. Sends IDS ArtifactRequestMessages and
@@ -86,30 +85,18 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
      */
     @Override
     protected Message buildMessageHeader(DataRequest request, DynamicAttributeToken token) {
-        var artifactIdsId = IdsId.Builder.newInstance()
+        var artifactId = IdsId.Builder.newInstance()
                 .value(request.getAssetId())
                 .type(IdsType.ARTIFACT)
-                .build();
-        var contractIdsId = IdsId.Builder.newInstance()
+                .build().toUri();
+        var contractId = IdsId.Builder.newInstance()
                 .value(request.getContractId())
-                .type(IdsType.CONTRACT)
-                .build();
-        var artifactTransformationResult = getTransformerRegistry().transform(artifactIdsId, URI.class);
-        if (artifactTransformationResult.failed()) {
-            throw new EdcException("Failed to create artifact ID from asset.");
-        }
-
-        var contractTransformationResult = getTransformerRegistry().transform(contractIdsId, URI.class);
-        if (contractTransformationResult.failed()) {
-            throw new EdcException("Failed to create contract ID from asset.");
-        }
-
-        var artifactId = artifactTransformationResult.getContent();
-        var contractId = contractTransformationResult.getContent();
+                .type(IdsType.CONTRACT_AGREEMENT)
+                .build().toUri();
 
         var artifactRequestId = request.getId() != null ? request.getId() : UUID.randomUUID().toString();
         var message = new ArtifactRequestMessageBuilder(URI.create(artifactRequestId))
-                ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                ._modelVersion_(IdsConstants.INFORMATION_MODEL_VERSION)
                 ._issued_(CalendarUtil.gregorianNow())
                 ._securityToken_(token)
                 ._issuerConnector_(getConnectorId())
@@ -134,7 +121,6 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
      */
     @Override
     protected String buildMessagePayload(DataRequest request) throws Exception {
-
         var requestPayloadBuilder = ArtifactRequestMessagePayload.Builder.newInstance()
                 .dataDestination(request.getDataDestination());
 

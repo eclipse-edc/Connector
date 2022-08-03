@@ -27,11 +27,11 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractRequestH
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.EndpointDataReferenceHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
-import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
-import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.WebService;
@@ -145,13 +145,15 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
     private String resolveConnectorId(@NotNull ServiceExtensionContext context) {
         var value = context.getSetting(EDC_IDS_ID, DEFAULT_EDC_IDS_ID);
-        try {
-            // Hint: use stringified uri to keep uri path and query
-            var idsId = IdsIdParser.parse(value);
-            if (idsId != null && idsId.getType() == IdsType.CONNECTOR) {
+
+        // Hint: use stringified uri to keep uri path and query
+        var result = IdsId.from(value);
+        if (result.succeeded()) {
+            var idsId = result.getContent();
+            if (idsId.getType() == IdsType.CONNECTOR) {
                 return idsId.getValue();
             }
-        } catch (IllegalArgumentException e) {
+        } else {
             var message = "IDS Settings: Expected valid URN for setting '%s', but was %s'. Expected format: 'urn:connector:[id]'";
             throw new EdcException(String.format(message, EDC_IDS_ID, DEFAULT_EDC_IDS_ID));
         }

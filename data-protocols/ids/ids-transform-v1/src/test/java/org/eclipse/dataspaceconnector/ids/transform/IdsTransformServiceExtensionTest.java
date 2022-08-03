@@ -20,11 +20,10 @@ import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.util.RdfResource;
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.domain.connector.Connector;
+import org.eclipse.dataspaceconnector.ids.spi.domain.connector.SecurityProfile;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
-import org.eclipse.dataspaceconnector.ids.spi.types.Connector;
-import org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
 import org.eclipse.dataspaceconnector.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.dataspaceconnector.policy.model.Action;
@@ -50,7 +49,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
-import java.net.URI;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -105,13 +103,11 @@ class IdsTransformServiceExtensionTest {
                     Arguments.arguments(ContractAgreementRequest.class, de.fraunhofer.iais.eis.ContractAgreement.class),
                     Arguments.arguments(Catalog.class, ResourceCatalog.class),
                     Arguments.arguments(de.fraunhofer.iais.eis.Constraint.class, Constraint.class),
-                    Arguments.arguments(de.fraunhofer.iais.eis.ContractOffer.class, ContractOffer.class),
                     Arguments.arguments(de.fraunhofer.iais.eis.Permission.class, Permission.class),
                     Arguments.arguments(de.fraunhofer.iais.eis.Prohibition.class, Prohibition.class),
                     Arguments.arguments(Duty.class, de.fraunhofer.iais.eis.Duty.class),
                     Arguments.arguments(Expression.class, String.class),
                     Arguments.arguments(Expression.class, RdfResource.class),
-                    Arguments.arguments(IdsId.class, URI.class),
                     Arguments.arguments(String.class, Expression.class),
                     Arguments.arguments(OfferedAsset.class, Resource.class),
                     Arguments.arguments(Operator.class, BinaryOperator.class),
@@ -121,8 +117,7 @@ class IdsTransformServiceExtensionTest {
                     Arguments.arguments(Representation.class, Asset.class),
                     Arguments.arguments(Resource.class, Asset.class),
                     Arguments.arguments(ResourceCatalog.class, Catalog.class),
-                    Arguments.arguments(SecurityProfile.class, de.fraunhofer.iais.eis.SecurityProfile.class),
-                    Arguments.arguments(URI.class, IdsId.class)
+                    Arguments.arguments(SecurityProfile.class, de.fraunhofer.iais.eis.SecurityProfile.class)
             );
         }
     }

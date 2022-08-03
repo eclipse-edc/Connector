@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Fraunhofer Institute for Software and Systems Engineering, Daimler TSS GmbH
+ *  Copyright (c) 2021 - 2022 Fraunhofer Institute for Software and Systems Engineering, Daimler TSS GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -20,10 +20,10 @@ import de.fraunhofer.iais.eis.ContractRequest;
 import de.fraunhofer.iais.eis.ContractRequestMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
-import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.types.MessageProtocol;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -37,7 +37,7 @@ import java.io.IOException;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.inProcessFromStatusResult;
-import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
+import static org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 /**
  * This class handles and processes incoming IDS {@link ContractRequestMessage}s.
@@ -83,7 +83,7 @@ public class ContractRequestHandler implements Handler {
             monitor.severe("ContractRequestHandler: Contract Request is invalid", e);
             return createMultipartResponse(badParameters(message, connectorId));
         }
-    
+
         // Get webhook address of requesting connector from message properties
         var idsWebhookAddress = message.getProperties().get(IDS_WEBHOOK_ADDRESS_PROPERTY);
         if (idsWebhookAddress == null || idsWebhookAddress.toString().isBlank()) {
@@ -106,7 +106,14 @@ public class ContractRequestHandler implements Handler {
         }
 
         // search for matching asset
-        var assetId = IdsIdParser.parse(String.valueOf(target));
+        var assetResult = IdsId.from(String.valueOf(target));
+        if (assetResult.failed()) {
+            var msg = "Target id is missing";
+            monitor.debug(String.format("ContractRequestHandler: %s", msg));
+            return createMultipartResponse(badParameters(message, connectorId), msg);
+        }
+
+        var assetId = assetResult.getContent();
         var asset = assetIndex.findById(assetId.getValue());
         if (asset == null) {
             var msg = "Target id is invalid";
@@ -129,18 +136,18 @@ public class ContractRequestHandler implements Handler {
 
         var contractOffer = result.getContent();
         var requestObj = ContractOfferRequest.Builder.newInstance()
-                .protocol(Protocols.IDS_MULTIPART)
+                .protocol(MessageProtocol.IDS_MULTIPART)
                 .connectorAddress(idsWebhookAddress.toString())
                 .type(ContractOfferRequest.Type.INITIAL)
                 .connectorId(String.valueOf(message.getIssuerConnector()))
                 .correlationId(String.valueOf(message.getTransferContract()))
                 .contractOffer(contractOffer)
                 .build();
-    
+
         //TODO use ContractNegotiationService for initiation after project structure review
-        
+
         var negotiationInitiateResult = negotiationManager.requested(claimToken, requestObj);
-    
+
         return createMultipartResponse(inProcessFromStatusResult(negotiationInitiateResult, message, connectorId));
     }
 }

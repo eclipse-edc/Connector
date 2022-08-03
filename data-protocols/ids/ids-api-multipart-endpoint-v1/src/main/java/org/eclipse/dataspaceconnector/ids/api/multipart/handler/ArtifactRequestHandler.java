@@ -20,10 +20,10 @@ import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
-import org.eclipse.dataspaceconnector.ids.spi.IdsType;
-import org.eclipse.dataspaceconnector.ids.spi.Protocols;
-import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
+import org.eclipse.dataspaceconnector.ids.spi.types.MessageProtocol;
+import org.eclipse.dataspaceconnector.ids.spi.types.container.ArtifactRequestMessagePayload;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -40,7 +40,8 @@ import java.util.Optional;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.badParameters;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.createMultipartResponse;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.inProcessFromStatusResult;
-import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.ResponseUtil.malformedMessage;
+import static org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 public class ArtifactRequestHandler implements Handler {
 
@@ -81,7 +82,13 @@ public class ArtifactRequestHandler implements Handler {
 
         // Validate request artifact ID
         var artifactUri = message.getRequestedArtifact();
-        var artifactIdsId = IdsIdParser.parse(artifactUri.toString());
+        var artifactResult = IdsId.from(artifactUri.toString());
+        if (artifactResult.failed()) {
+            monitor.debug("ArtifactRequestHandler: Requested artifact URI is missing.");
+            return createMultipartResponse(malformedMessage(multipartRequest.getHeader(), connectorId));
+        }
+
+        var artifactIdsId = artifactResult.getContent();
         if (artifactIdsId.getType() != IdsType.ARTIFACT) {
             monitor.debug("ArtifactRequestHandler: Requested artifact URI not of type artifact.");
             return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
@@ -89,8 +96,14 @@ public class ArtifactRequestHandler implements Handler {
 
         // Validate contract ID
         var contractUri = message.getTransferContract();
-        var contractIdsId = IdsIdParser.parse(contractUri.toString());
-        if (contractIdsId.getType() != IdsType.CONTRACT) {
+        var contractResult = IdsId.from(contractUri.toString());
+        if (contractResult.failed()) {
+            monitor.debug("ArtifactRequestHandler: Transfer contract URI is missing.");
+            return createMultipartResponse(malformedMessage(multipartRequest.getHeader(), connectorId));
+        }
+
+        var contractIdsId = contractResult.getContent();
+        if (contractIdsId.getType() != IdsType.CONTRACT_AGREEMENT) {
             monitor.debug("ArtifactRequestHandler: Transfer contract URI not of type contract.");
             return createMultipartResponse(badParameters(multipartRequest.getHeader(), connectorId));
         }
@@ -146,7 +159,7 @@ public class ArtifactRequestHandler implements Handler {
 
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(message.getId().toString())
-                .protocol(Protocols.IDS_MULTIPART)
+                .protocol(MessageProtocol.IDS_MULTIPART)
                 .dataDestination(dataDestination)
                 .connectorId(connectorId)
                 .assetId(contractAgreement.getAssetId())
@@ -156,7 +169,7 @@ public class ArtifactRequestHandler implements Handler {
                 .build();
 
         //TODO use TransferProcessService for initiation after project structure review
-        
+
         // Initiate a transfer process for the request
         var transferInitiateResult = transferProcessManager.initiateProviderRequest(dataRequest);
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Fraunhofer Institute for Software and Systems Engineering
+ *  Copyright (c) 2020 - 2022 Fraunhofer Institute for Software and Systems Engineering
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -15,8 +15,7 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher;
 
 import org.eclipse.dataspaceconnector.ids.core.message.IdsRemoteMessageDispatcher;
-
-import static org.eclipse.dataspaceconnector.ids.spi.Protocols.IDS_MULTIPART;
+import org.eclipse.dataspaceconnector.ids.spi.types.MessageProtocol;
 
 /**
  * IdsRemoteMessageDispatcher implementation for IDS multipart.
@@ -25,7 +24,7 @@ public class IdsMultipartRemoteMessageDispatcher extends IdsRemoteMessageDispatc
 
     @Override
     public String protocol() {
-        return IDS_MULTIPART;
+        return MessageProtocol.IDS_MULTIPART;
     }
 
 }

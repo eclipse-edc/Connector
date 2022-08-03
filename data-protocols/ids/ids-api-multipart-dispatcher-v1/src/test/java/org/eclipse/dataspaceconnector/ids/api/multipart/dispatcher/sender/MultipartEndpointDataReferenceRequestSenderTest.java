@@ -10,6 +10,7 @@
  *  Contributors:
  *       Amadeus - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - replace object mapper
+ *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *
  */
 
@@ -24,8 +25,8 @@ import de.fraunhofer.iais.eis.ParticipantUpdateMessage;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
+import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
-import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -74,7 +75,7 @@ class MultipartEndpointDataReferenceRequestSenderTest {
 
         assertThat(header).isInstanceOf(ParticipantUpdateMessage.class);
         var participantUpdateMessage = (ParticipantUpdateMessage) header;
-        assertThat(participantUpdateMessage.getModelVersion()).isEqualTo(IdsProtocol.INFORMATION_MODEL_VERSION);
+        assertThat(participantUpdateMessage.getModelVersion()).isEqualTo(IdsConstants.INFORMATION_MODEL_VERSION);
         assertThat(participantUpdateMessage.getSecurityToken()).isEqualTo(datToken);
         assertThat(participantUpdateMessage.getIssuerConnector()).isEqualTo(sender.getConnectorId());
         assertThat(participantUpdateMessage.getSenderAgent()).isEqualTo(sender.getConnectorId());

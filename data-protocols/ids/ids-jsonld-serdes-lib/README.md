@@ -43,5 +43,5 @@ It comes with methods that can process custom context information or subtypes.
 Classes, that should use the `JsonLdSerializer` need to be registered as in the following:
 
 ```java
-typeManager.registerSerializer("ids", Artifact.class, new JsonLdSerializer<>(Artifact.class, DefaultValues.CONTEXT));
+typeManager.registerSerializer("ids", Artifact.class, new JsonLdSerializer<>(Artifact.class, IdsConstants.CONTEXT));
 ```
