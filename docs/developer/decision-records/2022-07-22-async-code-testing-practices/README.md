@@ -601,6 +601,66 @@ sometimes cannot produce.
             }
 ```
 
+class `AssetEventDispatchTest`
+(
+extensions\api\data-management\asset\src\test\java\org\eclipse\dataspaceconnector\api\datamanagement\asset\service\AssetEventDispatchTest.java)
+
+```java
+...
+@Test
+    void shouldDispatchEventsOnAssetCreationAndDeletion(AssetService service,EventRouter eventRouter)throws InterruptedException{
+            doAnswer(i->{
+            return null;
+            }).when(eventSubscriber).on(isA(AssetCreated.class));
+
+        doAnswer(i->{
+        return null;
+        }).when(eventSubscriber).on(isA(AssetDeleted.class));
+
+        eventRouter.register(eventSubscriber);
+        var asset=Asset.Builder.newInstance().id("assetId").build();
+        var dataAddress=DataAddress.Builder.newInstance().type("any").build();
+
+        service.create(asset,dataAddress);
+        service.delete(asset.getId());
+
+        await().untilAsserted(()->{
+        verify(eventSubscriber).on(isA(AssetCreated.class));
+        verify(eventSubscriber).on(isA(AssetDeleted.class));
+        });
+        }
+        ...
+```
+
+class `PolicyDefinitionEventDispatchTest`
+(
+extensions\api\data-management\policydefinition\src\test\java\org\eclipse\dataspaceconnector\api\datamanagement\policy\service\PolicyDefinitionEventDispatchTest.java)
+
+```java
+...
+@Test
+    void shouldDispatchEventOnPolicyDefinitionCreationAndDeletion(PolicyDefinitionService service,EventRouter eventRouter)throws InterruptedException{
+            doAnswer(i->{
+            return null;
+            }).when(eventSubscriber).on(isA(PolicyDefinitionCreated.class));
+
+        doAnswer(i->{
+        return null;
+        }).when(eventSubscriber).on(isA(PolicyDefinitionDeleted.class));
+
+        eventRouter.register(eventSubscriber);
+        var policyDefinition=PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
+
+        service.create(policyDefinition);
+        service.deleteById(policyDefinition.getUid());
+
+        await().untilAsserted(()->{
+        verify(eventSubscriber).on(isA(PolicyDefinitionCreated.class));
+        verify(eventSubscriber).on(isA(PolicyDefinitionDeleted.class));
+        });
+        }
+```
+
 class `TransferProcessManagerImplTest`
 (core\transfer\src\test\java\org\eclipse\dataspaceconnector\transfer\core\transfer\TransferProcessManagerImplTest.java)
 *** method verifyCompleted_noCheckerForManaged(): A latch was only instantiated but not used ***
