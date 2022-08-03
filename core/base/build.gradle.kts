@@ -32,8 +32,8 @@ dependencies {
     implementation(project(":core:policy:policy-engine"))
     implementation(project(":extensions:dataloading"))
 
-    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-    implementation("dev.failsafe:failsafe:${failsafeVersion}")
+    api("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    api("dev.failsafe:failsafe:${failsafeVersion}")
     implementation("org.bouncycastle:bcpkix-jdk15on:${bouncycastleVersion}")
 
     testImplementation(project(":extensions:junit"))
