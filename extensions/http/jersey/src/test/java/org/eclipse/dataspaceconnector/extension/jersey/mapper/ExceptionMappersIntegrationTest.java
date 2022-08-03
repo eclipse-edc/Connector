@@ -56,6 +56,7 @@ public class ExceptionMappersIntegrationTest {
     void setUp(EdcExtension extension) {
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
+                "web.http.path", "/api",
                 "web.http.test.port", String.valueOf(port),
                 "web.http.test.path", "/"
         ));
@@ -103,6 +104,28 @@ public class ExceptionMappersIntegrationTest {
                 ));
     }
 
+    @Test
+    void shouldReturn500ErrorOnJavaLangExceptions() {
+        doThrow(new NullPointerException()).when(runnable).run();
+
+        given()
+                .port(port)
+                .accept(JSON)
+                .get("/test")
+                .then()
+                .statusCode(500);
+    }
+
+    private static class RequestPayload {
+        @NotBlank
+        @JsonProperty
+        private String data;
+
+        @Positive
+        @JsonProperty
+        private long number;
+    }
+
     @Path("/test")
     public class TestController {
 
@@ -118,16 +141,6 @@ public class ExceptionMappersIntegrationTest {
         public void doAction(@Valid RequestPayload payload) {
         }
 
-    }
-
-    private static class RequestPayload {
-        @NotBlank
-        @JsonProperty
-        private String data;
-
-        @Positive
-        @JsonProperty
-        private long number;
     }
 
     private class MyServiceExtension implements ServiceExtension {

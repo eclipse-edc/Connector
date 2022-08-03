@@ -15,5 +15,5 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 public final class IdsProtocol {
-    public static final String INFORMATION_MODEL_VERSION = "4.2.7";
+    public static final String INFORMATION_MODEL_VERSION = "4.1.3";
 }

@@ -54,6 +54,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createContract;
 import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createContractBuilder;
 import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createNegotiation;
+import static org.eclipse.dataspaceconnector.sql.contractnegotiation.TestFunctions.createNegotiationBuilder;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -179,7 +180,9 @@ class SqlContractNegotiationStoreTest {
     @Test
     @DisplayName("Verify that entity is stored")
     void save() {
-        var negotiation = createNegotiation("test-id1");
+        var negotiation = createNegotiationBuilder("test-id1")
+                .type(ContractNegotiation.Type.PROVIDER)
+                .build();
         store.save(negotiation);
 
         assertThat(store.find(negotiation.getId()))
@@ -303,6 +306,27 @@ class SqlContractNegotiationStoreTest {
                 .containsExactly(agreement);
 
         assertThat(Objects.requireNonNull(store.find(negotiationId)).getContractAgreement()).usingRecursiveComparison().isEqualTo(agreement);
+    }
+
+    @Test
+    void create_and_cancel_contractAgreement() {
+        var negotiationId = "test-cn1";
+        var negotiation = createNegotiation(negotiationId);
+        store.save(negotiation);
+
+        // now add the agreement
+        var agreement = createContract("test-ca1");
+        var updatedNegotiation = createNegotiation(negotiationId, agreement);
+
+        store.save(updatedNegotiation);
+        assertThat(store.queryAgreements(QuerySpec.none()))
+                .hasSize(1)
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsExactly(agreement);
+
+        // cancel the agreement
+        updatedNegotiation.transitionError("Cancelled");
+        store.save(updatedNegotiation);
     }
 
     @Test

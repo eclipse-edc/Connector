@@ -336,6 +336,8 @@ public class SqlContractNegotiationStore implements ContractNegotiationStore {
                 .errorDetail(resultSet.getString(statements.getErrorDetailColumn()))
                 .traceContext(fromJson(resultSet.getString(statements.getTraceContextColumn()), new TypeReference<>() {
                 }))
+                // will throw an exception if the value is outside the Type.values() range
+                .type(ContractNegotiation.Type.values()[resultSet.getInt(statements.getTypeColumn())])
                 .build();
     }
 

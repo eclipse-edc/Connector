@@ -18,6 +18,7 @@ import dev.failsafe.RetryPolicy;
 import okhttp3.EventListener;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.core.base.CommandHandlerRegistryImpl;
+import org.eclipse.dataspaceconnector.core.base.OkHttpClientFactory;
 import org.eclipse.dataspaceconnector.core.base.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.dataspaceconnector.core.base.agent.ParticipantAgentServiceImpl;
 import org.eclipse.dataspaceconnector.core.base.policy.PolicyEngineImpl;
@@ -61,9 +62,6 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-import static java.util.Optional.ofNullable;
 
 @BaseExtension
 @Provides({
@@ -102,6 +100,7 @@ public class CoreServicesExtension implements ServiceExtension {
      */
     @Inject(required = false)
     private EventListener okHttpEventListener;
+
     /**
      * An optional instrumentor for {@link ExecutorService}. Used by the optional {@code micrometer} module.
      */
@@ -204,14 +203,8 @@ public class CoreServicesExtension implements ServiceExtension {
     }
 
     @Provider
-    public OkHttpClient addHttpClient(ServiceExtensionContext context) {
-        var builder = new OkHttpClient.Builder()
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS);
-
-        ofNullable(okHttpEventListener).ifPresent(builder::eventListener);
-
-        return builder.build();
+    public OkHttpClient okHttpClient(ServiceExtensionContext context) {
+        return OkHttpClientFactory.create(context, okHttpEventListener);
     }
 
     @Provider

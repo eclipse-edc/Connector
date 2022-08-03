@@ -16,10 +16,24 @@ package org.eclipse.dataspaceconnector.spi.exception;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
+import java.util.List;
+
 public abstract class EdcApiException extends EdcException {
+    private final List<String> messages;
+
     public EdcApiException(String message) {
         super(message);
+        this.messages = List.of(message);
+    }
+
+    public EdcApiException(List<String> messages) {
+        super(String.join(",", messages));
+        this.messages = messages;
     }
 
     public abstract String getType();
+
+    public List<String> getMessages() {
+        return this.messages;
+    }
 }

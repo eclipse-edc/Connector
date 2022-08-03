@@ -9,12 +9,14 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       ZF Friedrichshafen AG - Add tags with context informations
  *
  */
 
 package org.eclipse.dataspaceconnector.extension.jetty;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.binder.jetty.JettyConnectionMetrics;
 import org.eclipse.jetty.server.ServerConnector;
@@ -33,6 +35,11 @@ public class JettyMicrometerConfiguration implements Consumer<ServerConnector> {
 
     @Override
     public void accept(ServerConnector connector) {
-        connector.addBean(new JettyConnectionMetrics(registry, connector, Tags.empty()));
+        var tags = Tags.of(
+                Tag.of("jetty_port", String.valueOf(connector.getPort())),
+                Tag.of("jetty_context", connector.getName())
+        );
+
+        connector.addBean(new JettyConnectionMetrics(registry, connector, tags));
     }
 }

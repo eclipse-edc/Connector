@@ -51,6 +51,8 @@ class ContractNegotiationApiControllerIntegrationTest {
     @BeforeEach
     void setUp(EdcExtension extension) {
         extension.setConfiguration(Map.of(
+                "web.http.port", String.valueOf(getFreePort()),
+                "web.http.path", "/api",
                 "web.http.data.port", String.valueOf(port),
                 "web.http.data.path", "/api/v1/data",
                 "edc.api.auth.key", authKey
@@ -185,6 +187,7 @@ class ContractNegotiationApiControllerIntegrationTest {
                 .statusCode(400)
                 .extract().body().asString();
 
+        System.out.println(result);
         assertThat(result).isNotBlank();
     }
 

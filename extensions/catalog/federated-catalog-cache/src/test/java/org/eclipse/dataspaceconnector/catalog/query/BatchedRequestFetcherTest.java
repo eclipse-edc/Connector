@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.catalog.cache.query.BatchedRequestFetcher;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.message.Range;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -46,7 +47,7 @@ class BatchedRequestFetcherTest {
     @BeforeEach
     void setup() {
         dispatcherMock = mock(RemoteMessageDispatcherRegistry.class);
-        fetcher = new BatchedRequestFetcher(dispatcherMock);
+        fetcher = new BatchedRequestFetcher(dispatcherMock, mock(Monitor.class));
     }
 
     @Test

@@ -3,12 +3,13 @@
 # Please note that this file does not represent all contributions to the code. What persons and organizations
 # actually contributed to each file can be seen on GitHub and is documented in the license headers.
 
+# Linked persons with write permissions are automatically added as reviewers when a pull request is opened.
+
 # Each line is a file pattern followed by one or more contact persons. The last matching pattern has the most precedence.
 # For more details, read the following article on GitHub: https://help.github.com/articles/about-codeowners/.
 
-# The linked persons are automatically added as reviewers when a pull request is opened.
-
 CONTRIBUTING.md @MoritzKeppler @juliapampus @alexandrudanciu @mspiekermann
+contribution_categories.md @paullatzelsperger @mspiekermann
 LICENSE @MoritzKeppler @juliapampus @alexandrudanciu @mspiekermann
 NOTICE.md @alexandrudanciu @mspiekermann
 onboarding.md @paullatzelsperger
@@ -27,17 +28,20 @@ styleguide.md @paullatzelsperger
 /common/token-generation-lib/ @bscholtes1A
 /common/token-validation-lib/ @bscholtes1A
 
-/core/base/src/main/java/org/eclipse/dataspaceconnector/core/base/agent/ @jimmarino
-/core/base/src/main/java/org/eclipse/dataspaceconnector/core/base/policy/ @jimmarino
-/core/base/src/main/java/org/eclipse/dataspaceconnector/core/base/health/ @paullatzelsperger
-/core/base/src/main/java/org/eclipse/dataspaceconnector/core/boot/ @jimmarino @paullatzelsperger
-/core/base/src/main/java/org/eclipse/dataspaceconnector/core/contract/ @jimmarino @juliapampus @ronjaquensel
-/core/base/src/main/java/org/eclipse/dataspaceconnector/core/defaults/ @paullatzelsperger
-/core/base/src/main/java/org/eclipse/dataspaceconnector/core/micrometer/ @algattik
-/core/base/src/main/java/org/eclipse/dataspaceconnector/core/policy/ @jimmarino
-/core/base/src/main/java/org/eclipse/dataspaceconnector/core/transfer/ @jimmarino @bscholtes1A @paullatzelsperger @ndr-brt
+/core/base/agent/ @jimmarino
+/core/base/policy/ @jimmarino
+/core/boot/ @jimmarino @paullatzelsperger
+/core/contract/ @jimmarino @juliapampus @ronjaquensel
+/core/defaults/ @paullatzelsperger
+/core/event/ @ndr-brt
+/core/health/ @paullatzelsperger
+/core/micrometer/ @algattik
+/core/policy/ @jimmarino
+/core/security/ @bscholtes1A
+/core/transfer/ @jimmarino @bscholtes1A @paullatzelsperger @ndr-brt
 
 /data-protocols/ids/ @ronjaquensel @juliapampus @DominikPinsel @denisneuling
+/data-protocols/ids/ids-jsonld-serdes-lib/ @juliapampus
 
 /docs/ @juliapampus
 
@@ -49,29 +53,24 @@ styleguide.md @paullatzelsperger
 /extensions/data-plane-selector/ @paullatzelsperger
 /extensions/data-plane-transfer/ @bscholtes1A
 /extensions/dataloading/ @paullatzelsperger
+/extensions/events/ @ndr-brt
 /extensions/filesystem/ @jimmarino @paullatzelsperger
 /extensions/http/ @paullatzelsperger
 /extensions/http-provisioner/ @jimmarino @paullatzelsperger
 /extensions/http-receiver/ @bscholtes1A
 /extensions/iam/daps/ @bscholtes1A
 /extensions/iam/decentralized-identity/ @paullatzelsperger
-/extensions/iam/iam-mock/ @jimmarino
-/extensions/iam/oauth2/ @bscholtes1A @jimmarino
+/extensions/iam/oauth2/ @bscholtes1A
 /extensions/jdk-logger-monitor/ @cpeeyush
-/extensions/policy/ @ndr-brt
 /extensions/sql/ @bcronin90 @denisneuling @paullatzelsperger
 /extensions/transaction/ @jimmarino
-/extensions/transfer-functions/ @jimmarino
 
 /launchers/data-loader-cli/ @paullatzelsperger @ronjaquensel
 /launchers/data-plane-server/ @bscholtes1A
 /launchers/dpf-selector/ @paullatzelsperger
 /launchers/ids-connector/ @ronjaquensel
-/launchers/junit/ @jimmarino @paullatzelsperger @algattik @ndr-brt
-/launchers/registration-service-app/ @paullatzelsperger
 
-/resources/charts/ @algattik
-/resources/openapi/ @paullatzelsperger
+/resources/ @paullatzelsperger
 
 /samples/01-basic-connector/ @paullatzelsperger
 /samples/02-health-endpoint/ @paullatzelsperger
@@ -89,3 +88,5 @@ styleguide.md @paullatzelsperger
 /system-tests/minikube/ @algattik
 /system-tests/runtimes/ @algattik
 /system-tests/tests/ @algattik
+
+/tooling/ @jimmarino

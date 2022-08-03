@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetServ
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
+import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -46,7 +47,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class AssetApiControllerTest {
-
 
     private final AssetService service = mock(AssetService.class);
     private final DtoTransformerRegistry transformerRegistry = mock(DtoTransformerRegistry.class);
@@ -100,7 +100,7 @@ public class AssetApiControllerTest {
         when(transformerRegistry.transform(isA(DataAddressDto.class), eq(DataAddress.class))).thenReturn(Result.failure("failed"));
         when(service.create(any(), any())).thenReturn(ServiceResult.conflict("already exists"));
 
-        assertThatThrownBy(() -> controller.createAsset(assetEntry)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> controller.createAsset(assetEntry)).isInstanceOf(InvalidRequestException.class);
     }
 
     @Test
@@ -137,7 +137,7 @@ public class AssetApiControllerTest {
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.failure("Cannot transform"));
 
-        assertThatThrownBy(() -> controller.getAllAssets(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> controller.getAllAssets(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(InvalidRequestException.class);
     }
 
     @Test
@@ -147,7 +147,7 @@ public class AssetApiControllerTest {
 
         when(service.query(any())).thenReturn(ServiceResult.badRequest("error"));
 
-        assertThatThrownBy(() -> controller.getAllAssets(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> controller.getAllAssets(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(InvalidRequestException.class);
     }
 
     @Test

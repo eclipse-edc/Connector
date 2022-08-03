@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.mode
 import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.service.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
+import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectExistsException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -60,8 +61,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
     public List<ContractDefinitionDto> getAllContractDefinitions(@Valid @BeanParam QuerySpecDto querySpecDto) {
         var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
         if (result.failed()) {
-            monitor.warning("Error transforming QuerySpec: " + String.join(", ", result.getFailureMessages()));
-            throw new IllegalArgumentException("Cannot transform QuerySpecDto object");
+            throw new InvalidRequestException(result.getFailureMessages());
         }
 
         var spec = result.getContent();
@@ -101,7 +101,7 @@ public class ContractDefinitionApiController implements ContractDefinitionApi {
         monitor.debug("Create new contract definition");
         var transformResult = transformerRegistry.transform(dto, ContractDefinition.class);
         if (transformResult.failed()) {
-            throw new IllegalArgumentException("Request is not well formatted");
+            throw new InvalidRequestException(transformResult.getFailureMessages());
         }
 
         ContractDefinition contractDefinition = transformResult.getContent();

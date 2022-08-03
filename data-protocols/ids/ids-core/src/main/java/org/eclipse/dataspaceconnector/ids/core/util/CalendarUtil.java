@@ -32,7 +32,7 @@ public final class CalendarUtil {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * Creates an XMLGregorianCalendar from an epoch seconds timestamp.
      *

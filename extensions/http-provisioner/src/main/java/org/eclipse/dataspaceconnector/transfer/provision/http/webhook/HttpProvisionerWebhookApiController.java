@@ -15,13 +15,13 @@
 package org.eclipse.dataspaceconnector.transfer.provision.http.webhook;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
@@ -29,7 +29,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.AddProvi
 import org.eclipse.dataspaceconnector.transfer.core.command.handlers.DeprovisionCompleteCommand;
 import org.eclipse.dataspaceconnector.transfer.provision.http.impl.HttpProvisionedContentResource;
 
-import java.util.Objects;
 import java.util.UUID;
 
 
@@ -46,9 +45,8 @@ public class HttpProvisionerWebhookApiController implements HttpProvisionerWebho
     @Override
     @POST
     @Path("/{processId}/provision")
-    public void callProvisionWebhook(@PathParam("processId") @NotNull String transferProcessId, @Valid ProvisionerWebhookRequest request) {
-
-        var cr = HttpProvisionedContentResource.Builder.newInstance()
+    public void callProvisionWebhook(@PathParam("processId") String transferProcessId, @Valid ProvisionerWebhookRequest request) {
+        var contentResource = HttpProvisionedContentResource.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .assetId(request.getAssetId())
                 .dataAddress(request.getContentDataAddress())
@@ -59,27 +57,27 @@ public class HttpProvisionerWebhookApiController implements HttpProvisionerWebho
                 .build();
 
         var response = ProvisionResponse.Builder.newInstance()
-                .resource(cr)
+                .resource(contentResource)
                 .secretToken(new SimpleSecretToken(request.getApiKeyJwt()))
                 .build();
-        var cmd = new AddProvisionedResourceCommand(transferProcessId, response);
 
-        transferProcessManager.enqueueCommand(cmd);
+        var command = new AddProvisionedResourceCommand(transferProcessId, response);
+
+        transferProcessManager.enqueueCommand(command);
 
     }
 
     @Override
     @POST
     @Path("/{processId}/deprovision")
-    public void callDeprovisionWebhook(@PathParam("processId") @NotNull String transferProcessId, @Valid DeprovisionedResource resource) {
+    public void callDeprovisionWebhook(@PathParam("processId") String transferProcessId, @Valid DeprovisionedResource resource) {
+        if (resource == null || resource.getProvisionedResourceId() == null) {
+            throw new InvalidRequestException("Request body cannot be null and it should provide a valid provisionedResourceId value");
+        }
 
-        Objects.requireNonNull(resource);
-        Objects.requireNonNull(resource.getProvisionedResourceId());
+        var command = new DeprovisionCompleteCommand(transferProcessId, resource);
 
-        var cmd = new DeprovisionCompleteCommand(transferProcessId, resource);
-        transferProcessManager.enqueueCommand(cmd);
-
+        transferProcessManager.enqueueCommand(command);
     }
-
 
 }

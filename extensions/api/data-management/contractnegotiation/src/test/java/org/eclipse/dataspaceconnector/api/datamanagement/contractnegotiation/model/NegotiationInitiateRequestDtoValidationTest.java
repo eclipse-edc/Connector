@@ -68,17 +68,17 @@ class NegotiationInitiateRequestDtoValidationTest {
                 .offer(description)
                 .build();
 
-        assertThat(validator.validate(dto)).hasSize(1);
+        assertThat(validator.validate(dto)).hasSizeGreaterThanOrEqualTo(1);
     }
 
     private static class InvalidArgumentsProvider implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    Arguments.of(null, "ids-multipart", "connector-id", validOffer()),
-                    Arguments.of("https://connector.com", null, "connector-id", validOffer()),
+                    Arguments.of("", "ids-multipart", "connector-id", validOffer()),
+                    Arguments.of("https://connector.com", "", "connector-id", validOffer()),
                     Arguments.of("https://connector.com", "ids-multipart", "connector-id", null),
-                    Arguments.of("https://connector.com", "ids-multipart", null, validOffer())
+                    Arguments.of("https://connector.com", "ids-multipart", "", validOffer())
             );
         }
     }

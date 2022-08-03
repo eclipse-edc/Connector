@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateRequest;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
 
@@ -29,9 +30,9 @@ public class IdsMultipartNodeQueryAdapter implements NodeQueryAdapter {
     private final String connectorId;
     private final BatchedRequestFetcher requestFetcher;
 
-    public IdsMultipartNodeQueryAdapter(String connectorId, RemoteMessageDispatcherRegistry dispatcherRegistry) {
+    public IdsMultipartNodeQueryAdapter(String connectorId, RemoteMessageDispatcherRegistry dispatcherRegistry, Monitor monitor) {
         this.connectorId = connectorId;
-        requestFetcher = new BatchedRequestFetcher(dispatcherRegistry);
+        requestFetcher = new BatchedRequestFetcher(dispatcherRegistry, monitor);
     }
 
     @Override
