@@ -10,6 +10,7 @@
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
  *       Microsoft Corporation - Use IDS Webhook address for JWT audience claim
+ *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *
  */
 
@@ -33,9 +34,9 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.respon
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.response.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.message.FutureCallback;
 import org.eclipse.dataspaceconnector.ids.core.message.IdsMessageSender;
-import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
-import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenParameters;
@@ -87,11 +88,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
     }
 
     private static URI createConnectorIdUri(String connectorId) {
-        return URI.create(String.join(
-                IdsIdParser.DELIMITER,
-                IdsIdParser.SCHEME,
-                IdsType.CONNECTOR.getValue(),
-                connectorId));
+        return IdsId.Builder.newInstance().value(connectorId).type(IdsType.CONNECTOR).build().toUri();
     }
 
     /**

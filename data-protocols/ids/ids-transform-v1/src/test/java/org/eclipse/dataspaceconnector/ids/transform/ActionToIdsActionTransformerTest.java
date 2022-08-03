@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
+import org.eclipse.dataspaceconnector.ids.transform.type.policy.ActionToIdsActionTransformer;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.junit.jupiter.api.Assertions;

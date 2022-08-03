@@ -58,6 +58,7 @@ import org.eclipse.dataspaceconnector.ids.core.serialization.IdsConstraintBuilde
 import org.eclipse.dataspaceconnector.ids.core.serialization.IdsConstraintImpl;
 import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
+import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,7 +70,6 @@ import java.net.URI;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -186,7 +186,7 @@ class SerializationTest {
                 ._senderAgent_(uri)
                 ._transferContract_(uri)
                 .build();
-        obj.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, "http://webhook");
+        obj.setProperty(IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY, "http://webhook");
 
         var resultString = objectMapper.writeValueAsString(obj);
         assertNotNull(resultString);

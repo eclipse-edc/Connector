@@ -21,7 +21,7 @@ import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RejectionReason;
 import de.fraunhofer.iais.eis.RequestInProcessMessage;
 import de.fraunhofer.iais.eis.ResponseMessageBuilder;
-import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
+import org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,118 +54,118 @@ class ResponseUtilTest {
     @Test
     void createMultipartResponse_onlyHeader() {
         var header = new ResponseMessageBuilder().build();
-        
+
         var multipartResponse = ResponseUtil.createMultipartResponse(header);
-        
+
         assertThat(multipartResponse).isNotNull();
         assertThat(multipartResponse.getHeader()).isNotNull().isEqualTo(header);
         assertThat(multipartResponse.getPayload()).isNull();
     }
-    
+
     @Test
     void createMultipartResponse_headerAndPayload() {
         var header = new ResponseMessageBuilder().build();
         var payload = "payload";
-    
+
         var multipartResponse = ResponseUtil.createMultipartResponse(header, payload);
-    
+
         assertThat(multipartResponse).isNotNull();
         assertThat(multipartResponse.getHeader()).isNotNull().isEqualTo(header);
         assertThat(multipartResponse.getPayload()).isNotNull().isEqualTo(payload);
     }
-    
+
     @Test
     void testMessageProcessedNotification() {
         var message = ResponseUtil.messageProcessedNotification(correlationMessage, connectorId);
-    
+
         assertBasePropertiesMapped(message, null);
         assertCorrelationMessagePropertiesMapped(message);
         assertConnectorIdPropertiesMapped(message);
     }
-    
+
     @Test
     void testRequestInProcess() {
         var message = ResponseUtil.requestInProcess(correlationMessage, connectorId);
-        
+
         assertBasePropertiesMapped(message, null);
         assertCorrelationMessagePropertiesMapped(message);
         assertConnectorIdPropertiesMapped(message);
     }
-    
+
     @Test
     void testDescriptionResponse() {
         var message = ResponseUtil.descriptionResponse(correlationMessage, connectorId);
-        
+
         assertBasePropertiesMapped(message, null);
         assertCorrelationMessagePropertiesMapped(message);
         assertConnectorIdPropertiesMapped(message);
     }
-    
+
     @Test
     void testInProcessFromStatusResult_succeeded() {
         var result = StatusResult.success();
-        
+
         var message = ResponseUtil.inProcessFromStatusResult(result, correlationMessage, connectorId);
-        
+
         assertThat(message).isInstanceOf(RequestInProcessMessage.class);
         assertBasePropertiesMapped(message, null);
         assertCorrelationMessagePropertiesMapped(message);
         assertConnectorIdPropertiesMapped(message);
     }
-    
+
     @Test
     void testInProcessFromStatusResult_fatalError() {
         var result = StatusResult.failure(ResponseStatus.FATAL_ERROR);
-    
+
         var message = ResponseUtil.inProcessFromStatusResult(result, correlationMessage, connectorId);
-    
+
         assertThat(message).isInstanceOf(RejectionMessage.class);
         assertBasePropertiesMapped(message, RejectionReason.BAD_PARAMETERS);
         assertCorrelationMessagePropertiesMapped(message);
         assertConnectorIdPropertiesMapped(message);
     }
-    
+
     @Test
     void testInProcessFromStatusResult_errorRetry() {
         var result = StatusResult.failure(ResponseStatus.ERROR_RETRY);
-    
+
         var message = ResponseUtil.inProcessFromStatusResult(result, correlationMessage, connectorId);
-    
+
         assertThat(message).isInstanceOf(RejectionMessage.class);
         assertBasePropertiesMapped(message, RejectionReason.INTERNAL_RECIPIENT_ERROR);
         assertCorrelationMessagePropertiesMapped(message);
     }
-    
+
     @Test
     void testProcessedFromStatusResult_succeeded() {
         var result = StatusResult.success();
-    
+
         var message = ResponseUtil.processedFromStatusResult(result, correlationMessage, connectorId);
-    
+
         assertThat(message).isInstanceOf(MessageProcessedNotificationMessage.class);
         assertBasePropertiesMapped(message, null);
         assertCorrelationMessagePropertiesMapped(message);
         assertConnectorIdPropertiesMapped(message);
     }
-    
+
     @Test
     void testProcessedFromStatusResult_fatalError() {
         var result = StatusResult.failure(ResponseStatus.FATAL_ERROR);
-        
+
         var message = ResponseUtil.processedFromStatusResult(result, correlationMessage, connectorId);
-        
+
         assertThat(message).isInstanceOf(RejectionMessage.class);
         assertBasePropertiesMapped(message, RejectionReason.BAD_PARAMETERS);
         assertCorrelationMessagePropertiesMapped(message);
         assertConnectorIdPropertiesMapped(message);
     }
-    
+
     @Test
     void testProcessedFromStatusResult_errorRetry() {
         var result = StatusResult.failure(ResponseStatus.ERROR_RETRY);
-    
+
         var message = ResponseUtil.processedFromStatusResult(result, correlationMessage, connectorId);
-    
+
         assertThat(message).isInstanceOf(RejectionMessage.class);
         assertBasePropertiesMapped(message, RejectionReason.INTERNAL_RECIPIENT_ERROR);
         assertCorrelationMessagePropertiesMapped(message);
@@ -202,7 +202,7 @@ class ResponseUtilTest {
     @Test
     void testMalformedMessage() {
         var rejectionMessage = ResponseUtil.malformedMessage(null, connectorId);
-        
+
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.MALFORMED_MESSAGE);
         assertConnectorIdPropertiesMapped(rejectionMessage);
 
@@ -221,11 +221,11 @@ class ResponseUtilTest {
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
         assertConnectorIdPropertiesMapped(rejectionMessage);
     }
-    
+
     @Test
     void testBadParameters() {
         var rejectionMessage = ResponseUtil.badParameters(correlationMessage, connectorId);
-    
+
         assertBasePropertiesMapped(rejectionMessage, RejectionReason.BAD_PARAMETERS);
         assertCorrelationMessagePropertiesMapped(rejectionMessage);
         assertConnectorIdPropertiesMapped(rejectionMessage);
@@ -248,8 +248,8 @@ class ResponseUtilTest {
                     .isEqualTo(rejectionReason);
         }
 
-        assertThat(message.getContentVersion()).isEqualTo(IdsProtocol.INFORMATION_MODEL_VERSION);
-        assertThat(message.getModelVersion()).isEqualTo(IdsProtocol.INFORMATION_MODEL_VERSION);
+        assertThat(message.getContentVersion()).isEqualTo(IdsConstants.INFORMATION_MODEL_VERSION);
+        assertThat(message.getModelVersion()).isEqualTo(IdsConstants.INFORMATION_MODEL_VERSION);
         assertThat(message.getIssued()).isNotNull();
     }
 

@@ -12,6 +12,7 @@
  *       Fraunhofer Institute for Software and Systems Engineering - add methods
  *       Daimler TSS GmbH - introduce factory to create RequestInProcessMessage
  *       Fraunhofer Institute for Software and Systems Engineering - replace object mapper
+ *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *
  */
 
@@ -41,8 +42,7 @@ import okhttp3.Response;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
-import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -60,7 +60,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
+import static org.eclipse.dataspaceconnector.ids.spi.domain.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getFreePort;
 
 @ExtendWith(EdcExtension.class)
@@ -139,15 +139,14 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 ._senderAgent_(URI.create("senderAgent"));
 
         if (idsId != null) {
-            builder._requestedElement_(
-                    URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, idsId.getType().getValue(), idsId.getValue())));
+            builder._requestedElement_(idsId.toUri());
         }
         return builder.build();
     }
 
     protected ContractRequestMessage getContractRequestMessage() {
         var message = new ContractRequestMessageBuilder()
-                ._correlationMessage_(URI.create("correlationId"))
+                ._correlationMessage_(URI.create("urn:message:1"))
                 ._securityToken_(getDynamicAttributeToken())
                 ._senderAgent_(URI.create("senderAgent"))
                 ._issuerConnector_(URI.create("issuerConnector"))
@@ -158,7 +157,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
 
     protected ContractAgreementMessage getContractAgreementMessage() {
         return new ContractAgreementMessageBuilder()
-                ._correlationMessage_(URI.create("correlationId"))
+                ._correlationMessage_(URI.create("urn:message:1"))
                 ._securityToken_(getDynamicAttributeToken())
                 ._issuerConnector_(URI.create("issuerConnector"))
                 ._senderAgent_(URI.create("senderAgent"))
@@ -167,8 +166,8 @@ abstract class AbstractMultipartControllerIntegrationTest {
 
     protected ContractRejectionMessage getContractRejectionMessage() {
         return new ContractRejectionMessageBuilder()
-                ._correlationMessage_(URI.create("correlationId"))
-                ._transferContract_(URI.create("contractId"))
+                ._correlationMessage_(URI.create("urn:message:1"))
+                ._transferContract_(URI.create("urn:contractagreement:1"))
                 ._securityToken_(getDynamicAttributeToken())
                 ._issuerConnector_(URI.create("issuerConnector"))
                 ._senderAgent_(URI.create("senderAgent"))

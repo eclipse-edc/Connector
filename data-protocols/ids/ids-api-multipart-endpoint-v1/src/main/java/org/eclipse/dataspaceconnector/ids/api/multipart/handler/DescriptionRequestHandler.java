@@ -24,11 +24,11 @@ import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
-import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
@@ -84,58 +84,44 @@ public class DescriptionRequestHandler implements Handler {
     public @NotNull MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
         var claimToken = multipartRequest.getClaimToken();
         var message = (DescriptionRequestMessage) multipartRequest.getHeader();
-    
+
         // Get ID of requested element
-        var requestedElement = message.getRequestedElement();
-        IdsId idsId = null;
-        if (requestedElement != null) {
-            var idsIdResult = transformerRegistry.transform(requestedElement, IdsId.class);
-            if (idsIdResult.failed()) {
-                monitor.warning(format("Could not transform URI to IdsId: [%s]",
-                        String.join(", ", idsIdResult.getFailureMessages())));
-                return createMultipartResponse(badParameters(message, connectorId));
-            }
-        
-            idsId = idsIdResult.getContent();
-        }
-    
+        var requestedElement = IdsId.from(message.getRequestedElement());
+
         //TODO: IDS REFACTORING: this should be a named property of the message object
         // extract paging information, default to 0 ... Integer.MAX_VALUE
         var from = getInt(message, Range.FROM, 0);
         var to = getInt(message, Range.TO, Integer.MAX_VALUE);
         var range = new Range(from, to);
-    
+
         // Retrieve and transform requested element
         Result<? extends ModelClass> result;
-        if (idsId == null || (idsId.getType() == IdsType.CONNECTOR)) {
+        if (requestedElement.failed() || requestedElement.getContent() == null ||
+                (requestedElement.getContent().getType() == IdsType.CONNECTOR)) {
             result = getConnector(claimToken, range);
         } else {
-            var retrievedObject = retrieveRequestedElement(idsId, claimToken, range);
+            var retrievedObject = retrieveRequestedElement(requestedElement.getContent(), claimToken, range);
             if (retrievedObject == null) {
                 return createMultipartResponse(notFound(message, connectorId));
             }
-            result = transformRequestedElement(retrievedObject, idsId.getType());
+            result = transformRequestedElement(retrievedObject, requestedElement.getContent().getType());
         }
-    
+
         if (result.failed()) {
-            if (idsId == null) {
-                monitor.warning(String.format("Could not construct connector description: [%s]",
-                        String.join(", ", result.getFailureMessages())));
-            } else {
-                monitor.warning(String.format("Could not retrieve requested element with ID %s:%s: [%s]",
-                        idsId.getType(), idsId.getValue(), String.join(", ", result.getFailureMessages())));
-            }
-        
+            monitor.warning(String.format("Could not retrieve requested element with ID %s:%s: [%s]",
+                    requestedElement.getContent().getType(), requestedElement.getContent().getValue(),
+                    String.join(", ", result.getFailureMessages())));
+
             return createMultipartResponse(badParameters(message, connectorId));
         }
-    
+
         return createMultipartResponse(descriptionResponse(message, connectorId), result.getContent());
     }
-    
+
     private Result<Connector> getConnector(ClaimToken claimToken, Range range) {
         return transformerRegistry.transform(connectorService.getConnector(claimToken, range), Connector.class);
     }
-    
+
     /**
      * Retrieves the requested element specified by the IdsId. If the requested element is a
      * catalog or resource, the given range is used.
@@ -159,19 +145,19 @@ public class DescriptionRequestHandler implements Handler {
                 if (asset == null) {
                     return Result.failure(format("Asset with ID %s does not exist.", assetId));
                 }
-            
+
                 var contractOfferQuery = ContractOfferQuery.Builder.newInstance()
                         .claimToken(claimToken)
                         .criterion(new Criterion(Asset.PROPERTY_ID, "=", assetId))
                         .build();
                 var targetingContractOffers = contractOfferService.queryContractOffers(contractOfferQuery, range).collect(toList());
-            
+
                 return new OfferedAsset(asset, targetingContractOffers);
             default:
                 return null;
         }
     }
-    
+
     /**
      * Transforms the requested element as defined by the IdsType.
      *

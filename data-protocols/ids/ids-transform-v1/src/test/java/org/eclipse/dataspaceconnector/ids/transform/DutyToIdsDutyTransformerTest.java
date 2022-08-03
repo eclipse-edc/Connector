@@ -9,12 +9,15 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - Initial API and Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.types.IdsType;
+import org.eclipse.dataspaceconnector.ids.transform.type.policy.DutyToIdsDutyTransformer;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Constraint;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
@@ -26,14 +29,12 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class DutyToIdsDutyTransformerTest {
 
-    private static final URI PERMISSION_ID = URI.create("urn:permission:456uz984390236s");
     private static final String TARGET = "https://target.com";
     private static final URI TARGET_URI = URI.create(TARGET);
     private static final String ASSIGNER = "https://assigner.com";
@@ -81,14 +82,15 @@ class DutyToIdsDutyTransformerTest {
         var duty = Duty.Builder.newInstance().target(TARGET).assigner(ASSIGNER).assignee(ASSIGNEE)
                 .constraint(edcConstraint).action(edcAction)
                 .build();
+        var id = IdsId.Builder.newInstance().type(IdsType.OBLIGATION).value(duty.hashCode()).build();
+
         when(context.transform(eq(edcAction), eq(de.fraunhofer.iais.eis.Action.class))).thenReturn(idsAction);
         when(context.transform(eq(edcConstraint), eq(de.fraunhofer.iais.eis.Constraint.class))).thenReturn(idsConstraint);
-        when(context.transform(isA(IdsId.class), eq(URI.class))).thenReturn(PERMISSION_ID);
 
         var result = transformer.transform(duty, context);
 
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(PERMISSION_ID, result.getId());
+        Assertions.assertEquals(id.toUri(), result.getId());
         Assertions.assertEquals(TARGET_URI, result.getTarget());
         Assertions.assertEquals(1, result.getAssigner().size());
         Assertions.assertEquals(ASSIGNER_URI, result.getAssigner().get(0));
@@ -100,7 +102,6 @@ class DutyToIdsDutyTransformerTest {
         Assertions.assertEquals(idsConstraint, result.getConstraint().get(0));
         verify(context).transform(eq(edcAction), eq(de.fraunhofer.iais.eis.Action.class));
         verify(context).transform(eq(edcConstraint), eq(de.fraunhofer.iais.eis.Constraint.class));
-        verify(context).transform(isA(IdsId.class), eq(URI.class));
     }
 
 }

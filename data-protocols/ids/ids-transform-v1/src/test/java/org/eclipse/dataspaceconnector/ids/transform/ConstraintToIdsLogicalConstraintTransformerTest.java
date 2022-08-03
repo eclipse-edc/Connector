@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *
  */
 
@@ -16,7 +17,7 @@ package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.LogicalConstraint;
 import org.eclipse.dataspaceconnector.ids.core.serialization.IdsConstraintBuilder;
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
+import org.eclipse.dataspaceconnector.ids.transform.type.policy.ConstraintToIdsLogicalConstraintTransformer;
 import org.eclipse.dataspaceconnector.policy.model.AndConstraint;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
@@ -25,8 +26,6 @@ import org.eclipse.dataspaceconnector.policy.model.XoneConstraint;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.net.URI;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.policy.model.Operator.EQ;
@@ -50,7 +49,6 @@ class ConstraintToIdsLogicalConstraintTransformerTest {
 
     @Test
     void verifyAndConstraint() {
-        when(context.transform(isA(IdsId.class), eq(URI.class))).thenReturn(URI.create("foo"));
         when(context.transform(isA(AtomicConstraint.class), eq(de.fraunhofer.iais.eis.Constraint.class)))
                 .thenReturn(new IdsConstraintBuilder().build());
 
@@ -64,12 +62,11 @@ class ConstraintToIdsLogicalConstraintTransformerTest {
         var transformed = (LogicalConstraint) transformer.transform(andConstraint, context);
 
         assertThat(transformed.getAnd()).isNotEmpty();
-        verify(context, times(3)).transform(any(), any());
+        verify(context, times(2)).transform(any(), any());
     }
 
     @Test
     void verifyOrConstraint() {
-        when(context.transform(isA(IdsId.class), eq(URI.class))).thenReturn(URI.create("foo"));
         when(context.transform(isA(AtomicConstraint.class), eq(de.fraunhofer.iais.eis.Constraint.class)))
                 .thenReturn(new IdsConstraintBuilder().build());
 
@@ -84,14 +81,13 @@ class ConstraintToIdsLogicalConstraintTransformerTest {
 
         assertThat(transformed).isNotNull();
         assertThat(transformed.getOr()).isNotNull();
-        verify(context, times(3)).transform(any(), any());
+        verify(context, times(2)).transform(any(), any());
 
     }
 
 
     @Test
     void verifyXoneConstraint() {
-        when(context.transform(isA(IdsId.class), eq(URI.class))).thenReturn(URI.create("foo"));
         when(context.transform(isA(AtomicConstraint.class), eq(de.fraunhofer.iais.eis.Constraint.class)))
                 .thenReturn(new IdsConstraintBuilder().build());
 
@@ -106,7 +102,7 @@ class ConstraintToIdsLogicalConstraintTransformerTest {
 
         assertThat(transformed).isNotNull();
         assertThat(transformed.getXone()).isNotNull();
-        verify(context, times(3)).transform(any(), any());
+        verify(context, times(2)).transform(any(), any());
     }
 
 }
