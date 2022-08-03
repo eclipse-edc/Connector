@@ -44,63 +44,63 @@ were removed
 ```java
 ...
 @Test
-    void submitTestCommand_providerManager(){
-            var negotiationManager=ProviderContractNegotiationManagerImpl.Builder.newInstance()
-            .monitor(monitor)
-            .validationService(validationService)
-            .dispatcherRegistry(dispatcherRegistry)
-            .commandQueue(commandQueue)
-            .commandRunner(commandRunner)
-            .observable(observable)
-            .store(store)
-            .policyStore(policyStore)
-            .sendRetryManager(sendRetryManager)
-            .build();
+void submitTestCommand_providerManager(){
 
-            negotiationManager.start();
+        var negotiationManager=ProviderContractNegotiationManagerImpl.Builder.newInstance()
+        .monitor(monitor)
+        .validationService(validationService)
+        .dispatcherRegistry(dispatcherRegistry)
+        .commandQueue(commandQueue)
+        .commandRunner(commandRunner)
+        .observable(observable)
+        .store(store)
+        .policyStore(policyStore)
+        .sendRetryManager(sendRetryManager)
+        .build();
 
-            negotiationManager.enqueueCommand(command);
+        negotiationManager.start();
+        negotiationManager.enqueueCommand(command);
 
-            await().untilAsserted(()->{
-            assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.ERROR.code());
-            assertThat(negotiation.getErrorDetail()).isEqualTo(errorDetail);
-            });
+        await().untilAsserted(()->{
+        assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.ERROR.code());
+        assertThat(negotiation.getErrorDetail()).isEqualTo(errorDetail);
+        });
 
-            negotiationManager.stop();
-            }
+        negotiationManager.stop();
+        }
 
 @Test
-    void submitTestCommand_consumerManager()throws Exception{
-            when(store.find(negotiationId)).thenReturn(negotiation);
+void submitTestCommand_consumerManager()throws Exception{
 
-            // Create and start the negotiation manager
-            var negotiationManager=ConsumerContractNegotiationManagerImpl.Builder.newInstance()
-            .monitor(monitor)
-            .validationService(validationService)
-            .dispatcherRegistry(dispatcherRegistry)
-            .commandQueue(commandQueue)
-            .commandRunner(commandRunner)
-            .observable(observable)
-            .store(store)
-            .policyStore(policyStore)
-            .sendRetryManager(sendRetryManager)
-            .build();
-            negotiationManager.start();
+        when(store.find(negotiationId)).thenReturn(negotiation);
 
-            // Enqueue command
-            negotiationManager.enqueueCommand(command);
+        // Create and start the negotiation manager
+        var negotiationManager=ConsumerContractNegotiationManagerImpl.Builder.newInstance()
+        .monitor(monitor)
+        .validationService(validationService)
+        .dispatcherRegistry(dispatcherRegistry)
+        .commandQueue(commandQueue)
+        .commandRunner(commandRunner)
+        .observable(observable)
+        .store(store)
+        .policyStore(policyStore)
+        .sendRetryManager(sendRetryManager)
+        .build();
+        negotiationManager.start();
 
-            // Wait for CommandHandler to modify negotiation 
+        // Enqueue command
+        negotiationManager.enqueueCommand(command);
 
-            await().untilAsserted(()->{
-            assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.ERROR.code());
-            assertThat(negotiation.getErrorDetail()).isEqualTo(errorDetail);
-            });
+        // Wait for CommandHandler to modify negotiation 
+        await().untilAsserted(()->{
+        assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.ERROR.code());
+        assertThat(negotiation.getErrorDetail()).isEqualTo(errorDetail);
+        });
 
-            // Stop the negotiation manager
-            negotiationManager.stop();
-            }
-            ...
+        // Stop the negotiation manager
+        negotiationManager.stop();
+        }
+        ...
 
 private static class TestCommandHandler extends SingleContractNegotiationCommandHandler<TestCommand> {
 
@@ -133,12 +133,12 @@ Same as above a method await().untilAsserted() or until() was used to replace th
 ```java
 ...
 @Test
-    void verifyWorkDispatch()throws InterruptedException{
-            var dataPlaneManager=createDataPlaneManager();
+void verifyWorkDispatch()throws InterruptedException{
+        var dataPlaneManager=createDataPlaneManager();
 
-            when(registry.resolveTransferService(request))
-            .thenReturn(transferService);
-            when(transferService.canHandle(isA(DataFlowRequest.class)))
+        when(registry.resolveTransferService(request))
+        .thenReturn(transferService);
+        when(transferService.canHandle(isA(DataFlowRequest.class)))
         .thenReturn(true);
 
         when(transferService.transfer(isA(DataFlowRequest.class))).thenAnswer(i->{
@@ -152,39 +152,36 @@ Same as above a method await().untilAsserted() or until() was used to replace th
         });
         }
 
-/**
- * Verifies that the dispatch thread survives an error thrown by a worker.
- */
 @Test
-    void verifyRetryInitiateTransferRequest(){
-            var dataPlaneManager=createDataPlaneManager();
+void verifyRetryInitiateTransferRequest(){
+        var dataPlaneManager=createDataPlaneManager();
 
-            when(transferService.canHandle(request))
-            .thenReturn(true);
+        when(transferService.canHandle(request))
+        .thenReturn(true);
 
-            when(transferService.transfer(request))
-            .thenAnswer(i->{
-            throw new RuntimeException("Test exception");
-            }).thenAnswer((i->{
-            return completedFuture(Result.success("ok"));
-            }));
+        when(transferService.transfer(request))
+        .thenAnswer(i->{
+        throw new RuntimeException("Test exception");
+        }).thenAnswer((i->{
+        return completedFuture(Result.success("ok"));
+        }));
 
-            dataPlaneManager.start();
+        dataPlaneManager.start();
 
-            dataPlaneManager.initiateTransfer(request);
-            dataPlaneManager.initiateTransfer(request);
+        dataPlaneManager.initiateTransfer(request);
+        dataPlaneManager.initiateTransfer(request);
 
-            await().untilAsserted(()->verify(transferService,times(2)).transfer(request));
+        await().untilAsserted(()->verify(transferService,times(2)).transfer(request));
 
-            dataPlaneManager.stop();
+        dataPlaneManager.stop();
 
-            }
+        }
 
 @Test
-    void verifyWorkDispatch_onUnavailableTransferService_completesTransfer()throws InterruptedException{
-            var dataPlaneManager=createDataPlaneManager();
+void verifyWorkDispatch_onUnavailableTransferService_completesTransfer()throws InterruptedException{
+        var dataPlaneManager=createDataPlaneManager();
 
-            when(transferService.canHandle(isA(DataFlowRequest.class)))
+        when(transferService.canHandle(isA(DataFlowRequest.class)))
         .thenReturn(false);
 
         performTransfer(dataPlaneManager);
@@ -201,29 +198,29 @@ Same as with the previous class, the await method waits until the assertion is f
 ```java
 ...
 @Test
-    void verifyTimeoutOnWriteLockAttempt(){
-            var lockManager=new LockManager(new ReentrantReadWriteLock(),10);
-            var counter=new AtomicInteger();
+void verifyTimeoutOnWriteLockAttempt(){
+        var lockManager=new LockManager(new ReentrantReadWriteLock(),10);
+        var counter=new AtomicInteger();
 
-            // Attempt to acquire a write lock in another thread, which should timeout as the current thread holds a read lock
-            var thread=new Thread(()->{
-            try{
-            lockManager.writeLock(()->{
-            throw new AssertionError();  // lock should never be acquired
-            });
-            }catch(LockException e){
-            }
-            });
+        // Attempt to acquire a write lock in another thread, which should timeout as the current thread holds a read lock
+        var thread=new Thread(()->{
+        try{
+        lockManager.writeLock(()->{
+        throw new AssertionError();  // lock should never be acquired
+        });
+        }catch(LockException e){
+        }
+        });
 
-            lockManager.readLock(()->{
-            thread.start();
-            counter.incrementAndGet();
-            return null;
-            });
+        lockManager.readLock(()->{
+        thread.start();
+        counter.incrementAndGet();
+        return null;
+        });
 
-            await().untilAsserted(()->assertThat(counter.get()).isEqualTo(1));
-            }
-            ...
+        await().untilAsserted(()->assertThat(counter.get()).isEqualTo(1));
+        }
+        ...
 ```
 
 class `AssetEventDispatchTest`
@@ -233,18 +230,17 @@ extensions\api\data-management\asset\src\test\java\org\eclipse\dataspaceconnecto
 ```java
 ...
 @Test
-    void shouldDispatchEventsOnAssetCreationAndDeletion(AssetService service,EventRouter eventRouter)throws InterruptedException{
+void shouldDispatchEventsOnAssetCreationAndDeletion(AssetService service,EventRouter eventRouter)throws InterruptedException{
 
-            eventRouter.register(eventSubscriber);
-            var asset=Asset.Builder.newInstance().id("assetId").build();
-            var dataAddress=DataAddress.Builder.newInstance().type("any").build();
+        eventRouter.register(eventSubscriber);
+        var asset=Asset.Builder.newInstance().id("assetId").build();
+        var dataAddress=DataAddress.Builder.newInstance().type("any").build();
 
-            service.create(asset,dataAddress);
+        service.create(asset,dataAddress);
+        service.delete(asset.getId());
 
-            service.delete(asset.getId());
-
-            await().untilAsserted(()->{
-            verify(eventSubscriber).on(isA(AssetCreated.class));
+        await().untilAsserted(()->{
+        verify(eventSubscriber).on(isA(AssetCreated.class));
         verify(eventSubscriber).on(isA(AssetDeleted.class));
         });
 ```
@@ -258,19 +254,19 @@ the same procedure as the previous class applies to this test.
 ```java
 ...
 @Test
-    void shouldDispatchEventOnPolicyDefinitionCreationAndDeletion(PolicyDefinitionService service,EventRouter eventRouter)throws InterruptedException{
-            eventRouter.register(eventSubscriber);
-            var policyDefinition=PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
+void shouldDispatchEventOnPolicyDefinitionCreationAndDeletion(PolicyDefinitionService service,EventRouter eventRouter)throws InterruptedException{
+        eventRouter.register(eventSubscriber);
+        var policyDefinition=PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
 
-            service.create(policyDefinition);
+        service.create(policyDefinition);
+        service.deleteById(policyDefinition.getUid());
 
-            service.deleteById(policyDefinition.getUid());
-
-            await().untilAsserted(()->{
-            verify(eventSubscriber).on(isA(PolicyDefinitionCreated.class));
+        await().untilAsserted(()->{
+        verify(eventSubscriber).on(isA(PolicyDefinitionCreated.class));
         verify(eventSubscriber).on(isA(PolicyDefinitionDeleted.class));
         });
         }
+        ...
 ```
 
 Class `CrawlerImplTest`
@@ -281,8 +277,8 @@ extensions\catalog\federated-catalog-cache\src\test\java\org\eclipse\dataspaceco
 ...
 @Test
 @DisplayName("Should insert one item into queue when request succeeds")
-    void shouldInsertInQueue_whenSucceeds()throws InterruptedException{
-            when(protocolAdapterMock.sendRequest(isA(UpdateRequest.class)))
+void shouldInsertInQueue_whenSucceeds()throws InterruptedException{
+        when(protocolAdapterMock.sendRequest(isA(UpdateRequest.class)))
         .thenAnswer(i->{
         return CompletableFuture.completedFuture(new UpdateResponse());
         });
@@ -392,68 +388,6 @@ extensions\catalog\federated-catalog-cache\src\test\java\org\eclipse\dataspaceco
         });
         }
         ...
-```
-
-class `LoaderManagerImplTest`
-(
-extensions\catalog\federated-catalog-cache\src\test\java\org\eclipse\dataspaceconnector\catalog\cache\loader\LoaderManagerImplTest.java)
-
-```java
-...
-@Test
-@DisplayName("Verify that the loader manager waits one pass when the queue does not yet contain sufficient elements")
-    void batchSizeNotReachedWithinTimeframe(){
-            range(0,batchSize-1).forEach(i->queue.offer(new UpdateResponse()));
-            when(waitStrategyMock.retryInMillis()).thenAnswer(i->{
-            return 2L;
-            });
-
-            loaderManager.start(queue);
-
-            await().untilAsserted(()->verify(waitStrategyMock,atLeastOnce()).retryInMillis());
-
-            }
-
-@Test
-@DisplayName("Verify that the LoaderManager does not sleep when a complete batch was processed")
-    void batchSizeReachedWithinTimeframe()throws InterruptedException{
-            range(0,batchSize).forEach(i->queue.offer(new UpdateResponse()));
-
-            doAnswer(i->{
-            return null;
-            }).when(waitStrategyMock).success();
-
-            loaderManager.start(queue);
-
-            await().untilAsserted(()->{
-            verify(loaderMock,times(1)).load(any());
-            verify(waitStrategyMock).success();
-            });
-            }
-            ...            
-```
-
-class `PartitionManagerImplIntegrationTest`
-(
-extensions\catalog\federated-catalog-cache\src\test\java\org\eclipse\dataspaceconnector\catalog\cache\management\PartitionManagerImplIntegrationTest.java)
-
-```java
-...
-@ParameterizedTest
-@ValueSource(ints = { 10, 50, 500 })
-@DisplayName("Verify that " + WORK_ITEM_COUNT + " work items are correctly processed by a number of crawlers")
-    void runManyCrawlers_verifyCompletion(int crawlerCount)throws InterruptedException{
-            doAnswer(i->{
-            return null;
-            }).when(queueListener).unlocked();
-            var partitionManager=new PartitionManagerImpl(monitorMock,signallingWorkItemQueue,generatorFunction,crawlerCount,()->staticWorkLoad);
-
-            partitionManager.schedule(new RunOnceExecutionPlan());
-
-            await().untilAsserted(()->verify(queueListener,atLeastOnce()).unlocked());
-            }
-
-            ...
 ```
 
 class `StateMachineManagerTest`
@@ -578,8 +512,6 @@ core\transfer\src\test\java\org\eclipse\dataspaceconnector\transfer\core\transfe
         ...        
 ```
 
---------------------------------------------
-
 Class `AzureVaultExtensionTest`
 (extensions\azure\vault\src\test\java\org\eclipse\dataspaceconnector\core\security\azure\AzureVaultExtensionTest.java)
 
@@ -598,7 +530,7 @@ methods are working correctly.
         });
 
         extension.initialize(context);
-        await().timeout(Duration.ofMillis(TIMEOUT_MS));
+        await().untilAsserted(()->verify(context,atLeastOnce()));
         }
         }
 
@@ -613,7 +545,7 @@ methods are working correctly.
         });
 
         extension.initialize(context);
-        await().timeout(Duration.ofMillis(TIMEOUT_MS));
+        await().untilAsserted(()->verify(context,atLeastOnce()));
         }
         }
 
@@ -630,87 +562,17 @@ methods are working correctly.
 
         extension.initialize(context);
 
-        await().timeout(Duration.ofMillis(TIMEOUT_MS));
+        await().untilAsserted(()->verify(context,atLeastOnce()));
         }
         }
-```
-
-class `PartitionManagerImplTest`
-(
-extensions\catalog\federated-catalog-cache\src\test\java\org\eclipse\dataspaceconnector\catalog\cache\management\PartitionManagerImplTest.java)
-
-```java
-...
-@Test
-    void stop_allCrawlersJoinSuccessfully()throws InterruptedException{
-            partitionManager=new PartitionManagerImpl(monitorMock,workItemQueueMock,workItems->{
-            Crawler crawler=mock(Crawler.class);
-        doAnswer(i->{
-        return null;
-        }).when(crawler).run();
-        when(crawler.join()).thenReturn(true);
-        return crawler;
-        },5,()->staticWorkload);
-
-        await().timeout(10,SECONDS);
-        partitionManager.stop();
-        }
-
-        ...
-@Test
-    void schedule_planThrowsIllegalStateException_shouldLogException()throws InterruptedException{
-            var plan=mock(ExecutionPlan.class);
-        when(workItemQueueMock.addAll(any()))
-        .thenReturn(true) // first time works
-        .thenThrow(new IllegalStateException("Queue full")); //second time fails
-
-        doAnswer(invocation->{
-        var runnable=(Runnable)invocation.getArgument(0);
-        runnable.run();
-        Thread.sleep(100);
-        runnable.run();
-        return null;
-        }).when(plan).run(any());
-        partitionManager.schedule(plan);
-
-        // assert exception was thrown and logged
-        verify(workItemQueueMock,times(2)).addAll(any());
-        await().timeout(1000,MILLISECONDS);
-        verify(workItemQueueMock,times(2)).lock();
-        verify(workItemQueueMock,times(2)).unlock();
-        verify(monitorMock).warning(startsWith("Cannot add 1 elements to the queue"),isA(IllegalStateException.class));
-        }
-
-@Test
-    void schedule_planThrowsAnyException_shouldLogException()throws InterruptedException{
-            var plan=mock(ExecutionPlan.class);
-        when(workItemQueueMock.addAll(any()))
-        .thenReturn(true) // first time works
-        .thenThrow(new RuntimeException("Any random error")); //second time fails
-
-        doAnswer(invocation->{
-        var runnable=(Runnable)invocation.getArgument(0);
-        runnable.run();
-        Thread.sleep(100);
-        runnable.run();
-        return null;
-        }).when(plan).run(any());
-        partitionManager.schedule(plan);
-
-        // assert exception was thrown and logged
-        verify(workItemQueueMock,times(2)).addAll(any());
-        await().timeout(1000,MILLISECONDS);
-        verify(workItemQueueMock,times(2)).lock();
-        verify(workItemQueueMock,times(2)).unlock();
-        verify(monitorMock).severe(startsWith("Error populating the queue"),isA(RuntimeException.class));
-        }    
 ```
 
 class 'HttpProvisionerExtensionEndToEndTest'
 extensions\http-provisioner\src\test\java\org\eclipse\dataspaceconnector\transfer\provision\http\impl\HttpProvisionerExtensionEndToEndTest.java
 
-It was necessary to add an extra await method in order to receive the response 200. Without this delay, there is only an
-answer with code 100, meaning that the result of the invocation was still not ready.
+It was necessary to add a variable state that ensures that the invocation is ready, Something that the method
+Awaitility.untilAssert()
+sometimes cannot produce.
 
 ```java
 @Test
@@ -719,9 +581,11 @@ answer with code 100, meaning that the result of the invocation was still not re
             AssetLoader loader,
             TransferProcessStore store,PolicyDefinitionStore policyStore)throws Exception{
 
+            var state=new AtomicBoolean(false);
             when(delegate.intercept(any()))
             .thenAnswer(invocation->createResponse(503,invocation))
             .thenAnswer(invocation->{
+            state.set(true);
             return createResponse(200,invocation);
             });
 
@@ -730,13 +594,11 @@ answer with code 100, meaning that the result of the invocation was still not re
             loadAsset(loader);
 
             var result=processManager.initiateProviderRequest(createRequest());
-
-            await().timeout(10000,MILLISECONDS);
-
+            await().untilTrue(state);
             var transferProcess=store.find(result.getContent());
-            await().timeout(10000,MILLISECONDS);
             assertThat(transferProcess).isNotNull();
-            assertThat(transferProcess.ge
+            assertThat(transferProcess.getState()).isEqualTo(PROVISIONING.code());
+            }
 ```
 
 class `TransferProcessManagerImplTest`
