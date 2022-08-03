@@ -103,6 +103,6 @@ public class ContractOfferToIdsContractOfferTransformer implements IdsTypeTransf
             }
         }
 
-        return builder.build();
+        return PropertyUtil.addPolicyPropertiesToIdsContract(policy, builder.build());
     }
 }

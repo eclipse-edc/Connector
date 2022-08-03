@@ -114,6 +114,6 @@ public class ContractAgreementToIdsContractAgreementTransformer implements IdsTy
             context.reportProblem("cannot convert contract signing time to XMLGregorian");
         }
 
-        return builder.build();
+        return PropertyUtil.addPolicyPropertiesToIdsContract(policy, builder.build());
     }
 }

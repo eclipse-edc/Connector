@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static org.eclipse.dataspaceconnector.ids.transform.type.contract.PropertyUtil.addIdsContractPropertiesToPolicy;
+
 /**
  * Transforms an IDS ContractRequest into an {@link ContractOffer}.
  */
@@ -85,8 +87,10 @@ public class ContractOfferFromIdsContractOfferOrRequestTransformer implements Id
         policyBuilder.prohibitions(edcProhibitions);
         policyBuilder.permissions(edcPermissions);
 
+        var policy = addIdsContractPropertiesToPolicy(contract.getProperties(), policyBuilder).build();
+
         var contractOfferBuilder = ContractOffer.Builder.newInstance()
-                .policy(policyBuilder.build())
+                .policy(policy)
                 .consumer(contract.getConsumer())
                 .provider(contract.getProvider())
                 .asset(asset);
