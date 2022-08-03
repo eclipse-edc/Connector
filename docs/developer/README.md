@@ -34,6 +34,7 @@ As a developer, I do not want to ...
 - [Serialization Context](./decision-records/2022-07-04-type-manager/README.md)
 - [State machine](state-machine.md)
 - [Style guide](_helper/styleguide.md)
+- [Custom request validation](custom_validation.md)
 - [Testing](testing.md)
 
 > All implementations have to follow existing design principles and architectural patterns that are provided as

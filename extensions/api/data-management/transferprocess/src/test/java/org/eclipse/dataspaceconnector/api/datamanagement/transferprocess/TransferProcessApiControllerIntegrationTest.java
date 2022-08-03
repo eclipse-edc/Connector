@@ -47,6 +47,8 @@ class TransferProcessApiControllerIntegrationTest {
     @BeforeEach
     void setUp(EdcExtension extension) {
         extension.setConfiguration(Map.of(
+                "web.http.port", String.valueOf(getFreePort()),
+                "web.http.path", "/api",
                 "web.http.data.port", String.valueOf(port),
                 "web.http.data.path", "/api/v1/data",
                 "edc.api.auth.key", authKey

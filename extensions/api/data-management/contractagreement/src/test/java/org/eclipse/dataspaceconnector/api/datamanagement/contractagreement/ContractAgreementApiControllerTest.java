@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.result.ServiceResult;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -91,8 +92,9 @@ class ContractAgreementApiControllerTest {
     void getAll_throwsExceptionIfQuerySpecTransformFails() {
         when(transformerRegistry.transform(isA(QuerySpecDto.class), eq(QuerySpec.class)))
                 .thenReturn(Result.failure("Cannot transform"));
+        var querySpecDto = QuerySpecDto.Builder.newInstance().build();
 
-        assertThatThrownBy(() -> controller.getAllAgreements(QuerySpecDto.Builder.newInstance().build())).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> controller.getAllAgreements(querySpecDto)).isInstanceOf(InvalidRequestException.class);
     }
 
     @Test
@@ -106,7 +108,7 @@ class ContractAgreementApiControllerTest {
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().offset(10).build()));
         var querySpec = QuerySpecDto.Builder.newInstance().filter("invalid=foobar").build();
 
-        assertThatThrownBy(() -> controller.getAllAgreements(querySpec)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> controller.getAllAgreements(querySpec)).isInstanceOf(InvalidRequestException.class);
 
     }
 

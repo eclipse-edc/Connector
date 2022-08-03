@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Fraunhofer Institute for Software and Systems Engineering
+ *  Copyright (c) 2021 - 2022 Fraunhofer Institute for Software and Systems Engineering
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractOfferMessageBuilder;
+import de.fraunhofer.iais.eis.ContractRequest;
 import de.fraunhofer.iais.eis.ContractRequestBuilder;
 import de.fraunhofer.iais.eis.ContractRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
@@ -47,7 +48,6 @@ import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_AD
  * expects an IDS RequestInProcessMessage as the response.
  */
 public class MultipartContractOfferSender extends IdsMultipartSender<ContractOfferRequest, String> {
-
     private final String idsWebhookAddress;
 
     public MultipartContractOfferSender(@NotNull String connectorId,
@@ -147,7 +147,7 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
         return List.of(RequestInProcessMessageImpl.class);
     }
 
-    private de.fraunhofer.iais.eis.ContractRequest createContractRequest(ContractOffer offer) {
+    private ContractRequest createContractRequest(ContractOffer offer) {
         var transformationResult = getTransformerRegistry().transform(offer, de.fraunhofer.iais.eis.ContractOffer.class);
         if (transformationResult.failed()) {
             throw new EdcException("Failed to create IDS contract request");
@@ -166,7 +166,7 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
         return transformationResult.getContent();
     }
 
-    private de.fraunhofer.iais.eis.ContractRequest createIdsRequestFromOffer(de.fraunhofer.iais.eis.ContractOffer offer) {
+    private ContractRequest createIdsRequestFromOffer(de.fraunhofer.iais.eis.ContractOffer offer) {
         return new ContractRequestBuilder(offer.getId())
                 ._consumer_(offer.getConsumer())
                 ._contractAnnex_(offer.getContractAnnex())

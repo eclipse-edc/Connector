@@ -20,6 +20,8 @@ plugins {
 val rsApi: String by project
 val failsafeVersion: String by project
 val okHttpVersion: String by project
+val awaitility: String by project
+
 
 dependencies {
     api(project(":spi:core-spi"))
@@ -38,6 +40,8 @@ dependencies {
 
     testImplementation(project(":extensions:http"))
     testImplementation(project(":data-protocols:ids:ids-spi"))
+    testImplementation("org.awaitility:awaitility:${awaitility}")
+
 }
 
 publishing {

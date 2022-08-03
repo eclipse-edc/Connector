@@ -12,6 +12,7 @@
  *       Fraunhofer Institute for Software and Systems Engineering - Improvements
  *       Daimler TSS GmbH - introduce factory to create RequestInProcessMessage
  *       Microsoft Corporation - Use IDS Webhook address for JWT audience claim
+ *       Fraunhofer Institute for Software and Systems Engineering - Refactoring
  *
  */
 
@@ -26,7 +27,6 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractRequestH
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.EndpointDataReferenceHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
-import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
@@ -65,38 +65,52 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
     @Inject
     private Monitor monitor;
+
     @Inject
     private WebService webService;
+
     @Inject
     private IdentityService identityService;
+
     @Inject
     private CatalogService dataCatalogService;
+
     @Inject
     private ConnectorService connectorService;
+
     @Inject
     private AssetIndex assetIndex;
+
     @Inject
     private IdsTransformerRegistry transformerRegistry;
+
     @Inject
     private ContractOfferService contractOfferService;
+
     @Inject
     private ContractNegotiationStore contractNegotiationStore;
+
     @Inject
     private ConsumerContractNegotiationManager consumerNegotiationManager;
+
     @Inject
     private ProviderContractNegotiationManager providerNegotiationManager;
+
     @Inject
     private TransferProcessManager transferProcessManager;
+
     @Inject
     private ContractValidationService contractValidationService;
+
     @Inject
     private EndpointDataReferenceReceiverRegistry endpointDataReferenceReceiverRegistry;
+
     @Inject
     private EndpointDataReferenceTransformerRegistry endpointDataReferenceTransformerRegistry;
+
     @Inject
     private IdsApiConfiguration idsApiConfiguration;
-    @Inject
-    private ObjectMapperFactory objectMapperFactory;
+
     @Inject
     private Vault vault;
 
@@ -105,7 +119,6 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         return "IDS Multipart API";
     }
 
-
     @Override
     public void initialize(ServiceExtensionContext context) {
         registerControllers(context);
@@ -113,10 +126,8 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
     private void registerControllers(ServiceExtensionContext context) {
         var connectorId = resolveConnectorId(context);
-        
-        // TODO ObjectMapper needs to be replaced by one capable to write proper IDS JSON-LD
-        //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
-        var objectMapper = objectMapperFactory.getObjectMapper();
+
+        var objectMapper = context.getTypeManager().getMapper("ids");
 
         // create request handlers
         var handlers = new LinkedList<Handler>();

@@ -70,19 +70,19 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     }
 
     /**
-     * The protocol-specific address of the other connector.
-     */
-    @Override
-    public String getConnectorAddress() {
-        return connectorAddress;
-    }
-
-    /**
      * The protocol over which the data request is sent to the provider connector.
      */
     @Override
     public String getProtocol() {
         return protocol;
+    }
+
+    /**
+     * The protocol-specific address of the other connector.
+     */
+    @Override
+    public String getConnectorAddress() {
+        return connectorAddress;
     }
 
     /**
@@ -129,22 +129,6 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
     public boolean isManagedResources() {
         return managedResources;
-    }
-
-    public DataRequest copy(String newId) {
-        return Builder.newInstance()
-                .id(newId)
-                .processId(processId)
-                .connectorAddress(connectorAddress)
-                .protocol(protocol)
-                .connectorId(connectorId)
-                .assetId(assetId)
-                .contractId(contractId)
-                .dataAddress(dataDestination)
-                .transferType(transferType)
-                .managedResources(managedResources)
-                .properties(properties)
-                .build();
     }
 
     public void updateDestination(DataAddress dataAddress) {

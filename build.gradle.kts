@@ -22,7 +22,7 @@ plugins {
     signing
     id("com.rameshkp.openapi-merger-gradle-plugin") version "1.0.4"
     id("org.eclipse.dataspaceconnector.module-names")
-    id("com.autonomousapps.dependency-analysis") version "1.10.0" apply (false)
+    id("com.autonomousapps.dependency-analysis") version "1.11.3" apply (false)
     id("org.gradle.crypto.checksum") version "1.4.0"
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
     id("org.hidetake.swagger.generator") version "2.19.2"
@@ -229,13 +229,13 @@ allprojects {
 
     tasks.withType<Test> {
         // Target all type of test e.g. -DrunAllTests="true"
-        val runAllTests: String = System.getProperty("runAllTests", "false");
+        val runAllTests: String = System.getProperty("runAllTests", "false")
         if (runAllTests == "true") {
             useJUnitPlatform()
         } else {
             // Target specific set of tests by specifying junit tags on command-line e.g. -DincludeTags="tag-name1,tag-name2"
-            val includeTagProperty = System.getProperty("includeTags");
-            val includeTags: Array<String> = includeTagProperty?.split(",")?.toTypedArray() ?: emptyArray();
+            val includeTagProperty = System.getProperty("includeTags")
+            val includeTags: Array<String> = includeTagProperty?.split(",")?.toTypedArray() ?: emptyArray()
 
             if (includeTags.isNotEmpty()) {
                 useJUnitPlatform {

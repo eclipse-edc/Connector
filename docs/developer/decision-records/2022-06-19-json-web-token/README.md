@@ -7,7 +7,7 @@
 | Claim           | Value                                                        |
 | --------------- | ------------------------------------------------------------ |
 | Issuer          | The request source connector [did:web](https://w3c-ccg.github.io/did-method-web/) identifier (example: `did:web:edc.example.com`). This allows the server to verify the JWT signature against the source's public key. |
-| Subject         | The fixed string `verifiable-credential`.                    |
+| Subject         | The same value as in the `Issuer` claim.                     |
 | Audience        | The request destination connector IDS endpoint (example: `http://edc.example.com:8181/api/v1/ids/data`). This allows the server to verify the intended audience. |
 | JWT ID          | A random UUID.                                               |
 | Expiration Time | A time set in the near future.                               |

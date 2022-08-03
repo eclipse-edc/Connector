@@ -33,9 +33,10 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class TestUtils {
     public static final int MAX_TCP_PORT = 65_535;
     public static final String GRADLE_WRAPPER;
-    private static File buildRoot = null;
     private static final String GRADLE_WRAPPER_UNIX = "gradlew";
     private static final String GRADLE_WRAPPER_WINDOWS = "gradlew.bat";
+    private static final Random RANDOM = new Random();
+    private static File buildRoot = null;
 
     static {
         GRADLE_WRAPPER = (System.getProperty("os.name").toLowerCase().contains("win")) ? GRADLE_WRAPPER_WINDOWS : GRADLE_WRAPPER_UNIX;
@@ -65,7 +66,7 @@ public class TestUtils {
      * @throws IllegalArgumentException if no free port is available
      */
     public static int getFreePort() {
-        var rnd = 1024 + new Random().nextInt(MAX_TCP_PORT - 1024);
+        var rnd = 1024 + RANDOM.nextInt(MAX_TCP_PORT - 1024);
         return getFreePort(rnd);
     }
 
@@ -152,7 +153,9 @@ public class TestUtils {
      */
     public static File findBuildRoot() {
         // Use cached value if already existing.
-        if (buildRoot != null) return buildRoot;
+        if (buildRoot != null) {
+            return buildRoot;
+        }
 
         File canonicalFile;
         try {

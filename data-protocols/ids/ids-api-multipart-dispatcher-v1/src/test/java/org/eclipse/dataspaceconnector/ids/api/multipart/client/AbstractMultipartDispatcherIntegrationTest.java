@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
-import org.eclipse.dataspaceconnector.ids.core.serialization.ObjectMapperFactory;
+import org.eclipse.dataspaceconnector.ids.core.serialization.IdsTypeManagerUtil;
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -25,6 +25,7 @@ import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,16 +46,15 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
     private static final AtomicReference<Integer> PORT = new AtomicReference<>();
     private static final AtomicReference<Integer> IDS_PORT = new AtomicReference<>();
     private static final List<Asset> ASSETS = new LinkedList<>();
-    // TODO needs to be replaced by an objectmapper capable to understand IDS JSON-LD
-    //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
-    protected static ObjectMapper objectMapper;
-
-    static {
-        objectMapper = new ObjectMapperFactory().getObjectMapper();
-    }
 
     protected IdentityService identityService;
     protected ContractNegotiationStore negotiationStore;
+
+    protected static ObjectMapper objectMapper;
+
+    static {
+        objectMapper = getCustomizedObjectMapper();
+    }
 
     @AfterEach
     void after() {
@@ -82,7 +82,7 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
         identityService = mock(IdentityService.class);
         when(identityService.obtainClientCredentials(any())).thenReturn(Result.success(tokenResult));
         when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
-        
+
         negotiationStore = mock(ContractNegotiationStore.class);
 
         extension.registerSystemExtension(ServiceExtension.class,
@@ -106,4 +106,8 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
     }
 
     protected abstract Map<String, String> getSystemProperties();
+
+    private static ObjectMapper getCustomizedObjectMapper() {
+        return IdsTypeManagerUtil.getIdsObjectMapper(new TypeManager());
+    }
 }

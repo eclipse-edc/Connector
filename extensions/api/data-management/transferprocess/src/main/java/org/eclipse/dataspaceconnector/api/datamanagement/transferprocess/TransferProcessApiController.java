@@ -31,11 +31,10 @@ import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model.T
 import org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.service.TransferProcessService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformerRegistry;
-import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.exception.InvalidRequestException;
 import org.eclipse.dataspaceconnector.spi.exception.ObjectNotFoundException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
-import org.eclipse.dataspaceconnector.spi.result.AbstractResult;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
@@ -66,8 +65,7 @@ public class TransferProcessApiController implements TransferProcessApi {
     public List<TransferProcessDto> getAllTransferProcesses(@Valid @BeanParam QuerySpecDto querySpecDto) {
         var result = transformerRegistry.transform(querySpecDto, QuerySpec.class);
         if (result.failed()) {
-            monitor.warning("Error transforming QuerySpec: " + String.join(", ", result.getFailureMessages()));
-            throw new IllegalArgumentException("Cannot transform QuerySpecDto object");
+            throw new InvalidRequestException(result.getFailureMessages());
         }
 
         var spec = result.getContent();
@@ -134,21 +132,19 @@ public class TransferProcessApiController implements TransferProcessApi {
     @POST
     @Override
     public TransferId initiateTransfer(@Valid TransferRequestDto transferRequest) {
-        var dataRequest = Optional.ofNullable(transformerRegistry.transform(transferRequest, DataRequest.class))
-                .filter(AbstractResult::succeeded).map(AbstractResult::getContent);
-        if (dataRequest.isEmpty()) {
-            throw new IllegalArgumentException("Error during transforming TransferRequestDto into DataRequest");
+        var transformResult = transformerRegistry.transform(transferRequest, DataRequest.class);
+        if (transformResult.failed()) {
+            throw new InvalidRequestException(transformResult.getFailureMessages());
         }
         monitor.debug("Starting transfer for asset " + transferRequest.getAssetId());
 
-        var result = service.initiateTransfer(dataRequest.get());
+        var dataRequest = transformResult.getContent();
+        var result = service.initiateTransfer(dataRequest);
         if (result.succeeded()) {
             monitor.debug(format("Transfer process initialised %s", result.getContent()));
             return new TransferId(result.getContent());
         } else {
-            String message = format("Error during initiating the transfer with assetId: %s", transferRequest.getAssetId());
-            monitor.severe(message);
-            throw new EdcException(message);
+            throw new InvalidRequestException(result.getFailureMessages());
         }
     }
 

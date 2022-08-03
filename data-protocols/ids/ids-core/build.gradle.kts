@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - update dependencies
  *
  */
 
@@ -30,6 +31,7 @@ dependencies {
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    implementation(project(":data-protocols:ids:ids-jsonld-serdes-lib"))
 
     implementation(project(":core:policy:policy-engine"))
 }

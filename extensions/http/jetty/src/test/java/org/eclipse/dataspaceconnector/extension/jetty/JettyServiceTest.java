@@ -70,7 +70,7 @@ class JettyServiceTest {
     }
 
     @Test
-    @DisplayName("Verifies the a custom port mapping")
+    @DisplayName("Verifies a custom port mapping")
     void verifyCustomPortMapping() {
         var config = ConfigFactory.fromMap(Map.of(
                 "web.http.another.port", "9191",
