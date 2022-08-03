@@ -39,6 +39,15 @@ public class AzureProvisionExtension implements ServiceExtension {
     @Inject
     private BlobStoreApi blobStoreApi;
 
+    @Inject
+    private RetryPolicy<Object> retryPolicy;
+
+    @Inject
+    private ResourceManifestGenerator manifestGenerator;
+
+    @Inject
+    private StatusCheckerRegistry statusCheckerRegistry;
+
     @Override
     public String name() {
         return "Azure Provision";
@@ -50,15 +59,12 @@ public class AzureProvisionExtension implements ServiceExtension {
         var monitor = context.getMonitor();
         var provisionManager = context.getService(ProvisionManager.class);
 
-        var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
         provisionManager.register(new ObjectStorageProvisioner(retryPolicy, monitor, blobStoreApi));
 
         // register the generator
-        var manifestGenerator = context.getService(ResourceManifestGenerator.class);
         manifestGenerator.registerGenerator(new ObjectStorageConsumerResourceDefinitionGenerator());
 
-        var statusCheckerReg = context.getService(StatusCheckerRegistry.class);
-        statusCheckerReg.register(AzureBlobStoreSchema.TYPE, new ObjectContainerStatusChecker(blobStoreApi, retryPolicy));
+        statusCheckerRegistry.register(AzureBlobStoreSchema.TYPE, new ObjectContainerStatusChecker(blobStoreApi, retryPolicy));
 
         registerTypes(context.getTypeManager());
     }

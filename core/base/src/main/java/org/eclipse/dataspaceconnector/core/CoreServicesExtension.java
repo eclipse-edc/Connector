@@ -14,11 +14,7 @@
 
 package org.eclipse.dataspaceconnector.core;
 
-import dev.failsafe.RetryPolicy;
-import okhttp3.EventListener;
-import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.core.base.CommandHandlerRegistryImpl;
-import org.eclipse.dataspaceconnector.core.base.OkHttpClientFactory;
 import org.eclipse.dataspaceconnector.core.base.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.dataspaceconnector.core.base.agent.ParticipantAgentServiceImpl;
 import org.eclipse.dataspaceconnector.core.base.policy.PolicyEngineImpl;
@@ -59,7 +55,6 @@ import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import java.security.PrivateKey;
 import java.time.Clock;
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -73,12 +68,6 @@ import java.util.concurrent.Executors;
 })
 public class CoreServicesExtension implements ServiceExtension {
 
-    @EdcSetting
-    public static final String MAX_RETRIES = "edc.core.retry.retries.max";
-    @EdcSetting
-    public static final String BACKOFF_MIN_MILLIS = "edc.core.retry.backoff.min";
-    @EdcSetting
-    public static final String BACKOFF_MAX_MILLIS = "edc.core.retry.backoff.max";
     @EdcSetting
     public static final String LIVENESS_PERIOD_SECONDS_SETTING = "edc.core.system.health.check.liveness-period";
     @EdcSetting
@@ -94,12 +83,6 @@ public class CoreServicesExtension implements ServiceExtension {
     private static final int DEFAULT_TP_SIZE = 3;
     private static final String DEFAULT_HOSTNAME = "localhost";
 
-    /**
-     * An optional OkHttp {@link EventListener} that can be used to instrument OkHttp client for collecting metrics.
-     * Used by the optional {@code micrometer} module.
-     */
-    @Inject(required = false)
-    private EventListener okHttpEventListener;
 
     /**
      * An optional instrumentor for {@link ExecutorService}. Used by the optional {@code micrometer} module.
@@ -157,18 +140,6 @@ public class CoreServicesExtension implements ServiceExtension {
     }
 
     @Provider
-    public RetryPolicy<?> retryPolicy(ServiceExtensionContext context) {
-        var maxRetries = context.getSetting(MAX_RETRIES, 5);
-        var minBackoff = context.getSetting(BACKOFF_MIN_MILLIS, 500);
-        var maxBackoff = context.getSetting(BACKOFF_MAX_MILLIS, 10_000);
-
-        return RetryPolicy.builder()
-                .withMaxRetries(maxRetries)
-                .withBackoff(minBackoff, maxBackoff, ChronoUnit.MILLIS)
-                .build();
-    }
-
-    @Provider
     public Hostname hostname(ServiceExtensionContext context) {
         var hostname = context.getSetting(HOSTNAME_SETTING, DEFAULT_HOSTNAME);
         if (DEFAULT_HOSTNAME.equals(hostname)) {
@@ -202,10 +173,6 @@ public class CoreServicesExtension implements ServiceExtension {
         return new PolicyEngineImpl(scopeFilter);
     }
 
-    @Provider
-    public OkHttpClient okHttpClient(ServiceExtensionContext context) {
-        return OkHttpClientFactory.create(context, okHttpEventListener);
-    }
 
     @Provider
     public EventRouter eventRouter(ServiceExtensionContext context) {
