@@ -26,10 +26,10 @@ import java.util.Map;
 @JsonDeserialize(builder = HashicorpVaultGetEntryResponsePayloadGetVaultEntryData.Builder.class)
 class HashicorpVaultGetEntryResponsePayloadGetVaultEntryData {
 
-    @JsonProperty("data")
+    @JsonProperty()
     private Map<String, String> data;
 
-    @JsonProperty("metadata")
+    @JsonProperty()
     private HashicorpVaultEntryMetadata metadata;
 
     HashicorpVaultGetEntryResponsePayloadGetVaultEntryData(Map<String, String> data, HashicorpVaultEntryMetadata metadata) {
@@ -50,7 +50,7 @@ class HashicorpVaultGetEntryResponsePayloadGetVaultEntryData {
         private Map<String, String> data;
         private HashicorpVaultEntryMetadata metadata;
 
-        Builder() {
+        private Builder() {
         }
 
         @JsonCreator
@@ -58,13 +58,13 @@ class HashicorpVaultGetEntryResponsePayloadGetVaultEntryData {
             return new Builder();
         }
 
-        @JsonProperty("data")
+        @JsonProperty()
         public Builder data(Map<String, String> data) {
             this.data = data;
             return this;
         }
 
-        @JsonProperty("metadata")
+        @JsonProperty()
         public Builder metadata(HashicorpVaultEntryMetadata metadata) {
             this.metadata = metadata;
             return this;

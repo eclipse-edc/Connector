@@ -51,7 +51,7 @@ public class DefaultCertificateResolver implements CertificateResolver {
             CertificateFactory fact = CertificateFactory.getInstance("X.509");
             return (X509Certificate) fact.generateCertificate(new ByteArrayInputStream(Base64.getDecoder().decode(encoded.getBytes())));
         } catch (GeneralSecurityException e) {
-            throw new EdcException(e.getMessage(), e);
+            throw new EdcException(String.format("Found certificate with id [%s], but failed to convert it", id), e);
         }
     }
 }

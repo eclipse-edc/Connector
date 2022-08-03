@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDeserialize(builder = HashicorpVaultCreateEntryRequestPayloadOptions.Builder.class)
 class HashicorpVaultCreateEntryRequestPayloadOptions {
-    @JsonProperty("cas")
+    @JsonProperty()
     private Integer cas;
 
     HashicorpVaultCreateEntryRequestPayloadOptions(Integer cas) {
@@ -38,7 +38,7 @@ class HashicorpVaultCreateEntryRequestPayloadOptions {
     public static class Builder {
         private Integer cas;
 
-        Builder() {
+        private Builder() {
         }
 
         @JsonCreator
@@ -46,7 +46,7 @@ class HashicorpVaultCreateEntryRequestPayloadOptions {
             return new Builder();
         }
 
-        @JsonProperty("cas")
+        @JsonProperty()
         public Builder cas(Integer cas) {
             this.cas = cas;
             return this;

@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 @JsonDeserialize(builder = HashicorpVaultGetEntryResponsePayload.Builder.class)
 class HashicorpVaultGetEntryResponsePayload {
 
-    @JsonProperty("data")
+    @JsonProperty()
     private HashicorpVaultGetEntryResponsePayloadGetVaultEntryData data;
 
     HashicorpVaultGetEntryResponsePayload(HashicorpVaultGetEntryResponsePayloadGetVaultEntryData data) {
@@ -42,7 +42,7 @@ class HashicorpVaultGetEntryResponsePayload {
     public static class Builder {
         private HashicorpVaultGetEntryResponsePayloadGetVaultEntryData data;
 
-        Builder() {
+        private Builder() {
         }
 
         @JsonCreator
@@ -50,7 +50,7 @@ class HashicorpVaultGetEntryResponsePayload {
             return new Builder();
         }
 
-        @JsonProperty("data")
+        @JsonProperty()
         public Builder data(HashicorpVaultGetEntryResponsePayloadGetVaultEntryData data) {
             this.data = data;
             return this;

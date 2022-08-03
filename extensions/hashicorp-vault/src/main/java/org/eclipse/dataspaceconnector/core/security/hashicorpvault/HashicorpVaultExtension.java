@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.security.VaultPrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.system.Provider;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -30,24 +31,38 @@ import java.time.temporal.ChronoUnit;
 @Provides({ Vault.class, PrivateKeyResolver.class })
 public class HashicorpVaultExtension implements ServiceExtension {
 
-    @EdcSetting(required = true)
+    @EdcSetting(value = "The URL of the Hashicorp Vault", required = true)
     public static final String VAULT_URL = "edc.vault.hashicorp.url";
 
-    @EdcSetting(required = true)
+    @EdcSetting(value = "The token used to access the Hashicorp Vault", required = true)
     public static final String VAULT_TOKEN = "edc.vault.hashicorp.token";
 
-    @EdcSetting
+    @EdcSetting(value = "The number of retries when accessing the Hashicorp Vault")
     public static final String MAX_RETRIES = "edc.core.retry.retries.max";
 
-    @EdcSetting
+    @EdcSetting(value = "The minimum backoff in accessing the Hashicorp Vault")
     public static final String BACKOFF_MIN_MILLIS = "edc.core.retry.backoff.min";
 
-    @EdcSetting
+    @EdcSetting(value = "The maximum backoff in accessing the Hashicorp Vault")
     public static final String BACKOFF_MAX_MILLIS = "edc.core.retry.backoff.max";
+
+    private Vault vault;
+
+    private PrivateKeyResolver privateKeyResolver;
 
     @Override
     public String name() {
         return "Hashicorp Vault";
+    }
+
+    @Provider
+    public Vault vault() {
+        return vault;
+    }
+
+    @Provider
+    public PrivateKeyResolver privateKeyResolver() {
+        return privateKeyResolver;
     }
 
     @Override
@@ -66,11 +81,8 @@ public class HashicorpVaultExtension implements ServiceExtension {
         var okHttpClient = new OkHttpClient.Builder().build();
         var client = new HashicorpVaultClient(config, okHttpClient, context.getTypeManager(), retryPolicy);
 
-        var vault = new HashicorpVault(client, context.getMonitor());
-        var privateKeyResolver = new VaultPrivateKeyResolver(vault);
-
-        context.registerService(Vault.class, vault);
-        context.registerService(PrivateKeyResolver.class, privateKeyResolver);
+        vault = new HashicorpVault(client, context.getMonitor());
+        privateKeyResolver = new VaultPrivateKeyResolver(vault);
     }
 
     private HashicorpVaultClientConfig loadHashicorpVaultClientConfig(

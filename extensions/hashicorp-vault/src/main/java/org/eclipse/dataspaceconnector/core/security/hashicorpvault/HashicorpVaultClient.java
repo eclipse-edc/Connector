@@ -43,6 +43,7 @@ class HashicorpVaultClient {
     private static final String VAULT_SECRET_DATA_PATH = "data";
     private static final String VAULT_SECRET_METADATA_PATH = "metadata";
     private static final String CALL_UNSUCCESSFUL_ERROR_TEMPLATE = "[Hashicorp Vault] Call unsuccessful: %s";
+    private static final int HTTP_CODE_404 = 404;
     @NotNull
     private final HashicorpVaultClientConfig config;
     @NotNull
@@ -67,7 +68,7 @@ class HashicorpVaultClient {
         try (var response = with(retryPolicy).get(() -> okHttpClient.newCall(request).execute())) {
 
             if (response.isSuccessful()) {
-                if (response.code() == 404) {
+                if (response.code() == HTTP_CODE_404) {
                     return Result.failure(
                             String.format(CALL_UNSUCCESSFUL_ERROR_TEMPLATE, "Secret not found"));
                 }
@@ -124,7 +125,7 @@ class HashicorpVaultClient {
         var request = new Request.Builder().url(requestUri).headers(headers).delete().build();
 
         try (var response = with(retryPolicy).get(() -> okHttpClient.newCall(request).execute())) {
-            return response.isSuccessful() || response.code() == 404
+            return response.isSuccessful() || response.code() == HTTP_CODE_404
                     ? Result.success()
                     : Result.failure(String.format(CALL_UNSUCCESSFUL_ERROR_TEMPLATE, response.code()));
         }

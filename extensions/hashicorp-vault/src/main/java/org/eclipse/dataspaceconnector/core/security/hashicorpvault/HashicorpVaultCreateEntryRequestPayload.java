@@ -26,10 +26,10 @@ import java.util.Map;
 @JsonDeserialize(builder = HashicorpVaultCreateEntryRequestPayload.Builder.class)
 class HashicorpVaultCreateEntryRequestPayload {
 
-    @JsonProperty("options")
+    @JsonProperty()
     private HashicorpVaultCreateEntryRequestPayloadOptions options;
 
-    @JsonProperty("data")
+    @JsonProperty()
     private Map<String, String> data;
 
     HashicorpVaultCreateEntryRequestPayload(HashicorpVaultCreateEntryRequestPayloadOptions options, Map<String, String> data) {
@@ -50,7 +50,7 @@ class HashicorpVaultCreateEntryRequestPayload {
         private HashicorpVaultCreateEntryRequestPayloadOptions options;
         private Map<String, String> data;
 
-        Builder() {
+        private Builder() {
         }
 
         @JsonCreator
@@ -58,13 +58,13 @@ class HashicorpVaultCreateEntryRequestPayload {
             return new Builder();
         }
 
-        @JsonProperty("options")
+        @JsonProperty()
         public Builder options(HashicorpVaultCreateEntryRequestPayloadOptions options) {
             this.options = options;
             return this;
         }
 
-        @JsonProperty("data")
+        @JsonProperty()
         public Builder data(Map<String, String> data) {
             this.data = data;
             return this;
