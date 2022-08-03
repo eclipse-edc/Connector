@@ -291,6 +291,7 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(transferProcessStore).update(argThat(p -> p.getState() == PROVISIONING_REQUESTED.code()));
+            verify(listener).provisioningRequested(any());
         });
     }
 
@@ -644,6 +645,7 @@ class TransferProcessManagerImplTest {
 
         await().untilAsserted(() -> {
             verify(transferProcessStore).update(argThat(p -> p.getState() == DEPROVISIONING_REQUESTED.code()));
+            verify(listener).deprovisioningRequested(any());
         });
     }
 

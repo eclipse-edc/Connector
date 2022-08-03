@@ -509,6 +509,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         } else if (responses.stream().anyMatch(ProvisionResponse::isInProcess)) {
             transferProcess.transitionProvisioningRequested();
             transferProcessStore.update(transferProcess);
+            observable.invokeForEach(l -> l.provisioningRequested(transferProcess));
         } else {
             transferProcessStore.update(transferProcess);
         }
@@ -539,6 +540,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         } else if (results.stream().anyMatch(DeprovisionedResource::isInProcess)) {
             transferProcess.transitionDeprovisioningRequested();
             transferProcessStore.update(transferProcess);
+            observable.invokeForEach(l -> l.deprovisioningRequested(transferProcess));
         } else {
             transferProcessStore.update(transferProcess);
         }

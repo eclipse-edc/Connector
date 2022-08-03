@@ -18,10 +18,12 @@ import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessCancelled;
 import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessCompleted;
 import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessDeprovisioned;
+import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessDeprovisioningRequested;
 import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessEnded;
 import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessFailed;
 import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessInitiated;
 import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessProvisioned;
+import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessProvisioningRequested;
 import org.eclipse.dataspaceconnector.spi.event.transferprocess.TransferProcessRequested;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
@@ -43,6 +45,16 @@ public class TransferProcessEventListener implements TransferProcessListener {
     @Override
     public void initiated(TransferProcess process) {
         var event = TransferProcessInitiated.Builder.newInstance()
+                .transferProcessId(process.getId())
+                .at(clock.millis())
+                .build();
+
+        eventRouter.publish(event);
+    }
+
+    @Override
+    public void provisioningRequested(TransferProcess process) {
+        var event = TransferProcessProvisioningRequested.Builder.newInstance()
                 .transferProcessId(process.getId())
                 .at(clock.millis())
                 .build();
@@ -73,6 +85,16 @@ public class TransferProcessEventListener implements TransferProcessListener {
     @Override
     public void completed(TransferProcess process) {
         var event = TransferProcessCompleted.Builder.newInstance()
+                .transferProcessId(process.getId())
+                .at(clock.millis())
+                .build();
+
+        eventRouter.publish(event);
+    }
+
+    @Override
+    public void deprovisioningRequested(TransferProcess process) {
+        var event = TransferProcessDeprovisioningRequested.Builder.newInstance()
                 .transferProcessId(process.getId())
                 .at(clock.millis())
                 .build();
