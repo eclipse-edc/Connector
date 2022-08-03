@@ -9,7 +9,6 @@ updates:
     labels:
       - "dependencies"
       - "github_actions"
-      - "no-changelog"
 
   # maintain dependencies for Gradle
   - package-ecosystem: "gradle" # checks build.gradle(.kts) and settings.gradle(.kts)
@@ -20,4 +19,3 @@ updates:
     labels:
       - "dependencies"
       - "java"
-      - "no-changelog"

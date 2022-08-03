@@ -8,8 +8,7 @@ _Briefly state why the change was necessary._
 
 ## Further notes
 
-_List other areas of code that have changed but are not necessarily linked to the main feature. This could be method
-signature changes, package declarations, bugs that were encountered and were fixed inline, etc._
+_List other areas of code that have changed but are not necessarily linked to the main feature. This could be method signature changes, package declarations, bugs that were encountered and were fixed inline, etc._
 
 ## Linked Issue(s)
 
