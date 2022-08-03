@@ -14,11 +14,11 @@
 
 package org.eclipse.dataspaceconnector.core.security.hashicorpvault;
 
-class HashicorpVaultClientConfig {
+class Config {
     private final String vaultUrl;
     private final String vaultToken;
 
-    HashicorpVaultClientConfig(String vaultUrl, String vaultToken) {
+    Config(String vaultUrl, String vaultToken) {
         this.vaultUrl = vaultUrl;
         this.vaultToken = vaultToken;
     }
@@ -52,8 +52,8 @@ class HashicorpVaultClientConfig {
             return this;
         }
 
-        public HashicorpVaultClientConfig build() {
-            return new HashicorpVaultClientConfig(vaultUrl, vaultToken);
+        public Config build() {
+            return new Config(vaultUrl, vaultToken);
         }
     }
 }

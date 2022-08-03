@@ -26,31 +26,31 @@ import org.jetbrains.annotations.Nullable;
 class HashicorpVault implements Vault {
 
     @NotNull
-    private final HashicorpVaultClient hashicorpVaultClient;
+    private final Client client;
     @NotNull
     private final Monitor monitor;
 
-    HashicorpVault(@NotNull HashicorpVaultClient hashicorpVaultClient, @NotNull Monitor monitor) {
-        this.hashicorpVaultClient = hashicorpVaultClient;
+    HashicorpVault(@NotNull Client client, @NotNull Monitor monitor) {
+        this.client = client;
         this.monitor = monitor;
     }
 
     @Override
     public @Nullable String resolveSecret(String key) {
-        var result = hashicorpVaultClient.getSecretValue(key);
+        var result = client.getSecretValue(key);
 
         return result.succeeded() ? result.getContent() : null;
     }
 
     @Override
     public Result<Void> storeSecret(String key, String value) {
-        var result = hashicorpVaultClient.setSecret(key, value);
+        var result = client.setSecret(key, value);
 
         return result.succeeded() ? Result.success() : Result.failure(result.getFailureMessages());
     }
 
     @Override
     public Result<Void> deleteSecret(String key) {
-        return hashicorpVaultClient.destroySecret(key);
+        return client.destroySecret(key);
     }
 }

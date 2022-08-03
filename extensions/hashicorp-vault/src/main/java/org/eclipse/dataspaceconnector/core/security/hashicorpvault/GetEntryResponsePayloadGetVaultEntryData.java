@@ -20,23 +20,35 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonDeserialize(builder = HashicorpVaultCreateEntryRequestPayloadOptions.Builder.class)
-class HashicorpVaultCreateEntryRequestPayloadOptions {
-    @JsonProperty()
-    private Integer cas;
+import java.util.Map;
 
-    HashicorpVaultCreateEntryRequestPayloadOptions(Integer cas) {
-        this.cas = cas;
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonDeserialize(builder = GetEntryResponsePayloadGetVaultEntryData.Builder.class)
+class GetEntryResponsePayloadGetVaultEntryData {
+
+    @JsonProperty()
+    private Map<String, String> data;
+
+    @JsonProperty()
+    private EntryMetadata metadata;
+
+    GetEntryResponsePayloadGetVaultEntryData(Map<String, String> data, EntryMetadata metadata) {
+        this.data = data;
+        this.metadata = metadata;
     }
 
-    public Integer getCas() {
-        return this.cas;
+    public Map<String, String> getData() {
+        return this.data;
+    }
+
+    public EntryMetadata getMetadata() {
+        return this.metadata;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private Integer cas;
+        private Map<String, String> data;
+        private EntryMetadata metadata;
 
         private Builder() {
         }
@@ -47,13 +59,19 @@ class HashicorpVaultCreateEntryRequestPayloadOptions {
         }
 
         @JsonProperty()
-        public Builder cas(Integer cas) {
-            this.cas = cas;
+        public Builder data(Map<String, String> data) {
+            this.data = data;
             return this;
         }
 
-        public HashicorpVaultCreateEntryRequestPayloadOptions build() {
-            return new HashicorpVaultCreateEntryRequestPayloadOptions(cas);
+        @JsonProperty()
+        public Builder metadata(EntryMetadata metadata) {
+            this.metadata = metadata;
+            return this;
+        }
+
+        public GetEntryResponsePayloadGetVaultEntryData build() {
+            return new GetEntryResponsePayloadGetVaultEntryData(data, metadata);
         }
     }
 }

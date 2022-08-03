@@ -30,12 +30,12 @@ import static org.mockito.Mockito.when;
 class HashicorpVaultTest {
     private static final String KEY = "key";
 
-    private HashicorpVaultClient vaultClient;
+    private Client vaultClient;
     private HashicorpVault vault;
 
     @BeforeEach
     void setup() {
-        vaultClient = mock(HashicorpVaultClient.class);
+        vaultClient = mock(Client.class);
         var monitor = mock(Monitor.class);
         vault = new HashicorpVault(vaultClient, monitor);
     }
@@ -55,7 +55,7 @@ class HashicorpVaultTest {
     @Test
     void setSecret() {
         var value = UUID.randomUUID().toString();
-        var result = Result.success(mock(HashicorpVaultCreateEntryResponsePayload.class));
+        var result = Result.success(mock(CreateEntryResponsePayload.class));
         when(vaultClient.setSecret(KEY, value)).thenReturn(result);
 
         var returnValue = vault.storeSecret(KEY, value);

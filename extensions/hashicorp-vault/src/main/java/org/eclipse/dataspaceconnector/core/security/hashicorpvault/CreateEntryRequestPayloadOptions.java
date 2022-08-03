@@ -21,26 +21,22 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonDeserialize(builder = HashicorpVaultCreateEntryResponsePayload.Builder.class)
-class HashicorpVaultCreateEntryResponsePayload {
-
+@JsonDeserialize(builder = CreateEntryRequestPayloadOptions.Builder.class)
+class CreateEntryRequestPayloadOptions {
     @JsonProperty()
-    private HashicorpVaultEntryMetadata data;
+    private Integer cas;
 
-    HashicorpVaultCreateEntryResponsePayload(HashicorpVaultEntryMetadata data) {
-        this.data = data;
+    CreateEntryRequestPayloadOptions(Integer cas) {
+        this.cas = cas;
     }
 
-    HashicorpVaultCreateEntryResponsePayload() {
-    }
-
-    public HashicorpVaultEntryMetadata getData() {
-        return this.data;
+    public Integer getCas() {
+        return this.cas;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private HashicorpVaultEntryMetadata data;
+        private Integer cas;
 
         private Builder() {
         }
@@ -51,13 +47,13 @@ class HashicorpVaultCreateEntryResponsePayload {
         }
 
         @JsonProperty()
-        public Builder data(HashicorpVaultEntryMetadata data) {
-            this.data = data;
+        public Builder cas(Integer cas) {
+            this.cas = cas;
             return this;
         }
 
-        public HashicorpVaultCreateEntryResponsePayload build() {
-            return new HashicorpVaultCreateEntryResponsePayload(data);
+        public CreateEntryRequestPayloadOptions build() {
+            return new CreateEntryRequestPayloadOptions(cas);
         }
     }
 }

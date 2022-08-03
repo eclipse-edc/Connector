@@ -20,35 +20,27 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
-import java.util.Map;
-
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonDeserialize(builder = HashicorpVaultCreateEntryRequestPayload.Builder.class)
-class HashicorpVaultCreateEntryRequestPayload {
+@JsonDeserialize(builder = GetEntryResponsePayload.Builder.class)
+class GetEntryResponsePayload {
 
     @JsonProperty()
-    private HashicorpVaultCreateEntryRequestPayloadOptions options;
+    private GetEntryResponsePayloadGetVaultEntryData data;
 
-    @JsonProperty()
-    private Map<String, String> data;
-
-    HashicorpVaultCreateEntryRequestPayload(HashicorpVaultCreateEntryRequestPayloadOptions options, Map<String, String> data) {
-        this.options = options;
+    GetEntryResponsePayload(GetEntryResponsePayloadGetVaultEntryData data) {
         this.data = data;
     }
 
-    public HashicorpVaultCreateEntryRequestPayloadOptions getOptions() {
-        return this.options;
+    GetEntryResponsePayload() {
     }
 
-    public Map<String, String> getData() {
+    public GetEntryResponsePayloadGetVaultEntryData getData() {
         return this.data;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private HashicorpVaultCreateEntryRequestPayloadOptions options;
-        private Map<String, String> data;
+        private GetEntryResponsePayloadGetVaultEntryData data;
 
         private Builder() {
         }
@@ -59,19 +51,13 @@ class HashicorpVaultCreateEntryRequestPayload {
         }
 
         @JsonProperty()
-        public Builder options(HashicorpVaultCreateEntryRequestPayloadOptions options) {
-            this.options = options;
-            return this;
-        }
-
-        @JsonProperty()
-        public Builder data(Map<String, String> data) {
+        public Builder data(GetEntryResponsePayloadGetVaultEntryData data) {
             this.data = data;
             return this;
         }
 
-        public HashicorpVaultCreateEntryRequestPayload build() {
-            return new HashicorpVaultCreateEntryRequestPayload(options, data);
+        public GetEntryResponsePayload build() {
+            return new GetEntryResponsePayload(data);
         }
     }
 }

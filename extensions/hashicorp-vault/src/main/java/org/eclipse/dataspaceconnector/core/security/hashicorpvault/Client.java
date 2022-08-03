@@ -33,7 +33,7 @@ import java.util.Objects;
 
 import static dev.failsafe.Failsafe.with;
 
-class HashicorpVaultClient {
+class Client {
     static final String VAULT_DATA_ENTRY_NAME = "content";
     private static final String VAULT_TOKEN_HEADER = "X-Vault-Token";
     private static final String VAULT_REQUEST_HEADER = "X-Vault-Request";
@@ -45,7 +45,7 @@ class HashicorpVaultClient {
     private static final String CALL_UNSUCCESSFUL_ERROR_TEMPLATE = "[Hashicorp Vault] Call unsuccessful: %s";
     private static final int HTTP_CODE_404 = 404;
     @NotNull
-    private final HashicorpVaultClientConfig config;
+    private final Config config;
     @NotNull
     private final OkHttpClient okHttpClient;
     @NotNull
@@ -53,7 +53,7 @@ class HashicorpVaultClient {
     @NotNull
     private final RetryPolicy<Object> retryPolicy;
 
-    HashicorpVaultClient(@NotNull HashicorpVaultClientConfig config, @NotNull OkHttpClient okHttpClient, @NotNull TypeManager typeManager, @NotNull RetryPolicy<Object> retryPolicy) {
+    Client(@NotNull Config config, @NotNull OkHttpClient okHttpClient, @NotNull TypeManager typeManager, @NotNull RetryPolicy<Object> retryPolicy) {
         this.config = config;
         this.okHttpClient = okHttpClient;
         this.typeManager = typeManager;
@@ -77,7 +77,7 @@ class HashicorpVaultClient {
                 if (responseBody == null) {
                     return Result.failure(String.format(CALL_UNSUCCESSFUL_ERROR_TEMPLATE, "Response body empty"));
                 }
-                var payload = typeManager.readValue(responseBody.string(), HashicorpVaultGetEntryResponsePayload.class);
+                var payload = typeManager.readValue(responseBody.string(), GetEntryResponsePayload.class);
                 var value = payload.getData().getData().get(VAULT_DATA_ENTRY_NAME);
 
                 return Result.success(value);
@@ -90,12 +90,12 @@ class HashicorpVaultClient {
         }
     }
 
-    Result<HashicorpVaultCreateEntryResponsePayload> setSecret(
+    Result<CreateEntryResponsePayload> setSecret(
             @NotNull String key, @NotNull String value) {
         var requestUri = getSecretUrl(key, VAULT_SECRET_DATA_PATH);
         var headers = getHeaders();
         var requestPayload =
-                HashicorpVaultCreateEntryRequestPayload.Builder.newInstance()
+                CreateEntryRequestPayload.Builder.newInstance()
                         .data(Collections.singletonMap(VAULT_DATA_ENTRY_NAME, value))
                         .build();
         var request =
@@ -109,7 +109,7 @@ class HashicorpVaultClient {
             if (response.isSuccessful()) {
                 var responseBody = Objects.requireNonNull(response.body()).string();
                 var responsePayload =
-                        typeManager.readValue(responseBody, HashicorpVaultCreateEntryResponsePayload.class);
+                        typeManager.readValue(responseBody, CreateEntryResponsePayload.class);
                 return Result.success(responsePayload);
             } else {
                 return Result.failure(String.format(CALL_UNSUCCESSFUL_ERROR_TEMPLATE, response.code()));

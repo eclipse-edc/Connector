@@ -20,35 +20,27 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
-import java.util.Map;
-
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonDeserialize(builder = HashicorpVaultGetEntryResponsePayloadGetVaultEntryData.Builder.class)
-class HashicorpVaultGetEntryResponsePayloadGetVaultEntryData {
+@JsonDeserialize(builder = CreateEntryResponsePayload.Builder.class)
+class CreateEntryResponsePayload {
 
     @JsonProperty()
-    private Map<String, String> data;
+    private EntryMetadata data;
 
-    @JsonProperty()
-    private HashicorpVaultEntryMetadata metadata;
-
-    HashicorpVaultGetEntryResponsePayloadGetVaultEntryData(Map<String, String> data, HashicorpVaultEntryMetadata metadata) {
+    CreateEntryResponsePayload(EntryMetadata data) {
         this.data = data;
-        this.metadata = metadata;
     }
 
-    public Map<String, String> getData() {
+    CreateEntryResponsePayload() {
+    }
+
+    public EntryMetadata getData() {
         return this.data;
-    }
-
-    public HashicorpVaultEntryMetadata getMetadata() {
-        return this.metadata;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private Map<String, String> data;
-        private HashicorpVaultEntryMetadata metadata;
+        private EntryMetadata data;
 
         private Builder() {
         }
@@ -59,19 +51,13 @@ class HashicorpVaultGetEntryResponsePayloadGetVaultEntryData {
         }
 
         @JsonProperty()
-        public Builder data(Map<String, String> data) {
+        public Builder data(EntryMetadata data) {
             this.data = data;
             return this;
         }
 
-        @JsonProperty()
-        public Builder metadata(HashicorpVaultEntryMetadata metadata) {
-            this.metadata = metadata;
-            return this;
-        }
-
-        public HashicorpVaultGetEntryResponsePayloadGetVaultEntryData build() {
-            return new HashicorpVaultGetEntryResponsePayloadGetVaultEntryData(data, metadata);
+        public CreateEntryResponsePayload build() {
+            return new CreateEntryResponsePayload(data);
         }
     }
 }

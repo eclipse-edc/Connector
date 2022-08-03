@@ -23,8 +23,8 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonDeserialize(builder = HashicorpVaultEntryMetadata.Builder.class)
-class HashicorpVaultEntryMetadata {
+@JsonDeserialize(builder = EntryMetadata.Builder.class)
+class EntryMetadata {
 
     @JsonProperty("custom_metadata")
     private Map<String, String> customMetadata;
@@ -35,7 +35,7 @@ class HashicorpVaultEntryMetadata {
     @JsonProperty("version")
     private Integer version;
 
-    HashicorpVaultEntryMetadata(Map<String, String> customMetadata, Boolean destroyed, Integer version) {
+    EntryMetadata(Map<String, String> customMetadata, Boolean destroyed, Integer version) {
         this.customMetadata = customMetadata;
         this.destroyed = destroyed;
         this.version = version;
@@ -85,8 +85,8 @@ class HashicorpVaultEntryMetadata {
             return this;
         }
 
-        public HashicorpVaultEntryMetadata build() {
-            return new HashicorpVaultEntryMetadata(customMetadata, destroyed, version);
+        public EntryMetadata build() {
+            return new EntryMetadata(customMetadata, destroyed, version);
         }
     }
 }
