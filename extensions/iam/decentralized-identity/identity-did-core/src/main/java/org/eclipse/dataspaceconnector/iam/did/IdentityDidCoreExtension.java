@@ -44,6 +44,7 @@ import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
 import java.time.Clock;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 
@@ -112,7 +113,7 @@ public class IdentityDidCoreExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public DidPublicKeyResolver defaultDidPublicKeyResolver() {
-        return new DidPublicKeyResolverImpl(didResolverRegistry);
+        return new DidPublicKeyResolverImpl(Objects.requireNonNull(didResolverRegistry));
     }
 
     @Provider(isDefault = true)

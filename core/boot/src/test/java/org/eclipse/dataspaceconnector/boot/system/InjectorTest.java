@@ -27,6 +27,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.util.Collections;
 import java.util.Set;
@@ -130,6 +131,32 @@ class InjectorTest {
         verify(monitor).warning(anyString(), any());
     }
 
+    @Test
+    void verifyOrdering() throws IllegalAccessException, NoSuchFieldException {
+
+        var serviceExtension = new OrderedTestExtension();
+        var field = OrderedTestExtension.class.getDeclaredField("someObject");
+        var field2 = OrderedTestExtension.class.getDeclaredField("anotherObject");
+        var ip1 = spy(new FieldInjectionPoint<>(serviceExtension, field, "someobj", true, 14));
+        var ip2 = spy(new FieldInjectionPoint<>(serviceExtension, field2, "anotherObj", true, 7));
+        var ic = new InjectionContainer<>(serviceExtension, Set.of(ip1, ip2));
+
+        when(context.hasService(eq(SomeObject.class))).thenReturn(true);
+        when(context.getService(eq(SomeObject.class), anyBoolean())).thenReturn(new SomeObject());
+        when(context.hasService(eq(AnotherObject.class))).thenReturn(true);
+        when(context.getService(eq(AnotherObject.class), anyBoolean())).thenReturn(new AnotherObject());
+
+        injector.inject(ic, context);
+
+        var inOrder = Mockito.inOrder(ip1, ip2);
+        inOrder.verify(ip2).setTargetValue(any(AnotherObject.class));
+        inOrder.verify(ip1).setTargetValue(any(SomeObject.class));
+        verify(context).hasService(eq(SomeObject.class));
+        verify(context).getService(eq(SomeObject.class), anyBoolean());
+        verify(context).hasService(eq(AnotherObject.class));
+        verify(context).getService(eq(AnotherObject.class), anyBoolean());
+    }
+
     private static class TestServiceExtension implements ServiceExtension {
         @Inject
         private SomeObject someObject;
@@ -139,5 +166,16 @@ class InjectorTest {
     }
 
     private static class EmptyTestExtension implements ServiceExtension {
+    }
+
+    private static class OrderedTestExtension implements ServiceExtension {
+        @Inject(order = 4)
+        private SomeObject someObject;
+
+        @Inject(order = 7)
+        private AnotherObject anotherObject;
+    }
+
+    private static class AnotherObject {
     }
 }
