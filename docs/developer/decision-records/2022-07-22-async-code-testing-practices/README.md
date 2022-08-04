@@ -22,10 +22,16 @@ more useful to do time testing on threads.
 
 ## Approach
 
-Adding the dependency Awaitility into every build.gradle.kts
+Instead of asserting latch durations in every test, of sometimes even 15 Seconds, an object await is created and it
+waits until each assertion (in case there are many) is completed. This procedure also eases the test writings.
+
+The following are the changes in each of the tested files:
+
+file `build.gradle.kts` (it should be the same procedure in every module)
 
 ```java
-...
+val awaitility:String by project
+        ...
         dependencies{
         ...
         testImplementation("org.awaitility:awaitility:${awaitility}")
@@ -36,10 +42,6 @@ Adding the dependency Awaitility into every build.gradle.kts
 Class `ContractNegotiationCommandQueueIntegrationTest`
 (
 core\contract\src\test\java\org\eclipse\dataspaceconnector\contract\negotiation\command\ContractNegotiationCommandQueueIntegrationTest.java)
-
-Instead of evaluating a latch that lasts for 15 seconds, an object await is created until the methods getState and
-getErrorDetail are each one correctly asserted. Additionally, the CountDownLatch objects in the class TestCommandHandler
-were removed
 
 ```java
 ...
@@ -101,34 +103,11 @@ void submitTestCommand_consumerManager()throws Exception{
         negotiationManager.stop();
         }
         ...
-
-private static class TestCommandHandler extends SingleContractNegotiationCommandHandler<TestCommand> {
-
-    private final String errorDetail;
-
-    TestCommandHandler(ContractNegotiationStore store, String errorDetail) {
-        super(store);
-        this.errorDetail = errorDetail;
-    }
-
-    @Override
-    public Class<TestCommand> getType() {
-        return TestCommand.class;
-    }
-
-    @Override
-    protected boolean modify(ContractNegotiation negotiation) {
-        negotiation.transitionError(errorDetail);
-        store.save(negotiation);
-        return true;
-    }
-}
+        }
 ```
 
 class `DataPlaneManagerImplTest`
 extensions\data-plane\data-plane-framework\src\test\java\org\eclipse\dataspaceconnector\dataplane\framework\manager\DataPlaneManagerImplTest.java
-
-Same as above a method await().untilAsserted() or until() was used to replace the Time of the CountDownLatch.
 
 ```java
 ...
@@ -193,8 +172,6 @@ void verifyWorkDispatch_onUnavailableTransferService_completesTransfer()throws I
 Class `LockManagerTest`
 (common\util\src\test\java\org\eclipse\dataspaceconnector\common\concurrency\LockManagerTest.java)
 
-Same as with the previous class, the await method waits until the assertion is finished.
-
 ```java
 ...
 @Test
@@ -249,8 +226,6 @@ class `PolicyDefinitionEventDispatchTest`
 (
 extensions\api\data-management\policydefinition\src\test\java\org\eclipse\dataspaceconnector\api\datamanagement\policy\service\PolicyDefinitionEventDispatchTest.java)
 
-the same procedure as the previous class applies to this test.
-
 ```java
 ...
 @Test
@@ -264,127 +239,6 @@ void shouldDispatchEventOnPolicyDefinitionCreationAndDeletion(PolicyDefinitionSe
         await().untilAsserted(()->{
         verify(eventSubscriber).on(isA(PolicyDefinitionCreated.class));
         verify(eventSubscriber).on(isA(PolicyDefinitionDeleted.class));
-        });
-        }
-        ...
-```
-
-Class `CrawlerImplTest`
-(
-extensions\catalog\federated-catalog-cache\src\test\java\org\eclipse\dataspaceconnector\catalog\cache\crawler\CrawlerImplTest.java)
-
-```java
-...
-@Test
-@DisplayName("Should insert one item into queue when request succeeds")
-void shouldInsertInQueue_whenSucceeds()throws InterruptedException{
-        when(protocolAdapterMock.sendRequest(isA(UpdateRequest.class)))
-        .thenAnswer(i->{
-        return CompletableFuture.completedFuture(new UpdateResponse());
-        });
-
-        workQueue.put(createWorkItem());
-        executorService.submit(crawler);
-
-        await().untilAsserted(()->{
-        assertThat(crawler.join()).isTrue();
-        assertThat(queue).hasSize(1);
-        verify(protocolAdapterMock).sendRequest(isA(UpdateRequest.class));
-        });
-        }
-
-@Test
-@DisplayName("Should not insert into queue when the request fails")
-    void shouldNotInsertInQueue_whenRequestFails()throws InterruptedException{
-            when(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).thenAnswer(i->{
-        return CompletableFuture.failedFuture(new EdcException("not reachable"));
-        });
-        workQueue.put(createWorkItem());
-        executorService.submit(crawler);
-
-        await().untilAsserted(()->
-        {
-        assertThat(crawler.join()).isTrue();
-        assertThat(queue).isEmpty();
-        verify(protocolAdapterMock).sendRequest(isA(UpdateRequest.class));
-        });
-
-        }
-
-@Test
-@DisplayName("Should insert only those items into queue that have succeeded")
-    void shouldInsertInQueue_onlySuccessfulProtocolRequests()throws InterruptedException{
-
-            NodeQueryAdapter secondAdapter=mock(NodeQueryAdapter.class);
-        when(registry.findForProtocol(anyString())).thenReturn(Arrays.asList(protocolAdapterMock,secondAdapter));
-
-        when(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).thenAnswer(i->{
-        return CompletableFuture.completedFuture(new UpdateResponse());
-        });
-
-        when(secondAdapter.sendRequest(isA(UpdateRequest.class))).thenAnswer(i->{
-        return CompletableFuture.failedFuture(new RuntimeException());
-        });
-        workQueue.put(createWorkItem());
-        executorService.submit(crawler);
-
-        await().untilAsserted(()->
-        {
-        assertThat(crawler.join()).isTrue();
-        assertThat(queue).hasSize(1);
-        verify(protocolAdapterMock).sendRequest(isA(UpdateRequest.class));
-        verify(registry).findForProtocol(anyString());
-        verify(secondAdapter).sendRequest(isA(UpdateRequest.class));
-        });
-        }
-
-@Test
-@DisplayName("Should not insert when Queue is at capacity")
-    void shouldLogError_whenQueueFull()throws InterruptedException{
-            range(0,QUEUE_CAPACITY).forEach(i->queue.add(new UpdateResponse())); //queue is full now
-
-            when(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).thenAnswer(i->{
-        return CompletableFuture.completedFuture(new UpdateResponse());
-        });
-
-        workQueue.put(createWorkItem());
-
-        executorService.submit(crawler);
-
-        await().untilAsserted(()->
-        {
-        assertThat(crawler.join()).isTrue();
-        assertThat(queue).hasSize(3);
-        verify(protocolAdapterMock).sendRequest(isA(UpdateRequest.class));
-        });
-        }
-
-@Test
-    void shouldPauseWhenNoWorkItem()throws InterruptedException{
-
-            executorService.submit(crawler);
-
-            await().untilAsserted(()->{
-            assertThat(crawler.join()).isTrue();
-            assertThat(queue).hasSize(0);
-            });
-            }
-
-@Test
-    void shouldErrorOut_whenNoProtocolAdapterFound()throws InterruptedException{
-
-            crawler=new CrawlerImpl(workQueue,monitorMock,queue,createRetryPolicy(),new NodeQueryAdapterRegistryImpl(),()->Duration.ofMillis(500),errorHandlerMock);
-
-            workQueue.put(createWorkItem());
-
-            doAnswer(i->{
-            return null;
-            }).when(errorHandlerMock).accept(isA(WorkItem.class));
-        executorService.submit(crawler);
-
-        await().untilAsserted(()->{
-        assertThat(workQueue).hasSize(0);
-        verify(errorHandlerMock).accept(isA(WorkItem.class));
         });
         }
         ...
@@ -514,9 +368,6 @@ core\transfer\src\test\java\org\eclipse\dataspaceconnector\transfer\core\transfe
 
 Class `AzureVaultExtensionTest`
 (extensions\azure\vault\src\test\java\org\eclipse\dataspaceconnector\core\security\azure\AzureVaultExtensionTest.java)
-
-Since it is possible to set the waiting timeout on `Waitility` the tests instead of testing time, now check that the
-methods are working correctly.
 
 ```java
 @Test
