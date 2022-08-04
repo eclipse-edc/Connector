@@ -278,10 +278,10 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     public void transitionCancelled() {
-        var notAllowedStates = List.of(ENDED, COMPLETED, ERROR);
+        var forbiddenStates = List.of(ENDED, COMPLETED, ERROR);
 
         var allowedStates = Arrays.stream(TransferProcessStates.values())
-                .filter(it -> !notAllowedStates.contains(it))
+                .filter(it -> !forbiddenStates.contains(it))
                 .toArray(TransferProcessStates[]::new);
 
         transition(CANCELLED, allowedStates);
