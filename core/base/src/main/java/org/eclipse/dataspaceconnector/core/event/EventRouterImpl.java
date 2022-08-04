@@ -30,6 +30,7 @@ import static java.util.concurrent.CompletableFuture.runAsync;
 public class EventRouterImpl implements EventRouter {
 
     private final List<EventSubscriber> subscribers = new ArrayList<>();
+    private final List<EventSubscriber> syncSubscribers = new ArrayList<>();
     private final Monitor monitor;
     private final ExecutorService executor;
 
@@ -39,12 +40,19 @@ public class EventRouterImpl implements EventRouter {
     }
 
     @Override
+    public void registerSync(EventSubscriber subscriber) {
+        this.syncSubscribers.add(subscriber);
+    }
+
+    @Override
     public void register(EventSubscriber subscriber) {
         subscribers.add(subscriber);
     }
 
     @Override
     public void publish(Event event) {
+        syncSubscribers.forEach(subscriber -> subscriber.on(event));
+
         subscribers.stream()
                 .map(subscriber -> runAsync(() -> subscriber.on(event), executor).thenApply(v -> subscriber))
                 .forEach(future -> future.whenComplete((subscriber, throwable) -> {

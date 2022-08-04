@@ -24,12 +24,14 @@ import java.time.Clock;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 class EventRouterImplTest {
 
@@ -39,14 +41,17 @@ class EventRouterImplTest {
 
     @Test
     void shouldPublishToAllSubscribers() {
+        var syncSubscriber = mock(EventSubscriber.class);
         var subscriberA = mock(EventSubscriber.class);
         var subscriberB = mock(EventSubscriber.class);
+        eventRouter.registerSync(syncSubscriber);
         eventRouter.register(subscriberA);
         eventRouter.register(subscriberB);
 
         eventRouter.publish(TestEvent.Builder.newInstance().at(clock.millis()).build());
 
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
+            verify(syncSubscriber).on(isA(TestEvent.class));
             verify(subscriberA).on(isA(TestEvent.class));
             verify(subscriberB).on(isA(TestEvent.class));
         });
@@ -68,7 +73,22 @@ class EventRouterImplTest {
         });
     }
 
+    @Test
+    void shouldInterruptPublishingWhenSyncSubscriberThrowsException() {
+        var subscriberA = mock(EventSubscriber.class);
+        var subscriberB = mock(EventSubscriber.class);
+        doThrow(new RuntimeException("unexpected exception")).when(subscriberA).on(any());
+        eventRouter.registerSync(subscriberA);
+        eventRouter.register(subscriberB);
+
+        assertThatThrownBy(() -> eventRouter.publish(TestEvent.Builder.newInstance().at(clock.millis()).build()))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("unexpected exception");
+        verifyNoInteractions(subscriberB);
+    }
+
     private static class TestEvent extends Event<TestEvent.Payload> {
+
         public static class Builder extends Event.Builder<TestEvent, Payload, Builder> {
 
             public static Builder newInstance() {
