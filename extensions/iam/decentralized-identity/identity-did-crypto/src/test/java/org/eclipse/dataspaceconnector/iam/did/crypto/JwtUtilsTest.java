@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Daimler TSS GmbH
+ *  Copyright (c) 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,12 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Daimler TSS GmbH - Initial implementation
- *       Microsoft Corporation - Use IDS Webhook address for JWT audience claim
+ *       Microsoft Corporation - initial API and implementation
  *
  */
 
-package org.eclipse.dataspaceconnector.identity;
+package org.eclipse.dataspaceconnector.iam.did.crypto;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.ECKey;
