@@ -22,8 +22,9 @@ more useful to do time testing on threads.
 
 ## Approach
 
-Instead of asserting latch durations in every test, of sometimes even 15 Seconds, an object await is created and it
-waits until each assertion (in case there are many) is completed. This procedure also eases the test writings.
+Awaitility framework deals with asynchronous behavior that happen during the tests. All the threads created during the
+Test will be included into an untilAsserted block that will by default poll the assertions every 100 ms until either the
+assertions are valid or the timeout expires which is by default 10 seconds.
 
 The following are the changes in each of the tested files:
 
