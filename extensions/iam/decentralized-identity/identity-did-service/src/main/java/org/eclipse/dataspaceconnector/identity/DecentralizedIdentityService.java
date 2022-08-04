@@ -17,6 +17,7 @@
 package org.eclipse.dataspaceconnector.identity;
 
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.dataspaceconnector.iam.did.crypto.JwtUtils;
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.KeyConverter;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidConstants;

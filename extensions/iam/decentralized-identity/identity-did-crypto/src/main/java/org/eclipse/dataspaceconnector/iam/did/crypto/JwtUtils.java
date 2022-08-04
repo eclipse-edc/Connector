@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 - 2022 Microsoft Corporation
+ *  Copyright (c) 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.identity;
+package org.eclipse.dataspaceconnector.iam.did.crypto;
 
 import com.nimbusds.jose.Algorithm;
 import com.nimbusds.jose.JOSEException;
@@ -22,7 +22,6 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jwt.proc.BadJWTException;
 import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier;
-import org.eclipse.dataspaceconnector.iam.did.crypto.CryptoException;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -38,7 +37,7 @@ import java.util.UUID;
 /**
  * Convenience/helper class to generate and verify Signed JSON Web Tokens (JWTs) for communicating between connector instances.
  */
-class JwtUtils {
+public class JwtUtils {
     // RFC 7519 Registered (standard) claims
     private static final String ISSUER_CLAIM = "iss";
     private static final String SUBJECT_CLAIM = "sub";
@@ -56,7 +55,7 @@ class JwtUtils {
      * @return a {@code SignedJWT} that is signed with the private key and contains all claims listed.
      */
 
-    static SignedJWT create(PrivateKeyWrapper privateKey, String issuer, String subject, String audience, Clock clock) {
+    public static SignedJWT create(PrivateKeyWrapper privateKey, String issuer, String subject, String audience, Clock clock) {
         var claimsSet = new JWTClaimsSet.Builder()
                 .issuer(issuer)
                 .subject(subject)
@@ -90,7 +89,7 @@ class JwtUtils {
      * @param audience  The intended audience
      * @return true if verified, false otherwise
      */
-    static Result<Void> verify(SignedJWT jwt, PublicKeyWrapper publicKey, String audience) {
+    public static Result<Void> verify(SignedJWT jwt, PublicKeyWrapper publicKey, String audience) {
         // verify JWT signature
         try {
             var verified = jwt.verify(publicKey.verifier());

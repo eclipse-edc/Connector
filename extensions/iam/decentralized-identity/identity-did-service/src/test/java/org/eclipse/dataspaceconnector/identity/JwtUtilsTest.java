@@ -45,9 +45,9 @@ import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.iam.did.crypto.JwtUtils.create;
+import static org.eclipse.dataspaceconnector.iam.did.crypto.JwtUtils.verify;
 import static org.eclipse.dataspaceconnector.iam.did.crypto.key.KeyPairFactory.generateKeyPairP256;
-import static org.eclipse.dataspaceconnector.identity.JwtUtils.create;
-import static org.eclipse.dataspaceconnector.identity.JwtUtils.verify;
 import static org.eclipse.dataspaceconnector.junit.testfixtures.TestUtils.getResourceFileContentAsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -61,14 +61,18 @@ class JwtUtilsTest {
     private EcPrivateKeyWrapper privateKey;
     private EcPublicKeyWrapper publicKey;
 
+    @NotNull
+    private static Arguments jwtCase(UnaryOperator<JWTClaimsSet.Builder> builderOperator, boolean expectSuccess, String name) {
+        return Arguments.of(builderOperator, expectSuccess, name);
+    }
+
     @BeforeEach
     void setup() throws JOSEException {
-        this.privateKey = new EcPrivateKeyWrapper((ECKey) getJwk("private_p256.pem"));
-        this.publicKey = new EcPublicKeyWrapper((ECKey) getJwk("public_p256.pem"));
+        privateKey = new EcPrivateKeyWrapper((ECKey) getJwk("private_p256.pem"));
+        publicKey = new EcPublicKeyWrapper((ECKey) getJwk("public_p256.pem"));
     }
 
     @Test
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     void createVerifiableCredential() throws Exception {
         var vc = create(privateKey, "test-issuer", "test-subject", "test-audience", clock);
 
@@ -142,6 +146,11 @@ class JwtUtilsTest {
         }
     }
 
+    private JWK getJwk(String resourceName) throws JOSEException {
+        String privateKeyPem = getResourceFileContentAsString(resourceName);
+        return JWK.parseFromPEMEncodedObjects(privateKeyPem);
+    }
+
     static class ClaimsArgs implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
@@ -162,15 +171,5 @@ class JwtUtilsTest {
                     jwtCase(b -> b.claim("foo", "bar"), true, "additional claim")
             );
         }
-    }
-
-    @NotNull
-    private static Arguments jwtCase(UnaryOperator<JWTClaimsSet.Builder> builderOperator, boolean expectSuccess, String name) {
-        return Arguments.of(builderOperator, expectSuccess, name);
-    }
-
-    private JWK getJwk(String resourceName) throws JOSEException {
-        String privateKeyPem = getResourceFileContentAsString(resourceName);
-        return JWK.parseFromPEMEncodedObjects(privateKeyPem);
     }
 }
