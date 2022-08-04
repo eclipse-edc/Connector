@@ -65,7 +65,7 @@ public class IdentityDidCoreExtension implements ServiceExtension {
     @Inject
     private DidResolverRegistry didResolverRegistry;
 
-    @Inject
+    @Inject(order = 10)
     private DidPublicKeyResolver publicKeyResolver;
 
     @Override
@@ -109,14 +109,15 @@ public class IdentityDidCoreExtension implements ServiceExtension {
         return new InMemoryDidDocumentStore(clock);
     }
 
-    @Provider(isDefault = true)
-    public DidResolverRegistry defaultDidResolverRegistry() {
-        return new DidResolverRegistryImpl();
-    }
 
     @Provider(isDefault = true)
     public DidPublicKeyResolver defaultDidPublicKeyResolver() {
         return new DidPublicKeyResolverImpl(didResolverRegistry);
+    }
+
+    @Provider(isDefault = true)
+    public DidResolverRegistry defaultDidResolverRegistry() {
+        return new DidResolverRegistryImpl();
     }
 
     private void registerParsers(PrivateKeyResolver resolver) {

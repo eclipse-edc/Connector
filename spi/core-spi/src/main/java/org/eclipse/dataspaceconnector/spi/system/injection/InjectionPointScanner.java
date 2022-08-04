@@ -33,7 +33,8 @@ public class InjectionPointScanner {
                 .filter(f -> f.getAnnotation(Inject.class) != null)
                 .map(f -> {
                     var isRequired = f.getAnnotation(Inject.class).required();
-                    return new FieldInjectionPoint<>(instance, f, f.getType().getName(), isRequired);
+                    var order = f.getAnnotation(Inject.class).order();
+                    return new FieldInjectionPoint<>(instance, f, f.getType().getName(), isRequired, order);
                 })
                 .collect(Collectors.toSet());
     }

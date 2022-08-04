@@ -28,5 +28,7 @@ public interface InjectionPoint<T> {
 
     boolean isRequired();
 
+    int getOrder();
+
     void setTargetValue(Object service) throws IllegalAccessException;
 }

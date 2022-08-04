@@ -18,8 +18,11 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.injection.EdcInjectionException;
 import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
+import org.eclipse.dataspaceconnector.spi.system.injection.InjectionPoint;
 import org.eclipse.dataspaceconnector.spi.system.injection.Injector;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -47,7 +50,12 @@ public final class InjectorImpl implements Injector {
     public <T> T inject(InjectionContainer<T> container, ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 
-        container.getInjectionPoints().forEach(ip -> {
+        var injectionPoints = container.getInjectionPoints();
+
+        var sortedList = new ArrayList<>(injectionPoints);
+        sortedList.sort(Comparator.comparingInt(InjectionPoint::getOrder));
+
+        sortedList.forEach(ip -> {
             try {
                 Object service = resolveService(context, ip.getType(), ip.isRequired());
                 if (service != null) { //can only be if not required

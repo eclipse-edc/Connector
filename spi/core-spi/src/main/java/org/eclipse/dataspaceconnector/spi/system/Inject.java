@@ -30,4 +30,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Inject {
     boolean required() default true;
+
+    int order() default 0;
 }

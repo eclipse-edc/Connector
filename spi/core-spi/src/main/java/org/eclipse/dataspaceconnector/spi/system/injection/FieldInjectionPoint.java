@@ -31,17 +31,23 @@ public class FieldInjectionPoint<T> implements InjectionPoint<T> {
     private final Field injectedField;
     private final String featureString;
     private final boolean isRequired;
+    private final int order;
 
     public FieldInjectionPoint(T instance, Field injectedField, String featureString) {
         this(instance, injectedField, featureString, true);
     }
 
     public FieldInjectionPoint(T instance, Field injectedField, String featureString, boolean isRequired) {
+        this(instance, injectedField, featureString, isRequired, 0);
+    }
+
+    public FieldInjectionPoint(T instance, Field injectedField, String featureString, boolean isRequired, int order) {
         this.instance = instance;
         this.injectedField = injectedField;
         this.injectedField.setAccessible(true);
         this.featureString = featureString;
         this.isRequired = isRequired;
+        this.order = order;
     }
 
     @Override
@@ -64,6 +70,10 @@ public class FieldInjectionPoint<T> implements InjectionPoint<T> {
         return isRequired;
     }
 
+    public int getOrder() {
+        return order;
+    }
+
     @Override
     public void setTargetValue(Object service) throws IllegalAccessException {
         injectedField.set(instance, service);
@@ -71,6 +81,6 @@ public class FieldInjectionPoint<T> implements InjectionPoint<T> {
 
     @Override
     public String toString() {
-        return format("Field \"%s\" of type [%s] required by %s", injectedField.getName(), getType(), instance.getClass().getName());
+        return format("Field \"%s\" (order = %d) of type [%s] required by %s", injectedField.getName(), getOrder(), getType(), instance.getClass().getName());
     }
 }
