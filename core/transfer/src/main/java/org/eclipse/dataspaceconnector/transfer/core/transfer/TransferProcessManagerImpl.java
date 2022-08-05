@@ -29,6 +29,8 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyArchive;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.response.StatusResult;
+import org.eclipse.dataspaceconnector.spi.result.AbstractResult;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ExecutorInstrumentation;
@@ -53,13 +55,14 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerReg
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.lang.String.join;
@@ -184,7 +187,27 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return;
         }
 
-        handleProvisionResult(transferProcess, responses);
+        var validationResult = responses.stream()
+                .map(result -> result.succeeded()
+                        ? storeProvisionedSecrets(transferProcess.getId(), result.getContent())
+                        : toFatalError(result)
+                )
+                .filter(AbstractResult::failed)
+                .reduce(Result::merge)
+                .orElse(Result.success());
+
+        if (validationResult.failed()) {
+            var message = format("Transitioning transfer process %s to ERROR state due to fatal provisioning errors: \n%s", transferProcess.getId(), validationResult.getFailureDetail());
+            transitionToError(transferProcess, message, null);
+            return;
+        }
+
+        var provisionResponses = responses.stream()
+                .filter(AbstractResult::succeeded)
+                .map(AbstractResult::getContent)
+                .collect(Collectors.toList());
+
+        handleProvisionResponses(transferProcess, provisionResponses);
     }
 
     @Override
@@ -200,7 +223,25 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
             return;
         }
 
-        handleDeprovisionResult(transferProcess, responses);
+        var validationResult = responses.stream()
+                .filter(AbstractResult::failed)
+                .map(TransferProcessManagerImpl::toFatalError)
+                .filter(AbstractResult::failed)
+                .reduce(Result::merge)
+                .orElse(Result.success());
+
+        if (validationResult.failed()) {
+            var message = format("Transitioning transfer process %s to ERROR state due to fatal deprovisioning errors: \n%s", transferProcess.getId(), validationResult.getFailureDetail());
+            transitionToError(transferProcess, message, null);
+            return;
+        }
+
+        var deprovisionResponses = responses.stream()
+                .filter(AbstractResult::succeeded)
+                .map(AbstractResult::getContent)
+                .collect(Collectors.toList());
+
+        handleDeprovisionResponses(transferProcess, deprovisionResponses);
     }
 
     private StatusResult<String> initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
@@ -256,7 +297,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 transitionToError(process, "Asset not found: " + assetId, null);
             }
             // default the content address to the asset address; this may be overridden during provisioning
-            process.addContentDataAddress(dataAddress);
+            process.setContentDataAddress(dataAddress);
             manifest = manifestGenerator.generateProviderResourceManifest(dataRequest, dataAddress, policy);
         }
 
@@ -432,117 +473,114 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
         return true;
     }
 
-    private void handleProvisionResult(TransferProcess transferProcess, List<StatusResult<ProvisionResponse>> responses) {
-        var fatalErrors = new ArrayList<String>();
-        responses.forEach(result -> {
-            if (result.failed()) {
-                // Record fatal failure so that transfer process can be transitioned to the error state; if non-fatal, skip
-                var status = result.getFailure().status();
-                if (ResponseStatus.FATAL_ERROR == status) {
-                    fatalErrors.addAll(result.getFailure().getMessages());
-                }
-                return;
-            } else if (result.getContent().isInProcess()) {
-                // Still in process, ignore and continue processing other resources
-                return;
-            }
+    private void handleProvisionResponses(TransferProcess transferProcess, List<ProvisionResponse> responses) {
+        responses.stream()
+                .map(response -> {
+                    var provisionedResource = response.getResource();
 
-            var response = result.getContent();
-            var provisionedResource = response.getResource();
+                    if (provisionedResource instanceof ProvisionedDataAddressResource) {
+                        var dataAddressResource = (ProvisionedDataAddressResource) provisionedResource;
+                        var dataAddress = dataAddressResource.getDataAddress();
+                        var secretToken = response.getSecretToken();
+                        if (secretToken != null) {
+                            var keyName = dataAddressResource.getResourceName();
+                            dataAddress.setKeyName(keyName);
+                        }
 
-            if (provisionedResource instanceof ProvisionedDataAddressResource) {
-                var dataAddressResource = (ProvisionedDataAddressResource) provisionedResource;
-                var secretToken = response.getSecretToken();
-                if (secretToken != null) {
-                    var keyName = dataAddressResource.getResourceName();
-                    var secretResult = vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
-                    if (secretResult.failed()) {
-                        fatalErrors.add(format("Error storing secret in vault with key %s for transfer process %s: \n %s",
-                                keyName, transferProcess.getId(), join("\n", secretResult.getFailureMessages())));
+                        if (dataAddressResource instanceof ProvisionedDataDestinationResource) {
+                            // a data destination was provisioned by a consumer
+                            transferProcess.getDataRequest().updateDestination(dataAddress);
+                        } else if (dataAddressResource instanceof ProvisionedContentResource) {
+                            // content for the data transfer was provisioned by the provider
+                            transferProcess.setContentDataAddress(dataAddress);
+                        }
                     }
-                    dataAddressResource.getDataAddress().setKeyName(keyName);
-                }
-                handleProvisionDataAddressResource(dataAddressResource, transferProcess);
-            }
-            // update the transfer process with the provisioned resource
-            transferProcess.addProvisionedResource(provisionedResource);
-        });
 
-        if (!fatalErrors.isEmpty()) {
-            var errors = join("\n", fatalErrors);
-            var message = format("Transitioning transfer process %s to ERROR state due to fatal provisioning errors: \n%s", transferProcess.getId(), errors);
-            transitionToError(transferProcess, message, null);
-        } else if (transferProcess.provisioningComplete()) {
+                    return provisionedResource;
+                })
+                .filter(Objects::nonNull)
+                .forEach(transferProcess::addProvisionedResource);
+
+        if (transferProcess.provisioningComplete()) {
             transferProcess.transitionProvisioned();
             observable.invokeForEach(l -> l.preProvisioned(transferProcess));
             transferProcessStore.update(transferProcess);
             observable.invokeForEach(l -> l.provisioned(transferProcess));
+        } else if (responses.stream().anyMatch(ProvisionResponse::isInProcess)) {
+            transferProcess.transitionProvisioningRequested();
+            transferProcessStore.update(transferProcess);
+            observable.invokeForEach(l -> l.provisioningRequested(transferProcess));
         } else {
             transferProcessStore.update(transferProcess);
         }
     }
 
-    private void handleProvisionDataAddressResource(ProvisionedDataAddressResource resource, TransferProcess transferProcess) {
-        var dataAddress = resource.getDataAddress();
-        if (resource instanceof ProvisionedDataDestinationResource) {
-            // a data destination was provisioned by a consumer
-            transferProcess.getDataRequest().updateDestination(dataAddress);
-        } else if (resource instanceof ProvisionedContentResource) {
-            // content for the data transfer was provisioned by the provider
-            transferProcess.addContentDataAddress(dataAddress);
-        }
-    }
+    private void handleDeprovisionResponses(TransferProcess transferProcess, List<DeprovisionedResource> results) {
+        results.stream()
+                .map(deprovisionedResource -> {
+                    var provisionedResource = transferProcess.getProvisionedResource(deprovisionedResource.getProvisionedResourceId());
+                    if (provisionedResource == null) {
+                        monitor.severe("Received a deprovision result for a provisioned resource that was not found. Skipping.");
+                        return null;
+                    }
 
-    private void handleDeprovisionResult(TransferProcess transferProcess, List<StatusResult<DeprovisionedResource>> results) {
-        var fatalErrors = new ArrayList<String>();
-        results.forEach(result -> {
-            if (result.failed()) {
-                // Record fatal failure so that transfer process can be transitioned to the error state; if non-fatal, skip
-                var status = result.getFailure().status();
-                if (status == ResponseStatus.FATAL_ERROR) {
-                    fatalErrors.addAll(result.getFailure().getMessages());
-                }
-                return;
-            } else if (result.getContent().isInProcess()) {
-                // Still in process, ignore and continue processing other deprovisioned resources
-                return;
-            }
-            var deprovisionedResource = result.getContent();
+                    if (provisionedResource.hasToken() && provisionedResource instanceof ProvisionedDataAddressResource) {
+                        removeDeprovisionedSecrets((ProvisionedDataAddressResource) provisionedResource, transferProcess.getId());
+                    }
+                    return deprovisionedResource;
+                })
+                .filter(Objects::nonNull)
+                .forEach(transferProcess::addDeprovisionedResource);
 
-            var provisionedResource = transferProcess.getProvisionedResource(deprovisionedResource.getProvisionedResourceId());
-            if (provisionedResource == null) {
-                monitor.severe("Received a deprovision result for a provisioned resource that was not found. Skipping.");
-                return;
-            }
-
-            if (provisionedResource.hasToken() && provisionedResource instanceof ProvisionedDataAddressResource) {
-                removeDeprovisionedSecrets((ProvisionedDataAddressResource) provisionedResource, transferProcess);
-            }
-
-            transferProcess.addDeprovisionedResource(deprovisionedResource);
-
-        });
-
-        if (!fatalErrors.isEmpty()) {
-            var errors = join("\n", fatalErrors);
-            var message = format("Transitioning transfer process %s to ERROR state due to fatal deprovisioning errors: \n%s", transferProcess.getId(), errors);
-            transitionToError(transferProcess, message, null);
-        } else if (transferProcess.deprovisionComplete()) {
+        if (transferProcess.deprovisionComplete()) {
             transferProcess.transitionDeprovisioned();
             observable.invokeForEach(l -> l.preDeprovisioned(transferProcess));
             transferProcessStore.update(transferProcess);
             observable.invokeForEach(l -> l.deprovisioned(transferProcess));
+        } else if (results.stream().anyMatch(DeprovisionedResource::isInProcess)) {
+            transferProcess.transitionDeprovisioningRequested();
+            transferProcessStore.update(transferProcess);
+            observable.invokeForEach(l -> l.deprovisioningRequested(transferProcess));
         } else {
             transferProcessStore.update(transferProcess);
         }
     }
 
-    private void removeDeprovisionedSecrets(ProvisionedDataAddressResource provisionedResource, TransferProcess transferProcess) {
+    @NotNull
+    private static Result<Void> toFatalError(StatusResult<?> result) {
+        if (result.fatalError()) {
+            return Result.failure(result.getFailureMessages());
+        } else {
+            return Result.success();
+        }
+    }
+
+    @NotNull
+    private Result<Void> storeProvisionedSecrets(String transferProcessId, ProvisionResponse response) {
+        var resource = response.getResource();
+
+        if (resource instanceof ProvisionedDataAddressResource) {
+            var dataAddressResource = (ProvisionedDataAddressResource) resource;
+            var secretToken = response.getSecretToken();
+            if (secretToken != null) {
+                var keyName = dataAddressResource.getResourceName();
+                var secretResult = vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
+                if (secretResult.failed()) {
+                    return Result.failure(format("Error storing secret in vault with key %s for transfer process %s: \n %s",
+                            keyName, transferProcessId, join("\n", secretResult.getFailureMessages())));
+                }
+            }
+        }
+
+        return Result.success();
+    }
+
+    private void removeDeprovisionedSecrets(ProvisionedDataAddressResource provisionedResource, String transferProcessId) {
         var keyName = provisionedResource.getResourceName();
         var result = vault.deleteSecret(keyName);
         if (result.failed()) {
             monitor.severe(format("Error deleting secret from vault with key %s for transfer process %s: \n %s",
-                    keyName, transferProcess.getId(), join("\n", result.getFailureMessages())));
+                    keyName, transferProcessId, join("\n", result.getFailureMessages())));
         }
     }
 

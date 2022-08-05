@@ -100,7 +100,7 @@ public class HttpProviderProvisioner implements Provisioner<HttpProviderResource
 
         try (var response = httpClient.newCall(request).execute()) {
             if (response.isSuccessful()) {
-                return completedFuture(StatusResult.success(new ProvisionResponse()));   // in-process
+                return completedFuture(StatusResult.success(ProvisionResponse.Builder.newInstance().inProcess(true).build()));
             } else if (response.code() >= 500 && response.code() <= 504) {
                 // retry
                 return completedFuture(StatusResult.failure(ResponseStatus.ERROR_RETRY, "HttpProviderProvisioner: received error code: " + response.code()));

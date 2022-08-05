@@ -136,6 +136,15 @@ public interface TransferProcessListener {
     }
 
     /**
+     * Called after an asynchronous provisioning for a {@link TransferProcess} was requested.
+     *
+     * @param process the transfer process that has been requested for provisioning.
+     */
+    default void provisioningRequested(TransferProcess process) {
+
+    }
+
+    /**
      * Called after a {@link TransferProcess} was provisioned.
      *
      * @param process the transfer process that has been provisioned.
@@ -159,6 +168,15 @@ public interface TransferProcessListener {
      * @param process the transfer process that has been completed.
      */
     default void completed(TransferProcess process) {
+
+    }
+
+    /**
+     * Called after an asynchronous deprovisioning for a {@link TransferProcess} was requested.
+     *
+     * @param process the transfer process that has been requested for deprovisioning.
+     */
+    default void deprovisioningRequested(TransferProcess process) {
 
     }
 

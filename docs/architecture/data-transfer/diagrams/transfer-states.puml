@@ -24,7 +24,11 @@ skinparam shadowing false
 
 (*) --> INITIAL
 --> PROVISIONING
---> PROVISIONED
+if "async provisioning" then
+    --> PROVISIONING_REQUESTED
+    --> PROVISIONED
+else
+    --> PROVISIONED
 if "" then
     --> [consumer] REQUESTING
     --> REQUESTED
@@ -33,7 +37,11 @@ else
     --> [provider] IN PROGRESS | STREAMING
 --> COMPLETED
 --> DEPROVISIONING
---> DEPROVISIONED
+if "async deprovisioning" then
+    --> DEPROVISIONING_REQUESTED
+    --> DEPROVISIONED
+else
+    --> DEPROVISIONED
 --> ENDED
 --> (*)
 

@@ -65,7 +65,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
 
 import static java.time.ZoneOffset.UTC;
 import static java.util.Collections.emptyList;
@@ -77,12 +76,14 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING_REQUESTED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.ENDED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.ERROR;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.IN_PROGRESS;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONING_REQUESTED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.STREAMING;
@@ -118,7 +119,7 @@ class TransferProcessManagerImplTest {
     private final DataFlowManager dataFlowManager = mock(DataFlowManager.class);
     private final Vault vault = mock(Vault.class);
     @SuppressWarnings("unchecked")
-    private final SendRetryManager<StatefulEntity> sendRetryManager = mock(SendRetryManager.class);
+    private final SendRetryManager<StatefulEntity<?>> sendRetryManager = mock(SendRetryManager.class);
     private final TransferProcessListener listener = mock(TransferProcessListener.class);
 
     private TransferProcessManagerImpl manager;
@@ -156,7 +157,7 @@ class TransferProcessManagerImplTest {
     @Test
     void verifyIdempotency() {
         when(transferProcessStore.processIdForTransferId("1")).thenReturn(null, "2");
-        DataRequest dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
+        var dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
 
         manager.start();
         manager.initiateProviderRequest(dataRequest);
@@ -170,7 +171,7 @@ class TransferProcessManagerImplTest {
     @Test
     void verifyCreatedTimestamp() {
         when(transferProcessStore.processIdForTransferId("1")).thenReturn(null, "2");
-        DataRequest dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
+        var dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
 
         manager.start();
         manager.initiateProviderRequest(dataRequest);
@@ -182,14 +183,13 @@ class TransferProcessManagerImplTest {
 
     @Test
     void initial_shouldTransitionToProvisioning() {
-        var process = createTransferProcess(INITIAL);
-
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
-
-        when(transferProcessStore.nextForState(eq(INITIAL.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-
+        when(transferProcessStore.nextForState(eq(INITIAL.code()), anyInt()))
+                .thenReturn(List.of(createTransferProcess(INITIAL)))
+                .thenReturn(emptyList());
         var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
-        when(manifestGenerator.generateConsumerResourceManifest(any(DataRequest.class), any(Policy.class))).thenReturn(Result.success(resourceManifest));
+        when(manifestGenerator.generateConsumerResourceManifest(any(DataRequest.class), any(Policy.class)))
+                .thenReturn(Result.success(resourceManifest));
 
         manager.start();
 
@@ -201,13 +201,13 @@ class TransferProcessManagerImplTest {
     }
     
     @Test
-    void initial_manifestEvaluationFailed_shouldTransitionToError() throws InterruptedException {
-        var process = createTransferProcess(INITIAL);
-        
+    void initial_manifestEvaluationFailed_shouldTransitionToError() {
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
-        when(transferProcessStore.nextForState(eq(INITIAL.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
-        
-        when(manifestGenerator.generateConsumerResourceManifest(any(DataRequest.class), any(Policy.class))).thenReturn(Result.failure("error"));
+        when(transferProcessStore.nextForState(eq(INITIAL.code()), anyInt()))
+                .thenReturn(List.of(createTransferProcess(INITIAL)))
+                .thenReturn(emptyList());
+        when(manifestGenerator.generateConsumerResourceManifest(any(DataRequest.class), any(Policy.class)))
+                .thenReturn(Result.failure("error"));
         
         manager.start();
         
@@ -250,17 +250,8 @@ class TransferProcessManagerImplTest {
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(resourceDefinition)).build())
                 .build();
 
-        var resource = TestProvisionedContentResource.Builder.newInstance()
-                .resourceName("test")
-                .id("1")
-                .transferProcessId("2")
-                .resourceDefinitionId("3")
-                .dataAddress(DataAddress.Builder.newInstance().type("test").build())
-                .hasToken(true)
-                .build();
-
         var provisionResult = StatusResult.success(ProvisionResponse.Builder.newInstance()
-                .resource(resource)
+                .resource(createTestProvisionedContentResource("3"))
                 .secretToken(new TestToken())
                 .build());
 
@@ -278,6 +269,29 @@ class TransferProcessManagerImplTest {
             verify(transferProcessStore).update(argThat(p -> p.getState() == PROVISIONED.code()));
             verify(vault).storeSecret(any(), any());
             verify(listener).provisioned(process);
+        });
+    }
+
+    @Test
+    void provisioning_shouldTransitionToProvisioningRequestedOnResponseInProgress() {
+        var resourceDefinition = TestResourceDefinition.Builder.newInstance().id("3").build();
+        var process = createTransferProcess(PROVISIONING).toBuilder()
+                .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(resourceDefinition)).build())
+                .build();
+        var provisionResult = StatusResult.success(ProvisionResponse.Builder.newInstance().inProcess(true).build());
+
+        when(vault.storeSecret(any(), any())).thenReturn(Result.success());
+
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(provisionManager.provision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(provisionResult)));
+        when(transferProcessStore.nextForState(eq(PROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.find(process.getId())).thenReturn(process);
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferProcessStore).update(argThat(p -> p.getState() == PROVISIONING_REQUESTED.code()));
+            verify(listener).provisioningRequested(any());
         });
     }
 
@@ -535,7 +549,6 @@ class TransferProcessManagerImplTest {
         var process = createTransferProcess(IN_PROGRESS);
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
         process.getProvisionedResourceSet().addResource(provisionedDataDestinationResource());
-        var latch = new CountDownLatch(1);
         when(transferProcessStore.nextForState(eq(IN_PROGRESS.code()), anyInt())).thenReturn(List.of(process));
         doThrow(new AssertionError("update() should not be called as process was not updated"))
                 .when(transferProcessStore).update(process);
@@ -599,6 +612,40 @@ class TransferProcessManagerImplTest {
             verify(transferProcessStore).update(argThat(p -> p.getState() == DEPROVISIONED.code()));
             verify(vault).deleteSecret(any());
             verify(listener).deprovisioned(process);
+        });
+    }
+
+    @Test
+    void deprovisioning_shouldTransitionToDeprovisioningRequestedOnResponseInProgress() {
+        var manifest = ResourceManifest.Builder.newInstance()
+                .definitions(List.of(new TestResourceDefinition()))
+                .build();
+
+        var resourceSet = ProvisionedResourceSet.Builder.newInstance()
+                .resources(List.of(new TokenTestProvisionResource("test", PROVISIONED_RESOURCE_ID)))
+                .build();
+
+        var process = createTransferProcess(DEPROVISIONING).toBuilder()
+                .resourceManifest(manifest)
+                .provisionedResourceSet(resourceSet)
+                .build();
+
+        var deprovisionedResponse = DeprovisionedResource.Builder.newInstance()
+                .provisionedResourceId("any")
+                .inProcess(true)
+                .build();
+
+        when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(vault.deleteSecret(any())).thenReturn(Result.success());
+        when(provisionManager.deprovision(any(), isA(Policy.class))).thenReturn(completedFuture(List.of(StatusResult.success(deprovisionedResponse))));
+        when(transferProcessStore.nextForState(eq(DEPROVISIONING.code()), anyInt())).thenReturn(List.of(process)).thenReturn(emptyList());
+        when(transferProcessStore.find(process.getId())).thenReturn(process);
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferProcessStore).update(argThat(p -> p.getState() == DEPROVISIONING_REQUESTED.code()));
+            verify(listener).deprovisioningRequested(any());
         });
     }
 
@@ -693,6 +740,17 @@ class TransferProcessManagerImplTest {
             verify(transferProcessStore).update(argThat(p -> p.getState() == ENDED.code()));
             verify(listener).ended(process);
         });
+    }
+
+    private TestProvisionedContentResource createTestProvisionedContentResource(String resourceDefinitionId) {
+        return TestProvisionedContentResource.Builder.newInstance()
+                .resourceName("test")
+                .id("1")
+                .transferProcessId("2")
+                .resourceDefinitionId(resourceDefinitionId)
+                .dataAddress(DataAddress.Builder.newInstance().type("test").build())
+                .hasToken(true)
+                .build();
     }
 
     private TransferProcess createTransferProcess(TransferProcessStates inState) {
