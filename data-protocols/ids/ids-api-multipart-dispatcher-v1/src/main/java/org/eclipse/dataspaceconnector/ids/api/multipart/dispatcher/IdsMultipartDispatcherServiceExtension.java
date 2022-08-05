@@ -78,6 +78,7 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         var idsWebhookAddress = idsApiConfiguration.getIdsWebhookAddress();
 
         var objectMapper = context.getTypeManager().getMapper("ids");
+        var typeManager = context.getTypeManager();
 
         var dispatcher = new IdsMultipartRemoteMessageDispatcher();
         dispatcher.register(new MultipartArtifactRequestSender(connectorId, httpClient, objectMapper, monitor, vault, identityService, transformerRegistry, idsWebhookAddress));
@@ -86,7 +87,7 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         dispatcher.register(new MultipartContractAgreementSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress));
         dispatcher.register(new MultipartContractRejectionSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
         dispatcher.register(new MultipartCatalogDescriptionRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
-        dispatcher.register(new MultipartEndpointDataReferenceRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
+        dispatcher.register(new MultipartEndpointDataReferenceRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry, typeManager));
 
         dispatcherRegistry.register(dispatcher);
     }

@@ -70,7 +70,7 @@ public class EndpointDataReferenceHandler implements Handler {
      */
     @Override
     public @NotNull MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
-        // Read and transform the endpoint data reference from the request payload
+        // Read and transform the endpoint data reference from the request payload (using the default object mapper)
         var edr = typeManager.readValue(multipartRequest.getPayload(), EndpointDataReference.class);
         var transformationResult = transformerRegistry.transform(edr);
         if (transformationResult.failed()) {

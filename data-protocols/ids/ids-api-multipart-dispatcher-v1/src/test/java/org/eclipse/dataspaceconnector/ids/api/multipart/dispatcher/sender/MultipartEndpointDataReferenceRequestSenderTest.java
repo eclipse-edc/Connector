@@ -55,9 +55,10 @@ class MultipartEndpointDataReferenceRequestSenderTest {
         var transformerRegistry = mock(IdsTransformerRegistry.class);
         var identityService = mock(IdentityService.class);
 
-        mapper = IdsTypeManagerUtil.getIdsObjectMapper(new TypeManager());
+        var typeManager = new TypeManager();
+        mapper = IdsTypeManagerUtil.getIdsObjectMapper(typeManager);
 
-        sender = new MultipartEndpointDataReferenceRequestSender(connectorId, httpClient, mapper, monitor, identityService, transformerRegistry);
+        sender = new MultipartEndpointDataReferenceRequestSender(connectorId, httpClient, mapper, monitor, identityService, transformerRegistry, typeManager);
     }
 
     @Test
