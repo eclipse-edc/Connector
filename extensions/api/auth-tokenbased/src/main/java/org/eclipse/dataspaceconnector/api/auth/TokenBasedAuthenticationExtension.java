@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Mercedes-Benz Tech Innovation GmbH - add README.md; authentication key can be retrieved from vault
+ *       Fraunhofer Institute for Software and Systems Engineering - update monitor info
  *
  */
 
@@ -23,8 +24,6 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.util.UUID;
-
-import static java.lang.String.format;
 
 /**
  * Extension that registers an AuthenticationService that uses API Keys
@@ -42,12 +41,15 @@ public class TokenBasedAuthenticationExtension implements ServiceExtension {
     private Vault vault;
 
     @Override
-    public void initialize(ServiceExtensionContext context) {
+    public String name() {
+        return "Static token API Authentication";
+    }
 
+    @Override
+    public void initialize(ServiceExtensionContext context) {
         String apiKey = null;
 
         var apiKeyAlias = context.getSetting(AUTH_SETTING_APIKEY_ALIAS, null);
-
         if (apiKeyAlias != null) {
             apiKey = vault.resolveSecret(apiKeyAlias);
         }
@@ -56,9 +58,6 @@ public class TokenBasedAuthenticationExtension implements ServiceExtension {
             apiKey = context.getSetting(AUTH_SETTING_APIKEY, UUID.randomUUID().toString());
         }
 
-        context.getMonitor().info(format("API Authentication: using static API Key '%s'", apiKey));
-
-        var authService = new TokenBasedAuthenticationService(apiKey);
-        context.registerService(AuthenticationService.class, authService);
+        context.registerService(AuthenticationService.class, new TokenBasedAuthenticationService(apiKey));
     }
 }
