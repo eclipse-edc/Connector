@@ -54,7 +54,7 @@ public class DataManagementApiConfigurationExtension implements ServiceExtension
         var path = "/api";
         var config = context.getConfig(WEB_DATA_CONFIG);
         if (config.getEntries().isEmpty()) {
-            monitor.warning("No [web.http.data.port] or [web.http.data.path] configuration has been provided, therefor the default will be used. " +
+            monitor.warning("No [web.http.data.port] or [web.http.data.path] configuration has been provided, therefore the default will be used. " +
                     "This means that the AuthenticationRequestFilter and the EdcApiExceptionMapper " + "will also be registered for the default context and fire for EVERY request on that context!");
         } else {
             contextAlias = "data";
