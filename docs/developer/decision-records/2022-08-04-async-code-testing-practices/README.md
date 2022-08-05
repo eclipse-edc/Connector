@@ -30,14 +30,14 @@ The following are the changes in each of the tested files:
 
 file `build.gradle.kts` (it should be the same procedure in every module)
 
-```java
-val awaitility:String by project
-        ...
-        dependencies{
-        ...
-        testImplementation("org.awaitility:awaitility:${awaitility}")
-        }
-        ...
+```kotlin
+val awaitility: String by project
+//...
+dependencies {
+    //...
+    testImplementation("org.awaitility:awaitility:${awaitility}")
+}
+//...
 ```
 
 Class `ContractNegotiationCommandQueueIntegrationTest`
@@ -45,160 +45,166 @@ Class `ContractNegotiationCommandQueueIntegrationTest`
 core\contract\src\test\java\org\eclipse\dataspaceconnector\contract\negotiation\command\ContractNegotiationCommandQueueIntegrationTest.java)
 
 ```java
-...
-@Test
-void submitTestCommand_providerManager(){
 
-        var negotiationManager=ProviderContractNegotiationManagerImpl.Builder.newInstance()
-        .monitor(monitor)
-        .validationService(validationService)
-        .dispatcherRegistry(dispatcherRegistry)
-        .commandQueue(commandQueue)
-        .commandRunner(commandRunner)
-        .observable(observable)
-        .store(store)
-        .policyStore(policyStore)
-        .sendRetryManager(sendRetryManager)
-        .build();
+class ContractNegotiationCommandQueueIntegrationTest {
+    //...
+    @Test
+    void submitTestCommand_providerManager() {
+        var negotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
+                .monitor(monitor)
+                .validationService(validationService)
+                .dispatcherRegistry(dispatcherRegistry)
+                .commandQueue(commandQueue)
+                .commandRunner(commandRunner)
+                .observable(observable)
+                .store(store)
+                .policyStore(policyStore)
+                .sendRetryManager(sendRetryManager)
+                .build();
 
         negotiationManager.start();
         negotiationManager.enqueueCommand(command);
 
-        await().untilAsserted(()->{
-        assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.ERROR.code());
-        assertThat(negotiation.getErrorDetail()).isEqualTo(errorDetail);
+        await().untilAsserted(() -> {
+            assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.ERROR.code());
+            assertThat(negotiation.getErrorDetail()).isEqualTo(errorDetail);
         });
 
         negotiationManager.stop();
-        }
+    }
 
-@Test
-void submitTestCommand_consumerManager()throws Exception{
-
+    @Test
+    void submitTestCommand_consumerManager() {
         when(store.find(negotiationId)).thenReturn(negotiation);
 
         // Create and start the negotiation manager
-        var negotiationManager=ConsumerContractNegotiationManagerImpl.Builder.newInstance()
-        .monitor(monitor)
-        .validationService(validationService)
-        .dispatcherRegistry(dispatcherRegistry)
-        .commandQueue(commandQueue)
-        .commandRunner(commandRunner)
-        .observable(observable)
-        .store(store)
-        .policyStore(policyStore)
-        .sendRetryManager(sendRetryManager)
-        .build();
+        var negotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
+                .monitor(monitor)
+                .validationService(validationService)
+                .dispatcherRegistry(dispatcherRegistry)
+                .commandQueue(commandQueue)
+                .commandRunner(commandRunner)
+                .observable(observable)
+                .store(store)
+                .policyStore(policyStore)
+                .sendRetryManager(sendRetryManager)
+                .build();
         negotiationManager.start();
 
         // Enqueue command
         negotiationManager.enqueueCommand(command);
 
         // Wait for CommandHandler to modify negotiation 
-        await().untilAsserted(()->{
-        assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.ERROR.code());
-        assertThat(negotiation.getErrorDetail()).isEqualTo(errorDetail);
+        await().untilAsserted(() -> {
+            assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.ERROR.code());
+            assertThat(negotiation.getErrorDetail()).isEqualTo(errorDetail);
         });
 
         // Stop the negotiation manager
         negotiationManager.stop();
-        }
-        ...
-        }
+    }
+    //...
+}
+
 ```
 
 class `DataPlaneManagerImplTest`
 extensions\data-plane\data-plane-framework\src\test\java\org\eclipse\dataspaceconnector\dataplane\framework\manager\DataPlaneManagerImplTest.java
 
 ```java
-...
-@Test
-void verifyWorkDispatch()throws InterruptedException{
-        var dataPlaneManager=createDataPlaneManager();
+
+class DataPlaneManagerImplTest {
+    //...
+    @Test
+    void verifyWorkDispatch() {
+        var dataPlaneManager = createDataPlaneManager();
 
         when(registry.resolveTransferService(request))
-        .thenReturn(transferService);
+                .thenReturn(transferService);
         when(transferService.canHandle(isA(DataFlowRequest.class)))
-        .thenReturn(true);
+                .thenReturn(true);
 
-        when(transferService.transfer(isA(DataFlowRequest.class))).thenAnswer(i->{
-        return completedFuture(Result.success("ok"));
+        when(transferService.transfer(isA(DataFlowRequest.class))).thenAnswer(i -> {
+            return completedFuture(Result.success("ok"));
         });
 
         performTransfer(dataPlaneManager);
-        await().untilAsserted(()->{
-        verify(registry).resolveTransferService(eq(request));
-        verify(transferService).transfer(isA(DataFlowRequest.class));
+        await().untilAsserted(() -> {
+            verify(registry).resolveTransferService(eq(request));
+            verify(transferService).transfer(isA(DataFlowRequest.class));
         });
-        }
+    }
 
-@Test
-void verifyRetryInitiateTransferRequest(){
-        var dataPlaneManager=createDataPlaneManager();
+    @Test
+    void verifyRetryInitiateTransferRequest() {
+        var dataPlaneManager = createDataPlaneManager();
 
         when(transferService.canHandle(request))
-        .thenReturn(true);
+                .thenReturn(true);
 
         when(transferService.transfer(request))
-        .thenAnswer(i->{
-        throw new RuntimeException("Test exception");
-        }).thenAnswer((i->{
-        return completedFuture(Result.success("ok"));
-        }));
+                .thenAnswer(i -> {
+                    throw new RuntimeException("Test exception");
+                }).thenAnswer((i -> {
+                    return completedFuture(Result.success("ok"));
+                }));
 
         dataPlaneManager.start();
 
         dataPlaneManager.initiateTransfer(request);
         dataPlaneManager.initiateTransfer(request);
 
-        await().untilAsserted(()->verify(transferService,times(2)).transfer(request));
+        await().untilAsserted(() -> verify(transferService, times(2)).transfer(request));
 
         dataPlaneManager.stop();
 
-        }
+    }
 
-@Test
-void verifyWorkDispatch_onUnavailableTransferService_completesTransfer()throws InterruptedException{
-        var dataPlaneManager=createDataPlaneManager();
+    @Test
+    void verifyWorkDispatch_onUnavailableTransferService_completesTransfer() {
+        var dataPlaneManager = createDataPlaneManager();
 
         when(transferService.canHandle(isA(DataFlowRequest.class)))
-        .thenReturn(false);
+                .thenReturn(false);
 
         performTransfer(dataPlaneManager);
-        await().until(()->store.getState(request.getProcessId())==DataPlaneStore.State.COMPLETED);
-        }
-        ...
+        await().until(() -> store.getState(request.getProcessId()) == DataPlaneStore.State.COMPLETED);
+    }
+    //...
+}
 ```
 
 Class `LockManagerTest`
 (common\util\src\test\java\org\eclipse\dataspaceconnector\common\concurrency\LockManagerTest.java)
 
 ```java
-...
-@Test
-void verifyTimeoutOnWriteLockAttempt(){
-        var lockManager=new LockManager(new ReentrantReadWriteLock(),10);
-        var counter=new AtomicInteger();
+class LockManagerTest {
+    //...
+    @Test
+    void verifyTimeoutOnWriteLockAttempt() {
+        var lockManager = new LockManager(new ReentrantReadWriteLock(), 10);
+        var counter = new AtomicInteger();
 
         // Attempt to acquire a write lock in another thread, which should timeout as the current thread holds a read lock
-        var thread=new Thread(()->{
-        try{
-        lockManager.writeLock(()->{
-        throw new AssertionError();  // lock should never be acquired
-        });
-        }catch(LockException e){
-        }
-        });
-
-        lockManager.readLock(()->{
-        thread.start();
-        counter.incrementAndGet();
-        return null;
+        var thread = new Thread(() -> {
+            try {
+                lockManager.writeLock(() -> {
+                    throw new AssertionError();  // lock should never be acquired
+                });
+            } catch (LockException e) {
+            }
         });
 
-        await().untilAsserted(()->assertThat(counter.get()).isEqualTo(1));
-        }
-        ...
+        lockManager.readLock(() -> {
+            thread.start();
+            counter.incrementAndGet();
+            return null;
+        });
+
+        await().untilAsserted(() -> assertThat(counter.get()).isEqualTo(1));
+    }
+    //...
+}        
 ```
 
 class `AssetEventDispatchTest`
@@ -206,21 +212,24 @@ class `AssetEventDispatchTest`
 extensions\api\data-management\asset\src\test\java\org\eclipse\dataspaceconnector\api\datamanagement\asset\service\AssetEventDispatchTest.java)
 
 ```java
-...
-@Test
-void shouldDispatchEventsOnAssetCreationAndDeletion(AssetService service,EventRouter eventRouter)throws InterruptedException{
+public class AssetEventDispatchTest {
+    //...
+    @Test
+    void shouldDispatchEventsOnAssetCreationAndDeletion(AssetService service, EventRouter eventRouter) {
 
         eventRouter.register(eventSubscriber);
-        var asset=Asset.Builder.newInstance().id("assetId").build();
-        var dataAddress=DataAddress.Builder.newInstance().type("any").build();
+        var asset = Asset.Builder.newInstance().id("assetId").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("any").build();
 
-        service.create(asset,dataAddress);
+        service.create(asset, dataAddress);
         service.delete(asset.getId());
 
-        await().untilAsserted(()->{
-        verify(eventSubscriber).on(isA(AssetCreated.class));
-        verify(eventSubscriber).on(isA(AssetDeleted.class));
+        await().untilAsserted(() -> {
+            verify(eventSubscriber).on(isA(AssetCreated.class));
+            verify(eventSubscriber).on(isA(AssetDeleted.class));
         });
+    }
+}
 ```
 
 class `PolicyDefinitionEventDispatchTest`
@@ -228,105 +237,110 @@ class `PolicyDefinitionEventDispatchTest`
 extensions\api\data-management\policydefinition\src\test\java\org\eclipse\dataspaceconnector\api\datamanagement\policy\service\PolicyDefinitionEventDispatchTest.java)
 
 ```java
-...
-@Test
-void shouldDispatchEventOnPolicyDefinitionCreationAndDeletion(PolicyDefinitionService service,EventRouter eventRouter)throws InterruptedException{
+public class PolicyDefinitionEventDispatchTest {
+    //...
+    @Test
+    void shouldDispatchEventOnPolicyDefinitionCreationAndDeletion(PolicyDefinitionService service, EventRouter eventRouter) {
         eventRouter.register(eventSubscriber);
-        var policyDefinition=PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
+        var policyDefinition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
 
         service.create(policyDefinition);
         service.deleteById(policyDefinition.getUid());
 
-        await().untilAsserted(()->{
-        verify(eventSubscriber).on(isA(PolicyDefinitionCreated.class));
-        verify(eventSubscriber).on(isA(PolicyDefinitionDeleted.class));
+        await().untilAsserted(() -> {
+            verify(eventSubscriber).on(isA(PolicyDefinitionCreated.class));
+            verify(eventSubscriber).on(isA(PolicyDefinitionDeleted.class));
         });
-        }
-        ...
+    }
+}
 ```
 
 class `StateMachineManagerTest`
 (common\state-machine-lib\src\test\java\org\eclipse\dataspaceconnector\common\statemachine\StateMachineManagerTest.java)
 
 ```java
-...
-@Test
-    void shouldExecuteProcessorsAsyncAndCanBeStopped(){
+class StateMachineManagerTest {
+    //...
+    @Test
+    void shouldExecuteProcessorsAsyncAndCanBeStopped() {
 
-            var processor=mock(StateProcessor.class);
-        when(processor.process()).thenAnswer(i->{
-        Thread.sleep(100L);
-        return 1L;
+        var processor = mock(StateProcessor.class);
+        when(processor.process()).thenAnswer(i -> {
+            Thread.sleep(100L);
+            return 1L;
         });
-        var stateMachine=StateMachineManager.Builder.newInstance("test",monitor,instrumentation,waitStrategy)
-        .processor(processor)
-        .shutdownTimeout(1)
-        .build();
+        var stateMachine = StateMachineManager.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
+                .processor(processor)
+                .shutdownTimeout(1)
+                .build();
 
         stateMachine.start();
-        await().untilAsserted(()->{
-        verify(processor,atLeastOnce()).process();
-        assertThat(stateMachine.stop()).succeedsWithin(2,SECONDS);
-        verifyNoMoreInteractions(processor);
+        await().untilAsserted(() -> {
+            verify(processor, atLeastOnce()).process();
+            assertThat(stateMachine.stop()).succeedsWithin(2, SECONDS);
+            verifyNoMoreInteractions(processor);
         });
-        }
+    }
 
-@Test
-    void shouldNotWaitForSomeTimeIfTheresAtLeastOneProcessedEntity(){
-            var processor=mock(StateProcessor.class);
+    @Test
+    void shouldNotWaitForSomeTimeIfTheresAtLeastOneProcessedEntity() {
+        var processor = mock(StateProcessor.class);
         when(processor.process()).thenReturn(1L);
-        doAnswer(i->{
-        return 1L;
+        doAnswer(i -> {
+            return 1L;
         }).when(waitStrategy).success();
-        var stateMachine=StateMachineManager.Builder.newInstance("test",monitor,instrumentation,waitStrategy)
-        .processor(processor)
-        .build();
+        var stateMachine = StateMachineManager.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
+                .processor(processor)
+                .build();
 
         stateMachine.start();
-        await().untilAsserted(()->{
-        verify(waitStrategy,never()).waitForMillis();
-        verify(waitStrategy,atLeastOnce()).success();
+        await().untilAsserted(() -> {
+            verify(waitStrategy, never()).waitForMillis();
+            verify(waitStrategy, atLeastOnce()).success();
         });
-        }
+    }
 
-@Test
-    void shouldWaitForSomeTimeIfNoEntityIsProcessed(){
-            var processor=mock(StateProcessor.class);
+    @Test
+    void shouldWaitForSomeTimeIfNoEntityIsProcessed() {
+        var processor = mock(StateProcessor.class);
         when(processor.process()).thenReturn(0L);
-        var waitStrategy=mock(WaitStrategy.class);
-        doAnswer(i->{
-        return 0L;
+        var waitStrategy = mock(WaitStrategy.class);
+        doAnswer(i -> {
+            return 0L;
         }).when(waitStrategy).waitForMillis();
-        var stateMachine=StateMachineManager.Builder.newInstance("test",monitor,instrumentation,waitStrategy)
-        .processor(processor)
-        .build();
+        var stateMachine = StateMachineManager.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
+                .processor(processor)
+                .build();
 
         stateMachine.start();
-        await().untilAsserted(()->{
-        verify(waitStrategy,atLeastOnce()).waitForMillis();
-        verify(waitStrategy,atLeastOnce()).success();
+        await().untilAsserted(() -> {
+            verify(waitStrategy, atLeastOnce()).waitForMillis();
+            verify(waitStrategy, atLeastOnce()).success();
         });
+    }
 
-        ...
+    //...
 
-@Test
-    void shouldWaitRetryTimeWhenAnExceptionIsThrownByAnProcessor(){
-            var processor=mock(StateProcessor.class);
+    @Test
+    void shouldWaitRetryTimeWhenAnExceptionIsThrownByAnProcessor() {
+        var processor = mock(StateProcessor.class);
         when(processor.process()).thenThrow(new EdcException("exception")).thenReturn(0L);
-        when(waitStrategy.retryInMillis()).thenAnswer(i->{
-        return 1L;
+        when(waitStrategy.retryInMillis()).thenAnswer(i -> {
+            return 1L;
         });
-        var stateMachine=StateMachineManager.Builder.newInstance("test",monitor,instrumentation,waitStrategy)
-        .processor(processor)
-        .build();
+        var stateMachine = StateMachineManager.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
+                .processor(processor)
+                .build();
 
         stateMachine.start();
-        await().untilAsserted(()->
+        await().untilAsserted(() ->
         {
-        assertThat(stateMachine.isActive()).isTrue();
-        verify(waitStrategy).retryInMillis();
+            assertThat(stateMachine.isActive()).isTrue();
+            verify(waitStrategy).retryInMillis();
         });
-        }
+    }
+}
+
 ```
 
 class `TransferProcessManagerImplIntegrationTest`
@@ -334,123 +348,134 @@ class `TransferProcessManagerImplIntegrationTest`
 core\transfer\src\test\java\org\eclipse\dataspaceconnector\transfer\core\transfer\TransferProcessManagerImplIntegrationTest.java)
 
 ```java
-...
-@Test
-@DisplayName("Verify that no process 'starves' during two consecutive runs, when the batch size > number of processes")
-    void verifyProvision_shouldNotStarve(){
-            var numProcesses=TRANSFER_MANAGER_BATCHSIZE*2;
-            when(provisionManager.provision(any(),any(Policy.class))).thenAnswer(i->{
-        return completedFuture(List.of(ProvisionResponse.Builder.newInstance().resource(new TestProvisionedDataDestinationResource("any","1")).build()));
+class TransferProcessManagerImplIntegrationTest {
+    //...
+    @Test
+    @DisplayName("Verify that no process 'starves' during two consecutive runs, when the batch size > number of processes")
+    void verifyProvision_shouldNotStarve() {
+        var numProcesses = TRANSFER_MANAGER_BATCHSIZE * 2;
+        when(provisionManager.provision(any(), any(Policy.class))).thenAnswer(i -> {
+            return completedFuture(List.of(ProvisionResponse.Builder.newInstance().resource(new TestProvisionedDataDestinationResource("any", "1")).build()));
         });
 
-        var manifest=ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
-        var processes=IntStream.range(0,numProcesses)
-        .mapToObj(i->provisionedResourceSet())
-        .map(resourceSet->createUnsavedTransferProcess().resourceManifest(manifest).provisionedResourceSet(resourceSet).build())
-        .peek(TransferProcess::transitionInitial)
-        .peek(store::create)
-        .collect(Collectors.toList());
+        var manifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
+        var processes = IntStream.range(0, numProcesses)
+                .mapToObj(i -> provisionedResourceSet())
+                .map(resourceSet -> createUnsavedTransferProcess().resourceManifest(manifest).provisionedResourceSet(resourceSet).build())
+                .peek(TransferProcess::transitionInitial)
+                .peek(store::create)
+                .collect(Collectors.toList());
 
         transferProcessManager.start();
 
-        await().untilAsserted(()->
+        await().untilAsserted(() ->
         {
-        assertThat(processes).describedAs("All transfer processes state should be greater than INITIAL")
-        .allSatisfy(process->{
-        var id=process.getId();
-        var storedProcess=store.find(id);
-        assertThat(storedProcess).describedAs("Should exist in the TransferProcessStore").isNotNull();
-        assertThat(storedProcess.getState()).isGreaterThan(INITIAL.code());
+            assertThat(processes).describedAs("All transfer processes state should be greater than INITIAL")
+                    .allSatisfy(process -> {
+                        var id = process.getId();
+                        var storedProcess = store.find(id);
+                        assertThat(storedProcess).describedAs("Should exist in the TransferProcessStore").isNotNull();
+                        assertThat(storedProcess.getState()).isGreaterThan(INITIAL.code());
+                    });
+            verify(provisionManager, times(numProcesses)).provision(any(), any());
         });
-        verify(provisionManager,times(numProcesses)).provision(any(),any());
-        });
-        ...        
+    }
+    //...
+}
 ```
 
 Class `AzureVaultExtensionTest`
 (extensions\azure\vault\src\test\java\org\eclipse\dataspaceconnector\core\security\azure\AzureVaultExtensionTest.java)
 
 ```java
-@Test
-    void onlyCertificateProvided_authenticateWithCertificate()throws InterruptedException{
-            when(context.getSetting("edc.vault.certificate",null)).thenReturn(CERTIFICATE_PATH);
+class AzureVaultExtensionTest {
+    //...
+    @Test
+    void onlyCertificateProvided_authenticateWithCertificate() {
+        when(context.getSetting("edc.vault.certificate", null)).thenReturn(CERTIFICATE_PATH);
 
-            try(MockedStatic<AzureVault> utilities=mockStatic(AzureVault.class)){
-        utilities.when(()->AzureVault.authenticateWithCertificate(monitor,CLIENT_ID,TENANT_ID,CERTIFICATE_PATH,KEYVAULT_NAME))
-        .then(i->{
-        return null;
-        });
+        try (MockedStatic<AzureVault> utilities = mockStatic(AzureVault.class)) {
+            utilities.when(() -> AzureVault.authenticateWithCertificate(monitor, CLIENT_ID, TENANT_ID, CERTIFICATE_PATH, KEYVAULT_NAME))
+                    .then(i -> {
+                        return null;
+                    });
 
-        extension.initialize(context);
-        await().untilAsserted(()->verify(context,atLeastOnce()));
+            extension.initialize(context);
+            await().untilAsserted(() -> verify(context, atLeastOnce()));
         }
+    }
+
+    @Test
+    void onlySecretProvided_authenticateWithSecret() {
+        when(context.getSetting("edc.vault.clientsecret", null)).thenReturn(CLIENT_SECRET);
+
+        try (MockedStatic<AzureVault> utilities = mockStatic(AzureVault.class)) {
+            utilities.when(() -> AzureVault.authenticateWithSecret(monitor, CLIENT_ID, TENANT_ID, CLIENT_SECRET, KEYVAULT_NAME))
+                    .then(i -> {
+                        return null;
+                    });
+
+            extension.initialize(context);
+            await().untilAsserted(() -> verify(context, atLeastOnce()));
         }
+    }
 
-@Test
-    void onlySecretProvided_authenticateWithSecret()throws InterruptedException{
-            when(context.getSetting("edc.vault.clientsecret",null)).thenReturn(CLIENT_SECRET);
+    @Test
+    void bothSecretAndCertificateProvided_authenticateWithCertificate() {
+        when(context.getSetting("edc.vault.certificate", null)).thenReturn(CERTIFICATE_PATH);
+        when(context.getSetting("edc.vault.clientsecret", null)).thenReturn(CLIENT_SECRET);
 
-            try(MockedStatic<AzureVault> utilities=mockStatic(AzureVault.class)){
-        utilities.when(()->AzureVault.authenticateWithSecret(monitor,CLIENT_ID,TENANT_ID,CLIENT_SECRET,KEYVAULT_NAME))
-        .then(i->{
-        return null;
-        });
+        try (MockedStatic<AzureVault> utilities = mockStatic(AzureVault.class)) {
+            utilities.when(() -> AzureVault.authenticateWithCertificate(monitor, CLIENT_ID, TENANT_ID, CERTIFICATE_PATH, KEYVAULT_NAME))
+                    .then(i -> {
+                        return null;
+                    });
 
-        extension.initialize(context);
-        await().untilAsserted(()->verify(context,atLeastOnce()));
+            extension.initialize(context);
+
+            await().untilAsserted(() -> verify(context, atLeastOnce()));
         }
-        }
-
-@Test
-    void bothSecretAndCertificateProvided_authenticateWithCertificate()throws InterruptedException{
-            when(context.getSetting("edc.vault.certificate",null)).thenReturn(CERTIFICATE_PATH);
-            when(context.getSetting("edc.vault.clientsecret",null)).thenReturn(CLIENT_SECRET);
-
-            try(MockedStatic<AzureVault> utilities=mockStatic(AzureVault.class)){
-        utilities.when(()->AzureVault.authenticateWithCertificate(monitor,CLIENT_ID,TENANT_ID,CERTIFICATE_PATH,KEYVAULT_NAME))
-        .then(i->{
-        return null;
-        });
-
-        extension.initialize(context);
-
-        await().untilAsserted(()->verify(context,atLeastOnce()));
-        }
-        }
+    }
+}
 ```
 
 class 'HttpProvisionerExtensionEndToEndTest'
 extensions\http-provisioner\src\test\java\org\eclipse\dataspaceconnector\transfer\provision\http\impl\HttpProvisionerExtensionEndToEndTest.java
 
 It was necessary to add a variable state that ensures that the invocation is ready, Something that the method
-Awaitility.untilAssert()
-sometimes cannot produce.
+Awaitility.untilAssert() sometimes cannot do.
 
 ```java
-@Test
+public class HttpProvisionerExtensionEndToEndTest {
+    //...
+    @Test
     void processProviderRequestRetry(TransferProcessManager processManager,
-            ContractNegotiationStore negotiationStore,
-            AssetLoader loader,
-            TransferProcessStore store,PolicyDefinitionStore policyStore)throws Exception{
+                                     ContractNegotiationStore negotiationStore,
+                                     AssetLoader loader,
+                                     TransferProcessStore store, PolicyDefinitionStore policyStore) throws Exception {
 
-            var state=new AtomicBoolean(false);
-            when(delegate.intercept(any()))
-            .thenAnswer(invocation->createResponse(503,invocation))
-            .thenAnswer(invocation->{
-            state.set(true);
-            return createResponse(200,invocation);
-            });
+        var state = new AtomicBoolean(false);
+        when(delegate.intercept(any()))
+                .thenAnswer(invocation -> createResponse(503, invocation))
+                .thenAnswer(invocation -> {
+                    state.set(true);
+                    return createResponse(200, invocation);
+                });
 
-            loadNegotiation(negotiationStore,policyStore);
+        loadNegotiation(negotiationStore, policyStore);
 
-            loadAsset(loader);
+        loadAsset(loader);
 
-            var result=processManager.initiateProviderRequest(createRequest());
-            await().untilTrue(state);
-            var transferProcess=store.find(result.getContent());
-            assertThat(transferProcess).isNotNull();
-            assertThat(transferProcess.getState()).isEqualTo(PROVISIONING.code());
-            }
+        var result = processManager.initiateProviderRequest(createRequest());
+        await().untilTrue(state);
+        var transferProcess = store.find(result.getContent());
+        assertThat(transferProcess).isNotNull();
+        assertThat(transferProcess.getState()).isEqualTo(PROVISIONING.code());
+    }
+    //...
+}
+
+
 ```
 
 class `AssetEventDispatchTest`
@@ -458,30 +483,33 @@ class `AssetEventDispatchTest`
 extensions\api\data-management\asset\src\test\java\org\eclipse\dataspaceconnector\api\datamanagement\asset\service\AssetEventDispatchTest.java)
 
 ```java
-...
-@Test
-    void shouldDispatchEventsOnAssetCreationAndDeletion(AssetService service,EventRouter eventRouter)throws InterruptedException{
-            doAnswer(i->{
+public class AssetEventDispatchTest {
+    //...
+    @Test
+    void shouldDispatchEventsOnAssetCreationAndDeletion(AssetService service, EventRouter eventRouter) {
+        doAnswer(i -> {
             return null;
-            }).when(eventSubscriber).on(isA(AssetCreated.class));
+        }).when(eventSubscriber).on(isA(AssetCreated.class));
 
-        doAnswer(i->{
-        return null;
+        doAnswer(i -> {
+            return null;
         }).when(eventSubscriber).on(isA(AssetDeleted.class));
 
         eventRouter.register(eventSubscriber);
-        var asset=Asset.Builder.newInstance().id("assetId").build();
-        var dataAddress=DataAddress.Builder.newInstance().type("any").build();
+        var asset = Asset.Builder.newInstance().id("assetId").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("any").build();
 
-        service.create(asset,dataAddress);
+        service.create(asset, dataAddress);
         service.delete(asset.getId());
 
-        await().untilAsserted(()->{
-        verify(eventSubscriber).on(isA(AssetCreated.class));
-        verify(eventSubscriber).on(isA(AssetDeleted.class));
+        await().untilAsserted(() -> {
+            verify(eventSubscriber).on(isA(AssetCreated.class));
+            verify(eventSubscriber).on(isA(AssetDeleted.class));
         });
-        }
-        ...
+    }
+    //...
+}
+
 ```
 
 class `PolicyDefinitionEventDispatchTest`
@@ -489,28 +517,30 @@ class `PolicyDefinitionEventDispatchTest`
 extensions\api\data-management\policydefinition\src\test\java\org\eclipse\dataspaceconnector\api\datamanagement\policy\service\PolicyDefinitionEventDispatchTest.java)
 
 ```java
-...
-@Test
-    void shouldDispatchEventOnPolicyDefinitionCreationAndDeletion(PolicyDefinitionService service,EventRouter eventRouter)throws InterruptedException{
-            doAnswer(i->{
+public class PolicyDefinitionEventDispatchTest {
+    //...
+    @Test
+    void shouldDispatchEventOnPolicyDefinitionCreationAndDeletion(PolicyDefinitionService service, EventRouter eventRouter) {
+        doAnswer(i -> {
             return null;
-            }).when(eventSubscriber).on(isA(PolicyDefinitionCreated.class));
+        }).when(eventSubscriber).on(isA(PolicyDefinitionCreated.class));
 
-        doAnswer(i->{
-        return null;
+        doAnswer(i -> {
+            return null;
         }).when(eventSubscriber).on(isA(PolicyDefinitionDeleted.class));
 
         eventRouter.register(eventSubscriber);
-        var policyDefinition=PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
+        var policyDefinition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
 
         service.create(policyDefinition);
         service.deleteById(policyDefinition.getUid());
 
-        await().untilAsserted(()->{
-        verify(eventSubscriber).on(isA(PolicyDefinitionCreated.class));
-        verify(eventSubscriber).on(isA(PolicyDefinitionDeleted.class));
+        await().untilAsserted(() -> {
+            verify(eventSubscriber).on(isA(PolicyDefinitionCreated.class));
+            verify(eventSubscriber).on(isA(PolicyDefinitionDeleted.class));
         });
-        }
+    }
+}
 ```
 
 class `TransferProcessManagerImplTest`
