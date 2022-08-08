@@ -111,9 +111,13 @@ public class DefaultsExtension implements ServiceExtension {
 Provider methods configured with `isDefault=true` are only invoked, if the respective service (here: `FooStore`) is not
 provided by any other extension.
 
+> **WARNING**: The `isDefault=true` attribute should be used sparingly. It is typically not needed for technology extensions.
+> Default provider methods are invoked during the _inject_-phase, i.e. while resolving `@Inject`-ed fields, so the code inside the provider method should not reference other fields, that are also `@Inject`-ed because they might not yet be initialized.
+> Their intended use is to provide default implementations for services, not to achieve extensibility.
+
 ### Option 2: register manually
 
-Of course it is also possible to manually register services by invoking the respective method on
+Of course, it is also possible to manually register services by invoking the respective method on
 the `ServiceExtensionContext`
 
 ```java

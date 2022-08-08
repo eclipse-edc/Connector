@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.iam.did;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWK;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.EcPrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubApiController;
@@ -47,7 +48,7 @@ import java.time.Clock;
 import java.util.function.Supplier;
 
 
-@Provides({ IdentityHub.class, IdentityHubClient.class })
+@Provides({ IdentityHub.class, IdentityHubClient.class, DidResolverRegistry.class, DidPublicKeyResolver.class })
 public class IdentityDidCoreExtension implements ServiceExtension {
 
     @Inject
@@ -62,12 +63,6 @@ public class IdentityDidCoreExtension implements ServiceExtension {
     @Inject
     private Clock clock;
 
-    @Inject
-    private DidResolverRegistry didResolverRegistry;
-
-    @Inject
-    private DidPublicKeyResolver publicKeyResolver;
-
     @Override
     public String name() {
         return "Identity Did Core";
@@ -77,9 +72,15 @@ public class IdentityDidCoreExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var objectMapper = context.getTypeManager().getMapper();
 
-        registerParsers(privateKeyResolver);
+        var didResolverRegistry = new DidResolverRegistryImpl();
+        context.registerService(DidResolverRegistry.class, didResolverRegistry);
 
-        PrivateKeyWrapper privateKeyWrapper = privateKeyResolver.resolvePrivateKey(context.getConnectorId(), PrivateKeyWrapper.class);
+        var publicKeyResolver = new DidPublicKeyResolverImpl(didResolverRegistry);
+        context.registerService(DidPublicKeyResolver.class, publicKeyResolver);
+
+        registerParsers(privateKeyResolver);
+        
+        var privateKeyWrapper = privateKeyResolver.resolvePrivateKey(context.getConnectorId(), PrivateKeyWrapper.class);
         Supplier<PrivateKeyWrapper> supplier = () -> privateKeyWrapper;
         var hub = new IdentityHubImpl(hubStore, supplier, publicKeyResolver, objectMapper);
         context.registerService(IdentityHub.class, hub);
@@ -109,29 +110,19 @@ public class IdentityDidCoreExtension implements ServiceExtension {
         return new InMemoryDidDocumentStore(clock);
     }
 
-    @Provider(isDefault = true)
-    public DidResolverRegistry defaultDidResolverRegistry() {
-        return new DidResolverRegistryImpl();
-    }
-
-    @Provider(isDefault = true)
-    public DidPublicKeyResolver defaultDidPublicKeyResolver() {
-        return new DidPublicKeyResolverImpl(didResolverRegistry);
-    }
-
     private void registerParsers(PrivateKeyResolver resolver) {
 
         // add EC-/PEM-Parser
-        resolver.addParser(ECKey.class, (encoded) -> {
+        resolver.addParser(ECKey.class, encoded -> {
             try {
-                return (ECKey) ECKey.parseFromPEMEncodedObjects(encoded);
+                return (ECKey) JWK.parseFromPEMEncodedObjects(encoded);
             } catch (JOSEException e) {
                 throw new EdcException(e);
             }
         });
-        resolver.addParser(PrivateKeyWrapper.class, (encoded) -> {
+        resolver.addParser(PrivateKeyWrapper.class, encoded -> {
             try {
-                var ecKey = (ECKey) ECKey.parseFromPEMEncodedObjects(encoded);
+                var ecKey = (ECKey) JWK.parseFromPEMEncodedObjects(encoded);
                 return new EcPrivateKeyWrapper(ecKey);
             } catch (JOSEException e) {
                 throw new EdcException(e);
