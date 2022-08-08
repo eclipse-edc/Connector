@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class ContractDefinitionInputDtoToContractDefinitionTransformerTest {
 
@@ -47,11 +48,22 @@ class ContractDefinitionInputDtoToContractDefinitionTransformerTest {
 
         var contractDefinition = transformer.transform(contractDefinitionDto, context);
 
+        assertThat(contractDefinition).isNotNull();
         assertThat(contractDefinition.getId()).isEqualTo(contractDefinitionDto.getId());
         assertThat(contractDefinition.getAccessPolicyId()).isEqualTo(contractDefinitionDto.getAccessPolicyId());
         assertThat(contractDefinition.getContractPolicyId()).isEqualTo(contractDefinitionDto.getContractPolicyId());
         assertThat(contractDefinition.getSelectorExpression().getCriteria()).containsExactlyElementsOf(contractDefinitionDto.getCriteria());
         assertThat(contractDefinition.getCreatedAt()).isNotEqualTo(0L); //should be set automatically
+    }
+
+    @Test
+    void transform_nullInput() {
+        var context = mock(TransformerContext.class);
+
+        var definition = transformer.transform(null, context);
+
+        assertThat(definition).isNull();
+        verify(context).reportProblem("input contract definition is null");
     }
 
 }

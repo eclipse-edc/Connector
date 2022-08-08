@@ -21,6 +21,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
 public class AssetInputDtoToAssetTransformer implements DtoTransformer<AssetInputDto, Asset> {
 
     @Override
@@ -35,9 +37,16 @@ public class AssetInputDtoToAssetTransformer implements DtoTransformer<AssetInpu
 
     @Override
     public @Nullable Asset transform(@Nullable AssetInputDto object, @NotNull TransformerContext context) {
-        return Asset.Builder.newInstance()
-                .id(object.getId())
-                .properties(object.getProperties())
-                .build();
+        return Optional.ofNullable(object)
+                .map(input -> Asset.Builder.newInstance()
+                        .id(input.getId())
+                        .properties(input.getProperties())
+                        .build()
+                )
+                .orElseGet(() -> {
+                    context.reportProblem("input asset is null");
+                    return null;
+                });
+
     }
 }

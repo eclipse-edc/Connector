@@ -16,9 +16,9 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetInputDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetOutputDto;
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.DataAddressDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.service.AssetService;
 import org.eclipse.dataspaceconnector.api.query.QuerySpecDto;

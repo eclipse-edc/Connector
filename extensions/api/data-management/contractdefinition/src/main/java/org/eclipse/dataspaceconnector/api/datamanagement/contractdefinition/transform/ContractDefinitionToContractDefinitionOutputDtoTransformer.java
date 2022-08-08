@@ -21,6 +21,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDe
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
 public class ContractDefinitionToContractDefinitionOutputDtoTransformer implements DtoTransformer<ContractDefinition, ContractDefinitionOutputDto> {
 
     @Override
@@ -35,12 +37,18 @@ public class ContractDefinitionToContractDefinitionOutputDtoTransformer implemen
 
     @Override
     public @Nullable ContractDefinitionOutputDto transform(@Nullable ContractDefinition object, @NotNull TransformerContext context) {
-        return ContractDefinitionOutputDto.Builder.newInstance()
-                .id(object.getId())
-                .accessPolicyId(object.getAccessPolicyId())
-                .createdAt(object.getCreatedAt())
-                .contractPolicyId(object.getContractPolicyId())
-                .criteria(object.getSelectorExpression().getCriteria())
-                .build();
+        return Optional.ofNullable(object)
+                .map(input -> ContractDefinitionOutputDto.Builder.newInstance()
+                        .id(object.getId())
+                        .accessPolicyId(object.getAccessPolicyId())
+                        .createdAt(object.getCreatedAt())
+                        .contractPolicyId(object.getContractPolicyId())
+                        .criteria(object.getSelectorExpression().getCriteria())
+                        .build()
+                )
+                .orElseGet(() -> {
+                    context.reportProblem("input contract definition is null");
+                    return null;
+                });
     }
 }

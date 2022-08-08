@@ -91,8 +91,8 @@ public class Asset extends Entity {
         }
 
         @JsonCreator
-        public static Builder newInstance() {
-            return new Builder(new Asset());
+        public static <B extends Builder<B>> Builder<B> newInstance() {
+            return new Builder<>(new Asset());
         }
 
         @Override

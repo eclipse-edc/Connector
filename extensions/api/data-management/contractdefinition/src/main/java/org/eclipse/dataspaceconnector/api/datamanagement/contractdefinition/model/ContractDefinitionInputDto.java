@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *  Copyright (c) 2020 - 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,8 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - initial API and implementation
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
 
@@ -33,7 +32,7 @@ public class ContractDefinitionInputDto {
     private String id;
     @NotNull(message = "accessPolicyId cannot be null")
     private String accessPolicyId;
-    @NotNull(message = "accessPolicyId cannot be null")
+    @NotNull(message = "contractPolicyId cannot be null")
     private String contractPolicyId;
     @NotNull(message = "criteria cannot be null")
     private List<Criterion> criteria = new ArrayList<>();

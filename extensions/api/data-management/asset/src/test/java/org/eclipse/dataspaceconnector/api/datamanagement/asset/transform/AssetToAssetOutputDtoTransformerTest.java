@@ -22,6 +22,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class AssetToAssetOutputDtoTransformerTest {
 
@@ -40,8 +41,19 @@ class AssetToAssetOutputDtoTransformerTest {
 
         var assetDto = transformer.transform(asset, context);
 
+        assertThat(assetDto).isNotNull();
         assertThat(assetDto.getProperties()).containsExactlyEntriesOf(asset.getProperties());
         assertThat(assetDto.getCreatedAt()).isEqualTo(asset.getCreatedAt());
         assertThat(assetDto.getId()).isEqualTo(asset.getId());
+    }
+
+    @Test
+    void transform_nullInput() {
+        var context = mock(TransformerContext.class);
+
+        var asset = transformer.transform(null, context);
+
+        assertThat(asset).isNull();
+        verify(context).reportProblem("input asset is null");
     }
 }
