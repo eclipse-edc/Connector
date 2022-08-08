@@ -19,12 +19,11 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
+import org.eclipse.dataspaceconnector.spi.transformer.TransformerContextImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -44,7 +43,7 @@ public class IdsTransformerRegistryImpl implements IdsTransformerRegistry {
     public <INPUT, OUTPUT> Result<OUTPUT> transform(@NotNull INPUT object, @NotNull Class<OUTPUT> outputType) {
         var context = new TransformerContextImpl(this);
         var output = transform(object, outputType, context);
-        return context.hasProblems() ? Result.failure(context.problems) : Result.success(output);
+        return context.hasProblems() ? Result.failure(context.getProblems()) : Result.success(output);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -117,32 +116,4 @@ public class IdsTransformerRegistryImpl implements IdsTransformerRegistry {
         }
     }
 
-    private static class TransformerContextImpl implements TransformerContext {
-        private final List<String> problems = new ArrayList<>();
-        private final IdsTransformerRegistryImpl registry;
-
-        TransformerContextImpl(IdsTransformerRegistryImpl registry) {
-            this.registry = registry;
-        }
-
-        @Override
-        public boolean hasProblems() {
-            return !problems.isEmpty();
-        }
-
-        @Override
-        public List<String> getProblems() {
-            return problems;
-        }
-
-        @Override
-        public void reportProblem(String problem) {
-            problems.add(problem);
-        }
-
-        @Override
-        public <INPUT, OUTPUT> @Nullable OUTPUT transform(INPUT object, Class<OUTPUT> outputType) {
-            return registry.transform(object, outputType, this);
-        }
-    }
 }

@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 import java.net.URI;
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -95,7 +94,7 @@ class AssetToIdsArtifactTransformerTest {
 
     @Test
     void testSuccessfulMap() {
-        var properties = new HashMap<>(Map.of(TransformKeys.KEY_ASSET_FILE_NAME, ASSET_FILENAME, TransformKeys.KEY_ASSET_BYTE_SIZE, ASSET_BYTESIZE));
+        var properties = Map.<String, Object>of(TransformKeys.KEY_ASSET_FILE_NAME, ASSET_FILENAME, TransformKeys.KEY_ASSET_BYTE_SIZE, ASSET_BYTESIZE);
         var asset = Asset.Builder.newInstance().properties(properties).id(ASSET_ID).build();
 
         var result = transformer.transform(asset, context);
