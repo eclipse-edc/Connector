@@ -21,11 +21,11 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
-import org.eclipse.dataspaceconnector.api.model.BaseOutputDto;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @JsonDeserialize(builder = ContractDefinitionInputDto.Builder.class)
 public class ContractDefinitionInputDto {
@@ -41,10 +41,13 @@ public class ContractDefinitionInputDto {
     private ContractDefinitionInputDto() {
     }
 
-    @AssertTrue(message = "id cannot contain the ':' character")
+    @AssertTrue(message = "id must be either be null or not blank, and it cannot contain the ':' character")
     @JsonIgnore
     public boolean isIdValid() {
-        return id != null && !id.contains(":");
+        return Optional.of(this)
+                .map(it -> it.id)
+                .map(it -> !it.isBlank() && !it.contains(":"))
+                .orElse(true);
     }
 
     public String getAccessPolicyId() {

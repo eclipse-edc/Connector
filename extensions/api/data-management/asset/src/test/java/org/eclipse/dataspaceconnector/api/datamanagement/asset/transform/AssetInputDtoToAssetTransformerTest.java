@@ -15,11 +15,10 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.transform;
 
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetInputDto;
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetOutputDto;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,12 +35,35 @@ class AssetInputDtoToAssetTransformerTest {
     }
 
     @Test
-    void transform() {
+    void transform_id() {
         var context = mock(TransformerContext.class);
-        var assetDto = AssetInputDto.Builder.newInstance().properties(new HashMap<>(Map.of("key", "value"))).build();
+        var assetDto = AssetInputDto.Builder.newInstance().id("assetId").properties(Map.of("key", "value")).build();
 
         var asset = transformer.transform(assetDto, context);
 
+        assertThat(asset.getId()).isEqualTo("assetId");
+        assertThat(asset.getProperties()).containsAllEntriesOf(assetDto.getProperties());
+    }
+
+    @Test
+    void transform_nullId() {
+        var context = mock(TransformerContext.class);
+        var assetDto = AssetInputDto.Builder.newInstance().properties(Map.of("key", "value")).build();
+
+        var asset = transformer.transform(assetDto, context);
+
+        assertThat(asset.getId()).isNotBlank();
+        assertThat(asset.getProperties()).containsAllEntriesOf(assetDto.getProperties());
+    }
+
+    @Test
+    void transform_idFromProperties() {
+        var context = mock(TransformerContext.class);
+        var assetDto = AssetInputDto.Builder.newInstance().properties(Map.of(Asset.PROPERTY_ID, "assetId", "key", "value")).build();
+
+        var asset = transformer.transform(assetDto, context);
+
+        assertThat(asset.getId()).isEqualTo("assetId");
         assertThat(asset.getProperties()).containsExactlyEntriesOf(assetDto.getProperties());
     }
 }

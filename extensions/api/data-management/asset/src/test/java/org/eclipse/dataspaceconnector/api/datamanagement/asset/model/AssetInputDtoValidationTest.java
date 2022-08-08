@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class DtoValidationTest {
+class AssetInputDtoValidationTest {
 
     private Validator validator;
 
@@ -66,5 +66,16 @@ class DtoValidationTest {
         var result = validator.validate(asset);
 
         assertThat(result).anySatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("properties cannot be null"));
+    }
+
+    @Test
+    void verifyValidation_assetDto_blankId() {
+        var asset = AssetInputDto.Builder.newInstance()
+                .id(" ")
+                .build();
+
+        var result = validator.validate(asset);
+
+        assertThat(result).anySatisfy(cv -> assertThat(cv.getMessage()).isEqualTo("id must be either null or not blank"));
     }
 }

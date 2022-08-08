@@ -22,6 +22,7 @@ import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.Map;
+import java.util.Optional;
 
 @JsonDeserialize(builder = AssetInputDto.Builder.class)
 public class AssetInputDto {
@@ -38,6 +39,15 @@ public class AssetInputDto {
     @AssertTrue(message = "no empty property keys")
     public boolean isValid() {
         return properties != null && properties.keySet().stream().noneMatch(it -> it == null || it.isBlank());
+    }
+
+    @JsonIgnore
+    @AssertTrue(message = "id must be either null or not blank")
+    public boolean isIdValid() {
+        return Optional.of(this)
+                .map(it -> it.id)
+                .map(it -> !id.isBlank())
+                .orElse(true);
     }
 
     public Map<String, Object> getProperties() {

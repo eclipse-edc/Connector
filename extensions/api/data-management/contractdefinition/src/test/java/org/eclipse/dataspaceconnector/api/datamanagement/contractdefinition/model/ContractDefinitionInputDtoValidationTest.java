@@ -19,7 +19,6 @@ import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -29,9 +28,10 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ContractDefinitionDtoValidationTest {
+class ContractDefinitionInputDtoValidationTest {
 
     private Validator validator;
 
@@ -43,9 +43,23 @@ class ContractDefinitionDtoValidationTest {
     }
 
     @ParameterizedTest
+    @ArgumentsSource(ValidArgsProvider.class)
+    void validate_valid(String id, String accessPolicyId, String contractPolicyId, List<Criterion> criteria) {
+        var dto = ContractDefinitionInputDto.Builder.newInstance()
+                .id(id)
+                .accessPolicyId(accessPolicyId)
+                .contractPolicyId(contractPolicyId)
+                .criteria(criteria)
+                .build();
+
+        var result = validator.validate(dto);
+
+        assertThat(result).isEmpty();
+    }
+
+    @ParameterizedTest
     @ArgumentsSource(InvalidArgsProvider.class)
-    void validate_invalidProperty(String id, String accessPolicyId, String contractPolicyId) {
-        var criteria = List.of(new Criterion("foo", "=", "bar"));
+    void validate_invalid(String id, String accessPolicyId, String contractPolicyId, List<Criterion> criteria) {
         var dto = ContractDefinitionInputDto.Builder.newInstance()
                 .id(id)
                 .accessPolicyId(accessPolicyId)
@@ -58,25 +72,26 @@ class ContractDefinitionDtoValidationTest {
         assertThat(result).hasSizeGreaterThan(0);
     }
 
-    @Test
-    void validate_nullCriteria() {
-        var dto = ContractDefinitionInputDto.Builder.newInstance()
-                .id("id")
-                .accessPolicyId("accessPolicyId")
-                .contractPolicyId("contractPolicyId")
-                .criteria(null)
-                .build();
-        assertThat(validator.validate(dto)).hasSize(1);
+    private static class ValidArgsProvider implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    Arguments.of(null, "accessPolicy", "contractPolicy", List.of(new Criterion("foo", "=", "bar"))),
+                    Arguments.of("id", "accessPolicy", "contractPolicy", List.of(new Criterion("foo", "=", "bar"))),
+                    Arguments.of("id", "accessPolicy", "contractPolicy", emptyList())
+            );
+        }
     }
 
     private static class InvalidArgsProvider implements ArgumentsProvider {
         @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    Arguments.of(null, "accessPolicy", "contractPolicy"),
-                    Arguments.of("id", null, "contractPolicy"),
-                    Arguments.of("id", "accessPolicy", null),
-                    Arguments.of("id:123", "accessPolicy", "contractPolicy")
+                    Arguments.of(" ", "accessPolicy", "contractPolicy", emptyList()),
+                    Arguments.of("id", null, "contractPolicy", emptyList()),
+                    Arguments.of("id", "accessPolicy", null, emptyList()),
+                    Arguments.of("id", "accessPolicy", "contractPolicy", null),
+                    Arguments.of("id:123", "accessPolicy", "contractPolicy", emptyList())
             );
         }
     }
