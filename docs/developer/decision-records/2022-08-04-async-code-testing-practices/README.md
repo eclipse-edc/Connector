@@ -15,10 +15,8 @@ The idea is to avoid using `CoundDownLatch` and start only using `Awaitility`.
 ## Rationale
 
 Testing asynchronous systems is difficult. It requires not only handling threads, timeouts and concurrency issues, but
-also the intent of the test code can be obscured by all these details e.g while using CountDownLatch. Awaitility is a
-DSL that allows to express expectations of an asynchronous system in a conciser and easier to read manner. Additionally
-CoundDownLatch works only based on latches while Awaitility works based on time (seconds, nanoseconds), which can be
-more useful to do time testing on threads.
+also the intent of the test code can be obscured by all these details. Awaitility is a DSL that allows to express
+expectations of an asynchronous system in a conciser and easier to read manner than CountdownLatch.
 
 ## Approach
 
@@ -26,86 +24,7 @@ Awaitility permits to check multiple asynchronous behaviors at the same time wit
 untilAsserted block that will by default poll the assertions every 100 ms until either the assertions are valid or the
 timeout expires which is by default 10 seconds.
 
-The following are the changes in some of the tested files (before and after):
-
-file `build.gradle.kts` (it should be the same procedure in every module)
-
-### Class `ContractNegotiationCommandQueueIntegrationTest`
-
-(
-core\contract\src\test\java\org\eclipse\dataspaceconnector\contract\negotiation\command\ContractNegotiationCommandQueueIntegrationTest.java)
-
-#### With CountDownLatch
-
-```java
-
-class ContractNegotiationCommandQueueIntegrationTest {
-    //..
-    @Test
-    void submitTestCommand_providerManager() throws Exception {
-        var negotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
-                .monitor(monitor)
-                .validationService(validationService)
-                .dispatcherRegistry(dispatcherRegistry)
-                .commandQueue(commandQueue)
-                .commandRunner(commandRunner)
-                .observable(observable)
-                .store(store)
-                .policyStore(policyStore)
-                .sendRetryManager(sendRetryManager)
-                .build();
-
-        negotiationManager.start();
-
-        negotiationManager.enqueueCommand(command);
-
-        // Wait for CommandHandler to modify negotiation with time out at 15 seconds
-        var success = countDownLatch.await(15, TimeUnit.SECONDS);
-
-        assertThat(success).isTrue();
-
-        assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.ERROR.code());
-        assertThat(negotiation.getErrorDetail()).isEqualTo(errorDetail);
-
-        // Stop the negotiation manager
-        negotiationManager.stop();
-    }
-}
-```
-
-#### With awaitility
-
-```java
-
-class ContractNegotiationCommandQueueIntegrationTest {
-    //...
-    @Test
-    void submitTestCommand_providerManager() {
-        var negotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
-                .monitor(monitor)
-                .validationService(validationService)
-                .dispatcherRegistry(dispatcherRegistry)
-                .commandQueue(commandQueue)
-                .commandRunner(commandRunner)
-                .observable(observable)
-                .store(store)
-                .policyStore(policyStore)
-                .sendRetryManager(sendRetryManager)
-                .build();
-
-        negotiationManager.start();
-        negotiationManager.enqueueCommand(command);
-
-        await().untilAsserted(() -> {
-            assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.ERROR.code());
-            assertThat(negotiation.getErrorDetail()).isEqualTo(errorDetail);
-        });
-
-        negotiationManager.stop();
-    }
-}
-
-```
+The following is a comparative of the current code with CountDownLatch and the proposal with Awaitility in one test:
 
 ### class `AssetEventDispatchTest`
 
@@ -170,10 +89,12 @@ public class AssetEventDispatchTest {
         var dataAddress = DataAddress.Builder.newInstance().type("any").build();
 
         service.create(asset, dataAddress);
-        service.delete(asset.getId());
-
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(isA(AssetCreated.class));
+        });
+
+        service.delete(asset.getId());
+        await().untilAsserted(() -> {
             verify(eventSubscriber).on(isA(AssetDeleted.class));
         });
     }
