@@ -53,13 +53,16 @@ class CancelTransferCommandHandlerTest {
     void handle() {
         var cmd = new CancelTransferCommand("test-id");
         var tp = TransferProcess.Builder.newInstance().id("test-id").state(TransferProcessStates.IN_PROGRESS.code())
+                .updatedAt(124123) //some invalid time
                 .type(TransferProcess.Type.CONSUMER).build();
+        var originalDate = tp.getUpdatedAt();
 
         when(store.find(anyString())).thenReturn(tp);
         handler.handle(cmd);
 
         assertThat(tp.getState()).isEqualTo(TransferProcessStates.CANCELLED.code());
         assertThat(tp.getErrorDetail()).isNull();
+        assertThat(tp.getUpdatedAt()).isNotEqualTo(originalDate);
 
         verify(store).find(anyString());
         verify(store).update(tp);
@@ -72,10 +75,13 @@ class CancelTransferCommandHandlerTest {
     void handle_illegalState(TransferProcessStates targetState) {
         var tp = TransferProcess.Builder.newInstance().id("test-id").state(targetState.code())
                 .type(TransferProcess.Type.CONSUMER).build();
+        var originalDate = tp.getUpdatedAt();
         var cmd = new CancelTransferCommand("test-id");
 
         when(store.find(anyString())).thenReturn(tp);
         handler.handle(cmd);
+
+        assertThat(tp.getUpdatedAt()).isEqualTo(originalDate);
 
         verify(store).find(anyString());
         verifyNoMoreInteractions(store);

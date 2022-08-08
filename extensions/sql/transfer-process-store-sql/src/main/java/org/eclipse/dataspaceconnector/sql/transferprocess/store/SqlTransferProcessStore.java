@@ -219,6 +219,7 @@ public class SqlTransferProcessStore implements TransferProcessStore {
                 toJson(process.getProvisionedResourceSet()),
                 toJson(process.getContentDataAddress()),
                 toJson(process.getDeprovisionedResources()),
+                process.getUpdatedAt(),
                 process.getId());
 
         var newDr = process.getDataRequest();
@@ -269,7 +270,8 @@ public class SqlTransferProcessStore implements TransferProcessStore {
                         process.getState(),
                         process.getStateCount(),
                         process.getStateTimestamp(),
-                        process.getCreatedTimestamp(),
+                        process.getCreatedAt(),
+                        process.getUpdatedAt(),
                         toJson(process.getTraceContext()),
                         process.getErrorDetail(),
                         toJson(process.getResourceManifest()),
@@ -310,7 +312,8 @@ public class SqlTransferProcessStore implements TransferProcessStore {
         return TransferProcess.Builder.newInstance()
                 .id(resultSet.getString(statements.getIdColumn()))
                 .type(TransferProcess.Type.valueOf(resultSet.getString(statements.getTypeColumn())))
-                .createdTimestamp(resultSet.getLong(statements.getCreatedTimestampColumn()))
+                .createdAt(resultSet.getLong(statements.getCreatedAtColumn()))
+                .updatedAt(resultSet.getLong(statements.getUpdatedAtColumn()))
                 .state(resultSet.getInt(statements.getStateColumn()))
                 .stateTimestamp(resultSet.getLong(statements.getStateTimestampColumn()))
                 .stateCount(resultSet.getInt(statements.getStateCountColumn()))

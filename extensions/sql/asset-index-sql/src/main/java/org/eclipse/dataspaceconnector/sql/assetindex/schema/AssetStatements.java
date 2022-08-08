@@ -86,6 +86,10 @@ public interface AssetStatements {
         return "asset_id_fk";
     }
 
+    default String getCreatedAtColumn() {
+        return "created_at";
+    }
+
     /**
      * INSERT clause for assets.
      */
@@ -149,4 +153,9 @@ public interface AssetStatements {
      * @return A {@link SqlQueryStatement} that contains the SQL and statement parameters
      */
     SqlQueryStatement createQuery(QuerySpec query);
+
+    /**
+     * Select single asset by ID
+     */
+    String getSelectAssetByIdTemplate();
 }

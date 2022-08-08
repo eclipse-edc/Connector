@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.DataAddressDto;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 import java.util.Collections;
 import java.util.Map;
@@ -25,7 +24,7 @@ import java.util.Map;
 public class TestFunctions {
 
     static AssetEntryDto createAssetEntryDto(String id) {
-        var assetDto = AssetDto.Builder.newInstance().properties(Map.of(Asset.PROPERTY_ID, id, "Asset-1", "An Asset")).build();
+        var assetDto = AssetDto.Builder.newInstance().id(id).properties(Map.of("Asset-1", "An Asset")).build();
         var dataAddress = DataAddressDto.Builder.newInstance().properties(Map.of("type", "type", "asset-1", "/localhost")).build();
         return AssetEntryDto.Builder.newInstance().asset(assetDto).dataAddress(dataAddress).build();
     }

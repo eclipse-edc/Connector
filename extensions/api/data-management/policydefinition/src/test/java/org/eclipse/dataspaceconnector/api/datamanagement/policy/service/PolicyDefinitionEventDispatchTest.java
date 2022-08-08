@@ -16,12 +16,12 @@ package org.eclipse.dataspaceconnector.api.datamanagement.policy.service;
 
 import org.eclipse.dataspaceconnector.junit.extensions.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.event.Event;
 import org.eclipse.dataspaceconnector.spi.event.EventRouter;
 import org.eclipse.dataspaceconnector.spi.event.EventSubscriber;
 import org.eclipse.dataspaceconnector.spi.event.policydefinition.PolicyDefinitionCreated;
 import org.eclipse.dataspaceconnector.spi.event.policydefinition.PolicyDefinitionDeleted;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

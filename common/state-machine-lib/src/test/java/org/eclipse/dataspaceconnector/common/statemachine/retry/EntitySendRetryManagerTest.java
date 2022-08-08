@@ -73,7 +73,7 @@ class EntitySendRetryManagerTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {-2, -1, 0, 1, 2})
+    @ValueSource(ints = { -2, -1, 0, 1, 2 })
     void retriesExhausted(int retriesLeft) {
         var stateCount = sendRetryLimit - retriesLeft;
         var stateTimestamp = faker.number().randomNumber();
@@ -111,23 +111,23 @@ class EntitySendRetryManagerTest {
         @JsonPOJOBuilder(withPrefix = "")
         public static class Builder extends StatefulEntity.Builder<TestEntity, Builder> {
 
-            @Override
-            public Builder self() {
-                return this;
-            }
-
             private Builder(TestEntity entity) {
                 super(entity);
-            }
-
-            @Override
-            protected TestEntity build() {
-                return super.build();
             }
 
             @JsonCreator
             public static Builder newInstance() {
                 return new Builder(new TestEntity());
+            }
+
+            @Override
+            public Builder self() {
+                return this;
+            }
+
+            @Override
+            protected TestEntity build() {
+                return super.build();
             }
         }
     }

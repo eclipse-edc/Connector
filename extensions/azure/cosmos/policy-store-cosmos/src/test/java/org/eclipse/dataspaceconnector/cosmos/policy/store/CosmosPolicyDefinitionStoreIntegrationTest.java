@@ -28,7 +28,7 @@ import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -224,7 +224,7 @@ public class CosmosPolicyDefinitionStoreIntegrationTest {
 
         var expectedId = documents.get(3).getId();
 
-        var query = QuerySpec.Builder.newInstance().filter("uid=" + expectedId).build();
+        var query = QuerySpec.Builder.newInstance().filter("id=" + expectedId).build();
         assertThat(store.findAll(query)).extracting(PolicyDefinition::getUid).containsOnly(expectedId);
     }
 
@@ -252,9 +252,9 @@ public class CosmosPolicyDefinitionStoreIntegrationTest {
 
         IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PARTITION_KEY)).forEach(d -> container.createItem(d));
 
-        var ascendingQuery = QuerySpec.Builder.newInstance().sortField("uid").sortOrder(SortOrder.ASC).build();
+        var ascendingQuery = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build();
         assertThat(store.findAll(ascendingQuery)).hasSize(10).isSortedAccordingTo(Comparator.comparing(PolicyDefinition::getUid));
-        var descendingQuery = QuerySpec.Builder.newInstance().sortField("uid").sortOrder(SortOrder.DESC).build();
+        var descendingQuery = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build();
         assertThat(store.findAll(descendingQuery)).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getUid().compareTo(c1.getUid()));
     }
 

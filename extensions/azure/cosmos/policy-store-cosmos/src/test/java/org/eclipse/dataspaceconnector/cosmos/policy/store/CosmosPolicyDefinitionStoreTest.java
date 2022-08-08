@@ -18,8 +18,8 @@ import com.azure.cosmos.models.SqlQuerySpec;
 import dev.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDbApi;
 import org.eclipse.dataspaceconnector.azure.cosmos.CosmosDocument;
-import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -187,7 +187,7 @@ class CosmosPolicyDefinitionStoreTest {
         when(cosmosDbApiMock.queryAllItems()).thenReturn(List.of(doc));
         store.reload();
 
-        var all = store.findAll(QuerySpec.Builder.newInstance().filter("uid=" + doc.getId()).build());
+        var all = store.findAll(QuerySpec.Builder.newInstance().filter("id=" + doc.getId()).build());
         assertThat(all).hasSize(1).extracting(PolicyDefinition::getUid).containsOnly(doc.getId());
         verify(cosmosDbApiMock).queryAllItems();
         verifyNoMoreInteractions(cosmosDbApiMock);
@@ -203,7 +203,7 @@ class CosmosPolicyDefinitionStoreTest {
         when(cosmosDbApiMock.queryAllItems()).thenReturn(IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PART_KEY)).sorted(Comparator.comparing(PolicyDocument::getId).reversed()).collect(Collectors.toList()));
         store.reload();
 
-        var all = store.findAll(QuerySpec.Builder.newInstance().sortField("uid").sortOrder(SortOrder.DESC).build()).collect(Collectors.toList());
+        var all = store.findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build()).collect(Collectors.toList());
         assertThat(all).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getUid().compareTo(c1.getUid()));
 
         verify(cosmosDbApiMock).queryAllItems();
@@ -215,7 +215,7 @@ class CosmosPolicyDefinitionStoreTest {
         when(cosmosDbApiMock.queryAllItems()).thenReturn(IntStream.range(0, 10).mapToObj(i -> generateDocument(TEST_PART_KEY)).sorted(Comparator.comparing(PolicyDocument::getId)).collect(Collectors.toList()));
         store.reload();
 
-        var all = store.findAll(QuerySpec.Builder.newInstance().sortField("uid").sortOrder(SortOrder.ASC).build()).collect(Collectors.toList());
+        var all = store.findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build()).collect(Collectors.toList());
         assertThat(all).hasSize(10).isSortedAccordingTo(Comparator.comparing(PolicyDefinition::getUid));
 
         verify(cosmosDbApiMock).queryAllItems();

@@ -47,6 +47,8 @@ class AssetTest {
                 .contains("testasset")
                 .contains("some-critical.value")
                 .contains("21347")
+                .contains("\"id\":\"abcd123\"")
+                .contains("createdAt")
                 .contains("1.0");
     }
 
@@ -60,7 +62,7 @@ class AssetTest {
         assertThat(asset.getContentType()).isEqualTo("application/json");
         assertThat(asset.getName()).isNull();
         assertThat(asset.getProperty("numberVal")).isInstanceOf(Integer.class).isEqualTo(42069);
-
+        assertThat(asset.getCreatedAt()).isNotEqualTo(0);
         assertThat(asset.getProperties()).hasSize(5);
 
     }

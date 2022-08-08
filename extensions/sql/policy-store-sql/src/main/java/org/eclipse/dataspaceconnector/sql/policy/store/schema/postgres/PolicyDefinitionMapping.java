@@ -14,11 +14,12 @@
 
 package org.eclipse.dataspaceconnector.sql.policy.store.schema.postgres;
 
+import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.sql.policy.store.schema.SqlPolicyStoreStatements;
 import org.eclipse.dataspaceconnector.sql.translation.TranslationMapping;
 
 /**
- * Maps fields of a {@link org.eclipse.dataspaceconnector.policy.model.PolicyDefinition} onto the corresponding SQL
+ * Maps fields of a {@link PolicyDefinition} onto the corresponding SQL
  * schema (= column names) enabling access through Postgres JSON operators where applicable
  */
 public class PolicyDefinitionMapping extends TranslationMapping {

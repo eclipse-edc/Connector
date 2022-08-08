@@ -166,6 +166,9 @@ components:
           type: string
         contractPolicyId:
           type: string
+        createdAt:
+          type: integer
+          format: int64
         criteria:
           type: array
           items:

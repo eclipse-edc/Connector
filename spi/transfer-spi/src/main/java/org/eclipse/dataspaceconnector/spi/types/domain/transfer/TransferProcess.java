@@ -147,6 +147,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
             provisionedResourceSet = ProvisionedResourceSet.Builder.newInstance().transferProcessId(id).build();
         }
         provisionedResourceSet.addResource(resource);
+        setModified();
+
     }
 
     public void setContentDataAddress(DataAddress dataAddress) {
@@ -155,6 +157,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     public void addDeprovisionedResource(DeprovisionedResource resource) {
         deprovisionedResources.add(resource);
+        setModified();
     }
 
     @Nullable
@@ -296,6 +299,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         state = ERROR.code();
         stateCount = 1;
         updateStateTimestamp();
+        setModified();
     }
 
     @Override

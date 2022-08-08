@@ -29,17 +29,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class CancelNegotiationCommandHandlerTest {
-    
+
     private CancelNegotiationCommandHandler commandHandler;
-    
+
     private ContractNegotiationStore store;
-    
+
     @BeforeEach
     public void setUp() {
         store = mock(ContractNegotiationStore.class);
         commandHandler = new CancelNegotiationCommandHandler(store);
     }
-    
+
     @Test
     void handle_negotiationExists_cancelNegotiation() {
         var negotiationId = "test";
@@ -47,33 +47,36 @@ class CancelNegotiationCommandHandlerTest {
                 .id(negotiationId)
                 .counterPartyId("counter-party")
                 .counterPartyAddress("https://counter-party")
+                .updatedAt(12345) // impossible time
                 .protocol("test-protocol")
                 .build();
+        var originalTime = negotiation.getUpdatedAt();
         var command = new CancelNegotiationCommand(negotiationId);
-        
+
         when(store.find(negotiationId)).thenReturn(negotiation);
-        
+
         commandHandler.handle(command);
-        
+
         assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.ERROR.code());
         assertThat(negotiation.getErrorDetail()).isEqualTo("Cancelled");
+        assertThat(negotiation.getUpdatedAt()).isNotEqualTo(originalTime);
     }
-    
+
     @Test
     void handle_negotiationDoesNotExist_throwEdcException() {
         var negotiationId = "test";
         var command = new CancelNegotiationCommand(negotiationId);
-        
+
         when(store.find(negotiationId)).thenReturn(null);
-    
+
         assertThatThrownBy(() -> commandHandler.handle(command))
                 .isInstanceOf(EdcException.class)
                 .hasMessage(format("Could not find ContractNegotiation with ID [%s]", negotiationId));
     }
-    
+
     @Test
     void getType_returnType() {
         assertThat(commandHandler.getType()).isEqualTo(CancelNegotiationCommand.class);
     }
-    
+
 }

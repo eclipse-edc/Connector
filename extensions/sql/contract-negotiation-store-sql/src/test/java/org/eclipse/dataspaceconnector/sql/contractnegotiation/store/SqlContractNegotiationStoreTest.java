@@ -235,20 +235,16 @@ class SqlContractNegotiationStoreTest {
     @DisplayName("Verify that updating an entity breaks the lease")
     void update_leasedBySelf_shouldBreakLease() {
         var id = "test-id1";
-        var negotiation = createNegotiation(id);
+        var builder = createNegotiationBuilder(id);
+        var negotiation = builder.build();
         store.save(negotiation);
 
         leaseUtil.leaseEntity(id, CONNECTOR_NAME);
 
-        var newNegotiation = ContractNegotiation.Builder.newInstance()
-                .type(ContractNegotiation.Type.CONSUMER)
-                .id(id)
+        var newNegotiation = builder
                 .stateCount(420) //modified
                 .state(800) //modified
-                .correlationId("corr-test-id1")
-                .counterPartyAddress("consumer")
-                .counterPartyId("consumerId")
-                .protocol("ids-multipart")
+                .updatedAt(Clock.systemUTC().millis())
                 .build();
 
         // update should break lease
@@ -258,7 +254,7 @@ class SqlContractNegotiationStoreTest {
 
 
         var next = store.nextForState(800, 10);
-        assertThat(next).usingRecursiveFieldByFieldElementComparator().containsOnly(newNegotiation);
+        assertThat(next).usingRecursiveFieldByFieldElementComparatorIgnoringFields("updatedAt").containsOnly(newNegotiation);
 
     }
 

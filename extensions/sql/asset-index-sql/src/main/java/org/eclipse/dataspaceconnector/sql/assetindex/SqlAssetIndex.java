@@ -43,6 +43,7 @@ import java.util.stream.Stream;
 import javax.sql.DataSource;
 
 import static java.lang.String.format;
+import static java.util.Optional.ofNullable;
 import static org.eclipse.dataspaceconnector.sql.SqlQueryExecutor.executeQuery;
 
 public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolver {
@@ -99,7 +100,7 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
                         throw new EdcPersistenceException(format("Cannot persist. Asset with ID '%s' already exists.", asset.getId()));
                     }
 
-                    executeQuery(connection, assetStatements.getInsertAssetTemplate(), asset.getId());
+                    executeQuery(connection, assetStatements.getInsertAssetTemplate(), asset.getId(), asset.getCreatedAt());
                     var insertDataAddressTemplate = assetStatements.getInsertDataAddressTemplate();
                     executeQuery(connection, insertDataAddressTemplate, asset.getId(), objectMapper.writeValueAsString(dataAddress.getProperties()));
 
@@ -143,7 +144,7 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
 
                 var statement = assetStatements.createQuery(querySpec);
 
-                List<String> ids = executeQuery(connection, this::mapAssetIds, statement.getQueryAsString(), statement.getParameters());
+                var ids = executeQuery(connection, this::mapAssetIds, statement.getQueryAsString(), statement.getParameters());
                 return ids.stream().map(this::findById);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
@@ -161,10 +162,11 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
                 if (!existsById(assetId, connection)) {
                     return null;
                 }
+                var ts = single(executeQuery(connection, resultSet -> resultSet.getLong(assetStatements.getCreatedAtColumn()), assetStatements.getSelectAssetByIdTemplate(), assetId));
                 var assetProperties = executeQuery(connection, this::mapPropertyResultSet, assetStatements.getFindPropertyByIdTemplate(), assetId).stream().collect(Collectors.toMap(
                         AbstractMap.SimpleImmutableEntry::getKey,
                         AbstractMap.SimpleImmutableEntry::getValue));
-                return Asset.Builder.newInstance().id(assetId).properties(assetProperties).build();
+                return Asset.Builder.newInstance().id(assetId).properties(assetProperties).createdAt(ofNullable(ts).orElse(0L)).build();
             });
 
         } catch (Exception e) {
@@ -205,14 +207,15 @@ public class SqlAssetIndex implements AssetLoader, AssetIndex, DataAddressResolv
         return new AbstractMap.SimpleImmutableEntry<>(name, fromPropertyValue(value, type));
     }
 
+
     @Nullable
-    private DataAddress single(List<DataAddress> dataAddressList) {
-        if (dataAddressList.size() <= 0) {
+    private <T> T single(List<T> list) {
+        if (list.size() == 0) {
             return null;
-        } else if (dataAddressList.size() > 1) {
-            throw new IllegalStateException("Expected result set size of 0 or 1 but got " + dataAddressList.size());
+        } else if (list.size() > 1) {
+            throw new IllegalStateException("Expected result set size of 0 or 1 but got " + list.size());
         } else {
-            return dataAddressList.iterator().next();
+            return list.iterator().next();
         }
     }
 

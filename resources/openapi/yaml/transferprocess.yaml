@@ -271,7 +271,7 @@ components:
     TransferProcessDto:
       type: object
       properties:
-        createdTimestamp:
+        createdAt:
           type: integer
           format: int64
         dataDestination:
@@ -289,6 +289,9 @@ components:
           format: int64
         type:
           type: string
+        updatedAt:
+          type: integer
+          format: int64
     TransferRequestDto:
       type: object
       properties:

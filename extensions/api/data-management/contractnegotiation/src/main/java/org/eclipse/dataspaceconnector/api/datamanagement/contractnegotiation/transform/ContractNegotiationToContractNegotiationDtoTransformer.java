@@ -46,6 +46,8 @@ public class ContractNegotiationToContractNegotiationDtoTransformer implements D
                 .protocol(object.getProtocol())
                 .counterPartyAddress(object.getCounterPartyAddress())
                 .errorDetail(object.getErrorDetail())
+                .createdAt(object.getCreatedAt())
+                .updatedAt(object.getUpdatedAt())
                 .build();
     }
 }

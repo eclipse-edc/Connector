@@ -18,10 +18,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
@@ -123,7 +123,8 @@ public class SqlPolicyDefinitionStore implements PolicyDefinitionStore {
                         policy.getAssignee(),
                         policy.getTarget(),
                         toJson(policy.getType(), new TypeReference<PolicyType>() {
-                        }));
+                        }),
+                        def.getCreatedAt());
             } catch (Exception e) {
                 throw new EdcPersistenceException(e.getMessage(), e);
             }
@@ -173,8 +174,10 @@ public class SqlPolicyDefinitionStore implements PolicyDefinitionStore {
                 .type(fromJson(resultSet.getString(statements.getTypeColumn()), new TypeReference<>() {
                 }))
                 .build();
-        return PolicyDefinition.Builder.newInstance().uid(resultSet.getString(statements.getPolicyIdColumn()))
+        return PolicyDefinition.Builder.newInstance()
+                .uid(resultSet.getString(statements.getPolicyIdColumn()))
                 .policy(policy)
+                .createdAt(resultSet.getLong(statements.getCreatedAtColumn()))
                 .build();
     }
 

@@ -177,7 +177,7 @@ class TransferProcessManagerImplTest {
         manager.initiateProviderRequest(dataRequest);
         manager.stop();
 
-        verify(transferProcessStore, times(1)).create(argThat(p -> p.getCreatedTimestamp() == currentTime));
+        verify(transferProcessStore, times(1)).create(argThat(p -> p.getCreatedAt() == currentTime));
         verify(listener).initiated(any());
     }
 

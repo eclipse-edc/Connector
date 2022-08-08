@@ -255,7 +255,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Provi
                 .id(id)
                 .dataRequest(dataRequest)
                 .type(type)
-                .createdTimestamp(clock.millis())
+                .createdAt(clock.millis())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .build();
         if (process.getState() == TransferProcessStates.UNSAVED.code()) {

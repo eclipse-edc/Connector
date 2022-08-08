@@ -48,7 +48,7 @@ class DtoValidationTest {
     @Test
     void verifyValidation_assetEntryDto_missingDataAddress() {
         var entry = AssetEntryDto.Builder.newInstance()
-                .asset(AssetDto.Builder.newInstance().build())
+                .asset(AssetDto.Builder.newInstance().id("test-asset").build())
                 .dataAddress(null) // should break validation
                 .build();
 

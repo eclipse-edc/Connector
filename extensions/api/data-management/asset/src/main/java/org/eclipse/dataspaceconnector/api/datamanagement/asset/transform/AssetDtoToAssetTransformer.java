@@ -35,6 +35,9 @@ public class AssetDtoToAssetTransformer implements DtoTransformer<AssetDto, Asse
 
     @Override
     public @Nullable Asset transform(@Nullable AssetDto object, @NotNull TransformerContext context) {
-        return Asset.Builder.newInstance().properties(object.getProperties()).build();
+        return Asset.Builder.newInstance()
+                .properties(object.getProperties())
+                .id(object.getId())
+                .build();
     }
 }

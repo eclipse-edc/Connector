@@ -19,9 +19,9 @@ import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -43,6 +43,7 @@ public class BlobTransferUtils {
     public static void createAsset(String accountName, String containerName) {
         var asset = Map.of(
                 "asset", Map.of(
+                        "id", PROVIDER_ASSET_ID,
                         "properties", Map.of(
                                 "asset:prop:name", PROVIDER_ASSET_ID,
                                 "asset:prop:contenttype", "text/plain",

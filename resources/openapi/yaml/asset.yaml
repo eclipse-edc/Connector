@@ -172,11 +172,17 @@ components:
     AssetDto:
       type: object
       properties:
+        createdAt:
+          type: integer
+          format: int64
+        id:
+          type: string
         properties:
           type: object
           additionalProperties:
             type: object
       required:
+      - id
       - properties
     AssetEntryDto:
       type: object

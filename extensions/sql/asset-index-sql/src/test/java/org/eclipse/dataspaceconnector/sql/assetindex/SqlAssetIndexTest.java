@@ -42,7 +42,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.AbstractMap;
+import java.time.Clock;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -105,34 +105,20 @@ public class SqlAssetIndexTest {
         var assetExpected = getAsset("id1");
         sqlAssetIndex.accept(assetExpected, getDataAddress());
 
-        try (var connection = getConnection()) {
+        var assetFound = sqlAssetIndex.findById("id1");
 
-            var assetProperties = transactionContext.execute(() -> {
-                var assetCount = executeQuery(connection, sqlAssetIndex::mapRowCount, sqlStatements.getCountAssetByIdClause(), assetExpected.getId()).iterator().next();
+        assertThat(assetFound).isNotNull();
+        assertThat(assetFound).usingRecursiveComparison().isEqualTo(assetExpected);
+    }
 
-                if (assetCount <= 0) {
-                    return null;
-                } else if (assetCount > 1) {
-                    throw new IllegalStateException("Expected result set size of 0 or 1 but got " + assetCount);
-                }
+    @Test
+    void store_verifyTimestamp() {
+        var asset = getAsset("test-asset");
+        sqlAssetIndex.accept(asset, getDataAddress());
 
-                return executeQuery(connection, sqlAssetIndex::mapPropertyResultSet, sqlStatements.getFindPropertyByIdTemplate(), assetExpected.getId()).stream().collect(Collectors.toMap(
-                        AbstractMap.SimpleImmutableEntry::getKey,
-                        AbstractMap.SimpleImmutableEntry::getValue));
-            });
-
-            var assetFound = Asset.Builder.newInstance().id(assetExpected.getId()).properties(assetProperties).build();
-
-            assertThat(assetFound).isNotNull();
-            assertThat(assetFound).usingRecursiveComparison().isEqualTo(assetExpected);
-
-        } catch (Exception e) {
-            if (e instanceof EdcPersistenceException) {
-                throw (EdcPersistenceException) e;
-            } else {
-                throw new EdcPersistenceException(e.getMessage(), e);
-            }
-        }
+        var allAssets = sqlAssetIndex.queryAssets(QuerySpec.none()).collect(Collectors.toList());
+        assertThat(allAssets).hasSize(1)
+                .allSatisfy(a -> assertThat(a.getCreatedAt()).isNotEqualTo(0));
     }
 
     @Test
@@ -152,34 +138,12 @@ public class SqlAssetIndexTest {
         var assetExpected = getAsset("id1");
         sqlAssetIndex.accept(new AssetEntry(assetExpected, getDataAddress()));
 
-        try (var connection = getConnection()) {
 
-            var assetProperties = transactionContext.execute(() -> {
-                var assetCount = executeQuery(connection, sqlAssetIndex::mapRowCount, sqlStatements.getCountAssetByIdClause(), assetExpected.getId()).iterator().next();
+        var assetFound = sqlAssetIndex.findById("id1");
 
-                if (assetCount <= 0) {
-                    return null;
-                } else if (assetCount > 1) {
-                    throw new IllegalStateException("Expected result set size of 0 or 1 but got " + assetCount);
-                }
+        assertThat(assetFound).isNotNull();
+        assertThat(assetFound).usingRecursiveComparison().isEqualTo(assetExpected);
 
-                return executeQuery(connection, sqlAssetIndex::mapPropertyResultSet, sqlStatements.getFindPropertyByIdTemplate(), assetExpected.getId()).stream().collect(Collectors.toMap(
-                        AbstractMap.SimpleImmutableEntry::getKey,
-                        AbstractMap.SimpleImmutableEntry::getValue));
-            });
-
-            var assetFound = Asset.Builder.newInstance().id(assetExpected.getId()).properties(assetProperties).build();
-
-            assertThat(assetFound).isNotNull();
-            assertThat(assetFound).usingRecursiveComparison().isEqualTo(assetExpected);
-
-        } catch (Exception e) {
-            if (e instanceof EdcPersistenceException) {
-                throw (EdcPersistenceException) e;
-            } else {
-                throw new EdcPersistenceException(e.getMessage(), e);
-            }
-        }
     }
 
     @Test
@@ -423,6 +387,7 @@ public class SqlAssetIndexTest {
     private Asset getAsset(String id) {
         return Asset.Builder.newInstance()
                 .id(id)
+                .createdAt(Clock.systemUTC().millis())
                 .property("key" + id, "value" + id)
                 .contentType("type")
                 .build();

@@ -15,8 +15,8 @@
 package org.eclipse.dataspaceconnector.spi.observe.policydefinition;
 
 
-import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.observe.Observable;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 
 /**
  * Interface implemented by listeners registered to observe policy definition state changes via {@link Observable#registerListener}.
@@ -25,7 +25,7 @@ import org.eclipse.dataspaceconnector.spi.observe.Observable;
 public interface PolicyDefinitionListener {
 
     /**
-     * Called after a {@link org.eclipse.dataspaceconnector.policy.model.PolicyDefinition} was created.
+     * Called after a {@link PolicyDefinition} was created.
      *
      * @param policyDefinition the policyDefinition that has been created.
      */

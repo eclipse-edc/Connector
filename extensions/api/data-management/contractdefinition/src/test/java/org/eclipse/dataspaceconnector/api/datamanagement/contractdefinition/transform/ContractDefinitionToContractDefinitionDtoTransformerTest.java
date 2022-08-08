@@ -49,6 +49,7 @@ class ContractDefinitionToContractDefinitionDtoTransformerTest {
         assertThat(dto.getId()).isEqualTo(contractDefinition.getId());
         assertThat(dto.getAccessPolicyId()).isEqualTo(contractDefinition.getAccessPolicyId());
         assertThat(dto.getContractPolicyId()).isEqualTo(contractDefinition.getContractPolicyId());
+        assertThat(dto.getCreatedAt()).isNotEqualTo(0L);
         assertThat(dto.getCriteria()).containsExactlyElementsOf(contractDefinition.getSelectorExpression().getCriteria());
     }
 

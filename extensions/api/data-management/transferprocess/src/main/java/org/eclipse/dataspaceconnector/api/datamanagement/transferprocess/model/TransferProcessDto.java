@@ -17,14 +17,14 @@ package org.eclipse.dataspaceconnector.api.datamanagement.transferprocess.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.api.model.MutableDto;
 
 @JsonDeserialize(builder = TransferProcessDto.Builder.class)
-public class TransferProcessDto {
+public class TransferProcessDto extends MutableDto {
     private String id;
     private String type;
     private String state;
     private Long stateTimestamp;
-    private Long createdTimestamp;
     private String errorDetail;
     private DataRequestDto dataRequest;
     private DataAddressInformationDto dataDestination;
@@ -48,10 +48,6 @@ public class TransferProcessDto {
         return stateTimestamp;
     }
 
-    public Long getCreatedTimestamp() {
-        return createdTimestamp;
-    }
-
     public String getErrorDetail() {
         return errorDetail;
     }
@@ -65,11 +61,10 @@ public class TransferProcessDto {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder {
-        private final TransferProcessDto transferProcessDto;
+    public static final class Builder extends MutableDto.Builder<TransferProcessDto, Builder> {
 
         private Builder() {
-            transferProcessDto = new TransferProcessDto();
+            super(new TransferProcessDto());
         }
 
         @JsonCreator
@@ -78,47 +73,43 @@ public class TransferProcessDto {
         }
 
         public Builder id(String id) {
-            transferProcessDto.id = id;
+            dto.id = id;
             return this;
         }
 
         public Builder type(String type) {
-            transferProcessDto.type = type;
+            dto.type = type;
             return this;
         }
 
         public Builder state(String state) {
-            transferProcessDto.state = state;
+            dto.state = state;
             return this;
         }
 
         public Builder stateTimestamp(Long stateTimestamp) {
-            transferProcessDto.stateTimestamp = stateTimestamp;
-            return this;
-        }
-
-        public Builder createdTimestamp(Long createdTimestamp) {
-            transferProcessDto.createdTimestamp = createdTimestamp;
+            dto.stateTimestamp = stateTimestamp;
             return this;
         }
 
         public Builder errorDetail(String errorDetail) {
-            transferProcessDto.errorDetail = errorDetail;
+            dto.errorDetail = errorDetail;
             return this;
         }
 
         public Builder dataRequest(DataRequestDto dataRequest) {
-            transferProcessDto.dataRequest = dataRequest;
+            dto.dataRequest = dataRequest;
             return this;
         }
 
         public Builder dataDestination(DataAddressInformationDto dataDestination) {
-            transferProcessDto.dataDestination = dataDestination;
+            dto.dataDestination = dataDestination;
             return this;
         }
 
-        public TransferProcessDto build() {
-            return transferProcessDto;
+        @Override
+        public Builder self() {
+            return this;
         }
     }
 }

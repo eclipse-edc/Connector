@@ -31,6 +31,11 @@ components:
     Asset:
       type: object
       properties:
+        createdAt:
+          type: integer
+          format: int64
+        id:
+          type: string
         properties:
           type: object
           additionalProperties:

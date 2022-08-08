@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.sql.policy.store;
 
 import org.eclipse.dataspaceconnector.common.util.junit.annotations.ComponentTest;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.transaction.NoopTransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
@@ -119,6 +119,7 @@ class SqlPolicyDefinitionStoreTest {
 
         assertThat(1).isEqualTo(policyFromDb.size());
         assertThat("Target2").isEqualTo(policyFromDb.get(0).getPolicy().getTarget());
+        assertThat(policyFromDb.get(0)).extracting(PolicyDefinition::getCreatedAt).isEqualTo(policy2.getCreatedAt());
     }
 
     @Test

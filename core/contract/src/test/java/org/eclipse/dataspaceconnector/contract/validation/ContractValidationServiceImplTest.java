@@ -19,13 +19,13 @@ package org.eclipse.dataspaceconnector.contract.validation;
 
 import net.datafaker.Faker;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.policy.store.PolicyDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
@@ -200,7 +200,7 @@ class ContractValidationServiceImplTest {
 
         return validationService.validate(claimToken, agreement);
     }
-    
+
     private ContractDefinition getContractDefinition() {
         return ContractDefinition.Builder.newInstance()
                 .id("1")

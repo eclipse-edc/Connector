@@ -21,18 +21,23 @@ import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.policy.model.Operator;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.policy.model.PolicyDefinition;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyDefinition;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 
+import java.time.Clock;
 import java.util.List;
 
 public class TestFunctions {
     public static PolicyDefinition createPolicy(String id) {
         var policy = createPolicyBuilder(id).build();
 
-        return PolicyDefinition.Builder.newInstance().uid(id).policy(policy).build();
+        return PolicyDefinition.Builder.newInstance()
+                .createdAt(Clock.systemUTC().millis())
+                .uid(id)
+                .policy(policy)
+                .build();
     }
 
     public static Policy.Builder createPolicyBuilder(String id) {
@@ -47,7 +52,7 @@ public class TestFunctions {
                 .uid(id)
                 .build();
 
-        var p = Policy.Builder.newInstance()
+        return Policy.Builder.newInstance()
                 .permission(permission)
                 .prohibition(prohibition)
                 .duties(List.of(duty))
@@ -56,7 +61,6 @@ public class TestFunctions {
                 .assignee("sampleAssignee")
                 .target("sampleTarget")
                 .type(PolicyType.SET);
-        return p;
     }
 
     public static Prohibition.Builder createProhibitionBuilder(String id) {

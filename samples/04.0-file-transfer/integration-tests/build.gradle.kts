@@ -30,6 +30,7 @@ dependencies {
     testFixturesImplementation(project(":extensions:junit"))
     testFixturesImplementation(testFixtures(project(":common:util")))
     testFixturesImplementation(project(":extensions:api:data-management:transferprocess"))
+    testFixturesImplementation(project(":extensions:api:api-core"))
     testFixturesImplementation("io.rest-assured:rest-assured:${restAssured}")
     testFixturesImplementation("org.awaitility:awaitility:${awaitility}")
     testFixturesImplementation("org.assertj:assertj-core:${assertj}")
