@@ -24,9 +24,9 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-class ContractDefinitionToContractDefinitionDtoTransformerTest {
+class ContractDefinitionToContractDefinitionOutputDtoTransformerTest {
 
-    private final ContractDefinitionToContractDefinitionDtoTransformer transformer = new ContractDefinitionToContractDefinitionDtoTransformer();
+    private final ContractDefinitionToContractDefinitionOutputDtoTransformer transformer = new ContractDefinitionToContractDefinitionOutputDtoTransformer();
 
     @Test
     void inputOutputType() {

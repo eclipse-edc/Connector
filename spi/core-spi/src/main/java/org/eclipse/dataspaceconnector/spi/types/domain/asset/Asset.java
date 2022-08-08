@@ -135,7 +135,8 @@ public class Asset extends Entity {
         }
 
         public B properties(Map<String, Object> properties) {
-            entity.properties = Objects.requireNonNull(properties);
+            Objects.requireNonNull(properties);
+            entity.properties.putAll(properties);
             return self();
         }
 

@@ -36,7 +36,7 @@ class ContractDefinitionDtoTest {
 
     @Test
     void verifySerialization() throws JsonProcessingException {
-        var dto = ContractDefinitionDto.Builder.newInstance()
+        var dto = ContractDefinitionOutputDto.Builder.newInstance()
                 .contractPolicyId("test-contract-policyid")
                 .accessPolicyId("test-access-policyid")
                 .id("test-id")
@@ -47,7 +47,7 @@ class ContractDefinitionDtoTest {
 
         assertThat(str).isNotNull();
 
-        var deserialized = objectMapper.readValue(str, ContractDefinitionDto.class);
+        var deserialized = objectMapper.readValue(str, ContractDefinitionOutputDto.class);
         assertThat(deserialized).usingRecursiveComparison().isEqualTo(dto);
     }
 }

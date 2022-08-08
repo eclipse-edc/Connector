@@ -45,21 +45,22 @@ class ContractDefinitionDtoValidationTest {
     @ParameterizedTest
     @ArgumentsSource(InvalidArgsProvider.class)
     void validate_invalidProperty(String id, String accessPolicyId, String contractPolicyId) {
-
-        var crit = List.of(new Criterion("foo", "=", "bar"));
-
-        var dto = ContractDefinitionDto.Builder.newInstance()
+        var criteria = List.of(new Criterion("foo", "=", "bar"));
+        var dto = ContractDefinitionInputDto.Builder.newInstance()
                 .id(id)
                 .accessPolicyId(accessPolicyId)
                 .contractPolicyId(contractPolicyId)
-                .criteria(crit)
+                .criteria(criteria)
                 .build();
-        assertThat(validator.validate(dto)).hasSizeGreaterThan(0);
+
+        var result = validator.validate(dto);
+
+        assertThat(result).hasSizeGreaterThan(0);
     }
 
     @Test
     void validate_nullCriteria() {
-        var dto = ContractDefinitionDto.Builder.newInstance()
+        var dto = ContractDefinitionInputDto.Builder.newInstance()
                 .id("id")
                 .accessPolicyId("accessPolicyId")
                 .contractPolicyId("contractPolicyId")

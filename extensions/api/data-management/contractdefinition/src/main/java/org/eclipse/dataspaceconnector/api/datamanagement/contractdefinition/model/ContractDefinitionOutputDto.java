@@ -16,35 +16,22 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotNull;
 import org.eclipse.dataspaceconnector.api.model.BaseOutputDto;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@JsonDeserialize(builder = ContractDefinitionDto.Builder.class)
-public class ContractDefinitionDto extends BaseOutputDto {
-    @NotNull(message = "id cannot be null")
+@JsonDeserialize(builder = ContractDefinitionOutputDto.Builder.class)
+public class ContractDefinitionOutputDto extends BaseOutputDto {
     private String id;
-    @NotNull(message = "accessPolicyId cannot be null")
     private String accessPolicyId;
-    @NotNull(message = "accessPolicyId cannot be null")
     private String contractPolicyId;
-    @NotNull(message = "criteria cannot be null")
     private List<Criterion> criteria = new ArrayList<>();
 
-    private ContractDefinitionDto() {
-    }
-
-    @AssertTrue(message = "id cannot contain the ':' character")
-    @JsonIgnore
-    public boolean isIdValid() {
-        return id != null && !id.contains(":");
+    private ContractDefinitionOutputDto() {
     }
 
     public String getAccessPolicyId() {
@@ -64,9 +51,9 @@ public class ContractDefinitionDto extends BaseOutputDto {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder extends BaseOutputDto.Builder<ContractDefinitionDto, Builder> {
+    public static final class Builder extends BaseOutputDto.Builder<ContractDefinitionOutputDto, Builder> {
         private Builder() {
-            super(new ContractDefinitionDto());
+            super(new ContractDefinitionOutputDto());
         }
 
         @JsonCreator

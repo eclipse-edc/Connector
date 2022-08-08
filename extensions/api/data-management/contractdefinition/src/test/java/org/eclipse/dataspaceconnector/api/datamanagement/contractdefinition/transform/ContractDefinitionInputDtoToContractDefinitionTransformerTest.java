@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.transform;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition.model.ContractDefinitionInputDto;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.junit.jupiter.api.Test;
@@ -25,9 +25,9 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-class ContractDefinitionDtoToContractDefinitionTransformerTest {
+class ContractDefinitionInputDtoToContractDefinitionTransformerTest {
 
-    private final ContractDefinitionDtoToContractDefinitionTransformer transformer = new ContractDefinitionDtoToContractDefinitionTransformer();
+    private final ContractDefinitionInputDtoToContractDefinitionTransformer transformer = new ContractDefinitionInputDtoToContractDefinitionTransformer();
 
     @Test
     void inputOutputType() {
@@ -38,7 +38,7 @@ class ContractDefinitionDtoToContractDefinitionTransformerTest {
     @Test
     void transform() {
         var context = mock(TransformerContext.class);
-        var contractDefinitionDto = ContractDefinitionDto.Builder.newInstance()
+        var contractDefinitionDto = ContractDefinitionInputDto.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
@@ -52,26 +52,6 @@ class ContractDefinitionDtoToContractDefinitionTransformerTest {
         assertThat(contractDefinition.getContractPolicyId()).isEqualTo(contractDefinitionDto.getContractPolicyId());
         assertThat(contractDefinition.getSelectorExpression().getCriteria()).containsExactlyElementsOf(contractDefinitionDto.getCriteria());
         assertThat(contractDefinition.getCreatedAt()).isNotEqualTo(0L); //should be set automatically
-    }
-
-    @Test
-    void transform_withTimestamp() {
-        var context = mock(TransformerContext.class);
-        var contractDefinitionDto = ContractDefinitionDto.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .accessPolicyId(UUID.randomUUID().toString())
-                .createdAt(12345L)
-                .contractPolicyId(UUID.randomUUID().toString())
-                .criteria(List.of(new Criterion("left", "=", "right")))
-                .build();
-
-        var contractDefinition = transformer.transform(contractDefinitionDto, context);
-
-        assertThat(contractDefinition.getId()).isEqualTo(contractDefinitionDto.getId());
-        assertThat(contractDefinition.getAccessPolicyId()).isEqualTo(contractDefinitionDto.getAccessPolicyId());
-        assertThat(contractDefinition.getContractPolicyId()).isEqualTo(contractDefinitionDto.getContractPolicyId());
-        assertThat(contractDefinition.getSelectorExpression().getCriteria()).containsExactlyElementsOf(contractDefinitionDto.getCriteria());
-        assertThat(contractDefinition.getCreatedAt()).isNotEqualTo(12345L); // timestamps cannot be set through DTOs
     }
 
 }
