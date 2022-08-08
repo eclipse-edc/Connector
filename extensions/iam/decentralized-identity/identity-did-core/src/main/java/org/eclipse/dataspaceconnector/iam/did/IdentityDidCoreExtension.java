@@ -23,6 +23,8 @@ import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubApiController;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubClientImpl;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubImpl;
 import org.eclipse.dataspaceconnector.iam.did.hub.store.InMemoryIdentityHubStore;
+import org.eclipse.dataspaceconnector.iam.did.resolution.DidPublicKeyResolverImpl;
+import org.eclipse.dataspaceconnector.iam.did.resolution.DidResolverRegistryImpl;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
@@ -46,7 +48,7 @@ import java.time.Clock;
 import java.util.function.Supplier;
 
 
-@Provides({ IdentityHub.class, IdentityHubClient.class })
+@Provides({ IdentityHub.class, IdentityHubClient.class, DidResolverRegistry.class, DidPublicKeyResolver.class })
 public class IdentityDidCoreExtension implements ServiceExtension {
 
     @Inject
@@ -61,12 +63,6 @@ public class IdentityDidCoreExtension implements ServiceExtension {
     @Inject
     private Clock clock;
 
-    @Inject
-    private DidResolverRegistry didResolverRegistry;
-
-    @Inject
-    private DidPublicKeyResolver publicKeyResolver;
-
     @Override
     public String name() {
         return "Identity Did Core";
@@ -76,9 +72,15 @@ public class IdentityDidCoreExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var objectMapper = context.getTypeManager().getMapper();
 
-        registerParsers(privateKeyResolver);
+        var didResolverRegistry = new DidResolverRegistryImpl();
+        context.registerService(DidResolverRegistry.class, didResolverRegistry);
 
-        PrivateKeyWrapper privateKeyWrapper = privateKeyResolver.resolvePrivateKey(context.getConnectorId(), PrivateKeyWrapper.class);
+        var publicKeyResolver = new DidPublicKeyResolverImpl(didResolverRegistry);
+        context.registerService(DidPublicKeyResolver.class, publicKeyResolver);
+
+        registerParsers(privateKeyResolver);
+        
+        var privateKeyWrapper = privateKeyResolver.resolvePrivateKey(context.getConnectorId(), PrivateKeyWrapper.class);
         Supplier<PrivateKeyWrapper> supplier = () -> privateKeyWrapper;
         var hub = new IdentityHubImpl(hubStore, supplier, publicKeyResolver, objectMapper);
         context.registerService(IdentityHub.class, hub);

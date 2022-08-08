@@ -19,6 +19,7 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubApiController;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubClientImpl;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubImpl;
+import org.eclipse.dataspaceconnector.iam.did.resolution.DidPublicKeyResolverImpl;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
@@ -65,6 +66,9 @@ class IdentityDidCoreExtensionTest {
         context.registerService(HealthCheckService.class, mock(HealthCheckService.class));
 
         extension.initialize(context);
+
+        assertThat(context.getService(DidResolverRegistry.class)).isInstanceOf(DidResolverRegistry.class);
+        assertThat(context.getService(DidPublicKeyResolver.class)).isInstanceOf(DidPublicKeyResolverImpl.class);
 
         assertThat(context.getService(IdentityHub.class)).isInstanceOf(IdentityHubImpl.class);
         assertThat(context.getService(IdentityHubClient.class)).isInstanceOf(IdentityHubClientImpl.class);

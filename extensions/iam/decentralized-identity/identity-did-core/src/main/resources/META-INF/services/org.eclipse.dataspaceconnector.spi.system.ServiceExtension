@@ -1,3 +1,1 @@
 org.eclipse.dataspaceconnector.iam.did.IdentityDidCoreExtension
-org.eclipse.dataspaceconnector.iam.did.DidResolverRegistryExtension
-org.eclipse.dataspaceconnector.iam.did.DidPublicKeyResolverExtension
