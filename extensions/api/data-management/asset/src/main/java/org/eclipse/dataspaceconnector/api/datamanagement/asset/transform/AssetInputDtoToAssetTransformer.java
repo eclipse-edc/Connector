@@ -14,18 +14,18 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.transform;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetInputDto;
 import org.eclipse.dataspaceconnector.api.transformer.DtoTransformer;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AssetDtoToAssetTransformer implements DtoTransformer<AssetDto, Asset> {
+public class AssetInputDtoToAssetTransformer implements DtoTransformer<AssetInputDto, Asset> {
 
     @Override
-    public Class<AssetDto> getInputType() {
-        return AssetDto.class;
+    public Class<AssetInputDto> getInputType() {
+        return AssetInputDto.class;
     }
 
     @Override
@@ -34,10 +34,10 @@ public class AssetDtoToAssetTransformer implements DtoTransformer<AssetDto, Asse
     }
 
     @Override
-    public @Nullable Asset transform(@Nullable AssetDto object, @NotNull TransformerContext context) {
+    public @Nullable Asset transform(@Nullable AssetInputDto object, @NotNull TransformerContext context) {
         return Asset.Builder.newInstance()
-                .properties(object.getProperties())
                 .id(object.getId())
+                .properties(object.getProperties())
                 .build();
     }
 }

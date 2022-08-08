@@ -14,7 +14,8 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.transform;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetInputDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetOutputDto;
 import org.eclipse.dataspaceconnector.spi.transformer.TransformerContext;
 import org.junit.jupiter.api.Test;
 
@@ -24,9 +25,9 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-class AssetDtoToAssetTransformerTest {
+class AssetInputDtoToAssetTransformerTest {
 
-    private final AssetDtoToAssetTransformer transformer = new AssetDtoToAssetTransformer();
+    private final AssetInputDtoToAssetTransformer transformer = new AssetInputDtoToAssetTransformer();
 
     @Test
     void inputOutputType() {
@@ -37,7 +38,7 @@ class AssetDtoToAssetTransformerTest {
     @Test
     void transform() {
         var context = mock(TransformerContext.class);
-        var assetDto = AssetDto.Builder.newInstance().properties(new HashMap<>(Map.of("key", "value"))).build();
+        var assetDto = AssetInputDto.Builder.newInstance().properties(new HashMap<>(Map.of("key", "value"))).build();
 
         var asset = transformer.transform(assetDto, context);
 

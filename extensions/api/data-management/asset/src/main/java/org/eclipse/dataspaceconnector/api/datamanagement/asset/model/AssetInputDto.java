@@ -15,38 +15,46 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 
-@JsonDeserialize(builder = AssetEntryDto.Builder.class)
-public class AssetEntryDto {
-    @NotNull(message = "asset cannot be null")
-    @Valid
-    private AssetInputDto asset;
-    @NotNull(message = "dataAddress cannot be null")
-    @Valid
-    private DataAddressDto dataAddress;
+import java.util.Map;
 
-    private AssetEntryDto() {
+@JsonDeserialize(builder = AssetInputDto.Builder.class)
+public class AssetInputDto {
+
+    private String id;
+
+    @NotNull(message = "properties cannot be null")
+    private Map<String, Object> properties;
+
+    private AssetInputDto() {
     }
 
-    public AssetInputDto getAsset() {
-        return asset;
+    @JsonIgnore
+    @AssertTrue(message = "no empty property keys")
+    public boolean isValid() {
+        return properties != null && properties.keySet().stream().noneMatch(it -> it == null || it.isBlank());
     }
 
-    public DataAddressDto getDataAddress() {
-        return dataAddress;
+    public Map<String, Object> getProperties() {
+        return properties;
+    }
+
+    public String getId() {
+        return id;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
 
-        private final AssetEntryDto assetEntryDto;
+        private final AssetInputDto dto;
 
         private Builder() {
-            assetEntryDto = new AssetEntryDto();
+            this.dto = new AssetInputDto();
         }
 
         @JsonCreator
@@ -54,18 +62,18 @@ public class AssetEntryDto {
             return new Builder();
         }
 
-        public Builder asset(AssetInputDto asset) {
-            assetEntryDto.asset = asset;
+        public Builder id(String id) {
+            dto.id = id;
             return this;
         }
 
-        public Builder dataAddress(DataAddressDto dataAddress) {
-            assetEntryDto.dataAddress = dataAddress;
+        public Builder properties(Map<String, Object> properties) {
+            dto.properties = properties;
             return this;
         }
 
-        public AssetEntryDto build() {
-            return assetEntryDto;
+        public AssetInputDto build() {
+            return dto;
         }
     }
 }

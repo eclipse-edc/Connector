@@ -21,14 +21,14 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
-import org.eclipse.dataspaceconnector.api.model.BaseDto;
+import org.eclipse.dataspaceconnector.api.model.BaseOutputDto;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @JsonDeserialize(builder = ContractDefinitionDto.Builder.class)
-public class ContractDefinitionDto extends BaseDto {
+public class ContractDefinitionDto extends BaseOutputDto {
     @NotNull(message = "id cannot be null")
     private String id;
     @NotNull(message = "accessPolicyId cannot be null")
@@ -64,7 +64,7 @@ public class ContractDefinitionDto extends BaseDto {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder extends BaseDto.Builder<ContractDefinitionDto, Builder> {
+    public static final class Builder extends BaseOutputDto.Builder<ContractDefinitionDto, Builder> {
         private Builder() {
             super(new ContractDefinitionDto());
         }

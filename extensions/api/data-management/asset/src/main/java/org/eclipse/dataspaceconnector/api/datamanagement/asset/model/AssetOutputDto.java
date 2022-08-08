@@ -15,31 +15,20 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotNull;
-import org.eclipse.dataspaceconnector.api.model.BaseDto;
+import org.eclipse.dataspaceconnector.api.model.BaseOutputDto;
 
 import java.util.Map;
 
-@JsonDeserialize(builder = AssetDto.Builder.class)
-public class AssetDto extends BaseDto {
+@JsonDeserialize(builder = AssetOutputDto.Builder.class)
+public class AssetOutputDto extends BaseOutputDto {
 
-    @NotNull(message = "properties cannot be null")
     private Map<String, Object> properties;
 
-    @NotNull(message = "id cannot be null! (asset:prop:id is deprecated)")
     private String id;
 
-    private AssetDto() {
-    }
-
-    @JsonIgnore
-    @AssertTrue(message = "no empty property keys")
-    public boolean isValid() {
-        return properties != null && properties.keySet().stream().noneMatch(it -> it == null || it.isBlank());
+    private AssetOutputDto() {
     }
 
     public Map<String, Object> getProperties() {
@@ -51,10 +40,10 @@ public class AssetDto extends BaseDto {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder extends BaseDto.Builder<AssetDto, Builder> {
+    public static final class Builder extends BaseOutputDto.Builder<AssetOutputDto, Builder> {
 
         private Builder() {
-            super(new AssetDto());
+            super(new AssetOutputDto());
         }
 
         @JsonCreator

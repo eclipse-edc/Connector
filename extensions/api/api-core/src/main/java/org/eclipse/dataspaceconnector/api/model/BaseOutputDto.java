@@ -14,14 +14,14 @@
 
 package org.eclipse.dataspaceconnector.api.model;
 
-public class BaseDto {
+public class BaseOutputDto {
     protected long createdAt;
 
     public long getCreatedAt() {
         return createdAt;
     }
 
-    protected abstract static class Builder<D extends BaseDto, B extends Builder<D, B>> {
+    protected abstract static class Builder<D extends BaseOutputDto, B extends Builder<D, B>> {
         protected final D dto;
 
         protected Builder(D dto) {

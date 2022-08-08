@@ -86,10 +86,8 @@ public class Asset extends Entity {
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder<B extends Builder<B>> extends Entity.Builder<Asset, Builder<B>> {
 
-
         protected Builder(Asset asset) {
             super(asset);
-            asset.properties.put(PROPERTY_ID, UUID.randomUUID().toString()); //must always have an ID
         }
 
         @JsonCreator
@@ -114,11 +112,6 @@ public class Asset extends Entity {
         @Override
         public B self() {
             return (B) this;
-        }
-
-        @Override
-        public Asset build() {
-            return super.build();
         }
 
         public B name(String title) {
@@ -149,6 +142,14 @@ public class Asset extends Entity {
         public B property(String key, Object value) {
             entity.properties.put(key, value);
             return self();
+        }
+
+        @Override
+        public Asset build() {
+            if (entity.getId() == null) {
+                id(UUID.randomUUID().toString());
+            }
+            return super.build();
         }
 
     }
