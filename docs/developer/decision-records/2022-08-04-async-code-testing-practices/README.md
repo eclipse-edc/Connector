@@ -28,9 +28,6 @@ The following is a comparative of the current code with CountDownLatch and the p
 
 ### class `AssetEventDispatchTest`
 
-(
-extensions\api\data-management\asset\src\test\java\org\eclipse\dataspaceconnector\api\datamanagement\asset\service\AssetEventDispatchTest.java)
-
 #### with CountDownLatch
 
 ```java
