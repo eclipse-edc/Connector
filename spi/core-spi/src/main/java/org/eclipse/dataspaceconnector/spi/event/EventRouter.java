@@ -21,7 +21,16 @@ package org.eclipse.dataspaceconnector.spi.event;
 public interface EventRouter {
 
     /**
-     * Register a new subscriber to the events
+     * Register a new synchronous subscriber.
+     * The synchronous subscribers are supposed to being notified before the standard subscribers in a synchronous way.
+     * If a synchronous subscriber thrown an exception, this will stop the publish operation.
+     *
+     * @param subscriber that will receive every published event
+     */
+    void registerSync(EventSubscriber subscriber);
+
+    /**
+     * Register a new asynchronous subscriber to the events
      *
      * @param subscriber that will receive every published event
      */

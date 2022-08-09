@@ -6,6 +6,16 @@ emitted from the core of the EDC and also emit custom events.
 ## Subscribe to events
 The entry point for event listening is the `EventRouter` component, on which an `EventSubscriber` can be registered.
 
+Actually, there are two ways to register an `EventSubscriber`:
+- **async**: every event will be sent to the subscriber in an asynchronous way. Features:
+  - fast, as the main thread won't be blocked during dispatchment. 
+  - not-reliable, as an eventual subscriber dispatch failure won't get handled.
+  - to be used for notifications and for send-and-forget event dispatchment.
+- **sync**: every event will be sent to the subscriber in a synchronous way. Features:
+  - slow, as the subscriber will block the main thread until the event is dispatched
+  - reliable, an eventual exception will be thrown to the caller, and it could make a transactional context fail
+  - to be used for event persistence and to satisfy the "at-least-one" rule.
+
 Extension example:
 ```java
 public class ExampleEventSubscriptionExtension implements ServiceExtension {
@@ -14,7 +24,8 @@ public class ExampleEventSubscriptionExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        eventRouter.register(new ExampleEventSubscriber());
+        eventRouter.register(new ExampleEventSubscriber()); // asynchronous dispatch
+        eventRouter.registerSync(new ExampleEventSubscriber()); // synchronous dispatch
     }
 }
 ```
