@@ -34,7 +34,7 @@ repositories {
 
 dependencies {
     "swaggerCodegen"("org.openapitools:openapi-generator-cli:6.0.1")
-    "swaggerUI"("org.webjars:swagger-ui:4.11.1")
+    "swaggerUI"("org.webjars:swagger-ui:4.13.2")
 }
 
 val datafaker: String by project
